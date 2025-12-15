@@ -42,6 +42,7 @@ interface AttendanceRecord {
      late_minutes: number;
      overtime_hours: number;
      overtime_approved: boolean;
+     overtime_approved_by?: number;
      remarks: string;
 }
 
@@ -69,6 +70,7 @@ export default function CreateAttendancePage() {
           late_minutes: '',
           overtime_hours: '',
           overtime_approved: false,
+          overtime_approved_by: '',
           remarks: ''
      });
 
@@ -97,6 +99,7 @@ export default function CreateAttendancePage() {
                late_minutes: 0,
                overtime_hours: 0,
                overtime_approved: false,
+               overtime_approved_by: undefined,
                remarks: ''
           };
           setBulkRecords([...bulkRecords, newRecord]);
@@ -139,6 +142,11 @@ export default function CreateAttendancePage() {
                return;
           }
 
+          if (formData.overtime_approved && !formData.overtime_approved_by) {
+               alert('Please select an overtime approver when overtime is approved');
+               return;
+          }
+
           setLoading(true);
 
           try {
@@ -153,6 +161,7 @@ export default function CreateAttendancePage() {
                     late_minutes: formData.late_minutes ? parseInt(formData.late_minutes) : null,
                     overtime_hours: formData.overtime_hours ? parseFloat(formData.overtime_hours) : null,
                     overtime_approved: formData.overtime_approved,
+                    overtime_approved_by: formData.overtime_approved_by ? parseInt(formData.overtime_approved_by) : null,
                     remarks: formData.remarks || null
                };
 
@@ -184,6 +193,10 @@ export default function CreateAttendancePage() {
                const record = bulkRecords[i];
                if (!record.employeeid) {
                     alert(`Record ${i + 1}: Please select an employee`);
+                    return;
+               }
+               if (record.overtime_approved && !record.overtime_approved_by) {
+                    alert(`Record ${i + 1}: Please select an overtime approver when overtime is approved`);
                     return;
                }
           }
@@ -418,6 +431,28 @@ export default function CreateAttendancePage() {
                                                        </label>
                                                   </div>
                                              </div>
+                                             {formData.overtime_approved && (
+                                                  <div className="col-md-6">
+                                                       <label className="form-label">Overtime Approved By <span className="text-danger">*</span></label>
+                                                       <select
+                                                            className="form-select"
+                                                            name="overtime_approved_by"
+                                                            value={formData.overtime_approved_by}
+                                                            onChange={handleChange}
+                                                            required={formData.overtime_approved}
+                                                            disabled={employeesLoading}
+                                                       >
+                                                            <option value="">
+                                                                 {employeesLoading ? 'Loading employees...' : 'Select approver'}
+                                                            </option>
+                                                            {employees.map((employee) => (
+                                                                 <option key={employee.employeeid} value={employee.employeeid}>
+                                                                      {employee.username} (ID: {employee.employeeid}) - {employee.role}
+                                                                 </option>
+                                                            ))}
+                                                       </select>
+                                                  </div>
+                                             )}
                                         </div>
                                    </div>
 
@@ -541,6 +576,8 @@ export default function CreateAttendancePage() {
                                                        <th>Status</th>
                                                        <th>Late (min)</th>
                                                        <th>Overtime (hrs)</th>
+                                                       <th>Approved</th>
+                                                       <th>Approved By</th>
                                                        <th>Remarks</th>
                                                        <th>Actions</th>
                                                   </tr>
@@ -619,6 +656,33 @@ export default function CreateAttendancePage() {
                                                                       onChange={(e) => updateBulkRecord(index, 'overtime_hours', parseFloat(e.target.value) || 0)}
                                                                       min="0"
                                                                  />
+                                                            </td>
+                                                            <td>
+                                                                 <input
+                                                                      type="checkbox"
+                                                                      className="form-check-input"
+                                                                      checked={record.overtime_approved}
+                                                                      onChange={(e) => updateBulkRecord(index, 'overtime_approved', e.target.checked)}
+                                                                 />
+                                                            </td>
+                                                            <td>
+                                                                 {record.overtime_approved ? (
+                                                                      <select
+                                                                           className="form-select form-select-sm"
+                                                                           value={record.overtime_approved_by || ''}
+                                                                           onChange={(e) => updateBulkRecord(index, 'overtime_approved_by', e.target.value ? parseInt(e.target.value) : undefined)}
+                                                                           required={record.overtime_approved}
+                                                                      >
+                                                                           <option value="">Select Approver</option>
+                                                                           {employees.map((employee) => (
+                                                                                <option key={employee.employeeid} value={employee.employeeid}>
+                                                                                     {employee.username}
+                                                                                </option>
+                                                                           ))}
+                                                                      </select>
+                                                                 ) : (
+                                                                      <span className="text-muted">-</span>
+                                                                 )}
                                                             </td>
                                                             <td>
                                                                  <input

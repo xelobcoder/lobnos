@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { RiLoader4Line, RiArrowLeftLine, RiCalendarEventLine, RiErrorWarningLine, RiUserLine, RiTimeLine, RiFileTextLine, RiSaveLine } from '@remixicon/react';
-import { customPost,customFetch } from '../../../../../../components/Auth/customFetch';
+import { customPost, customFetch } from '../../../../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../../../../components/Auth/useApplicationContext';
 
 
@@ -12,21 +12,29 @@ interface AttendanceRecord {
      id: number;
      employeeid: number;
      attendance_date: string;
-     clock_in: string | null;
-     clock_out: string | null;
-     total_hours: number | null;
+     clock_in?: string;
+     clock_out?: string;
      shift_type: string;
      work_location: string;
      status: 'present' | 'absent' | 'late' | 'half_day' | 'leave';
-     late_minutes: number | null;
-     overtime_hours: number | null;
+     late_minutes: number;
+     overtime_hours: number;
      overtime_approved: boolean;
-     remarks: string | null;
-     employee_name: string;
-     employee_role: string;
-     email: string;
-     branch_name: string;
+     overtime_approved_by: number | null;
+     remarks?: string;
      created_at: string;
+     updated_at: string;
+}
+
+interface Employee {
+     employeeid: number;
+     username: string;
+     role: string;
+     email: string;
+     branch: number;
+     branchname: string;
+     emailAuthenticated: string;
+     activation: number;
 }
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
@@ -38,11 +46,14 @@ export default function EditAttendancePage() {
      const { user } = applicationsettings || {};
 
      const [attendanceRecord, setAttendanceRecord] = useState<AttendanceRecord | null>(null);
+     const [employees, setEmployees] = useState<Employee[]>([]);
+     const [employeesLoading, setEmployeesLoading] = useState(true);
      const [loading, setLoading] = useState(true);
      const [saving, setSaving] = useState(false);
      const [error, setError] = useState<string | null>(null);
 
      const [formData, setFormData] = useState({
+          employeeid: '',
           attendance_date: '',
           clock_in: '',
           clock_out: '',
@@ -52,6 +63,7 @@ export default function EditAttendancePage() {
           late_minutes: '',
           overtime_hours: '',
           overtime_approved: false,
+          overtime_approved_by: '',
           remarks: ''
      });
 
@@ -69,6 +81,7 @@ export default function EditAttendancePage() {
 
      useEffect(() => {
           fetchAttendanceRecord();
+          fetchEmployees();
      }, [attendanceId]);
 
      const fetchAttendanceRecord = async () => {
@@ -76,7 +89,6 @@ export default function EditAttendancePage() {
           setError(null);
 
           try {
-               // Note: This endpoint might need to be implemented in the backend
                const response = await customFetch(`payroll/attendance/${attendanceId}`);
 
                if (response?.status === 'success' && response?.statusCode === 200) {
@@ -85,7 +97,8 @@ export default function EditAttendancePage() {
 
                     // Populate form with existing data
                     setFormData({
-                         attendance_date: record.attendance_date,
+                         employeeid: record.employeeid.toString(),
+                         attendance_date: record.attendance_date ? new Date(record.attendance_date).toISOString().split('T')[0] : '',
                          clock_in: record.clock_in || '',
                          clock_out: record.clock_out || '',
                          shift_type: record.shift_type,
@@ -94,6 +107,7 @@ export default function EditAttendancePage() {
                          late_minutes: record.late_minutes?.toString() || '',
                          overtime_hours: record.overtime_hours?.toString() || '',
                          overtime_approved: record.overtime_approved,
+                         overtime_approved_by: record.overtime_approved_by?.toString() || '',
                          remarks: record.remarks || ''
                     });
                } else {
@@ -106,6 +120,21 @@ export default function EditAttendancePage() {
           }
      };
 
+     const fetchEmployees = async () => {
+          setEmployeesLoading(true);
+          try {
+               const response = await customFetch('logins');
+               if (response?.status === 'success' && response?.statusCode === 200) {
+                    setEmployees(response.result || []);
+               }
+          } catch (error) {
+               console.error('Error fetching employees:', error);
+               setEmployees([]);
+          } finally {
+               setEmployeesLoading(false);
+          }
+     };
+
      const handleSubmit = async (e: React.FormEvent) => {
           e.preventDefault();
 
@@ -114,10 +143,16 @@ export default function EditAttendancePage() {
                return;
           }
 
+          if (formData.overtime_approved && !formData.overtime_approved_by) {
+               alert('Please select an overtime approver when overtime is approved');
+               return;
+          }
+
           setSaving(true);
 
           try {
                const payload = {
+                    employeeid: parseInt(formData.employeeid),
                     attendance_date: formData.attendance_date,
                     clock_in: formData.clock_in || null,
                     clock_out: formData.clock_out || null,
@@ -127,6 +162,7 @@ export default function EditAttendancePage() {
                     late_minutes: formData.late_minutes ? parseInt(formData.late_minutes) : null,
                     overtime_hours: formData.overtime_hours ? parseFloat(formData.overtime_hours) : null,
                     overtime_approved: formData.overtime_approved,
+                    overtime_approved_by: formData.overtime_approved_by ? parseInt(formData.overtime_approved_by) : null,
                     remarks: formData.remarks || null
                };
 
@@ -195,7 +231,7 @@ export default function EditAttendancePage() {
                          <RiCalendarEventLine size={28} style={{ color: COLOR_ACCENT }} className="me-2" />
                          <div>
                               <h1 className="h4 mb-0 fw-bold">Edit Attendance</h1>
-                              <p className="text-muted mb-0 small">Update attendance record for {attendanceRecord.employee_name}</p>
+                              <p className="text-muted mb-0 small">Update attendance record</p>
                          </div>
                     </div>
                </div>
@@ -204,48 +240,32 @@ export default function EditAttendancePage() {
                <form onSubmit={handleSubmit}>
                     <div className="row">
                          <div className="col-lg-8">
-                              {/* Employee Information (Read-only) */}
+                              {/* Employee Information */}
                               <div className="border rounded p-4 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                    <h5 className="fw-semibold mb-3 d-flex align-items-center">
                                         <RiUserLine size={20} className="me-2" />
                                         Employee Information
                                    </h5>
                                    <div className="row g-3">
-                                        <div className="col-md-6">
-                                             <label className="form-label">Employee Name</label>
-                                             <input
-                                                  type="text"
-                                                  className="form-control"
-                                                  value={attendanceRecord.employee_name}
-                                                  readOnly
-                                             />
-                                        </div>
-                                        <div className="col-md-6">
-                                             <label className="form-label">Employee ID</label>
-                                             <input
-                                                  type="text"
-                                                  className="form-control"
-                                                  value={`#${attendanceRecord.employeeid}`}
-                                                  readOnly
-                                             />
-                                        </div>
-                                        <div className="col-md-6">
-                                             <label className="form-label">Role</label>
-                                             <input
-                                                  type="text"
-                                                  className="form-control"
-                                                  value={attendanceRecord.employee_role}
-                                                  readOnly
-                                             />
-                                        </div>
-                                        <div className="col-md-6">
-                                             <label className="form-label">Branch</label>
-                                             <input
-                                                  type="text"
-                                                  className="form-control"
-                                                  value={attendanceRecord.branch_name}
-                                                  readOnly
-                                             />
+                                        <div className="col-md-12">
+                                             <label className="form-label">Employee <span className="text-danger">*</span></label>
+                                             <select
+                                                  className="form-select"
+                                                  name="employeeid"
+                                                  value={formData.employeeid}
+                                                  onChange={handleChange}
+                                                  required
+                                                  disabled={employeesLoading || !!formData.employeeid}
+                                             >
+                                                  <option value="">
+                                                       {employeesLoading ? 'Loading employees...' : 'Select an employee'}
+                                                  </option>
+                                                  {employees.map((employee) => (
+                                                       <option key={employee.employeeid} value={employee.employeeid}>
+                                                            {employee.username} (ID: {employee.employeeid}) - {employee.role} - {employee.branchname}
+                                                       </option>
+                                                  ))}
+                                             </select>
                                         </div>
                                    </div>
                               </div>
@@ -266,6 +286,7 @@ export default function EditAttendancePage() {
                                                   value={formData.attendance_date}
                                                   onChange={handleChange}
                                                   required
+                                                  disabled={!!formData.attendance_date}
                                              />
                                         </div>
                                         <div className="col-md-6">
@@ -374,6 +395,25 @@ export default function EditAttendancePage() {
                                                   </label>
                                              </div>
                                         </div>
+                                        {formData.overtime_approved && (
+                                             <div className="col-md-6">
+                                                  <label className="form-label">Overtime Approved By <span className="text-danger">*</span></label>
+                                                  <select
+                                                       className="form-select"
+                                                       name="overtime_approved_by"
+                                                       value={formData.overtime_approved_by}
+                                                       onChange={handleChange}
+                                                       required={formData.overtime_approved}
+                                                  >
+                                                       <option value="">Select approver</option>
+                                                       {employees.map((employee) => (
+                                                            <option key={employee.employeeid} value={employee.employeeid}>
+                                                                 {employee.username} (ID: {employee.employeeid}) - {employee.role}
+                                                            </option>
+                                                       ))}
+                                                  </select>
+                                             </div>
+                                        )}
                                    </div>
                               </div>
 
@@ -403,9 +443,11 @@ export default function EditAttendancePage() {
                                    <h5 className="fw-semibold mb-3">Summary</h5>
                                    <div className="mb-3">
                                         <div className="small text-muted mb-1">Employee</div>
-                                        <div className="fw-medium">{attendanceRecord.employee_name}</div>
+                                        <div className="fw-medium">
+                                             {employees.find(emp => emp.employeeid.toString() === formData.employeeid)?.username || 'Not selected'}
+                                        </div>
                                         <div className="small text-muted mt-1">
-                                             ID: {attendanceRecord.employeeid} • {attendanceRecord.employee_role}
+                                             ID: {formData.employeeid || 'N/A'} • {employees.find(emp => emp.employeeid.toString() === formData.employeeid)?.role || 'N/A'}
                                         </div>
                                    </div>
                                    <div className="mb-3">
@@ -424,6 +466,19 @@ export default function EditAttendancePage() {
                                         <div className="small text-muted mb-1">Location</div>
                                         <div className="fw-medium text-capitalize">{formData.work_location.replace('-', ' ')}</div>
                                    </div>
+                                   {parseFloat(formData.overtime_hours) > 0 && (
+                                        <div className="mb-3">
+                                             <div className="small text-muted mb-1">Overtime</div>
+                                             <div className="fw-medium">
+                                                  {formData.overtime_hours}h {formData.overtime_approved ? '(Approved)' : '(Pending)'}
+                                             </div>
+                                             {formData.overtime_approved && formData.overtime_approved_by && (
+                                                  <div className="small text-muted mt-1">
+                                                       Approved by: {employees.find(emp => emp.employeeid.toString() === formData.overtime_approved_by)?.username || 'Unknown'}
+                                                  </div>
+                                             )}
+                                        </div>
+                                   )}
                                    <hr />
                                    <div className="d-grid gap-2">
                                         <button

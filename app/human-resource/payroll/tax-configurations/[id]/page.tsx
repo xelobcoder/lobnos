@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { RiLoader4Line, RiErrorWarningLine, RiArrowLeftLine, RiMoneyDollarCircleLine, RiEditLine, RiFileTextLine, RiCheckboxCircleLine, RiCloseCircleLine, RiCalendarLine, RiPlayCircleLine, RiPauseCircleLine, RiDeleteBinLine } from '@remixicon/react';
+import { RiLoader4Line, RiErrorWarningLine, RiArrowLeftLine, RiMoneyDollarCircleLine, RiEditLine, RiFileTextLine, RiCheckboxCircleLine, RiCloseCircleLine, RiCalendarLine, RiPlayCircleLine, RiPauseCircleLine, RiDeleteBinLine, RiHistoryLine } from '@remixicon/react';
 import { currencyFormatter, customFetch, customPost } from '../../../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../../../components/Auth/useApplicationContext';
 
@@ -194,6 +194,13 @@ export default function TaxConfigurationDetailPage() {
                          >
                               <RiEditLine size={16} className="me-1" />
                               Edit
+                         </Link>
+                         <Link
+                              href={`/human-resource/payroll/tax-configurations/${config.id}/audit`}
+                              className="btn btn-outline-info btn-sm d-flex align-items-center"
+                         >
+                              <RiHistoryLine size={16} className="me-1" />
+                              Audit History
                          </Link>
                          <button
                               onClick={deleteConfiguration}

@@ -4,12 +4,19 @@ This guide provides detailed information about the Tax Configuration API endpoin
 
 ## Base URL
 ```
-payroll/tax-configurations
+/api/v1/payroll/tax-configurations
 ```
+
+## Authentication
+All requests require:
+- JWT token in `pls-prime-tenant-session` cookie
+- `tenantId` query parameter
+
+## Endpoints
 
 ### 1. Create Tax Configuration
 **Method:** `POST`  
-**Path:** `payroll/tax-configurations`  
+**Path:** `/api/v1/payroll/tax-configurations`  
 **Description:** Creates a new tax configuration. Only one configuration can be active at a time.
 
 #### Request Payload
@@ -72,7 +79,7 @@ payroll/tax-configurations
 
 ### 2. Get All Tax Configurations
 **Method:** `GET`  
-**Path:** `payroll/tax-configurations`  
+**Path:** `/api/v1/payroll/tax-configurations`  
 **Description:** Retrieves all tax configurations for the tenant.
 
 #### Query Parameters
@@ -109,7 +116,7 @@ payroll/tax-configurations
 
 ### 3. Get Active Tax Configuration
 **Method:** `GET`  
-**Path:** `payroll/tax-configurations/active`  
+**Path:** `/api/v1/payroll/tax-configurations/active`  
 **Description:** Retrieves the currently active tax configuration used for payroll calculations.
 
 #### Query Parameters
@@ -144,7 +151,7 @@ payroll/tax-configurations
 
 ### 4. Get Tax Configuration by ID
 **Method:** `GET`  
-**Path:** `payroll/tax-configurations/:id`  
+**Path:** `/api/v1/payroll/tax-configurations/:id`  
 **Description:** Retrieves a specific tax configuration by its ID.
 
 #### Path Parameters
@@ -183,7 +190,7 @@ payroll/tax-configurations
 
 ### 5. Get Tax Configuration by Year
 **Method:** `GET`  
-**Path:** `payroll/tax-configurations/year/:taxYear`  
+**Path:** `/api/v1/payroll/tax-configurations/year/:taxYear`  
 **Description:** Retrieves tax configuration for a specific tax year.
 
 #### Path Parameters
@@ -222,7 +229,7 @@ payroll/tax-configurations
 
 ### 6. Update Tax Configuration
 **Method:** `PUT`  
-**Path:** `payroll/tax-configurations/:id`  
+**Path:** `/api/v1/payroll/tax-configurations/:id`  
 **Description:** Updates an existing tax configuration. If setting `is_active: true`, all other configurations are automatically deactivated.
 
 #### Path Parameters
@@ -262,7 +269,7 @@ payroll/tax-configurations
 
 ### 7. Toggle Tax Configuration Status
 **Method:** `PATCH`  
-**Path:** `payroll/tax-configurations/:id/status`  
+**Path:** `/api/v1/payroll/tax-configurations/:id/status`  
 **Description:** Activates or deactivates a tax configuration. Only one can be active at a time.
 
 #### Path Parameters
@@ -292,7 +299,7 @@ payroll/tax-configurations
 
 ### 8. Delete Tax Configuration
 **Method:** `DELETE`  
-**Path:** `payroll/tax-configurations/:id`  
+**Path:** `/api/v1/payroll/tax-configurations/:id`  
 **Description:** Deletes a tax configuration. Cannot delete active configurations.
 
 #### Path Parameters
@@ -309,6 +316,92 @@ payroll/tax-configurations
   "message": "Tax configuration deleted successfully"
 }
 ```
+
+### 9. Get Tax Configuration Audit History
+**Method:** `GET`  
+**Path:** `/api/v1/payroll/tax-configurations/:id/audit`  
+**Description:** Retrieves the complete audit history for a tax configuration, showing all changes made over time.
+
+#### Path Parameters
+- `id`: Tax configuration ID
+
+#### Query Parameters
+- `tenantId` (required): Tenant identifier
+
+#### Response
+```json
+{
+  "status": "success",
+  "statusCode": 200,
+  "message": "Tax configuration audit history retrieved successfully",
+  "result": [
+    {
+      "audit_id": 1,
+      "tax_config_id": 1,
+      "tax_year": "2025",
+      "country": "Ghana",
+      "tax_bands": "[{\"min\":0,\"max\":4908,\"rate\":0},...]",
+      "standard_exemption": 4908.00,
+      "dependent_relief": 300.00,
+      "disability_exemption": 2000.00,
+      "employee_ssnit_rate": 5.5,
+      "employer_ssnit_rate": 13.0,
+      "tier3_employee_rate": 5.0,
+      "tier3_employer_rate": 5.0,
+      "ssnit_ceiling": 30000.00,
+      "pension_ceiling": 30000.00,
+      "is_active": true,
+      "operation_type": "UPDATE",
+      "operation_timestamp": "2025-12-15T14:30:00.000Z",
+      "operation_user": 2,
+      "operation_user_name": "Jane Smith",
+      "changed_fields": ["standard_exemption", "dependent_relief"],
+      "old_values": {
+        "standard_exemption": 4800.00,
+        "dependent_relief": 250.00
+      },
+      "new_values": {
+        "standard_exemption": 4908.00,
+        "dependent_relief": 300.00
+      }
+    },
+    {
+      "audit_id": 2,
+      "tax_config_id": 1,
+      "tax_year": "2025",
+      "country": "Ghana",
+      "tax_bands": "[{\"min\":0,\"max\":4800,\"rate\":0},...]",
+      "standard_exemption": 4800.00,
+      "dependent_relief": 250.00,
+      "disability_exemption": 2000.00,
+      "employee_ssnit_rate": 5.5,
+      "employer_ssnit_rate": 13.0,
+      "tier3_employee_rate": 5.0,
+      "tier3_employer_rate": 5.0,
+      "ssnit_ceiling": 30000.00,
+      "pension_ceiling": 30000.00,
+      "is_active": true,
+      "operation_type": "INSERT",
+      "operation_timestamp": "2025-12-15T10:00:00.000Z",
+      "operation_user": 1,
+      "operation_user_name": "John Doe",
+      "changed_fields": null,
+      "old_values": null,
+      "new_values": null
+    }
+  ]
+}
+```
+
+#### Audit History Fields
+- **`audit_id`**: Unique identifier for the audit record
+- **`operation_type`**: Type of operation (`INSERT`, `UPDATE`, `DELETE`)
+- **`operation_timestamp`**: When the change occurred
+- **`operation_user`**: Employee ID who made the change
+- **`operation_user_name`**: Name of the employee who made the change
+- **`changed_fields`**: Array of field names that were modified (UPDATE operations only)
+- **`old_values`**: Previous values of changed fields (UPDATE operations only)
+- **`new_values`**: New values of changed fields (UPDATE operations only)
 
 ## Error Responses
 
@@ -336,6 +429,8 @@ payroll/tax-configurations
 3. **Validation**: Validate tax bands array and numeric fields on the frontend
 4. **Caching**: Cache active configuration to reduce API calls during payroll processing
 5. **Error Handling**: Implement proper error handling for network failures and validation errors
+6. **Audit Trail**: Use the audit history endpoint to track changes for compliance and troubleshooting
+7. **Change Notifications**: Consider implementing notifications when tax configurations are modified
 
 ## Tax Bands Structure
 

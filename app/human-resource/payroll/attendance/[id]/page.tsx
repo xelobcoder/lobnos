@@ -23,11 +23,10 @@ interface AttendanceRecord {
      overtime_hours: number | null;
      overtime_approved: boolean;
      remarks: string | null;
-     employee_name: string;
-     employee_role: string;
-     email: string;
-     branch_name: string;
      created_at: string;
+     created_by_name: string;
+     overtime_approver_name: string;
+     updated_at: string;
 }
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
@@ -73,7 +72,7 @@ export default function AttendanceDetailPage() {
      };
 
      const formatHours = (hours: number | null) => {
-          if (hours === null) return 'Not calculated';
+          if (hours == null) return 'Not calculated';
           return `${hours.toFixed(1)} hours`;
      };
 
@@ -86,8 +85,6 @@ export default function AttendanceDetailPage() {
           setError(null);
 
           try {
-               // Note: This endpoint might need to be implemented in the backend
-               // For now, we'll use a placeholder approach
                const response = await customFetch(`payroll/attendance/${attendanceId}`);
 
                if (response?.status === 'success' && response?.statusCode === 200) {
@@ -224,6 +221,9 @@ export default function AttendanceDetailPage() {
                                                   <div className={`fw-semibold fs-5 ${attendanceRecord.overtime_approved ? 'text-success' : 'text-warning'}`}>
                                                        {attendanceRecord.overtime_hours.toFixed(1)} hours
                                                        {!attendanceRecord.overtime_approved && ' (Pending Approval)'}
+                                                       {attendanceRecord.overtime_approved && attendanceRecord.overtime_approver_name && (
+                                                            <div className="small text-muted mt-1">Approved by: {attendanceRecord.overtime_approver_name}</div>
+                                                       )}
                                                   </div>
                                              </div>
                                         </div>
@@ -285,53 +285,32 @@ export default function AttendanceDetailPage() {
                                              <div className="fw-semibold">{new Date(attendanceRecord.created_at).toLocaleString()}</div>
                                         </div>
                                    </div>
+                                   <div className="col-md-6">
+                                        <div className="p-3 border rounded">
+                                             <div className="small text-muted mb-1">Created By</div>
+                                             <div className="fw-semibold">{attendanceRecord.created_by_name}</div>
+                                        </div>
+                                   </div>
                               </div>
                          </div>
                     </div>
 
                     {/* Employee Summary Sidebar */}
                     <div className="col-lg-4">
-                         <div className="border rounded p-4 sticky-top" style={{ backgroundColor: 'var(--bs-tertiary-bg)', top: '20px' }}>
+                         <div className="border rounded p-4 sticky-top">
                               <h5 className="fw-semibold mb-3 d-flex align-items-center">
                                    <RiUserLine size={20} className="me-2" />
                                    Employee Information
                               </h5>
                               <div className="mb-3">
-                                   <div className="small text-muted mb-1">Employee Name</div>
-                                   <div className="fw-semibold fs-5">{attendanceRecord.employee_name}</div>
+                                   <div className="small text-muted text-uppercase mb-1" style={{ fontSize: '0.7rem', letterSpacing: '0.5px' }}>Record Creator</div>
+                                   <div className="fw-semibold fs-6">{attendanceRecord.created_by_name}</div>
                               </div>
                               <div className="mb-3">
-                                   <div className="small text-muted mb-1">Employee ID</div>
+                                   <div className="small text-muted text-uppercase mb-1" style={{ fontSize: '0.7rem', letterSpacing: '0.5px' }}>Employee ID</div>
                                    <div className="fw-medium">#{attendanceRecord.employeeid}</div>
                               </div>
-                              <div className="mb-3">
-                                   <div className="small text-muted mb-1">Role</div>
-                                   <div className="fw-medium">{attendanceRecord.employee_role}</div>
-                              </div>
-                              <div className="mb-3">
-                                   <div className="small text-muted mb-1">Email</div>
-                                   <div className="fw-medium">{attendanceRecord.email}</div>
-                              </div>
-                              <div className="mb-3">
-                                   <div className="small text-muted mb-1">Branch</div>
-                                   <div className="fw-medium">{attendanceRecord.branch_name}</div>
-                              </div>
-                              <hr />
-                              <div className="d-grid gap-2">
-                                   <Link
-                                        href={`/human-resource/payroll/attendance/${attendanceRecord.id}/edit`}
-                                        className="btn btn-primary"
-                                   >
-                                        <RiEditLine size={18} className="me-2" />
-                                        Edit Record
-                                   </Link>
-                                   <Link
-                                        href={`/human-resource/payroll/employee/${attendanceRecord.employeeid}`}
-                                        className="btn btn-outline-secondary"
-                                   >
-                                        View Employee Profile
-                                   </Link>
-                              </div>
+
                          </div>
                     </div>
                </div>

@@ -24,22 +24,20 @@ import {
 interface AttendanceRecord {
      id: number;
      employeeid: number;
-     attendance_date: string;
-     clock_in: string | null;
-     clock_out: string | null;
-     total_hours: number | null;
+     attendance_date: string; // Full date string like "Mon Dec 15 2025 00:00:00 GMT+0000 (Coordinated Universal Time)"
+     clock_in?: string; // Time string like "08:30:00" - optional field
+     clock_out?: string; // Time string like "17:30:00" - optional field
      shift_type: string;
      work_location: string;
      status: 'present' | 'absent' | 'late' | 'half_day' | 'leave';
-     late_minutes: number | null;
-     overtime_hours: number | null;
-     overtime_approved: boolean;
-     remarks: string | null;
-     employee_name: string;
-     employee_role: string;
-     email: string;
-     branch_name: string;
+     late_minutes: number;
+     overtime_hours: number; // Now a number instead of string
+     overtime_approved: boolean; // Now boolean instead of number
+     overtime_approved_by: number | null;
+     remarks?: string; // Optional field
      created_at: string;
+     updated_at: string;
+     // Note: total_hours is not in the API response
 }
 
 interface AttendanceSummary {
@@ -81,8 +79,8 @@ export default function AttendancePage() {
      // Filters
      const [searchTerm, setSearchTerm] = useState('');
      const [statusFilter, setStatusFilter] = useState('');
-     const [monthFilter, setMonthFilter] = useState(new Date().getMonth() + 1);
-     const [yearFilter, setYearFilter] = useState(new Date().getFullYear());
+     const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+     const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
      const [employeeFilter, setEmployeeFilter] = useState('');
 
      const getStatusBadge = (status: string) => {
@@ -111,8 +109,8 @@ export default function AttendancePage() {
 
           try {
                const params = new URLSearchParams({
-                    month: monthFilter.toString(),
-                    year: yearFilter.toString()
+                    startDate: startDate,
+                    endDate: endDate
                });
 
                if (employeeFilter) params.append('employeeId', employeeFilter);
@@ -135,7 +133,10 @@ export default function AttendancePage() {
 
      const fetchAttendanceSummary = async () => {
           try {
-               const response = await customFetch(`payroll/attendance/summary?month=${monthFilter}&year=${yearFilter}`);
+               const startDateObj = new Date(startDate);
+               const month = startDateObj.getMonth() + 1;
+               const year = startDateObj.getFullYear();
+               const response = await customFetch(`payroll/attendance/summary?startDate=${startDate}&endDate=${endDate}&month=${month}&year=${year}`);
 
                if (response?.status === 'success' && response?.statusCode === 200) {
                     setSummary(response.result);
@@ -169,25 +170,31 @@ export default function AttendancePage() {
      useEffect(() => {
           fetchAttendanceRecords();
           fetchAttendanceSummary();
-     }, [monthFilter, yearFilter, employeeFilter]);
+     }, [startDate, endDate, employeeFilter]);
 
      const filteredRecords = attendanceRecords.filter(record => {
           const matchesSearch = !searchTerm ||
-               record.employee_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-               record.employee_role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-               record.branch_name.toLowerCase().includes(searchTerm.toLowerCase());
+               record.employeeid.toString().includes(searchTerm.toLowerCase()) ||
+               record.shift_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+               record.work_location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+               (record.remarks && record.remarks.toLowerCase().includes(searchTerm.toLowerCase()));
 
           const matchesStatus = !statusFilter || record.status === statusFilter;
 
           return matchesSearch && matchesStatus;
      });
 
-     const formatTime = (time: string | null) => {
-          if (!time) return '-';
-          return new Date(`1970-01-01T${time}`).toLocaleTimeString('en-GB', {
-               hour: '2-digit',
-               minute: '2-digit'
-          });
+     const formatTime = (time?: string) => {
+          if (!time || time === '00:00:00') return '-';
+          try {
+               // Handle HH:MM:SS format
+               return new Date(`1970-01-01T${time}`).toLocaleTimeString('en-GB', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+               });
+          } catch {
+               return time; // fallback to original value
+          }
      };
 
      const formatHours = (hours: number | null) => {
@@ -274,7 +281,7 @@ export default function AttendancePage() {
                                    <input
                                         type="text"
                                         className="form-control"
-                                        placeholder="Search by name, role, or branch..."
+                                        placeholder="Search by employee ID, shift type, location, or remarks..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                    />
@@ -296,48 +303,58 @@ export default function AttendancePage() {
                               </select>
                          </div>
                          <div className="col-md-2">
-                              <label className="form-label">Month</label>
-                              <select
-                                   className="form-select"
-                                   value={monthFilter}
-                                   onChange={(e) => setMonthFilter(parseInt(e.target.value))}
-                              >
-                                   {Array.from({ length: 12 }, (_, i) => (
-                                        <option key={i + 1} value={i + 1}>
-                                             {new Date(2024, i).toLocaleString('default', { month: 'long' })}
-                                        </option>
-                                   ))}
-                              </select>
+                              <label className="form-label">Start Date</label>
+                              <input
+                                   type="date"
+                                   className="form-control"
+                                   value={startDate}
+                                   onChange={(e) => setStartDate(e.target.value)}
+                              />
                          </div>
                          <div className="col-md-2">
-                              <label className="form-label">Year</label>
-                              <select
-                                   className="form-select"
-                                   value={yearFilter}
-                                   onChange={(e) => setYearFilter(parseInt(e.target.value))}
-                              >
-                                   {Array.from({ length: 5 }, (_, i) => (
-                                        <option key={2024 - i} value={2024 - i}>{2024 - i}</option>
-                                   ))}
-                              </select>
+                              <label className="form-label">End Date</label>
+                              <input
+                                   type="date"
+                                   className="form-control"
+                                   value={endDate}
+                                   onChange={(e) => setEndDate(e.target.value)}
+                                   min={startDate}
+                              />
                          </div>
                          <div className="col-md-3">
                               <label className="form-label">Employee</label>
-                              <select
-                                   className="form-select"
-                                   value={employeeFilter}
-                                   onChange={(e) => setEmployeeFilter(e.target.value)}
-                                   disabled={employeesLoading}
-                              >
-                                   <option value="">
-                                        {employeesLoading ? 'Loading employees...' : 'All Employees'}
-                                   </option>
-                                   {employees.map((employee) => (
-                                        <option key={employee.employeeid} value={employee.employeeid}>
-                                             {employee.username} (ID: {employee.employeeid}) - {employee.role}
+                              <div className="d-flex gap-2">
+                                   <select
+                                        className="form-select"
+                                        value={employeeFilter}
+                                        onChange={(e) => setEmployeeFilter(e.target.value)}
+                                        disabled={employeesLoading}
+                                   >
+                                        <option value="">
+                                             {employeesLoading ? 'Loading employees...' : 'All Employees'}
                                         </option>
-                                   ))}
-                              </select>
+                                        {employees.map((employee) => (
+                                             <option key={employee.employeeid} value={employee.employeeid}>
+                                                  {employee.username} (ID: {employee.employeeid}) - {employee.role}
+                                             </option>
+                                        ))}
+                                   </select>
+                                   <button
+                                        type="button"
+                                        className="btn btn-outline-secondary"
+                                        onClick={() => {
+                                             const today = new Date().toISOString().split('T')[0];
+                                             setStartDate(today);
+                                             setEndDate(today);
+                                             setEmployeeFilter('');
+                                             setStatusFilter('');
+                                             setSearchTerm('');
+                                        }}
+                                        title="Reset filters"
+                                   >
+                                        <RiFilterLine size={16} />
+                                   </button>
+                              </div>
                          </div>
                     </div>
                </div>
@@ -375,7 +392,7 @@ export default function AttendancePage() {
                                              <th className="border-0">Date</th>
                                              <th className="border-0">Clock In</th>
                                              <th className="border-0">Clock Out</th>
-                                             <th className="border-0">Hours</th>
+                                             <th className="border-0">Total Hours</th>
                                              <th className="border-0">Status</th>
                                              <th className="border-0">Late (min)</th>
                                              <th className="border-0">Overtime</th>
@@ -387,21 +404,21 @@ export default function AttendancePage() {
                                              <tr key={record.id}>
                                                   <td>
                                                        <div>
-                                                            <div className="fw-semibold">{record.employee_name}</div>
+                                                            <div className="fw-semibold">Employee {record.employeeid}</div>
                                                             <small className="text-muted">
-                                                                 ID: {record.employeeid} • {record.employee_role}
+                                                                 ID: {record.employeeid}
                                                             </small>
-                                                            <div className="small text-muted">{record.branch_name}</div>
+                                                            <div className="small text-muted">Location: {record.work_location}</div>
                                                        </div>
                                                   </td>
                                                   <td>{formatDate(record.attendance_date)}</td>
                                                   <td>{formatTime(record.clock_in)}</td>
                                                   <td>{formatTime(record.clock_out)}</td>
-                                                  <td>{formatHours(record.total_hours)}</td>
+                                                  <td>-</td>
                                                   <td>{getStatusBadge(record.status)}</td>
                                                   <td>{record.late_minutes || '-'}</td>
                                                   <td>
-                                                       {record.overtime_hours ? (
+                                                       {record.overtime_hours > 0 ? (
                                                             <span className={record.overtime_approved ? 'text-success' : 'text-warning'}>
                                                                  {record.overtime_hours.toFixed(1)}h
                                                                  {!record.overtime_approved && ' (Pending)'}
