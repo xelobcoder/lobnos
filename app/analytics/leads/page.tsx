@@ -124,14 +124,11 @@ export default function LeadsAnalytics() {
      const [error, setError] = useState<string | null>(null);
 
      const getInitialDates = () => {
-          const today = new Date();
-          const endDate = today.toISOString().split("T")[0];
-          const startDateObj = new Date(today);
-          startDateObj.setFullYear(today.getFullYear());
-          startDateObj.setMonth(0);
-          startDateObj.setDate(1);
-          const startDate = startDateObj.toISOString().split("T")[0];
-          return { startDate, endDate };
+          const currentYear = new Date().getFullYear();
+          return {
+               startDate: `${currentYear}-01-01`,
+               endDate: `${currentYear}-12-31`,
+          };
      };
 
      const initialDates = getInitialDates();

@@ -11,7 +11,7 @@ import { InventoryItem, ReceivedItem, PurchaseOrder } from './types';
 export default function ReceiveOrderedItemsPage() {
      const params = useParams();
      const router = useRouter();
-     const orderId = params.orderid as string;
+     const orderId = params?.orderid as string;
      const { applicationsettings } = useApplicationSettings();
      const { branchid, user } = applicationsettings || {};
      const employeeid = user?.employeeid;

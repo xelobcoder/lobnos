@@ -38,8 +38,8 @@ const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
 export default function EmployeeYTDPage() {
      const searchParams = useSearchParams();
      const router = useRouter();
-     const employeeId = searchParams.get('employeeId');
-     const yearParam = searchParams.get('year');
+     const employeeId = searchParams?.get('employeeId');
+     const yearParam = searchParams?.get('year');
 
      const [ytdData, setYtdData] = useState<YTDReport | null>(null);
      const [loading, setLoading] = useState(true);

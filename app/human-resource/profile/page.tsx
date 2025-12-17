@@ -1,20 +1,21 @@
 "use client";
 import { useEffect, useState, ChangeEvent, FormEvent } from 'react';
-import { customFetch, customPost, handleResponse, validateFormData } from '../../../components/Auth/customFetch';
+import { customFetch, handleResponse, validateFormData } from '../../../components/Auth/customFetch';
 import Loader from '../../../components/accessories/Loader';
-import Modal from 'react-bootstrap/Modal';
 import { toast } from 'react-toastify';
 import { z } from 'zod';
 // Zod schema for profile update (fields similar to registration, but only those editable)
 const profileSchema = z.object({
      email: z.string().email('Invalid email address'),
      mobile: z.string().regex(/^\d{10}$/, 'Mobile number must be 10 digits'),
-     alternativeMobile: z.string().regex(/^\d{10}$/,'Alt mobile must be 10 digits').optional().or(z.literal('')),
+     alternativeMobile: z.string().regex(/^\d{10}$/, 'Alt mobile must be 10 digits').optional().or(z.literal('')),
      branch: z.string().min(1, 'Branch is required'),
      dob: z.string().optional(),
 });
 import { RiUser3Fill, RiMailFill, RiPhoneFill, RiBuilding2Fill, RiShieldUserFill, RiCake2Fill, RiCheckFill, RiCloseFill, RiKey2Fill, RiVerifiedBadgeFill } from '@remixicon/react';
 import { useSearchParams } from 'next/navigation';
+
+export const dynamic = 'force-dynamic';
 
 interface UserProfile {
      employeeid: number;
@@ -34,7 +35,7 @@ interface UserProfile {
 
 export default function UserProfilePage() {
      const searchParams = useSearchParams();
-     const employeeid = searchParams ? searchParams.get('employeeid') : null;
+     const employeeid = searchParams?.get('employeeid')
      const [user, setUser] = useState<UserProfile | null>(null);
      const [isLoading, setLoading] = useState(false);
      const [showPin, setShowPin] = useState(false);
@@ -151,7 +152,7 @@ export default function UserProfilePage() {
                if (passwordFields.currentPassword) data.currentPassword = passwordFields.currentPassword;
 
                data['cpassword'] = passwordFields.currentPassword || '';
-               
+
                validateFormData(
                     data,
                     false,

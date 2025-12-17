@@ -7,8 +7,8 @@ import { useSearchParams } from 'next/navigation';
 import AccessHistoryTable from '../../../../../components/operations/Ultrasound/AccessHistoryTable';
 
 export default function AccessRequestForm() {
-     const patientid = useSearchParams().get('patientid');
-     const ascensionid = useSearchParams().get('ascensionid');
+     const patientid = useSearchParams()?.get('patientid') ?? null;
+     const ascensionid = useSearchParams()?.get('ascensionid') ?? null;
      const employeeid = useApplication()?.user?.employeeid;
      let ptid = typeof patientid === 'string' && patientid.length > 10 ? parseInt(patientid.slice(50)) : patientid;
 

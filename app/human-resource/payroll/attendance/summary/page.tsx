@@ -164,8 +164,8 @@ export default function AttendanceSummaryPage() {
           };
 
           const legendProps = {
-               verticalAlign: "top",
-               align: "right",
+               verticalAlign: "top" as const,
+               align: "right" as const,
                iconSize: 8,
                wrapperStyle: { fontSize: '13px', color: 'var(--bs-body-color)', paddingBottom: '15px' }
           };
@@ -302,7 +302,7 @@ export default function AttendanceSummaryPage() {
                          <div className="col-md-3">
                               <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                    <div className="d-flex align-items-center">
-                                        <RiCheckCircleLine size={24} className="text-success me-3" />
+                                        
                                         <div>
                                              <div className="fw-semibold fs-4">{summary.present_days}</div>
                                              <div className="small text-muted">Present Days</div>

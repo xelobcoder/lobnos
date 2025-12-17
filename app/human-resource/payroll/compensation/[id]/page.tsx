@@ -66,7 +66,7 @@ const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
 export default function CompensationDetailPage() {
      const params = useParams();
      const router = useRouter();
-     const compensationId = params.id as string;
+     const compensationId = params?.id as string;
 
      const [compensation, setCompensation] = useState<Compensation | null>(null);
      const [salaryGrade, setSalaryGrade] = useState<SalaryGrade | null>(null);

@@ -96,7 +96,7 @@ export default function CashCollection() {
      const [paymentMode, setPaymentMode] = useState<'all' | 'billing' | 'service'>('service');
      const [paymentModes, setPaymentModes] = useState<PaymentMode[]>([]);
      const [selectedPaymentModes, setSelectedPaymentModes] = useState<{ [key: string | number]: number | null }>({});
-     const urlPatientid = useSearchParams().get('patientid') || '';
+     const urlPatientid = useSearchParams()?.get('patientid') || '';
      useEffect(() => {
           fetchPaymentModes();
      }, []);

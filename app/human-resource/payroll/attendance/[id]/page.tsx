@@ -41,7 +41,7 @@ export default function AttendanceDetailPage() {
      const [loading, setLoading] = useState(true);
      const [error, setError] = useState<string | null>(null);
 
-     const attendanceId = params.id as string;
+     const attendanceId = params?.id as string;
 
      const getStatusBadge = (status: string) => {
           const statusConfig = {

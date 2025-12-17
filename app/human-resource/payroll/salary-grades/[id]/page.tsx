@@ -43,7 +43,7 @@ export default function SalaryGradeDetailPage() {
      const [loading, setLoading] = useState(true);
      const [error, setError] = useState<string | null>(null);
 
-     const gradeId = params.id as string;
+     const gradeId = params?.id as string;
 
      useEffect(() => {
           fetchSalaryGrade();

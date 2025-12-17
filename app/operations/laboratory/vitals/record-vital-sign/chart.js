@@ -4,8 +4,8 @@ import { useState } from "react";
 
 export default function CustomerVitalScanChartPage() {
 	const [vitalRows, setVitalRows] = useState([]);
-	const patientid = useSearchParams().get('patientid');
-	const vsFromDate = useSearchParams().get("vsFromDate");
+	const patientid = useSearchParams()?.get('patientid') ?? null;
+	const vsFromDate = useSearchParams()?.get("vsFromDate") ?? null;
 
 	return (
 		<FrontDeskLayout>

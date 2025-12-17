@@ -41,7 +41,7 @@ interface FollowUp {
 
 export default function LeadFollowups() {
      const params = useParams();
-     const leadId = params.id as string;
+     const leadId = params?.id || '' as string;
      const [lead, setLead] = useState<Lead | null>(null);
      const [followups, setFollowups] = useState<FollowUp[]>([]);
      const [loading, setLoading] = useState(true);
@@ -58,7 +58,8 @@ export default function LeadFollowups() {
           next_followup_date: '',
           priority: 'medium'
      });
-     const employeeid = useApplication()?.user?.employeeid;
+     const {user}= useApplication();
+     const employeeid = user?.employeeid;
 
      const fetchLeadDetails = async () => {
           try {
@@ -100,8 +101,9 @@ export default function LeadFollowups() {
           if (!lead) return;
 
           try {
+               if (!leadId)  return;
                const followupData = {
-                    lead_id: parseInt(leadId),
+                    lead_id: parseInt(leadId.toString()),
                     followup_type: followupForm.followup_type,
                     followup_date: followupForm.followup_date || new Date().toISOString().split('T')[0],
                     notes: followupForm.notes,
@@ -137,7 +139,6 @@ export default function LeadFollowups() {
      };
 
      const canDeleteFollowup = (followup: FollowUp) => {
-          const user = useApplication()?.user;
           if (!user) return false;
           const isAdmin = user.role === 'admin' || user.role === 'super-admin';
           if (isAdmin) return true;

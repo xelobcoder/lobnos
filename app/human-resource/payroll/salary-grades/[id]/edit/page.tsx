@@ -54,7 +54,7 @@ export default function EditSalaryGradePage() {
      const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
      const [salaryGrades, setSalaryGrades] = useState<SalaryGrade[]>([]);
 
-     const gradeId = params.id as string;
+     const gradeId = params?.id as string;
 
      useEffect(() => {
           fetchSalaryGrade();

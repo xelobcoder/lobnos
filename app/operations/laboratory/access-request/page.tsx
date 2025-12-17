@@ -7,8 +7,8 @@ import { customPost } from '../../../../components/Auth/customFetch';
 import AccessHistoryTable from '../../../../components/operations/Ultrasound/AccessHistoryTable';
 
 export default function AccessRequestForm() {
-     const ascensionid = useSearchParams().get('ascensionid');
-     const patientid = useSearchParams().get('patientid');
+     const ascensionid = useSearchParams()?.get('ascensionid') ?? null;
+     const patientid = useSearchParams()?.get('patientid') ?? null;
      const employeeid = useApplication()?.user?.employeeid;
 
      const ptid = typeof patientid === 'string' && patientid.length > 50 ? parseInt(patientid.slice(50)) : patientid;

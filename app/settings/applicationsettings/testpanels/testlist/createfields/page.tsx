@@ -7,8 +7,8 @@ import { Button } from 'react-bootstrap';
 
 export default function CreateSingleFieldPage() {
 	const searchParams = useSearchParams();
-	const testid = searchParams ? Number(searchParams.get('testid')) : undefined;
-	const testname = searchParams ? (searchParams.get('testname') || '') : '';
+	const testid = searchParams?.get('testid') ? Number(searchParams.get('testid')) : undefined;
+	const testname = searchParams?.get('testname') || '';
 	const [testdata, setTestdata] = useState<any>(null);
 	const [fieldConstraintsCategorization, setFieldConstraintsCategorization] = useState<any>(null);
 	const [testRules, setTestRules] = useState<any>(null);

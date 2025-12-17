@@ -54,12 +54,10 @@ export default function DailySalesTrend() {
     const employeeid = user?.employeeid;
 
     const getInitialDates = () => {
-        const endDateObj = new Date();
-        const startDateObj = new Date();
-        startDateObj.setDate(endDateObj.getDate() - 29);
+        const currentYear = new Date().getFullYear();
         return {
-            startDate: startDateObj.toISOString().split("T")[0],
-            endDate: endDateObj.toISOString().split("T")[0],
+            startDate: `${currentYear}-01-01`,
+            endDate: `${currentYear}-12-31`,
         };
     };
 

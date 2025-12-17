@@ -69,7 +69,7 @@ const ReadingRowSkeleton: React.FC = () => (
 export default function ControlSessionReaderList() {
   const params = useParams()
   const router = useRouter()
-  const controlMaterialId = useSearchParams()?.get('controlmaterialId') as string | undefined
+  const controlMaterialId = useSearchParams()?.get('controlmaterialId') ?? null
   const [readings, setReadings] = useState<QCReading[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)

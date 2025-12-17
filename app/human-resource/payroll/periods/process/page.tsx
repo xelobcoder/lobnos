@@ -40,7 +40,7 @@ const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
 export default function ProcessPayrollPage() {
      const router = useRouter();
      const searchParams = useSearchParams();
-     const periodId = searchParams.get('periodId');
+     const periodId = searchParams?.get('periodId');
      const { applicationsettings } = useApplicationSettings();
      const { user } = applicationsettings || {};
 

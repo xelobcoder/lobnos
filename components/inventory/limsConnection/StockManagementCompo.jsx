@@ -8,16 +8,15 @@ import { RiEyeLine } from '@remixicon/react';
 import dayjs from 'dayjs';
 import { customFetch } from "../../Auth/customFetch";
 import PrimeTable from "../../accessories/Datatables/PrimeTable";
-import { handleServerSideProcessingAscensionData } from "../../serverActions/ActionFiltering";
-import page from "../../../app/page";
+
 
 
 
 export default function StockManagementCompo() {
-	const { user, services } = useApplicationSettings().applicationsettings;
+	const { user } = useApplicationSettings().applicationsettings;
 	const [data, setData] = useState([]);
-	const [dateFrom, setDateFrom] = useState(dayjs().subtract(2, 'day').format('YYYY-MM-DD'));
-	const [dateEnd, setDateEnd] = useState(dayjs().format('YYYY-MM-DD'));
+	const [dateFrom, setDateFrom] = useState(dayjs().startOf('year').format('YYYY-MM-DD'));
+	const [dateEnd, setDateEnd] = useState(dayjs().endOf('year').format('YYYY-MM-DD'));
 	const employeeid = user?.employeeid;
 
 
@@ -172,7 +171,7 @@ export default function StockManagementCompo() {
 								}}
 							/>
 
-							{data.map((item, index) => (
+							{Array.isArray(data) && data.length > 0 && data.map((item, index) => (
 								<div key={item.ascensionid || index} className="mb-2 position-relative">
 									<div
 										style={{

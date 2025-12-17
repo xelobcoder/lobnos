@@ -36,14 +36,14 @@ export default function EnterResultUltrasound() {
 	const [testname, setTestName] = useState("");
 	const [templateOptions, setTemplateOptions] = useState([]);
 	const [selectedTemplate, setSelectedTemplate] = useState(null);
-	const scan = useSearchParams()?.get("scan");
-	const testid = useSearchParams()?.get("testid");
-	const update = useSearchParams()?.get("update");
-	const urlpatientid = useSearchParams()?.get("ptid");
+	const scan = useSearchParams()?.get("scan") ?? null;
+	const testid = useSearchParams()?.get("testid") ?? null;
+	const update = useSearchParams()?.get("update") ?? null;
+	const urlpatientid = useSearchParams()?.get("ptid") ?? null;
 	const patientid = urlpatientid ? urlpatientid.slice(50) : urlpatientid;
-	const urlbillingid = useSearchParams()?.get("csvid");
+	const urlbillingid = useSearchParams()?.get("csvid") ?? null;
 	const billingid = urlbillingid ? urlbillingid.slice(70) : urlbillingid;
-	const ascensionid = useSearchParams()?.get("ascensionid");
+	const ascensionid = useSearchParams()?.get("ascensionid") ?? null;
 	const [isLoading, setLoading] = useState(true);
 	const [submitting, setSubmitting] = useState(false);
 	const [entered, setEnteredResult] = useState(false);
@@ -340,9 +340,9 @@ export default function EnterResultUltrasound() {
 					</Tab>
 					<Tab eventKey="access" title={<span><RiFileTextLine className="me-2" />Access Request</span>}>
 						<AccessRequestForm
-							ascensionid={ascensionid}
-							testid={testid}
-							patientid={patientid}
+							ascensionid={ascensionid as string}
+							testid={testid as string}
+							patientid={patientid as string}
 							employeeid={employeeid}
 						/>
 					</Tab>

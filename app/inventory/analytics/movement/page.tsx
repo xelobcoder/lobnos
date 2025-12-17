@@ -82,11 +82,11 @@ export default function InventoryMovementAnalyticsPage() {
      const initializeFiltersFromURL = () => {
           const urlFilters = {
                dateRange: {
-                    start: searchParams.get('start_date') || '',
-                    end: searchParams.get('end_date') || ''
+                    start: searchParams?.get('start_date') || '',
+                    end: searchParams?.get('end_date') || ''
                },
-               page: parseInt(searchParams.get('page') || '1'),
-               count: parseInt(searchParams.get('count') || '50')
+               page: parseInt(searchParams?.get('page') || '1'),
+               count: parseInt(searchParams?.get('count') || '50')
           };
           setFilters(urlFilters);
           setTempFilters(urlFilters);

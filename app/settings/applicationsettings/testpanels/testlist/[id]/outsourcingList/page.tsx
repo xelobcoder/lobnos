@@ -25,7 +25,7 @@ export default function TestPanelOutSourcingListOrganizationSelection() {
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const searcParams = useSearchParams();
 	const params = useParams();
-	const testid = params ? params.id : undefined;
+	const testid = params?.id;
 	const testname = searcParams?.get("testname");
 
 	const options: SelectOption[] = outsourcingOrganizations.map((org) => ({

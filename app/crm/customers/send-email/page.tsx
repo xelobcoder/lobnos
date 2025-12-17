@@ -31,7 +31,7 @@ const schema = yup.object().shape({
 
 const SendEmailPage: React.FC = () => {
      const searchParams = useSearchParams();
-     const patientid = searchParams.get('patientid');
+     const patientid = searchParams?.get('patientid');
      const router = useRouter();
 
      const {

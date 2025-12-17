@@ -11,14 +11,7 @@ export const ConsulationLinks: Link[] = [
     },
     {
         title: 'Ascension', link: '/doctor/ascension', icon: <RiTimeLine />, children: [
-            { title: "Sample Collection", link: "/doctor/ascension/sample-collection" },
             { title: "Ascension Status", link: "/doctor/ascension/ascension-status" },
-        ]
-    },
-    {
-        title: "Result", link: "",icon:<RiTimeLine/>, children: [
-            { title: 'View Result', link: '/doctor/results', icon: <RiTimeLine /> },
-            { title: 'Analytics', link: '/doctor/analytics', icon: <RiTimeLine /> },
         ]
     }
 ];

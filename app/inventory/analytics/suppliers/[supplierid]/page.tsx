@@ -218,7 +218,7 @@ interface SupplierAnalytics {
 
 export default function SupplierAnalyticsPage() {
      const params = useParams();
-     const supplierId = params.supplierid as string;
+     const supplierId = params?.supplierid as string;
 
      const [analytics, setAnalytics] = useState<SupplierAnalytics | null>(null);
      const [loading, setLoading] = useState(true);

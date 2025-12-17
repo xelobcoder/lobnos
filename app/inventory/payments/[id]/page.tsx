@@ -39,7 +39,7 @@ const STATUS_BADGES = {
 
 export default function PaymentDetailsPage() {
      const params = useParams();
-     const paymentId = params.id as string;
+     const paymentId = params?.id as string;
 
      const [payment, setPayment] = useState<Payment | null>(null);
      const [loading, setLoading] = useState(true);

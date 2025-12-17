@@ -7,9 +7,9 @@ import { useSearchParams } from 'next/navigation';
 
 export default function UnauthorizedAccess() {
      const searchParams = useSearchParams();
-     const ascensionid = searchParams.get('ascensionid');
-     const patientid = searchParams.get('patientid');
-     const multiple = searchParams.get('multiple');
+     const ascensionid = searchParams?.get('ascensionid') ?? null;
+     const patientid = searchParams?.get('patientid') ?? null;
+     const multiple = searchParams?.get('multiple') ?? null;
      const isMultiple = multiple === 'true';
      return (
           <div className="min-vh-100" style={{ backgroundColor: '#f8f9fa' }}>

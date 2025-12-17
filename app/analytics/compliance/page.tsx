@@ -64,7 +64,8 @@ export default function ComplianceAnalyticsPage() {
           const fetchAnalyticsData = async () => {
                try {
                     setLoading(true);
-                    const response = await customFetch('compliance/incidents/analytics?startDate=2020-01-01&endDate=2025-12-31&tenantId=1');
+                    const currentYear = new Date().getFullYear();
+                    const response = await customFetch(`compliance/incidents/analytics?startDate=${currentYear}-01-01&endDate=${currentYear}-12-31&tenantId=1`);
                     setAnalyticsData(response);
                } catch (error) {
                     setAnalyticsData(null);

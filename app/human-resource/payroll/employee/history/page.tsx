@@ -37,7 +37,7 @@ const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
 export default function EmployeeHistoryPage() {
      const searchParams = useSearchParams();
      const router = useRouter();
-     const employeeId = searchParams.get('employeeId');
+     const employeeId = searchParams?.get('employeeId');
 
      const [transactions, setTransactions] = useState<PayrollTransaction[]>([]);
      const [filteredTransactions, setFilteredTransactions] = useState<PayrollTransaction[]>([]);

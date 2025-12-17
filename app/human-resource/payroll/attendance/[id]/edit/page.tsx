@@ -67,7 +67,7 @@ export default function EditAttendancePage() {
           remarks: ''
      });
 
-     const attendanceId = params.id as string;
+     const attendanceId = params?.id as string;
 
      const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
           const { name, value, type } = e.target;

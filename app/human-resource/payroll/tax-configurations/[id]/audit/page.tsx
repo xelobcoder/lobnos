@@ -311,7 +311,7 @@ export default function TaxConfigurationAuditPage() {
 
                {auditHistory.length === 0 && searchText && !isSearching && !isLoading && (
                     <div className="mb-3 text-danger">
-                         <small>No results found for "{searchText}"</small>
+                         <small>No results found for &quot;{searchText}&quot;</small>
                     </div>
                )}
 

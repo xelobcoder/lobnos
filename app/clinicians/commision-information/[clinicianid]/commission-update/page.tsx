@@ -36,12 +36,12 @@ export default function CommissionUpdatePage() {
      const [updating, setUpdating] = useState(false);
      const [startDate, setStartDate] = useState(defaultStart);
      const [endDate, setEndDate] = useState(today);
-     const clinicianid = useParams().clinicianid;
+     const clinicianid = useParams()?.clinicianid;
 
      const handleServerSideProcessing = async (pagination) => {
           try {
                const { page, count ,startDate, endDate } = pagination
-               const response = await customFetch(`commission-payments/detailed/list?page=${page}&&count=${count}&&recipientType=clinician&&recipient_id=${encodeURIComponent(clinicianid.toString())}&&startDate=${encodeURIComponent(startDate)}&&endDate=${encodeURIComponent(endDate)}`);
+               const response = await customFetch(`commission-payments/detailed/list?page=${page}&&count=${count}&&recipientType=clinician&&recipient_id=${encodeURIComponent(clinicianid ? clinicianid.toString() : '')}&&startDate=${encodeURIComponent(startDate)}&&endDate=${encodeURIComponent(endDate)}`);
                if (response && response.status) {
                     return { result: response.data || [] };
                } else {

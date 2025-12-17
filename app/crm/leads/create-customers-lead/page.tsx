@@ -14,7 +14,7 @@ import { useApplication } from '../../../../components/Auth/useApplicationContex
 export default function CustomersLeadList() {
 	const searchParams = useSearchParams();
 	const employeeid = useApplication()?.user?.employeeid;
-	const id = searchParams.get('id');
+	const id = searchParams?.get('id');
 	const isEdit = !!id;
 	const [formData, setFormData] = useState({
 		firstname: '',

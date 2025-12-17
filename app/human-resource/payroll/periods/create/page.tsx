@@ -202,9 +202,9 @@ export default function CreatePayrollPeriodPage() {
                               <h6 className="fw-bold mb-3">Payroll Period Guidelines</h6>
                               <ul className="small mb-0">
                                    <li className="mb-2">Periods typically span one month</li>
-                                   <li className="mb-2">Use clear naming conventions (e.g., "January 2025")</li>
-                                   <li className="mb-2">Ensure dates don't overlap with existing periods</li>
-                                   <li className="mb-2">Periods start in "draft" status</li>
+                                   <li className="mb-2">Use clear naming conventions (e.g., &quot;January 2025&quot;)</li>
+                                   <li className="mb-2">Ensure dates don&apos;t overlap with existing periods</li>
+                                   <li className="mb-2">Periods start in &quot;draft&quot; status</li>
                                    <li className="mb-2">Process payroll after creating the period</li>
                               </ul>
                          </div>

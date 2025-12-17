@@ -87,7 +87,8 @@ export async function middleware(request: NextRequest) {
                     '/billing/billing-sessions',
                     '/billing/settings/night-adjustments',
                     '/billing/billing-strategy/strategies',
-                    '/day-transaction-break-down'
+                    '/day-transaction-break-down',
+                
                 ];
                 if (restrictedPaths.some(path => currentPath.startsWith(path))) {
                     return NextResponse.redirect(new URL('/unauthorized', request.url));
