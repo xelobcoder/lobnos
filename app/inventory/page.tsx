@@ -195,7 +195,7 @@ export default function InventoryPage() {
                Header: 'Status',
                accessor: 'status',
                Cell: ({ value }) => (
-                    <span className={`badge bg-${STATUS_BADGES[value].color}`}>
+                    <span>
                          {STATUS_BADGES[value].label}
                     </span>
                )
@@ -490,7 +490,7 @@ export default function InventoryPage() {
                               Add Category
                          </button>
                          <button
-                              className="btn btn-primary btn-sm"
+                              className="btn btn-outline-primary btn-sm"
                               onClick={() => setShowAddModal(true)}
                          >
                               <RiAddLine className="me-1" />
@@ -586,7 +586,7 @@ export default function InventoryPage() {
                                                                            <p className="mb-1">Current: {item.currentStock} {item.unit} | Min: {item.minStock} {item.unit}</p>
                                                                            <small className="text-muted">SKU: {item.sku}</small>
                                                                       </div>
-                                                                      <button className="btn btn-sm btn-warning">Reorder</button>
+                                                                      <button className="btn btn-sm btn-outline-warning">Reorder</button>
                                                                  </div>
                                                             </div>
                                                        </div>
@@ -630,7 +630,7 @@ export default function InventoryPage() {
                                    <div className="card h-100">
                                         <div className="card-header d-flex justify-content-between align-items-center">
                                              <h6 className="mb-0">{category.name}</h6>
-                                             <span className="badge bg-primary">{category.itemCount} items</span>
+                                             <span>{category.itemCount} items</span>
                                         </div>
                                         <div className="card-body">
                                              <p className="text-muted mb-3">{category.description}</p>
@@ -814,7 +814,7 @@ export default function InventoryPage() {
                                    <div className="modal-footer">
                                         <button
                                              type="button"
-                                             className="btn btn-secondary btn-sm"
+                                             className="btn btn-outline-secondary btn-sm"
                                              onClick={() => {
                                                   setShowAddModal(false);
                                                   setSelectedItem(null);
@@ -825,7 +825,7 @@ export default function InventoryPage() {
                                         </button>
                                         <button
                                              type="button"
-                                             className="btn btn-primary btn-sm"
+                                             className="btn btn-outline-primary btn-sm"
                                              onClick={selectedItem ? handleUpdateItem : handleAddItem}
                                              disabled={loading}
                                         >
@@ -875,14 +875,14 @@ export default function InventoryPage() {
                                    <div className="modal-footer">
                                         <button
                                              type="button"
-                                             className="btn btn-secondary btn-sm"
+                                             className="btn btn-outline-secondary btn-sm"
                                              onClick={() => setShowCategoryModal(false)}
                                         >
                                              Cancel
                                         </button>
                                         <button
                                              type="button"
-                                             className="btn btn-success btn-sm"
+                                             className="btn btn-outline-success btn-sm"
                                              onClick={handleAddCategory}
                                         >
                                              Add Category
@@ -957,14 +957,14 @@ export default function InventoryPage() {
                                    <div className="modal-footer">
                                         <button
                                              type="button"
-                                             className="btn btn-secondary btn-sm"
+                                             className="btn btn-outline-secondary btn-sm"
                                              onClick={() => setShowSupplierModal(false)}
                                         >
                                              Cancel
                                         </button>
                                         <button
                                              type="button"
-                                             className="btn btn-success btn-sm"
+                                             className="btn btn-outline-success btn-sm"
                                              onClick={handleAddSupplier}
                                         >
                                              Add Supplier
@@ -996,7 +996,7 @@ export default function InventoryPage() {
                                                   <p><strong>Supplier:</strong> {selectedItem.supplier}</p>
                                                   <p><strong>Location:</strong> {selectedItem.location}</p>
                                                   <p><strong>Status:</strong>
-                                                       <span className={`badge bg-${STATUS_BADGES[selectedItem.status].color} ms-2`}>
+                                                       <span>
                                                             {STATUS_BADGES[selectedItem.status].label}
                                                        </span>
                                                   </p>

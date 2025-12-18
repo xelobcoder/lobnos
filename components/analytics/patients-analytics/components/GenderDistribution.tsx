@@ -174,12 +174,12 @@ const GenderDistribution: React.FC = () => {
 			</div>
 
 			<div className="card-body p-3 p-md-4">
-			
+
 				{/* Chart Section */}
 				<div className="mb-4">
 					<h6 className="fw-semibold mb-3" style={{ color: 'var(--bs-body-color)' }}>Gender Distribution Chart</h6>
 					<div style={{ width: "100%", height: 350 }}>
-						<ResponsiveContainer>
+						<ResponsiveContainer width="100%" height={350}>
 							<BarChart data={data} margin={{ top: 5, right: 5, left: 20, bottom: 45 }}>
 								<CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
 								<XAxis

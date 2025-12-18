@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import { customPost, customFetch, customFile, currencyFormatter } from '../../../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../../../components/Auth/useApplicationContext';
 import { InventoryItem, ReceivedItem, PurchaseOrder } from './types';
+import styles from '../../../../../styles/SmsTemplateList.module.css';
 
 export default function ReceiveOrderedItemsPage() {
      const params = useParams();
@@ -99,14 +100,17 @@ export default function ReceiveOrderedItemsPage() {
                          batchNumber: '',
                          expiryDate: '',
                          unit: item.unit || 'units',
+                         consumptionUnit: item.consumption_unit,
+                         unitsPerPurchaseUnit: 1,
                          totalValue: 0,
                          availableBrands: [],
                          status: item.status || 'ordered'
                     }));
                     setReceiveForm(prev => ({ ...prev, items: initialItems }));
 
-                    // Load brands for all items
+                    // Load brands and units for all items
                     await loadBrandsForItems(initialItems);
+                    await loadUnitsForItems(initialItems);
                }
           } catch (error) {
                console.error('Error loading order:', error);
@@ -175,6 +179,50 @@ export default function ReceiveOrderedItemsPage() {
           }
      };
 
+     const loadUnitsForItems = async (items: ReceivedItem[]) => {
+          try {
+               const response = await customFetch(`inventory/units?branchid=${branchid}&employeeid=${employeeid}`);
+               if (response.success) {
+                    const availableUnits = response.data?.units || [];
+
+                    // Update items with available units
+                    setReceiveForm(prev => ({
+                         ...prev,
+                         items: prev.items.map(item => {
+                              let selectedUnit = item.selectedUnit || item.unit || '';
+                              let unitsPerPurchaseUnit = item.unitsPerPurchaseUnit || 1;
+
+                              // Find the unit object if selectedUnit is a string
+                              let selectedUnitObj: { id: number; name: string } | null = null;
+                              if (selectedUnit) {
+                                   selectedUnitObj = availableUnits.find((unit: any) => (unit.name || unit) === selectedUnit) || null;
+                              }
+
+                              // Auto-select unit if only one is available and none selected
+                              if (!selectedUnitObj && availableUnits.length === 1) {
+                                   selectedUnitObj = availableUnits[0];
+                              }
+
+                              // Auto-set conversion factor if selected unit matches consumption unit
+                              if (selectedUnitObj && item.consumptionUnit && selectedUnitObj.name.toLowerCase() === item.consumptionUnit.toLowerCase()) {
+                                   unitsPerPurchaseUnit = 1;
+                              }
+
+                              return {
+                                   ...item,
+                                   availableUnits: availableUnits.map((unit: any) => ({ id: unit.id, name: unit.name || unit })),
+                                   selectedUnit: selectedUnitObj,
+                                   unitsPerPurchaseUnit
+                              };
+                         })
+                    }));
+               }
+          } catch (error) {
+               console.error('Error loading units for items:', error);
+               // Don't show error toast as this is not critical functionality
+          }
+     };
+
      const handleProcessReceiving = async () => {
           if (!receiveForm.invoiceNumber || !receiveForm.receivedDate || !receiveForm.receivedTime) {
                toast.error('Please fill in all required fields');
@@ -204,14 +252,14 @@ export default function ReceiveOrderedItemsPage() {
                     receipts: receiveForm.items.map(item => ({
                          order_item_id: item.id,
                          quantity_received: item.receivedQuantity,
-                         discount_rate: item.discountRate,
-                         tax_rate: item.taxRate,
                          batch_number: item.batchNumber,
                          expiry_date: item.expiryDate,
                          unit_price: item.unitPrice,
                          condition_status: receiveForm.conditionStatus,
                          quality_check_passed: receiveForm.qualityCheckPassed,
-                         notes: receiveForm.notes || "Received in good condition"
+                         notes: receiveForm.notes || "Received in good condition",
+                         purchase_unit: item.selectedUnit?.id || item.availableUnits?.find((unit: any) => unit.name === item.unit)?.id || 1,
+                         units_per_purchase_unit: item.unitsPerPurchaseUnit
                     })).filter(item => item.quantity_received > 0),
                };
 
@@ -354,7 +402,7 @@ export default function ReceiveOrderedItemsPage() {
                                                   Order #{order?.orderNumber} | Expected: {order?.expectedDeliveryDate ? new Date(order.expectedDeliveryDate).toLocaleDateString() : 'N/A'}
                                              </small>
                                         </div>
-                                        <div className="badge bg-info me-2">
+                                        <div>
                                              <strong>Progress:</strong> {completedItems} / {totalItemsToReceive} items completed
                                         </div>
                                         <div className="border border-success fw-bold px-2 py-1">
@@ -363,13 +411,13 @@ export default function ReceiveOrderedItemsPage() {
                                    </div>
                                    <div className="d-flex gap-2">
                                         <button
-                                             className="btn btn-secondary btn-sm"
+                                             className="btn btn-outline-secondary btn-sm"
                                              onClick={() => router.push('/inventory/orders')}
                                         >
                                              Cancel
                                         </button>
                                         <button
-                                             className="btn btn-primary btn-sm"
+                                             className="btn btn-outline-primary btn-sm"
                                              onClick={handleProcessReceiving}
                                              disabled={submitting || totalItemsToReceive === 0 || (() => {
                                                   const itemsWithQuantity = receiveForm.items.filter(item => item.receivedQuantity > 0 && item.status !== 'received');
@@ -396,7 +444,7 @@ export default function ReceiveOrderedItemsPage() {
                                    <div className="d-flex flex-wrap align-items-center gap-3">
                                         <div>
                                              <strong className="small">Status:</strong>
-                                             <span className={`badge ms-2 small ${order.status === 'ordered' ? 'bg-warning' : 'bg-secondary'}`}>
+                                             <span>
                                                   {order.status}
                                              </span>
                                         </div>
@@ -453,8 +501,11 @@ export default function ReceiveOrderedItemsPage() {
                                                                  <div className="flex-grow-1">
                                                                       <h6 className="mb-1">
                                                                            <strong>{item.itemName}</strong>
-                                                                           <small className="text-muted ms-2">({item.unit})</small>
-                                                                           <span className={`badge ms-2 small ${item.status === 'received' ? 'bg-success' : item.status === 'partially_received' ? 'bg-warning' : 'bg-secondary'}`}>
+                                                                           <small className="text-muted ms-2">({item.selectedUnit?.name || item.unit})</small>
+                                                                           {item.consumptionUnit && item.consumptionUnit !== (item.selectedUnit?.name || item.unit) && (
+                                                                                <small className="text-info ms-1">• Consumption: {item.consumptionUnit}</small>
+                                                                           )}
+                                                                           <span>
                                                                                 {item.status.replace('_', ' ')}
                                                                            </span>
                                                                       </h6>
@@ -469,7 +520,7 @@ export default function ReceiveOrderedItemsPage() {
                                                             </div>
 
                                                             <div className="row g-1">
-                                                                 <div className="col-3">
+                                                                 <div className="col-2">
                                                                       <label className="form-label small">Brand</label>
                                                                       <select
                                                                            className="form-select form-select-sm"
@@ -490,7 +541,55 @@ export default function ReceiveOrderedItemsPage() {
                                                                            ))}
                                                                       </select>
                                                                  </div>
-                                                                 <div className="col-2">
+                                                                 <div className="col-1">
+                                                                      <label className="form-label small">Unit</label>
+                                                                      <select
+                                                                           className="form-select form-select-sm"
+                                                                           value={item.selectedUnit?.name || item.unit || ''}
+                                                                           disabled={item.status === 'received'}
+                                                                           onChange={(e) => {
+                                                                                const value = e.target.value;
+                                                                                const selectedUnitObj = item.availableUnits?.find((unit: any) => unit.name === value);
+                                                                                setReceiveForm(prev => {
+                                                                                     const newItems = [...prev.items];
+                                                                                     newItems[index].selectedUnit = selectedUnitObj || null;
+                                                                                     // Auto-set conversion factor if unit matches consumption unit
+                                                                                     if (value && item.consumptionUnit && value.toLowerCase() === item.consumptionUnit.toLowerCase()) {
+                                                                                          newItems[index].unitsPerPurchaseUnit = 1;
+                                                                                     }
+                                                                                     return { ...prev, items: newItems };
+                                                                                });
+                                                                           }}
+                                                                      >
+                                                                           <option value="">Select Unit</option>
+                                                                           {item.availableUnits && item.availableUnits.map((unit: any, unitIndex: number) => (
+                                                                                <option key={unitIndex} value={unit.name}>{unit.name}</option>
+                                                                           ))}
+                                                                      </select>
+                                                                 </div>
+                                                                 <div className="col-1">
+                                                                      <label className="form-label small">
+                                                                           {item.consumptionUnit && item.selectedUnit && item.consumptionUnit !== item.selectedUnit.name
+                                                                                ? `${item.consumptionUnit}/${item.selectedUnit.name}`
+                                                                                : 'Units/PU'}
+                                                                      </label>
+                                                                      <input
+                                                                           type="number"
+                                                                           className="form-control form-control-sm"
+                                                                           min="1"
+                                                                           value={item.unitsPerPurchaseUnit || 1}
+                                                                           disabled={item.status === 'received'}
+                                                                           onChange={(e) => {
+                                                                                const value = parseInt(e.target.value) || 1;
+                                                                                setReceiveForm(prev => {
+                                                                                     const newItems = [...prev.items];
+                                                                                     newItems[index].unitsPerPurchaseUnit = value;
+                                                                                     return { ...prev, items: newItems };
+                                                                                });
+                                                                           }}
+                                                                      />
+                                                                 </div>
+                                                                 <div className="col-1">
                                                                       <label className="form-label small">Qty <span className="text-danger">*</span></label>
                                                                       <input
                                                                            type="number"
@@ -510,7 +609,7 @@ export default function ReceiveOrderedItemsPage() {
                                                                            }}
                                                                       />
                                                                  </div>
-                                                                 <div className="col-2">
+                                                                 <div className="col-1">
                                                                       <label className="form-label small">Price <span className="text-danger">*</span></label>
                                                                       <input
                                                                            type="number"
@@ -568,7 +667,7 @@ export default function ReceiveOrderedItemsPage() {
                                                                            }}
                                                                       />
                                                                  </div>
-                                                                 <div className="col-2">
+                                                                 <div className="col-1">
                                                                       <label className="form-label small">Batch <span className="text-danger">*</span></label>
                                                                       <input
                                                                            type="text"
@@ -657,19 +756,18 @@ export default function ReceiveOrderedItemsPage() {
                                              </div>
                                         ) : (
                                              <div className="table-responsive">
-                                                  <table className="table table-striped table-hover">
+                                                  <table className={styles.table}>
                                                        <thead className="table-light">
                                                             <tr>
-                                                                 <th style={{ width: '20%' }}>Item</th>
-                                                                 <th style={{ width: '5%' }}>Status</th>
-                                                                 <th style={{ width: '8%' }}>Progress</th>
-                                                                 <th style={{ width: '12%' }}>Brand</th>
-                                                                 <th style={{ width: '8%' }}>Receive Qty</th>
-                                                                 <th style={{ width: '8%' }}>Unit Price</th>
-                                                                 <th style={{ width: '6%' }}>Discount</th>
-                                                                 <th style={{ width: '6%' }}>Tax</th>
-                                                                 <th style={{ width: '10%' }}>Batch</th>
-                                                                 <th style={{ width: '10%' }}>Expiry</th>
+                                                                 <th style={{ width: '18%' }}>Item</th>
+                                                                 <th style={{ width: '4%' }}>Progress</th>
+                                                                 <th style={{ width: '12%' }}>Brand & Unit</th>
+                                                                 <th style={{ width: '8%' }}>Units/PU</th>
+                                                                 <th style={{ width: '8%' }}>Rec. Qty / Unit Price</th>
+                                                                 <th style={{ width: '5%' }}>Discount</th>
+                                                                 <th style={{ width: '5%' }}>Tax</th>
+                                                                 <th style={{ width: '8%' }}>Batch</th>
+                                                                 <th style={{ width: '8%' }}>Expiry</th>
                                                                  <th style={{ width: '8%' }}>Total</th>
                                                             </tr>
                                                        </thead>
@@ -681,8 +779,14 @@ export default function ReceiveOrderedItemsPage() {
                                                                                 <strong>{item.itemName}</strong>
                                                                                 <br />
                                                                                 <small className="text-muted">
-                                                                                     {item.unit} | SKU: {item.sku}
+                                                                                     {item.selectedUnit?.name || item.unit} | SKU: {item.sku}
                                                                                 </small>
+                                                                                {item.consumptionUnit && item.consumptionUnit !== (item.selectedUnit?.name || item.unit) && (
+                                                                                     <>
+                                                                                          <br />
+                                                                                          <small className="text-info">Consumption: {item.consumptionUnit}</small>
+                                                                                     </>
+                                                                                )}
                                                                                 {item.availableBrands && item.availableBrands.length > 0 && (
                                                                                      <>
                                                                                           <br />
@@ -693,11 +797,6 @@ export default function ReceiveOrderedItemsPage() {
                                                                                 )}
                                                                            </div>
                                                                       </td>
-                                                                      <td>
-                                                                           <span className={`badge ${item.status === 'received' ? 'bg-success' : item.status === 'partially_received' ? 'bg-warning' : 'bg-secondary'}`}>
-                                                                                {item.status === 'partially_received' ? 'Partial' : item.status === 'received' ? 'Done' : 'Pending'}
-                                                                           </span>
-                                                                      </td>
                                                                       <td className="text-center">
                                                                            <div className="small">
                                                                                 <div className="fw-bold">{item.quantityReceived}/{item.orderedQuantity}</div>
@@ -705,62 +804,112 @@ export default function ReceiveOrderedItemsPage() {
                                                                            </div>
                                                                       </td>
                                                                       <td>
-                                                                           <select
-                                                                                className="form-select form-select-sm"
-                                                                                value={item.selectedBrand || ''}
-                                                                                disabled={item.status === 'received'}
-                                                                                onChange={(e) => {
-                                                                                     const value = e.target.value;
-                                                                                     setReceiveForm(prev => {
-                                                                                          const newItems = [...prev.items];
-                                                                                          newItems[index].selectedBrand = value;
-                                                                                          return { ...prev, items: newItems };
-                                                                                     });
-                                                                                }}
-                                                                           >
-                                                                                <option value="">Select Brand</option>
-                                                                                {item.availableBrands && item.availableBrands.map((brand, brandIndex) => (
-                                                                                     <option key={brandIndex} value={brand}>{brand}</option>
-                                                                                ))}
-                                                                           </select>
+                                                                           <div className="d-flex flex-column gap-1">
+                                                                                <div>
+                                                                                     <select
+                                                                                          className="form-select form-select-sm"
+                                                                                          value={item.selectedBrand || ''}
+                                                                                          disabled={item.status === 'received'}
+                                                                                          onChange={(e) => {
+                                                                                               const value = e.target.value;
+                                                                                               setReceiveForm(prev => {
+                                                                                                    const newItems = [...prev.items];
+                                                                                                    newItems[index].selectedBrand = value;
+                                                                                                    return { ...prev, items: newItems };
+                                                                                               });
+                                                                                          }}
+                                                                                     >
+                                                                                          <option value="">Select Brand</option>
+                                                                                          {item.availableBrands && item.availableBrands.map((brand, brandIndex) => (
+                                                                                               <option key={brandIndex} value={brand}>{brand}</option>
+                                                                                          ))}
+                                                                                     </select>
+                                                                                </div>
+                                                                                <div>
+                                                                                     <select
+                                                                                          className="form-select form-select-sm"
+                                                                                          value={item.selectedUnit?.name || item.unit || ''}
+                                                                                          disabled={item.status === 'received'}
+                                                                                          onChange={(e) => {
+                                                                                               const value = e.target.value;
+                                                                                               const selectedUnitObj = item.availableUnits?.find((unit: any) => unit.name === value);
+                                                                                               setReceiveForm(prev => {
+                                                                                                    const newItems = [...prev.items];
+                                                                                                    newItems[index].selectedUnit = selectedUnitObj || null;
+                                                                                                    // Auto-set conversion factor if unit matches consumption unit
+                                                                                                    if (value && item.consumptionUnit && value.toLowerCase() === item.consumptionUnit.toLowerCase()) {
+                                                                                                         newItems[index].unitsPerPurchaseUnit = 1;
+                                                                                                    }
+                                                                                                    return { ...prev, items: newItems };
+                                                                                               });
+                                                                                          }}
+                                                                                     >
+                                                                                          <option value="">Select Unit</option>
+                                                                                          {item.availableUnits && item.availableUnits.map((unit: any, unitIndex: number) => (
+                                                                                               <option key={unitIndex} value={unit.name}>{unit.name}</option>
+                                                                                          ))}
+                                                                                     </select>
+                                                                                </div>
+                                                                           </div>
                                                                       </td>
                                                                       <td>
                                                                            <input
                                                                                 type="number"
                                                                                 className="form-control form-control-sm"
-                                                                                min="0"
-                                                                                max={item.remainingQuantity}
-                                                                                value={item.receivedQuantity}
+                                                                                min="1"
+                                                                                value={item.unitsPerPurchaseUnit || 1}
                                                                                 disabled={item.status === 'received'}
                                                                                 onChange={(e) => {
-                                                                                     const value = parseInt(e.target.value) || 0;
+                                                                                     const value = parseInt(e.target.value) || 1;
                                                                                      setReceiveForm(prev => {
                                                                                           const newItems = [...prev.items];
-                                                                                          newItems[index].receivedQuantity = value;
-                                                                                          newItems[index].totalValue = value * newItems[index].unitPrice;
+                                                                                          newItems[index].unitsPerPurchaseUnit = value;
                                                                                           return { ...prev, items: newItems };
                                                                                      });
                                                                                 }}
                                                                            />
                                                                       </td>
                                                                       <td>
-                                                                           <input
-                                                                                type="number"
-                                                                                className="form-control form-control-sm"
-                                                                                min="0"
-                                                                                step="0.01"
-                                                                                value={item.unitPrice}
-                                                                                disabled={item.status === 'received'}
-                                                                                onChange={(e) => {
-                                                                                     const value = parseFloat(e.target.value) || 0;
-                                                                                     setReceiveForm(prev => {
-                                                                                          const newItems = [...prev.items];
-                                                                                          newItems[index].unitPrice = value;
-                                                                                          newItems[index].totalValue = newItems[index].receivedQuantity * value;
-                                                                                          return { ...prev, items: newItems };
-                                                                                     });
-                                                                                }}
-                                                                           />
+                                                                           <div className="d-flex flex-column gap-1">
+                                                                                <div>
+                                                                                     <input
+                                                                                          type="number"
+                                                                                          className="form-control form-control-sm"
+                                                                                          min="0"
+                                                                                          max={item.remainingQuantity}
+                                                                                          value={item.receivedQuantity}
+                                                                                          disabled={item.status === 'received'}
+                                                                                          onChange={(e) => {
+                                                                                               const value = parseInt(e.target.value) || 0;
+                                                                                               setReceiveForm(prev => {
+                                                                                                    const newItems = [...prev.items];
+                                                                                                    newItems[index].receivedQuantity = value;
+                                                                                                    newItems[index].totalValue = value * newItems[index].unitPrice;
+                                                                                                    return { ...prev, items: newItems };
+                                                                                               });
+                                                                                          }}
+                                                                                     />
+                                                                                </div>
+                                                                                <div>
+                                                                                     <input
+                                                                                          type="number"
+                                                                                          className="form-control form-control-sm"
+                                                                                          min="0"
+                                                                                          step="0.01"
+                                                                                          value={item.unitPrice}
+                                                                                          disabled={item.status === 'received'}
+                                                                                          onChange={(e) => {
+                                                                                               const value = parseFloat(e.target.value) || 0;
+                                                                                               setReceiveForm(prev => {
+                                                                                                    const newItems = [...prev.items];
+                                                                                                    newItems[index].unitPrice = value;
+                                                                                                    newItems[index].totalValue = newItems[index].receivedQuantity * value;
+                                                                                                    return { ...prev, items: newItems };
+                                                                                               });
+                                                                                          }}
+                                                                                     />
+                                                                                </div>
+                                                                           </div>
                                                                       </td>
                                                                       <td>
                                                                            <input

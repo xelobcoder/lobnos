@@ -191,7 +191,7 @@ const AgeDistribution: React.FC = () => {
 			)}
 
 			<div className="card-body p-3 p-md-4">
-				
+
 				{loading ? (
 					<div className="d-flex flex-column justify-content-center align-items-center" style={{ minHeight: '350px' }}>
 						<span className="mb-3 animate-spin" style={{ color: COLOR_ACCENT, fontSize: 48 }}>
@@ -226,7 +226,7 @@ const AgeDistribution: React.FC = () => {
 								Age Distribution Chart
 							</h6>
 							<div style={{ width: "100%", height: 350 }}>
-								<ResponsiveContainer>
+								<ResponsiveContainer width="100%" height={350}>
 									<BarChart
 										data={data}
 										layout="vertical"

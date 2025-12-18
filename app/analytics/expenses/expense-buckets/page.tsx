@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useEffect, useState, ReactElement } from "react";
 import { customFetch, currencyFormatter } from "../../../../components/Auth/customFetch";
 import { useApplication } from "../../../../components/Auth/useApplicationContext";
@@ -314,11 +313,9 @@ export default function ExpenseBuckets() {
                               </div>
                          )}
                          {!loading && !error && data.length > 0 && (
-                              <div style={{ width: "100%", height: 350 }}>
-                                   <ResponsiveContainer>
-                                        {renderChart()}
-                                   </ResponsiveContainer>
-                              </div>
+                              <ResponsiveContainer width="100%" height={350}>
+                                   {renderChart()}
+                              </ResponsiveContainer>
                          )}
                     </div>
                     {!loading && !error && data.length > 0 && (

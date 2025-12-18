@@ -38,8 +38,12 @@ interface ReceivedItem {
      batchNumber: string;
      expiryDate: string;
      unit: string;
+     consumptionUnit?: string;
+     selectedUnit?: { id: number; name: string } | null;
+     unitsPerPurchaseUnit?: number;
      totalValue: number;
      availableBrands?: string[];
+     availableUnits?: { id: number; name: string }[];
      status: string; // Item status (ordered, partially_received, received)
 }
 

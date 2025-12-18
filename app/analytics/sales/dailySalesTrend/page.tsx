@@ -348,11 +348,9 @@ export default function DailySalesTrend() {
         }
 
         return (
-            <div style={{ width: "100%", height: 350 }}>
-                <ResponsiveContainer>
-                    {renderChart()}
-                </ResponsiveContainer>
-            </div>
+            <ResponsiveContainer width="100%" height={350}>
+                {renderChart()}
+            </ResponsiveContainer>
         );
     };
 

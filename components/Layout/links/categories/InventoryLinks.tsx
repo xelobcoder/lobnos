@@ -16,10 +16,12 @@ import {
      RiMoneyDollarCircleLine,
      RiWalletLine,
      RiDashboardLine,
-     RiFileChartLine} from '@remixicon/react';
+     RiFileChartLine,
+     RiRulerLine
+} from '@remixicon/react';
 
 export const InventoryLinks: Link[] = [
-       {
+     {
           title: "Analytics Dashboard",
           link: "/inventory/analytics",
           icon: <RiDashboardLine />,
@@ -52,6 +54,11 @@ export const InventoryLinks: Link[] = [
           title: "Categories",
           link: "/inventory/categories",
           icon: <RiPriceTagLine />
+     },
+     {
+          title: "Units",
+          link: "/inventory/units",
+          icon: <RiRulerLine />
      },
      {
           title: "Suppliers",

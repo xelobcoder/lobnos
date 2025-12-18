@@ -1,13 +1,12 @@
 import Cookies from "js-cookie"
 import moment from "moment"
-import { sendStatusCode } from "next/dist/server/api-utils";
 import { toast } from "react-toastify";
 
 export async function customFile(endpoint, formbody) {
 	if (process.env.NODE_ENV == "production" && !process.env.NEXT_PUBLIC_ACCESS_TOKEN) {
 		throw new Error("NEXT_PUBLIC_ACCESS_TOKEN MISSING")
 	}
-	const url = new URL(`${endpoint}`, process.env.BASEURL);
+	const url = new URL(`${endpoint}`, process.env.NODE_ENV == "production" ? process.env.PRODUCTION_BASEURL : process.env.DEVELOPMENT_BASEURL);
 	url.searchParams.append("tenantId", process.env.TENANTID);
 
 	const response = await fetch(url.toString(), {
@@ -33,7 +32,7 @@ export async function customFile(endpoint, formbody) {
  */
 export async function customFetch(endpoint) {
 	try {
-		const url = new URL(`/api/v1/${endpoint}`, process.env.BASEURL);
+		const url = new URL(`/api/v1/${endpoint}`, process.env.NODE_ENV == "production" ? process.env.PRODUCTION_BASEURL : process.env.DEVELOPMENT_BASEURL);
 		url.searchParams.append("tenantId", process.env.TENANTID);
 		const response = await fetch(url.toString(), {
 			headers: {
@@ -54,7 +53,7 @@ export async function customFetch(endpoint) {
 			return source;
 		}
 	} catch (err) {
-		console.log(err);
+		throw err;
 	}
 }
 
@@ -176,7 +175,8 @@ export const Glucoseoptions = ["mg/dl", "mmol/L"]
  * @returns {Promise<object>} - The parsed response from the POST request.
  */
 export async function customPost(endpoint, method, data, hash = false) {
-	if (process.env.NODE_ENV == "production" && !process.env.NEXT_PUBLIC_ACCESS_TOKEN) {
+	try {
+		if (process.env.NODE_ENV == "production" && !process.env.NEXT_PUBLIC_ACCESS_TOKEN) {
 		throw new Error("NEXT_PUBLIC_ACCESS_TOKEN MISSING")
 	}
 	var requestBody = data
@@ -188,7 +188,7 @@ export async function customPost(endpoint, method, data, hash = false) {
 		}
 	}
 
-	const url = new URL(`${endpoint}`, process.env.BASEURL);
+	const url = new URL(`${endpoint}`, process.env.NODE_ENV == "production" ? process.env.PRODUCTION_BASEURL : process.env.DEVELOPMENT_BASEURL);
 	url.searchParams.append("tenantId", "3");
 	let response = await fetch(url.href, {
 		method: method,
@@ -208,6 +208,9 @@ export async function customPost(endpoint, method, data, hash = false) {
 		window.location.href = "/authentication/login"
 	} else {
 		return datasource
+	}
+	} catch (err) {
+		console.log(err);
 	}
 }
 

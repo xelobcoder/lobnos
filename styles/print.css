@@ -11,7 +11,7 @@
     /* Ensure the page uses full width and height */
     @page {
         margin: 0.5cm;
-        size: A4 landscape;
+        /* size: A4 landscape; */
         background-color: white;
     }
     

@@ -87,7 +87,7 @@ export default function ExpenseComparisonByPeriod() {
     }, []);
 
     useEffect(() => {
-       fetchData();
+        fetchData();
     }, []);
 
     const currentPeriod = data.find(item => item.period === 'current');
@@ -273,101 +273,99 @@ export default function ExpenseComparisonByPeriod() {
                         </p>
                     </div>
                 ) : (
-                    <div style={{ width: "100%", height: 350 }}>
-                        <ResponsiveContainer>
-                            <BarChart
-                                data={chartData}
-                                margin={{ top: 5, right: 5, left: 20, bottom: 45 }}
+                    <ResponsiveContainer width="100%" height={350}>
+                        <BarChart data={chartData}
+                            margin={{ top: 5, right: 5, left: 20, bottom: 45 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
+                            <XAxis
+                                dataKey="label"
+                                tickFormatter={(value: string) => value}
+                                angle={0}
+                                textAnchor="middle"
+                                height={40}
+                                interval={0}
+                                tick={{ fontSize: 10, fill: COLOR_TEXT_MUTED }}
+                                axisLine={{ stroke: COLOR_BORDER }}
+                                tickLine={{ stroke: COLOR_BORDER }}
+                            />
+                            <YAxis
+                                tickFormatter={(value: number, index: number) => {
+                                    const item = chartData[index];
+                                    return item?.type === 'count' ? value.toString() : currencyFormatter.format(value);
+                                }}
+                                tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }}
+                                axisLine={false}
+                                tickLine={false}
+                                width={95}
+                            />
+                            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
+                            <Legend
+                                verticalAlign="top"
+                                align="right"
+                                iconType="circle"
+                                iconSize={8}
+                                wrapperStyle={{ fontSize: '13px', color: 'var(--bs-body-color)', paddingBottom: '15px' }}
+                            />
+                            <Bar
+                                dataKey="value"
+                                radius={[4, 4, 0, 0]}
+                                maxBarSize={40}
                             >
-                                <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
-                                <XAxis
-                                    dataKey="label"
-                                    tickFormatter={(value: string) => value}
-                                    angle={0}
-                                    textAnchor="middle"
-                                    height={40}
-                                    interval={0}
-                                    tick={{ fontSize: 10, fill: COLOR_TEXT_MUTED }}
-                                    axisLine={{ stroke: COLOR_BORDER }}
-                                    tickLine={{ stroke: COLOR_BORDER }}
-                                />
-                                <YAxis
-                                    tickFormatter={(value: number, index: number) => {
-                                        const item = chartData[index];
-                                        return item?.type === 'count' ? value.toString() : currencyFormatter.format(value);
-                                    }}
-                                    tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }}
-                                    axisLine={false}
-                                    tickLine={false}
-                                    width={95}
-                                />
-                                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
-                                <Legend
-                                    verticalAlign="top"
-                                    align="right"
-                                    iconType="circle"
-                                    iconSize={8}
-                                    wrapperStyle={{ fontSize: '13px', color: 'var(--bs-body-color)', paddingBottom: '15px' }}
-                                />
-                                <Bar
-                                    dataKey="value"
-                                    radius={[4, 4, 0, 0]}
-                                    maxBarSize={40}
-                                >
-                                    {chartData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.color} />
-                                    ))}
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
+                                {chartData.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={entry.color} />
+                                ))}
+                            </Bar>
+                        </BarChart>
+                    </ResponsiveContainer>
                 )}
             </div>
-            {data.length > 0 && (
-                <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{ borderTop: `1px solid ${COLOR_BORDER}` }}>
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                        <h4 className="fs-6 fw-medium mb-0">Period Comparison Details</h4>
-                        <button
-                            className="btn btn-outline-primary d-flex align-items-center gap-1 px-3 py-2 btn-sm"
-                            style={{ borderColor: COLOR_ACCENT, color: COLOR_ACCENT, fontWeight: 500, fontSize: '0.85rem' }}
-                            onClick={() => window.print()}
-                            title="Print this report"
-                        >
+            {
+                data.length > 0 && (
+                    <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{ borderTop: `1px solid ${COLOR_BORDER}` }}>
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <h4 className="fs-6 fw-medium mb-0">Period Comparison Details</h4>
+                            <button
+                                className="btn btn-outline-primary d-flex align-items-center gap-1 px-3 py-2 btn-sm"
+                                style={{ borderColor: COLOR_ACCENT, color: COLOR_ACCENT, fontWeight: 500, fontSize: '0.85rem' }}
+                                onClick={() => window.print()}
+                                title="Print this report"
+                            >
 
-                            Print
-                        </button>
-                    </div>
-                    <div className="print-date-range mb-3" style={{ display: 'none' }}>
-                        <p className="mb-1 fw-medium">Report Period:</p>
-                        <p className="mb-0 text-muted">
-                            Current Period: {currentStartDate} to {currentEndDate} |
-                            Previous Period: {previousStartDate} to {previousEndDate}
-                        </p>
-                    </div>
-                    <div className="table-responsive" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        <table className="table table-sm table-hover table-striped small printable-table-with-borders">
-                            <thead className="sticky-top bg-body-tertiary">
-                                <tr>
-                                    <th scope="col" className="py-2 text-start">Metric</th>
-                                    <th scope="col" className="py-2 text-start">Value</th>
-                                    <th scope="col" className="py-2 text-start">Type</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {chartData.map((item, idx) => (
-                                    <tr key={idx}>
-                                        <td className="py-2 fw-medium text-start">{item.label.replace('\n', ' ')}</td>
-                                        <td className="py-2 fw-medium text-start">
-                                            {item.type === 'count' ? item.value : currencyFormatter.format(item.value)}
-                                        </td>
-                                        <td className="py-2 text-start">{item.type}</td>
+                                Print
+                            </button>
+                        </div>
+                        <div className="print-date-range mb-3" style={{ display: 'none' }}>
+                            <p className="mb-1 fw-medium">Report Period:</p>
+                            <p className="mb-0 text-muted">
+                                Current Period: {currentStartDate} to {currentEndDate} |
+                                Previous Period: {previousStartDate} to {previousEndDate}
+                            </p>
+                        </div>
+                        <div className="table-responsive" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                            <table className="table table-sm table-hover table-striped small printable-table-with-borders">
+                                <thead className="sticky-top bg-body-tertiary">
+                                    <tr>
+                                        <th scope="col" className="py-2 text-start">Metric</th>
+                                        <th scope="col" className="py-2 text-start">Value</th>
+                                        <th scope="col" className="py-2 text-start">Type</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {chartData.map((item, idx) => (
+                                        <tr key={idx}>
+                                            <td className="py-2 fw-medium text-start">{item.label.replace('\n', ' ')}</td>
+                                            <td className="py-2 fw-medium text-start">
+                                                {item.type === 'count' ? item.value : currencyFormatter.format(item.value)}
+                                            </td>
+                                            <td className="py-2 text-start">{item.type}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
             <style jsx global>{`
                 .animate-spin {
                     animation: spin 1s linear infinite;
@@ -424,6 +422,6 @@ export default function ExpenseComparisonByPeriod() {
                     }
                 }
             `}</style>
-        </div>
+        </div >
     );
 }

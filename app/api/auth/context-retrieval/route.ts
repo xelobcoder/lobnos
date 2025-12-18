@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
                if (found) sessionCookie = found.split('=')[1];
           }
 
-          const url = new URL(`/api/v1/prime/validate-token`, process.env.BASEURL);
+          const url = new URL(`/api/v1/prime/validate-token`, process.env.NODE_ENV === 'development' ? process.env.DEVELOPMENT_BASEURL: process.env.PRODUCTION_BASEURL );
           url.searchParams.append('tenantId', process.env.TENANTID || '');
           const response = await fetch(url.toString(), {
                headers: {

@@ -138,7 +138,7 @@ export default function PaymentDetailsPage() {
                     <div className="border-bottom pb-2 mb-3">
                          <h6 className="mb-0" style={{ fontSize: '1rem' }}>
                               Payment Information
-                              <span className={`badge bg-${STATUS_BADGES[payment.payment_status as keyof typeof STATUS_BADGES]?.color || 'secondary'} ms-2`}>
+                              <span>
                                    {STATUS_BADGES[payment.payment_status as keyof typeof STATUS_BADGES]?.label || payment.payment_status}
                               </span>
                          </h6>
@@ -168,7 +168,7 @@ export default function PaymentDetailsPage() {
                                              <tr>
                                                   <td className="fw-bold">Status:</td>
                                                   <td>
-                                                       <span className={`badge bg-${STATUS_BADGES[payment.payment_status as keyof typeof STATUS_BADGES]?.color || 'secondary'}`}>
+                                                       <span>
                                                             {STATUS_BADGES[payment.payment_status as keyof typeof STATUS_BADGES]?.label || payment.payment_status}
                                                        </span>
                                                   </td>

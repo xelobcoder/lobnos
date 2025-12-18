@@ -185,53 +185,51 @@ export default function TotalSalesByClinician() {
         const bottomMargin = angleXAxis ? 70 : 30;
 
         return (
-            <div style={{ width: "100%", height: 350 }}>
-                <ResponsiveContainer>
-                    <BarChart data={data} margin={{ top: 5, right: 15, left: 10, bottom: bottomMargin }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke={SHADCN_BORDER} vertical={false} />
-                        <XAxis
-                            dataKey="name"
-                            angle={angleXAxis ? -40 : 0}
-                            textAnchor={angleXAxis ? "end" : "middle"}
-                            height={angleXAxis ? 80 : 40}
-                            interval={0}
-                            tick={{ fontSize: 11, fill: SHADCN_MUTED_FOREGROUND }}
-                            axisLine={{ stroke: SHADCN_BORDER }}
-                            tickLine={{ stroke: SHADCN_BORDER }}
-                        />
-                        <YAxis
-                            tickFormatter={(value: number) => currencyFormatter.format(value)}
-                            tick={{ fontSize: 11, fill: SHADCN_MUTED_FOREGROUND }}
-                            axisLine={false}
-                            tickLine={false}
-                            width={90}
-                        />
-                        <Tooltip
-                            formatter={(value: number, name: string) => {
-                                if (name === 'totalPayable') return [currencyFormatter.format(value), 'Total Payable'];
-                                return [value, name];
-                            }}
-                            cursor={{ fill: `${SHADCN_PRIMARY}20` }}
-                            contentStyle={{
-                                backgroundColor: SHADCN_TOOLTIP_BG,
-                                color: SHADCN_TOOLTIP_FG,
-                                borderRadius: '0.375rem',
-                                border: `1px solid ${SHADCN_BORDER}`,
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                                fontSize: '0.8rem',
-                                padding: '0.5rem 0.75rem'
-                            }}
-                            labelStyle={{ marginBottom: '0.25rem', fontWeight: '500' }}
-                        />
-                        <Bar
-                            dataKey="totalPayable"
-                            fill={SHADCN_PRIMARY}
-                            radius={[4, 4, 0, 0]}
-                            maxBarSize={60}
-                        />
-                    </BarChart>
-                </ResponsiveContainer>
-            </div>
+            <ResponsiveContainer width="100%" height={350}>
+                <BarChart data={data} margin={{ top: 5, right: 15, left: 10, bottom: bottomMargin }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={SHADCN_BORDER} vertical={false} />
+                    <XAxis
+                        dataKey="name"
+                        angle={angleXAxis ? -40 : 0}
+                        textAnchor={angleXAxis ? "end" : "middle"}
+                        height={angleXAxis ? 80 : 40}
+                        interval={0}
+                        tick={{ fontSize: 11, fill: SHADCN_MUTED_FOREGROUND }}
+                        axisLine={{ stroke: SHADCN_BORDER }}
+                        tickLine={{ stroke: SHADCN_BORDER }}
+                    />
+                    <YAxis
+                        tickFormatter={(value: number) => currencyFormatter.format(value)}
+                        tick={{ fontSize: 11, fill: SHADCN_MUTED_FOREGROUND }}
+                        axisLine={false}
+                        tickLine={false}
+                        width={90}
+                    />
+                    <Tooltip
+                        formatter={(value: number, name: string) => {
+                            if (name === 'totalPayable') return [currencyFormatter.format(value), 'Total Payable'];
+                            return [value, name];
+                        }}
+                        cursor={{ fill: `${SHADCN_PRIMARY}20` }}
+                        contentStyle={{
+                            backgroundColor: SHADCN_TOOLTIP_BG,
+                            color: SHADCN_TOOLTIP_FG,
+                            borderRadius: '0.375rem',
+                            border: `1px solid ${SHADCN_BORDER}`,
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                            fontSize: '0.8rem',
+                            padding: '0.5rem 0.75rem'
+                        }}
+                        labelStyle={{ marginBottom: '0.25rem', fontWeight: '500' }}
+                    />
+                    <Bar
+                        dataKey="totalPayable"
+                        fill={SHADCN_PRIMARY}
+                        radius={[4, 4, 0, 0]}
+                        maxBarSize={60}
+                    />
+                </BarChart>
+            </ResponsiveContainer>
         );
     };
 

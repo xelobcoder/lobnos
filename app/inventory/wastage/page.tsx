@@ -183,7 +183,7 @@ export default function StockWastagePage() {
                Cell: ({ value }) => {
                     const reasonInfo = WASTAGE_REASONS[value as keyof typeof WASTAGE_REASONS] || WASTAGE_REASONS.other;
                     return (
-                         <span className={`badge bg-${reasonInfo.color}`}>
+                         <span>
                               {reasonInfo.label}
                          </span>
                     );
@@ -304,7 +304,7 @@ export default function StockWastagePage() {
 
                          <div className="d-grid gap-2">
                               <button
-                                   className="btn btn-primary"
+                                   className="btn btn-outline-primary btn-sm"
                                    onClick={() => {
                                         applyDateFilter();
                                         setShowFilterOffcanvas(false);
@@ -378,7 +378,7 @@ export default function StockWastagePage() {
                                                             {(() => {
                                                                  const reasonInfo = WASTAGE_REASONS[record.wastage_type as keyof typeof WASTAGE_REASONS] || WASTAGE_REASONS.other;
                                                                  return (
-                                                                      <span className={`badge bg-${reasonInfo.color}`}>
+                                                                      <span>
                                                                            {reasonInfo.label}
                                                                       </span>
                                                                  );
@@ -435,7 +435,7 @@ export default function StockWastagePage() {
                                                        {(() => {
                                                             const reasonInfo = WASTAGE_REASONS[selectedRecord.wastage_type as keyof typeof WASTAGE_REASONS] || WASTAGE_REASONS.other;
                                                             return (
-                                                                 <span className={`badge bg-${reasonInfo.color} ms-2`}>
+                                                                 <span>
                                                                       {reasonInfo.label}
                                                                  </span>
                                                             );
@@ -462,7 +462,7 @@ export default function StockWastagePage() {
                                    <div className="modal-footer">
                                         <button
                                              type="button"
-                                             className="btn btn-secondary btn-sm"
+                                             className="btn btn-outline-secondary btn-sm"
                                              onClick={() => setSelectedRecord(null)}
                                         >
                                              Close

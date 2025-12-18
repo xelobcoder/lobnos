@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { RiShoppingCartLine, RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiSendPlaneLine, RiCheckLine, RiMailLine, RiFilterLine, RiCloseLine, RiInboxArchiveLine, RiMoneyDollarCircleLine } from '@remixicon/react';
+import { RiShoppingCartLine, RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiSendPlaneLine, RiCheckLine, RiMailLine, RiFilterLine, RiCloseLine, RiInboxArchiveLine, RiMoneyDollarCircleLine, RiSaveLine } from '@remixicon/react';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 import { currencyFormatter, customFetch, customPost } from '../../../components/Auth/customFetch';
 import { useApplication, useApplicationSettings } from '../../../components/Auth/useApplicationContext';
@@ -434,7 +434,7 @@ export default function PurchaseOrdersPage() {
                Cell: ({ value }) => {
                     const badge = STATUS_BADGES[value as keyof typeof STATUS_BADGES] || STATUS_BADGES[''];
                     return (
-                         <span className={`badge bg-${badge.color}`}>
+                         <span>
                               {badge.label}
                          </span>
                     );
@@ -503,60 +503,69 @@ export default function PurchaseOrdersPage() {
                Header: 'Actions',
                accessor: 'id',
                Cell: ({ row }) => (
-                    row.original.status !== 'received' ? (
-                         <div className="d-flex gap-1">
-                              <button
-                                   className="btn btn-sm btn-outline-primary"
-                                   title="Edit Order"
-                                   onClick={() => handleEditOrder(row.original)}
-                                   disabled={row.original.status === 'received' || row.original.status === 'cancelled'}
-                              >
-                                   <RiEditLine size={14} />
-                              </button>
-                              {row.original.status !== 'received' && row.original.status !== 'cancelled' && (
+                    <div className="d-flex gap-1">
+                         <button
+                              className="btn btn-sm btn-outline-info"
+                              title="View Details"
+                              onClick={() => handleViewOrderDetails(row.original)}
+                         >
+                              <RiEyeLine size={14} />
+                         </button>
+                         {row.original.status !== 'received' ? (
+                              <>
                                    <button
-                                        className="btn btn-sm btn-outline-success"
-                                        title="Receive Order"
-                                        onClick={() => handleReceiveOrder(row.original)}
+                                        className="btn btn-sm btn-outline-primary"
+                                        title="Edit Order"
+                                        onClick={() => handleEditOrder(row.original)}
+                                        disabled={row.original.status === 'received' || row.original.status === 'cancelled'}
                                    >
-                                        <RiInboxArchiveLine size={14} />
+                                        <RiEditLine size={14} />
                                    </button>
-                              )}
-                              {row.original.status !== 'received' && row.original.status !== 'cancelled' && (
-                                   <button
-                                        className="btn btn-sm btn-outline-success"
-                                        title="Send Email"
-                                        onClick={() => handleSendEmail(row.original)}
-                                   >
-                                        <RiMailLine size={14} />
-                                   </button>
-                              )}
-                              {row.original.status !== 'received' && (
-                                   <button
-                                        className="btn btn-sm btn-outline-danger"
-                                        title="Delete Order"
-                                        onClick={() => handleDeleteOrder(row.original.id)}
-                                   >
-                                        <RiDeleteBinLine size={14} />
-                                   </button>
-                              )}
-                         </div>
-                    ) : (
-                         <div className="d-flex gap-1">
-                              {(row.original.totalPending || 0) < (row.original.totalAmount || 0) && (
-                                   <button
-                                        className="btn btn-sm btn-outline-info"
-                                        title="Make Payment"
-                                        onClick={() => handleMakePayment(row.original)}
-                                   >
-                                        Make Payment       <RiMoneyDollarCircleLine size={14} />
-                                   </button>
-                              )}
-                              <span className="text-muted small">
-                                   {(row.original.totalPending || 0) >= (row.original.totalAmount || 0) ? 'All payments pending' : 'Completed'}
-                              </span>
-                         </div>
-                    )
+                                   {row.original.status !== 'received' && row.original.status !== 'cancelled' && (
+                                        <button
+                                             className="btn btn-sm btn-outline-success"
+                                             title="Receive Order"
+                                             onClick={() => handleReceiveOrder(row.original)}
+                                        >
+                                             <RiInboxArchiveLine size={14} />
+                                        </button>
+                                   )}
+                                   {row.original.status !== 'received' && row.original.status !== 'cancelled' && (
+                                        <button
+                                             className="btn btn-sm btn-outline-success"
+                                             title="Send Email"
+                                             onClick={() => handleSendEmail(row.original)}
+                                        >
+                                             <RiMailLine size={14} />
+                                        </button>
+                                   )}
+                                   {row.original.status !== 'received' && (
+                                        <button
+                                             className="btn btn-sm btn-outline-danger"
+                                             title="Delete Order"
+                                             onClick={() => handleDeleteOrder(row.original.id)}
+                                        >
+                                             <RiDeleteBinLine size={14} />
+                                        </button>
+                                   )}
+                              </>
+                         ) : (
+                              <>
+                                   {(row.original.totalPending || 0) < (row.original.totalAmount || 0) && (
+                                        <button
+                                             className="btn btn-sm btn-outline-info"
+                                             title="Make Payment"
+                                             onClick={() => handleMakePayment(row.original)}
+                                        >
+                                             Make Payment       <RiMoneyDollarCircleLine size={14} />
+                                        </button>
+                                   )}
+                                   <span className="text-muted small">
+                                        {(row.original.totalPending || 0) >= (row.original.totalAmount || 0) ? 'All payments pending' : 'Completed'}
+                                   </span>
+                              </>
+                         )}
+                    </div>
                )
           }
      ];
@@ -751,6 +760,67 @@ export default function PurchaseOrdersPage() {
           router.push(`/inventory/orders/receive-ordered-items/${order.id}`);
      };
 
+     const handleViewOrderDetails = async (order: PurchaseOrder) => {
+          try {
+               setLoading(true);
+               const response = await customFetch(`inventory/orders/${order.id}?branchid=${branchid}&employeeid=${employeeid}&tenantId=3`);
+
+               if (response.success) {
+                    const orderData = response.data;
+
+                    // Transform the detailed order data
+                    const detailedOrder: PurchaseOrder = {
+                         id: orderData.id,
+                         orderNumber: orderData.order_number || orderData.id,
+                         supplierId: orderData.supplier_id,
+                         supplierName: orderData.supplier?.name || orderData.supplier_name || 'Unknown Supplier',
+                         supplierEmail: orderData.supplier?.email || orderData.supplier_email || '',
+                         supplierContact: orderData.supplier?.contact || orderData.supplier_contact || '',
+                         supplierPhone: orderData.supplier?.phone || orderData.supplier_phone || '',
+                         supplierAddress: orderData.supplier?.address || orderData.supplier_address || '',
+                         items: orderData.items || [],
+                         status: orderData.status,
+                         orderDate: orderData.order_date,
+                         expectedDeliveryDate: orderData.expected_delivery_date,
+                         actualDeliveryDate: orderData.actual_delivery_date || null,
+                         totalAmount: orderData.total_amount || 0,
+                         taxAmount: orderData.tax_amount || 0,
+                         discountAmount: orderData.discount_amount || 0,
+                         shippingCost: orderData.shipping_cost || 0,
+                         finalAmount: orderData.final_amount || 0,
+                         currency: orderData.currency || 'GHS',
+                         paymentTerms: orderData.payment_terms,
+                         notes: orderData.notes,
+                         createdBy: orderData.created_by,
+                         approvedBy: orderData.approved_by || null,
+                         approvedAt: orderData.approved_at || null,
+                         sentAt: orderData.sent_at || null,
+                         communicationMethod: orderData.communication_method,
+                         communicationNotes: orderData.communication_notes,
+                         items_count: orderData.items_count || 0,
+                         received_items_count: orderData.received_items_count || 0,
+                         paymentHistory: orderData.payment_history || [],
+                         totalPaid: orderData.total_paid || 0,
+                         totalPending: orderData.total_pending || 0,
+                         remainingBalance: orderData.remaining_balance || 0,
+                         createdAt: orderData.created_at,
+                         updatedAt: orderData.updated_at,
+                         emailSent: !!orderData.sent_at,
+                         emailSentDate: orderData.sent_at || null
+                    };
+
+                    setSelectedOrder(detailedOrder);
+               } else {
+                    toast.error('Failed to load order details');
+               }
+          } catch (error) {
+               console.error('Error loading order details:', error);
+               toast.error('Failed to load order details');
+          } finally {
+               setLoading(false);
+          }
+     };
+
      const handleMakePayment = (order: PurchaseOrder) => {
           setSelectedOrderForPayment(order);
           setPaymentForm({
@@ -943,7 +1013,7 @@ export default function PurchaseOrdersPage() {
                               Filters
                          </button>
                          <button
-                              className="btn btn-primary btn-sm"
+                              className="btn btn-outline-primary btn-sm"
                               onClick={() => setShowOrderModal(true)}
                          >
                               <RiAddLine className="me-1" />
@@ -1056,7 +1126,7 @@ export default function PurchaseOrdersPage() {
                          </button>
                          <button
                               type="button"
-                              className="btn btn-primary btn-sm"
+                              className="btn btn-outline-primary btn-sm"
                               onClick={() => {
                                    setShowFilterOffcanvas(false);
                                    setRefreshTrigger(prev => prev + 1);
@@ -1077,11 +1147,19 @@ export default function PurchaseOrdersPage() {
 
                {/* Create/Edit Order Modal */}
                {showOrderModal && (
-                    <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                         <div className="modal-dialog modal-xl">
-                              <div className="modal-content">
-                                   <div className="modal-header">
-                                        <h5 className="modal-title">
+                    <div
+                         className="modal show d-block"
+                         tabIndex={-1}
+                         style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+                         onClick={() => {
+                              setShowOrderModal(false);
+                              resetOrderForm();
+                         }}
+                    >
+                         <div className="modal-dialog modal-xl modal-dialog-centered" onClick={(e) => e.stopPropagation()}>
+                              <div className="modal-content border-0 shadow-lg">
+                                   <div className="modal-header bg-light border-bottom-0">
+                                        <h5 className="modal-title fw-bold text-primary">
                                              {selectedOrder ? 'Edit Purchase Order' : 'Create Purchase Order'}
                                         </h5>
                                         <button
@@ -1093,178 +1171,212 @@ export default function PurchaseOrdersPage() {
                                              }}
                                         ></button>
                                    </div>
-                                   <div className="modal-body">
-                                        <div className="row">
-                                             <div className="col-md-6">
-                                                  <div className="mb-3">
-                                                       <label className="form-label">Supplier *</label>
-                                                       <select
-                                                            className="form-select"
-                                                            value={orderForm.supplierId}
-                                                            onChange={(e) => {
-                                                                 const selectedSupplier = suppliers.find(s => s.id === e.target.value);
-                                                                 if (selectedSupplier) {
-                                                                      setOrderForm(prev => ({
-                                                                           ...prev,
-                                                                           supplierId: selectedSupplier.id,
-                                                                           supplierName: selectedSupplier.name,
-                                                                           supplierEmail: selectedSupplier.email,
-                                                                           supplierContact: selectedSupplier.contact
-                                                                      }));
-                                                                 }
-                                                            }}
-                                                       >
-                                                            <option value="">Select supplier</option>
-                                                            {suppliers.map(supplier => (
-                                                                 <option key={supplier.id} value={supplier.id}>
-                                                                      {supplier.name} - {supplier.email}
-                                                                 </option>
-                                                            ))}
-                                                       </select>
-                                                  </div>
-                                                  <div className="mb-3">
-                                                       <label className="form-label">Supplier Contact</label>
-                                                       <input
-                                                            type="text"
-                                                            className="form-control"
-                                                            value={orderForm.supplierContact}
-                                                            readOnly
-                                                       />
-                                                  </div>
-                                                  <div className="mb-3">
-                                                       <label className="form-label">Expected Delivery Date</label>
-                                                       <input
-                                                            type="date"
-                                                            className="form-control"
-                                                            value={orderForm.expectedDeliveryDate}
-                                                            onChange={(e) => setOrderForm(prev => ({ ...prev, expectedDeliveryDate: e.target.value }))}
-                                                       />
+                                   <div className="modal-body p-4">
+                                        <div className="row g-4">
+                                             {/* Left Column: Supplier & Communication */}
+                                             <div className="col-lg-5">
+                                                  <div className="p-3 rounded border bg-light h-100">
+                                                       <h6 className="fw-bold mb-3 text-secondary">Order Information</h6>
+
+                                                       <div className="mb-3">
+                                                            <label className="form-label fw-medium small text-muted">Supplier *</label>
+                                                            <select
+                                                                 className="form-select"
+                                                                 value={orderForm.supplierId}
+                                                                 onChange={(e) => {
+                                                                      const selectedSupplier = suppliers.find(s => s.id === e.target.value);
+                                                                      if (selectedSupplier) {
+                                                                           setOrderForm(prev => ({
+                                                                                ...prev,
+                                                                                supplierId: selectedSupplier.id,
+                                                                                supplierName: selectedSupplier.name,
+                                                                                supplierEmail: selectedSupplier.email,
+                                                                                supplierContact: selectedSupplier.contact
+                                                                           }));
+                                                                      }
+                                                                 }}>
+                                                                 <option value="">Select supplier</option>
+                                                                 {suppliers.map(supplier => (
+                                                                      <option key={supplier.id} value={supplier.id}>
+                                                                           {supplier.name} - {supplier.email}
+                                                                      </option>
+                                                                 ))}
+                                                            </select>
+                                                       </div>
+
+                                                       <div className="mb-3">
+                                                            <label className="form-label fw-medium small text-muted">Supplier Contact</label>
+                                                            <input
+                                                                 type="text"
+                                                                 className="form-control bg-white"
+                                                                 value={orderForm.supplierContact}
+                                                                 readOnly
+                                                                 disabled
+                                                            />
+                                                       </div>
+
+                                                       <div className="mb-3">
+                                                            <label className="form-label fw-medium small text-muted">Expected Delivery Date</label>
+                                                            <input
+                                                                 type="date"
+                                                                 className="form-control"
+                                                                 value={orderForm.expectedDeliveryDate}
+                                                                 onChange={(e) => setOrderForm(prev => ({ ...prev, expectedDeliveryDate: e.target.value }))}
+                                                            />
+                                                       </div>
+
+                                                       <div className="mb-3">
+                                                            <label className="form-label fw-medium small text-muted">Communication Method</label>
+                                                            <select
+                                                                 className="form-select"
+                                                                 value={orderForm.communicationMethod}
+                                                                 onChange={(e) => setOrderForm(prev => ({ ...prev, communicationMethod: e.target.value as any }))}
+                                                            >
+                                                                 <option value="email">Email</option>
+                                                                 <option value="phone_call">Phone Call</option>
+                                                                 <option value="whatsapp">WhatsApp</option>
+                                                                 <option value="pdf_attachment">PDF Attachment</option>
+                                                                 <option value="in_person">In Person</option>
+                                                                 <option value="fax">Fax</option>
+                                                                 <option value="other">Other</option>
+                                                            </select>
+                                                       </div>
+
+                                                       <div className="mb-3">
+                                                            <label className="form-label fw-medium small text-muted">Communication Notes</label>
+                                                            <textarea
+                                                                 className="form-control"
+                                                                 rows={3}
+                                                                 value={orderForm.communicationNotes}
+                                                                 onChange={(e) => setOrderForm(prev => ({ ...prev, communicationNotes: e.target.value }))}
+                                                                 placeholder="Details about how the order was communicated..."
+                                                            />
+                                                       </div>
+
+                                                       <div className="mb-3">
+                                                            <label className="form-label fw-medium small text-muted">General Notes</label>
+                                                            <textarea
+                                                                 className="form-control"
+                                                                 rows={3}
+                                                                 value={orderForm.notes}
+                                                                 onChange={(e) => setOrderForm(prev => ({ ...prev, notes: e.target.value }))}
+                                                                 placeholder="Order notes, special instructions..."
+                                                            />
+                                                       </div>
                                                   </div>
                                              </div>
-                                             <div className="col-md-6">
-                                                  <div className="mb-3">
-                                                       <label className="form-label">Communication Method</label>
-                                                       <select
-                                                            className="form-select"
-                                                            value={orderForm.communicationMethod}
-                                                            onChange={(e) => setOrderForm(prev => ({ ...prev, communicationMethod: e.target.value as any }))}
-                                                       >
-                                                            <option value="email">Email</option>
-                                                            <option value="phone_call">Phone Call</option>
-                                                            <option value="whatsapp">WhatsApp</option>
-                                                            <option value="pdf_attachment">PDF Attachment</option>
-                                                            <option value="in_person">In Person</option>
-                                                            <option value="fax">Fax</option>
-                                                            <option value="other">Other</option>
-                                                       </select>
-                                                  </div>
-                                                  <div className="mb-3">
-                                                       <label className="form-label">Communication Notes</label>
-                                                       <textarea
-                                                            className="form-control"
-                                                            rows={2}
-                                                            value={orderForm.communicationNotes}
-                                                            onChange={(e) => setOrderForm(prev => ({ ...prev, communicationNotes: e.target.value }))}
-                                                            placeholder="Details about how the order was communicated..."
-                                                       />
-                                                  </div>
-                                             </div>
-                                             <div className="col-md-6">
-                                                  <div className="mb-3">
-                                                       <label className="form-label">Items</label>
-                                                       <div className="border rounded p-3" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                                                            {orderForm.items.map((item, index) => (
-                                                                 <div key={index} className="d-flex gap-2 mb-2 align-items-center">
-                                                                      <select
-                                                                           className="form-select form-select-sm"
-                                                                           value={item.itemId}
-                                                                           onChange={(e) => {
-                                                                                const selectedItem = inventoryItems.find(i => i.id === e.target.value);
-                                                                                if (selectedItem) {
-                                                                                     const updatedItems = [...orderForm.items];
-                                                                                     updatedItems[index] = {
-                                                                                          ...updatedItems[index],
-                                                                                          itemId: selectedItem.id,
-                                                                                          itemName: selectedItem.name,
-                                                                                          brand: selectedItem.brand,
-                                                                                          sku: selectedItem.sku,
-                                                                                          unit: selectedItem.unit
-                                                                                     };
-                                                                                     setOrderForm(prev => ({ ...prev, items: updatedItems }));
-                                                                                }
-                                                                           }}
-                                                                      >
-                                                                           <option value="">Select item</option>
-                                                                           {inventoryItems.map(invItem => (
-                                                                                <option key={invItem.id} value={invItem.id}>
-                                                                                     {invItem.name} ({invItem.sku})
-                                                                                </option>
-                                                                           ))}
-                                                                      </select>
-                                                                      <input
-                                                                           type="number"
-                                                                           className="form-control form-control-sm"
-                                                                           style={{ width: '80px' }}
-                                                                           placeholder="Qty"
-                                                                           value={item.quantity}
-                                                                           onChange={(e) => {
-                                                                                const updatedItems = [...orderForm.items];
-                                                                                updatedItems[index].quantity = parseInt(e.target.value) || 0;
-                                                                                setOrderForm(prev => ({ ...prev, items: updatedItems }));
-                                                                           }}
-                                                                           min="1"
-                                                                      />
-                                                                      <span className="text-muted small">{item.unit}</span>
-                                                                      <button
-                                                                           className="btn btn-sm btn-outline-danger"
-                                                                           onClick={() => {
-                                                                                const updatedItems = orderForm.items.filter((_, i) => i !== index);
-                                                                                setOrderForm(prev => ({ ...prev, items: updatedItems }));
-                                                                           }}
-                                                                      >
-                                                                           <RiDeleteBinLine size={12} />
-                                                                      </button>
-                                                                 </div>
-                                                            ))}
+
+                                             {/* Right Column: Items */}
+                                             <div className="col-lg-7">
+                                                  <div className="p-3 rounded border h-100" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+                                                       <div className="d-flex justify-content-between align-items-center mb-3">
+                                                            <h6 className="fw-bold mb-0 text-secondary">Order Items</h6>
                                                             <button
                                                                  className="btn btn-sm btn-outline-primary"
-                                                                 onClick={() => {
-                                                                      setOrderForm(prev => ({
-                                                                           ...prev,
-                                                                           items: [...prev.items, {
-                                                                                itemId: '',
-                                                                                itemName: '',
-                                                                                sku: '',
-                                                                                quantity: 1,
-                                                                                unit: 'pieces',
-                                                                                discountRate: 0,
-                                                                                taxRate: 0
-                                                                           }]
-                                                                      }));
-                                                                 }}
+                                                                 onClick={() => setOrderForm(prev => ({
+                                                                      ...prev,
+                                                                      items: [...prev.items, { itemId: '', itemName: '', quantity: 1, unit: 'pieces', brand: '', sku: '', discountRate: 0, taxRate: 0 }]
+                                                                 }))}
                                                             >
-                                                                 <RiAddLine size={14} className="me-1" />
-                                                                 Add Item
+                                                                 <RiAddLine className="me-1" /> Add Item
                                                             </button>
+                                                       </div>
+
+                                                       <div className="bg-white rounded border p-2" style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                                                            {orderForm.items.length === 0 ? (
+                                                                 <div className="text-center py-5 text-muted">
+                                                                      <RiShoppingCartLine size={32} className="mb-2 opacity-50" />
+                                                                      <p className="mb-0 small">No items added yet.</p>
+                                                                      <p className="small">Click Add Item to start building your order.</p>
+                                                                 </div>
+                                                            ) : (
+                                                                 <div className="table-responsive">
+                                                                      <table className="table table-sm table-borderless align-middle mb-0">
+                                                                           <thead className="text-muted small border-bottom">
+                                                                                <tr>
+                                                                                     <th style={{ width: '40%' }}>Item</th>
+                                                                                     <th style={{ width: '20%' }}>Qty</th>
+                                                                                     <th style={{ width: '20%' }}>Unit</th>
+                                                                                     <th style={{ width: '10%' }}></th>
+                                                                                </tr>
+                                                                           </thead>
+                                                                           <tbody>
+                                                                                {orderForm.items.map((item, index) => (
+                                                                                     <tr key={index} className="border-bottom">
+                                                                                          <td>
+                                                                                               <select
+                                                                                                    className="form-select form-select-sm border-0 bg-light"
+                                                                                                    value={item.itemId}
+                                                                                                    onChange={(e) => {
+                                                                                                         const selectedItem = inventoryItems.find(i => i.id === e.target.value);
+                                                                                                         if (selectedItem) {
+                                                                                                              const updatedItems = [...orderForm.items];
+                                                                                                              updatedItems[index] = {
+                                                                                                                   ...updatedItems[index],
+                                                                                                                   itemId: selectedItem.id,
+                                                                                                                   itemName: selectedItem.name,
+                                                                                                                   brand: selectedItem.brand,
+                                                                                                                   sku: selectedItem.sku,
+                                                                                                                   unit: selectedItem.unit
+                                                                                                              };
+                                                                                                              setOrderForm(prev => ({ ...prev, items: updatedItems }));
+                                                                                                         }
+                                                                                                    }}
+                                                                                               >
+                                                                                                    <option value="">Select item...</option>
+                                                                                                    {inventoryItems.map(invItem => (
+                                                                                                         <option key={invItem.id} value={invItem.id}>
+                                                                                                              {invItem.name} ({invItem.sku})
+                                                                                                         </option>
+                                                                                                    ))}
+                                                                                               </select>
+                                                                                               {item.brand && <div className="small text-muted mt-1 ms-1">Brand: {item.brand}</div>}
+                                                                                          </td>
+                                                                                          <td>
+                                                                                               <input
+                                                                                                    type="number"
+                                                                                                    className="form-control form-control-sm text-center"
+                                                                                                    value={item.quantity}
+                                                                                                    onChange={(e) => {
+                                                                                                         const updatedItems = [...orderForm.items];
+                                                                                                         updatedItems[index].quantity = parseInt(e.target.value) || 0;
+                                                                                                         setOrderForm(prev => ({ ...prev, items: updatedItems }));
+                                                                                                    }}
+                                                                                                    min="1"
+                                                                                               />
+                                                                                          </td>
+                                                                                          <td>
+                                                                                               <span>
+                                                                                                    {item.unit || '-'}
+                                                                                               </span>
+                                                                                          </td>
+                                                                                          <td className="text-end">
+                                                                                               <button
+                                                                                                    className="btn btn-sm btn-link text-danger p-0"
+                                                                                                    onClick={() => {
+                                                                                                         const updatedItems = orderForm.items.filter((_, i) => i !== index);
+                                                                                                         setOrderForm(prev => ({ ...prev, items: updatedItems }));
+                                                                                                    }}
+                                                                                                    title="Remove Item"
+                                                                                               >
+                                                                                                    <RiDeleteBinLine size={16} />
+                                                                                               </button>
+                                                                                          </td>
+                                                                                     </tr>
+                                                                                ))}
+                                                                           </tbody>
+                                                                      </table>
+                                                                 </div>
+                                                            )}
                                                        </div>
                                                   </div>
                                              </div>
                                         </div>
-                                        <div className="mb-3">
-                                             <label className="form-label">Notes</label>
-                                             <textarea
-                                                  className="form-control"
-                                                  rows={3}
-                                                  value={orderForm.notes}
-                                                  onChange={(e) => setOrderForm(prev => ({ ...prev, notes: e.target.value }))}
-                                                  placeholder="Order notes, special instructions..."
-                                             />
-                                        </div>
                                    </div>
-                                   <div className="modal-footer">
+                                   <div className="modal-footer bg-light border-top-0">
                                         <button
                                              type="button"
-                                             className="btn btn-secondary btn-sm"
+                                             className="btn btn-outline-secondary"
                                              onClick={() => {
                                                   setShowOrderModal(false);
                                                   resetOrderForm();
@@ -1274,9 +1386,10 @@ export default function PurchaseOrdersPage() {
                                         </button>
                                         <button
                                              type="button"
-                                             className="btn btn-primary btn-sm"
+                                             className="btn btn-outline-primary btn-sm px-4"
                                              onClick={selectedOrder ? handleUpdateOrder : handleCreateOrder}
                                         >
+                                             <RiSaveLine className="me-2" />
                                              {selectedOrder ? 'Update Order' : 'Create Order'}
                                         </button>
                                    </div>
@@ -1287,71 +1400,141 @@ export default function PurchaseOrdersPage() {
 
                {/* Order Details Modal */}
                {selectedOrder && !showOrderModal && (
-                    <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                         <div className="modal-dialog modal-xl">
-                              <div className="modal-content">
-                                   <div className="modal-header">
-                                        <h5 className="modal-title">Purchase Order Details - {selectedOrder.orderNumber}</h5>
+                    <div
+                         className="modal show d-block"
+                         tabIndex={-1}
+                         style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+                         onClick={() => setSelectedOrder(null)}
+                    >
+                         <div className="modal-dialog modal-xl modal-dialog-centered" onClick={(e) => e.stopPropagation()}>
+                              <div className="modal-content border-0 shadow-lg">
+                                   <div className="modal-header bg-light border-bottom-0">
+                                        <h5 className="modal-title fw-bold text-primary">Purchase Order Details - {selectedOrder.orderNumber}</h5>
                                         <button
                                              type="button"
                                              className="btn-close"
                                              onClick={() => setSelectedOrder(null)}
                                         ></button>
                                    </div>
-                                   <div className="modal-body">
-                                        <div className="row">
+                                   <div className="modal-body p-4">
+                                        <div className="row g-3 mb-4">
                                              <div className="col-md-6">
-                                                  <p><strong>Order Number:</strong> {selectedOrder.orderNumber}</p>
-                                                  <p><strong>Supplier:</strong> {selectedOrder.supplierName}</p>
-                                                  <p><strong>Contact:</strong> {selectedOrder.supplierContact}</p>
-                                                  <p><strong>Email:</strong> {selectedOrder.supplierEmail}</p>
-                                                  {selectedOrder.supplierPhone && <p><strong>Phone:</strong> {selectedOrder.supplierPhone}</p>}
-                                                  <p><strong>Status:</strong>
-                                                       {(() => {
-                                                            const badge = STATUS_BADGES[selectedOrder.status as keyof typeof STATUS_BADGES] || STATUS_BADGES[''];
-                                                            return (
-                                                                 <span className={`badge bg-${badge.color} ms-2`}>
-                                                                      {badge.label}
-                                                                 </span>
-                                                            );
-                                                       })()}
+                                                  <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+                                                       <h6 className="fw-bold mb-3">Order Information</h6>
+                                                       <div className="row g-2">
+                                                            <div className="col-sm-4 text-muted small">Order Number</div>
+                                                            <div className="col-sm-8 fw-medium">{selectedOrder.orderNumber}</div>
 
-                                                  </p>
-                                                  <p><strong>Order Date:</strong> {new Date(selectedOrder.orderDate).toLocaleString()}</p>
-                                                  <p><strong>Expected Delivery:</strong> {selectedOrder.expectedDeliveryDate ? new Date(selectedOrder.expectedDeliveryDate).toLocaleDateString() : 'Not set'}</p>
-                                                  {selectedOrder.actualDeliveryDate && (
-                                                       <p><strong>Actual Delivery:</strong> {new Date(selectedOrder.actualDeliveryDate).toLocaleDateString()}</p>
-                                                  )}
+                                                            <div className="col-sm-4 text-muted small">Supplier</div>
+                                                            <div className="col-sm-8 fw-medium">{selectedOrder.supplierName}</div>
+
+                                                            <div className="col-sm-4 text-muted small">Contact</div>
+                                                            <div className="col-sm-8">{selectedOrder.supplierContact}</div>
+
+                                                            <div className="col-sm-4 text-muted small">Email</div>
+                                                            <div className="col-sm-8">{selectedOrder.supplierEmail}</div>
+
+                                                            {selectedOrder.supplierPhone && (
+                                                                 <>
+                                                                      <div className="col-sm-4 text-muted small">Phone</div>
+                                                                      <div className="col-sm-8">{selectedOrder.supplierPhone}</div>
+                                                                 </>
+                                                            )}
+
+                                                            <div className="col-sm-4 text-muted small">Status</div>
+                                                            <div className="col-sm-8">
+                                                                 {(() => {
+                                                                      const badge = STATUS_BADGES[selectedOrder.status as keyof typeof STATUS_BADGES] || STATUS_BADGES[''];
+                                                                      return (
+                                                                           <span>
+                                                                                {badge.label}
+                                                                           </span>
+                                                                      );
+                                                                 })()}
+                                                            </div>
+
+                                                            <div className="col-sm-4 text-muted small">Order Date</div>
+                                                            <div className="col-sm-8">{new Date(selectedOrder.orderDate).toLocaleString()}</div>
+
+                                                            <div className="col-sm-4 text-muted small">Expected Delivery</div>
+                                                            <div className="col-sm-8">{selectedOrder.expectedDeliveryDate ? new Date(selectedOrder.expectedDeliveryDate).toLocaleDateString() : 'Not set'}</div>
+
+                                                            {selectedOrder.actualDeliveryDate && (
+                                                                 <>
+                                                                      <div className="col-sm-4 text-muted small">Actual Delivery</div>
+                                                                      <div className="col-sm-8">{new Date(selectedOrder.actualDeliveryDate).toLocaleDateString()}</div>
+                                                                 </>
+                                                            )}
+                                                       </div>
+                                                  </div>
                                              </div>
                                              <div className="col-md-6">
-                                                  <p><strong>Total Amount:</strong> {selectedOrder.currency} {(selectedOrder.totalAmount || 0).toFixed(2)}</p>
-                                                  <p><strong>Tax Amount:</strong> {selectedOrder.currency} {(selectedOrder.taxAmount || 0).toFixed(2)}</p>
-                                                  <p><strong>Discount:</strong> {selectedOrder.currency} {(selectedOrder.discountAmount || 0).toFixed(2)}</p>
-                                                  <p><strong>Shipping Cost:</strong> {selectedOrder.currency} {(selectedOrder.shippingCost || 0).toFixed(2)}</p>
-                                                  <p><strong>Final Amount:</strong> {selectedOrder.currency} {(selectedOrder.finalAmount || 0).toFixed(2)}</p>
-                                                  <p><strong>Created By:</strong> {selectedOrder.createdBy}</p>
-                                                  {selectedOrder.approvedBy && <p><strong>Approved By:</strong> {selectedOrder.approvedBy}</p>}
-                                                  <p><strong>Email Sent:</strong>
-                                                       {selectedOrder.sentAt ? (
-                                                            <span className="text-success">
-                                                                 <RiCheckLine size={16} className="me-1" />
-                                                                 {new Date(selectedOrder.sentAt).toLocaleString()}
-                                                            </span>
-                                                       ) : (
-                                                            <span className="text-warning">Not sent</span>
-                                                       )}
-                                                  </p>
-                                                  {selectedOrder.communicationMethod && (
-                                                       <p><strong>Communication Method:</strong> {selectedOrder.communicationMethod.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>
-                                                  )}
-                                                  {selectedOrder.communicationNotes && (
-                                                       <p><strong>Communication Notes:</strong> {selectedOrder.communicationNotes}</p>
-                                                  )}
-                                                  {selectedOrder.notes && <p><strong>Notes:</strong> {selectedOrder.notes}</p>}
+                                                  <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+                                                       <h6 className="fw-bold mb-3">Financial & Other Details</h6>
+                                                       <div className="row g-2">
+                                                            <div className="col-sm-4 text-muted small">Total Amount</div>
+                                                            <div className="col-sm-8 fw-medium">{selectedOrder.currency} {(selectedOrder.totalAmount || 0).toFixed(2)}</div>
+
+                                                            <div className="col-sm-4 text-muted small">Tax Amount</div>
+                                                            <div className="col-sm-8">{selectedOrder.currency} {(selectedOrder.taxAmount || 0).toFixed(2)}</div>
+
+                                                            <div className="col-sm-4 text-muted small">Discount</div>
+                                                            <div className="col-sm-8">{selectedOrder.currency} {(selectedOrder.discountAmount || 0).toFixed(2)}</div>
+
+                                                            <div className="col-sm-4 text-muted small">Shipping Cost</div>
+                                                            <div className="col-sm-8">{selectedOrder.currency} {(selectedOrder.shippingCost || 0).toFixed(2)}</div>
+
+                                                            <div className="col-sm-4 text-muted small">Final Amount</div>
+                                                            <div className="col-sm-8 fw-bold text-primary">{selectedOrder.currency} {(selectedOrder.finalAmount || 0).toFixed(2)}</div>
+
+                                                            <div className="col-sm-4 text-muted small">Created By</div>
+                                                            <div className="col-sm-8">{selectedOrder.createdBy}</div>
+
+                                                            {selectedOrder.approvedBy && (
+                                                                 <>
+                                                                      <div className="col-sm-4 text-muted small">Approved By</div>
+                                                                      <div className="col-sm-8">{selectedOrder.approvedBy}</div>
+                                                                 </>
+                                                            )}
+
+                                                            <div className="col-sm-4 text-muted small">Email Sent</div>
+                                                            <div className="col-sm-8">
+                                                                 {selectedOrder.sentAt ? (
+                                                                      <span className="text-success">
+                                                                           <RiCheckLine size={16} className="me-1" />
+                                                                           {new Date(selectedOrder.sentAt).toLocaleString()}
+                                                                      </span>
+                                                                 ) : (
+                                                                      <span className="text-warning">Not sent</span>
+                                                                 )}
+                                                            </div>
+
+                                                            {selectedOrder.communicationMethod && (
+                                                                 <>
+                                                                      <div className="col-sm-4 text-muted small">Comm. Method</div>
+                                                                      <div className="col-sm-8">{selectedOrder.communicationMethod.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</div>
+                                                                 </>
+                                                            )}
+
+                                                            {selectedOrder.communicationNotes && (
+                                                                 <>
+                                                                      <div className="col-sm-4 text-muted small">Comm. Notes</div>
+                                                                      <div className="col-sm-8">{selectedOrder.communicationNotes}</div>
+                                                                 </>
+                                                            )}
+
+                                                            {selectedOrder.notes && (
+                                                                 <>
+                                                                      <div className="col-sm-4 text-muted small">Notes</div>
+                                                                      <div className="col-sm-8">{selectedOrder.notes}</div>
+                                                                 </>
+                                                            )}
+                                                       </div>
+                                                  </div>
                                              </div>
                                         </div>
-                                        <div className="mt-3">
-                                             <h6>Order Items:</h6>
+                                        <div className="mt-4">
+                                             <h6 className="fw-bold mb-3">Order Items</h6>
                                              {selectedOrder.items && selectedOrder.items.length > 0 ? (
                                                   <div className="table-responsive">
                                                        <table className="table table-sm">
@@ -1375,9 +1558,9 @@ export default function PurchaseOrdersPage() {
                                                                            <td>{item.sku}</td>
                                                                            <td>{item.quantity_ordered}</td>
                                                                            <td>{item.quantity_received}</td>
-                                                                           <td>{item.unit_price}</td>
-                                                                           <td>{item.line_total}</td>
-                                                                           <td><span className="badge bg-info">{item.status}</span></td>
+                                                                           <td>{selectedOrder.currency} {currencyFormatter.format(item.unit_price)}</td>
+                                                                           <td>{selectedOrder.currency} {currencyFormatter.format(item.line_total)}</td>
+                                                                           <td>{item.status}</td>
                                                                       </tr>
                                                                  ))}
                                                             </tbody>
@@ -1388,6 +1571,63 @@ export default function PurchaseOrdersPage() {
                                                        <small>No item details available. Total items: {selectedOrder.items_count || 0}</small>
                                                   </div>
                                              )}
+                                        </div>
+
+                                        {/* Payment History Section */}
+                                        {selectedOrder.paymentHistory && selectedOrder.paymentHistory.length > 0 && (
+                                             <div className="mt-4">
+                                                  <h6>Payment History:</h6>
+                                                  <div className="table-responsive">
+                                                       <table className="table table-sm">
+                                                            <thead>
+                                                                 <tr>
+                                                                      <th>Payment ID</th>
+                                                                      <th>Amount</th>
+                                                                      <th>Payment Date</th>
+                                                                      <th>Method</th>
+                                                                      <th>Status</th>
+                                                                      <th>Reference</th>
+                                                                 </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                 {selectedOrder.paymentHistory.map((payment: any, index) => (
+                                                                      <tr key={index}>
+                                                                           <td>{payment.payment_id}</td>
+                                                                           <td>{selectedOrder.currency} {currencyFormatter.format(payment.payment_amount)}</td>
+                                                                           <td>{new Date(payment.payment_date).toLocaleDateString()}</td>
+                                                                           <td>{payment.payment_method?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'N/A'}</td>
+                                                                           <td>
+                                                                                <span>
+                                                                                     {payment.payment_status}
+                                                                                </span>
+                                                                           </td>
+                                                                           <td>{payment.reference_number || 'N/A'}</td>
+                                                                      </tr>
+                                                                 ))}
+                                                            </tbody>
+                                                       </table>
+                                                  </div>
+                                             </div>
+                                        )}
+
+                                        {/* Payment Summary */}
+                                        <div className="mt-3 row">
+                                             <div className="col-md-6">
+                                                  <div className="border rounded p-3">
+                                                       <h6 className="mb-2">Payment Summary</h6>
+                                                       <p className="mb-1"><strong>Total Paid:</strong> {selectedOrder.currency} {currencyFormatter.format(selectedOrder.totalPaid || 0)}</p>
+                                                       <p className="mb-1"><strong>Total Pending:</strong> {selectedOrder.currency} {currencyFormatter.format(selectedOrder.totalPending || 0)}</p>
+                                                       <p className="mb-0"><strong>Remaining Balance:</strong> <span className={(selectedOrder.remainingBalance ?? 0) > 0 ? 'text-danger fw-bold' : 'text-success fw-bold'}>{selectedOrder.currency} {currencyFormatter.format(selectedOrder.remainingBalance ?? 0)}</span></p>
+                                                  </div>
+                                             </div>
+                                             <div className="col-md-6">
+                                                  <div className="border rounded p-3">
+                                                       <h6 className="mb-2">Order Progress</h6>
+                                                       <p className="mb-1"><strong>Items Ordered:</strong> {selectedOrder.items_count ?? 0}</p>
+                                                       <p className="mb-1"><strong>Items Received:</strong> {selectedOrder.received_items_count ?? 0}</p>
+                                                       <p className="mb-0"><strong>Completion:</strong> {(selectedOrder.items_count ?? 0) > 0 ? Math.round(((selectedOrder.received_items_count ?? 0) / (selectedOrder.items_count ?? 1)) * 100) : 0}%</p>
+                                                  </div>
+                                             </div>
                                         </div>
                                    </div>
                                    <div className="modal-footer">
@@ -1401,7 +1641,7 @@ export default function PurchaseOrdersPage() {
                                         {selectedOrder.status !== 'received' && selectedOrder.status !== 'cancelled' && (
                                              <button
                                                   type="button"
-                                                  className="btn btn-success btn-sm"
+                                                  className="btn btn-outline-success btn-sm"
                                                   onClick={() => {
                                                        handleSendEmail(selectedOrder);
                                                        setSelectedOrder(null);
@@ -1419,11 +1659,19 @@ export default function PurchaseOrdersPage() {
 
                {/* Payment Modal */}
                {showPaymentModal && selectedOrderForPayment && (
-                    <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                         <div className="modal-dialog modal-lg">
-                              <div className="modal-content">
-                                   <div className="modal-header">
-                                        <h5 className="modal-title">
+                    <div
+                         className="modal show d-block"
+                         tabIndex={-1}
+                         style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+                         onClick={() => {
+                              setShowPaymentModal(false);
+                              resetPaymentForm();
+                         }}
+                    >
+                         <div className="modal-dialog modal-lg modal-dialog-centered" onClick={(e) => e.stopPropagation()}>
+                              <div className="modal-content border-0 shadow-lg">
+                                   <div className="modal-header bg-light border-bottom-0">
+                                        <h5 className="modal-title fw-bold text-primary">
                                              <RiMoneyDollarCircleLine className="me-2" />
                                              Make Payment - Order {selectedOrderForPayment.orderNumber}
                                         </h5>
@@ -1436,7 +1684,7 @@ export default function PurchaseOrdersPage() {
                                              }}
                                         ></button>
                                    </div>
-                                   <div className="modal-body">
+                                   <div className="modal-body p-4">
                                         {/* Full Payment Notice */}
                                         {(selectedOrderForPayment?.totalPaid || 0) >= (selectedOrderForPayment?.totalAmount || 0) && (
                                              <div className="alert alert-success mb-4">
@@ -1453,13 +1701,13 @@ export default function PurchaseOrdersPage() {
                                         {/* Payment History */}
                                         {selectedOrderForPayment.paymentHistory && selectedOrderForPayment.paymentHistory.length > 0 && (
                                              <div className="mb-4">
-                                                  <h6 className="text-primary mb-3">
+                                                  <h6 className="fw-bold mb-3">
                                                        <RiMoneyDollarCircleLine className="me-2" />
                                                        Payment History
                                                   </h6>
-                                                  <div className="table-responsive">
-                                                       <table className="table table-sm table-striped">
-                                                            <thead>
+                                                  <div className="table-responsive border rounded">
+                                                       <table className="table table-sm table-hover mb-0">
+                                                            <thead className="table-light">
                                                                  <tr>
                                                                       <th>Date</th>
                                                                       <th>Amount</th>
@@ -1475,7 +1723,7 @@ export default function PurchaseOrdersPage() {
                                                                            <td className="fw-bold">{selectedOrderForPayment.currency} {payment.payment_amount.toFixed(2)}</td>
                                                                            <td>{payment.payment_method.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</td>
                                                                            <td>
-                                                                                <span className={`badge bg-${payment.payment_status === 'pending' ? 'warning' : 'success'}`}>
+                                                                                <span>
                                                                                      {payment.payment_status}
                                                                                 </span>
                                                                            </td>
@@ -1488,166 +1736,150 @@ export default function PurchaseOrdersPage() {
                                              </div>
                                         )}
 
-                                        <div className="row">
-                                             <div className="col-md-6">
-                                                  <div className="mb-3">
-                                                       <label className="form-label">Supplier</label>
-                                                       <input
-                                                            type="text"
-                                                            className="form-control"
-                                                            value={selectedOrderForPayment.supplierName}
-                                                            readOnly
-                                                       />
-                                                  </div>
-                                                  <div className="mb-3">
-                                                       <label className="form-label">Purchase Order</label>
-                                                       <input
-                                                            type="text"
-                                                            className="form-control"
-                                                            value={selectedOrderForPayment.orderNumber}
-                                                            readOnly
-                                                       />
-                                                  </div>
-                                                  <div className="mb-3">
-                                                       <label className="form-label">Order Total</label>
-                                                       <div className="input-group">
-                                                            <span className="input-group-text">{selectedOrderForPayment.currency}</span>
+                                        <div className="row g-4">
+                                             {/* Left Column: Order Summary */}
+                                             <div className="col-lg-5">
+                                                  <div className="p-3 rounded border bg-light h-100">
+                                                       <h6 className="fw-bold mb-3 text-secondary">Order Summary</h6>
+                                                       <div className="mb-3">
+                                                            <label className="form-label fw-medium small text-muted">Supplier</label>
                                                             <input
                                                                  type="text"
+                                                                 className="form-control bg-white"
+                                                                 value={selectedOrderForPayment.supplierName}
+                                                                 readOnly
+                                                            />
+                                                       </div>
+                                                       <div className="mb-3">
+                                                            <label className="form-label fw-medium small text-muted">Purchase Order</label>
+                                                            <input
+                                                                 type="text"
+                                                                 className="form-control bg-white"
+                                                                 value={selectedOrderForPayment.orderNumber}
+                                                                 readOnly
+                                                            />
+                                                       </div>
+                                                       <div className="mb-3">
+                                                            <label className="form-label fw-medium small text-muted">Order Total</label>
+                                                            <div className="input-group">
+                                                                 <span className="input-group-text bg-white">{selectedOrderForPayment.currency}</span>
+                                                                 <input
+                                                                      type="text"
+                                                                      className="form-control bg-white"
+                                                                      value={(selectedOrderForPayment.finalAmount || 0).toFixed(2)}
+                                                                      readOnly
+                                                                      disabled
+                                                                 />
+                                                            </div>
+                                                       </div>
+                                                       <div className="mb-3">
+                                                            <label className="form-label fw-medium small text-muted">Total Paid</label>
+                                                            <div className="input-group">
+                                                                 <span className="input-group-text bg-white">{selectedOrderForPayment.currency}</span>
+                                                                 <input
+                                                                      type="text"
+                                                                      className="form-control text-success bg-white"
+                                                                      value={(selectedOrderForPayment.totalPaid || 0).toFixed(2)}
+                                                                      readOnly
+                                                                      disabled
+                                                                 />
+                                                            </div>
+                                                       </div>
+                                                       <div className="mb-3">
+                                                            <label className="form-label fw-bold small text-muted">Remaining Balance</label>
+                                                            <div className="input-group">
+                                                                 <span className="input-group-text bg-white">{selectedOrderForPayment.currency}</span>
+                                                                 <input
+                                                                      type="text"
+                                                                      className="form-control fw-bold text-danger bg-white"
+                                                                      value={(((selectedOrderForPayment.totalAmount ?? 0) - (selectedOrderForPayment.totalPending ?? 0)) || (selectedOrderForPayment.finalAmount ?? 0)).toFixed(2)}
+                                                                      readOnly
+                                                                      disabled
+                                                                 />
+                                                            </div>
+                                                       </div>
+                                                  </div>
+                                             </div>
+
+                                             {/* Right Column: Payment Form */}
+                                             <div className="col-lg-7">
+                                                  <div className="p-3 rounded border h-100" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+                                                       <h6 className="fw-bold mb-3 text-secondary">New Payment Details</h6>
+                                                       <div className="mb-3">
+                                                            <label className="form-label fw-medium small text-muted">Payment Amount *</label>
+                                                            <div className="input-group">
+                                                                 <span className="input-group-text bg-white">{selectedOrderForPayment.currency}</span>
+                                                                 <input
+                                                                      type="number"
+                                                                      className="form-control"
+                                                                      value={paymentForm.payment_amount}
+                                                                      onChange={(e) => setPaymentForm(prev => ({ ...prev, payment_amount: parseFloat(e.target.value) || 0 }))}
+                                                                      min="0"
+                                                                      step="0.01"
+                                                                      max={selectedOrderForPayment.totalPending || 0}
+                                                                      required
+                                                                      disabled={(selectedOrderForPayment?.totalPaid || 0) >= (selectedOrderForPayment?.totalAmount || 0)}
+                                                                 />
+                                                            </div>
+                                                            <small className="text-muted">Enter the amount you want to pay now</small>
+                                                       </div>
+                                                       <div className="mb-3">
+                                                            <label className="form-label fw-medium small text-muted">Payment Date</label>
+                                                            <input
+                                                                 type="date"
                                                                  className="form-control"
-                                                                 value={(selectedOrderForPayment.finalAmount || 0).toFixed(2)}
-                                                                 readOnly
+                                                                 value={paymentForm.payment_date}
                                                                  disabled
                                                             />
                                                        </div>
-                                                       <small className="text-muted">
-                                                            Total: {selectedOrderForPayment.currency} {(selectedOrderForPayment.totalAmount! || 0).toFixed(2)} +
-                                                            Tax: {selectedOrderForPayment.currency} {(selectedOrderForPayment.taxAmount! || 0).toFixed(2)} -
-                                                            Discount: {selectedOrderForPayment.currency} {(selectedOrderForPayment.discountAmount! || 0).toFixed(2)} +
-                                                            Shipping: {selectedOrderForPayment.currency} {(selectedOrderForPayment.shippingCost! || 0).toFixed(2)}
-                                                       </small>
-                                                  </div>
-                                                  <div className="mb-3">
-                                                       <label className="form-label">Total Paid</label>
-                                                       <div className="input-group">
-                                                            <span className="input-group-text">{selectedOrderForPayment.currency}</span>
-                                                            <input
-                                                                 type="text"
-                                                                 className="form-control text-success"
-                                                                 value={(selectedOrderForPayment.totalPaid || 0).toFixed(2)}
-                                                                 readOnly
-                                                                 disabled
-                                                            />
-                                                       </div>
-                                                  </div>
-                                                  <div className="mb-3">
-                                                       <label className="form-label">Total Pending Payments Awaiting Approval</label>
-                                                       <div className="input-group">
-                                                            <span className="input-group-text">{selectedOrderForPayment.currency}</span>
-                                                            <input
-                                                                 type="text"
-                                                                 className="form-control text-warning"
-                                                                 value={(selectedOrderForPayment.totalPending || 0).toFixed(2)}
-                                                                 readOnly
-                                                                 disabled
-                                                            />
-                                                       </div>
-                                                       <small className="text-muted">Payments awaiting approval/processing</small>
-                                                  </div>
-                                                  <div className="mb-3">
-                                                       <label className="form-label fw-bold">Remaining Balance to be Paid</label>
-                                                       <div className="input-group">
-                                                            <span className="input-group-text">{selectedOrderForPayment.currency}</span>
-                                                            <input
-                                                                 type="text"
-                                                                 className="form-control fw-bold text-danger"
-                                                                 value={(((selectedOrderForPayment.totalAmount ?? 0) - (selectedOrderForPayment.totalPending ?? 0)) || (selectedOrderForPayment.finalAmount ?? 0)).toFixed(2)}
-                                                                 readOnly
-                                                                 disabled
-                                                            />
-                                                       </div>
-                                                       <small className="text-muted">
-                                                            Amount still owed for this order
-                                                       </small>
-                                                  </div>
-                                                  <div className="mb-3">
-                                                       <label className="form-label">Payment Amount *</label>
-                                                       <div className="input-group">
-                                                            <span className="input-group-text">{selectedOrderForPayment.currency}</span>
-                                                            <input
-                                                                 type="number"
-                                                                 className="form-control"
-                                                                 value={paymentForm.payment_amount}
-                                                                 onChange={(e) => setPaymentForm(prev => ({ ...prev, payment_amount: parseFloat(e.target.value) || 0 }))}
-                                                                 min="0"
-                                                                 step="0.01"
-                                                                 max={selectedOrderForPayment.totalPending || 0}
+                                                       <div className="mb-3">
+                                                            <label className="form-label fw-medium small text-muted">Payment Method *</label>
+                                                            <select
+                                                                 className="form-select"
+                                                                 value={paymentForm.payment_method}
+                                                                 onChange={(e) => setPaymentForm(prev => ({ ...prev, payment_method: e.target.value }))}
                                                                  required
+                                                                 disabled={(selectedOrderForPayment?.totalPaid || 0) >= (selectedOrderForPayment?.totalAmount || 0)}
+                                                            >
+                                                                 <option value="bank_transfer">Bank Transfer</option>
+                                                                 <option value="cash">Cash</option>
+                                                                 <option value="check">Check</option>
+                                                                 <option value="credit_card">Credit Card</option>
+                                                                 <option value="debit_card">Debit Card</option>
+                                                                 <option value="wire_transfer">Wire Transfer</option>
+                                                                 <option value="other">Other</option>
+                                                            </select>
+                                                       </div>
+                                                       <div className="mb-3">
+                                                            <label className="form-label fw-medium small text-muted">Reference Number</label>
+                                                            <input
+                                                                 type="text"
+                                                                 className="form-control"
+                                                                 value={paymentForm.reference_number}
+                                                                 onChange={(e) => setPaymentForm(prev => ({ ...prev, reference_number: e.target.value }))}
+                                                                 placeholder="Check number, transaction ID, etc."
                                                                  disabled={(selectedOrderForPayment?.totalPaid || 0) >= (selectedOrderForPayment?.totalAmount || 0)}
                                                             />
                                                        </div>
-                                                       <small className="text-muted">Enter the amount you want to pay now (max: {(selectedOrderForPayment.totalPending || 0).toFixed(2)})</small>
-                                                  </div>
-                                             </div>
-                                             <div className="col-md-6">
-                                                  <div className="mb-3">
-                                                       <label className="form-label">Payment Date</label>
-                                                       <input
-                                                            type="date"
-                                                            className="form-control"
-                                                            value={paymentForm.payment_date}
-                                                            disabled
-                                                       />
-                                                  </div>
-                                                  <div className="mb-3">
-                                                       <label className="form-label">Payment Method *</label>
-                                                       <select
-                                                            className="form-select"
-                                                            value={paymentForm.payment_method}
-                                                            onChange={(e) => setPaymentForm(prev => ({ ...prev, payment_method: e.target.value }))}
-                                                            required
-                                                            disabled={(selectedOrderForPayment?.totalPaid || 0) >= (selectedOrderForPayment?.totalAmount || 0)}
-                                                       >
-                                                            <option value="bank_transfer">Bank Transfer</option>
-                                                            <option value="cash">Cash</option>
-                                                            <option value="check">Check</option>
-                                                            <option value="credit_card">Credit Card</option>
-                                                            <option value="debit_card">Debit Card</option>
-                                                            <option value="wire_transfer">Wire Transfer</option>
-                                                            <option value="other">Other</option>
-                                                       </select>
-                                                  </div>
-                                                  <div className="mb-3">
-                                                       <label className="form-label">Reference Number</label>
-                                                       <input
-                                                            type="text"
-                                                            className="form-control"
-                                                            value={paymentForm.reference_number}
-                                                            onChange={(e) => setPaymentForm(prev => ({ ...prev, reference_number: e.target.value }))}
-                                                            placeholder="Check number, transaction ID, etc."
-                                                            disabled={(selectedOrderForPayment?.totalPaid || 0) >= (selectedOrderForPayment?.totalAmount || 0)}
-                                                       />
-                                                  </div>
-                                             </div>
-                                             <div className="col-md-12">
-                                                  <div className="mb-3">
-                                                       <label className="form-label">Payment Notes</label>
-                                                       <textarea
-                                                            className="form-control"
-                                                            rows={3}
-                                                            value={paymentForm.payment_notes}
-                                                            onChange={(e) => setPaymentForm(prev => ({ ...prev, payment_notes: e.target.value }))}
-                                                            placeholder="Additional payment details..."
-                                                            disabled={(selectedOrderForPayment?.totalPaid || 0) >= (selectedOrderForPayment?.totalAmount || 0)}
-                                                       />
+                                                       <div className="mb-3">
+                                                            <label className="form-label fw-medium small text-muted">Payment Notes</label>
+                                                            <textarea
+                                                                 className="form-control"
+                                                                 rows={3}
+                                                                 value={paymentForm.payment_notes}
+                                                                 onChange={(e) => setPaymentForm(prev => ({ ...prev, payment_notes: e.target.value }))}
+                                                                 placeholder="Additional payment details..."
+                                                                 disabled={(selectedOrderForPayment?.totalPaid || 0) >= (selectedOrderForPayment?.totalAmount || 0)}
+                                                            />
+                                                       </div>
                                                   </div>
                                              </div>
                                         </div>
                                    </div>
-                                   <div className="modal-footer">
+                                   <div className="modal-footer bg-light border-top-0">
                                         <button
                                              type="button"
-                                             className="btn btn-secondary btn-sm"
+                                             className="btn btn-outline-secondary"
                                              onClick={() => {
                                                   setShowPaymentModal(false);
                                                   resetPaymentForm();
@@ -1658,7 +1890,7 @@ export default function PurchaseOrdersPage() {
                                         </button>
                                         <button
                                              type="button"
-                                             className="btn btn-success btn-sm"
+                                             className="btn btn-success px-4"
                                              onClick={handleCreatePayment}
                                              disabled={loading || (selectedOrderForPayment?.totalPaid || 0) >= (selectedOrderForPayment?.totalAmount || 0)}
                                         >

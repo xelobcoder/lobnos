@@ -209,7 +209,7 @@ const MaritalStatus: React.FC = () => {
 								Marital Status Chart
 							</h6>
 							<div style={{ width: "100%", height: 350 }}>
-								<ResponsiveContainer>
+								<ResponsiveContainer width="100%" height={350}>
 									<BarChart data={data} margin={{ top: 5, right: 5, left: 20, bottom: 45 }}>
 										<CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
 										<XAxis

@@ -76,7 +76,7 @@ export default function ExpenseApprovalTimeline() {
      }, []);
 
      useEffect(() => {
-         fetchData();
+          fetchData();
      }, []);
 
      const chartData = data.map(item => ({
@@ -152,7 +152,7 @@ export default function ExpenseApprovalTimeline() {
                          </div>
                     </div>
                     <button onClick={fetchData} className="btn btn-sm btn-primary ">
-                         Load 
+                         Load
                     </button>
                </div>
           );
@@ -382,11 +382,9 @@ export default function ExpenseApprovalTimeline() {
                                    <p className="text-muted px-3">No expense approval timeline data found for the selected period.</p>
                               </div>
                          ) : (
-                              <div style={{ width: "100%", height: 350 }}>
-                                   <ResponsiveContainer>
-                                        {renderChart() as ReactElement}
-                                   </ResponsiveContainer>
-                              </div>
+                              <ResponsiveContainer width="100%" height={350}>
+                                   {renderChart() as ReactElement}
+                              </ResponsiveContainer>
                          )}
                     </div>
                     {!loading && !error && data && data.length > 0 && (

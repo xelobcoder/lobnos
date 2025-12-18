@@ -5,14 +5,11 @@
   "scripts": {
     "dev": "next dev -p 2377  --experimental-https",
     "next": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 next dev  --experimental-https -p 2377",
-    "start": "next start",
-    "build": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 next build && node --env-file=.env server.js",
-    "ns": "node --env-file=.env server.js",
+    "start": "next start -p 2377 ",
+    "build": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 next build && node --env-file=.env server.js -p 2377",
+    "ns": "node --env-file=.env server.js -p 2377",
     "clean": "rm -rf .next && rm -rf out && rm -rf package-lock.json  && rm -rf node_modules && rm -rf cache",
-    "build:css": "",
-    "tauri": "tauri",
-    "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build"
+    "build:css": ""
   },
   "dependencies": {
     "@ckeditor/ckeditor5-build-classic": "^40.1.0",

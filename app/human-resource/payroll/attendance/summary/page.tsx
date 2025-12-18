@@ -217,8 +217,9 @@ export default function AttendanceSummaryPage() {
      }
 
      return (
+          <div>
           <div className="container-fluid px-4 py-3">
-               {/* Header */}
+  
                <div className="d-flex align-items-center justify-content-between mb-4">
                     <div className="d-flex align-items-center">
                          <RiCalendarEventLine size={28} style={{ color: COLOR_ACCENT }} className="me-2" />
@@ -302,7 +303,7 @@ export default function AttendanceSummaryPage() {
                          <div className="col-md-3">
                               <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                    <div className="d-flex align-items-center">
-                                        
+
                                         <div>
                                              <div className="fw-semibold fs-4">{summary.present_days}</div>
                                              <div className="small text-muted">Present Days</div>
@@ -347,11 +348,9 @@ export default function AttendanceSummaryPage() {
                                    </h2>
                               </div>
                               <div className="card-body">
-                                   <div style={{ width: "100%", height: 350 }}>
-                                        <ResponsiveContainer>
-                                             {renderChart()}
-                                        </ResponsiveContainer>
-                                   </div>
+                                   <ResponsiveContainer >
+                                        {renderChart()}
+                                   </ResponsiveContainer>
                               </div>
                          </div>
                     </div>
@@ -366,75 +365,74 @@ export default function AttendanceSummaryPage() {
                                    </h2>
                               </div>
                               <div className="card-body">
-                                   <div style={{ width: "100%", height: 350 }}>
-                                        <ResponsiveContainer>
-                                             <PieChart>
-                                                  <Pie
-                                                       data={pieData}
-                                                       cx="50%"
-                                                       cy="50%"
-                                                       outerRadius={100}
-                                                       dataKey="value"
-                                                       label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                                                  >
-                                                       {pieData.map((entry, index) => (
-                                                            <Cell key={`cell-${index}`} fill={entry.color} />
-                                                       ))}
-                                                  </Pie>
-                                                  <Tooltip />
-                                             </PieChart>
-                                        </ResponsiveContainer>
-                                   </div>
+                                   <ResponsiveContainer width="100%" height={350}>
+                                        <PieChart>
+                                             <Pie
+                                                  data={pieData}
+                                                  cx="50%"
+                                                  cy="50%"
+                                                  outerRadius={100}
+                                                  dataKey="value"
+                                                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                             >
+                                                  {pieData.map((entry, index) => (
+                                                       <Cell key={`cell-${index}`} fill={entry.color} />
+                                                  ))}
+                                             </Pie>
+                                             <Tooltip />
+                                        </PieChart>
+                                   </ResponsiveContainer>
                               </div>
                          </div>
                     </div>
                </div>
-
-               {/* Department Statistics Table */}
-               <div className="border rounded" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                    <div className="p-3 border-bottom">
-                         <h5 className="mb-0 fw-semibold">Department-wise Attendance</h5>
-                         <small className="text-muted">Attendance statistics by department</small>
-                    </div>
-                    <div className="table-responsive">
-                         <table className="table table-hover table-striped mb-0">
-                              <thead className="table-light">
-                                   <tr>
-                                        <th className="border-0">Department</th>
-                                        <th className="border-0">Employees</th>
-                                        <th className="border-0">Present %</th>
-                                        <th className="border-0">Absent %</th>
-                                        <th className="border-0">Late %</th>
-                                        <th className="border-0">Status</th>
-                                   </tr>
-                              </thead>
-                              <tbody>
-                                   {departmentStats.map((dept, index) => (
-                                        <tr key={index}>
-                                             <td>
-                                                  <div className="fw-semibold">{dept.department}</div>
-                                             </td>
-                                             <td>{dept.total_employees}</td>
-                                             <td>
-                                                  <span className="text-success fw-semibold">{dept.present_percentage.toFixed(1)}%</span>
-                                             </td>
-                                             <td>
-                                                  <span className="text-danger fw-semibold">{dept.absent_percentage.toFixed(1)}%</span>
-                                             </td>
-                                             <td>
-                                                  <span className="text-warning fw-semibold">{dept.late_percentage.toFixed(1)}%</span>
-                                             </td>
-                                             <td>
-                                                  <span className={`badge ${dept.present_percentage >= 95 ? 'bg-success' : dept.present_percentage >= 90 ? 'bg-warning' : 'bg-danger'}`}>
-                                                       {dept.present_percentage >= 95 ? 'Excellent' : dept.present_percentage >= 90 ? 'Good' : 'Needs Attention'}
-                                                  </span>
-                                             </td>
-                                        </tr>
-                                   ))}
-                              </tbody>
-                         </table>
-                    </div>
-               </div>
           </div>
+
+        
+     <div className="border rounded" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+          <div className="p-3 border-bottom">
+               <h5 className="mb-0 fw-semibold">Department-wise Attendance</h5>
+               <small className="text-muted">Attendance statistics by department</small>
+          </div>
+          <div className="table-responsive">
+               <table className="table table-hover table-striped mb-0">
+                    <thead className="table-light">
+                         <tr>
+                              <th className="border-0">Department</th>
+                              <th className="border-0">Employees</th>
+                              <th className="border-0">Present %</th>
+                              <th className="border-0">Absent %</th>
+                              <th className="border-0">Late %</th>
+                              <th className="border-0">Status</th>
+                         </tr>
+                    </thead>
+                    <tbody>
+                         {departmentStats.map((dept, index) => (
+                              <tr key={index}>
+                                   <td>
+                                        <div className="fw-semibold">{dept.department}</div>
+                                   </td>
+                                   <td>{dept.total_employees}</td>
+                                   <td>
+                                        <span className="text-success fw-semibold">{dept.present_percentage.toFixed(1)}%</span>
+                                   </td>
+                                   <td>
+                                        <span className="text-danger fw-semibold">{dept.absent_percentage.toFixed(1)}%</span>
+                                   </td>
+                                   <td>
+                                        <span className="text-warning fw-semibold">{dept.late_percentage.toFixed(1)}%</span>
+                                   </td>
+                                   <td>
+                                        <span className={`badge ${dept.present_percentage >= 95 ? 'bg-success' : dept.present_percentage >= 90 ? 'bg-warning' : 'bg-danger'}`}>
+                                             {dept.present_percentage >= 95 ? 'Excellent' : dept.present_percentage >= 90 ? 'Good' : 'Needs Attention'}
+                                        </span>
+                                   </td>
+                              </tr>
+                         ))}
+                    </tbody>
+               </table>
+          </div>
+     </div>
+     </div>
      );
 }

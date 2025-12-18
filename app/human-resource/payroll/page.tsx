@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
      RiMoneyDollarCircleLine,
@@ -10,11 +10,20 @@ import {
      RiArrowRightLine,
      RiFileListLine,
      RiCheckboxCircleLine,
-     RiHistoryLine
+     RiHistoryLine,
+     RiTimeLine
 } from '@remixicon/react';
+import { customFetch } from '../../../components/Auth/customFetch';
+import dayjs from 'dayjs';
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
 const COLOR_BORDER = 'var(--bs-border-color)';
+
+const currencyFormatter = new Intl.NumberFormat('en-GH', {
+     style: 'currency',
+     currency: 'GHS',
+     minimumFractionDigits: 2,
+});
 
 interface QuickAccessCard {
      title: string;
@@ -56,6 +65,44 @@ const quickAccessCards: QuickAccessCard[] = [
 ];
 
 export default function PayrollOverviewPage() {
+     const [analyticsData, setAnalyticsData] = useState<any>(null);
+     const [loading, setLoading] = useState(true);
+
+     const startDate = dayjs().subtract(3, 'month').format('YYYY-MM-DD');
+     const endDate = dayjs().format('YYYY-MM-DD');
+
+     useEffect(() => {
+          fetchAnalytics();
+     }, []);
+
+     const fetchAnalytics = async () => {
+          setLoading(true);
+          try {
+               const response = await customFetch(
+                    `payroll/analytics?startDate=${startDate}&endDate=${endDate}&topEarnersLimit=5`
+               );
+               if (response?.status === 'success' && response?.statusCode === 200) {
+                    setAnalyticsData(response.result);
+               }
+          } catch (err) {
+               console.error(err);
+          } finally {
+               setLoading(false);
+          }
+     };
+
+     const {
+          compensation_distribution: compensation,
+          attendance_summary: attendance,
+          payment_methods: paymentMethods,
+          overtime_metrics: overtimeMetrics,
+     } = analyticsData || {};
+
+     const totalBasicSalary = compensation?.reduce((sum: number, c: any) => sum + parseFloat(c.total_basic_salary || 0), 0) || 0;
+     const totalEmployees = compensation?.reduce((sum: number, c: any) => sum + parseInt(c.employee_count || 0), 0) || 0;
+     const totalOvertimeHours = overtimeMetrics?.reduce((sum: number, o: any) => sum + parseFloat(o.total_overtime_hours || 0), 0) || 0;
+     const totalAttendanceRecords = attendance?.reduce((sum: number, a: any) => sum + parseInt(a.record_count || 0), 0) || 0;
+
      return (
           <div className="container-fluid px-4 py-3">
                {/* Page Header */}
@@ -74,43 +121,115 @@ export default function PayrollOverviewPage() {
                     <div className="col-md-3">
                          <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex align-items-center mb-2">
-                                   <RiCalendarLine size={20} className="me-2 text-primary" />
-                                   <span className="fw-medium text-muted small">Current Period</span>
+                                   <RiMoneyDollarCircleLine size={20} className="me-2 text-primary" />
+                                   <span className="fw-medium text-muted small">Total Basic Salary</span>
                               </div>
-                              <div className="fs-5 fw-bold">December 2024</div>
-                              <div className="small text-success">In Progress</div>
+                              <div className="fs-5 fw-bold">
+                                   {loading ? '...' : currencyFormatter.format(totalBasicSalary)}
+                              </div>
+                              <div className="small text-muted">Last 3 months</div>
                          </div>
                     </div>
                     <div className="col-md-3">
                          <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex align-items-center mb-2">
                                    <RiUserLine size={20} className="me-2 text-success" />
-                                   <span className="fw-medium text-muted small">Active Employees</span>
+                                   <span className="fw-medium text-muted small">Total Employees</span>
                               </div>
-                              <div className="fs-5 fw-bold">0</div>
+                              <div className="fs-5 fw-bold">{loading ? '...' : totalEmployees}</div>
                               <div className="small text-muted">With compensation</div>
                          </div>
                     </div>
                     <div className="col-md-3">
                          <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex align-items-center mb-2">
-                                   <RiMoneyDollarCircleLine size={20} className="me-2 text-warning" />
-                                   <span className="fw-medium text-muted small">Total Gross</span>
+                                   <RiTimeLine size={20} className="me-2 text-warning" />
+                                   <span className="fw-medium text-muted small">Total Overtime Hours</span>
                               </div>
-                              <div className="fs-5 fw-bold">GHS 0.00</div>
-                              <div className="small text-muted">This period</div>
+                              <div className="fs-5 fw-bold">{loading ? '...' : totalOvertimeHours.toFixed(1)}</div>
+                              <div className="small text-muted">Last 3 months</div>
                          </div>
                     </div>
                     <div className="col-md-3">
                          <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex align-items-center mb-2">
                                    <RiCheckboxCircleLine size={20} className="me-2 text-info" />
-                                   <span className="fw-medium text-muted small">Status</span>
+                                   <span className="fw-medium text-muted small">Attendance Records</span>
                               </div>
-                              <div className="fs-5 fw-bold">Draft</div>
-                              <div className="small text-muted">Not processed</div>
+                              <div className="fs-5 fw-bold">{loading ? '...' : totalAttendanceRecords}</div>
+                              <div className="small text-muted">Last 3 months</div>
                          </div>
                     </div>
+               </div>
+
+               {/* Analytics Summary */}
+               {!loading && analyticsData && (
+                    <div className="row g-3 mb-4">
+                         {/* Payment Methods */}
+                         {paymentMethods && paymentMethods.length > 0 && (
+                              <div className="col-md-6">
+                                   <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                        <h6 className="fw-bold mb-3">Payment Methods Distribution</h6>
+                                        <div className="table-responsive">
+                                             <table className="table table-sm table-hover text-start mb-0">
+                                                  <thead>
+                                                       <tr>
+                                                            <th className="text-start">Method</th>
+                                                            <th className="text-end">Employees</th>
+                                                            <th className="text-end">Percentage</th>
+                                                       </tr>
+                                                  </thead>
+                                                  <tbody>
+                                                       {paymentMethods.map((method: any, idx: number) => (
+                                                            <tr key={idx}>
+                                                                 <td className="text-start text-capitalize">{method.payment_method.replace('_', ' ')}</td>
+                                                                 <td className="text-end">{method.employee_count}</td>
+                                                                 <td className="text-end">{method.percentage}%</td>
+                                                            </tr>
+                                                       ))}
+                                                  </tbody>
+                                             </table>
+                                        </div>
+                                   </div>
+                              </div>
+                         )}
+
+                         {/* Compensation Types */}
+                         {compensation && compensation.length > 0 && (
+                              <div className="col-md-6">
+                                   <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                        <h6 className="fw-bold mb-3">Compensation Types</h6>
+                                        <div className="table-responsive">
+                                             <table className="table table-sm table-hover text-start mb-0">
+                                                  <thead>
+                                                       <tr>
+                                                            <th className="text-start">Type</th>
+                                                            <th className="text-end">Employees</th>
+                                                            <th className="text-end">Total</th>
+                                                       </tr>
+                                                  </thead>
+                                                  <tbody>
+                                                       {compensation.map((comp: any, idx: number) => (
+                                                            <tr key={idx}>
+                                                                 <td className="text-start text-capitalize">{comp.compensation_type}</td>
+                                                                 <td className="text-end">{comp.employee_count}</td>
+                                                                 <td className="text-end">{currencyFormatter.format(comp.total_basic_salary)}</td>
+                                                            </tr>
+                                                       ))}
+                                                  </tbody>
+                                             </table>
+                                        </div>
+                                   </div>
+                              </div>
+                         )}
+                    </div>
+               )}
+
+               {/* View Full Analytics Link */}
+               <div className="mb-4">
+                    <Link href="/human-resource/payroll/analytics" className="btn btn-outline-primary btn-sm">
+                         View Full Analytics →
+                    </Link>
                </div>
 
                {/* Quick Access Cards */}

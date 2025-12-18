@@ -6,7 +6,7 @@ const path = require('path')
 
 const dev = process.env.NODE_ENV !== 'production'
 const hostname = process.env.HOST || 'localhost'
-const port = process.env.NODE_ENV == "production" ? process.env.PORT : 3000
+const port = process.env.NODE_ENV == "production" ? process.env.PRODUCTION_PORT || 2377 : process.env.DEVELOPMENT_PORT || 3000
 const app = next({ dev, hostname, port })
 
 const handle = app.getRequestHandler()

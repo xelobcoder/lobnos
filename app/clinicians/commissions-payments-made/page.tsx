@@ -1,23 +1,11 @@
-"use client";
-import React, { useState, useEffect, useMemo } from "react";
-import dayjs from 'dayjs';
-import { RiUserLine, RiFileList3Line, RiLineChartLine, RiBarChartBoxLine, RiBubbleChartLine, RiErrorWarningLine, RiCalendarEventLine, RiInbox2Line, RiLoader4Line, RiRefreshLine } from '@remixicon/react';
-import { currencyFormatter, customFetch } from "../../../components/Auth/customFetch";
-import { Button, Dropdown, Modal } from 'react-bootstrap';
-import {
-     ResponsiveContainer,
-     BarChart,
-     Bar,
-     XAxis,
-     YAxis,
-     CartesianGrid,
-     Tooltip,
-     Legend,
-     LineChart,
-     Line,
-     AreaChart,
-     Area,
-} from "recharts";
+'use client'
+import { RiLoader4Line, RiErrorWarningLine, RiInbox2Line, RiBarChartBoxLine, RiLineChartLine, RiBubbleChartLine, RiUserLine } from "@remixicon/react";
+import dayjs from "dayjs";
+import { useState, useEffect, useMemo } from "react";
+import { Button, Dropdown, Modal } from "react-bootstrap";
+import { BarChart, CartesianGrid, XAxis, YAxis, Legend, Bar, LineChart, Line, AreaChart, Area, ResponsiveContainer, Tooltip as RechartsTooltip } from "recharts";
+import { customFetch, currencyFormatter } from "../../../components/Auth/customFetch";
+
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)'; // Primary chart color
 const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
@@ -325,7 +313,7 @@ export default function PaidCommissionsPaymentMadePage() {
                          <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
                          <XAxis {...xAxisProps} />
                          <YAxis {...yAxisProps} />
-                         <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
+                         <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                          <Legend {...legendProps} />
                          <Bar dataKey="paymentAmount" name="Payment Amount" fill={COLOR_SECONDARY} radius={[4, 4, 0, 0]} maxBarSize={30} />
                          <Bar dataKey="totalCommission" name="Total Commission" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={30} />
@@ -339,7 +327,7 @@ export default function PaidCommissionsPaymentMadePage() {
                          <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
                          <XAxis {...xAxisProps} />
                          <YAxis {...yAxisProps} />
-                         <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
+                         <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                          <Legend {...legendProps} />
                          <Line type="monotone" dataKey="paymentAmount" name="Payment Amount" stroke={COLOR_SECONDARY} strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: COLOR_SECONDARY }} activeDot={{ r: 6, strokeWidth: 2, fill: COLOR_SECONDARY, stroke: COLOR_TOOLTIP_BG }} connectNulls={false} />
                          <Line type="monotone" dataKey="totalCommission" name="Total Commission" stroke={COLOR_ACCENT} strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 2, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} connectNulls={false} />
@@ -367,7 +355,7 @@ export default function PaidCommissionsPaymentMadePage() {
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
                     <XAxis {...xAxisProps} />
                     <YAxis {...yAxisProps} />
-                    <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
+                    <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                     <Legend {...legendProps} />
                     <Area type="monotone" dataKey="paymentAmount" name="Payment Amount" stroke={COLOR_SECONDARY} fill="url(#colorPaymentFill)" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: COLOR_SECONDARY }} activeDot={{ r: 6, strokeWidth: 2, fill: COLOR_SECONDARY, stroke: COLOR_TOOLTIP_BG }} connectNulls={false} />
                     <Area type="monotone" dataKey="totalCommission" name="Total Commission" stroke={COLOR_ACCENT} fill="url(#colorCommissionFill)" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 2, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} connectNulls={false} />
@@ -409,11 +397,9 @@ export default function PaidCommissionsPaymentMadePage() {
           }
 
           return (
-               <div style={{ width: "100%", height: 350 }}>
-                    <ResponsiveContainer>
-                         {renderChart()}
-                    </ResponsiveContainer>
-               </div>
+               <ResponsiveContainer width="100%" height={350}>
+                    {renderChart()}
+               </ResponsiveContainer>
           );
      };
 

@@ -164,7 +164,7 @@ export default function TemplatesPage() {
                Header: 'Items Count',
                accessor: 'items_count',
                Cell: ({ value }) => (
-                    <span className="badge bg-info">{value} items</span>
+                    <span>{value} items</span>
                )
           },
           {
@@ -357,7 +357,7 @@ export default function TemplatesPage() {
                     </div>
                     <div className="col-12 col-md-4 d-flex justify-content-end">
                          <button
-                              className="btn btn-primary btn-sm w-100 w-md-auto"
+                              className="btn btn-outline-primary btn-sm w-100 w-md-auto"
                               onClick={() => setShowAddModal(true)}
                               style={isMobile ? {
                                    borderRadius: '8px',
@@ -681,7 +681,7 @@ export default function TemplatesPage() {
                                    } : {}}>
                                         <button
                                              type="button"
-                                             className="btn btn-secondary btn-sm"
+                                             className="btn btn-outline-secondary btn-sm"
                                              onClick={() => {
                                                   setShowAddModal(false);
                                                   setSelectedTemplate(null);
@@ -702,7 +702,7 @@ export default function TemplatesPage() {
                                         </button>
                                         <button
                                              type="button"
-                                             className="btn btn-success btn-sm"
+                                             className="btn btn-outline-success btn-sm"
                                              onClick={selectedTemplate ? handleUpdateTemplate : handleAddTemplate}
                                              style={isMobile ? {
                                                   flex: 1,

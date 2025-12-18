@@ -323,11 +323,9 @@ export default function PaidCommissionsPage({ params }: { params: { clinicianid:
           }
 
           return (
-               <div style={{ width: "100%", height: 350 }}>
-                    <ResponsiveContainer>
-                         {renderChart()}
-                    </ResponsiveContainer>
-               </div>
+               <ResponsiveContainer width="100%" height={350}>
+                    {renderChart()}
+               </ResponsiveContainer>
           );
      };
 

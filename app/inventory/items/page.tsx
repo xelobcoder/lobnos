@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { RiBox3Line, RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiInboxLine } from '@remixicon/react';
+import { RiBox3Line, RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiInboxLine, RiHistoryLine } from '@remixicon/react';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 import { customFetch, customPost } from '../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
@@ -17,7 +17,7 @@ interface InventoryItem {
      supplier?: string;
      sku: string;
      description: string;
-     unit: string;
+     consumption_unit: string; // Changed from unit
      currentStock: number;
      minStock: number;
      maxStock: number;
@@ -40,6 +40,7 @@ interface InventoryItem {
      brand_name?: string;
      supplier_name?: string;
      location_name?: string;
+     consumption_unit_name?: string; // Added
 }
 
 interface InventoryCategory {
@@ -111,7 +112,7 @@ export default function InventoryItemsPage() {
           category: '',
           sku: '',
           description: '',
-          unit: 'pieces',
+          consumption_unit: 'pieces', // Changed from unit
           currentStock: 0,
           minStock: 0,
           maxStock: 0,
@@ -142,7 +143,9 @@ export default function InventoryItemsPage() {
                          category: item.category_name,
                          location: item.location_name,
                          brand: item.brand_name,
-                         supplier: item.supplier_name
+                         supplier: item.supplier_name,
+                         consumption_unit: item.consumption_unit,
+                         consumption_unit_name: item.consumption_unit_name
                     }));
                     setInventoryItems(transformedData);
                } else {
@@ -251,7 +254,9 @@ export default function InventoryItemsPage() {
                          category: item.category_name,
                          location: item.location_name,
                          brand: item.brand_name,
-                         supplier: item.supplier_name
+                         supplier: item.supplier_name,
+                         consumption_unit: item.consumption_unit,
+                         consumption_unit_name: item.consumption_unit_name
                     }));
 
                     return { result: transformedData, error: false };
@@ -283,7 +288,7 @@ export default function InventoryItemsPage() {
                accessor: 'currentStock',
                Cell: ({ row }) => (
                     <div>
-                         <span className="fw-bold">{row.original.currentStock} {row.original.unit}</span>
+                         <span className="fw-bold">{row.original.currentStock} {row.original.consumption_unit}</span>
                          <br />
                          <small className="text-muted">
                               Min: {row.original.minStock} | Max: {row.original.maxStock}
@@ -295,7 +300,7 @@ export default function InventoryItemsPage() {
                Header: 'Status',
                accessor: 'status',
                Cell: ({ value }) => (
-                    <span className={`badge bg-${STATUS_BADGES[value].color}`}>
+                    <span>
                          {STATUS_BADGES[value].label}
                     </span>
                )
@@ -323,6 +328,13 @@ export default function InventoryItemsPage() {
                               onClick={() => handleViewItem(row.original)}
                          >
                               <RiEyeLine size={14} />
+                         </button>
+                         <button
+                              className="btn btn-sm btn-outline-warning"
+                              title="View History"
+                              onClick={() => handleViewHistory(row.original)}
+                         >
+                              <RiHistoryLine size={14} />
                          </button>
                          <button
                               className="btn btn-sm btn-outline-primary"
@@ -361,7 +373,7 @@ export default function InventoryItemsPage() {
                     sku: itemForm.sku,
                     description: itemForm.description,
                     category_id: selectedCategory?.id,
-                    unit: itemForm.unit,
+                    consumption_unit: itemForm.consumption_unit,
                     current_stock: itemForm.currentStock,
                     min_stock: itemForm.minStock,
                     max_stock: itemForm.maxStock,
@@ -415,7 +427,7 @@ export default function InventoryItemsPage() {
                     sku: itemForm.sku,
                     description: itemForm.description,
                     category_id: selectedCategory?.id,
-                    unit: itemForm.unit,
+                    consumption_unit: itemForm.consumption_unit,
                     min_stock: itemForm.minStock,
                     max_stock: itemForm.maxStock,
                     location_id: itemForm.location_id || undefined,
@@ -482,7 +494,7 @@ export default function InventoryItemsPage() {
                category: item.category || '',
                sku: item.sku || '',
                description: item.description || '',
-               unit: item.unit || 'pieces',
+               consumption_unit: item.consumption_unit || 'pieces',
                currentStock: item.currentStock || 0,
                minStock: item.minStock || 0,
                maxStock: item.maxStock || 0,
@@ -534,6 +546,10 @@ export default function InventoryItemsPage() {
           } finally {
                setLoadingStock(false);
           }
+     };
+
+     const handleViewHistory = (item: InventoryItem) => {
+          router.push(`/inventory/items/${item.id}/history`);
      };
 
      const handleAddSingleBrand = () => {
@@ -651,7 +667,7 @@ export default function InventoryItemsPage() {
                category: '',
                sku: '',
                description: '',
-               unit: 'pieces',
+               consumption_unit: 'pieces',
                currentStock: 0,
                minStock: 0,
                maxStock: 0,
@@ -674,7 +690,7 @@ export default function InventoryItemsPage() {
                     </div>
                     <div className="d-flex gap-2">
                          <button
-                              className="btn btn-primary btn-sm"
+                              className="btn btn-outline-primary btn-sm"
                               onClick={() => {
                                    setEditingItem(null);
                                    setShowAddModal(true);
@@ -753,11 +769,11 @@ export default function InventoryItemsPage() {
                                              </div>
                                              <div className="col-md-6">
                                                   <div className="mb-3">
-                                                       <label className="form-label">Unit</label>
+                                                       <label className="form-label">Consumption Unit</label>
                                                        <select
                                                             className="form-select"
-                                                            value={itemForm.unit}
-                                                            onChange={(e) => setItemForm(prev => ({ ...prev, unit: e.target.value }))}
+                                                            value={itemForm.consumption_unit}
+                                                            onChange={(e) => setItemForm(prev => ({ ...prev, consumption_unit: e.target.value }))}
                                                        >
                                                             <option value="pieces">Pieces</option>
                                                             <option value="boxes">Boxes</option>
@@ -765,6 +781,8 @@ export default function InventoryItemsPage() {
                                                             <option value="packs">Packs</option>
                                                             <option value="liters">Liters</option>
                                                             <option value="kg">Kilograms</option>
+                                                            <option value="ml">Milliliters</option>
+                                                            <option value="tubes">Tubes</option>
                                                        </select>
                                                   </div>
                                                   <div className="row">
@@ -787,7 +805,7 @@ export default function InventoryItemsPage() {
                                                                  <div className="mb-3">
                                                                       <label className="form-label">Current Stock</label>
                                                                       <div className="form-control bg-light">
-                                                                           {itemForm.currentStock} {itemForm.unit}
+                                                                           {itemForm.currentStock} {itemForm.consumption_unit}
                                                                       </div>
                                                                       <small className="text-muted">Stock quantity cannot be edited directly</small>
                                                                  </div>
@@ -853,7 +871,7 @@ export default function InventoryItemsPage() {
                                    <div className="modal-footer">
                                         <button
                                              type="button"
-                                             className="btn btn-secondary btn-sm"
+                                             className="btn btn-outline-secondary btn-sm"
                                              onClick={() => {
                                                   setShowAddModal(false);
                                                   setEditingItem(null);
@@ -864,7 +882,7 @@ export default function InventoryItemsPage() {
                                         </button>
                                         <button
                                              type="button"
-                                             className="btn btn-primary btn-sm"
+                                             className="btn btn-outline-primary btn-sm"
                                              onClick={editingItem ? handleUpdateItem : handleAddItem}
                                         >
                                              {editingItem ? 'Update Item' : 'Add Item'}
@@ -943,7 +961,7 @@ export default function InventoryItemsPage() {
                                                        onKeyPress={(e) => e.key === 'Enter' && handleAddSingleBrand()}
                                                   />
                                                   <button
-                                                       className="btn btn-outline-primary"
+                                                       className="btn btn-outline-primary btn-sm"
                                                        type="button"
                                                        onClick={handleAddSingleBrand}
                                                        disabled={!brandForm.currentName.trim()}
@@ -976,7 +994,7 @@ export default function InventoryItemsPage() {
                                    <div className="modal-footer">
                                         <button
                                              type="button"
-                                             className="btn btn-secondary btn-sm"
+                                             className="btn btn-outline-secondary btn-sm"
                                              onClick={() => {
                                                   setShowAddBrandModal(false);
                                                   setBrandForm({ currentName: '', addedBrands: [] });
@@ -988,7 +1006,7 @@ export default function InventoryItemsPage() {
                                         </button>
                                         <button
                                              type="button"
-                                             className="btn btn-primary btn-sm"
+                                             className="btn btn-outline-primary btn-sm"
                                              onClick={handleSaveBrands}
                                              disabled={brandForm.addedBrands.length === 0 || loading}
                                         >
@@ -1027,7 +1045,7 @@ export default function InventoryItemsPage() {
                                                             <p className="mb-1 small"><strong>Category:</strong> {selectedItem.category}</p>
                                                             <p className="mb-1 small"><strong>Location:</strong> {selectedItem.location_name || 'Not assigned'}</p>
                                                             <p className="mb-0 small"><strong>Status:</strong>
-                                                                 <span className={`badge bg-${STATUS_BADGES[selectedItem.status].color} ms-2`}>
+                                                                 <span>
                                                                       {STATUS_BADGES[selectedItem.status].label}
                                                                  </span>
                                                             </p>
@@ -1038,8 +1056,8 @@ export default function InventoryItemsPage() {
                                                   <div className="card bg-light">
                                                        <div className="card-body">
                                                             <h6 className="card-title">Stock Information</h6>
-                                                            <p className="mb-1 small"><strong>Current Stock:</strong> {selectedItem.currentStock} {selectedItem.unit}</p>
-                                                            <p className="mb-0 small"><strong>Stock Range:</strong> {selectedItem.minStock} - {selectedItem.maxStock} {selectedItem.unit}</p>
+                                                            <p className="mb-1 small"><strong>Current Stock:</strong> {selectedItem.currentStock} {selectedItem.consumption_unit}</p>
+                                                            <p className="mb-0 small"><strong>Stock Range:</strong> {selectedItem.minStock} - {selectedItem.maxStock} {selectedItem.consumption_unit}</p>
                                                        </div>
                                                   </div>
                                              </div>
@@ -1078,7 +1096,7 @@ export default function InventoryItemsPage() {
                                                                       <div className="col-6">
                                                                            <strong className="text-info">{availableStock.item?.current_stock || 0}</strong>
                                                                            <br />
-                                                                           <small className="text-muted">Total Stock ({availableStock.item?.unit || 'units'})</small>
+                                                                           <small className="text-muted">Total Stock ({availableStock.item?.consumption_unit || 'units'})</small>
                                                                       </div>
                                                                       <div className="col-6">
                                                                            <strong className="text-success">{availableStock.available_batches?.length || 0}</strong>
@@ -1114,7 +1132,7 @@ export default function InventoryItemsPage() {
                                                                                      <td className="text-start">
                                                                                           <div className="small">
                                                                                                <div className="fw-bold text-success">{batch.available_quantity}</div>
-                                                                                               <div className="text-muted">{availableStock.item?.unit || 'units'}</div>
+                                                                                               <div className="text-muted">{availableStock.item?.consumption_unit || 'units'}</div>
                                                                                           </div>
                                                                                      </td>
                                                                                      <td className="text-start">
@@ -1160,7 +1178,7 @@ export default function InventoryItemsPage() {
                                    <div className="modal-footer">
                                         <button
                                              type="button"
-                                             className="btn btn-secondary btn-sm"
+                                             className="btn btn-outline-secondary btn-sm"
                                              onClick={() => {
                                                   setSelectedItem(null);
                                                   setAvailableStock(null);

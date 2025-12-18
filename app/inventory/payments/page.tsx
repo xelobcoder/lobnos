@@ -293,7 +293,7 @@ export default function PaymentsPage() {
                Cell: ({ value }) => {
                     const badge = STATUS_BADGES[value as keyof typeof STATUS_BADGES] || STATUS_BADGES.pending;
                     return (
-                         <span className={`badge bg-${badge.color}`}>
+                         <span>
                               {badge.label}
                          </span>
                     );

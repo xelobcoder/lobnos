@@ -453,11 +453,9 @@ export default function ExpensePaymentStatus() {
                          </div>
                     </div>
                     <div className="card-body p-4">
-                         <div style={{ width: "100%", height: 350 }}>
-                              <ResponsiveContainer>
-                                   {renderChart()}
-                              </ResponsiveContainer>
-                         </div>
+                         <ResponsiveContainer width="100%" height={350}>
+                              {renderChart()}
+                         </ResponsiveContainer>
                     </div>
                     <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{ borderTop: `1px solid ${COLOR_BORDER}` }}>
                          <div className="print-date-range" style={{ display: 'none' }}>

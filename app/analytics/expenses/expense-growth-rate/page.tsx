@@ -252,7 +252,7 @@ export default function ExpenseGrowthRate() {
                                                        onClick={() => setChartType(btn.type)}
                                                        style={chartType === btn.type ? { backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT } : {}}
                                                   >
-                                                      {btn.label}
+                                                       {btn.label}
                                                   </button>
                                              ))}
                                         </div>
@@ -283,11 +283,9 @@ export default function ExpenseGrowthRate() {
                               </div>
                          )}
                          {!loading && !error && data.length > 0 && (
-                              <div style={{ width: "100%", height: 350 }}>
-                                   <ResponsiveContainer>
-                                        {renderChart()}
-                                   </ResponsiveContainer>
-                              </div>
+                              <ResponsiveContainer width="100%" height={350}>
+                                   {renderChart()}
+                              </ResponsiveContainer>
                          )}
                     </div>
                     {!loading && !error && data.length > 0 && (
