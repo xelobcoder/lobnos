@@ -1169,3 +1169,16 @@ textarea:required:focus:invalid {
   color: #adb5bd !important;
 }
 
+
+/* Archive Dropdown Global Style */
+#archives-dropdown {
+    z-index: 9999 !important;
+    background-color: #1e1e1e !important;
+    color: #ffffff !important;
+    position: relative; /* Ensure z-index works */
+}
+
+[data-bs-theme='dark'] #archives-dropdown {
+    background-color: #000000 !important;
+    border: 1px solid #333;
+}

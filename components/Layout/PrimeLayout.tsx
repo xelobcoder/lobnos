@@ -180,6 +180,10 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
 
                     {/* Role Links Dropdown */}
                     <div className={styles.headerActions}>
+                        <div className="d-none d-md-flex flex-column align-items-end me-2" style={{ lineHeight: '1.2' }}>
+                            <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{user?.username}({user?.role})</span>
+                           
+                        </div>
                         <ThemeToggle className={styles.themeToggle} />
                         <button
                             className={styles.themeToggle}

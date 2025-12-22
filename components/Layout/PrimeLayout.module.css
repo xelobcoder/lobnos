@@ -387,22 +387,132 @@
 .roleDropdownToggle {
     color: var(--theme-header-text) !important;
     border-color: var(--theme-header-border) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0 !important;
+    border-radius: 8px !important;
 }
 
 .roleDropdownMenu {
     background-color: var(--theme-card-bg);
     border-color: var(--theme-header-border);
+    padding: 12px;
+    min-width: 280px;
+    max-width: 90vw; /* Prevent overflow on small screens */
+    max-height: calc(100vh - 100px); /* Prevent vertical overflow */
+    overflow-y: auto; /* Allow scrolling */
+    overflow-x: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    margin-top: 8px !important;
+}
+
+.dropdownSection {
+    margin-bottom: 12px;
+}
+
+.dropdownSectionTitle {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    font-weight: 600;
+    padding-left: 4px;
+}
+
+.dropdownGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    width: 100%;
 }
 
 .dropdownGridItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 8px;
     background-color: var(--theme-body-bg);
     color: var(--text-primary);
-    border-color: var(--theme-header-border);
+    border: 1px solid var(--theme-header-border);
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    height: 100%;
+    min-height: 64px;
 }
 
 .dropdownGridItem:hover {
     border-color: var(--theme-accent);
     color: var(--theme-accent);
+    background-color: var(--theme-sidebar-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.dropdownGridIcon {
+    font-size: 1.25rem;
+    margin-bottom: 4px;
+    display: block;
+    line-height: 1;
+}
+
+.dropdownGridLabel {
+    font-size: 0.85rem;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+.roleDropdownItem {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.roleDropdownItem:hover {
+    background-color: var(--theme-body-bg);
+    color: var(--theme-accent);
+}
+
+.dropdownIcon {
+    margin-right: 12px;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+}
+
+.dropdownItemTitle {
+    font-weight: 600;
+    font-size: 0.9rem;
+    line-height: 1.2;
+}
+
+.dropdownItemSubtitle {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.logoutItem {
+    color: #dc3545 !important;
+    margin-top: 8px;
+}
+
+.logoutItem:hover {
+    background-color: rgba(220, 53, 69, 0.1) !important;
 }
 
 
