@@ -161,7 +161,7 @@ export default function CommissionDetailsModal({
                                              <RiFileList3Line size={18} className="me-2" />
                                              Service Information
                                         </h6>
-                                        <div className="p-2 bg-light rounded">
+                                        <div className="p-2 bg-body-tertiary rounded">
                                              <div className="d-flex flex-wrap align-items-center gap-2">
                                                   <div>
                                                        <small className="text-muted">Service Date:</small>{' '}
@@ -264,7 +264,7 @@ export default function CommissionDetailsModal({
 
                               {/* Payment Summary */}
                               {commissionPayments.length > 0 && (
-                                   <div className="mt-3 p-2 bg-light rounded">
+                                   <div className="mt-3 p-2 bg-body-tertiary rounded">
                                         <h6 className="fw-bold mb-2">Payment Summary</h6>
                                         <div className="d-flex flex-wrap align-items-center gap-2">
                                              <div>

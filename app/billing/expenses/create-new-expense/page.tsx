@@ -199,8 +199,8 @@ export default function AddNewExpense() {
 		<div className="container-fluid py-4">
 			<div className="row">
 				<div className="col-12 col-xl-10 col-xxl-8">
-					<div className="card border-1" style={{ background: 'linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%)' }}>
-						<div className="card-header bg-white border-bottom-0 py-3">
+					<div className="card border-1 bg-body-tertiary">
+						<div className="card-header border-bottom-0 py-3 bg-body-tertiary">
 							<div className="d-flex align-items-center justify-content-between">
 								<div className="d-flex align-items-center">
 									<RiReceiptLine className="me-2 text-primary" size={24} />

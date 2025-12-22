@@ -1,11 +1,11 @@
 import { constraintsFormatting } from "../../settingsComponents/FieldsCreation/data/testUtil";
 
-export default function PlainViewHtmlGenerator({ fieldItem,statehandler,index }) {
-    const {  name,  units,value, fieldConstraints, entrymode } = fieldItem;
+export default function PlainViewHtmlGenerator({ fieldItem, statehandler, index }) {
+    const { name, units, value, fieldConstraints, entrymode } = fieldItem;
 
     return <tr>
         <td>{name}</td>
-        <td><input  value={value} type="text" onChange={(ev) => { statehandler( ev, index) }} className="custom-input" /></td>
+        <td><input value={value} type="text" onChange={(ev) => { statehandler(ev, index) }} className="custom-input" style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }} /></td>
         <td>{units}</td>
         <td></td>
         <td className="pls-d-none">

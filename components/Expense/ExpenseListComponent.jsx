@@ -393,7 +393,7 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 		<div>
 			{/* Header with Expense Creation Buttons */}
 			<div className="d-flex justify-content-between align-items-center mb-3">
-				<h5 className="mb-0 fw-semibold text-dark">Expense Management</h5>
+				<h5 className="mb-0 fw-semibold text-body">Expense Management</h5>
 				<ButtonGroup>
 					<Button variant="outline-primary" size="sm" className="d-flex align-items-center"
 						onClick={() => window.location.href = '/billing/expenses/create-new-expense'}>
@@ -574,7 +574,7 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 															}}
 															style={{
 																fontSize: '0.75rem',
-																borderColor: !individualSelectedReasons[expenseId] ? '#dc3545' : '#ced4da'
+																borderColor: !individualSelectedReasons[expenseId] ? 'var(--bs-danger)' : 'var(--bs-border-color)'
 															}}
 														>
 															<option value="" disabled>Select reason...</option>
@@ -595,7 +595,7 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 															style={{
 																fontSize: '0.75rem',
 																resize: 'vertical',
-																backgroundColor: individualSelectedReasons[expenseId] && individualSelectedReasons[expenseId] !== "Other" ? '#f8f9fa' : '#ffffff'
+																backgroundColor: individualSelectedReasons[expenseId] && individualSelectedReasons[expenseId] !== "Other" ? 'var(--bs-secondary-bg)' : 'var(--bs-body-bg)'
 															}}
 														/>
 														{individualSelectedReasons[expenseId] === "Other" && !individualRejectReasons[expenseId]?.trim() && (

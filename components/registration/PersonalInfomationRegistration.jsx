@@ -102,46 +102,50 @@ export default function PersonalInformationRegistration({
 					noValidate
 					autoCorrect="false"
 				>
-					<div>
-						<PersonalRegistrationForms
-							toast={toast}
-							handleAgeCalculations={handleAgeCalculations}
-							fields={fields}
-							setFormData={(field, value) => setFormData(prev => ({ ...prev, [field]: value }))}
-							data={formData}
-							designation={designation}
-						/>
-						<AdditionalPersonalInformation
-							setFormData={(field, value) => setFormData(prev => ({ ...prev, [field]: value }))}
-							data={formData}
-							checkIFNumberisAvailable={checkIFNumberisAvailable}
-							fields={fields}
-							patientid={patientid} />
-
-						<div className="mt-4">
-							<button
-								type="button"
-								className="btn btn-success btn-sm"
-								disabled={isSubmitting}
-								onClick={(ev) => { onSubmit(ev) }}
-							>
-								{isSubmitting && (
-									<span className="spinner-border spinner-border-sm me-2" />
-								)}
-								Save current progress
-							</button>
+					<div className="row g-4">
+						<div className="col-lg-6 col-md-12 border-end">
+							<PersonalRegistrationForms
+								toast={toast}
+								handleAgeCalculations={handleAgeCalculations}
+								fields={fields}
+								setFormData={(field, value) => setFormData(prev => ({ ...prev, [field]: value }))}
+								data={formData}
+								designation={designation}
+							/>
 						</div>
+						<div className="col-lg-6 col-md-12">
+							<AdditionalPersonalInformation
+								setFormData={(field, value) => setFormData(prev => ({ ...prev, [field]: value }))}
+								data={formData}
+								checkIFNumberisAvailable={checkIFNumberisAvailable}
+								fields={fields}
+								patientid={patientid} />
+						</div>
+					</div>
+
+					<div className="mt-4">
+						<button
+							type="button"
+							className="btn btn-success btn-sm"
+							disabled={isSubmitting}
+							onClick={(ev) => { onSubmit(ev) }}
+						>
+							{isSubmitting && (
+								<span className="spinner-border spinner-border-sm me-2" />
+							)}
+							Save current progress
+						</button>
 					</div>
 				</form>
 			</section>
-			<Modal show={showDecisionModal} onHide={() => setShowDecisionModal(false)} backdrop="static" centered>
-				<Modal.Header closeButton>
+			<Modal show={showDecisionModal} onHide={() => setShowDecisionModal(false)} backdrop="static" centered contentClassName="bg-dark text-light" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+				<Modal.Header closeButton className="border-secondary">
 					<Modal.Title>Registration Complete</Modal.Title>
 				</Modal.Header>
 				<Modal.Body>
 					<p>Do you want to proceed to billing for this patient?</p>
 				</Modal.Body>
-				<Modal.Footer>
+				<Modal.Footer className="border-secondary">
 					<Button variant="secondary" onClick={() => { setShowDecisionModal(false); setFormData(defaultData); }}>
 						Stay on this page
 					</Button>

@@ -190,7 +190,7 @@ export default function BillingStrategyAssignmentForm({ trackId, entity_type }: 
                 </FormGroup>
 
                 {selectedStrategy && (
-                    <div className="border rounded p-3 bg-light text-sm alert alert-info br-5">
+                    <div className="border rounded p-3 text-sm alert alert-info br-5">
                         <h6 className="fw-bold">Strategy Details</h6>
                         <p className="mb-1"><strong>Description:</strong> {selectedStrategy.description || 'N/A'}</p>
                         <p className="mb-0"><strong>Applies to all tests:</strong> {selectedStrategy.applies_to_all_tests ? 'Yes' : 'No'}</p>

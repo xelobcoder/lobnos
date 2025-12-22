@@ -76,7 +76,7 @@ const EntityInfoCard = ({ entityInfo }: { entityInfo: EntityInformation }) => (
 const StrategyPreview = ({ strategy }: { strategy: Strategy | null }) => {
     if (!strategy) {
         return (
-            <div className="text-center bg-light border-dashed">
+            <div className="text-center bg-body-tertiary border-dashed">
                 <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '200px' }}>
                     <p className="text-muted mb-0">Select a strategy above to see a preview of its effects.</p>
                 </div>
@@ -87,7 +87,7 @@ const StrategyPreview = ({ strategy }: { strategy: Strategy | null }) => {
     return (
         <div >
             <div className="py-3 px-3 border br-5 ">
-                <div className="d-flex flex-column gap-3 mb-4 border p-2 br-5 bg-light-subtle">
+                <div className="d-flex flex-column gap-3 mb-4 border p-2 br-5 bg-body-tertiary">
                     <h4 className="bg-secondary-subtle text-center br-5 p-2"> {strategy.name}</h4>
                     <div className="d-flex"><RiChat1Line size={20} className="me-3 mt-1 flex-shrink-0 text-primary" /><div><strong>Description:</strong><p className="mb-0 text-muted">{strategy.description}</p></div></div>
                     <hr className="p-0" />

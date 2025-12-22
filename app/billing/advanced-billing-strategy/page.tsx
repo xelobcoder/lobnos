@@ -97,7 +97,7 @@ export default function Dashboard() {
             <Col key={item.href}>
               <Link href={item.href} passHref legacyBehavior>
                 <a className="text-decoration-none">
-                  <Card className="h-100 border-0 shadow-sm dashboard-card">
+                  <Card className="h-100 border shadow-sm dashboard-card bg-body-tertiary">
                     <Card.Body className="p-3 d-flex flex-column">
                       <div
                         className="icon-wrapper mb-3 p-2 br-5"
@@ -123,7 +123,7 @@ export default function Dashboard() {
           ))}
         </Row>
       </Container>
-      
+
     </div>
   );
 }

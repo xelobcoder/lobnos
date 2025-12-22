@@ -5,7 +5,7 @@
 .stepConnector {
     height: 2px;
     width: 60px;
-    background: #e9ecef;
+    background: var(--bs-border-color);
     margin-top: 16px;
 }
 
@@ -13,17 +13,18 @@
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: #e9ecef;
+    background: var(--bs-secondary-bg);
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 600;
     font-size: 0.875rem;
+    color: var(--bs-body-color);
 }
 
 .stepTitle {
     font-size: 0.75rem;
-    color: #6c757d;
+    color: var(--bs-secondary-color);
     white-space: nowrap;
 }
 
@@ -32,7 +33,7 @@
 }
 
 .registrationContent {
-    background: white;
+    background: var(--theme-card-bg);
     padding: 2rem;
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);

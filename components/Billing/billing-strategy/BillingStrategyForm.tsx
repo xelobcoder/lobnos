@@ -145,7 +145,7 @@ export default function BillingStrategyForm({ defaultValues, onSubmit, isEditing
                     </Col>
                 </Row>
                 <div className="form-footer mt-5">
-                    <Button type="submit" variant="primary"  className="w-100 d-flex align-items-center justify-content-center" disabled={isSubmitting}>
+                    <Button type="submit" variant="primary" className="w-100 d-flex align-items-center justify-content-center" disabled={isSubmitting}>
                         {isSubmitting ? (
                             <>
                                 <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
@@ -163,11 +163,11 @@ export default function BillingStrategyForm({ defaultValues, onSubmit, isEditing
 
             <style jsx global>{`
                 .form-container {
-                    background-color: #fff;
+                    background-color: var(--theme-card-bg);
                     padding: 2rem;
                     border-radius: 1rem;
                     box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05);
-                    border: 1px solid #e9ecef;
+                    border: 1px solid var(--bs-border-color);
                 }
                 .form-header {
                     margin-bottom: 2rem;
@@ -175,25 +175,29 @@ export default function BillingStrategyForm({ defaultValues, onSubmit, isEditing
                 }
                 .form-control, .form-select {
                     border-radius: 0.5rem;
-                    border: 1px solid #dee2e6;
+                    border: 1px solid var(--bs-border-color);
                     padding-top: 0.75rem;
                     padding-bottom: 0.75rem;
                     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+                    background-color: var(--bs-body-bg);
+                    color: var(--bs-body-color);
                 }
                 .form-control:focus, .form-select:focus {
                     border-color: #80bdff;
                     box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+                    background-color: var(--bs-body-bg);
+                    color: var(--bs-body-color);
                 }
                 .form-control.is-invalid {
                     background-position: right calc(0.375em + 0.1875rem) center;
                 }
                 .form-label {
                     font-weight: 500;
-                    color: #495057;
+                    color: var(--bs-body-color);
                 }
                 .toggles-container {
-                    background-color: #f8f9fa;s
-                    border: 1px solid #e9ecef;
+                    background-color: var(--bs-secondary-bg);
+                    border: 1px solid var(--bs-border-color);
                 }
                 .form-check-input {
                     width: 2.5em;

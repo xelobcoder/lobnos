@@ -390,7 +390,7 @@ export default function CreateMultipleExpenses() {
 					</div>
 
 					{/* Shared Invoice Fields */}
-					<div className="row g-3 mt-4 p-3 border rounded bg-white">
+					<div className="row g-3 mt-4 p-3 border rounded bg-body-tertiary">
 						<div className="col-12">
 							<h6 className="mb-3 text-primary">Invoice Information</h6>
 						</div>

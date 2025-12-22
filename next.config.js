@@ -2,7 +2,7 @@
 const nextConfig = {
 	reactStrictMode: true,
 	env: {
-		PRODUCTION_BASEURL: "http://192.168.0.45:2379/api/v1/",
+		PRODUCTION_BASEURL: "http://localhost:5000/api/v1/",
 		DEVELOPMENT_BASEURL: "http://localhost:5000/api/v1/",
 		PSL_INVEN_ROUTE: 'http://localhost:9000/api/v1',
 		// PLS_PDF_GENERATOR: 'http://localhost:8000/',

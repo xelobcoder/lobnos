@@ -92,7 +92,7 @@ export default function NightAdjustment() {
 
     return (
         <div className="container-fluid">
-            <div className="border border-1 br-5 bg-white p-4">
+            <div className="border border-1 br-5 p-4" style={{ backgroundColor: 'var(--theme-card-bg)' }}>
                 <div className="d-flex align-items-center gap-3 mb-4">
                     <div className="rounded-circle">
                         <RiMoonClearLine className="text-primary" size={24} />
@@ -130,7 +130,7 @@ export default function NightAdjustment() {
                                             styles={reactSelectCustomStyles}
                                             onChange={(selectedOption) => setStartTime(selectedOption?.value || "")}
                                             placeholder="Select Start Time"
-                                            
+
                                         />
                                     </div>
                                 </div>
@@ -149,7 +149,7 @@ export default function NightAdjustment() {
                                             styles={reactSelectCustomStyles}
                                             onChange={(selectedOption) => setEndTime(selectedOption?.value || "")}
                                             placeholder="Select End Time"
-                                          
+
                                         />
                                     </div>
                                 </div>
@@ -165,7 +165,7 @@ export default function NightAdjustment() {
                                         <Form.Select
                                             value={nightAdjustMode}
                                             onChange={handleNightAdjustModeChange}
-                                            className="custom-select"
+                                            className="form-select"
                                         >
                                             <option value="">Select Mode</option>
                                             <option value="percentage">Percentage</option>
@@ -188,7 +188,7 @@ export default function NightAdjustment() {
                                             onChange={handleNightAdjustmentValueChange}
                                             disabled={!nightAdjustMode}
                                             placeholder="Enter Value"
-                                            className="custom-input"
+                                            className="form-control"
                                         />
                                     </div>
                                 </div>

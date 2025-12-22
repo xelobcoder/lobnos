@@ -252,8 +252,8 @@ export default function CliniciansCommission() {
 
 
 
-               <div className="card" style={{ borderRadius: '0.75rem', borderColor: 'var(--bs-border-color)', margin: '2rem 0 1.5rem 0', background: 'none' }}>
-                    <div className="card-header py-3 px-4 d-flex justify-content-between align-items-center" style={{ borderColor: 'var(--bs-border-color)', background: 'none' }}>
+               <div className="card" style={{ borderRadius: '0.75rem', borderColor: 'var(--bs-border-color)', margin: '2rem 0 1.5rem 0', background: 'var(--theme-card-bg)' }}>
+                    <div className="card-header py-3 px-4 d-flex justify-content-between align-items-center" style={{ borderColor: 'var(--bs-border-color)', background: 'var(--bs-tertiary-bg)' }}>
                          <h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center" style={{ color: 'inherit' }}>
                               <RiFileList3Line className="me-2" />
                               Detailed Commission Records
@@ -267,7 +267,7 @@ export default function CliniciansCommission() {
                               Export PDF
                          </button>
                     </div>
-                    <div className="card-body p-3 p-md-4" style={{ background: 'none' }}>
+                    <div className="card-body p-3 p-md-4">
                          {Array.isArray(commissionData) && commissionData.length > 0 ? (
                               <div className="table-responsive table-small ">
                                    <table className="table table-sm table-hover table-striped mb-0">

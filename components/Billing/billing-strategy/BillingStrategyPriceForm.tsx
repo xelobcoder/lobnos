@@ -209,23 +209,23 @@ export default function BillingStrategyPriceForm({
             <style>
                 {`
           .form-container, .panels-container {
-            border: 1px solid #dee2e6;
+            border: 1px solid var(--bs-border-color);
             padding: 1.5rem;
             border-radius: 6px;
-            background-color: #fff;
+            background-color: var(--theme-card-bg);
           }
           .panels-header {
-            border-bottom: 1px solid #dee2e6;
+            border-bottom: 1px solid var(--bs-border-color);
             padding-bottom: 0.75rem;
             margin-bottom: 1rem;
           }
           .panel-item {
             padding: 0.75rem 0;
-            border-bottom: 1px solid #dee2e6;
+            border-bottom: 1px solid var(--bs-border-color);
             transition: background-color 0.2s ease;
           }
           .panel-item:hover {
-            background-color: #f8f9fa;
+            background-color: var(--bs-secondary-bg);
           }
           .panel-item:last-child {
             border-bottom: none;
@@ -237,7 +237,7 @@ export default function BillingStrategyPriceForm({
             transform: translateY(-1px);
           }
           .panels-footer {
-            border-top: 1px solid #dee2e6;
+            border-top: 1px solid var(--bs-border-color);
             padding-top: 0.75rem;
             margin-top: 1rem;
           }
@@ -381,7 +381,7 @@ export default function BillingStrategyPriceForm({
                                     aria-label="Submit form"
                                     className="d-flex align-items-center"
                                 >
-                                    Submit 
+                                    Submit
                                 </Button>
                             </div>
                         </div>

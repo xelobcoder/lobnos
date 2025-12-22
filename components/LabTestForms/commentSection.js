@@ -17,10 +17,10 @@ export default function CommentSection({ getcomment, datafunction, target, value
         style={{ height: "auto", overflowY: "auto", overflowX: "hidden", padding: "3px" }}
       >
         <div className='d-flex justify-content-between'>
-          <h5>comments</h5>
+          <h5 style={{ color: 'var(--bs-body-color)' }}>comments</h5>
           <div className='d-flex'>
             <Form.Switch checked={advanceEditor} onChange={() => { setAdvanceEditor(!advanceEditor) }} />
-            <h6>Use advance editor</h6>
+            <h6 style={{ color: 'var(--bs-body-color)' }}>Use advance editor</h6>
           </div>
         </div>
 
@@ -35,6 +35,9 @@ export default function CommentSection({ getcomment, datafunction, target, value
             style={{
               width: "99%",
               padding: "10px",
+              backgroundColor: 'var(--bs-body-bg)',
+              color: 'var(--bs-body-color)',
+              borderColor: 'var(--bs-border-color)'
             }}
             placeholder="comments here"
             onChange={(e) => getcomment(e, datasource, target, datafunction)}

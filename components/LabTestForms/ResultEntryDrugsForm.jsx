@@ -15,7 +15,7 @@ export default function ResultEntryDrugsForm({ setModifiedDrugs, ascensionid, te
 			try {
 				setLoading(true);
 				const drugs = await loadDrugsIfHasDrugs();
-				if (drugs  && Array.isArray(drugs)) {
+				if (drugs && Array.isArray(drugs)) {
 					drugs.forEach((item, index) => {
 						item.selected = ['Resistant', 'Sensitive'].includes(item.sensitivity);
 					});
@@ -33,7 +33,7 @@ export default function ResultEntryDrugsForm({ setModifiedDrugs, ascensionid, te
 	const handleSensitivityChange = (id, value) => {
 		setData((prevData) =>
 			prevData.map((item) =>
-				item.id === id ? { ...item, sensitivity: value, selected: ['Resistant','Sensitive'].includes(value) } : item
+				item.id === id ? { ...item, sensitivity: value, selected: ['Resistant', 'Sensitive'].includes(value) } : item
 			)
 		);
 	};
@@ -51,21 +51,22 @@ export default function ResultEntryDrugsForm({ setModifiedDrugs, ascensionid, te
 
 	return (
 		<div className="mt-3">
-			<h6>Drugs Sensitivity Test</h6>
-			<table className="table pls-color ttable">
-				<thead>
+			<h6 style={{ color: 'var(--bs-body-color)' }}>Drugs Sensitivity Test</h6>
+			<table className="table pls-color ttable" style={{ backgroundColor: 'var(--theme-card-bg)', color: 'var(--bs-body-color)' }}>
+				<thead style={{ backgroundColor: 'var(--bs-tertiary-bg)', color: 'var(--bs-body-color)' }}>
 					<tr>
-						<th>Drug Name</th>
-						<th>Sensitivity</th>
+						<th style={{ backgroundColor: 'var(--bs-tertiary-bg)', color: 'var(--bs-body-color)' }}>Drug Name</th>
+						<th style={{ backgroundColor: 'var(--bs-tertiary-bg)', color: 'var(--bs-body-color)' }}>Sensitivity</th>
 					</tr>
 				</thead>
 				<tbody>
 					{data.map((item, index) => (
 						<tr key={item.id}>
-							<td>{item.drug}</td>
-							<td>
+							<td style={{ backgroundColor: 'var(--theme-card-bg)', color: 'var(--bs-body-color)' }}>{item.drug}</td>
+							<td style={{ backgroundColor: 'var(--theme-card-bg)', color: 'var(--bs-body-color)' }}>
 								<select
 									className="form-select form-select-sm "
+									style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }}
 									value={item.sensitivity || ""}
 									onChange={(e) =>
 										handleSensitivityChange(

@@ -15,10 +15,10 @@ export default function OptionsViewHtmlGenerator({ fieldItem, statehandler, inde
         <tr>
             <td>{name}</td>
             <td>
-                <select onChange={(ev) => { statehandler(ev, index) }} className='custom-select' value={value}>
-                    <option>select an option below</option>
+                <select onChange={(ev) => { statehandler(ev, index) }} className='custom-select' value={value} style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }}>
+                    <option style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)' }}>select an option below</option>
                     {dropdownOptions.map((option, ind) => (
-                        <option key={ind} value={option}>
+                        <option key={ind} value={option} style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)' }}>
                             {option}
                         </option>
                     ))}

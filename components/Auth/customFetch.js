@@ -177,38 +177,38 @@ export const Glucoseoptions = ["mg/dl", "mmol/L"]
 export async function customPost(endpoint, method, data, hash = false) {
 	try {
 		if (process.env.NODE_ENV == "production" && !process.env.NEXT_PUBLIC_ACCESS_TOKEN) {
-		throw new Error("NEXT_PUBLIC_ACCESS_TOKEN MISSING")
-	}
-	var requestBody = data
-	if (hash && hash === true) {
-		if (process.env.HASH_KEY != undefined) {
-			requestBody = {}
-		} else {
-			throw new Error("HASH_KEY not set in NODE_ENV")
+			throw new Error("NEXT_PUBLIC_ACCESS_TOKEN MISSING")
 		}
-	}
+		var requestBody = data
+		if (hash && hash === true) {
+			if (process.env.HASH_KEY != undefined) {
+				requestBody = {}
+			} else {
+				throw new Error("HASH_KEY not set in NODE_ENV")
+			}
+		}
 
-	const url = new URL(`${endpoint}`, process.env.NODE_ENV == "production" ? process.env.PRODUCTION_BASEURL : process.env.DEVELOPMENT_BASEURL);
-	url.searchParams.append("tenantId", "3");
-	let response = await fetch(url.href, {
-		method: method,
-		headers: {
-			"content-type": "application/json",
-			Authorization: `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
-			mode: "no-cors",
-		},
-		cache: "no-cache",
-		body: JSON.stringify(requestBody),
-		credentials: "include",
-	})
-	let datasource = await response.json()
-	const { status, message } = datasource
+		const url = new URL(`${endpoint}`, process.env.NODE_ENV == "production" ? process.env.PRODUCTION_BASEURL : process.env.DEVELOPMENT_BASEURL);
+		url.searchParams.append("tenantId", "3");
+		let response = await fetch(url.href, {
+			method: method,
+			headers: {
+				"content-type": "application/json",
+				Authorization: `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
+				mode: "no-cors",
+			},
+			cache: "no-cache",
+			body: JSON.stringify(requestBody),
+			credentials: "include",
+		})
+		let datasource = await response.json()
+		const { status, message } = datasource
 
-	if (status == 401 && message == "Unauthorized") {
-		window.location.href = "/authentication/login"
-	} else {
-		return datasource
-	}
+		if (status == 401 && message == "Unauthorized") {
+			window.location.href = "/authentication/login"
+		} else {
+			return datasource
+		}
 	} catch (err) {
 		console.log(err);
 	}
@@ -1033,26 +1033,50 @@ export const formatPlainOptionsToObject =
 
 
 export const reactSelectCustomStyles = {
-	control: (base) => ({
+	control: (base, state) => ({
 		...base,
 		height: "40px",
 		minHeight: "30px",
-		fontSize: '13px'
+		fontSize: '13px',
+		backgroundColor: 'var(--bs-body-bg)',
+		borderColor: 'var(--bs-border-color)',
+		color: 'var(--bs-body-color)',
+		boxShadow: state.isFocused ? '0 0 0 0.25rem rgba(13, 110, 253, 0.25)' : 'none',
+		'&:hover': {
+			borderColor: 'var(--bs-border-color)'
+		}
 	}),
 	input: (provided) => ({
 		...provided,
 		height: '35px',
-		fontSize: '13px'
+		fontSize: '13px',
+		color: 'var(--bs-body-color)',
 	}),
 	menu: (base) => ({
 		...base,
 		maxHeight: "400px",
 		fontSize: '12px',
 		zIndex: 1060,
+		backgroundColor: 'var(--bs-body-bg)',
+		border: '1px solid var(--bs-border-color)',
 	}),
 	menuList: (base) => ({
 		...base,
 		maxHeight: "400px",
+		backgroundColor: 'var(--bs-body-bg)',
+	}),
+	option: (base, state) => ({
+		...base,
+		backgroundColor: state.isSelected
+			? 'var(--theme-accent)'
+			: state.isFocused
+				? 'var(--bs-border-color)'
+				: 'var(--bs-body-bg)',
+		color: state.isSelected ? '#fff' : 'var(--bs-body-color)',
+		cursor: 'pointer',
+		':active': {
+			backgroundColor: 'var(--theme-accent)',
+		}
 	}),
 	valueContainer: (base) => ({
 		...base,
@@ -1063,6 +1087,11 @@ export const reactSelectCustomStyles = {
 		whiteSpace: "nowrap",
 		overflow: "hidden",
 		textOverflow: "ellipsis",
+		color: 'var(--bs-body-color)',
+	}),
+	placeholder: (base) => ({
+		...base,
+		color: 'var(--bs-secondary-color)',
 	}),
 };
 
@@ -1115,16 +1144,24 @@ export const getResultEntrySettings = async (employeeid) => {
 
 export const smallSelectStyles = {
 	...reactSelectCustomStyles,
-	control: (base) => ({
+	control: (base, state) => ({
 		...base,
 		height: '31px',
 		minHeight: '31px',
-		fontSize: '0.875rem'
+		fontSize: '0.875rem',
+		backgroundColor: 'var(--bs-body-bg)',
+		borderColor: 'var(--bs-border-color)',
+		color: 'var(--bs-body-color)',
+		boxShadow: state.isFocused ? '0 0 0 0.25rem rgba(13, 110, 253, 0.25)' : 'none',
+		'&:hover': {
+			borderColor: 'var(--bs-border-color)'
+		}
 	}),
 	input: (provided) => ({
 		...provided,
 		height: '29px',
-		fontSize: '0.875rem'
+		fontSize: '0.875rem',
+		color: 'var(--bs-body-color)',
 	}),
 	valueContainer: (base) => ({
 		...base,
@@ -1140,12 +1177,15 @@ export const smallSelectStyles = {
 		maxHeight: 'none',
 		fontSize: '0.875rem',
 		zIndex: 9999,
-		position: 'absolute'
+		position: 'absolute',
+		backgroundColor: 'var(--bs-body-bg)',
+		border: '1px solid var(--bs-border-color)',
 	}),
 	menuList: (base) => ({
 		...base,
 		maxHeight: 'none',
-		overflowY: 'visible'
+		overflowY: 'visible',
+		backgroundColor: 'var(--bs-body-bg)',
 	}),
 	menuPortal: (base) => ({
 		...base,
@@ -1155,11 +1195,11 @@ export const smallSelectStyles = {
 
 
 export const fetchPatientPersonalInfo = async (patientid) => {
-		  try {
-			 const response = await customFetch(`register/personalinformation?patientid=${patientid}`);
-			return response;
-		  } catch (err) {
-			throw new Error("Error fetching patient information");
-		  } 
-	   };
+	try {
+		const response = await customFetch(`register/personalinformation?patientid=${patientid}`);
+		return response;
+	} catch (err) {
+		throw new Error("Error fetching patient information");
+	}
+};
 

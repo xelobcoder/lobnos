@@ -5,6 +5,7 @@ import GlobalFilter from "./GlobalFilter";
 import ShowTableDisplayCount from "./TableDisplayShowCount";
 import TableLoading from "./TableLoading";
 import style from "../../../styles/SmsTemplateList.module.css";
+import "../../../styles/prime-table.css";
 import { ButtonGroup } from "react-bootstrap";
 
 export default function PrimeTable({
@@ -15,10 +16,38 @@ export default function PrimeTable({
 	serverSideFiltering = false,
 	handleSeverSideProcessing,
 	urlparams = {},
+	theme = null
 }) {
 	const [filteredData, setFilteredData] = useState(data);
 	const [isLoading, setIsLoading] = useState(false);
 	const [queryParams, setQueryParams] = useState({ count: 10, page: 1 });
+	const [globalTheme, setGlobalTheme] = useState('PrimeLaboratoryTableStyling');
+
+	useEffect(() => {
+		// Initial check
+		if (typeof document !== 'undefined') {
+			const currentGlobal = document.documentElement.getAttribute('data-table-style');
+			if (currentGlobal) {
+				setGlobalTheme(currentGlobal);
+			}
+
+			// Observe changes to the html attribute
+			const observer = new MutationObserver((mutations) => {
+				mutations.forEach((mutation) => {
+					if (mutation.type === 'attributes' && mutation.attributeName === 'data-table-style') {
+						const newTheme = document.documentElement.getAttribute('data-table-style');
+						setGlobalTheme(newTheme || 'PrimeLaboratoryTableStyling');
+					}
+				});
+			});
+
+			observer.observe(document.documentElement, { attributes: true });
+
+			return () => observer.disconnect();
+		}
+	}, []);
+
+	const effectiveTheme = theme || globalTheme;
 
 	useEffect(() => {
 		console.warn("Rendering Table client Side.Please wait ");
@@ -61,7 +90,7 @@ export default function PrimeTable({
 			viewBox="0 0 24 24"
 			width="18"
 			height="18"
-			fill="rgba(0,0,0,1)"
+			fill="currentColor"
 		>
 			<path fill="none" d="M0 0h24v24H0z"></path>
 			<path d="M13.0001 7.82843V20H11.0001V7.82843L5.63614 13.1924L4.22192 11.7782L12.0001 4L19.7783 11.7782L18.3641 13.1924L13.0001 7.82843Z"></path>
@@ -75,7 +104,7 @@ export default function PrimeTable({
 			viewBox="0 0 24 24"
 			width="18"
 			height="18"
-			fill="rgba(0,0,0,1)"
+			fill="currentColor"
 		>
 			<path fill="none" d="M0 0h24v24H0z"></path>
 			<path d="M13.0001 16.1716L18.3641 10.8076L19.7783 12.2218L12.0001 20L4.22192 12.2218L5.63614 10.8076L11.0001 16.1716V4H13.0001V16.1716Z"></path>
@@ -228,10 +257,10 @@ export default function PrimeTable({
 	return (
 		<div
 			className={`${style.tablewrapper}`}
-			style={{ overflowY: "auto", borderRadius: "10px" }}
+
 		>
-			<div className="mx-3 my-2 d-flex justify-content-between">
-				<div className="col-12 col-md-6 d-flex align-items-center">
+			<div className="mx-3 my-2 d-flex justify-content-between flex-wrap gap-2">
+				<div className="d-flex align-items-center">
 					{handleSeverSideProcessing && (
 						<ShowTableDisplayCount
 							page={queryParams.page}
@@ -242,14 +271,12 @@ export default function PrimeTable({
 						/>
 					)}
 				</div>
-				<div>
+				<div className="d-flex align-items-center gap-2">
 					{filtering && (
 						<div>
 							<GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
 						</div>
 					)}
-				</div>
-				<div>
 					{isExpoerted && (
 						<ButtonGroup
 							className="d-flex justify-content-end"
@@ -280,57 +307,62 @@ export default function PrimeTable({
 					)}
 				</div>
 			</div>
-			<table
-				className={style.table}
-				style={{ fontSize: "1rem", minWidth: "100%" ,minHeight:'30vh'}}
-				{...getTableProps()}
-			>
-				<thead>{customHeaderGroup()}</thead>
-				<RenderingTable getTableBodyProps={getTableBodyProps} />
-				{serverSideFiltering && (
-					<tfoot>
-						<tr>
-							<td colSpan={2} className="text-secondary-emphasis">
-								<span>Current Page: {queryParams.page} </span>
-								<span className={style.paginationSeparator}>|</span>
-								<span>Item Count: {filteredData.length || 0}</span>
-							</td>
-							<td colSpan={column.length - 1}>
-								<div className={style.paginationContainer}>
-									{[1, 2, 3, 4, "Next", "Previous"].map(
-										(item, index) => {
-											const isActive = queryParams.page === item;
-											const isNav = typeof item === "string";
-											return (
-												<button
-													type="button"
-													onClick={() => handlePagination(item)}
-													key={index}
-													className={`
+
+			<div style={{ overflowX: 'auto !important', maxWidth: '100%' }}>
+				<table
+					className={`${style.table} ${effectiveTheme !== 'PrimeLaboratoryTableStyling' ? `prime-table-${effectiveTheme} prime-table-theme` : ''}`}
+					style={{
+						minHeight: '30vh'
+					}}
+					{...getTableProps()}
+				>
+					<thead>{customHeaderGroup()}</thead>
+					<RenderingTable getTableBodyProps={getTableBodyProps} />
+					{serverSideFiltering && (
+						<tfoot>
+							<tr>
+								<td colSpan={2} className="text-secondary-emphasis">
+									<span>Current Page: {queryParams.page} </span>
+									<span className={style.paginationSeparator}>|</span>
+									<span>Item Count: {filteredData.length || 0}</span>
+								</td>
+								<td colSpan={column.length - 1}>
+									<div className={style.paginationContainer}>
+										{[1, 2, 3, 4, "Next", "Previous"].map(
+											(item, index) => {
+												const isActive = queryParams.page === item;
+												const isNav = typeof item === "string";
+												return (
+													<button
+														type="button"
+														onClick={() => handlePagination(item)}
+														key={index}
+														className={`
 																 ${style.paginationBtn
-														}
+															}
 																 ${isActive
-															? style.paginationBtnActive
-															: ""
-														}
+																? style.paginationBtnActive
+																: ""
+															}
 																 ${isNav
-															? style.paginationBtnNav
-															: ""
-														}
+																? style.paginationBtnNav
+																: ""
+															}
 															`}
-													aria-current={isActive ? "page" : undefined}
-												>
-													{item}
-												</button>
-											);
-										}
-									)}
-								</div>
-							</td>
-						</tr>
-					</tfoot>
-				)}
-			</table>
+														aria-current={isActive ? "page" : undefined}
+													>
+														{item}
+													</button>
+												);
+											}
+										)}
+									</div>
+								</td>
+							</tr>
+						</tfoot>
+					)}
+				</table>
+			</div>
 		</div>
 	);
 }

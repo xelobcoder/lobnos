@@ -576,17 +576,17 @@ export default function PreviousTransactionSummaryPage() {
 						</div>
 					)}
 					{isOutsourced && (
-						<div className="mb-2 bg-light border border-bottom br-5 p-2 text-sm"><strong>Is Outsourced:</strong> {isOutsourced}</div>
+						<div className="mb-2 bg-body-tertiary border border-bottom br-5 p-2 text-sm"><strong>Is Outsourced:</strong> {isOutsourced}</div>
 					)}
 					{serviceCategory && (
-						<div className="mb-2 bg-light border border-bottom br-5 p-2 text-sm"><strong>Service Category:</strong> {serviceCategory}</div>
+						<div className="mb-2 bg-body-tertiary border border-bottom br-5 p-2 text-sm"><strong>Service Category:</strong> {serviceCategory}</div>
 					)}
 					{registrationType && (
-						<div className="mb-2 bg-light border border-bottom br-5 p-2 text-sm"><strong>Registration Type:</strong> {registrationType}</div>
+						<div className="mb-2 bg-body-tertiary border border-bottom br-5 p-2 text-sm"><strong>Registration Type:</strong> {registrationType}</div>
 					)}
 					{/* Night Adjustment Details */}
 					{hasNightAdjustment && (
-						<div className="mb-2 bg-light border border-bottom br-5 p-2 text-sm">
+						<div className="mb-2 bg-body-tertiary border border-bottom br-5 p-2 text-sm">
 							<strong>Night Adjustment:</strong> Yes<br />
 							<strong>Night Adjustment Value:</strong> {nightAdjustmentValue}<br />
 							<strong>Night Adjustment Mode:</strong> {nightAdjustmentMode}
@@ -594,7 +594,7 @@ export default function PreviousTransactionSummaryPage() {
 					)}
 					{/* Insurance Details */}
 					{modalService && (
-						<div className="mb-2 bg-light border border-bottom br-5 p-2 text-sm">
+						<div className="mb-2 bg-body-tertiary border border-bottom br-5 p-2 text-sm">
 							<strong>NHIS:</strong> {isNHIS}<br />
 							<strong>PHIS:</strong> {isPHIS}
 						</div>
@@ -674,7 +674,7 @@ export default function PreviousTransactionSummaryPage() {
 						<RiRefreshFill /> Refresh
 					</button>
 				</div>
-				<div className="bg-white br-5 p-3">
+				<div className="bg-body-tertiary br-5 p-3">
 					{renderRefundModal()}
 					<WriteOffModal
 						show={showWriteOffModal}
@@ -710,13 +710,13 @@ export default function PreviousTransactionSummaryPage() {
 									{ label: 'Balance', value: (Number(billingdata.payable) || 0) - (Number(billingdata.paid) || 0), color: 'success', icon: <DollarSignIcon /> },
 								].map((item, index) => (
 									<div key={index} className="col-12 col-sm-6 col-md-4 col-lg-3 col-xl">
-										<div className="d-flex align-items-center h-100 p-2 rounded border border-light-subtle bg-light bg-opacity-10">
+										<div className="d-flex align-items-center h-100 p-2 rounded border border-secondary-subtle bg-body-tertiary bg-opacity-10">
 											<div className={`rounded-circle bg-${item.color} bg-opacity-10 text-${item.color} me-3 d-flex align-items-center justify-content-center flex-shrink-0`} style={{ width: '40px', height: '40px' }}>
 												<span style={{ fontSize: '1.1rem' }}>{item.icon}</span>
 											</div>
 											<div>
 												<div className="text-muted small fw-bold text-uppercase" style={{ fontSize: '0.65rem', letterSpacing: '0.5px' }}>{item.label}</div>
-												<div className="h6 mb-0 fw-bold text-dark">{currencyFormatter.format(Number(item.value) || 0)}</div>
+												<div className="h6 mb-0 fw-bold text-body">{currencyFormatter.format(Number(item.value) || 0)}</div>
 											</div>
 										</div>
 									</div>

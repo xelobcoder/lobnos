@@ -213,14 +213,14 @@ export default function RefundPageAllView({ initData, employeeid }) {
 			<ToastContainer position="top-center" className={'text-sm'} theme="colored" />
 			<section className="d-flex justify-content-between mb-3">
 				<div className="col-2">
-					<select className="custom-select" value={status} onChange={handleStatusChange}>
+					<select className="form-select form-select-sm" value={status} onChange={handleStatusChange}>
 						<option value="pending">Pending Refund</option>
 						<option value="completed">Completed Refund</option>
 					</select>
 				</div>
 				<div className="col-1 d-flex">
-					<input className="custom-input" type="number" onChange={(ev) => { setSearch(ev.target.value) }} placeholder="serviceid" />
-					<button type="button" onClick={(ev) => { handleGetRefundServiceWithId(search) }} className="btn btn-secondary-outline btn-sm">
+					<input className="form-control form-control-sm" type="number" onChange={(ev) => { setSearch(ev.target.value) }} placeholder="serviceid" />
+					<button type="button" onClick={(ev) => { handleGetRefundServiceWithId(search) }} className="btn btn-outline-secondary btn-sm">
 						<RiSearchLine scale={24} />
 					</button>
 				</div>

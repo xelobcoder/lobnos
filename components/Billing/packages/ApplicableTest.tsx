@@ -202,7 +202,7 @@ const ApplicableTestComponent: React.FC<ApplicableTestComponentProps> = ({ packa
                         <label>Concession Mode</label>
                         <br />
                         <select
-                            className="custom-select col-3"
+                            className="form-select col-3"
                             value={selectionMode}
                             onChange={(e) => {
                                 setSelectionMode(e.target.value as "absolute" | "percentage" | "none");
@@ -223,7 +223,7 @@ const ApplicableTestComponent: React.FC<ApplicableTestComponentProps> = ({ packa
                             <br />
                             <input
                                 type="number"
-                                className="custom-input col-3"
+                                className="form-control col-3"
                                 value={concessionValueInput}
                                 onChange={(e) => {
                                     const value = e.target.value;

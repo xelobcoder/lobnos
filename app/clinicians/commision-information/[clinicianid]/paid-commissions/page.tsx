@@ -452,8 +452,8 @@ export default function PaidCommissionsPage({ params }: { params: { clinicianid:
                </div>
 
                <div className="card  mb-4">
-                    <div className="card-header bg-white d-flex justify-content-between align-items-center">
-                         <h2 className="h6 fw-semibold text-dark mb-0 d-flex align-items-center">
+                    <div className="card-header d-flex justify-content-between align-items-center">
+                         <h2 className="h6 fw-semibold text-body mb-0 d-flex align-items-center">
                               <RiFileList3Line className="me-2" />
                               Paid Commission Batches
                          </h2>
@@ -672,7 +672,7 @@ export default function PaidCommissionsPage({ params }: { params: { clinicianid:
                                                        {breakdownData.length > 0 ? (
                                                             <div className="table-responsive">
                                                                  <table className="table table-sm table-striped">
-                                                                      <thead className="table-light">
+                                                                      <thead className="bg-body-tertiary">
                                                                            <tr>
                                                                                 <th>Service ID</th>
                                                                                 <th>Commission Due</th>

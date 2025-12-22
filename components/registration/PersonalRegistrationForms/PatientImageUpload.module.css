@@ -6,7 +6,7 @@
     position: relative;
     width: 200px;
     height: 200px;
-    border: 2px dashed #dee2e6;
+    border: 2px dashed var(--bs-border-color);
     border-radius: 8px;
     overflow: hidden;
     cursor: pointer;
@@ -24,7 +24,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background-color: #f8f9fa;
+    background-color: var(--bs-secondary-bg);
 }
 
 .imagePreview {

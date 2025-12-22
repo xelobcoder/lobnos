@@ -203,7 +203,7 @@ export default function RefundAdmin({ initData = [], currentStatus }) {
 
 	return (
 		<div>
-			<section className="row g-2 align-items-end mb-4 bg-white p-2 br-5">
+			<section className="row g-2 align-items-end mb-4 bg-body-tertiary p-2 br-5">
 				<div className="col-md-3 col-12 mb-2 mb-md-0">
 					<label className="form-label fw-semibold text-secondary small mb-1">Refund Status</label>
 					<select className="form-select" value={status} onChange={(ev) => { setStatus(ev.target.value as "pending" | "completed") }}>
@@ -256,7 +256,7 @@ export default function RefundAdmin({ initData = [], currentStatus }) {
 					{witnessesToShow && witnessesToShow.length > 0 ? (
 						<div>
 							{witnessesToShow.map((wit, idx) => (
-								<div key={idx} className="mb-3 p-2 border rounded bg-light">
+								<div key={idx} className="mb-3 p-2 border rounded bg-body-tertiary">
 									<div><b>Name:</b> {wit.name || 'N/A'}</div>
 									<div><b>Message:</b> {wit.message ? wit.message : 'N/A'}</div>
 								</div>

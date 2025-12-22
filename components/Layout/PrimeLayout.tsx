@@ -1,12 +1,26 @@
 'use client';
 import React, { useState, useEffect } from "react";
 import styles from './PrimeLayout.module.css';
-import { RiMenuLine, RiArrowLeftLine, RiArrowRightLine, RiAddLine, RiSubtractLine } from '@remixicon/react';
+import { RiMenuLine, RiArrowLeftLine, RiArrowRightLine, RiAddLine, RiSubtractLine, RiPaletteLine } from '@remixicon/react';
 import { Dropdown } from 'react-bootstrap';
 import { useApplicationSettings } from "../Auth/useApplicationContext";
 import { Link as LinkType } from "./links/types";
 import { AdminRoleLinks, FrontdeskRoleLinks, LaboratoryScientistRoleLinks, PhelobotomyRoleLinks, SonographerRoleLinks } from "../FrontPageView/RoleLinks";
 import { ThemeToggle } from '../ThemeToggle';
+import { ThemeSelector } from './ThemeSelector';
+import {
+    getThemePreference,
+    getThemeById,
+    applyThemeToDocument,
+    getFontPreference,
+    applyFontToDocument,
+    getSidebarPreference,
+    applySidebarToDocument,
+    getTableThemePreference,
+    applyTableThemeToDocument,
+    getLayoutStructurePreference,
+    applyLayoutStructureToDocument
+} from '../../lib/themes';
 
 
 interface PrimeLayoutProps {
@@ -34,6 +48,40 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
     const roleLinks = roleViews[user.role] || [];
     const employeeid = user?.employeeid || 0;
     const [currentPath, setCurrentPath] = useState<string>("");
+    const [showThemeSelector, setShowThemeSelector] = useState(false);
+    const [currentTheme, setCurrentTheme] = useState('professional-green');
+
+    useEffect(() => {
+        // Initialize theme
+        const savedThemeId = getThemePreference();
+        setCurrentTheme(savedThemeId);
+        const theme = getThemeById(savedThemeId);
+        applyThemeToDocument(theme);
+
+        // Initialize font
+        const savedFont = getFontPreference();
+        if (savedFont) {
+            applyFontToDocument(savedFont);
+        }
+
+        // Initialize sidebar
+        const savedSidebar = getSidebarPreference();
+        if (savedSidebar) {
+            applySidebarToDocument(savedSidebar);
+        }
+
+        // Initialize table theme
+        const savedTableTheme = getTableThemePreference();
+        if (savedTableTheme) {
+            applyTableThemeToDocument(savedTableTheme);
+        }
+
+        // Initialize layout structure
+        const savedLayout = getLayoutStructurePreference();
+        if (savedLayout) {
+            applyLayoutStructureToDocument(savedLayout);
+        }
+    }, []);
 
     useEffect(() => {
         setCurrentPath(window.location.pathname);
@@ -121,7 +169,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
     return (
         <div className={`${styles.container} ${isQuickLinksCollapsed ? styles.quickLinksCollapsed : styles.quickLinksExpanded} ${isMobileSidebarOpen ? styles.mobileSidebarOpen : ''}`}>
             {/* Header with PLS Green Background */}
-            <header className={`${styles.darkHeader} pls-primary-light-bg text-white`}>
+            <header className={styles.darkHeader}>
                 <div className={styles.headerContent}>
                     {/* Company Info */}
                     <div className={styles.headerCompany}>
@@ -133,6 +181,13 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                     {/* Role Links Dropdown */}
                     <div className={styles.headerActions}>
                         <ThemeToggle className={styles.themeToggle} />
+                        <button
+                            className={styles.themeToggle}
+                            onClick={() => setShowThemeSelector(true)}
+                            title="Change Theme"
+                        >
+                            <RiPaletteLine size={20} />
+                        </button>
                         <a href={`/human-resource/profile?employeeid=${employeeid}`} className={styles.profileLink} title="Profile">
                             <span>👤</span>
                         </a>
@@ -291,6 +346,13 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                     </div>
                 </main>
             </div>
+
+            <ThemeSelector
+                isOpen={showThemeSelector}
+                onClose={() => setShowThemeSelector(false)}
+                currentThemeId={currentTheme}
+                onThemeSelect={setCurrentTheme}
+            />
         </div>
     );
 };

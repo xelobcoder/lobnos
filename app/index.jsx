@@ -47,7 +47,7 @@ export default function Index() {
         <div className={styles.errorContainer}>
           <h2 className={styles.errorTitle}>Access Denied</h2>
           <p className={styles.errorText}>
-            You don&apos;t have permission to access this page. Please contact your
+            You do not have permission to access this page. Please contact your
             administrator.
           </p>
         </div>

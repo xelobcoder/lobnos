@@ -263,7 +263,7 @@ export default function ClinicianBillingModeView({
 									<div className=" small">Pricing Type: {price_type}</div>
 									<div className=" small">Concession Mode: {selectionMode}</div>
 									{isAllTestsConcessionVisible && (
-										<div className="p-3 bg-light rounded mb-3">
+										<div className="p-3 bg-body-tertiary rounded mb-3">
 											<div>
 												{selectionMode === "percentage" ? "Percentage Value" : "Amount"}: {concessionValue}
 											</div>
@@ -290,7 +290,7 @@ export default function ClinicianBillingModeView({
 						<Col md={8}>
 
 							{Array.isArray(selectedTests) && selectedTests.length > 0 && (
-								<div className="mb-4 br-5 bg-white border">
+								<div className="mb-4 br-5 border">
 									<div className="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
 										<h5 className="mb-0"><span className="me-2"><RiDeleteBinLine size={20} /></span>Selected Tests ({selectedTests.length})</h5>
 										<Button
@@ -375,7 +375,7 @@ export default function ClinicianBillingModeView({
 							<h5 className="bg-secondary-subtle p-2 rounded mb-3 pls-label">
 								<span className="me-2"><RiDeleteBinLine size={20} /></span>Applicable To</h5>
 							{Array.isArray(applicableEntities) && applicableEntities.length > 0 ? (
-								<div className="mb-4 br-5 bg-white border">
+								<div className="mb-4 br-5 border">
 									<table className={styles.table}>
 										<thead>
 											<tr>
@@ -407,7 +407,7 @@ export default function ClinicianBillingModeView({
 								</div>)
 								:
 								(
-									<div className="text-muted p-3 border rounded bg-light d-flex align-items-center gap-2">
+									<div className="text-muted p-3 border rounded bg-body-tertiary d-flex align-items-center gap-2">
 										<RiDeleteBinLine size={20} className="me-2" />
 										No applicable entities for this strategy.
 									</div>

@@ -40,7 +40,7 @@ export default function CommissionUpdatePage() {
 
      const handleServerSideProcessing = async (pagination) => {
           try {
-               const { page, count ,startDate, endDate } = pagination
+               const { page, count, startDate, endDate } = pagination
                const response = await customFetch(`commission-payments/detailed/list?page=${page}&&count=${count}&&recipientType=clinician&&recipient_id=${encodeURIComponent(clinicianid ? clinicianid.toString() : '')}&&startDate=${encodeURIComponent(startDate)}&&endDate=${encodeURIComponent(endDate)}`);
                if (response && response.status) {
                     return { result: response.data || [] };
@@ -150,7 +150,7 @@ export default function CommissionUpdatePage() {
      return (
           <div>
                <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap">
-                    <div className="fw-bold text-dark">
+                    <div className="fw-bold text-body">
                          Total Commission Due: {currencyFormatter.format(summary.totalDue)}
                     </div>
                     <div className="d-flex gap-2 align-items-end flex-wrap">
@@ -182,7 +182,7 @@ export default function CommissionUpdatePage() {
                {/* Mobile Card View */}
                <div className="d-block d-md-none">
                     {data.map((record) => (
-                         <Card key={record.id} className="mb-2" style={{ fontSize: '0.9rem' }}>
+                         <Card key={record.id} className="mb-2" style={{ fontSize: '0.9rem', backgroundColor: 'var(--theme-card-bg)' }}>
                               <Card.Body className="py-2 px-3">
                                    <div className="d-flex justify-content-between align-items-start">
                                         <div className="flex-grow-1">

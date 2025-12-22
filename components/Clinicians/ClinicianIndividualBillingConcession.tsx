@@ -122,7 +122,7 @@ const ClinicianIndividualBillingConcession: React.FC<ClinicianIndividualBillingC
                     <div className="form-row grid-reg mt-2">
                         <label className="pls-label">Concession Mode</label>
                         <select
-                            className="custom-select"
+                            className="form-select form-select-sm"
                             value={selectionMode}
                             onChange={(e) => setSelectionMode(e.target.value as "absolute" | "percentage")}
                         >
@@ -134,7 +134,7 @@ const ClinicianIndividualBillingConcession: React.FC<ClinicianIndividualBillingC
                     <div className="form-row grid-reg mt-2">
                         <label className="pls-label">Pricing Method</label>
                         <select
-                            className="custom-select"
+                            className="form-select form-select-sm"
                             value={pricingType}
                             onChange={(e) => setPricingType(e.target.value as "surcharge" | "discount")}
                         >
@@ -147,7 +147,7 @@ const ClinicianIndividualBillingConcession: React.FC<ClinicianIndividualBillingC
                         <label className="pls-label">Concession Amount</label>
                         <input
                             type="number"
-                            className="custom-input"
+                            className="form-control form-control-sm"
                             value={concessionValueInput}
                             onChange={(e) => {
                                 const value = e.target.value;

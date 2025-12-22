@@ -70,7 +70,7 @@ const AnalyticCard = ({
 			height: "80px",
 			flex: "1 1 auto",
 			margin: "0 4px",
-			border: "1px solid #e2e8f0",
+			border: "1px solid var(--bs-border-color)",
 			cursor: "pointer",
 		}}
 		onMouseEnter={(e) => {
@@ -99,7 +99,7 @@ const AnalyticCard = ({
 						<h6 className="mb-0 text-muted fw-medium" style={{ fontSize: "0.75rem", lineHeight: "1.2" }}>
 							{title}
 						</h6>
-						<div className="fw-bold text-dark" style={{ fontSize: "1rem", lineHeight: "1.3" }}>
+						<div className="fw-bold text-body" style={{ fontSize: "1rem", lineHeight: "1.3" }}>
 							{formatAsCurrency ? currencyFormatter.format(Number(value) || 0) : value.toLocaleString()}
 						</div>
 					</div>
@@ -110,13 +110,13 @@ const AnalyticCard = ({
 );
 
 const cardColors = {
-	billedClients: { bg: "#F8FAFC", icon: "#6366f1" }, // Cosmic purple
-	totalSales: { bg: "#F1F5F9", icon: "#0ea5e9" }, // Cosmic blue
-	amountPaid: { bg: "#F8FAFC", icon: "#10b981" }, // Cosmic emerald
-	discount: { bg: "#F1F5F9", icon: "#f59e0b" }, // Cosmic amber
-	pendingDebts: { bg: "#F8FAFC", icon: "#ef4444" }, // Cosmic red
-	expenses: { bg: "#F1F5F9", icon: "#8b5cf6" }, // Cosmic violet
-	outstanding: { bg: "#F8FAFC", icon: "#f97316" }, // Cosmic orange
+	billedClients: { bg: "var(--theme-card-bg)", icon: "#6366f1" }, // Cosmic purple
+	totalSales: { bg: "var(--bs-secondary-bg)", icon: "#0ea5e9" }, // Cosmic blue
+	amountPaid: { bg: "var(--theme-card-bg)", icon: "#10b981" }, // Cosmic emerald
+	discount: { bg: "var(--bs-secondary-bg)", icon: "#f59e0b" }, // Cosmic amber
+	pendingDebts: { bg: "var(--theme-card-bg)", icon: "#ef4444" }, // Cosmic red
+	expenses: { bg: "var(--bs-secondary-bg)", icon: "#8b5cf6" }, // Cosmic violet
+	outstanding: { bg: "var(--theme-card-bg)", icon: "#f97316" }, // Cosmic orange
 };
 
 type PropsQuery = {
@@ -202,7 +202,7 @@ export default function BilledSummary({ branchid, from, to }: PropsQuery) {
 							<div className="mb-3">
 								<div className="d-flex align-items-center gap-2 mb-3">
 									<span className="text-muted small">Branch:</span>
-									<span className="fw-medium text-dark">{branch.name}</span>
+									<span className="fw-medium text-body">{branch.name}</span>
 									<span className="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 small">
 										Active
 									</span>

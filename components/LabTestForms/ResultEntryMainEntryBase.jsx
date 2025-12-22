@@ -7,15 +7,15 @@ export default function ResultEntryMainEntryBase({ handlestate, handleCreateFiel
 	return (
 		<section>
 			<div className="table-responsive my-2">
-				<table theme='dark' className="table billing-cart-table table-bordered table-sm" style={{ fontSize: '12px',  fontFamily: 'Cambria, serif' }}>
-					<thead className="text-sm">
+				<table theme='dark' className="table billing-cart-table table-bordered table-sm" style={{ fontSize: '12px', fontFamily: 'Cambria, serif', backgroundColor: 'var(--theme-card-bg)', color: 'var(--bs-body-color)' }}>
+					<thead className="text-sm" style={{ backgroundColor: 'var(--bs-tertiary-bg)', color: 'var(--bs-body-color)' }}>
 						<tr>
-							<th className="fw-bold text-capitalize text-sm">Parameter</th>
-							<th className="fw-bold text-capitalize text-sm">Value</th>
-							<th className="fw-bold text-capitalize text-sm">Unit</th>
-							<th className="fw-bold text-capitalize text-sm">Reference</th>
-							<th className="fw-bold text-capitalize text-sm d-none d-md-table-cell">Mode</th>
-							<th className="fw-bold text-capitalize text-sm d-none d-md-table-cell">Constraints</th>
+							<th className="fw-bold text-capitalize text-sm" style={{ backgroundColor: 'var(--bs-tertiary-bg)', color: 'var(--bs-body-color)' }}>Parameter</th>
+							<th className="fw-bold text-capitalize text-sm" style={{ backgroundColor: 'var(--bs-tertiary-bg)', color: 'var(--bs-body-color)' }}>Value</th>
+							<th className="fw-bold text-capitalize text-sm" style={{ backgroundColor: 'var(--bs-tertiary-bg)', color: 'var(--bs-body-color)' }}>Unit</th>
+							<th className="fw-bold text-capitalize text-sm" style={{ backgroundColor: 'var(--bs-tertiary-bg)', color: 'var(--bs-body-color)' }}>Reference</th>
+							<th className="fw-bold text-capitalize text-sm d-none d-md-table-cell" style={{ backgroundColor: 'var(--bs-tertiary-bg)', color: 'var(--bs-body-color)' }}>Mode</th>
+							<th className="fw-bold text-capitalize text-sm d-none d-md-table-cell" style={{ backgroundColor: 'var(--bs-tertiary-bg)', color: 'var(--bs-body-color)' }}>Constraints</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -37,10 +37,10 @@ export default function ResultEntryMainEntryBase({ handlestate, handleCreateFiel
 				{isPinUsed && (
 					<div className="mb-2 mb-md-0">
 						<input
-							className="custom-input"
+							className="custom-input form-control"
 							type="password"
 							placeholder="Enter pin here"
-							style={{ fontSize: '0.85rem', height: 28, padding: '2px 6px' }}
+							style={{ fontSize: '0.85rem', height: 28, padding: '2px 6px', backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }}
 							value={pin}
 							autoComplete="off"
 							autoCorrect="off"

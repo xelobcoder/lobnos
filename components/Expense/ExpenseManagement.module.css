@@ -1,15 +1,15 @@
 .expenseContainer {
-  background: #ffffff;
+  background: var(--theme-card-bg);
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--bs-border-color);
   margin: 1.5rem;
   overflow: hidden;
 }
 
 .filterBar {
-  background: linear-gradient(to right, #f8fafc, #f1f5f9);
-  border-bottom: 1px solid #e2e8f0;
+  background: var(--bs-tertiary-bg);
+  border-bottom: 1px solid var(--bs-border-color);
   padding: 1.25rem;
   display: flex;
   gap: 1rem;
@@ -23,10 +23,11 @@
 .filterInput {
   min-width: 200px;
   padding: 0.625rem 1rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--bs-border-color);
   border-radius: 8px;
   font-size: 0.875rem;
-  background: #ffffff;
+  background: var(--bs-body-bg);
+  color: var(--bs-body-color);
   transition: all 0.2s;
 }
 
@@ -39,10 +40,11 @@
 .filterSelect {
   min-width: 150px;
   padding: 0.625rem 1rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--bs-border-color);
   border-radius: 8px;
   font-size: 0.875rem;
-  background-color: white;
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -78,12 +80,12 @@
   padding: 1.5rem;
   display: grid;
   gap: 1rem;
-  background: #f8fafc;
+  background: var(--bs-body-bg);
 }
 
 .expenseCard {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: var(--theme-card-bg);
+  border: 1px solid var(--bs-border-color);
   border-radius: 12px;
   padding: 1.25rem;
   transition: all 0.2s;

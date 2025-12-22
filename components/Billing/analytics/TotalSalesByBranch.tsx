@@ -154,7 +154,7 @@ const TotalSalesByBranch: React.FC = () => {
                                 </Pie>
                                 <Tooltip
                                     formatter={(value: number) => [value, "Sales"]}
-                                    contentStyle={{ fontSize: "12px" }}
+                                    contentStyle={{ fontSize: "12px", backgroundColor: "var(--theme-card-bg)", borderColor: "var(--bs-border-color)" }}
                                 />
                                 <Legend
                                     formatter={(value, entry: any) =>
@@ -188,8 +188,8 @@ const TotalSalesByBranch: React.FC = () => {
                                 />
                                 <Tooltip
                                     formatter={(value: number) => [currencyFormatter.format(value), "Sales"]}
-                                    labelStyle={{ color: "black", fontSize: "12px" }}
-                                    contentStyle={{ fontSize: "12px" }}
+                                    labelStyle={{ color: "var(--bs-body-color)", fontSize: "12px" }}
+                                    contentStyle={{ fontSize: "12px", backgroundColor: "var(--theme-card-bg)", borderColor: "var(--bs-border-color)" }}
                                 />
                                 <Legend wrapperStyle={{ fontSize: "12px" }} />
                                 <Bar dataKey="totalSales" radius={[4, 4, 0, 0]}>

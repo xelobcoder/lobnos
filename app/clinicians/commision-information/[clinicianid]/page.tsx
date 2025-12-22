@@ -414,8 +414,8 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 			<div className={styles.sectionDivider}></div>
 
 			{/* Detailed Commission Records */}
-			<div className="card" style={{ borderRadius: '0.75rem', borderColor: 'var(--bs-border-color)', margin: '2rem 0 1.5rem 0', backgroundColor: 'white' }}>
-				<div className="card-header py-3 bg-white d-flex justify-content-between align-items-center" style={{ borderColor: 'var(--bs-border-color)' }}>
+			<div className="card" style={{ borderRadius: '0.75rem', borderColor: 'var(--bs-border-color)', margin: '2rem 0 1.5rem 0', backgroundColor: 'var(--theme-card-bg)' }}>
+				<div className="card-header py-3 d-flex justify-content-between align-items-center" style={{ borderColor: 'var(--bs-border-color)', backgroundColor: 'var(--theme-card-bg)' }}>
 					<h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center" style={{ color: 'inherit' }}>
 						<RiFileList3Line className="me-2" />
 						Detailed Commission Records
@@ -442,7 +442,7 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 						</button>
 					</div>
 				</div>
-				<div className="card-header py-3 px-4 d-flex justify-content-between align-items-center" style={{ borderColor: 'var(--bs-border-color)', backgroundColor: 'white' }}>
+				<div className="card-header py-3 px-4 d-flex justify-content-between align-items-center" style={{ borderColor: 'var(--bs-border-color)', backgroundColor: 'var(--theme-card-bg)' }}>
 					<div>
 						<small className="text-muted d-block mt-1" style={{ fontSize: '0.85rem' }}>
 							<div className="row gx-2">
@@ -454,7 +454,7 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 						</small>
 					</div>
 				</div>
-				<div className="card-body p-3 p-md-4" style={{ backgroundColor: 'white' }}>
+				<div className="card-body p-3 p-md-4" style={{ backgroundColor: 'var(--theme-card-bg)' }}>
 
 					{/* Bulk Pay Button */}
 					{selectedRecords.size > 0 && (

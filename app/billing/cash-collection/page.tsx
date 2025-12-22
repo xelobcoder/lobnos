@@ -430,7 +430,7 @@ export default function CashCollection() {
                                    {/* LEFT COLUMN: Billing Records Master List (40%) */}
                                    <div className="col-12 col-lg-5 border-end" style={{ maxHeight: '500px', overflowY: 'auto' }}>
                                         <div className="p-2">
-                                             <div className="d-flex align-items-center justify-content-between mb-2 px-2 py-1 bg-light rounded">
+                                             <div className="d-flex align-items-center justify-content-between mb-2 px-2 py-1 bg-body-tertiary rounded">
                                                   <small className="text-muted fw-medium text-uppercase" style={{ fontSize: '0.7rem', letterSpacing: '0.5px' }}>
                                                        Billing Records
                                                   </small>
@@ -539,7 +539,7 @@ export default function CashCollection() {
                                                                  {/* Services Table */}
                                                                  <div className="table-responsive">
                                                                       <table className="table table-sm table-hover align-middle mb-0">
-                                                                           <thead className="sticky-top" style={{ backgroundColor: '#f8f9fa', top: 0, zIndex: 10 }}>
+                                                                           <thead className="sticky-top" style={{ backgroundColor: 'var(--bs-secondary-bg)', top: 0, zIndex: 10 }}>
                                                                                 <tr style={{ fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                                                                                      <th className="py-2">Service</th>
 

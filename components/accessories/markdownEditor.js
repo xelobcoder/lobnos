@@ -38,6 +38,22 @@ export default function MARKDOWN_EDITOR(props) {
     }, []);
     return (
         <div>
+            <style>{`
+                [data-bs-theme="dark"] .ck.ck-editor__main > .ck-editor__editable {
+                    background-color: var(--bs-body-bg) !important;
+                    color: var(--bs-body-color) !important;
+                }
+                [data-bs-theme="dark"] .ck.ck-toolbar {
+                    background-color: var(--bs-tertiary-bg) !important;
+                    border-color: var(--bs-border-color) !important;
+                }
+                [data-bs-theme="dark"] .ck.ck-button {
+                    color: var(--bs-body-color) !important;
+                }
+                [data-bs-theme="dark"] .ck.ck-button:hover {
+                    background-color: var(--bs-secondary-bg) !important;
+                }
+            `}</style>
             {isClient && <CKEditor
                 height={props.height || 700}
                 editor={ClassicEditor}
@@ -48,7 +64,7 @@ export default function MARKDOWN_EDITOR(props) {
                     props.updatedata(event, data)
                 }}
             />}
-       </div>
+        </div>
     )
 }
 

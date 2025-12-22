@@ -83,7 +83,9 @@ export default function BillingTypeSelection() {
 		control: (base: any) => ({
 			...base,
 			minHeight: 42,
-			borderColor: '#dee2e6',
+			borderColor: 'var(--bs-border-color)',
+			backgroundColor: 'var(--theme-card-bg)',
+			color: 'var(--bs-body-color)',
 			boxShadow: 'none',
 			'&:hover': {
 				borderColor: '#0d6efd'
@@ -91,17 +93,24 @@ export default function BillingTypeSelection() {
 		}),
 		option: (base: any, state: { isSelected: boolean; isFocused: boolean }) => ({
 			...base,
-			backgroundColor: state.isSelected ? '#0d6efd' : state.isFocused ? '#f8f9fa' : 'white',
+			backgroundColor: state.isSelected ? '#0d6efd' : state.isFocused ? 'var(--bs-secondary-bg)' : 'var(--theme-card-bg)',
+			color: state.isSelected ? 'white' : 'var(--bs-body-color)',
 			fontSize: 14,
 			padding: '8px 12px'
 		}),
-		placeholder: (base: any) => ({
-			...base,
-			fontSize: 14
-		}),
 		singleValue: (base: any) => ({
 			...base,
-			fontSize: 14
+			color: 'var(--bs-body-color)'
+		}),
+		menu: (base: any) => ({
+			...base,
+			backgroundColor: 'var(--theme-card-bg)',
+			borderColor: 'var(--bs-border-color)'
+		}),
+		placeholder: (base: any) => ({
+			...base,
+			fontSize: 14,
+			color: 'var(--bs-secondary-color)'
 		})
 	};
 

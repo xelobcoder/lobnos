@@ -1,474 +1,139 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiAlertLine, RiCheckLine, RiCloseLine, RiStoreLine, RiBox3Line, RiPriceTagLine, RiBarChartLine } from '@remixicon/react';
-import PrimeTable from '../../components/accessories/Datatables/PrimeTable';
-import { customFetch, customPost } from '../../components/Auth/customFetch';
-import { useApplicationSettings } from '../../components/Auth/useApplicationContext';
-import { toast } from 'react-toastify';
+import React from 'react';
+import { RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiAlertLine, RiCheckLine, RiCloseLine, RiStoreLine, RiBox3Line, RiPriceTagLine, RiBarChartLine, RiShoppingCartLine, RiFileListLine, RiArrowRightLine, RiTruckLine, RiRecycleLine, RiMoneyDollarCircleLine } from '@remixicon/react';
 import Link from 'next/link';
 
-interface InventoryItem {
-     id: string;
-     name: string;
-     category: string;
-     supplier: string;
-     sku: string;
+const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_BORDER = 'var(--bs-border-color)';
+
+const currencyFormatter = new Intl.NumberFormat('en-GH', {
+     style: 'currency',
+     currency: 'GHS',
+     minimumFractionDigits: 2,
+});
+
+interface QuickAccessCard {
+     title: string;
      description: string;
-     unit: string;
-     currentStock: number;
-     minStock: number;
-     maxStock: number;
-     unitPrice: number;
-     totalValue: number;
-     location: string;
-     expiryDate?: string;
-     lastUpdated: string;
-     status: 'in_stock' | 'low_stock' | 'out_of_stock' | 'expired';
+     link: string;
+     icon: React.ReactNode;
+     color: string;
+     stats?: string;
 }
 
-interface InventoryCategory {
-     id: string;
-     name: string;
+interface InventoryModule {
+     title: string;
      description: string;
-     itemCount: number;
+     link: string;
+     icon: React.ReactNode;
+     color: string;
+     features: string[];
 }
 
-interface Supplier {
-     id: string;
-     name: string;
-     contact: string;
-     email: string;
-     phone: string;
-}
+const quickAccessCards: QuickAccessCard[] = [
+     {
+          title: "Inventory Items",
+          description: "Manage products and stock levels",
+          link: "/inventory/items",
+          icon: <RiBox3Line size={32} />,
+          color: "#2563eb",
+          stats: "500+ items"
+     },
+     {
+          title: "Purchase Orders",
+          description: "Create and track supplier orders",
+          link: "/inventory/orders",
+          icon: <RiShoppingCartLine size={32} />,
+          color: "#16a34a",
+          stats: "25 active"
+     },
+     {
+          title: "Suppliers",
+          description: "Manage supplier information",
+          link: "/inventory/suppliers",
+          icon: <RiTruckLine size={32} />,
+          color: "#ea580c",
+          stats: "15 vendors"
+     },
+     {
+          title: "Stock Templates",
+          description: "Create reusable item templates",
+          link: "/inventory/templates",
+          icon: <RiFileListLine size={32} />,
+          color: "#8b5cf6",
+          stats: "8 templates"
+     }
+];
 
-const STATUS_BADGES = {
-     in_stock: { label: 'In Stock', color: 'success' },
-     low_stock: { label: 'Low Stock', color: 'warning' },
-     out_of_stock: { label: 'Out of Stock', color: 'danger' },
-     expired: { label: 'Expired', color: 'secondary' }
-};
+const inventoryModules: InventoryModule[] = [
+     {
+          title: "Analytics & Reporting",
+          description: "Comprehensive inventory analytics and insights",
+          link: "/inventory/analytics",
+          icon: <RiBarChartLine size={32} />,
+          color: "#06b6d4",
+          features: ["Stock trends", "Value analysis", "Performance metrics", "Custom reports"]
+     },
+     {
+          title: "Consumption Tracking",
+          description: "Monitor item usage and consumption patterns",
+          link: "/inventory/consumption",
+          icon: <RiRecycleLine size={32} />,
+          color: "#84cc16",
+          features: ["Usage history", "Consumption rates", "Cost tracking", "Waste analysis"]
+     },
+     {
+          title: "Expired Products",
+          description: "Track and manage expired inventory items",
+          link: "/inventory/expired-products",
+          icon: <RiCloseLine size={32} />,
+          color: "#dc2626",
+          features: ["Expiry alerts", "Batch tracking", "Disposal records", "Compliance reporting"]
+     },
+     {
+          title: "Stock Locations",
+          description: "Organize inventory by storage locations",
+          link: "/inventory/locations",
+          icon: <RiStoreLine size={32} />,
+          color: "#f59e0b",
+          features: ["Location mapping", "Capacity management", "Transfer tracking", "Space optimization"]
+     },
+     {
+          title: "Stock Wastage",
+          description: "Track and analyze inventory wastage",
+          link: "/inventory/wastage",
+          icon: <RiDeleteBinLine size={32} />,
+          color: "#ef4444",
+          features: ["Wastage reports", "Cost analysis", "Prevention strategies", "Trend analysis"]
+     },
+     {
+          title: "Payment Management",
+          description: "Handle supplier payments and transactions",
+          link: "/inventory/payments",
+          icon: <RiMoneyDollarCircleLine size={32} />,
+          color: "#10b981",
+          features: ["Payment tracking", "Invoice management", "Due dates", "Payment history"]
+     },
+     {
+          title: "Categories",
+          description: "Organize items by categories",
+          link: "/inventory/categories",
+          icon: <RiPriceTagLine size={32} />,
+          color: "#8b5cf6",
+          features: ["Category hierarchy", "Item grouping", "Custom categories", "Bulk operations"]
+     },
+     {
+          title: "Units & Conversion",
+          description: "Manage measurement units and conversions",
+          link: "/inventory/units",
+          icon: <RiArrowRightLine size={32} />,
+          color: "#6366f1",
+          features: ["Unit definitions", "Conversion rates", "Bulk conversions", "Standard units"]
+     }
+];
 
 export default function InventoryPage() {
-     const [activeTab, setActiveTab] = useState<'overview' | 'items' | 'categories'>('overview');
-     const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
-     const [categories, setCategories] = useState<InventoryCategory[]>([]);
-     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-     const [showAddModal, setShowAddModal] = useState(false);
-     const [showCategoryModal, setShowCategoryModal] = useState(false);
-     const [showSupplierModal, setShowSupplierModal] = useState(false);
-     const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
-     const [loading, setLoading] = useState(false);
-
-     const { applicationsettings } = useApplicationSettings();
-     const { branchid, user } = applicationsettings || {};
-     const employeeid = user?.employeeid;
-
-     // Form states
-     const [itemForm, setItemForm] = useState({
-          name: '',
-          category: '',
-          supplier: '',
-          sku: '',
-          description: '',
-          unit: 'pieces',
-          currentStock: 0,
-          minStock: 0,
-          maxStock: 0,
-          unitPrice: 0,
-          location: '',
-          expiryDate: ''
-     });
-
-     const [categoryForm, setCategoryForm] = useState({
-          name: '',
-          description: ''
-     });
-
-     const [supplierForm, setSupplierForm] = useState({
-          name: '',
-          contact: '',
-          email: '',
-          phone: ''
-     });
-
-     // Load data from API
-     useEffect(() => {
-          if (branchid && employeeid) {
-               loadInventoryItems();
-               loadCategories();
-               loadSuppliers();
-          }
-     }, [branchid, employeeid]);
-
-     const loadInventoryItems = async () => {
-          try {
-               setLoading(true);
-               const response = await customFetch(`inventory/items?branchid=${branchid}&employeeid=${employeeid}`);
-               const data = Array.isArray(response) ? response : (response?.data || response?.result || []);
-               const mappedItems = (data || []).map((item: any) => ({
-                    id: item.id?.toString() || String(item.id),
-                    name: item.name,
-                    category: item.category_name || item.category,
-                    supplier: item.supplier_name || item.supplier,
-                    sku: item.sku,
-                    description: item.description,
-                    unit: item.unit,
-                    currentStock: item.current_stock || item.currentStock || 0,
-                    minStock: item.min_stock || item.minStock || 0,
-                    maxStock: item.max_stock || item.maxStock || 0,
-                    unitPrice: item.unit_price || item.unitPrice || 0,
-                    totalValue: item.total_value || item.totalValue || 0,
-                    location: item.location,
-                    expiryDate: item.expiry_date,
-                    lastUpdated: item.updated_at,
-                    status: item.status
-               }));
-               setInventoryItems(mappedItems);
-          } catch (error) {
-               console.error('Error loading inventory items:', error);
-          } finally {
-               setLoading(false);
-          }
-     };
-
-     const loadCategories = async () => {
-          try {
-               const response = await customFetch(`inventory/categories?branchid=${branchid}&employeeid=${employeeid}`);
-               const data = Array.isArray(response) ? response : (response?.data || response?.result || []);
-               const mappedCategories = (data || []).map((cat: any) => ({
-                    id: cat.id?.toString() || String(cat.id),
-                    name: cat.name,
-                    description: cat.description,
-                    itemCount: cat.item_count || cat.itemCount || 0
-               }));
-               setCategories(mappedCategories);
-          } catch (error) {
-               console.error('Error loading categories:', error);
-          }
-     };
-
-     const loadSuppliers = async () => {
-          try {
-               const response = await customFetch(`inventory/suppliers?branchid=${branchid}&employeeid=${employeeid}`);
-               const data = Array.isArray(response) ? response : (response?.data || response?.result || []);
-               const mappedSuppliers = (data || []).map((sup: any) => ({
-                    id: sup.id?.toString() || String(sup.id),
-                    name: sup.name,
-                    contact: sup.contact_person || sup.contact,
-                    email: sup.email,
-                    phone: sup.phone
-               }));
-               setSuppliers(mappedSuppliers);
-          } catch (error) {
-               console.error('Error loading suppliers:', error);
-          }
-     };
-
-     const inventoryColumns = [
-          {
-               Header: 'Item Name',
-               accessor: 'name',
-          },
-          {
-               Header: 'Category',
-               accessor: 'category',
-          },
-          {
-               Header: 'SKU',
-               accessor: 'sku',
-          },
-          {
-               Header: 'Stock Level',
-               accessor: 'currentStock',
-               Cell: ({ row }) => (
-                    <div>
-                         <span className="fw-bold">{row.original.currentStock} {row.original.unit}</span>
-                         <br />
-                         <small className="text-muted">
-                              Min: {row.original.minStock} | Max: {row.original.maxStock}
-                         </small>
-                    </div>
-               )
-          },
-          {
-               Header: 'Status',
-               accessor: 'status',
-               Cell: ({ value }) => (
-                    <span>
-                         {STATUS_BADGES[value].label}
-                    </span>
-               )
-          },
-          {
-               Header: 'Unit Price',
-               accessor: 'unitPrice',
-               Cell: ({ value }) => `$${value.toFixed(2)}`
-          },
-          {
-               Header: 'Total Value',
-               accessor: 'totalValue',
-               Cell: ({ value }) => `$${value.toFixed(2)}`
-          },
-          {
-               Header: 'Location',
-               accessor: 'location',
-          },
-          {
-               Header: 'Actions',
-               accessor: 'id',
-               Cell: ({ row }) => (
-                    <div className="d-flex gap-1">
-                         <button
-                              className="btn btn-sm btn-outline-info"
-                              title="View Details"
-                              onClick={() => setSelectedItem(row.original)}
-                         >
-                              <RiEyeLine size={14} />
-                         </button>
-                         <button
-                              className="btn btn-sm btn-outline-primary"
-                              title="Edit Item"
-                              onClick={() => handleEditItem(row.original)}
-                         >
-                              <RiEditLine size={14} />
-                         </button>
-                         <button
-                              className="btn btn-sm btn-outline-danger"
-                              title="Delete Item"
-                              onClick={() => handleDeleteItem(row.original.id)}
-                         >
-                              <RiDeleteBinLine size={14} />
-                         </button>
-                    </div>
-               )
-          }
-     ];
-
-     const getInventoryStats = () => {
-          const totalItems = inventoryItems.length;
-          const totalValue = inventoryItems.reduce((sum, item) => sum + item.totalValue, 0);
-          const lowStockItems = inventoryItems.filter(item => item.status === 'low_stock').length;
-          const outOfStockItems = inventoryItems.filter(item => item.status === 'out_of_stock').length;
-          const expiredItems = inventoryItems.filter(item => item.status === 'expired').length;
-
-          return { totalItems, totalValue, lowStockItems, outOfStockItems, expiredItems };
-     };
-
-     const handleAddItem = async () => {
-          if (!itemForm.name || !itemForm.category || !itemForm.sku) {
-               alert('Please fill in all required fields');
-               return;
-          }
-
-          try {
-               setLoading(true);
-               const itemData = {
-                    name: itemForm.name,
-                    category_name: itemForm.category,
-                    supplier_name: itemForm.supplier,
-                    sku: itemForm.sku,
-                    description: itemForm.description,
-                    unit: itemForm.unit,
-                    current_stock: itemForm.currentStock,
-                    min_stock: itemForm.minStock,
-                    max_stock: itemForm.maxStock,
-                    unit_price: itemForm.unitPrice,
-                    location: itemForm.location,
-                    expiry_date: itemForm.expiryDate || null,
-                    branchid,
-                    employeeid
-               };
-
-               const resp = await customPost('inventory/items', 'POST', itemData);
-               if (resp && (resp.success === true || resp.status === 'success' || resp.statusCode === 200)) {
-                    toast.success(resp.message || 'Item added');
-                    await loadInventoryItems(); // Reload items
-                    setShowAddModal(false);
-                    resetItemForm();
-               } else {
-                    const errMsg = resp?.error?.message || resp?.message || 'Failed to add item';
-                    toast.error(errMsg);
-               }
-          } catch (error) {
-               console.error('Error adding item:', error);
-               alert('Error adding item');
-          } finally {
-               setLoading(false);
-          }
-     };
-
-     const handleEditItem = (item: InventoryItem) => {
-          setItemForm({
-               name: item.name,
-               category: item.category,
-               supplier: item.supplier,
-               sku: item.sku,
-               description: item.description,
-               unit: item.unit,
-               currentStock: item.currentStock,
-               minStock: item.minStock,
-               maxStock: item.maxStock,
-               unitPrice: item.unitPrice,
-               location: item.location,
-               expiryDate: item.expiryDate || ''
-          });
-          setSelectedItem(item);
-          setShowAddModal(true);
-     };
-
-     const handleUpdateItem = async () => {
-          if (!selectedItem || !itemForm.name || !itemForm.category || !itemForm.sku) {
-               alert('Please fill in all required fields');
-               return;
-          }
-
-          try {
-               setLoading(true);
-               const itemData = {
-                    name: itemForm.name,
-                    category_name: itemForm.category,
-                    supplier_name: itemForm.supplier,
-                    sku: itemForm.sku,
-                    description: itemForm.description,
-                    unit: itemForm.unit,
-                    current_stock: itemForm.currentStock,
-                    min_stock: itemForm.minStock,
-                    max_stock: itemForm.maxStock,
-                    unit_price: itemForm.unitPrice,
-                    location: itemForm.location,
-                    expiry_date: itemForm.expiryDate || null,
-                    branchid,
-                    employeeid
-               };
-
-               const resp = await customPost(`inventory/items/${selectedItem.id}`, 'PUT', itemData);
-               if (resp && (resp.success === true || resp.status === 'success' || resp.statusCode === 200)) {
-                    toast.success(resp.message || 'Item updated');
-                    await loadInventoryItems(); // Reload items
-                    setShowAddModal(false);
-                    setSelectedItem(null);
-                    resetItemForm();
-               } else {
-                    const errMsg = resp?.error?.message || resp?.message || 'Failed to update item';
-                    toast.error(errMsg);
-               }
-          } catch (error) {
-               console.error('Error updating item:', error);
-               alert('Error updating item');
-          } finally {
-               setLoading(false);
-          }
-     };
-
-     const handleDeleteItem = async (itemId: string) => {
-          if (!confirm('Are you sure you want to delete this item?')) return;
-
-          try {
-               setLoading(true);
-               const resp = await customPost(`inventory/items/${itemId}`, 'DELETE', { branchid, employeeid });
-               if (resp && (resp.success === true || resp.status === 'success' || resp.statusCode === 200)) {
-                    toast.success(resp.message || 'Item deleted');
-                    await loadInventoryItems(); // Reload items
-               } else {
-                    const errMsg = resp?.error?.message || resp?.message || 'Failed to delete item';
-                    toast.error(errMsg);
-               }
-          } catch (error) {
-               console.error('Error deleting item:', error);
-               alert('Error deleting item');
-          } finally {
-               setLoading(false);
-          }
-     };
-
-     const handleAddCategory = async () => {
-          if (!categoryForm.name) {
-               alert('Please enter a category name');
-               return;
-          }
-
-          try {
-               setLoading(true);
-               const categoryData = {
-                    name: categoryForm.name,
-                    description: categoryForm.description,
-                    branchid,
-                    employeeid
-               };
-
-               const resp = await customPost('inventory/categories', 'POST', categoryData);
-               if (resp && (resp.success === true || resp.status === 'success' || resp.statusCode === 200)) {
-                    toast.success(resp.message || 'Category added');
-                    await loadCategories(); // Reload categories
-                    setShowCategoryModal(false);
-                    setCategoryForm({ name: '', description: '' });
-               } else {
-                    const errMsg = resp?.error?.message || resp?.message || 'Failed to add category';
-                    toast.error(errMsg);
-               }
-          } catch (error) {
-               console.error('Error adding category:', error);
-               alert('Error adding category');
-          } finally {
-               setLoading(false);
-          }
-     };
-
-     const handleAddSupplier = async () => {
-          if (!supplierForm.name || !supplierForm.email) {
-               alert('Please fill in name and email');
-               return;
-          }
-
-          try {
-               setLoading(true);
-               const supplierData = {
-                    name: supplierForm.name,
-                    contact: supplierForm.contact,
-                    email: supplierForm.email,
-                    phone: supplierForm.phone,
-                    branchid,
-                    employeeid
-               };
-
-               const resp = await customPost('inventory/suppliers', 'POST', supplierData);
-               if (resp && (resp.success === true || resp.status === 'success' || resp.statusCode === 200)) {
-                    toast.success(resp.message || 'Supplier added');
-                    await loadSuppliers(); // Reload suppliers
-                    setShowSupplierModal(false);
-                    setSupplierForm({ name: '', contact: '', email: '', phone: '' });
-               } else {
-                    const errMsg = resp?.error?.message || resp?.message || 'Failed to add supplier';
-                    toast.error(errMsg);
-               }
-          } catch (error) {
-               console.error('Error adding supplier:', error);
-               alert('Error adding supplier');
-          } finally {
-               setLoading(false);
-          }
-     };
-
-     const resetItemForm = () => {
-          setItemForm({
-               name: '',
-               category: '',
-               supplier: '',
-               sku: '',
-               description: '',
-               unit: 'pieces',
-               currentStock: 0,
-               minStock: 0,
-               maxStock: 0,
-               unitPrice: 0,
-               location: '',
-               expiryDate: ''
-          });
-     };
-
-     const stats = getInventoryStats();
-
      return (
           <div className="container-fluid p-4">
                {/* Header */}
@@ -485,552 +150,281 @@ export default function InventoryPage() {
                               <RiBarChartLine className="me-1" />
                               View Analytics
                          </Link>
-                         <button className="btn btn-outline-info btn-sm">
-                              <RiPriceTagLine className="me-1" />
-                              Add Category
-                         </button>
-                         <button
-                              className="btn btn-outline-primary btn-sm"
-                              onClick={() => setShowAddModal(true)}
-                         >
-                              <RiAddLine className="me-1" />
-                              Add Item
-                         </button>
                     </div>
                </div>
 
-               {/* Navigation Tabs */}
-               <ul className="nav nav-tabs mb-4">
-                    <li className="nav-item">
-                         <button
-                              className={`nav-link ${activeTab === 'overview' ? 'active' : ''}`}
-                              onClick={() => setActiveTab('overview')}
-                         >
-                              Overview
-                         </button>
-                    </li>
-                    <li className="nav-item">
-                         <button
-                              className={`nav-link ${activeTab === 'items' ? 'active' : ''}`}
-                              onClick={() => setActiveTab('items')}
-                         >
-                              Items ({inventoryItems.length})
-                         </button>
-                    </li>
-                    <li className="nav-item">
-                         <button
-                              className={`nav-link ${activeTab === 'categories' ? 'active' : ''}`}
-                              onClick={() => setActiveTab('categories')}
-                         >
-                              Categories ({categories.length})
-                         </button>
-                    </li>
-               </ul>
+               {/* Overview Content */}
+               <div>
+                    {/* Key Statistics */}
+                    <div className="row g-3 mb-4">
+                         <div className="col-md-3">
+                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <div className="d-flex align-items-center mb-2">
+                                        <RiBox3Line size={20} className="me-2 text-primary" />
+                                        <span className="fw-medium text-muted small">Total Items</span>
+                                   </div>
+                                   <div className="fs-4 fw-bold text-primary">500+</div>
+                                   <div className="small text-muted">Active inventory items</div>
+                              </div>
+                         </div>
+                         <div className="col-md-3">
+                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <div className="d-flex align-items-center mb-2">
+                                        <RiMoneyDollarCircleLine size={20} className="me-2 text-success" />
+                                        <span className="fw-medium text-muted small">Total Value</span>
+                                   </div>
+                                   <div className="fs-4 fw-bold text-success">{currencyFormatter.format(125000)}</div>
+                                   <div className="small text-muted">Current stock value</div>
+                              </div>
+                         </div>
+                         <div className="col-md-3">
+                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <div className="d-flex align-items-center mb-2">
+                                        <RiAlertLine size={20} className="me-2 text-warning" />
+                                        <span className="fw-medium text-muted small">Low Stock Items</span>
+                                   </div>
+                                   <div className="fs-4 fw-bold text-warning">23</div>
+                                   <div className="small text-muted">Need reordering</div>
+                              </div>
+                         </div>
+                         <div className="col-md-3">
+                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <div className="d-flex align-items-center mb-2">
+                                        <RiShoppingCartLine size={20} className="me-2 text-info" />
+                                        <span className="fw-medium text-muted small">Active Orders</span>
+                                   </div>
+                                   <div className="fs-4 fw-bold text-info">15</div>
+                                   <div className="small text-muted">Pending delivery</div>
+                              </div>
+                         </div>
+                    </div>
 
-               {/* Overview Tab */}
-               {activeTab === 'overview' && (
-                    <div className="row">
-                         {/* Statistics Cards */}
-                         <div className="col-md-3 mb-4">
-                              <div className="card h-100">
-                                   <div className="card-body text-center">
-                                        <RiBox3Line size={48} className="text-primary mb-3" />
-                                        <h3 className="card-title">{stats.totalItems}</h3>
-                                        <p className="card-text text-muted">Total Items</p>
+                    {/* System Health Overview */}
+                    <div className="row g-3 mb-4">
+                         <div className="col-md-6">
+                              <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <h6 className="fw-bold mb-3 d-flex align-items-center">
+                                        <RiCheckLine size={20} className="me-2 text-success" />
+                                        System Status
+                                   </h6>
+                                   <div className="d-flex justify-content-between align-items-center mb-2">
+                                        <span className="small">Inventory Accuracy</span>
+                                        <span className="badge bg-success">98.5%</span>
+                                   </div>
+                                   <div className="d-flex justify-content-between align-items-center mb-2">
+                                        <span className="small">Stock Alerts</span>
+                                        <span className="badge bg-warning">23 items</span>
+                                   </div>
+                                   <div className="d-flex justify-content-between align-items-center mb-2">
+                                        <span className="small">Expired Items</span>
+                                        <span className="badge bg-danger">2 items</span>
+                                   </div>
+                                   <div className="d-flex justify-content-between align-items-center">
+                                        <span className="small">Data Sync</span>
+                                        <span className="badge bg-success">Up to date</span>
                                    </div>
                               </div>
                          </div>
-                         <div className="col-md-3 mb-4">
-                              <div className="card h-100">
-                                   <div className="card-body text-center">
-                                        <RiPriceTagLine size={48} className="text-success mb-3" />
-                                        <h3 className="card-title">${stats.totalValue.toFixed(2)}</h3>
-                                        <p className="card-text text-muted">Total Value</p>
+                         <div className="col-md-6">
+                              <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <h6 className="fw-bold mb-3 d-flex align-items-center">
+                                        <RiBarChartLine size={20} className="me-2 text-primary" />
+                                        Recent Activity
+                                   </h6>
+                                   <div className="small">
+                                        <div className="d-flex justify-content-between py-1">
+                                             <span>New order received</span>
+                                             <span className="text-muted">2 hours ago</span>
+                                        </div>
+                                        <div className="d-flex justify-content-between py-1">
+                                             <span>Stock level updated</span>
+                                             <span className="text-muted">4 hours ago</span>
+                                        </div>
+                                        <div className="d-flex justify-content-between py-1">
+                                             <span>Supplier payment processed</span>
+                                             <span className="text-muted">1 day ago</span>
+                                        </div>
+                                        <div className="d-flex justify-content-between py-1">
+                                             <span>Low stock alert triggered</span>
+                                             <span className="text-muted">2 days ago</span>
+                                        </div>
                                    </div>
                               </div>
                          </div>
-                         <div className="col-md-3 mb-4">
-                              <div className="card h-100">
-                                   <div className="card-body text-center">
-                                        <RiAlertLine size={48} className="text-warning mb-3" />
-                                        <h3 className="card-title">{stats.lowStockItems}</h3>
-                                        <p className="card-text text-muted">Low Stock Items</p>
-                                   </div>
-                              </div>
-                         </div>
-                         <div className="col-md-3 mb-4">
-                              <div className="card h-100">
-                                   <div className="card-body text-center">
-                                        <RiCloseLine size={48} className="text-danger mb-3" />
-                                        <h3 className="card-title">{stats.outOfStockItems}</h3>
-                                        <p className="card-text text-muted">Out of Stock</p>
-                                   </div>
-                              </div>
-                         </div>
+                    </div>
 
-                         {/* Low Stock Alerts */}
-                         <div className="col-12 mb-4">
-                              <div className="card">
-                                   <div className="card-header">
-                                        <h5 className="mb-0">Low Stock Alerts</h5>
+                    {/* Quick Access Cards */}
+                    <div className="mb-4">
+                         <h5 className="mb-3 fw-semibold">Core Modules</h5>
+                         <div className="row g-3">
+                              {quickAccessCards.map((card, index) => (
+                                   <div key={index} className="col-md-6 col-lg-3">
+                                        <Link href={card.link} className="text-decoration-none">
+                                             <div
+                                                  className="border rounded p-4 h-100 position-relative overflow-hidden"
+                                                  style={{
+                                                       backgroundColor: 'var(--bs-body-bg)',
+                                                       transition: 'all 0.2s',
+                                                       cursor: 'pointer'
+                                                  }}
+                                                  onMouseEnter={(e) => {
+                                                       e.currentTarget.style.borderColor = card.color;
+                                                       e.currentTarget.style.transform = 'translateY(-2px)';
+                                                       e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                                                  }}
+                                                  onMouseLeave={(e) => {
+                                                       e.currentTarget.style.borderColor = COLOR_BORDER;
+                                                       e.currentTarget.style.transform = 'translateY(0)';
+                                                       e.currentTarget.style.boxShadow = 'none';
+                                                  }}
+                                             >
+                                                  <div className="mb-3" style={{ color: card.color }}>
+                                                       {card.icon}
+                                                  </div>
+                                                  <h6 className="fw-bold mb-2 text-body-emphasis">{card.title}</h6>
+                                                  <p className="small text-muted mb-2">{card.description}</p>
+                                                  {card.stats && (
+                                                       <div className="small fw-medium" style={{ color: card.color }}>
+                                                            {card.stats}
+                                                       </div>
+                                                  )}
+                                                  <div className="d-flex align-items-center small mt-2" style={{ color: card.color }}>
+                                                       <span className="me-1">Access</span>
+                                                       <RiArrowRightLine size={16} />
+                                                  </div>
+                                             </div>
+                                        </Link>
                                    </div>
-                                   <div className="card-body">
-                                        {inventoryItems.filter(item => item.status === 'low_stock').length > 0 ? (
-                                             <div className="row">
-                                                  {inventoryItems.filter(item => item.status === 'low_stock').map(item => (
-                                                       <div key={item.id} className="col-md-6 mb-3">
-                                                            <div className="alert alert-warning">
-                                                                 <div className="d-flex justify-content-between align-items-start">
-                                                                      <div>
-                                                                           <h6 className="alert-heading mb-1">{item.name}</h6>
-                                                                           <p className="mb-1">Current: {item.currentStock} {item.unit} | Min: {item.minStock} {item.unit}</p>
-                                                                           <small className="text-muted">SKU: {item.sku}</small>
-                                                                      </div>
-                                                                      <button className="btn btn-sm btn-outline-warning">Reorder</button>
-                                                                 </div>
-                                                            </div>
+                              ))}
+                         </div>
+                    </div>
+
+                    {/* Inventory Modules Overview */}
+                    <div className="mb-4">
+                         <h5 className="mb-3 fw-semibold">Advanced Features</h5>
+                         <div className="row g-3">
+                              {inventoryModules.map((module, index) => (
+                                   <div key={index} className="col-md-6 col-lg-3">
+                                        <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                             <div className="d-flex align-items-center mb-3">
+                                                  <div style={{ color: module.color }}>
+                                                       {module.icon}
+                                                  </div>
+                                                  <div className="ms-3">
+                                                       <h6 className="fw-bold mb-1">{module.title}</h6>
+                                                       <p className="small text-muted mb-0">{module.description}</p>
+                                                  </div>
+                                             </div>
+                                             <div className="mb-3">
+                                                  {module.features.slice(0, 2).map((feature, idx) => (
+                                                       <div key={idx} className="small text-muted mb-1">
+                                                            • {feature}
                                                        </div>
                                                   ))}
                                              </div>
-                                        ) : (
-                                             <div className="text-center py-4">
-                                                  <RiCheckLine size={48} className="text-success mb-3" />
-                                                  <h6 className="text-muted">All items are sufficiently stocked!</h6>
-                                             </div>
-                                        )}
-                                   </div>
-                              </div>
-                         </div>
-                    </div>
-               )}
-
-               {/* Items Tab */}
-               {activeTab === 'items' && (
-                    <div className="card">
-                         <div className="card-header">
-                              <h5 className="mb-0">Inventory Items</h5>
-                         </div>
-                         <div className="card-body p-0">
-                              <PrimeTable
-                                   column={inventoryColumns}
-                                   data={inventoryItems}
-                                   filtering={true}
-                                   handleSeverSideProcessing={true}
-                                   serverSideFiltering={true}
-                              />
-                         </div>
-                    </div>
-               )}
-
-               {/* Categories Tab */}
-               {activeTab === 'categories' && (
-                    <div className="row">
-                         {categories.map(category => (
-                              <div key={category.id} className="col-md-6 col-lg-4 mb-4">
-                                   <div className="card h-100">
-                                        <div className="card-header d-flex justify-content-between align-items-center">
-                                             <h6 className="mb-0">{category.name}</h6>
-                                             <span>{category.itemCount} items</span>
-                                        </div>
-                                        <div className="card-body">
-                                             <p className="text-muted mb-3">{category.description}</p>
-                                             <div className="d-flex gap-2">
-                                                  <button className="btn btn-sm btn-outline-primary">Edit</button>
-                                                  <button className="btn btn-sm btn-outline-info">View Items</button>
-                                             </div>
+                                             <Link href={module.link} className="btn btn-sm w-100" style={{ backgroundColor: module.color, borderColor: module.color }}>
+                                                  Explore Module
+                                             </Link>
                                         </div>
                                    </div>
-                              </div>
-                         ))}
+                              ))}
+                         </div>
                     </div>
-               )}
 
-               {/* Add Item Modal */}
-               {showAddModal && (
-                    <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                         <div className="modal-dialog modal-lg">
-                              <div className="modal-content">
-                                   <div className="modal-header">
-                                        <h5 className="modal-title">Add Inventory Item</h5>
-                                        <button
-                                             type="button"
-                                             className="btn-close"
-                                             onClick={() => setShowAddModal(false)}
-                                        ></button>
-                                   </div>
-                                   <div className="modal-body">
-                                        <div className="row">
-                                             <div className="col-md-6">
-                                                  <div className="mb-3">
-                                                       <label className="form-label">Item Name *</label>
-                                                       <input
-                                                            type="text"
-                                                            className="form-control"
-                                                            value={itemForm.name}
-                                                            onChange={(e) => setItemForm(prev => ({ ...prev, name: e.target.value }))}
-                                                            placeholder="Enter item name"
-                                                       />
-                                                  </div>
-                                                  <div className="mb-3">
-                                                       <label className="form-label">SKU *</label>
-                                                       <input
-                                                            type="text"
-                                                            className="form-control"
-                                                            value={itemForm.sku}
-                                                            onChange={(e) => setItemForm(prev => ({ ...prev, sku: e.target.value }))}
-                                                            placeholder="Unique stock keeping unit"
-                                                       />
-                                                  </div>
-                                                  <div className="mb-3">
-                                                       <label className="form-label">Category *</label>
-                                                       <select
-                                                            className="form-select"
-                                                            value={itemForm.category}
-                                                            onChange={(e) => setItemForm(prev => ({ ...prev, category: e.target.value }))}
-                                                       >
-                                                            <option value="">Select category</option>
-                                                            {categories.map(category => (
-                                                                 <option key={category.id} value={category.name}>{category.name}</option>
-                                                            ))}
-                                                       </select>
-                                                  </div>
-                                                  <div className="mb-3">
-                                                       <label className="form-label">Supplier</label>
-                                                       <select
-                                                            className="form-select"
-                                                            value={itemForm.supplier}
-                                                            onChange={(e) => setItemForm(prev => ({ ...prev, supplier: e.target.value }))}
-                                                       >
-                                                            <option value="">Select supplier</option>
-                                                            {suppliers.map(supplier => (
-                                                                 <option key={supplier.id} value={supplier.name}>{supplier.name}</option>
-                                                            ))}
-                                                       </select>
-                                                  </div>
-                                             </div>
-                                             <div className="col-md-6">
-                                                  <div className="mb-3">
-                                                       <label className="form-label">Unit</label>
-                                                       <select
-                                                            className="form-select"
-                                                            value={itemForm.unit}
-                                                            onChange={(e) => setItemForm(prev => ({ ...prev, unit: e.target.value }))}
-                                                       >
-                                                            <option value="pieces">Pieces</option>
-                                                            <option value="boxes">Boxes</option>
-                                                            <option value="bottles">Bottles</option>
-                                                            <option value="packs">Packs</option>
-                                                            <option value="liters">Liters</option>
-                                                            <option value="kg">Kilograms</option>
-                                                       </select>
-                                                  </div>
-                                                  <div className="row">
-                                                       <div className="col-4">
-                                                            <div className="mb-3">
-                                                                 <label className="form-label">Current Stock</label>
-                                                                 <input
-                                                                      type="number"
-                                                                      className="form-control"
-                                                                      value={itemForm.currentStock}
-                                                                      onChange={(e) => setItemForm(prev => ({ ...prev, currentStock: parseInt(e.target.value) || 0 }))}
-                                                                      min="0"
-                                                                 />
-                                                            </div>
-                                                       </div>
-                                                       <div className="col-4">
-                                                            <div className="mb-3">
-                                                                 <label className="form-label">Min Stock</label>
-                                                                 <input
-                                                                      type="number"
-                                                                      className="form-control"
-                                                                      value={itemForm.minStock}
-                                                                      onChange={(e) => setItemForm(prev => ({ ...prev, minStock: parseInt(e.target.value) || 0 }))}
-                                                                      min="0"
-                                                                 />
-                                                            </div>
-                                                       </div>
-                                                       <div className="col-4">
-                                                            <div className="mb-3">
-                                                                 <label className="form-label">Max Stock</label>
-                                                                 <input
-                                                                      type="number"
-                                                                      className="form-control"
-                                                                      value={itemForm.maxStock}
-                                                                      onChange={(e) => setItemForm(prev => ({ ...prev, maxStock: parseInt(e.target.value) || 0 }))}
-                                                                      min="0"
-                                                                 />
-                                                            </div>
+                    {/* Getting Started */}
+                    <div className="row g-4">
+                         <div className="col-12">
+                              <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <h5 className="mb-3 fw-semibold">Getting Started</h5>
+                                   <div className="row g-3">
+                                        <div className="col-md-4">
+                                             <div className="d-flex align-items-start">
+                                                  <div className="me-3 mt-1">
+                                                       <div className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style={{ width: '32px', height: '32px', fontSize: '14px' }}>
+                                                            1
                                                        </div>
                                                   </div>
-                                                  <div className="mb-3">
-                                                       <label className="form-label">Unit Price ($)</label>
-                                                       <input
-                                                            type="number"
-                                                            className="form-control"
-                                                            value={itemForm.unitPrice}
-                                                            onChange={(e) => setItemForm(prev => ({ ...prev, unitPrice: parseFloat(e.target.value) || 0 }))}
-                                                            step="0.01"
-                                                            min="0"
-                                                       />
+                                                  <div>
+                                                       <h6 className="mb-1">Set Up Your Inventory</h6>
+                                                       <p className="small text-muted mb-2">Add categories, suppliers, and initial stock items</p>
+                                                       <Link href="/inventory/items" className="small">
+                                                            Add Items →
+                                                       </Link>
                                                   </div>
                                              </div>
                                         </div>
-                                        <div className="row">
-                                             <div className="col-md-6">
-                                                  <div className="mb-3">
-                                                       <label className="form-label">Location</label>
-                                                       <input
-                                                            type="text"
-                                                            className="form-control"
-                                                            value={itemForm.location}
-                                                            onChange={(e) => setItemForm(prev => ({ ...prev, location: e.target.value }))}
-                                                            placeholder="Storage location"
-                                                       />
+                                        <div className="col-md-4">
+                                             <div className="d-flex align-items-start">
+                                                  <div className="me-3 mt-1">
+                                                       <div className="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style={{ width: '32px', height: '32px', fontSize: '14px' }}>
+                                                            2
+                                                       </div>
                                                   </div>
-                                             </div>
-                                             <div className="col-md-6">
-                                                  <div className="mb-3">
-                                                       <label className="form-label">Expiry Date</label>
-                                                       <input
-                                                            type="date"
-                                                            className="form-control"
-                                                            value={itemForm.expiryDate}
-                                                            onChange={(e) => setItemForm(prev => ({ ...prev, expiryDate: e.target.value }))}
-                                                       />
+                                                  <div>
+                                                       <h6 className="mb-1">Configure Suppliers</h6>
+                                                       <p className="small text-muted mb-2">Set up vendor information and contact details</p>
+                                                       <Link href="/inventory/suppliers" className="small">
+                                                            Add Suppliers →
+                                                       </Link>
                                                   </div>
                                              </div>
                                         </div>
-                                        <div className="mb-3">
-                                             <label className="form-label">Description</label>
-                                             <textarea
-                                                  className="form-control"
-                                                  rows={3}
-                                                  value={itemForm.description}
-                                                  onChange={(e) => setItemForm(prev => ({ ...prev, description: e.target.value }))}
-                                                  placeholder="Item description..."
-                                             />
+                                        <div className="col-md-4">
+                                             <div className="d-flex align-items-start">
+                                                  <div className="me-3 mt-1">
+                                                       <div className="rounded-circle bg-warning text-white d-flex align-items-center justify-content-center" style={{ width: '32px', height: '32px', fontSize: '14px' }}>
+                                                            3
+                                                       </div>
+                                                  </div>
+                                                  <div>
+                                                       <h6 className="mb-1">Create Purchase Orders</h6>
+                                                       <p className="small text-muted mb-2">Start ordering items to maintain stock levels</p>
+                                                       <Link href="/inventory/orders" className="small">
+                                                            Create Orders →
+                                                       </Link>
+                                                  </div>
+                                             </div>
                                         </div>
-                                   </div>
-                                   <div className="modal-footer">
-                                        <button
-                                             type="button"
-                                             className="btn btn-outline-secondary btn-sm"
-                                             onClick={() => {
-                                                  setShowAddModal(false);
-                                                  setSelectedItem(null);
-                                                  resetItemForm();
-                                             }}
-                                        >
-                                             Cancel
-                                        </button>
-                                        <button
-                                             type="button"
-                                             className="btn btn-outline-primary btn-sm"
-                                             onClick={selectedItem ? handleUpdateItem : handleAddItem}
-                                             disabled={loading}
-                                        >
-                                             {loading ? 'Saving...' : selectedItem ? 'Update Item' : 'Add Item'}
-                                        </button>
                                    </div>
                               </div>
                          </div>
                     </div>
-               )}
 
-               {/* Add Category Modal */}
-               {showCategoryModal && (
-                    <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                         <div className="modal-dialog">
-                              <div className="modal-content">
-                                   <div className="modal-header">
-                                        <h5 className="modal-title">Add Category</h5>
-                                        <button
-                                             type="button"
-                                             className="btn-close"
-                                             onClick={() => setShowCategoryModal(false)}
-                                        ></button>
-                                   </div>
-                                   <div className="modal-body">
-                                        <div className="mb-3">
-                                             <label className="form-label">Category Name *</label>
-                                             <input
-                                                  type="text"
-                                                  className="form-control"
-                                                  value={categoryForm.name}
-                                                  onChange={(e) => setCategoryForm(prev => ({ ...prev, name: e.target.value }))}
-                                                  placeholder="e.g., Reagents & Chemicals"
-                                             />
+                    {/* Quick Actions */}
+                    <div className="row g-4 mt-2">
+                         <div className="col-12">
+                              <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <h5 className="mb-3 fw-semibold">Quick Actions</h5>
+                                   <div className="row g-2">
+                                        <div className="col-md-3">
+                                             <Link href="/inventory/orders" className="btn btn-outline-primary w-100">
+                                                  <RiAddLine className="me-1" />
+                                                  New Order
+                                             </Link>
                                         </div>
-                                        <div className="mb-3">
-                                             <label className="form-label">Description</label>
-                                             <textarea
-                                                  className="form-control"
-                                                  rows={3}
-                                                  value={categoryForm.description}
-                                                  onChange={(e) => setCategoryForm(prev => ({ ...prev, description: e.target.value }))}
-                                                  placeholder="Category description..."
-                                             />
+                                        <div className="col-md-3">
+                                             <Link href="/inventory/items" className="btn btn-outline-success w-100">
+                                                  <RiBox3Line className="me-1" />
+                                                  Add Item
+                                             </Link>
                                         </div>
-                                   </div>
-                                   <div className="modal-footer">
-                                        <button
-                                             type="button"
-                                             className="btn btn-outline-secondary btn-sm"
-                                             onClick={() => setShowCategoryModal(false)}
-                                        >
-                                             Cancel
-                                        </button>
-                                        <button
-                                             type="button"
-                                             className="btn btn-outline-success btn-sm"
-                                             onClick={handleAddCategory}
-                                        >
-                                             Add Category
-                                        </button>
+                                        <div className="col-md-3">
+                                             <Link href="/inventory/analytics" className="btn btn-outline-info w-100">
+                                                  <RiBarChartLine className="me-1" />
+                                                  View Reports
+                                             </Link>
+                                        </div>
+                                        <div className="col-md-3">
+                                             <Link href="/inventory/wastage" className="btn btn-outline-warning w-100">
+                                                  <RiAlertLine className="me-1" />
+                                                  Check Alerts
+                                             </Link>
+                                        </div>
                                    </div>
                               </div>
                          </div>
                     </div>
-               )}
-
-               {/* Add Supplier Modal */}
-               {showSupplierModal && (
-                    <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                         <div className="modal-dialog">
-                              <div className="modal-content">
-                                   <div className="modal-header">
-                                        <h5 className="modal-title">Add Supplier</h5>
-                                        <button
-                                             type="button"
-                                             className="btn-close"
-                                             onClick={() => setShowSupplierModal(false)}
-                                        ></button>
-                                   </div>
-                                   <div className="modal-body">
-                                        <div className="mb-3">
-                                             <label className="form-label">Supplier Name *</label>
-                                             <input
-                                                  type="text"
-                                                  className="form-control"
-                                                  value={supplierForm.name}
-                                                  onChange={(e) => setSupplierForm(prev => ({ ...prev, name: e.target.value }))}
-                                                  placeholder="Company name"
-                                             />
-                                        </div>
-                                        <div className="mb-3">
-                                             <label className="form-label">Contact Person</label>
-                                             <input
-                                                  type="text"
-                                                  className="form-control"
-                                                  value={supplierForm.contact}
-                                                  onChange={(e) => setSupplierForm(prev => ({ ...prev, contact: e.target.value }))}
-                                                  placeholder="Primary contact name"
-                                             />
-                                        </div>
-                                        <div className="row">
-                                             <div className="col-md-6">
-                                                  <div className="mb-3">
-                                                       <label className="form-label">Email *</label>
-                                                       <input
-                                                            type="email"
-                                                            className="form-control"
-                                                            value={supplierForm.email}
-                                                            onChange={(e) => setSupplierForm(prev => ({ ...prev, email: e.target.value }))}
-                                                            placeholder="contact@company.com"
-                                                       />
-                                                  </div>
-                                             </div>
-                                             <div className="col-md-6">
-                                                  <div className="mb-3">
-                                                       <label className="form-label">Phone</label>
-                                                       <input
-                                                            type="tel"
-                                                            className="form-control"
-                                                            value={supplierForm.phone}
-                                                            onChange={(e) => setSupplierForm(prev => ({ ...prev, phone: e.target.value }))}
-                                                            placeholder="+1-555-0123"
-                                                       />
-                                                  </div>
-                                             </div>
-                                        </div>
-                                   </div>
-                                   <div className="modal-footer">
-                                        <button
-                                             type="button"
-                                             className="btn btn-outline-secondary btn-sm"
-                                             onClick={() => setShowSupplierModal(false)}
-                                        >
-                                             Cancel
-                                        </button>
-                                        <button
-                                             type="button"
-                                             className="btn btn-outline-success btn-sm"
-                                             onClick={handleAddSupplier}
-                                        >
-                                             Add Supplier
-                                        </button>
-                                   </div>
-                              </div>
-                         </div>
-                    </div>
-               )}
-
-               {/* Item Details Modal */}
-               {selectedItem && (
-                    <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                         <div className="modal-dialog modal-lg">
-                              <div className="modal-content">
-                                   <div className="modal-header">
-                                        <h5 className="modal-title">Item Details - {selectedItem.name}</h5>
-                                        <button
-                                             type="button"
-                                             className="btn-close"
-                                             onClick={() => setSelectedItem(null)}
-                                        ></button>
-                                   </div>
-                                   <div className="modal-body">
-                                        <div className="row">
-                                             <div className="col-md-6">
-                                                  <p><strong>SKU:</strong> {selectedItem.sku}</p>
-                                                  <p><strong>Category:</strong> {selectedItem.category}</p>
-                                                  <p><strong>Supplier:</strong> {selectedItem.supplier}</p>
-                                                  <p><strong>Location:</strong> {selectedItem.location}</p>
-                                                  <p><strong>Status:</strong>
-                                                       <span>
-                                                            {STATUS_BADGES[selectedItem.status].label}
-                                                       </span>
-                                                  </p>
-                                             </div>
-                                             <div className="col-md-6">
-                                                  <p><strong>Current Stock:</strong> {selectedItem.currentStock} {selectedItem.unit}</p>
-                                                  <p><strong>Min/Max Stock:</strong> {selectedItem.minStock} / {selectedItem.maxStock} {selectedItem.unit}</p>
-                                                  <p><strong>Unit Price:</strong> ${selectedItem.unitPrice.toFixed(2)}</p>
-                                                  <p><strong>Total Value:</strong> ${selectedItem.totalValue.toFixed(2)}</p>
-                                                  {selectedItem.expiryDate && (
-                                                       <p><strong>Expiry Date:</strong> {new Date(selectedItem.expiryDate).toLocaleDateString()}</p>
-                                                  )}
-                                             </div>
-                                        </div>
-                                        {selectedItem.description && (
-                                             <div className="mt-3">
-                                                  <strong>Description:</strong>
-                                                  <p className="mt-1">{selectedItem.description}</p>
-                                             </div>
-                                        )}
-                                   </div>
-                                   <div className="modal-footer">
-                                        <button
-                                             type="button"
-                                             className="btn btn-secondary btn-sm"
-                                             onClick={() => setSelectedItem(null)}
-                                        >
-                                             Close
-                                        </button>
-                                   </div>
-                              </div>
-                         </div>
-                    </div>
-               )}
+               </div>
           </div>
      );
 }

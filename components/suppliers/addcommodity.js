@@ -86,7 +86,7 @@ export default function ADD_COMMODITY_MODAL(props) {
         aria-labelledby="contained-modal-title-vcenter"
         style={{ marginTop: '100px' }}
       >
-        <Modal.Header closeButton style={{ backgroundColor: '#00224f', color: 'white', padding: '0px !important', borderRadius: '0px' }}>
+        <Modal.Header closeButton className="bg-primary text-white rounded-0">
           <Modal.Title id="contained-modal-title-vcenter"  >
             Add commodity
           </Modal.Title>

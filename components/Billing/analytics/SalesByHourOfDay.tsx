@@ -100,7 +100,7 @@ export default function SalesByHourOfDay() {
     const borderRadiusValue = 5;
 
     return (
-        <div className="container-fluid p-4" style={{ backgroundColor: '#f8f9fa', fontFamily: 'Arial, sans-serif' }}>
+        <div className="container-fluid p-4" style={{ backgroundColor: 'var(--bs-body-bg)', fontFamily: 'Arial, sans-serif' }}>
             <div className="row mb-3">
                 <div className="col-12 col-md-6 d-flex align-items-center gap-3">
                     <Form.Label htmlFor="selectedDate" className="mb-0" style={{ fontWeight: 'bold' }}>
@@ -111,10 +111,10 @@ export default function SalesByHourOfDay() {
                         id="selectedDate"
                         value={selectedDate}
                         onChange={(e) => setSelectedDate(e.target.value)}
-                        style={{ maxWidth: "200px", borderColor: '#ced4da', borderRadius: '0.25rem' }}
+                        style={{ maxWidth: "200px", borderColor: 'var(--bs-border-color)', borderRadius: '0.25rem' }}
                     />
                     <Button variant="outline-secondary" size="sm" onClick={handleRefreshClick}>
-                        <RiRefreshFill/> Refresh
+                        <RiRefreshFill /> Refresh
                     </Button>
                 </div>
                 <div className="col-12 col-md-6 d-flex align-items-center justify-content-end gap-3">
@@ -162,7 +162,7 @@ export default function SalesByHourOfDay() {
                                                 const percentage = totalSales > 0 ? ((value / totalSales) * 100).toFixed(2) : "0.00";
                                                 return [`${currencyFormatter.format(value)} (${percentage}%)`, name];
                                             }}
-                                            contentStyle={{ backgroundColor: '#f8f9fa', border: '1px solid #ced4da', borderRadius: '0.25rem' }}
+                                            contentStyle={{ backgroundColor: 'var(--theme-card-bg)', border: '1px solid var(--bs-border-color)', borderRadius: '0.25rem' }}
                                         />
                                         <Legend wrapperStyle={{ fontSize: '0.8rem' }} />
                                         <Bar dataKey="totalSales" fill={barFillColor} radius={[borderRadiusValue, borderRadiusValue, 0, 0]} />
@@ -184,7 +184,7 @@ export default function SalesByHourOfDay() {
                                                 const percentage = totalSales > 0 ? ((value / totalSales) * 100).toFixed(2) : "0.00";
                                                 return [`${currencyFormatter.format(value)} (${percentage}%)`, name];
                                             }}
-                                            contentStyle={{ backgroundColor: '#f8f9fa', border: '1px solid #ced4da', borderRadius: '0.25rem' }}
+                                            contentStyle={{ backgroundColor: 'var(--theme-card-bg)', border: '1px solid var(--bs-border-color)', borderRadius: '0.25rem' }}
                                         />
                                         <Legend wrapperStyle={{ fontSize: '0.8rem' }} />
                                         <Line type="monotone" dataKey="totalSales" stroke={barFillColor} strokeWidth={2} />
@@ -196,8 +196,8 @@ export default function SalesByHourOfDay() {
 
                     <div className="col-3">
                         <div className="table-responsive" style={{ maxHeight: "400px", overflowY: "auto" }}>
-                            <table className="table table-bordered ttable" style={{ backgroundColor: 'white', borderRadius: '0.5rem', boxShadow: '0 0.125rem 0.25rem rgba(0,0,0,.075)' }}>
-                                <thead className="bg-light text-center">
+                            <table className="table table-bordered ttable" style={{ backgroundColor: 'var(--theme-card-bg)', borderRadius: '0.5rem', boxShadow: '0 0.125rem 0.25rem rgba(0,0,0,.075)' }}>
+                                <thead className="bg-body-tertiary text-center">
                                     <tr>
                                         <th style={{ fontWeight: 'bold' }}>Hour</th>
                                         <th style={{ fontWeight: 'bold' }}>Sales</th>

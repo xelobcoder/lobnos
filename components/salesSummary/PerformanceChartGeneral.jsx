@@ -71,7 +71,7 @@ export default function PerformanceChartGeneral({ target, upCallReceiver, type, 
 
   return (
     <>
-      <div className="bg-white px-2">{renderer()}</div>
+      <div className="bg-body-tertiary px-2">{renderer()}</div>
     </>
   )
 }

@@ -26,7 +26,7 @@ export default function CreateTestRule({ clientdata }) {
 	const [isSaving, setIsSaving] = useState(false);
 	const [pin, setPin] = useState("");
 
-	
+
 	const getAscensionEditCount = async () => {
 		const count = getAscensionEditCountServerideS({ billingid, testid, patientid, ascensionid })
 		count ? setEditCount(count) : null
@@ -96,8 +96,8 @@ export default function CreateTestRule({ clientdata }) {
 		try {
 			if (!pin) return toast.warn("PIN is required");
 			const response = await validatePin(employeeid, pin);
-			const {status, message} = response;
-			console.log(status,typeof status)
+			const { status, message } = response;
+			console.log(status, typeof status)
 			if (!status) return toast.error(message || "Invalid PIN");
 
 			setIsSaving(true);
@@ -186,15 +186,15 @@ export default function CreateTestRule({ clientdata }) {
 
 	return (
 		<div>
-			<section className="card border-0 mx-auto my-4" >
-				<div style={{ backgroundColor: '#e9ecef', borderTopLeftRadius: '1rem', borderTopRightRadius: '1rem', borderBottom: '1px solid #ececec', fontSize: '1rem' }} className="card-header d-flex flex-column flex-md-row justify-content-between align-items-center gap-2 fw-bold">
+			<section className="card border-0 mx-auto my-4" style={{ backgroundColor: 'var(--theme-card-bg)' }}>
+				<div style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderTopLeftRadius: '1rem', borderTopRightRadius: '1rem', borderBottom: '1px solid var(--bs-border-color)', fontSize: '1rem' }} className="card-header d-flex flex-column flex-md-row justify-content-between align-items-center gap-2 fw-bold">
 					<div className="btn-group mb-2 mb-md-0 align-items-center" role="group" aria-label="result form entry label ">
-						<h5 className="mb-0 me-2" title={`test edited ${editCount} times`} style={{ color: '#6c757d', fontWeight: 500, fontSize: '1rem' }}>{editCount}</h5>
+						<h5 className="mb-0 me-2" title={`test edited ${editCount} times`} style={{ color: 'var(--bs-secondary-color)', fontWeight: 500, fontSize: '1rem' }}>{editCount}</h5>
 						<Indicator resultEntered={resultEntered} />
 						<span className="mb-0 ms-3 text-primary" style={{ fontSize: '1rem', fontWeight: 600 }}>{testname}</span>
 					</div>
 					<div className="dropdown" ref={dropdownRef} style={{ position: 'relative' }}>
-						<button className="btn btn-light border dropdown-toggle" type="button" id="actionsDropdown" onClick={e => {
+						<button className="btn btn-outline-secondary border dropdown-toggle" type="button" id="actionsDropdown" onClick={e => {
 							e.preventDefault();
 							const menu = e.currentTarget.nextSibling;
 							menu.classList.toggle('show');
@@ -228,10 +228,10 @@ export default function CreateTestRule({ clientdata }) {
 				</div>
 				<div className="card-body p-0" style={{ padding: 0 }}>
 					<div className="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2 mb-3 px-4 pt-4 px-2">
-						<span className="bg-secondary-subtle p-2 px-3 rounded-3 border mb-2 mb-sm-0" style={{ minWidth: 220 }}>{resultEntryStart ? `Result Entry Started At: ${moment(resultEntryStart).format('LLLL')}` : null}</span>
-						<span className="bg-secondary-subtle p-2 px-3 rounded-3 border" style={{ minWidth: 220 }}>{resultEntryEnd ? `Result Concluded on: ${moment(resultEntryEnd).format('LLLL')}` : null}</span>
+						<span className="bg-body-tertiary p-2 px-3 rounded-3 border mb-2 mb-sm-0" style={{ minWidth: 220 }}>{resultEntryStart ? `Result Entry Started At: ${moment(resultEntryStart).format('LLLL')}` : null}</span>
+						<span className="bg-body-tertiary p-2 px-3 rounded-3 border" style={{ minWidth: 220 }}>{resultEntryEnd ? `Result Concluded on: ${moment(resultEntryEnd).format('LLLL')}` : null}</span>
 					</div>
-					<div className="bg-white rounded-4 mx-4 mb-4">
+					<div className="rounded-4 mx-4 mb-4" style={{ backgroundColor: 'var(--theme-card-bg)' }}>
 						<ResultEntryMainEntryBase
 							rule={rule}
 							handleComments={handleComments}
@@ -253,7 +253,7 @@ export default function CreateTestRule({ clientdata }) {
 			</section>
 			<style jsx>{`
 				.hover-bg:hover {
-					background: #f1f3f6;
+					background: var(--bs-tertiary-bg);
 					transition: background 0.2s;
 				}
 			`}</style>

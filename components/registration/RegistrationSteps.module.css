@@ -1,5 +1,5 @@
 .registration-container {
-    background-color: #f8f9fa;
+    background-color: var(--bs-body-bg);
     min-height: 100vh;
 }
 
@@ -18,11 +18,12 @@
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: #e9ecef;
+    background: var(--bs-secondary-bg);
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 600;
+    color: var(--bs-body-color);
 }
 
 .step.active .step-number {
@@ -33,13 +34,13 @@
 .step-connector {
     height: 2px;
     width: 100px;
-    background: #e9ecef;
+    background: var(--bs-border-color);
     margin-top: 16px;
 }
 
 .step-title {
     font-size: 0.875rem;
-    color: #6c757d;
+    color: var(--bs-secondary-color);
 }
 
 .step.active .step-title {

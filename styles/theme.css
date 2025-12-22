@@ -1,5 +1,27 @@
+/* Google Fonts Import */
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Crimson+Text:wght@400;600;700&family=DM+Sans:wght@400;500;700&family=Dosis:wght@300;400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Karla:wght@300;400;500;600;700&family=Lato:wght@300;400;700&family=Manrope:wght@300;400;500;600;700&family=Merriweather:wght@300;400;700&family=Montserrat:wght@300;400;500;600;700&family=Nunito:wght@300;400;600;700&family=Open+Sans:wght@300;400;600;700&family=Oswald:wght@300;400;500;600;700&family=Oxygen:wght@300;400;700&family=PT+Sans:wght@400;700&family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&family=Raleway:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&family=Source+Sans+3:wght@300;400;600;700&family=Ubuntu:wght@300;400;500;700&family=Work+Sans:wght@300;400;500;600;700&display=swap');
+
 /* PLS Primary Brand Colors */
 :root {
+    /* Default Theme Variables (Fallback) */
+    --theme-font-family: 'Inter', sans-serif;
+    --theme-sidebar-bg: #27ae60;
+    --theme-sidebar-text: #ffffff;
+    --theme-sidebar-hover: rgba(255, 255, 255, 0.1);
+    --theme-sidebar-active: rgba(255, 255, 255, 0.2);
+    --theme-sidebar-border: transparent;
+    
+    --theme-header-bg: #ffffff;
+    --theme-header-text: #2c3e50;
+    --theme-header-border: #e9ecef;
+    
+    --theme-accent: #27ae60;
+    --theme-body-bg: #f8f9fa;
+    --theme-card-bg: #ffffff;
+    
+    --theme-sidebar-width: 280px;
+    --theme-border-radius: 8px;
+
     --pls-primary: #2e7d32;
     --pls-primary-dark: #1b5e20;
     --pls-primary-light: #4caf50;
@@ -14,12 +36,44 @@
     --pls-primary-light: #66bb6a;
     --pls-primary-lighter: #81c784;
     --pls-accent: #66bb6a;
+    --pls-color: #e9ecef;
 
     /* Custom dark mode overrides for better contrast */
     --bs-body-bg: #1a1a1a;
     --bs-body-color: #e9ecef;
     --bs-border-color: #495057;
     --bs-border-color-translucent: rgba(255, 255, 255, 0.1);
+
+    /* Override Theme Variables for Dark Mode */
+    --theme-sidebar-bg: #212529 !important;
+    --theme-sidebar-text: #e9ecef !important;
+    --theme-sidebar-hover: rgba(255, 255, 255, 0.1) !important;
+    --theme-sidebar-active: rgba(255, 255, 255, 0.2) !important;
+    --theme-sidebar-border: #343a40 !important;
+    
+    --theme-header-bg: #212529 !important;
+    --theme-header-text: #e9ecef !important;
+    --theme-header-border: #343a40 !important;
+    
+    --theme-body-bg: #121212 !important;
+    --theme-card-bg: #1e1e1e !important;
+    
+    --theme-accent: #4caf50 !important;
+}
+
+/* Dark mode table row colors */
+[data-bs-theme="dark"] .table-success {
+    --bs-table-bg: #1b5e20 !important;
+    --bs-table-color: #e9ecef !important;
+    background-color: var(--bs-table-bg) !important;
+    color: var(--bs-table-color) !important;
+}
+
+[data-bs-theme="dark"] .table-danger {
+    --bs-table-bg: #b71c1c !important;
+    --bs-table-color: #e9ecef !important;
+    background-color: var(--bs-table-bg) !important;
+    color: var(--bs-table-color) !important;
 }
 
 /* Dark mode body background override */

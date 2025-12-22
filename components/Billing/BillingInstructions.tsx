@@ -8,8 +8,8 @@ import type { CSSProperties } from 'react';
 const style = {
     pageContainer: {
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'",
-        backgroundColor: '#ffffff',
-        color: '#333',
+        backgroundColor: 'var(--theme-card-bg)',
+        color: 'var(--bs-body-color)',
         maxWidth: 1200,
     },
     header: {
@@ -21,12 +21,12 @@ const style = {
         fontWeight: 800,
         fontSize: 'clamp(1.3rem, 3vw, 2.1rem)', // reduced
         letterSpacing: '-2px',
-        color: '#1a1a1a',
+        color: 'var(--bs-body-color)',
         lineHeight: 1.1,
     },
     subheading: {
         fontSize: 'clamp(0.9rem, 2vw, 1.05rem)', // reduced
-        color: '#666',
+        color: 'var(--bs-secondary-color)',
         maxWidth: 700,
         margin: '1rem auto 0',
     },
@@ -36,7 +36,7 @@ const style = {
         alignItems: 'flex-start',
         gap: '18px',
         height: '100%',
-        background: '#fafbfc',
+        background: 'var(--bs-secondary-bg)',
         borderRadius: '10px',
         padding: '18px 16px',
         boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
@@ -51,7 +51,7 @@ const style = {
         gap: '8px',
     },
     sectionHeader: {
-        color: '#0d6efd',
+        color: 'var(--bs-primary)',
         fontWeight: 600,
         fontSize: '1.05rem', // reduced
         letterSpacing: '-0.5px',
@@ -67,7 +67,7 @@ const style = {
     stepItem: {
         fontSize: '0.95rem', // reduced
         lineHeight: 1.5,
-        color: '#444',
+        color: 'var(--bs-body-color)',
         position: 'relative',
         counterIncrement: 'step-counter',
         marginBottom: '0.7rem',
@@ -76,8 +76,8 @@ const style = {
         position: 'absolute',
         left: '-28px',
         top: '3px',
-        backgroundColor: '#f0f0f0',
-        color: '#555',
+        backgroundColor: 'var(--bs-tertiary-bg)',
+        color: 'var(--bs-secondary-color)',
         fontWeight: 600,
         width: '20px',
         height: '20px',
@@ -88,8 +88,8 @@ const style = {
         fontSize: '0.8rem', // reduced
     },
     code: {
-        backgroundColor: '#eef2f7',
-        color: '#334155',
+        backgroundColor: 'var(--bs-tertiary-bg)',
+        color: 'var(--bs-body-color)',
         padding: '0.15em 0.4em',
         borderRadius: '6px',
         fontSize: '0.85em', // reduced
@@ -97,7 +97,7 @@ const style = {
     },
     tipBox: {
         marginTop: '2rem',
-        backgroundColor: '#f8f9fa',
+        backgroundColor: 'var(--bs-secondary-bg)',
         border: '1px solid #dee2e6',
         borderLeft: '5px solid #0d6efd',
         padding: '1.1rem', // reduced

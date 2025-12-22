@@ -19,7 +19,7 @@ export default function LimitViewHtmlGenerator({ fieldItem, statehandler, index 
     return (<tr className={determineTableColor(value, upperlimit, lowerlimit)}>
         <td>{name}</td>
         <td>
-            <input onChange={(ev) => { statehandler(ev, index) }} className="custom-input" value={value} />
+            <input onChange={(ev) => { statehandler(ev, index) }} className="custom-input" value={value} style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }} />
         </td>
         <td>
             {units}

@@ -60,14 +60,8 @@ export default function PermissionsOfUsers() {
 	}, [getUserPermissions])
 
 
-
-
-	// handle checkbox Changes 
-
 	const handleChange = (ev, target, setTarget) => {
 		const { name, checked } = ev.target;
-
-		// Handle nested permissions (e.g., "patientManagement.registerPatient")
 		if (name.includes('.')) {
 			const [group, permission] = name.split('.');
 			setTarget({
@@ -78,7 +72,6 @@ export default function PermissionsOfUsers() {
 				}
 			});
 		} else {
-			// Handle flat permissions (backward compatibility)
 			setTarget({ ...target, [name]: checked });
 		}
 	}

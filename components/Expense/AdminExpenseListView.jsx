@@ -57,18 +57,14 @@ export default function AdminExpensesList({ branchid, employeeid }) {
 				<Modal.Header
 					closeButton
 					onHide={() => { setSelected(null); }}
-					className="bg-white border-bottom py-3"
-					style={{ borderBottom: '2px solid #e9ecef' }}
+					className="border-bottom py-3"
 				>
-					<Modal.Title className="fw-semibold" style={{ fontSize: '1.1rem', color: '#000000' }}>
+					<Modal.Title className="fw-semibold" style={{ fontSize: '1.1rem' }}>
 						Expense Details
 					</Modal.Title>
 				</Modal.Header>
 				<Modal.Body
 					className="p-4"
-					style={{
-						background: 'linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%)'
-					}}
 				>
 					<ExpenseDetail
 						detail={selected}

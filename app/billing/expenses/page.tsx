@@ -116,7 +116,7 @@ export default function ExpenseList() {
 				</div>
 			</section>
 
-			<div className="bg-light p-2 rounded mb-3 fw-medium">
+			<div className="bg-body-tertiary p-2 rounded mb-3 fw-medium">
 				User Requested Expenses
 			</div>
 

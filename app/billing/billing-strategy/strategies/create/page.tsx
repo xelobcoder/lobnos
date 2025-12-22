@@ -228,13 +228,13 @@ function BillingStrategyForm() {
 
                     <div className="row">
                          <div className="col-md-5" style={{ flex: '0 0 40%', maxWidth: '40%' }}>
-                              <div className="border bg-white border-secondary-subtle p-2">
+                              <div className="border border-secondary-subtle p-2" style={{ backgroundColor: 'var(--theme-card-bg)' }}>
                                    <form className="mx-4" onSubmit={e => { e.preventDefault(); handleBillingStrategyFormSubmission(); }}>
                                         <div className="form-row grid-reg mt-2">
                                              <label className="pls-label">Strategy Name*</label>
                                              <input
                                                   type="text"
-                                                  className="custom-input"
+                                                  className="form-control form-control-sm"
                                                   value={row.strategyName}
                                                   onChange={e => handleRowChange('strategyName', e.target.value)}
                                                   placeholder="Enter strategy name"
@@ -245,7 +245,7 @@ function BillingStrategyForm() {
                                         <div className="form-row grid-reg mt-2">
                                              <label className="pls-label">Description</label>
                                              <textarea
-                                                  className="custom-input"
+                                                  className="form-control form-control-sm"
                                                   rows={3}
                                                   value={row.description}
                                                   onChange={e => handleRowChange('description', e.target.value)}
@@ -288,7 +288,7 @@ function BillingStrategyForm() {
                                                   <div className="form-row grid-reg mt-2">
                                                        <label className="pls-label">Pricing Type</label>
                                                        <select
-                                                            className="custom-select"
+                                                            className="form-select form-select-sm"
                                                             value={row.price_type}
                                                             onChange={e => handleRowChange('price_type', e.target.value)}
                                                        >
@@ -300,7 +300,7 @@ function BillingStrategyForm() {
                                                   <div className="form-row grid-reg mt-2">
                                                        <label className="pls-label">Concession Mode</label>
                                                        <select
-                                                            className="custom-select"
+                                                            className="form-select form-select-sm"
                                                             value={row.selectionMode}
                                                             onChange={e => handleRowChange('selectionMode', e.target.value)}
                                                        >
@@ -313,7 +313,7 @@ function BillingStrategyForm() {
                                                        <label className="pls-label">Concession Value</label>
                                                        <input
                                                             type="number"
-                                                            className="custom-input"
+                                                            className="form-control form-control-sm"
                                                             value={row.concessionValue}
                                                             onChange={e => handleRowChange('concessionValue', e.target.value)}
                                                             min="0"
@@ -329,7 +329,7 @@ function BillingStrategyForm() {
                                              <label className="pls-label">Valid From</label>
                                              <input
                                                   type="date"
-                                                  className="custom-input"
+                                                  className="form-control form-control-sm"
                                                   value={row.valid_from}
                                                   onChange={e => handleRowChange('valid_from', e.target.value)}
                                              />
@@ -339,7 +339,7 @@ function BillingStrategyForm() {
                                              <label className="pls-label">Valid Until</label>
                                              <input
                                                   type="date"
-                                                  className="custom-input"
+                                                  className="form-control form-control-sm"
                                                   value={row.validUntil}
                                                   onChange={e => handleRowChange('validUntil', e.target.value)}
                                              />
@@ -369,7 +369,7 @@ function BillingStrategyForm() {
 
                          {!row.isAllTestsConcessionVisible && (
                               <div className="col-md-7" style={{ flex: '0 0 60%', maxWidth: '60%' }}>
-                                   <div className="border bg-white border-secondary-subtle p-2">
+                                   <div className="border border-secondary-subtle p-2" style={{ backgroundColor: 'var(--theme-card-bg)' }}>
                                         <div className="mx-4">
                                              <ClinicianIndividualBillingConcession
                                                   selectedTests={selectedTests}

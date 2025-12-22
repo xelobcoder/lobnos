@@ -349,7 +349,7 @@ const InvoiceList = ({ branchid, employeeid }) => {
           <div>
                {/* Header */}
                <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h5 className="mb-0 fw-semibold text-dark">Invoice Management</h5>
+                    <h5 className="mb-0 fw-semibold text-body">Invoice Management</h5>
                </div>
 
                {/* Filter Button */}
@@ -450,7 +450,7 @@ const InvoiceList = ({ branchid, employeeid }) => {
                          {selectedInvoice && (
                               <div className="row g-3">
                                    <div className="col-md-6">
-                                        <div className="border rounded p-3">
+                                        <div className="border rounded p-3 bg-body-tertiary">
                                              <h6 className="fw-semibold mb-3">Invoice Information</h6>
                                              <div className="mb-2">
                                                   <strong>Invoice Number:</strong> {selectedInvoice.invoice_number}
@@ -473,7 +473,7 @@ const InvoiceList = ({ branchid, employeeid }) => {
                                         </div>
                                    </div>
                                    <div className="col-md-6">
-                                        <div className="border rounded p-3">
+                                        <div className="border rounded p-3 bg-body-tertiary">
                                              <h6 className="fw-semibold mb-3">Financial Details</h6>
                                              <div className="mb-2">
                                                   <strong>Total Amount:</strong> {currencyFormatter.format(selectedInvoice.total_amount)}
@@ -490,7 +490,7 @@ const InvoiceList = ({ branchid, employeeid }) => {
                                         </div>
                                    </div>
                                    <div className="col-12">
-                                        <div className="border rounded p-3">
+                                        <div className="border rounded p-3 bg-body-tertiary">
                                              <h6 className="fw-semibold mb-3">Related Expenses</h6>
                                              {loadingExpenses ? (
                                                   <div className="text-center py-3">
@@ -534,7 +534,7 @@ const InvoiceList = ({ branchid, employeeid }) => {
                                         </div>
                                    </div>
                                    <div className="col-12">
-                                        <div className="border rounded p-3">
+                                        <div className="border rounded p-3 bg-body-tertiary">
                                              <h6 className="fw-semibold mb-3">Payment History</h6>
                                              {loadingPayments ? (
                                                   <div className="text-center py-3">

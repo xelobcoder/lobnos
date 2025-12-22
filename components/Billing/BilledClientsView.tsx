@@ -363,13 +363,13 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 					)}
 					<input
 						type="date"
-						className="custom-input"
+						className="form-control form-control-sm"
 						value={datequery.from}
 						onChange={(ev) => setDatequery({ ...datequery, from: ev.target.value })}
 					/>
 					<input
 						type="date"
-						className="custom-input mx-2"
+						className="form-control form-control-sm mx-2"
 						value={datequery.to}
 						onChange={(ev) => setDatequery({ ...datequery, to: ev.target.value })}
 					/>
