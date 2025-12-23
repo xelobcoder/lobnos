@@ -5,7 +5,7 @@
     background: #fff;
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     /* Add horizontal scrolling */
     min-width: fit-content;
     overflow-x: auto;
@@ -91,8 +91,8 @@ html[data-table-style="modern"] .prime-table-theme,
     --pt-accent: #2196f3;
     border-radius: 0;
     border: 1px solid #babfc7;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 }
+
 html[data-table-style="modern"] .prime-table-theme thead th,
 .prime-table-modern thead th {
     border-right: 1px solid var(--pt-border);
@@ -100,6 +100,7 @@ html[data-table-style="modern"] .prime-table-theme thead th,
     text-transform: none;
     padding: 12px;
 }
+
 html[data-table-style="modern"] .prime-table-theme tbody td,
 .prime-table-modern tbody td {
     border-right: 1px solid transparent;
@@ -117,8 +118,10 @@ html[data-table-style="corporate"] .prime-table-theme,
     --pt-accent: #0091ea;
     border-radius: 0;
     border: 1px solid #bdc3c7;
-    font-size: 12px; /* Dense */
+    font-size: 12px;
+    /* Dense */
 }
+
 html[data-table-style="corporate"] .prime-table-theme thead th,
 .prime-table-corporate thead th {
     padding: 4px 8px;
@@ -127,6 +130,7 @@ html[data-table-style="corporate"] .prime-table-theme thead th,
     background: linear-gradient(to bottom, #f9f9f9, #e8e9e9);
     font-weight: 600;
 }
+
 html[data-table-style="corporate"] .prime-table-theme tbody td,
 .prime-table-corporate tbody td {
     padding: 4px 8px;
@@ -147,6 +151,7 @@ html[data-table-style="minimal"] .prime-table-theme,
     box-shadow: none;
     border: none;
 }
+
 html[data-table-style="minimal"] .prime-table-theme thead th,
 .prime-table-minimal thead th {
     border-bottom: 2px solid #dfe6e9;
@@ -155,6 +160,7 @@ html[data-table-style="minimal"] .prime-table-theme thead th,
     letter-spacing: 1px;
     padding: 16px;
 }
+
 html[data-table-style="minimal"] .prime-table-theme tbody td,
 .prime-table-minimal tbody td {
     border-bottom: 1px solid #f5f6fa;
@@ -173,9 +179,10 @@ html[data-table-style="grid"] .prime-table-theme,
     --pt-accent: #00bcd4;
     border: 1px solid var(--pt-border);
 }
-html[data-table-style="grid"] .prime-table-theme td, 
+
+html[data-table-style="grid"] .prime-table-theme td,
 html[data-table-style="grid"] .prime-table-theme th,
-.prime-table-grid td, 
+.prime-table-grid td,
 .prime-table-grid th {
     border-right: 1px solid var(--pt-border);
     border-bottom: 1px solid var(--pt-border);
@@ -191,9 +198,9 @@ html[data-table-style="elegant"] .prime-table-theme,
     --pt-border: #e0e0e0;
     --pt-text: rgba(0, 0, 0, 0.87);
     --pt-accent: #e91e63;
-    font-family: "Roboto", sans-serif;
     border: none;
 }
+
 html[data-table-style="elegant"] .prime-table-theme thead th,
 .prime-table-elegant thead th {
     border-bottom: 1px solid var(--pt-border);
@@ -202,6 +209,7 @@ html[data-table-style="elegant"] .prime-table-theme thead th,
     color: rgba(0, 0, 0, 0.54);
     padding: 16px 24px;
 }
+
 html[data-table-style="elegant"] .prime-table-theme tbody td,
 .prime-table-elegant tbody td {
     border-bottom: 1px solid var(--pt-border);
@@ -216,7 +224,7 @@ html[data-table-style="elegant"] .prime-table-theme tbody td,
     background: var(--pt-bg);
     color: var(--pt-text);
     overflow: hidden;
-    
+
     /* Default fallback variables */
     --pt-bg: #ffffff;
     --pt-header-bg: #f8f9fa;
@@ -291,6 +299,7 @@ html[data-bs-theme="dark"] .prime-table-corporate {
     --pt-text: #f0f0f0;
     --pt-accent: #00bcd4;
 }
+
 html[data-bs-theme="dark"][data-table-style="corporate"] .prime-table-theme thead th {
     background: linear-gradient(to bottom, #2c3032, #222628);
 }
@@ -330,4 +339,3 @@ html[data-bs-theme="dark"] .prime-table-elegant {
     --pt-text: rgba(255, 255, 255, 0.87);
     --pt-accent: #f48fb1;
 }
-

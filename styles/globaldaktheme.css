@@ -6,8 +6,6 @@
   --custom-blue: #2165e3;
   --text-color: black;
   --prime-attention: #ff6a00;
-  --prime-links-font-family: "Lexend Deca", Helvetica, Arial, sans-serif;
-  --prime-ui-font-family:  "Montserrat", sans-serif;
   --custom-orange: #feb602;
   --custom-dark_blue: #142a5e;
   --prime-sidebar-deep: #053d6d;
@@ -18,20 +16,19 @@
 }
 
 /* Light Mode Defaults */
-html, body {
+html,
+body {
   scroll-behavior: smooth;
   text-size-adjust: 100%;
   line-height: 1.0;
   overflow-x: hidden;
   overflow-y: auto;
-  font-family: "Barlow", sans-serif;
   background-color: white;
 }
 
 body {
   font-size: 0.95em;
   font-weight: 400;
-  font-family: "Barlow", sans-serif;
 }
 
 .pls-color {
@@ -39,9 +36,7 @@ body {
   font-size: 13px;
 }
 
-.ui {
-  font-family: var(--prime-links-font-family);
-}
+.ui {}
 
 .sidebarMenu {
   display: none;
@@ -57,7 +52,7 @@ ul {
   padding: 0;
 }
 
-ul > li {
+ul>li {
   list-style-type: none;
 }
 

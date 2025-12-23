@@ -1,9 +1,7 @@
-
 /* Dashboard container */
 .dashboardContainer {
     display: flex;
     height: 100vh;
-    font-family: 'Roboto', sans-serif;
 }
 
 /* Sidebar styles */
@@ -20,7 +18,8 @@
     font-size: 1.5rem;
     font-weight: bold;
     margin-bottom: 24px;
-    color: #28a745; /* Green color */
+    color: #28a745;
+    /* Green color */
     text-align: left;
 }
 
@@ -93,10 +92,12 @@
     }
 
     .profileImage {
-        margin-bottom: 1rem; /* Added margin */
+        margin-bottom: 1rem;
+        /* Added margin */
     }
 
     .sendMessageButton {
-        margin-top: 1rem; /* Added margin */
+        margin-top: 1rem;
+        /* Added margin */
     }
 }

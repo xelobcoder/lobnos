@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { getFontPreference, applyFontToDocument } from '../lib/themes';
 
 type Theme = 'light' | 'dark';
 
@@ -42,6 +43,11 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
           if (mounted) {
                const root = document.documentElement;
                root.setAttribute('data-bs-theme', theme);
+               // Set default layout structure to sidebar-full
+               root.setAttribute('data-layout-structure', 'sidebar-full');
+               // Apply saved font preference
+               const savedFont = getFontPreference();
+               applyFontToDocument(savedFont);
                localStorage.setItem('theme', theme);
           }
      }, [theme, mounted]);

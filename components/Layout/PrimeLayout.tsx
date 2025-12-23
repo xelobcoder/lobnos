@@ -1,26 +1,14 @@
 'use client';
 import React, { useState, useEffect } from "react";
 import styles from './PrimeLayout.module.css';
-import { RiMenuLine, RiArrowLeftLine, RiArrowRightLine, RiAddLine, RiSubtractLine, RiPaletteLine } from '@remixicon/react';
+import { RiMenuLine, RiArrowLeftLine, RiArrowRightLine, RiAddLine, RiSubtractLine } from '@remixicon/react';
 import { Dropdown } from 'react-bootstrap';
 import { useApplicationSettings } from "../Auth/useApplicationContext";
 import { Link as LinkType } from "./links/types";
 import { AdminRoleLinks, FrontdeskRoleLinks, LaboratoryScientistRoleLinks, PhelobotomyRoleLinks, SonographerRoleLinks } from "../FrontPageView/RoleLinks";
-import { ThemeToggle } from '../ThemeToggle';
-import { ThemeSelector } from './ThemeSelector';
-import {
-    getThemePreference,
-    getThemeById,
-    applyThemeToDocument,
-    getFontPreference,
-    applyFontToDocument,
-    getSidebarPreference,
-    applySidebarToDocument,
-    getTableThemePreference,
-    applyTableThemeToDocument,
-    getLayoutStructurePreference,
-    applyLayoutStructureToDocument
-} from '../../lib/themes';
+import { FontSelector } from "./FontSelector";
+import { getFontPreference, applyFontToDocument } from "../../lib/themes";
+import { useTheme } from "../ThemeProvider";
 
 
 interface PrimeLayoutProps {
@@ -30,6 +18,7 @@ interface PrimeLayoutProps {
 
 const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
     const { company, user } = useApplicationSettings().applicationsettings;
+    const { theme, toggleTheme } = useTheme();
 
     const roleViews = {
         "customer service representative": FrontdeskRoleLinks,
@@ -45,43 +34,10 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
     const [isAppsExpanded, setIsAppsExpanded] = useState<boolean>(false);
     const [isMobile, setIsMobile] = useState<boolean>(false);
+    const [isFontSelectorOpen, setIsFontSelectorOpen] = useState<boolean>(false);
     const roleLinks = roleViews[user.role] || [];
     const employeeid = user?.employeeid || 0;
     const [currentPath, setCurrentPath] = useState<string>("");
-    const [showThemeSelector, setShowThemeSelector] = useState(false);
-    const [currentTheme, setCurrentTheme] = useState('professional-green');
-
-    useEffect(() => {
-        // Initialize theme
-        const savedThemeId = getThemePreference();
-        setCurrentTheme(savedThemeId);
-        const theme = getThemeById(savedThemeId);
-        applyThemeToDocument(theme);
-
-        // Initialize font
-        const savedFont = getFontPreference();
-        if (savedFont) {
-            applyFontToDocument(savedFont);
-        }
-
-        // Initialize sidebar
-        const savedSidebar = getSidebarPreference();
-        if (savedSidebar) {
-            applySidebarToDocument(savedSidebar);
-        }
-
-        // Initialize table theme
-        const savedTableTheme = getTableThemePreference();
-        if (savedTableTheme) {
-            applyTableThemeToDocument(savedTableTheme);
-        }
-
-        // Initialize layout structure
-        const savedLayout = getLayoutStructurePreference();
-        if (savedLayout) {
-            applyLayoutStructureToDocument(savedLayout);
-        }
-    }, []);
 
     useEffect(() => {
         setCurrentPath(window.location.pathname);
@@ -96,6 +52,12 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
         window.addEventListener('resize', checkIsMobile);
 
         return () => window.removeEventListener('resize', checkIsMobile);
+    }, []);
+
+    // Apply saved font preference on mount
+    useEffect(() => {
+        const savedFont = getFontPreference();
+        applyFontToDocument(savedFont);
     }, []);
 
     const handleNavigation = (path: string) => {
@@ -182,19 +144,27 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                     <div className={styles.headerActions}>
                         <div className="d-none d-md-flex flex-column align-items-end me-2" style={{ lineHeight: '1.2' }}>
                             <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{user?.username}({user?.role})</span>
-                           
+
                         </div>
-                        <ThemeToggle className={styles.themeToggle} />
                         <button
                             className={styles.themeToggle}
-                            onClick={() => setShowThemeSelector(true)}
-                            title="Change Theme"
+                            onClick={toggleTheme}
+                            title={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
+                            aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
                         >
-                            <RiPaletteLine size={20} />
+                            {theme === 'light' ? '🌙' : '☀️'}
                         </button>
                         <a href={`/human-resource/profile?employeeid=${employeeid}`} className={styles.profileLink} title="Profile">
                             <span>👤</span>
                         </a>
+                        <button
+                            className={styles.fontSelectorButton}
+                            onClick={() => setIsFontSelectorOpen(true)}
+                            title="Change Font"
+                            aria-label="Change application font"
+                        >
+                            <span>🔤</span>
+                        </button>
                         <button
                             className={styles.mobileMenuButton}
                             onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
@@ -236,6 +206,16 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                                 {/* Account Section */}
                                 <div className={styles.dropdownSection}>
                                     <div className={styles.dropdownSectionTitle}>Account</div>
+                                    <Dropdown.Item
+                                        onClick={() => setIsFontSelectorOpen(true)}
+                                        className={styles.roleDropdownItem}
+                                    >
+                                        <span className={styles.dropdownIcon}>🔤</span>
+                                        <span>
+                                            <div className={styles.dropdownItemTitle}>Font</div>
+                                            <div className={styles.dropdownItemSubtitle}>Change application font</div>
+                                        </span>
+                                    </Dropdown.Item>
                                     <Dropdown.Item href="/settings" className={styles.roleDropdownItem}>
                                         <span className={styles.dropdownIcon}>⚙️</span>
                                         <span>
@@ -350,12 +330,9 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                     </div>
                 </main>
             </div>
-
-            <ThemeSelector
-                isOpen={showThemeSelector}
-                onClose={() => setShowThemeSelector(false)}
-                currentThemeId={currentTheme}
-                onThemeSelect={setCurrentTheme}
+            <FontSelector
+                isOpen={isFontSelectorOpen}
+                onClose={() => setIsFontSelectorOpen(false)}
             />
         </div>
     );

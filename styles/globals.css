@@ -1,4 +1,3 @@
-
 /* ===========================================
    GLOBAL STYLES - Modular CSS Imports
    ===========================================
@@ -11,6 +10,12 @@
    - layout.css: Grid systems, responsive design, and layout utilities
    - others.css: Miscellaneous styles (billing, animations, utilities, etc.)
    =========================================== */
+
+* {
+   font-family: var(--theme-font-family, 'Raleway', sans-serif);
+   line-height: 1.5;
+   font-size: var(--theme-font-size, 15px);
+}
 
 @import './theme.css';
 @import './form-fields.css';
