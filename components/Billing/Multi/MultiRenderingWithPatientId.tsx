@@ -1,11 +1,12 @@
 import { Col } from "react-bootstrap";
 import MultiTestBillingTable from "./MultiTestBillingTable";
-import MultiPreviousBilledTestRecords from "./MultiPreviousBilledTestRecords";
 import React, { useContext } from "react";
 import { MultiBillingContext } from "./MultiBillingContext";
 import MultiServicesProvidedToPatientBilling from "./MultiServicesProvidedToPatientBilling";
 
-export default function MultiRenderingWithPatientId() {
+
+
+export default function MultiRenderingWithPatientId(canload:{canload:boolean}) {
     const context = useContext(MultiBillingContext);
     if (!context) throw new Error("MultiBillingContext not found");
     const { billingdata } = context;
@@ -22,7 +23,7 @@ export default function MultiRenderingWithPatientId() {
     return (
         <div  >
             <Col>
-                <MultiTestBillingTable />
+                <MultiTestBillingTable canload={canload.canload} />
                 <MultiServicesProvidedToPatientBilling />
             </Col>
         </div>

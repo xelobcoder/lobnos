@@ -12,15 +12,18 @@ import {
     RiCheckboxCircleLine,
     RiErrorWarningLine,
 } from '@remixicon/react';
+import { Button } from "react-bootstrap";
+import { MultiBillingData } from "../../../lib/Multi/MultiTypes";
 
 interface MultiSummaryProps {
     summaryData?: any;
+    handlesubmit?: (data:MultiBillingData) => void;
 }
 
-export default function MultiSummary({ summaryData }: MultiSummaryProps) {
+export default function MultiSummary({ summaryData, handlesubmit }: MultiSummaryProps) {
     const context = useContext(MultiBillingContext);
     if (!context) throw new Error("MultiBillingContext not found");
-    const { billingdata } = context;
+    const { billingdata, setBillingData } = context;
     // Use summaryData if provided, else fall back to billingdata
     const data = summaryData || billingdata;
 
@@ -61,7 +64,7 @@ export default function MultiSummary({ summaryData }: MultiSummaryProps) {
                         <RiMoneyDollarCircleLine className="me-2" />
                         Total Cost
                     </span>
-                    <span className="fw-bold">{currencyFormatter.format( data?.subtotal || data?.totalcost)}</span>
+                    <span className="fw-bold">{currencyFormatter.format(data?.subtotal || data?.totalcost)}</span>
                 </div>
                 <div className="border-top my-2"></div>
                 <div className="list-group-item d-flex justify-content-between bg-primary-subtle">
@@ -93,7 +96,8 @@ export default function MultiSummary({ summaryData }: MultiSummaryProps) {
                     <span className="fw-bold">{currencyFormatter.format(data.balance ?? data.outstanding)}</span>
                 </div>
             </div>
-             <MultiBillingPageAdditionalInformation />
+        
+            <MultiBillingPageAdditionalInformation handlesubmit={handlesubmit} />
         </div>
     );
 }

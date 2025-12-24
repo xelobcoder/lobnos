@@ -3,6 +3,7 @@ import { Button } from "react-bootstrap";
 import { MultiBillingContext } from "./MultiBillingContext";
 import PaymentModal from "./PaymentModal";
 import { calculateCorrectionalAdjustment } from "../../../lib/Multi/correctionUtils";
+import { MultiBillingData } from "../../../lib/Multi/MultiTypes";
 
 interface PaymentModeOption {
     value: string | number;
@@ -14,7 +15,12 @@ interface PaymentEntry {
     amount: number;
 }
 
-const MultiPayment: React.FC = () => {
+
+interface MultiPaymentProps {
+    handlesubmit?: (data: MultiBillingData) => void;
+}
+
+const MultiPayment: React.FC<MultiPaymentProps> = ({ handlesubmit }) => {
     const context = useContext(MultiBillingContext);
     if (!context) throw new Error("MultiBillingContext not found");
     const { billingdata, setBillingData } = context;
@@ -128,6 +134,7 @@ const MultiPayment: React.FC = () => {
                         setBillingData(prev => ({ ...prev, openPaymentModal: 0 }));
                     }
                 }}
+                handlesubmit={handlesubmit}
                 payments={payments}
                 availableModes={availableModes}
                 payable={payable}

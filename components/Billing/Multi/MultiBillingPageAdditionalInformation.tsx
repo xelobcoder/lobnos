@@ -14,7 +14,7 @@ import { calculateCorrectionalAdjustment } from '../../../lib/Multi/correctionUt
 import { currencyFormatter } from "../../Auth/customFetch";
 
 
-export default function MultiBillingPageAdditionalInformation({ showChoiceModal: forceShowChoiceModal = false, onBillingSuccess }: { showChoiceModal?: boolean, onBillingSuccess?: (billingid: string, message?: string) => void }) {
+export default function MultiBillingPageAdditionalInformation({ showChoiceModal: forceShowChoiceModal = false, onBillingSuccess, handlesubmit }: { showChoiceModal?: boolean, onBillingSuccess?: (billingid: string, message?: string) => void, handlesubmit?: (data:MultiBillingData) => void }) {
 	// Outstanding Write-Off Dialog State
 	const [showOutstandingDialog, setShowOutstandingDialog] = useState(false);
 	const [outstandingInfo, setOutstandingInfo] = useState<{
@@ -54,7 +54,7 @@ export default function MultiBillingPageAdditionalInformation({ showChoiceModal:
 		setUserAgreedToWriteOff(false);
 	};
 
-	
+
 
 	const handleUserChoice = (choice: string) => {
 		setShowChoiceModal(false);
@@ -74,14 +74,14 @@ export default function MultiBillingPageAdditionalInformation({ showChoiceModal:
 		if (onBillingSuccess) onBillingSuccess(billingid, message);
 	};
 
-	
+
 
 	return (
 		<Row>
 			<div>
 				<section>
 					<div className="form-group">
-						<MultiPayment />
+						<MultiPayment handlesubmit={handlesubmit} />
 					</div>
 				</section>
 				<hr />

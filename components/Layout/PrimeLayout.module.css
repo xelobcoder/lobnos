@@ -853,3 +853,57 @@
     background-color: #2c3034;
     color: var(--theme-accent);
 }
+
+/* Print Styles - Hide header and sidebar when printing */
+@media print {
+    .darkHeader {
+        display: none !important;
+    }
+
+    .quickLinksSidebar {
+        display: none !important;
+    }
+
+    .container {
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    .twoColumnLayout {
+        display: block !important;
+        width: 100% !important;
+        max-width: none !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    .mainContent {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: none !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    .contentWrapper {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: none !important;
+        width: 100% !important;
+        min-height: auto !important;
+    }
+
+    .container {
+        width: 100% !important;
+        max-width: none !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    .mobileOverlay {
+        display: none !important;
+    }
+}

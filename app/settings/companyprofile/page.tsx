@@ -81,7 +81,7 @@ export default function CompanyProfile() {
 			formData.append('file', file);
 
 			try {
-				const baseUrl = process.env.BASEURL?.endsWith('/') ? process.env.BASEURL : `${process.env.BASEURL}/`;
+				const baseUrl = process.env.NODE_ENV === 'development' ? process.env.DEVELOPMENT_BASEURL : process.env.PRODUCTION_BASEURL;
 				const response = await fetch(`${baseUrl}settings/companyprofile/images`, {
 					method: 'POST',
 					body: formData,
@@ -106,7 +106,7 @@ export default function CompanyProfile() {
 					setCompanyData({ ...defaultData, ...response, labTimings: response.labTimings || '{"timings": []}', alternativenumber: response.alternativenumber });
 				}
 
-				const baseUrl = process.env.BASEURL
+				const baseUrl = process.env.NODE_ENV === 'development' ? process.env.DEVELOPMENT_BASEURL : process.env.PRODUCTION_BASEURL;
 				const imageResponse = await fetch(`${baseUrl}settings/companyprofile/images`);
 				if (imageResponse.ok) {
 					const imageBlob = await imageResponse.blob();

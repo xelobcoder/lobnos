@@ -152,9 +152,17 @@ export default function LabReportPrintingMultiple() {
 					const margin = 10;
 					const usableWidth = pageWidth - margin * 2;
 
-					const headerCanvas = await html2canvas(headerEl as HTMLElement, { scale: 2, useCORS: true });
-					const headerImgData = headerCanvas.toDataURL('image/png');
-					const headerHeightMm = (headerCanvas.height * usableWidth) / headerCanvas.width;
+					let headerImgData: string;
+					let headerHeightMm: number;
+
+					try {
+						const headerCanvas = await html2canvas(headerEl as HTMLElement, { scale: 1.5, useCORS: true });
+						headerImgData = headerCanvas.toDataURL('image/png');
+						headerHeightMm = (headerCanvas.height * usableWidth) / headerCanvas.width;
+					} catch (error) {
+						console.error('Error creating header canvas:', error);
+						throw new Error('Failed to capture header for PDF');
+					}
 
 					const pageTopWithHeader = margin + headerHeightMm;
 					const pageTopNoHeader = margin;
@@ -168,105 +176,115 @@ export default function LabReportPrintingMultiple() {
 					const sectionEls: HTMLElement[] = Array.from(resultElement.querySelectorAll('.test-section')) as HTMLElement[];
 
 					for (const sectionEl of sectionEls) {
-						// Temporarily remove extra spacing for clean capture
-						const prev = {
-							marginTop: sectionEl.style.marginTop,
-							marginBottom: sectionEl.style.marginBottom,
-							paddingTop: sectionEl.style.paddingTop,
-							paddingBottom: sectionEl.style.paddingBottom,
-							borderBottom: sectionEl.style.borderBottom,
-						};
-						sectionEl.style.marginTop = '0px';
-						sectionEl.style.marginBottom = '16px';
-						sectionEl.style.paddingTop = '0px';
-						sectionEl.style.paddingBottom = '0px';
-						sectionEl.style.borderBottom = 'none';
+						try {
+							// Temporarily remove extra spacing for clean capture
+							const prev = {
+								marginTop: sectionEl.style.marginTop,
+								marginBottom: sectionEl.style.marginBottom,
+								paddingTop: sectionEl.style.paddingTop,
+								paddingBottom: sectionEl.style.paddingBottom,
+								borderBottom: sectionEl.style.borderBottom,
+							};
+							sectionEl.style.marginTop = '0px';
+							sectionEl.style.marginBottom = '16px';
+							sectionEl.style.paddingTop = '0px';
+							sectionEl.style.paddingBottom = '0px';
+							sectionEl.style.borderBottom = 'none';
 
-						// Ensure images within this section are loaded
-						await ensureImagesLoaded(sectionEl);
+							// Ensure images within this section are loaded
+							await ensureImagesLoaded(sectionEl);
 
-						const canvas = await html2canvas(sectionEl as HTMLElement, { scale: 2, useCORS: true });
-						const imgWidthMm = usableWidth;
-						const mmPerPx = imgWidthMm / canvas.width;
-						const sectionMmHeight = canvas.height * mmPerPx;
+							const canvas = await html2canvas(sectionEl as HTMLElement, { scale: 1.5, useCORS: true });
+							const imgWidthMm = usableWidth;
+							const mmPerPx = imgWidthMm / canvas.width;
+							const sectionMmHeight = canvas.height * mmPerPx;
 
-						const drawWholeSection = async () => {
-							const imgData = canvas.toDataURL('image/png');
-							pdf.addImage(imgData, 'PNG', margin, y, imgWidthMm, sectionMmHeight);
-							y += sectionMmHeight;
-						};
+							const drawWholeSection = async () => {
+								const imgData = canvas.toDataURL('image/png');
+								pdf.addImage(imgData, 'PNG', margin, y, imgWidthMm, sectionMmHeight);
+								y += sectionMmHeight;
+							};
 
-						const sliceSectionAcrossPages = async () => {
-							let srcY = 0;
-							const totalPx = canvas.height;
-							while (srcY < totalPx) {
-								const availableMm = pageBottom - y;
-								if (availableMm <= 0.5) {
-									// Continuation of same test across pages: no header
+							const sliceSectionAcrossPages = async () => {
+								let srcY = 0;
+								const totalPx = canvas.height;
+								while (srcY < totalPx) {
+									const availableMm = pageBottom - y;
+									if (availableMm <= 0.5) {
+										// Continuation of same test across pages: no header
+										pdf.addPage();
+										y = pageTopNoHeader;
+									}
+									const maxSlicePx = Math.floor((pageBottom - y) / mmPerPx);
+									const slicePx = Math.min(Math.max(maxSlicePx, 1), totalPx - srcY);
+
+									const sliceCanvas = document.createElement('canvas');
+									sliceCanvas.width = canvas.width;
+									sliceCanvas.height = slicePx;
+									const ctx = sliceCanvas.getContext('2d');
+									if (ctx) {
+										try {
+											ctx.drawImage(
+												canvas,
+												0,
+												srcY,
+												canvas.width,
+												slicePx,
+												0,
+												0,
+												sliceCanvas.width,
+												sliceCanvas.height
+											);
+										} catch (error) {
+											console.error('Error drawing image slice:', error);
+											continue; // Skip this slice
+										}
+									}
+									const sliceImgData = sliceCanvas.toDataURL('image/png');
+									const sliceMmHeight = slicePx * mmPerPx;
+									pdf.addImage(sliceImgData, 'PNG', margin, y, imgWidthMm, sliceMmHeight);
+									y += sliceMmHeight;
+									srcY += slicePx;
+								}
+							};
+
+							const remainingMm = pageBottom - y;
+							if (sectionMmHeight <= remainingMm) {
+								await drawWholeSection();
+							} else {
+								// Start new test on a fresh page with header
+								if (y !== pageTopWithHeader) {
 									pdf.addPage();
-									y = pageTopNoHeader;
+									pdf.addImage(headerImgData, 'PNG', margin, margin, usableWidth, headerHeightMm);
+									y = pageTopWithHeader;
 								}
-								const maxSlicePx = Math.floor((pageBottom - y) / mmPerPx);
-								const slicePx = Math.min(Math.max(maxSlicePx, 1), totalPx - srcY);
-
-								const sliceCanvas = document.createElement('canvas');
-								sliceCanvas.width = canvas.width;
-								sliceCanvas.height = slicePx;
-								const ctx = sliceCanvas.getContext('2d');
-								if (ctx) {
-									ctx.drawImage(
-										canvas,
-										0,
-										srcY,
-										canvas.width,
-										slicePx,
-										0,
-										0,
-										sliceCanvas.width,
-										sliceCanvas.height
-									);
+								if (sectionMmHeight <= contentHeightMm) {
+									await drawWholeSection();
+								} else {
+									// Too tall: slice across pages; first page has header already, next pages omit header
+									await sliceSectionAcrossPages();
 								}
-								const sliceImgData = sliceCanvas.toDataURL('image/png');
-								const sliceMmHeight = slicePx * mmPerPx;
-								pdf.addImage(sliceImgData, 'PNG', margin, y, imgWidthMm, sliceMmHeight);
-								y += sliceMmHeight;
-								srcY += slicePx;
 							}
-						};
 
-						const remainingMm = pageBottom - y;
-						if (sectionMmHeight <= remainingMm) {
-							await drawWholeSection();
-						} else {
-							// Start new test on a fresh page with header
-							if (y !== pageTopWithHeader) {
+							// Restore original spacing styles
+							sectionEl.style.marginTop = prev.marginTop;
+							sectionEl.style.marginBottom = prev.marginBottom;
+							sectionEl.style.paddingTop = prev.paddingTop;
+							sectionEl.style.paddingBottom = prev.paddingBottom;
+							sectionEl.style.borderBottom = prev.borderBottom;
+
+							// Gap between tests; if not enough room for gap, start new page with header for next test
+							const gapMm = 2;
+							if (y + gapMm <= pageBottom) {
+								y += gapMm;
+							} else {
 								pdf.addPage();
 								pdf.addImage(headerImgData, 'PNG', margin, margin, usableWidth, headerHeightMm);
 								y = pageTopWithHeader;
 							}
-							if (sectionMmHeight <= contentHeightMm) {
-								await drawWholeSection();
-							} else {
-								// Too tall: slice across pages; first page has header already, next pages omit header
-								await sliceSectionAcrossPages();
-							}
-						}
-
-						// Restore original spacing styles
-						sectionEl.style.marginTop = prev.marginTop;
-						sectionEl.style.marginBottom = prev.marginBottom;
-						sectionEl.style.paddingTop = prev.paddingTop;
-						sectionEl.style.paddingBottom = prev.paddingBottom;
-						sectionEl.style.borderBottom = prev.borderBottom;
-
-						// Gap between tests; if not enough room for gap, start new page with header for next test
-						const gapMm = 2;
-						if (y + gapMm <= pageBottom) {
-							y += gapMm;
-						} else {
-							pdf.addPage();
-							pdf.addImage(headerImgData, 'PNG', margin, margin, usableWidth, headerHeightMm);
-							y = pageTopWithHeader;
+						} catch (error) {
+							console.error('Error processing section:', error);
+							continue; // Skip this section and continue with next
 						}
 					}
 
@@ -276,20 +294,25 @@ export default function LabReportPrintingMultiple() {
 					const footerEl = footerRef.current;
 					if (verifiedEl && footerEl) {
 						pdf.setPage(pdf.getNumberOfPages());
-						// Capture footer first to get its height
-						const footerCanvas = await html2canvas(footerEl as HTMLElement, { scale: 2, useCORS: true });
-						const footerImgData = footerCanvas.toDataURL('image/png');
-						const footerHeightMm = (footerCanvas.height * usableWidth) / footerCanvas.width;
-						// Capture Verified By block
-						const verifiedCanvas = await html2canvas(verifiedEl as HTMLElement, { scale: 2, useCORS: true });
-						const verifiedImgData = verifiedCanvas.toDataURL('image/png');
-						const verifiedHeightMm = (verifiedCanvas.height * usableWidth) / verifiedCanvas.width;
-						// Add Verified By block first
-						let yVerified = pdf.internal.pageSize.getHeight() - margin - verifiedHeightMm - footerHeightMm - 5;
-						pdf.addImage(verifiedImgData, 'PNG', margin, yVerified, usableWidth, verifiedHeightMm);
-						// Then End of Report (footer)
-						let yFooter = pdf.internal.pageSize.getHeight() - margin - footerHeightMm;
-						pdf.addImage(footerImgData, 'PNG', margin, yFooter, usableWidth, footerHeightMm);
+						try {
+							// Capture footer first to get its height
+							const footerCanvas = await html2canvas(footerEl as HTMLElement, { scale: 1.5, useCORS: true });
+							const footerImgData = footerCanvas.toDataURL('image/png');
+							const footerHeightMm = (footerCanvas.height * usableWidth) / footerCanvas.width;
+							// Capture Verified By block
+							const verifiedCanvas = await html2canvas(verifiedEl as HTMLElement, { scale: 1.5, useCORS: true });
+							const verifiedImgData = verifiedCanvas.toDataURL('image/png');
+							const verifiedHeightMm = (verifiedCanvas.height * usableWidth) / verifiedCanvas.width;
+							// Add Verified By block first
+							let yVerified = pdf.internal.pageSize.getHeight() - margin - verifiedHeightMm - footerHeightMm - 5;
+							pdf.addImage(verifiedImgData, 'PNG', margin, yVerified, usableWidth, verifiedHeightMm);
+							// Then End of Report (footer)
+							let yFooter = pdf.internal.pageSize.getHeight() - margin - footerHeightMm;
+							pdf.addImage(footerImgData, 'PNG', margin, yFooter, usableWidth, footerHeightMm);
+						} catch (error) {
+							console.error('Error creating footer/verified canvases:', error);
+							// Continue without footer/verified blocks
+						}
 					}
 
 					const pageCount = pdf.getNumberOfPages();
@@ -319,6 +342,7 @@ export default function LabReportPrintingMultiple() {
 					_markers.forEach((el, i) => { el.style.display = _markerDisplays[i]; });
 					setPdfLoading(false);
 				} catch (err: any) {
+					console.error(err);
 					// Restore markers on error as well
 					try {
 						const resultElement = document.querySelector('.result');

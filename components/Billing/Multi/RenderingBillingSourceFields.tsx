@@ -19,7 +19,6 @@ export default function MultiRenderingBillingSourceFields({
     const context = useContext(MultiBillingContext);
     if (!context) throw new Error("MultiBillingContext not found");
     const { billingdata } = context;
-
     const [showTypeAlert, setShowTypeAlert] = useState(false);
     const [expectedType, setExpectedType] = useState("");
     const [returnedType, setReturnedType] = useState("");
@@ -61,8 +60,7 @@ export default function MultiRenderingBillingSourceFields({
             {typeof billingdata.billingSource == "number" && billingdata.billingSource > 1 && (
                 <div className="p-2  mb-2">
                     {billingdata.billingSource === 2 && (
-                        <OrganizationalBillingSourceSearch updatefunction={updateValuesToContext}
-                             />
+                        <OrganizationalBillingSourceSearch updatefunction={updateValuesToContext}/>
                     )}
                     {billingdata.billingSource === 3 && (
                         <Form.Group>
@@ -91,7 +89,7 @@ export default function MultiRenderingBillingSourceFields({
                         <Form.Group>
                             <Form.Label className="small text-muted">Search Clinician</Form.Label>
                             <div className="position-relative">
-                                <ClinicianFiltering isBulk={true} onSelect={handleSelectedEntityClinician} />
+                                <ClinicianFiltering isAutoLoadAll={true} isBulk={true} onSelect={handleSelectedEntityClinician} />
                             </div>
                         </Form.Group>
                     )}

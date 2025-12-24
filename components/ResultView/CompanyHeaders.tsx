@@ -2,16 +2,17 @@
 import styles from './CompanyHeaders.module.css';
 import { ResultSettings } from './result-settings';
 
-interface CompanyHeadersProps {
+export interface CompanyHeadersProps {
 	companyInfo: {
 		email: string;
 		phonenumber: number;
 		address: string;
 		name: string;
 		alternativenumber?: string;
+		motto?: string;
 	} | null;
 	logo: string,
-	resultsettings?: ResultSettings
+	resultsettings?: ResultSettings | null;
 }
 
 export default function CompanyHeaders({ companyInfo, logo, resultsettings }: CompanyHeadersProps) {
@@ -32,7 +33,7 @@ export default function CompanyHeaders({ companyInfo, logo, resultsettings }: Co
 		<div className={styles['company-info-result']}>
 			<div className="logo" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
 				<img
-					src={logo || ''}
+					src={logo || `${process.env.NODE_ENV === 'development' ? process.env.DEVELOPMENT_BASEURL : process.env.PRODUCTION_BASEURL}/settings/companyprofile/images`}
 					className={styles['company-logo']}
 					alt="Company Logo"
 					style={{ display: 'block', visibility: 'visible' }}

@@ -75,6 +75,10 @@
     font-size: 25px !important;
   }
 
+  * {
+    line-height: 0.5 !important;
+  }
+
   .single_result_page {
     padding: 0% !important;
     margin: 0% !important;

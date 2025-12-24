@@ -28,6 +28,7 @@ interface PaymentModalProps {
      setNewPayment: React.Dispatch<React.SetStateAction<{ mode: string | number; amount: string }>>;
      setBillingData: (data: any) => void;
      billingdata: any;
+     handlesubmit?: (data: MultiBillingData) => void;
 }
 
 
@@ -37,6 +38,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
      payments,
      availableModes,
      payable,
+     handlesubmit,
      setNewPayment,
      setBillingData,
      billingdata
@@ -69,7 +71,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                type: 'test',
                id: test.id,
                name: test.name,
-               maxAmount: test.totalpayable  ?? 0,
+               maxAmount: test.totalpayable ?? 0,
                paymentType: null,
                amountPaid: test.paidamount ?? test.amountPaid ?? 0,
                status: test.paymentstatus ?? test.status ?? 'pending',
@@ -86,7 +88,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
      ];
 
 
-     console.log('Items for payment modal:', items, billingdata,billingdata.cart, billingdata.servicesProvided);
+     console.log('Items for payment modal:', items, billingdata, billingdata.cart, billingdata.servicesProvided);
 
      const [perItemPayments, setPerItemPayments] = React.useState(() =>
           items.map(item => ({
@@ -223,6 +225,179 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           }
           return null;
      })();
+
+
+
+     const handlePaymentSyncing = async () => {
+          setIsSyncing(true);
+          if (paymentMode === 'all') {
+               // Validate that total payment equals the full payable amount
+               const total = payAllPayments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+               if (total !== payable) {
+                    setPayAllError(`Total payment must equal exactly ${payable.toLocaleString(undefined, { minimumFractionDigits: 2 })}`);
+                    return;
+               }
+               // Validate that all payment modes are selected
+               if (payAllPayments.some(p => !p.mode)) {
+                    setPayAllError('Please select payment mode for all entries.');
+                    return;
+               }
+               setPayAllError('');
+               // Allocate payment to items in order, up to their max
+               const itemMaxes = items.map(i => i.maxAmount);
+               let paidPerItem: number[] = allocateAmount(total, itemMaxes);
+               const updatedCart = tests.map((test) => {
+                    const itemIdx = items.findIndex(i => i.type === 'test' && i.id === test.id);
+                    if (itemIdx === -1) return {
+                         ...test,
+                         paidamount: test.amountPaid ?? 0,
+                         paymentstatus: test.status ?? 'pending',
+                    };
+                    let paid = paidPerItem[itemIdx];
+                    let paymentstatus = 'pending';
+                    if ((test.totalpayable ?? 0) === 0) {
+                         paid = test.totalpayable ?? paid;
+                         paymentstatus = 'Paid';
+                    } else if (paid >= (test.totalpayable ?? 0) && (test.totalpayable ?? 0) > 0) {
+                         paid = test.totalpayable ?? paid;
+                         paymentstatus = 'Paid';
+                    } else if (paid > 0) {
+                         paymentstatus = 'partial';
+                    }
+                    return {
+                         ...test,
+                         paidamount: paid,
+                         paymentstatus,
+                    };
+               });
+               const updatedServices = services.map((service) => {
+                    const itemIdx = items.findIndex(i => i.type === 'service' && i.id === service.keyid);
+                    if (itemIdx === -1) return {
+                         ...service,
+                         paidamount: service.amountPaid ?? 0,
+                         paymentstatus: service.status ?? 'pending',
+                    };
+                    let paid = paidPerItem[itemIdx];
+                    let paymentstatus = 'pending';
+                    if ((service.totalpayable ?? 0) === 0) {
+                         paid = service.totalpayable ?? paid;
+                         paymentstatus = 'Paid';
+                    } else if (paid >= (service.totalpayable ?? 0) && (service.totalpayable ?? 0) > 0) {
+                         paid = service.totalpayable ?? paid;
+                         paymentstatus = 'Paid';
+                    } else if (paid > 0) {
+                         paymentstatus = 'partial';
+                    }
+                    return {
+                         ...service,
+                         paidamount: paid,
+                         paymentstatus,
+                    };
+               });
+               // Calculate actual total paid from the updated items
+               const actualTotalPaid = updatedCart.reduce((sum, test) => sum + (test.paidamount || 0), 0) +
+                    updatedServices.reduce((sum, service) => sum + (service.paidamount || 0), 0);
+
+
+               const newCurrentData = {
+                    ...billingdata,
+                    finalCart: updatedCart,
+                    finalServicesList: updatedServices,
+                    paid: actualTotalPaid,
+                    payments: [...(billingdata.payments || []), ...payAllPayments],
+                    balance: Math.max(0, payable - actualTotalPaid),
+               }
+               setBillingData(newCurrentData);
+               handlesubmit ? await handlesubmit(newCurrentData) : null;
+               setIsValueSynchronized(true);
+          } else {
+               // Pay Some mode validation
+               if (!selectedItems.some(Boolean)) {
+                    alert('Please select at least one item to pay.');
+                    return;
+               }
+               if (!selectedAmount || Number(selectedAmount) <= 0) {
+                    alert('Please enter a valid payment amount.');
+                    return;
+               }
+               if (!bulkPerTestMode) {
+                    alert('Please select a payment mode.');
+                    return;
+               }
+               // Allocate the payment amount across selected items sequentially
+               const selectedItemsRemainingAmounts = items.map((item, idx) => {
+                    if (!selectedItems[idx]) return 0;
+                    const actualPaid = item.amountPaid;
+                    const effectivePaid = actualPaid > 0 ? actualPaid : 0;
+                    return Math.max(0, item.maxAmount - effectivePaid);
+               });
+               const selectedRemainingFiltered = selectedItemsRemainingAmounts.filter(amt => amt > 0);
+               const paymentAmount = Number(selectedAmount);
+               // Calculate sequential allocation based on remaining amounts
+               const allocatedSelected = allocateAmount(paymentAmount, selectedRemainingFiltered);
+               let allocIdx = 0;
+               const allocatedAmounts = selectedItemsRemainingAmounts.map(remaining => {
+                    if (remaining === 0) return 0;
+                    return allocatedSelected[allocIdx++] || 0;
+               });
+               // Update cart and services with allocated amounts
+               const updatedCart = tests.map((test) => {
+                    const itemIdx = items.findIndex(i => i.type === 'test' && i.id === test.id);
+                    if (itemIdx === -1 || !selectedItems[itemIdx]) return {
+                         ...test,
+                         paidamount: test.amountPaid ?? 0,
+                         paymentstatus: test.status ?? 'pending',
+                    };
+                    const actualPaid = test.paidamount ?? test.amountPaid ?? 0;
+                    let paid = actualPaid + allocatedAmounts[itemIdx];
+                    let paymentstatus = 'pending';
+                    if ((test.totalpayable ?? 0) === 0) paymentstatus = 'Paid';
+                    else if (paid >= (test.totalpayable ?? 0) && (test.totalpayable ?? 0) > 0) paymentstatus = 'Paid';
+                    else if (paid > 0) paymentstatus = 'partial';
+                    return {
+                         ...test,
+                         paidamount: paid,
+                         paymentstatus,
+                    };
+               });
+               const updatedServices = services.map((service) => {
+                    const itemIdx = items.findIndex(i => i.type === 'service' && i.id === service.keyid);
+                    if (itemIdx === -1 || !selectedItems[itemIdx]) return {
+                         ...service,
+                         paidamount: service.amountPaid ?? 0,
+                         paymentstatus: service.status ?? 'pending',
+                    };
+                    const actualPaid = service.paidamount ?? service.amountPaid ?? 0;
+                    let paid = actualPaid + allocatedAmounts[itemIdx];
+                    let paymentstatus = 'pending';
+                    if ((service.totalpayable ?? 0) === 0) paymentstatus = 'Paid';
+                    else if (paid >= (service.totalpayable ?? 0) && (service.totalpayable ?? 0) > 0) paymentstatus = 'Paid';
+                    else if (paid > 0) paymentstatus = 'partial';
+                    return {
+                         ...service,
+                         paidamount: paid,
+                         paymentstatus,
+                    };
+               });
+               // Calculate total paid including previous payments and current payments
+               const currentTotalPaid = updatedCart.reduce((sum, test) => sum + (test.paidamount || 0), 0) +
+                    updatedServices.reduce((sum, service) => sum + (service.paidamount || 0), 0);
+
+               const newCurrentData = {
+                    ...billingdata,
+                    paid: currentTotalPaid,
+                    finalCart: updatedCart,
+                    finalServicesList: updatedServices,
+                    payments: [...(billingdata.payments || []), { mode: bulkPerTestMode, amount: paymentAmount }],
+                    balance: payable - currentTotalPaid,
+               }
+               setBillingData(newCurrentData);
+
+               handlesubmit ? await handlesubmit(newCurrentData) : null;
+               setIsValueSynchronized(true);
+               setIsSyncing(false);
+          }
+     }
 
      return (
           <>
@@ -415,7 +590,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                                                        </tr>
                                                   </thead>
                                                   <tbody>
-                                                       {items.map((item, idx) => {
+                                                       {Array.isArray(items) && items.length > 0 && items.map((item, idx) => {
                                                             const checked = selectedItems[idx];
                                                             let paid = Number(selectedPayments[idx]?.amount || 0);
                                                             const actualPaid = item.amountPaid;
@@ -580,179 +755,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                          </Button>
                          <Button variant="primary" size="sm"
                               disabled={isValueSynchronized || isSyncing}
-                              onClick={() => {
-                                   setIsSyncing(true);
-                                   if (paymentMode === 'all') {
-                                        // Validate that total payment equals the full payable amount
-                                        const total = payAllPayments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
-                                        if (total !== payable) {
-                                             setPayAllError(`Total payment must equal exactly ${payable.toLocaleString(undefined, { minimumFractionDigits: 2 })}`);
-                                             return;
-                                        }
-                                        // Validate that all payment modes are selected
-                                        if (payAllPayments.some(p => !p.mode)) {
-                                             setPayAllError('Please select payment mode for all entries.');
-                                             return;
-                                        }
-                                        setPayAllError('');
-                                        // Allocate payment to items in order, up to their max
-                                        const itemMaxes = items.map(i => i.maxAmount);
-                                        let paidPerItem: number[] = allocateAmount(total, itemMaxes);
-                                        const updatedCart = tests.map((test) => {
-                                             const itemIdx = items.findIndex(i => i.type === 'test' && i.id === test.id);
-                                             if (itemIdx === -1) return {
-                                                  ...test,
-                                                  paidamount: test.amountPaid ?? 0,
-                                                  paymentstatus: test.status ?? 'pending',
-                                             };
-                                             let paid = paidPerItem[itemIdx];
-                                             let paymentstatus = 'pending';
-                                             if ((test.totalpayable ?? 0) === 0) {
-                                                  paid = test.totalpayable ?? paid;
-                                                  paymentstatus = 'Paid';
-                                             } else if (paid >= (test.totalpayable ?? 0) && (test.totalpayable ?? 0) > 0) {
-                                                  paid = test.totalpayable ?? paid;
-                                                  paymentstatus = 'Paid';
-                                             } else if (paid > 0) {
-                                                  paymentstatus = 'partial';
-                                             }
-                                             return {
-                                                  ...test,
-                                                  paidamount: paid,
-                                                  paymentstatus,
-                                             };
-                                        });
-                                        const updatedServices = services.map((service) => {
-                                             const itemIdx = items.findIndex(i => i.type === 'service' && i.id === service.keyid);
-                                             if (itemIdx === -1) return {
-                                                  ...service,
-                                                  paidamount: service.amountPaid ?? 0,
-                                                  paymentstatus: service.status ?? 'pending',
-                                             };
-                                             let paid = paidPerItem[itemIdx];
-                                             let paymentstatus = 'pending';
-                                             if ((service.totalpayable ?? 0) === 0) {
-                                                  paid = service.totalpayable ?? paid;
-                                                  paymentstatus = 'Paid';
-                                             } else if (paid >= (service.totalpayable ?? 0) && (service.totalpayable ?? 0) > 0) {
-                                                  paid = service.totalpayable ?? paid;
-                                                  paymentstatus = 'Paid';
-                                             } else if (paid > 0) {
-                                                  paymentstatus = 'partial';
-                                             }
-                                             return {
-                                                  ...service,
-                                                  paidamount: paid,
-                                                  paymentstatus,
-                                             };
-                                        });
-                                        // Calculate actual total paid from the updated items
-                                        const actualTotalPaid = updatedCart.reduce((sum, test) => sum + (test.paidamount || 0), 0) +
-                                             updatedServices.reduce((sum, service) => sum + (service.paidamount || 0), 0);
-                                        setBillingData({
-                                             ...billingdata,
-                                             finalCart: updatedCart,
-                                             finalServicesList: updatedServices,
-                                             paid: actualTotalPaid,
-                                             payments: [...(billingdata.payments || []), ...payAllPayments],
-                                             balance: Math.max(0, payable - actualTotalPaid),
-                                        });
-                                        setIsValueSynchronized(true);
-                                   } else {
-                                        // Pay Some mode validation
-                                        if (!selectedItems.some(Boolean)) {
-                                             alert('Please select at least one item to pay.');
-                                             return;
-                                        }
-                                        if (!selectedAmount || Number(selectedAmount) <= 0) {
-                                             alert('Please enter a valid payment amount.');
-                                             return;
-                                        }
-                                        if (!bulkPerTestMode) {
-                                             alert('Please select a payment mode.');
-                                             return;
-                                        }
-                                        // Allocate the payment amount across selected items sequentially
-                                        const selectedItemsRemainingAmounts = items.map((item, idx) => {
-                                             if (!selectedItems[idx]) return 0;
-                                             const actualPaid = item.amountPaid;
-                                             const effectivePaid = actualPaid > 0 ? actualPaid : 0;
-                                             return Math.max(0, item.maxAmount - effectivePaid);
-                                        });
-                                        const selectedRemainingFiltered = selectedItemsRemainingAmounts.filter(amt => amt > 0);
-                                        const paymentAmount = Number(selectedAmount);
-                                        // Calculate sequential allocation based on remaining amounts
-                                        const allocatedSelected = allocateAmount(paymentAmount, selectedRemainingFiltered);
-                                        let allocIdx = 0;
-                                        const allocatedAmounts = selectedItemsRemainingAmounts.map(remaining => {
-                                             if (remaining === 0) return 0;
-                                             return allocatedSelected[allocIdx++] || 0;
-                                        });
-                                        // Update cart and services with allocated amounts
-                                        const updatedCart = tests.map((test) => {
-                                             const itemIdx = items.findIndex(i => i.type === 'test' && i.id === test.id);
-                                             if (itemIdx === -1 || !selectedItems[itemIdx]) return {
-                                                  ...test,
-                                                  paidamount: test.amountPaid ?? 0,
-                                                  paymentstatus: test.status ?? 'pending',
-                                             };
-                                             const actualPaid = test.paidamount ?? test.amountPaid ?? 0;
-                                             let paid = actualPaid + allocatedAmounts[itemIdx];
-                                             let paymentstatus = 'pending';
-                                             if ((test.totalpayable ?? 0) === 0) paymentstatus = 'Paid';
-                                             else if (paid >= (test.totalpayable ?? 0) && (test.totalpayable ?? 0) > 0) paymentstatus = 'Paid';
-                                             else if (paid > 0) paymentstatus = 'partial';
-                                             return {
-                                                  ...test,
-                                                  paidamount: paid,
-                                                  paymentstatus,
-                                             };
-                                        });
-                                        const updatedServices = services.map((service) => {
-                                             const itemIdx = items.findIndex(i => i.type === 'service' && i.id === service.keyid);
-                                             if (itemIdx === -1 || !selectedItems[itemIdx]) return {
-                                                  ...service,
-                                                  paidamount: service.amountPaid ?? 0,
-                                                  paymentstatus: service.status ?? 'pending',
-                                             };
-                                             const actualPaid = service.paidamount ?? service.amountPaid ?? 0;
-                                             let paid = actualPaid + allocatedAmounts[itemIdx];
-                                             let paymentstatus = 'pending';
-                                             if ((service.totalpayable ?? 0) === 0) paymentstatus = 'Paid';
-                                             else if (paid >= (service.totalpayable ?? 0) && (service.totalpayable ?? 0) > 0) paymentstatus = 'Paid';
-                                             else if (paid > 0) paymentstatus = 'partial';
-                                             return {
-                                                  ...service,
-                                                  paidamount: paid,
-                                                  paymentstatus,
-                                             };
-                                        });
-                                        // Calculate total paid including previous payments and current payments
-                                        const currentTotalPaid = updatedCart.reduce((sum, test) => sum + (test.paidamount || 0), 0) +
-                                             updatedServices.reduce((sum, service) => sum + (service.paidamount || 0), 0);
-                                        setBillingData({
-                                             ...billingdata,
-                                             paid: currentTotalPaid,
-                                             finalCart: updatedCart,
-                                             finalServicesList: updatedServices,
-                                             payments: [...(billingdata.payments || []), { mode: bulkPerTestMode, amount: paymentAmount }],
-                                             balance: payable - currentTotalPaid,
-                                        });
-                                        setIsValueSynchronized(true);
-                                        setIsSyncing(false);
-                                   }
-                              }}>
-                              {isSyncing ? (
-                                   <>
-                                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                        Processing...
-                                   </>
-                              ) : (
-                                   'Sync Payments'
-                              )}
+                              onClick={handlePaymentSyncing}
+                         >
+                              {isSyncing ? 'Syncing...' : 'Sync Payments and Bill Client'}
                          </Button>
+
                     </Modal.Footer>
-               </Modal>
+               </Modal >
           </>
      );
 };

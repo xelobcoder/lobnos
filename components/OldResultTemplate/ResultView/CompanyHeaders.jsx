@@ -17,7 +17,7 @@ export default function CompanyHeaders({ billingid }) {
   return (
     <div className="company-info-result">
       <div className="logo">
-        <img src={`${process.env.BASEURL}/settings/companyprofile/images`} width={150} height={100} alt="company Logo" />
+        <img src={`${process.env.NODE_ENV === 'development' ? process.env.DEVELOPMENT_BASEURL : process.env.PRODUCTION_BASEURL}/settings/companyprofile/images`} width={150} height={100} alt="company Logo" />
       </div>
       <div className='other-information'>
         <div className="company-name">{name}</div>

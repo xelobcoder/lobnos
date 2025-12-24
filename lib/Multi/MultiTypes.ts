@@ -52,9 +52,12 @@ export interface ServicesListItem {
 export interface MultiBillingData {
     allowAdvancePayment?: boolean;
     openPaymentModal?: number;
+    useSpecialCode?: boolean;
+    specialCode?: string;
     billingid?: string | number;
     billingSource: number;
-    totalTestAmountPayable:number;
+    totalTestAmountPayable: number;
+    showsummary?: boolean;
     patientid?: number | null;
     entityId?: string | number | null;
     entitytype?: entitytype;
@@ -62,6 +65,8 @@ export interface MultiBillingData {
     isPackageUsed: boolean;
     packageid?: number;
     status?: string;
+    claimCode: string;
+    NHISMemberID: string;
     entityname: string | null;
     servicesProvided: any[];
     previousRecordsSummary?: {
@@ -108,6 +113,7 @@ export interface MultiBillingData {
     payments?: Array<{ mode: string | number; amount: number }>;
     paymentModes: Array<{ KeyID: number; PaymentMode: string }>;
     cart: TestCartItem[];
+    ispricingcheckout?: boolean;
     servicesList: ServicesListItem[];
     isPromo?: boolean;
     promoId: number | null;
@@ -150,7 +156,7 @@ export const defaultMultiBillingData: MultiBillingData = {
     isAdjustment: 0,
     adjustmentType: 'addition',
     adjustmentReason: '',
-    totalTestAmountPayable:0,
+    totalTestAmountPayable: 0,
     totalAmountIncurredDueTax: 0,
     totalServiceAmount: 0,
     amountPayable: 0,
@@ -179,6 +185,9 @@ export const defaultMultiBillingData: MultiBillingData = {
     entityId: undefined,
     entitytype: undefined,
     packageid: undefined,
+    NHISMemberID: '',
+    claimCode: '',
+    ispricingcheckout: false,
     status: '',
     additionalInfo: '',
     showdetails: false,
@@ -205,3 +214,22 @@ export const defaultMultiBillingData: MultiBillingData = {
     billingIdVerified: false,
     openPaymentModal: undefined
 };
+
+
+
+
+export interface billingContextProps {
+    categorytrackid: number,
+    entitytype?: string,
+    entityname?: string,
+    billingid?: number | null,
+    isNewTransaction?: boolean,
+    isRelatedBilling?: boolean,
+    patientid: number,
+    entityid?: string,
+    ispricingcheckout: boolean,
+    isAdjustment?: boolean,
+    adjustmentType?: 'addition' | 'correction' | 'voided' | null,
+    adjustmentReason?: string,
+    specialcode?: string,
+}

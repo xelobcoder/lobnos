@@ -1,7 +1,7 @@
 import { Card, Form, Button, Spinner } from "react-bootstrap";
 import { useEffect } from "react";
 import { customFetch, customPost } from "../../Auth/customFetch";
-import { RiArrowGoBackFill, RiCheckLine, RiCloseCircleFill } from '@remixicon/react';
+import { RiArrowGoBackFill, RiCheckLine, RiCloseCircleFill, RiResetLeftFill } from '@remixicon/react';
 import { toast } from 'react-toastify';
 
 // Promo interface and validatePromoCode function
@@ -37,20 +37,16 @@ export default function MultiBillingHeader({
     billingdata,
     setBillingData,
     useServices,
-    useSpecialCode,
-    specialCode,
     specialCodeError,
     loadingSpecialCode,
     loadingBackendBilling,
     canLoadData,
     onPackageActivation,
     onUseServicesChange,
-    onUseSpecialCodeChange,
     onSpecialCodeChange,
     onLoadBackendBilling,
     onReset,
     onReturnToMulti,
-    onCheckout
 }) {
     // Function to verify promo code
     const handleVerifyPromo = async () => {
@@ -124,9 +120,8 @@ export default function MultiBillingHeader({
                         type="checkbox"
                         label="Reference Code"
                         disabled={billingdata.billingSource == 1}
-                        checked={useSpecialCode}
-                        onChange={e => onUseSpecialCodeChange(e.target.checked)
-                        }
+                        checked={!!billingdata.useSpecialCode}
+                        onChange={e => setBillingData({ ...billingdata, useSpecialCode: e.target.checked })}
                         className="mb-0 flex-shrink-0"
                         aria-label="Reference Code"
                     />
@@ -175,7 +170,7 @@ export default function MultiBillingHeader({
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',
                                 verticalAlign: 'bottom',
-                            }} title={billingdata.entityname}>{billingdata.entityname}</b></span>
+                            }} title={billingdata.entityname}>{billingdata.referalName}</b></span>
                             <span className="mx-2">|</span>
                             <span>Type: <b className="text-capitalize">{(() => {
                                 const billingSourceMap = {
@@ -188,19 +183,41 @@ export default function MultiBillingHeader({
                             })()}</b></span>
                         </span>
                     )}
+
+                    <Button variant="outline-danger" size="sm" title='reset transaction' onClick={onReset}>
+                        <RiResetLeftFill size={20} />
+                    </Button>
+                    <Button variant="outline-primary" size="sm" title="back to multi transaction selection" onClick={onReturnToMulti}>
+                        <RiArrowGoBackFill size={20} /> Back to Selection
+                    </Button>
                 </div>
             </Card.Header>
-     
-            <Card.Header className="py-3  px-2 " >
+
+            <Card.Header className="py-3" >
                 <div className="container-fluid px-0">
                     <div className="row m-0">
+                        <div className="col-12 col-lg-auto d-flex flex-row flex-wrap gap-2 mt-2 mt-lg-0" >
+                            <Button
+                                variant="primary"
+                                size="sm"
+                                className="me-2"
+                                onClick={onLoadBackendBilling}
+                                disabled={loadingBackendBilling || !canLoadData}
+                                aria-label="Load Billing Data"
+                                style={{ height: 38, marginLeft: '-20px !important' }}
+                            >
+                                {loadingBackendBilling ? <Spinner as="span" animation="border" size="sm" className="me-1" /> : null}
+                                Start Transaction
+                            </Button>
+                         
+                        </div>
                         {/* Special Code Input */}
-                        {useSpecialCode && (
+                        {!!billingdata.useSpecialCode && (
                             <div className="col-12 col-lg-auto d-flex align-items-center" >
                                 <Form.Control
                                     type="text"
                                     placeholder="Enter special code"
-                                    value={specialCode}
+                                    value={billingdata.specialCode || ''}
                                     onChange={onSpecialCodeChange}
                                     isInvalid={!!specialCodeError}
                                     size="sm"
@@ -286,54 +303,7 @@ export default function MultiBillingHeader({
                             </div>
                         )}
                         {/* Action Buttons */}
-                        <div className="col-12 col-lg-auto d-flex flex-row flex-wrap align-items-center gap-2 justify-content-lg-end mt-2 mt-lg-0" style={{ minWidth: 320, height: 40 }}>
-                            <Button
-                                variant="primary"
-                                size="sm"
-                                className="me-2"
-                                onClick={onLoadBackendBilling}
-                                disabled={loadingBackendBilling || !canLoadData}
-                                aria-label="Load Billing Data"
-                                style={{ height: 38, display: 'flex', alignItems: 'center' }}
-                            >
-                                {loadingBackendBilling ? <Spinner as="span" animation="border" size="sm" className="me-1" /> : null}
-                                Load
-                            </Button>
-                            <Button
-                                variant="outline-secondary"
-                                size="sm"
-                                className="ms-1"
-                                onClick={onReset}
-                                aria-label="Reset Billing Form"
-                                style={{ height: 38, display: 'flex', alignItems: 'center' }}
-                            >
-                                Reset
-                            </Button>
-                            <Button
-                                variant="outline-primary"
-                                size="sm"
-                                className="ms-2"
-                                onClick={onReturnToMulti}
-                                aria-label="Return to Multi"
-                                style={{ height: 38, display: 'flex', alignItems: 'center' }}
-                            >
-                                <RiArrowGoBackFill /> Multi
-                            </Button>
-                            <Button
-                                variant="success"
-                                size="sm"
-                                className="ms-2"
-                                style={{ minWidth: 100, height: 38, display: 'flex', alignItems: 'center' }}
-                                disabled={
-                                    !(Array.isArray(billingdata.cart) && billingdata.cart.length > 0) &&
-                                    !(Array.isArray(billingdata.servicesProvided) && billingdata.servicesProvided.length > 0)
-                                }
-                                onClick={onCheckout}
-                                aria-label="Checkout"
-                            >
-                                Checkout
-                            </Button>
-                        </div>
+
                     </div>
                 </div>
             </Card.Header>

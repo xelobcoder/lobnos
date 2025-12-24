@@ -2,14 +2,14 @@
 
 import { RiPencilLine, RiDeleteBinLine } from '@remixicon/react';
 import { useState, useContext } from "react";
-import { Table, Spinner } from "react-bootstrap";
+import { Table, Spinner, Button } from "react-bootstrap";
 import Select from "react-select";
 import MultiTrTable from "./MultiTrTable";
 import { currencyFormatter, customFetch } from "../../Auth/customFetch";
 import { MultiBillingContext } from "./MultiBillingContext";
 
 
-export default function MultiTestBillingTable() {
+export default function MultiTestBillingTable( {canload}: {canload:boolean}) {
     const context = useContext(MultiBillingContext);
     if (!context) throw new Error("MultiBillingContext not found");
     const { billingdata, setBillingData, recalculateTotalBill } = context;
@@ -67,8 +67,26 @@ export default function MultiTestBillingTable() {
     };
 
 
+    console.log("canload value in MultiTestBillingTable:", canload);
+
+
     if (!billingdata.billingSource) {
         return <div className="br-0 alert border-2 border-danger alert-danger alert-dismissible br-5 text-sm">Select Billing Source to continue</div>;
+    }
+
+       if (!canload) {
+           <Button
+                                        variant="primary"
+                                        size="sm"
+                                        className="me-2"
+                                        // onClick={onLoadBackendBilling}
+                                        // disabled={loadingBackendBilling || !canLoadData}
+                                        aria-label="Load Billing Data"
+                                        style={{ height: 38, marginLeft: '-20px !important' }}
+                                    >
+                                        {/* {loadingBackendBilling ? <Spinner as="span" animation="border" size="sm" className="me-1" /> : null} */}
+                                        Start Transaction
+                                    </Button>
     }
 
     return (
@@ -123,7 +141,7 @@ export default function MultiTestBillingTable() {
                             </td>
                         </tr>
                     ))}
-                    <MultiTrTable 
+                    <MultiTrTable  
                     />
                 </tbody>
                 <tfoot>

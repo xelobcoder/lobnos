@@ -1,5 +1,6 @@
 import React, { createContext, useState } from "react";
 import { MultiBillingData, defaultMultiBillingData } from '../../../lib/Multi/MultiTypes';
+import { handleCheckout } from "./checkoutMulti";
 
 interface MultiBillingContextType {
 	billingdata: MultiBillingData;
@@ -12,7 +13,10 @@ export const MultiBillingContext = createContext<MultiBillingContextType | undef
 export const MultiBillingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	const [billingdata, setBillingData] = useState<MultiBillingData>(defaultMultiBillingData);
 	const recalculateTotalBill = (billingdata) => {
-		setBillingData({ ...billingdata });
+		if (billingdata.cart && billingdata.cart.length > 0) {
+			handleCheckout(billingdata,billingdata.specialCode ?? '', false, setBillingData);
+		}
+		
 	};
 
 	return (

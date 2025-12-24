@@ -18,46 +18,43 @@ interface ClinicianFilteringFilteringProps {
      onSelect: (value: any) => void;
      isDisabled?: boolean;
      isBulk?: boolean;
+     isAutoLoadAll?: boolean;
 }
 
-export default function ClinicianFiltering({ onSelect, isDisabled = false, isBulk = false }: ClinicianFilteringFilteringProps) {
+export default function ClinicianFiltering({ onSelect, isDisabled = false, isBulk = false , isAutoLoadAll = false }: ClinicianFilteringFilteringProps) {
      const [filteredResult, setFilteredResult] = useState<any[]>([]);
      const [isClient, setIsClient] = useState(false);
      const [loadingAll, setLoadingAll] = useState(false);
      const [selectedOption, setSelectedOption] = useState<any>(null);
 
+
+     const returnedFormat = (data: any[]) => {
+          return data.map((item: any) => ({
+               label: (
+                    <div>
+                         <strong>{item.name}</strong>
+                    </div>
+               ),
+               labelText: item.name, // for getOptionLabel
+               value: item.outsourceid,
+               content: item,
+          }));
+     };
+
      const loadOptions = async (inputValue: string) => {
-          if (isBulk) {
-               return filteredResult.map((item: any) => ({
-                    label: (
-                         <div>
-                              <strong>{item.name}</strong>
-                         </div>
-                    ),
-                    labelText: item.name, // for getOptionLabel
-                    value: item.outsourceid,
-                    content: item,
-               }));
-          }
+          console.log("Loading options for input:", inputValue);
           if (inputValue.length > 3) {
                const response = await filteringDatabaseTables("clinicianbasicinfo", inputValue, "", 10);
                if (response && Array.isArray(response)) {
                     setFilteredResult(response);
-                    return response.map((item: any) => ({
-                         label: (
-                              <div>
-                                   <strong>{item.name}</strong>
-                              </div>
-                         ),
-                         labelText: item.name,
-                         value: item.outsourceid,
-                         content: item,
-                    }));
+                    return returnedFormat(response);   
+                         
                }
           }
           return [];
      };
 
+ 
      const handleSelectChange = (selectedOption: any) => {
           setSelectedOption(selectedOption);
           if (selectedOption) {
@@ -106,7 +103,6 @@ export default function ClinicianFiltering({ onSelect, isDisabled = false, isBul
                          loadOptions={loadOptions}
                          isDisabled={filteredResult.length === 0 || loadingAll || isDisabled}
                          id="template-filtering"
-
                          placeholder={loadingAll ? 'Loading data ...' : (isBulk ? "Select clinician from all..." : "Filter clinician and Health Pract...")}
                          onChange={handleSelectChange}
                          formatOptionLabel={(data: ClinicianFilteringOption) => data.label}

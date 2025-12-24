@@ -7,7 +7,7 @@ import MultiRenderingWithPatientId from "./MultiRenderingWithPatientId";
 import { Button, Spinner, Modal } from "react-bootstrap";
 import { useContext, useState, useEffect } from "react";
 import { customFetch, customPost } from "../../Auth/customFetch";
-import { defaultMultiBillingData } from "../../../lib/Multi/MultiTypes";
+import { billingContextProps, defaultMultiBillingData, MultiBillingData } from "../../../lib/Multi/MultiTypes";
 import { MultiBillingProvider, MultiBillingContext } from "./MultiBillingContext";
 import MultiSummary from "./MultiSummary";
 import { useRouter, useParams } from "next/navigation";
@@ -19,50 +19,27 @@ import { plsEncryption } from "../../../lib/encryption";
 import { MultiValidateAndSubmitBillingInformation } from "../../../lib/Multi/multiBillingValidation";
 import { RiPrinterLine, RiStore3Line } from '@remixicon/react';
 import ReceiptOptionsModal from '../ReceiptOptionsModal';
+import { BillingContextPropsProvider, useBillingContextProps } from './BillingContextPropsContext';
+import { handleCheckout } from "./checkoutMulti";
 
 
 
-export default function MultiBillingLayout({ billingContextProps }: {
-    billingContextProps: {
-        categorytrackid: number,
-        entitytype?: string,
-        entityname?: string,
-        ispricingcheckout: boolean,
-        entityid?: string,
-        billingid: number | null,
-        isNewTransaction?: boolean,
-        patientid: number;
-        isRelatedBilling?: boolean,
-        isAdjustment?: boolean,
-        adjustmentType?: 'addition' | 'correction' | 'voided' | null,
-        adjustmentReason?: string,
-        specialcode?: string,
-    }
-}) {
+export default function MultiBillingLayout({ billingContextProps }: { billingContextProps: billingContextProps }) {
     return (
-        <MultiBillingProvider>
-            <MultiBillingLayoutContent billingContextProps={billingContextProps} />
-        </MultiBillingProvider>
+        <BillingContextPropsProvider initialProps={billingContextProps}>
+            <MultiBillingProvider>
+                <MultiBillingLayoutContent />
+            </MultiBillingProvider>
+        </BillingContextPropsProvider>
     );
 }
 
-function MultiBillingLayoutContent({ billingContextProps }: {
-    billingContextProps: {
-        categorytrackid: number,
-        entitytype?: string,
-        entityname?: string,
-        billingid?: number | null,
-        isNewTransaction?: boolean,
-        isRelatedBilling?: boolean,
-        patientid: number,
-        entityid?: string,
-        ispricingcheckout: boolean,
-        isAdjustment?: boolean,
-        adjustmentType?: 'addition' | 'correction' | 'voided' | null,
-        adjustmentReason?: string,
-        specialcode?: string,
-    }
-}) {
+
+
+
+function MultiBillingLayoutContent() {
+    const { billingContextProps } = useBillingContextProps();
+    console.log("MultiBillingLayoutContent billingContextProps:", billingContextProps);
     const { categorytrackid, entitytype, entityname, entityid, patientid, billingid, isNewTransaction,
         isAdjustment, adjustmentType, adjustmentReason,
         isRelatedBilling, ispricingcheckout } = billingContextProps
@@ -74,11 +51,6 @@ function MultiBillingLayoutContent({ billingContextProps }: {
     const { billingdata, setBillingData } = context;
     const router = useRouter();
     const patientId = useParams()?.patientid;
-
-
-
-    const [useSpecialCode, setUseSpecialCode] = useState(false);
-    const [specialCode, setSpecialCode] = useState(billingContextProps.specialcode || "");
     const [specialCodeError, setSpecialCodeError] = useState("");
     const [loadingSpecialCode, setLoadingSpecialCode] = useState(false);
     const [loadingPanels, setLoadingPanels] = useState(false);
@@ -94,7 +66,7 @@ function MultiBillingLayoutContent({ billingContextProps }: {
 
     const handleSpecialCodeChange = (e) => {
         const value = e.target.value;
-        setSpecialCode(value);
+        setBillingData({ ...billingdata, specialCode: value });
         if (value.length > 0 && value.length <= 3) {
             setSpecialCodeError("Special code must be more than 3 characters.");
         } else {
@@ -151,8 +123,9 @@ function MultiBillingLayoutContent({ billingContextProps }: {
             entitytype: "clinician",
             entityname: name || "",
             billingSource: 6,
+            referalName: name || "",
         }));
-        updateEntityInUrl("clinician", name || "", id, specialCode);
+        updateEntityInUrl("clinician", name || "", id, billingdata.specialCode);
     };
 
     const handleSelectedEntityInsurance = (entity) => {
@@ -164,8 +137,9 @@ function MultiBillingLayoutContent({ billingContextProps }: {
             entitytype: "insurance",
             entityname: insuranceName || "",
             billingSource: 4,
+            referalName: insuranceName || "",
         }));
-        updateEntityInUrl("insurance", insuranceName || "", id, specialCode);
+        updateEntityInUrl("insurance", insuranceName || "", id, billingdata.specialCode);
 
     };
 
@@ -177,8 +151,9 @@ function MultiBillingLayoutContent({ billingContextProps }: {
             entitytype: "organization",
             entityname: name || "",
             billingSource: 2,
+            referalName: name || "",
         }));
-        updateEntityInUrl("organization", name || "", id, specialCode);
+        updateEntityInUrl("organization", name || "", id, billingdata.specialCode);
     };
 
 
@@ -200,7 +175,6 @@ function MultiBillingLayoutContent({ billingContextProps }: {
         setUsePackage(false);
         setUseServices(false);
         setShowSummary(false);
-        setSpecialCode('');
         setSpecialCodeError('');
         router.replace(window.location.pathname);
     };
@@ -228,7 +202,7 @@ function MultiBillingLayoutContent({ billingContextProps }: {
         const servicesList = billingdata.servicesList || [];
         let url;
         const billingIdParam = billingdata.billingid ? `&billingid=${billingdata.billingid}` : '';
-        if (useSpecialCode && specialCode && !specialCodeError) {
+        if (billingdata.useSpecialCode && billingdata.specialCode && !specialCodeError) {
             url = `billing/multi/init?tenantId=3` +
                 `&entityType=` +
                 `&isPackageUsed=${billingdata.isPackageUsed}` +
@@ -239,7 +213,7 @@ function MultiBillingLayoutContent({ billingContextProps }: {
                 `&patientId=${billingdata.patientid || patientid || ''}` +
                 `&entityId=` +
                 `&billingSource=${billingdata.billingSource || categorytrackid}` +
-                `&referalCode=${specialCode}` +
+                `&referalCode=${billingdata.specialCode || ''}` +
                 `&ispricingcheckout=${ispricingcheckout}` +
                 billingIdParam;
         } else if (billingdata.entitytype && billingdata.entityId && Number(billingdata.billingSource || categorytrackid) > 1) {
@@ -293,7 +267,8 @@ function MultiBillingLayoutContent({ billingContextProps }: {
                     includeServices: backendData.includeServices ?? includeServices,
                     servicesList: includeServices ? backendData.servicesList || servicesList : [],
                     payments: prev.payments || [],
-                    cart: backendData.isPackageUsed ? backendData.testList : []
+                    cart: backendData.isPackageUsed ? backendData.testList : [],
+                    ispricingcheckout: false,
                 };
                 if (
                     backendData.entityType &&
@@ -338,6 +313,8 @@ function MultiBillingLayoutContent({ billingContextProps }: {
         }
     };
 
+
+
     const handlePackageActivation = (checked) => {
         setBillingData(prev => ({
             ...prev,
@@ -373,7 +350,7 @@ function MultiBillingLayoutContent({ billingContextProps }: {
 
     const closeReceiptModal = () => setShowReceiptOptionsModal(false);
 
-    const handleSubmit = async (writeOffConfirmed = false) => {
+    const handleSubmit = async (billingdata:MultiBillingData, writeOffConfirmed = false) => {
         if (isSaving) return;
 
         if (!billingdata || !billingdata.patientid) {
@@ -420,7 +397,7 @@ function MultiBillingLayoutContent({ billingContextProps }: {
                 dataToBeUploaded,
                 billingid ? Number(billingid) : undefined
             );
-console.log("Submission response:", response);
+
 
             const { status, message } = response;
 
@@ -453,71 +430,7 @@ console.log("Submission response:", response);
 
 
     // Checkout handler: send billing data to backend
-    const handleCheckout = async () => {
-        try {
-            const checkoutPayload = {
-                patientId: billingdata.patientid,
-                billingid: billingdata.billingid,
-                cart: billingdata.cart,
-                servicesList: billingdata.servicesProvided,
-                paymentDetails: null,
-                branchid: billingdata.branchid,
-                billingSource: billingdata.billingSource,
-                referalCode: specialCode || '',
-                promoCode: billingdata.promoCode || '',
-                isPromo: billingdata.isPromo || false,
-                promoCodeId: billingdata?.promoDetails?.id,
-                isPackageUsed: billingdata.isPackageUsed,
-                packageid: billingdata.packageid,
-                entityid: billingdata.entityId,
-                entitytype: billingdata.entitytype,
-                ispricingcheckout: ispricingcheckout
-            };
 
-            const retriveOutsourcedFromCheckoutPayload = (currentCart: any[], previousCart: any[]) => {
-                if (Array.isArray(currentCart) && Array.isArray(previousCart)) {
-                    return currentCart.map((item, index) => {
-                        const _current_single_test = previousCart.find(prevItem => prevItem.testid === item.testid);
-                        const { organization } = _current_single_test || {};
-                        if (organization && organization.outsourceid) {
-                            return { ...item, organization, outsourceid: organization.outsourceid, isoutsourced: 1 };
-                        } else {
-                            return item;
-                        }
-                    })
-                }
-                return currentCart;
-            }
-
-            const response = await customPost('billing/multi/checkout', 'POST', checkoutPayload);
-            if (response && response.success && response.data) {
-                setBillingData(prev => ({
-                    ...prev, ...response.data,
-                    cart: response.data.isPackageUsed ?
-                        response.data.packageTestList : retriveOutsourcedFromCheckoutPayload(response.data.cart, billingdata.cart) || [],
-                    payments: [],
-                    paid: 0,
-                    allowAdvancePayment: true,
-                    balance: response.data.amountPayable || 0,
-                    promoDetails: response.data.promoDetails || {},
-                    promoCode: response.data?.promoDetails?.code,
-                    promoCodeId: response.data?.promoDetails?.id,
-                    promoMethod: response.data?.promoDetails?.method,
-                    servicesProvided: response.data?.servicesList || checkoutPayload.servicesList || [],
-                }));
-                setShowSummary(true);
-            } else {
-                toast.error(response?.message || "Checkout failed. Please try again.");
-                if (response.message == 'Outstanding debt found') {
-                    router.replace(`/billing/cash-collection?patientid=${plsEncryption((billingdata.patientid ?? '').toString())}`);
-                    return;
-                }
-            }
-        } catch (error) {
-            console.error("Checkout error:", error);
-            toast.error("Failed to complete checkout. Please try again.");
-        }
-    };
 
     // On mount, set entitytype and billingSource if present
 
@@ -569,7 +482,7 @@ console.log("Submission response:", response);
     // Helper: should Load Data be enabled?
     const canLoadData = (() => {
         if (billingdata.isPackageUsed && !billingdata.packageid) return false;
-        if (useSpecialCode && specialCode && !specialCodeError) return true;
+        if (billingdata.useSpecialCode && billingdata.specialCode && !specialCodeError) return true;
         const resolvedBillingSource = Number(billingdata.billingSource || categorytrackid);
         if (resolvedBillingSource > 1) {
             return !!(billingdata.entitytype && billingdata.entityId);
@@ -597,8 +510,6 @@ console.log("Submission response:", response);
                     billingdata={billingdata}
                     setBillingData={setBillingData}
                     useServices={useServices}
-                    useSpecialCode={useSpecialCode}
-                    specialCode={specialCode}
                     specialCodeError={specialCodeError}
                     loadingSpecialCode={loadingSpecialCode}
                     loadingBackendBilling={loadingBackendBilling}
@@ -608,12 +519,10 @@ console.log("Submission response:", response);
                         setUseServices(checked);
                         setBillingData(prev => ({ ...prev, includeServices: checked }));
                     }}
-                    onUseSpecialCodeChange={setUseSpecialCode}
                     onSpecialCodeChange={handleSpecialCodeChange}
                     onLoadBackendBilling={loadBackendBilling}
                     onReset={handleReset}
                     onReturnToMulti={handleReturnToMulti}
-                    onCheckout={handleCheckout}
                 />
 
                 <PreviousRecordsHeader />
@@ -648,37 +557,29 @@ console.log("Submission response:", response);
                                 </div>
                             ) : (
                                 <div className="h-100 w-100 border-start p-2">
-                                    <MultiRenderingWithPatientId />
+                                    <MultiRenderingWithPatientId canload={canLoadData} />
                                 </div>
                             )}
                         </div>
                         <div className="col-12 col-md-3 border-start p-2" style={{ minHeight: 300 }}>
-                            {showSummary && <MultiSummary />}
+                            {billingdata.showsummary && <MultiSummary handlesubmit={handleSubmit} />}
                         </div>
                     </div>
                 </div>
-                <div className="card-footer d-flex justify-content-between align-items-center">
-                    <div className="d-flex justify-content-between " >
-                        {/* Show Advanced Payment and Bill Client only if making advance payment and certain conditions are met */}
-                        {billingdata?.allowAdvancePayment && (
-                            <>
-                                <Button disabled={ispricingcheckout} variant="outline-primary" className="mx-2 " size="sm" onClick={() => {
-                                    setBillingData(prev => ({
-                                        ...prev,
-                                        openPaymentModal: 2,
-                                    }));
-                                }} >
-                                    💳 Advanced Payment
-                                </Button>
-                                <Button disabled={ispricingcheckout} variant="outline-primary" className="mx-2 " size="sm" onClick={(ev) => { handleSubmit() }}>
-                                    💳 Bill Client
-                                </Button>
-                            </>
-                        )}
-                        <Button disabled={ispricingcheckout} onClick={(ev) => { handleSubmit() }} variant="outline-secondary" className="mx-2" size="sm"  >
-                            Proceed to order
-                        </Button>
-                    </div>
+                <div className="card-footer d-flex justify-content-end">
+                    {billingdata?.allowAdvancePayment && (
+                        <>
+                            <Button disabled={billingdata.ispricingcheckout} variant="outline-primary" className="mx-2 " size="sm" onClick={() => {
+                                setBillingData(prev => ({
+                                    ...prev,
+                                    openPaymentModal: 2,
+                                }));
+                            }} >
+                                💳 Advanced Payment
+                            </Button>
+
+                        </>
+                    )}
                 </div>
 
             </div>
