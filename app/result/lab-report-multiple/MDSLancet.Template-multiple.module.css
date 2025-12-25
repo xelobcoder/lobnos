@@ -9,7 +9,7 @@
     }
 
     .page {
-        border : none !important;
+        border: none !important;
         box-shadow: none !important;
     }
 }
@@ -323,7 +323,6 @@
         margin: 10px 0;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
-        color: white !important;
     }
 
     .header,
@@ -331,7 +330,7 @@
     .limitationSection,
     .resultsArea,
     .footer {
-        page-break-inside: avoid;
+        page-break-inside: avoid !important;
     }
 
     .sectionTitle,

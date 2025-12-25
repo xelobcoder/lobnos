@@ -251,11 +251,6 @@
         box-shadow: none !important;
     }
     
-    /* Ensure text is readable */
-    p, span, div, h1, h2, h3, h4, h5, h6 {
-        color: black !important;
-    }
-
     /* Hide the Change column on print */
     table th:nth-child(10), table td:nth-child(10) {
         display: none !important;

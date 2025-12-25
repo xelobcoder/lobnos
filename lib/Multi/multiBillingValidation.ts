@@ -10,7 +10,8 @@ const BillingFailures = {
     fullPayment: `Full payment must be paid to continue`,
     requiredParametersMissed: `Required Parameters not completed`,
     wrongTaxCalculations: 'Tax inclusive but not considered in the calculation',
-    invalidBillingData: 'Invalid billing data or missing billing source'
+    invalidBillingData: 'Invalid billing data or missing billing source',
+    NhisFailureMissingClaims: "Claims Code Or NHIS membership ID missing "
 };
 
 export const MultiValidateAndSubmitBillingInformation = async function (
@@ -71,6 +72,8 @@ export const MultiValidateAndSubmitBillingInformation = async function (
             entityname,
             previousRecordsSummary,
             servicesList = [],
+            claimscheckcode,
+            nhismembershipid,
             previousRecords = [],
             previousPaymentHistory = [],
             promoCode,
@@ -79,7 +82,6 @@ export const MultiValidateAndSubmitBillingInformation = async function (
             finalServicesList = [],
         } = billingdata as any;
 
-        console.log(billingdata.servicesList, billingdata.cart)
 
         // Payment validation is now optional for order flow. Only validate if payments are present.
         let paymentSum = 0;
@@ -112,8 +114,13 @@ export const MultiValidateAndSubmitBillingInformation = async function (
         if (!employeeid || !patientid || !branchid) {
             return { error: BillingFailures.requiredParametersMissed };
         }
-        if (billingSource > 1 && !entityId) {
+        if ((![1, 4].includes(billingSource)) && !entityId) {
             return { error: BillingFailures.requiredParametersMissed };
+        }
+
+
+        if (billingSource == 4 && (!billingdata.nhismembershipid || !billingdata.claimscheckcode)) {
+            return { error: BillingFailures.NhisFailureMissingClaims }
         }
 
         const isFinancialParamsAccurate =
@@ -160,6 +167,8 @@ export const MultiValidateAndSubmitBillingInformation = async function (
             writeOffOutstanding,
             adjustmentType,
             isAdjustment: typeof isAdjustment === 'boolean' ? (isAdjustment ? 1 : 0) : isAdjustment,
+            claimscheckcode,
+            nhismembershipid,
         };
 
         const url = "billing/multi/submit";

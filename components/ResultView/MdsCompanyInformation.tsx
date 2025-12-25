@@ -1,4 +1,6 @@
 import CompanyHeaders from "./CompanyHeaders";
+import CompanyHeadersDONDEE from "./CompanyHeadersDONDEE";
+import CompanyHeadersFULLWIDTH from "./CompanyHeadersFULLWIDTH";
 import { ResultSettings } from "./result-settings";
 
 interface MdsCompanyInformationProps {
@@ -9,13 +11,15 @@ interface MdsCompanyInformationProps {
         email: string;
         prNum: string;
         alternativenumber?: string;
+        additionalInfo?: string;
     };
     styles: any;
     logourl: string;
     resultsettings: ResultSettings;
+    subsequent?: boolean;
 }
 
-const MdsCompanyInformation = ({ companyInfo, styles, logourl, resultsettings }: MdsCompanyInformationProps) => {
+const MdsCompanyInformation = ({ companyInfo, styles, logourl, resultsettings, subsequent }: MdsCompanyInformationProps) => {
     const nameParts = (companyInfo.name || '').split(' ');
     const largeName = nameParts[0] || '';
     const subName = nameParts.slice(1).join(' ');
@@ -44,18 +48,29 @@ const MdsCompanyInformation = ({ companyInfo, styles, logourl, resultsettings }:
     }
 
 
+    const headerProps = {
+        companyInfo: {
+            name: companyInfo.name,
+            address: companyInfo.address,
+            phonenumber: Number(companyInfo.phonenumber),
+            email: companyInfo.email || companyInfo.prNum,
+            alternativenumber: companyInfo.alternativenumber,
+            additionalInfo: companyInfo.additionalInfo
+        },
+        resultsettings,
+        logo: logourl,
+        subsequent
+    };
+
+
+    const headerType = resultsettings?.companyInfo?.headerType || 'default';
+
     return (
-        <CompanyHeaders
-            companyInfo={{
-                name: companyInfo.name,
-                address: companyInfo.address,
-                phonenumber: Number(companyInfo.phonenumber),
-                email: companyInfo.email || companyInfo.prNum,
-                alternativenumber: companyInfo.alternativenumber
-            }}
-            resultsettings={resultsettings}
-            logo={logourl}
-        />
+        <>
+            {headerType === 'default' && <CompanyHeaders {...headerProps} />}
+            {headerType === 'dondee' && <CompanyHeadersDONDEE {...headerProps} />}
+            {headerType === 'fullwidth' && <CompanyHeadersFULLWIDTH {...headerProps} />}
+        </>
     );
 };
 

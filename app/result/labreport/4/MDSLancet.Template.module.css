@@ -292,7 +292,8 @@
 @media print {
     /* Add print page margins */
     @page {
-        margin: 15mm 10mm 15mm 10mm;
+        margin: 10mm 10mm 10mm 10mm;
+
     }
     .result {
         background: white !important;
@@ -326,21 +327,27 @@
         margin: 10px 0;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
-        color: white !important;
+        /* color: white !important; */
     }
 
     .header,
     .patientInfoSection,
     .limitationSection,
     .resultsArea,
+    .company-info-result,
     .footer {
-        page-break-inside: avoid;
+        page-break-inside: avoid !important;
     }
 
     .sectionTitle,
     .resultsHeaderRow {
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
+    }
+
+    .resulttable {
+        font-size: 14px !important;
+        line-height: 1px !important;
     }
 }
 

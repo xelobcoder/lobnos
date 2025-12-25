@@ -18,6 +18,7 @@ export interface ResultSettings {
           breakname: boolean; // Indicates if the company name should be split into large and subname
           subnameFontSize?: number;
           subnameColor?: string;
+          headerType?: string;
 
      };
      testBody: {
@@ -90,21 +91,20 @@ export const defaultResultSettings: ResultSettings = {
 
      testBody: {
           fontSize: 15,
-          // fontFamily: 'cambria, Georgia, serif',4
           fontFamily: 'Times New Roman, Times, serif',
           color: "black",
-          highlightFlags: false,
-          hightFlagColor: "red",
+          highlightFlags: true,
+          hightFlagColor: "#b04545",
           hasColorsForFlags: false,
-          lowFlagColor: "blue",
-          boldenParameter: false,
+          lowFlagColor: "#1eb870",
+          boldenParameter: true,
           boldenValue: false,
-          boldenUnits: true,
+          boldenUnits: false,
           trFirstColumnName: 'Investigation',
-          trSecondColumnName: 'value',
-          trThirdColumnName: 'units',
-          trFourthColumnName: 'reference',
-          trFifthColumnName: 'flag',
+          trSecondColumnName: 'Observed Value',
+          trThirdColumnName: 'Units',
+          trFourthColumnName: 'Range',
+          trFifthColumnName: 'Flag',
 
      },
      includeSignature: true,

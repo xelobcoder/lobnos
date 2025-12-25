@@ -4,6 +4,8 @@ import jsPDF from "jspdf";
 import { useState, useEffect } from "react";
 import CompanyHeaders, { CompanyHeadersProps } from "../../../../components/ResultView/CompanyHeaders";
 import { customFetch, currencyFormatter } from "../../../../components/Auth/customFetch";
+import { useTheme } from "../../../../components/ThemeProvider";
+import { useApplication } from "../../../../components/Auth/useApplicationContext";
 
 interface BillingData {
      billingid: number;
@@ -118,10 +120,12 @@ export default function PosReceiptTestPage() {
      const [loading, setLoading] = useState(true);
      const [error, setError] = useState<string | null>(null);
      const [retryCount, setRetryCount] = useState(0);
+     const { theme } = useTheme();
      const companyLogoUrl = process.env.NODE_ENV === "development" ?
           `${process.env.DEVELOPMENT_BASEURL}` + `settings/companyprofile/images` : `${process.env.PRODUCTION_BASEURL}` + `settings/companyprofile/images`;
 
-
+     const printedBy = useApplication()?.user?.username;
+     const printedByRole = useApplication()?.user?.role;
 
      const laodCompanyInfor = async () => {
           try {
@@ -140,7 +144,6 @@ export default function PosReceiptTestPage() {
                setLoading(true);
                setError(null);
 
-               console.log('Fetching billing data...');
                const billingResponse = await customFetch('billing/previous/transaction/data?billingid=3800');
                console.log('Billing response:', billingResponse);
                if (billingResponse?.result?.[0]) {
@@ -149,7 +152,7 @@ export default function PosReceiptTestPage() {
                     throw new Error('No billing data found');
                }
 
-               console.log('Fetching services data...');
+
                const servicesResponse = await customFetch('billing/information/single?billingid=3800');
                console.log('Services response:', servicesResponse);
                if (servicesResponse?.result) {
@@ -158,7 +161,7 @@ export default function PosReceiptTestPage() {
                     throw new Error('No services data found');
                }
 
-               console.log('Fetching company info...');
+
                await laodCompanyInfor();
                console.log('Data fetch completed successfully');
 
@@ -368,6 +371,8 @@ export default function PosReceiptTestPage() {
                pdf.text('This is a system-generated receipt.', pageWidth / 2, yPosition, { align: 'center' });
                yPosition += 3;
                pdf.text('Please retain for your records.', pageWidth / 2, yPosition, { align: 'center' });
+               yPosition += 3;
+               pdf.text(`Printed by: ${printedBy} (${printedByRole})`, pageWidth / 2, yPosition, { align: 'center' });
                yPosition += 4;
 
                pdf.text('----------------------------------------------------------------------------------------------------', 0, yPosition, { align: 'left' });
@@ -394,28 +399,53 @@ export default function PosReceiptTestPage() {
 
      return (
           <>
+               <style jsx global>{`
+               body {
+               background-color: ${theme === 'dark' ? '#121212' : '#f0f0f0'};
+               color: ${theme === 'dark' ? '#e0e0e0' : '#121212'};
+               margin: 0;
+               padding: 0;
+               }
 
-               <style jsx>{`
-  @media print {
-    #receipt-content {
-      border: none !important;
-      max-width: 210mm !important;
-      margin: 0 auto !important;
-    }
-      th{
-       font-size: 15px !important;
-       font-weight: bold !important;
-      }
-      td{
-       font-size: 11px !important;
-      }
-  }
-`}</style>
-               <div className="px-4 py-3">
-                    <div className="row justify-content-center">
-                         <div className="col-12 col-lg-10">
+             @media print {
+               #receipt-content {
+              width: 210mm;
+                    height: 297mm;
+                    border: none !important;
+                    box-shadow: none !important;
+                    margin: 0 !important;
+                    padding : 0 !important;
+               }
+               body, html {
+                    margin: 0;
+             }
+
+             #main-ci {
+                    -webkit-print-color-adjust: exact;
+                    margin: 0 !important;
+                    padding: 0 !important;
+               }
+
+               tr {
+                    page-break-inside: avoid;
+               
+                    }
+
+                    tr:nth-child(odd) {
+                         background-color: ${theme === 'dark' ? '#2c2c2c' : '#f9f9f9'} !important;
+                    }
+                         th {
+                           backgrond-color: ${theme === 'dark' ? '#3a3a3a' : '#e0e0e0'} !important;
+                           color: ${theme === 'dark' ? '#ffffff' : '#000000'} !important;
+                           font-weight: bold !important;
+                         }
+             }
+          `}</style>
+               <div className="px-4 py-3" id="main-ci">
+                    <div >
+                         <div >
                               {/* Print-friendly A4 layout */}
-                              <div id="receipt-content" className="bg-white border" style={{ maxWidth: '210mm', margin: '0 auto', fontSize: '12px' }}>
+                              <div id="receipt-content" className="bg-body border" >
                                    {/* Print Button */}
                                    <div className="text-end p-2 border-bottom">
                                         <button
@@ -454,8 +484,8 @@ export default function PosReceiptTestPage() {
                                    <div className="p-3 border-bottom">
                                         <h5 className="mb-3">Services Rendered</h5>
                                         {services && services.length > 0 ? (
-                                             <table className="table table-bordered ">
-                                                  <thead className="table-light">
+                                             <table className="table table-bordered">
+                                                  <thead className="table-active">
                                                        <tr>
                                                             <th style={{ width: '5%' }}>#</th>
                                                             <th style={{ width: '50%' }}>Service Description</th>
@@ -483,18 +513,18 @@ export default function PosReceiptTestPage() {
                                                        ))}
                                                   </tbody>
                                                   <tfoot>
-                                                       <tr className="table-light">
+                                                       <tr className="table-active">
                                                             <td colSpan={4} className="text-end"><strong>Subtotal:</strong></td>
                                                             <td className="text-end"><strong>{currencyFormatter.format(services.reduce((sum, service) => sum + parseFloat(service.totalcost || '0'), 0))}</strong></td>
                                                        </tr>
                                                        {services.some(service => parseFloat(service.taxValue || '0') > 0) && (
-                                                            <tr className="table-light">
+                                                            <tr className="table-active">
                                                                  <td colSpan={4} className="text-end"><strong>Tax:</strong></td>
                                                                  <td className="text-end"><strong>{currencyFormatter.format(services.reduce((sum, service) => sum + parseFloat(service.taxValue || '0'), 0))}</strong></td>
                                                             </tr>
                                                        )}
                                                        {services.some(service => parseFloat(service.discount || '0') > 0) && (
-                                                            <tr className="table-light">
+                                                            <tr className="table-active">
                                                                  <td colSpan={4} className="text-end"><strong>Discount:</strong></td>
                                                                  <td className="text-end"><strong>-{currencyFormatter.format(services.reduce((sum, service) => sum + parseFloat(service.discount || '0'), 0))}</strong></td>
                                                             </tr>
@@ -546,13 +576,15 @@ export default function PosReceiptTestPage() {
 
 
                                    {/* Footer */}
-                                   <div className="p-3 text-center bg-light">
+                                   <div className="p-3 text-center bg-body-secondary">
                                         <p className="mb-1"><strong>Thank you for choosing {companyInfo?.name || ' our company'}!</strong></p>
                                         <p className="small mb-1">For inquiries: Call {companyInfo?.phonenumber || '+233 24 123 4567'}</p>
                                         <p className="small mb-0">This is a system-generated receipt. Keep for your records.</p>
                                         <hr className="my-2" />
                                         <p className="small text-muted">Generated on {new Date().toLocaleString()}</p>
+                                        <p className="small text-muted">Printed by: {printedBy} ({printedByRole})</p>
                                    </div>
+
                               </div>
 
                               {/* Print Buttons */}

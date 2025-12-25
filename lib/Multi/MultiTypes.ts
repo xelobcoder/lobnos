@@ -56,10 +56,13 @@ export interface MultiBillingData {
     specialCode?: string;
     billingid?: string | number;
     billingSource: number;
+    claimscheckcode?:number;
+    nhisnumber?:number;
     totalTestAmountPayable: number;
     showsummary?: boolean;
     patientid?: number | null;
     entityId?: string | number | null;
+    nhismembershipid?: number | null;
     entitytype?: entitytype;
     excessAction?: 'balance' | 'refund';
     isPackageUsed: boolean;
@@ -143,6 +146,7 @@ export interface MultiBillingData {
     showRelatedBilling?: boolean;
     promoVerifySuccess?: boolean | null;
     promoVerifyMessage?: string | null;
+    insuranceid: number | null;
     promoVerifyLoading?: boolean;
     billingIdVerified?: boolean;
 }
@@ -151,6 +155,7 @@ export const defaultMultiBillingData: MultiBillingData = {
     billingSource: 1,
     isPackageUsed: false,
     subtotal: 0,
+    insuranceid:0,
     promoId: null,
     totaldiscount: 0,
     isAdjustment: 0,

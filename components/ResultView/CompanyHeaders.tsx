@@ -10,12 +10,14 @@ export interface CompanyHeadersProps {
 		name: string;
 		alternativenumber?: string;
 		motto?: string;
+		additionalInfo?: string;
 	} | null;
 	logo: string,
 	resultsettings?: ResultSettings | null;
+	subsequent?: boolean;
 }
 
-export default function CompanyHeaders({ companyInfo, logo, resultsettings }: CompanyHeadersProps) {
+export default function CompanyHeaders({ companyInfo, logo, resultsettings, subsequent }: CompanyHeadersProps) {
 	if (!companyInfo) return null;
 
 	const {
@@ -23,14 +25,15 @@ export default function CompanyHeaders({ companyInfo, logo, resultsettings }: Co
 		email,
 		phonenumber,
 		address,
-		alternativenumber
+		alternativenumber,
+		additionalInfo
 	} = companyInfo;
 
-	const companyNamefontSize = resultsettings?.companyInfo?.namefontsize || '25px';
+	const companyNamefontSize = resultsettings?.companyInfo?.namefontsize + 'px' || '25px';
 	const companyNamefontColor = resultsettings?.companyInfo?.color || 'black';
-	const companyNamefontFamily = resultsettings?.fontfamily || 'Times New Roman';
+	const companyNamefontFamily = resultsettings?.fontfamily || 'Arial Black';
 	return (
-		<div className={styles['company-info-result']}>
+		<div className={`${styles['company-info-result']} ${subsequent ? styles.subsequent : ''}`}>
 			<div className="logo" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
 				<img
 					src={logo || `${process.env.NODE_ENV === 'development' ? process.env.DEVELOPMENT_BASEURL : process.env.PRODUCTION_BASEURL}/settings/companyprofile/images`}
@@ -53,15 +56,16 @@ export default function CompanyHeaders({ companyInfo, logo, resultsettings }: Co
 			</div>
 			<div className="other-information">
 				<div style={{
-					fontSize: `${companyNamefontSize} !important`,
+					fontSize: companyNamefontSize || '50px',
 					color: companyNamefontColor,
 					fontWeight: 'bold',
 					letterSpacing: '1.5px',
 					textTransform: 'uppercase',
 					fontFamily: companyNamefontFamily
 				}} className={styles['company-name']}>{name}</div>
-				<div className={styles['company-kids']}>Location: {address}</div>
-				<div className={`${styles['company-kids']}`}>
+				<div className={styles['company-address']}>{additionalInfo}</div>
+				<div className={styles['company-address']}>{address}</div>
+				<div className={`${styles['company-address']}`}>
 					<span>
 						Tel: 0{phonenumber} || {alternativenumber} {"  "}Email:{email}
 					</span>

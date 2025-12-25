@@ -89,7 +89,9 @@ function MultiBillingLayoutContent() {
 
         const entityTypeToBillingSource: Record<string, number> = {
             organization: 2,
-            insurance: 4,
+            insurance: 3,
+            nhis: 4,
+            general: 1,
             clinician: 6,
         };
 
@@ -114,7 +116,7 @@ function MultiBillingLayoutContent() {
 
 
 
-    const handleSelectedEntityClinician = (entity) => {
+    const handleSelectedEntityClinician = (entity: { id: number, name: string }) => {
         if (!entity) return;
         const { id, name } = entity;
         setBillingData((prev) => ({
@@ -128,7 +130,7 @@ function MultiBillingLayoutContent() {
         updateEntityInUrl("clinician", name || "", id, billingdata.specialCode);
     };
 
-    const handleSelectedEntityInsurance = (entity) => {
+    const handleSelectedEntityInsurance = (entity: { id: number, insuranceName: string }) => {
         if (!entity) return;
         const { id, insuranceName } = entity;
         setBillingData((prev) => ({
@@ -136,14 +138,13 @@ function MultiBillingLayoutContent() {
             entityId: id,
             entitytype: "insurance",
             entityname: insuranceName || "",
-            billingSource: 4,
+            billingSource: 3,
             referalName: insuranceName || "",
         }));
         updateEntityInUrl("insurance", insuranceName || "", id, billingdata.specialCode);
-
     };
 
-    const handleOrganizationSelection = (entity) => {
+    const handleOrganizationSelection = (entity: { id: number, name: string }) => {
         const { id, name } = entity;
         setBillingData((prev) => ({
             ...prev,
@@ -203,7 +204,7 @@ function MultiBillingLayoutContent() {
         let url;
         const billingIdParam = billingdata.billingid ? `&billingid=${billingdata.billingid}` : '';
         if (billingdata.useSpecialCode && billingdata.specialCode && !specialCodeError) {
-            url = `billing/multi/init?tenantId=3` +
+            url = `billing/multi/init?` +
                 `&entityType=` +
                 `&isPackageUsed=${billingdata.isPackageUsed}` +
                 `&useServices=${includeServices}` +
@@ -217,7 +218,7 @@ function MultiBillingLayoutContent() {
                 `&ispricingcheckout=${ispricingcheckout}` +
                 billingIdParam;
         } else if (billingdata.entitytype && billingdata.entityId && Number(billingdata.billingSource || categorytrackid) > 1) {
-            url = `billing/multi/init?tenantId=3` +
+            url = `billing/multi/init?` +
                 `&entityType=${billingdata.entitytype}` +
                 `&isPackageUsed=${billingdata.isPackageUsed}` +
                 `&useServices=${includeServices}` +
@@ -229,8 +230,25 @@ function MultiBillingLayoutContent() {
                 `&billingSource=${billingdata.billingSource || categorytrackid}` +
                 `&ispricingcheckout=${ispricingcheckout}` +
                 billingIdParam;
-        } else {
-            url = `billing/multi/init?tenantId=3` +
+        } else if (billingdata.billingSource == 4 && (billingdata.nhismembershipid && billingdata.nhismembershipid > 0) &&
+            (billingdata.claimscheckcode && billingdata.claimscheckcode > 0)) {
+            url = `billing/multi/init?` +
+                `&entityType=nhis` +
+                `&isPackageUsed=${billingdata.isPackageUsed}` +
+                `&useServices=${includeServices}` +
+                `&includeServices=${includeServices}` +
+                `&packageid=${billingdata.packageid || ''}` +
+                `&branchid=${billingdata.branchid || ''}` +
+                `&patientId=${billingdata.patientid || patientid || ''}` +
+                `&nhisMemberId=${billingdata.nhismembershipid}` +
+                `&claimCheckCode=${billingdata.claimscheckcode}` +
+                `&billingSource=4` +
+                `&ispricingcheckout=${ispricingcheckout}` +
+                billingIdParam;
+        }
+
+        else {
+            url = `billing/multi/init?` +
                 `&entityType=general` +
                 `&isPackageUsed=${billingdata.isPackageUsed}` +
                 `&useServices=${includeServices}` +
@@ -254,6 +272,13 @@ function MultiBillingLayoutContent() {
                 toast.error(backendData.message || "Failed to load billing data from backend.");
                 return;
             }
+
+
+            if (typeof backendData == "object" && backendData.hasOwnProperty('testList') && Array.isArray(backendData.testList) && backendData.testList.length === 0) {
+                toast.error("No tests available for the selected entity or special code.");
+                return;
+            }
+
             setBillingData(prev => {
                 // If backend entitytype is different from current, update URL and billingSource
                 let updated = {
@@ -270,18 +295,16 @@ function MultiBillingLayoutContent() {
                     cart: backendData.isPackageUsed ? backendData.testList : [],
                     ispricingcheckout: false,
                 };
-                if (
-                    backendData.entityType &&
-                    backendData.entityType !== prev.entitytype
-                ) {
+                if (backendData.entityType && backendData.entityType !== prev.entitytype) {
                     // Update URL to reflect new entitytype and billingSource
                     const entityTypeToBillingSource = {
+                        general: 1,
                         organization: 2,
-                        insurance: 4,
+                        insurance: 3,
+                        nhis: 4,
                         clinician: 6,
-                        general: 1
                     };
-                    const newSource = entityTypeToBillingSource[backendData.entityType.toLowerCase()] || 1;
+                    const newSource = entityTypeToBillingSource[backendData.entityType.toLowerCase()];
                     const path = window.location.pathname.split('/');
 
                     if (!isNaN(Number(path[path.length - 1]))) {
@@ -350,7 +373,7 @@ function MultiBillingLayoutContent() {
 
     const closeReceiptModal = () => setShowReceiptOptionsModal(false);
 
-    const handleSubmit = async (billingdata:MultiBillingData, writeOffConfirmed = false) => {
+    const handleSubmit = async (billingdata: MultiBillingData, writeOffConfirmed = false) => {
         if (isSaving) return;
 
         if (!billingdata || !billingdata.patientid) {
@@ -390,13 +413,19 @@ function MultiBillingLayoutContent() {
                 adjustmentReason: billingdata.adjustmentReason || '',
                 entitytype: billingdata.entitytype || null,
                 writeOffOutstanding: writeOffConfirmed ? true : undefined,
-                excessAction: billingdata.excessAction || null
+                excessAction: billingdata.excessAction || null,
+                isNHIS: billingdata.billingSource == 4 ? true : false,
+                claimscheckcode: billingdata.claimscheckcode || null,
+                nhismembershipid: billingdata.nhismembershipid || null,
             } as any;
 
             const response = await MultiValidateAndSubmitBillingInformation(
                 dataToBeUploaded,
                 billingid ? Number(billingid) : undefined
             );
+
+
+            console.log(response,"MY RESPONSE ")
 
 
             const { status, message } = response;
@@ -421,18 +450,13 @@ function MultiBillingLayoutContent() {
             }
 
         } catch (error) {
+            console.log("Error submitting billing data:", error);
             setIsSaving(false);
         } finally {
             setIsSaving(false);
         }
     };
 
-
-
-    // Checkout handler: send billing data to backend
-
-
-    // On mount, set entitytype and billingSource if present
 
     const onMountedRun = async () => {
         const getTransactionPreviousBillingRecords = async (billingid: number) => {
@@ -479,10 +503,12 @@ function MultiBillingLayoutContent() {
         onMountedRun();
     }, []);
 
-    // Helper: should Load Data be enabled?
+
     const canLoadData = (() => {
         if (billingdata.isPackageUsed && !billingdata.packageid) return false;
         if (billingdata.useSpecialCode && billingdata.specialCode && !specialCodeError) return true;
+        if (billingdata.billingSource == 4 && (billingdata.nhismembershipid && billingdata.nhismembershipid > 0) &&
+            (billingdata.claimscheckcode && billingdata.claimscheckcode > 0)) return true;
         const resolvedBillingSource = Number(billingdata.billingSource || categorytrackid);
         if (resolvedBillingSource > 1) {
             return !!(billingdata.entitytype && billingdata.entityId);

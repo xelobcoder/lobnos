@@ -2,6 +2,7 @@ import React from "react";
 import { Modal, Button } from "react-bootstrap";
 import Select from "react-select";
 import { reactSelectCustomStyles } from "../../Auth/customFetch";
+import { MultiBillingData } from "../../../lib/Multi/MultiTypes";
 
 interface PaymentModeOption {
      value: string | number;
@@ -28,7 +29,7 @@ interface PaymentModalProps {
      setNewPayment: React.Dispatch<React.SetStateAction<{ mode: string | number; amount: string }>>;
      setBillingData: (data: any) => void;
      billingdata: any;
-     handlesubmit?: (data: MultiBillingData) => void;
+     handlesubmit: (data: MultiBillingData) => Promise<void>;
 }
 
 
@@ -310,6 +311,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                setBillingData(newCurrentData);
                handlesubmit ? await handlesubmit(newCurrentData) : null;
                setIsValueSynchronized(true);
+               setIsSyncing(false)
           } else {
                // Pay Some mode validation
                if (!selectedItems.some(Boolean)) {
@@ -392,8 +394,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     balance: payable - currentTotalPaid,
                }
                setBillingData(newCurrentData);
-
-               handlesubmit ? await handlesubmit(newCurrentData) : null;
+               await handlesubmit(newCurrentData);
                setIsValueSynchronized(true);
                setIsSyncing(false);
           }

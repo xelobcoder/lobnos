@@ -28,7 +28,8 @@ export default function ReceiptOptionsModal({ open, close, billingid, patientid 
 
     const handlePrintClick = (ispos: boolean = false) => {
         if (!billingid) return;
-        window.open(`${process.env.PLS_PDF_GENERATOR}generate/receipt/invoice?billingid=${billingid}&&is_pos=${ispos}`);
+        window.open(`/billing/cash-collection/pos-receipt-test?billingid=${billingid}&&is_pos=${ispos}`);
+       
     };
 
     const handleEmailClick = async () => {

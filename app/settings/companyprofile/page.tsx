@@ -10,6 +10,11 @@ import { customFetch, customPost } from '../../../components/Auth/customFetch';
 import Image from 'next/image';
 import { toast } from 'react-toastify';
 
+interface AlternativeNumber {
+	number: string;
+	label: string;
+}
+
 interface CompanyData {
 	name: string;
 	email: string;
@@ -18,8 +23,9 @@ interface CompanyData {
 	address: string;
 	website: string;
 	street: string;
-	alternativenumber: string;
+	alternativenumber: AlternativeNumber[];
 	labTimings: string;
+	additionalInfo: string;
 }
 
 interface Timing {
@@ -37,12 +43,38 @@ export default function CompanyProfile() {
 		address: '',
 		website: '',
 		street: '',
-		alternativenumber: '',
-		labTimings: '{"timings": []}'
+		alternativenumber: [{ number: '', label: '' }],
+		labTimings: '{"timings": []}',
+		additionalInfo: ''
 	};
 
 	const [companyData, setCompanyData] = useState(defaultData);
 	const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+	const addAlternativeNumber = () => {
+		setCompanyData(prev => ({
+			...prev,
+			alternativenumber: [...prev.alternativenumber, { number: '', label: '' }]
+		}));
+	};
+
+	const updateAlternativeNumber = (index: number, field: 'number' | 'label', value: string) => {
+		setCompanyData(prev => ({
+			...prev,
+			alternativenumber: prev.alternativenumber.map((item, i) =>
+				i === index ? { ...item, [field]: value } : item
+			)
+		}));
+	};
+
+	const removeAlternativeNumber = (index: number) => {
+		if (companyData.alternativenumber.length > 1) {
+			setCompanyData(prev => ({
+				...prev,
+				alternativenumber: prev.alternativenumber.filter((_, i) => i !== index)
+			}));
+		}
+	};
 
 	const handleData = async (ev: React.FormEvent) => {
 		ev.preventDefault();
@@ -52,7 +84,26 @@ export default function CompanyProfile() {
 			const isValidMobile = companyData.phonenumber.length === 10 && companyData.phonenumber[0] === '0';
 
 			if (emptyFields.length === 0 && isValidMobile) {
-				const response = await customPost('settings/companyprofile', 'POST', companyData);
+				// Prepare data for submission - group by label and merge numbers
+				const groupedNumbers: { [key: string]: string[] } = {};
+
+				companyData.alternativenumber
+					.filter(item => item.number.trim())
+					.forEach(item => {
+						const label = item.label.trim() || 'Other';
+						if (!groupedNumbers[label]) {
+							groupedNumbers[label] = [];
+						}
+						groupedNumbers[label].push(item.number.trim());
+					});
+
+				const submitData = {
+					...companyData,
+					alternativenumber: Object.entries(groupedNumbers)
+						.map(([label, numbers]) => `${label}:${numbers.join(',')}`)
+						.join('; ')
+				};
+				const response = await customPost('settings/companyprofile', 'POST', submitData);
 				if (response?.status === 'success') {
 					toast.success('Updated successfully');
 				} else {
@@ -103,7 +154,53 @@ export default function CompanyProfile() {
 			try {
 				const response = await customFetch('settings/companyprofile');
 				if (response) {
-					setCompanyData({ ...defaultData, ...response, labTimings: response.labTimings || '{"timings": []}', alternativenumber: response.alternativenumber });
+					// Handle alternativenumber as either string or array, supporting both old and new formats
+					let altNumbers: AlternativeNumber[] = [];
+					if (Array.isArray(response.alternativenumber)) {
+						// If it's already an array of objects (new format)
+						if (response.alternativenumber.length > 0 && typeof response.alternativenumber[0] === 'object') {
+							altNumbers = response.alternativenumber;
+						} else {
+							// Legacy array of strings
+							altNumbers = response.alternativenumber.length > 0
+								? response.alternativenumber.map((num: string) => ({ number: num, label: '' }))
+								: [{ number: '', label: '' }];
+						}
+					} else if (typeof response.alternativenumber === 'string' && response.alternativenumber.trim()) {
+						// Parse string format - handle merged format (label:number1,number2) and individual format (label:number)
+						const parts = response.alternativenumber.split(';').map((part: string) => part.trim());
+						altNumbers = [];
+
+						parts.forEach((part: string) => {
+							const colonIndex = part.indexOf(':');
+							if (colonIndex > 0) {
+								const label = part.substring(0, colonIndex).trim();
+								const numbersPart = part.substring(colonIndex + 1).trim();
+
+								// Split by comma to handle merged numbers
+								const numbers = numbersPart.split(',').map(num => num.trim()).filter(num => num);
+
+								// Create separate entries for each number with the same label
+								numbers.forEach(number => {
+									altNumbers.push({ number, label });
+								});
+							} else if (part) {
+								// Old format: just the number
+								altNumbers.push({ number: part, label: '' });
+							}
+						});
+
+						if (altNumbers.length === 0) altNumbers = [{ number: '', label: '' }];
+					} else {
+						altNumbers = [{ number: '', label: '' }];
+					}
+
+					setCompanyData({
+						...defaultData,
+						...response,
+						labTimings: response.labTimings || '{"timings": []}',
+						alternativenumber: altNumbers
+					});
 				}
 
 				const baseUrl = process.env.NODE_ENV === 'development' ? process.env.DEVELOPMENT_BASEURL : process.env.PRODUCTION_BASEURL;
@@ -276,18 +373,53 @@ export default function CompanyProfile() {
 							</Form.Group>
 
 							<Form.Group className='mb-3' controlId="formGridAltNumber">
-								<Form.Label>Alternative Number</Form.Label>
-								<InputGroup>
-									<InputGroup.Text><RiSmartphoneLine size={20} /></InputGroup.Text>
-									<Form.Control
-										type="tell"
-										minLength={10}
-										maxLength={13}
-										placeholder="Optional secondary number"
-										value={companyData.alternativenumber}
-										onChange={(e) => setCompanyData({ ...companyData, alternativenumber: e.target.value })}
-									/>
-								</InputGroup>
+								<Form.Label>Alternative Numbers</Form.Label>
+								{companyData.alternativenumber.map((altNumber, index) => (
+									<div key={index} className="mb-3 p-3 border rounded">
+										<div className="row g-2">
+											<div className="col-md-4">
+												<Form.Control
+													type="text"
+													placeholder="Label (e.g., Office, Manager)"
+													value={altNumber.label}
+													onChange={(e) => updateAlternativeNumber(index, 'label', e.target.value)}
+												/>
+											</div>
+											<div className="col-md-6">
+												<InputGroup>
+													<InputGroup.Text><RiSmartphoneLine size={20} /></InputGroup.Text>
+													<Form.Control
+														type="tel"
+														minLength={10}
+														maxLength={13}
+														placeholder="Phone number"
+														value={altNumber.number}
+														onChange={(e) => updateAlternativeNumber(index, 'number', e.target.value)}
+													/>
+												</InputGroup>
+											</div>
+											<div className="col-md-2">
+												<Button
+													variant="outline-danger"
+													onClick={() => removeAlternativeNumber(index)}
+													disabled={companyData.alternativenumber.length === 1}
+													className="w-100"
+												>
+													Remove
+												</Button>
+											</div>
+										</div>
+									</div>
+								))}
+								<Button
+									variant="outline-primary"
+									size="sm"
+									onClick={addAlternativeNumber}
+									className="mt-2"
+								>
+									<RiSmartphoneLine size={16} className="me-1" />
+									Add Another Number
+								</Button>
 							</Form.Group>
 
 							<Form.Group className='mb-4' controlId="formGridWebsite">
@@ -301,6 +433,20 @@ export default function CompanyProfile() {
 										onChange={(e) => setCompanyData({ ...companyData, website: e.target.value })}
 									/>
 									<Form.Control.Feedback type="invalid">Please enter a valid URL (e.g., https://example.com).</Form.Control.Feedback>
+								</InputGroup>
+							</Form.Group>
+
+							<Form.Group className='mb-4' controlId="formGridAdditionalInfo">
+								<Form.Label>Additional Information</Form.Label>
+								<InputGroup>
+									<InputGroup.Text><RiQuillPenLine size={20} /></InputGroup.Text>
+									<Form.Control
+										as="textarea"
+										rows={3}
+										placeholder="Enter any additional information about the company (optional)"
+										value={companyData.additionalInfo}
+										onChange={(e) => setCompanyData({ ...companyData, additionalInfo: e.target.value })}
+									/>
 								</InputGroup>
 							</Form.Group>
 

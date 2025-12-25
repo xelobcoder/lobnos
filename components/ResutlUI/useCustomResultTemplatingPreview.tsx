@@ -53,6 +53,7 @@ export default function UseCustomResultTemplatingPreview({ test, records, isResu
 		}, {} as { [category: string]: any[] });
 	}
 
+	const tableHeaderFontSize =  resultsettings?.testTableHeaderFontSize + 'px' || '13px';
 
 
 	return (
@@ -69,7 +70,8 @@ export default function UseCustomResultTemplatingPreview({ test, records, isResu
 					backgroundColor: resultsettings?.testTableHeaderBackgroundColor || 'orange',
 					color: resultsettings?.testTableHeaderTextColor || 'black',
 					width: '100% !important',
-					fontSize: resultsettings?.testTableHeaderFontSize || '13px'
+					padding: '10px !important',
+					fontSize: tableHeaderFontSize,
 				}}>
 					<tr>
 						<th style={{ width: '45%' }} >{resultsettings.testBody.trFirstColumnName || 'Test'}</th>

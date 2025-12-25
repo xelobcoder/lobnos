@@ -274,7 +274,7 @@ export default function LabReportPrintingMultiple() {
 							sectionEl.style.borderBottom = prev.borderBottom;
 
 							// Gap between tests; if not enough room for gap, start new page with header for next test
-							const gapMm = 2;
+							const gapMm = 1;
 							if (y + gapMm <= pageBottom) {
 								y += gapMm;
 							} else {
@@ -510,6 +510,7 @@ export default function LabReportPrintingMultiple() {
 
 
 
+	// const fontFamily = resultSettings.fontfamily || `var(--theme-font-family);`;
 
 	return (
 		<Suspense>
@@ -593,7 +594,7 @@ export default function LabReportPrintingMultiple() {
 						</aside>
 						<div style={{ flex: 1, position: 'relative', minHeight: '100vh', backgroundColor: 'white !important' }}>
 							<div className={`${styles.page} print-page`} style={{
-								fontFamily: resultSettings.fontfamily,
+								fontFamily: `${resultSettings.fontfamily} !important`,
 								minHeight: '100vh',
 								display: 'flex',
 								border: 'none !important',
@@ -612,8 +613,8 @@ export default function LabReportPrintingMultiple() {
 										/>
 										<div className={styles.reportTitleBar}
 											style={{
-												backgroundColor: resultSettings.mainReportHeaderBgColor,
-												color: resultSettings.mainReportHeaderColor
+												backgroundColor: resultSettings?.mainReportHeaderBgColor,
+												color: resultSettings?.mainReportHeaderColor
 											}}>
 											MEDICAL LABORATORY REPORT
 										</div>
@@ -648,15 +649,15 @@ export default function LabReportPrintingMultiple() {
 														className="test-section"
 														data-test-idx={idx}
 														style={{
-															marginBottom: 40,
+															marginBottom: 20,
 															borderBottom: '1px dashed #ccc',
-															paddingBottom: 24,
+															paddingBottom: 12,
 															breakInside: 'avoid',
 															pageBreakInside: 'avoid',
 														}}
 													>
 														{printPageStarters.has(idx) && (
-															<div className={`page-header-marker ${i !== 0 ? 'break-before' : ''}`}>
+															<div className={`page-header-marker ${i !== 0 ? 'break-before subsequent-header' : ''}`}>
 																<MdsCompanyInformation
 																	styles={styles}
 																	logourl={resultdata.logourl}
@@ -665,8 +666,8 @@ export default function LabReportPrintingMultiple() {
 																/>
 																<div className={styles.reportTitleBar}
 																	style={{
-																		backgroundColor: resultSettings.mainReportHeaderBgColor,
-																		color: resultSettings.mainReportHeaderColor
+																		backgroundColor: `${resultSettings.mainReportHeaderBgColor} !important`,
+																		color: `${resultSettings.mainReportHeaderColor} !important`
 																	}}>
 																	MEDICAL LABORATORY REPORT
 																</div>
@@ -715,7 +716,7 @@ export default function LabReportPrintingMultiple() {
 
 											if (allComments && allComments.length > 0) {
 												nodes.push(
-													<section key="result-comments" className="test-section extra-section" style={{ marginBottom: 40, paddingBottom: 24, breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+													<section key="result-comments" className="test-section extra-section" style={{ marginBottom: 20, paddingBottom: 12, breakInside: 'avoid', pageBreakInside: 'avoid' }}>
 														<UseResultCommentSinglePreview comments={resultdata.generalComments} />
 													</section>
 												);
@@ -750,23 +751,31 @@ export default function LabReportPrintingMultiple() {
 				)
 			)}
 			<style jsx global>{`
-                .print-only-header { display: none; }
-                .page-header-marker { display: none; }
-                @media print {
-                    @page { margin: 10mm; }
-                    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                    .no-print { display: none !important; }
-                    .print-page { box-shadow: none !important; background: #fff !important; }
-                    .screen-header { display: none !important; }
-                    .page-header-marker { display: block !important; }
-                    .page-header-marker.break-before { page-break-before: always; }
-                    .result { display: block !important; width: 100%; }
-                    .print-content { display: block !important; margin: 0 !important; }
-                    .test-section { break-inside: avoid-page; page-break-inside: avoid; }
-                    .report-footer { break-inside: avoid-page; page-break-inside: avoid; }
-                    .report-footer.force-break { page-break-before: always; }
-                }
-            `}</style>
+				.print-only-header { display: none; }
+				.page-header-marker { display: none; }
+				.subsequent-header {
+					break-inside: avoid !important;
+					page-break-inside: avoid !important;
+				}
+				@media print {
+					@page { margin: 10mm; }
+					body { -webkit-print-color-adjust: exact; print-color-adjust: exact;
+					
+					}
+
+					.no-print { display: none !important; }
+					.print-page { box-shadow: none !important; background: #fff !important; }
+					.screen-header { display: none !important; }
+					.page-header-marker { display: block !important; }
+					.page-header-marker.break-before { page-break-before: always; }
+					.result { display: block !important; width: 100%; }
+					.print-content { display: block !important; margin: 0 !important; }
+					.test-section { break-inside: avoid-page; page-break-inside: avoid; }
+					.test-block { break-inside: avoid-page !important; page-break-inside: avoid !important; }
+					.report-footer { break-inside: avoid-page; page-break-inside: avoid; }
+					.report-footer.force-break { page-break-before: always; }
+				}
+			`}</style>
 		</Suspense>
 	);
 }

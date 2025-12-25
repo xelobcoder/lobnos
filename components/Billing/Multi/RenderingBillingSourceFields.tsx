@@ -18,7 +18,7 @@ export default function MultiRenderingBillingSourceFields({
 }) {
     const context = useContext(MultiBillingContext);
     if (!context) throw new Error("MultiBillingContext not found");
-    const { billingdata } = context;
+    const { billingdata, setBillingData } = context;
     const [showTypeAlert, setShowTypeAlert] = useState(false);
     const [expectedType, setExpectedType] = useState("");
     const [returnedType, setReturnedType] = useState("");
@@ -60,7 +60,7 @@ export default function MultiRenderingBillingSourceFields({
             {typeof billingdata.billingSource == "number" && billingdata.billingSource > 1 && (
                 <div className="p-2  mb-2">
                     {billingdata.billingSource === 2 && (
-                        <OrganizationalBillingSourceSearch updatefunction={updateValuesToContext}/>
+                        <OrganizationalBillingSourceSearch updatefunction={updateValuesToContext} />
                     )}
                     {billingdata.billingSource === 3 && (
                         <Form.Group>
@@ -75,15 +75,36 @@ export default function MultiRenderingBillingSourceFields({
                         </Form.Group>
                     )}
                     {billingdata.billingSource === 4 && (
-                        <Form.Group>
-                            <Form.Label className="small text-muted">Claim Code</Form.Label>
-                            <Form.Control
-                                type="text"
-                                placeholder="Enter claim code"
-                                className="rounded-3 border-light"
-                                size="sm"
-                            />
-                        </Form.Group>
+                        <div>
+                            <Form.Group>
+                                <Form.Label className="small fw-bold">NHIS MEMBERSHIP CODE</Form.Label>
+                                <Form.Control
+                                    type="number"
+                                    placeholder="Enter NHIS ID"
+                                    className="form-control"
+                                    value={billingdata.nhismembershipid || ''}
+                                    required
+                                    onChange={(ev) => {
+                                        setBillingData({ ...billingdata, nhismembershipid: parseInt(ev.target.value) })
+                                    }}
+                                    size="sm"
+                                />
+                            </Form.Group>
+                            <Form.Group>
+                                <Form.Label className="small fw-bold">CLAIM CHECK CODE</Form.Label>
+                                <Form.Control
+                                    type="number"
+                                    placeholder="Enter CCC"
+                                    className="form-control "
+                                    value={billingdata.claimscheckcode || ''}
+                                    required
+                                    onChange={(ev) => {
+                                        setBillingData({ ...billingdata, claimscheckcode: parseInt(ev.target.value) })
+                                    }}
+                                    size="sm"
+                                />
+                            </Form.Group>
+                        </div>
                     )}
                     {billingdata.billingSource === 6 && (
                         <Form.Group>
@@ -114,15 +135,19 @@ export default function MultiRenderingBillingSourceFields({
             )}
             {typeof billingdata.billingSource === 'number' && billingdata.billingSource > 0 && (
                 <div>
-                    <label className="pls-label text-sm">Select Urgency</label>
-                    <Select
-                        className="react-select-container"
-                        classNamePrefix="react-select"
-                        styles={reactSelectCustomStyles}
-                        value={{ label: billingdata.status, value: billingdata.status }}
-                        onChange={handleUrgencyChange}
-                        options={urgencyOptions}
-                    />
+                    <Form.Label className="mx-1 text-sm fw-bold">Select Urgency</Form.Label>
+                    <Form.Select
+                        value={billingdata.status}
+                        className="mx-1"
+                        onChange={(e) => handleUrgencyChange({ label: e.target.value, value: e.target.value })}
+                        size="sm"
+                    >
+                        {urgencyOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </Form.Select>
                 </div>
             )}
         </div>

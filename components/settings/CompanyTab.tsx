@@ -1,5 +1,5 @@
 "use client"
-import React from 'react';
+import React, { useState } from 'react';
 import { Form } from 'react-bootstrap';
 import { ResultSettings } from '../ResultView/result-settings';
 
@@ -9,6 +9,20 @@ interface CompanyTabProps {
 }
 
 export const CompanyTab: React.FC<CompanyTabProps> = ({ settings, handleChange }) => {
+     const [headerType, setHeaderType] = useState(settings.companyInfo.headerType || 'default');
+
+     // Map header type to sample image
+     const headerSamples: Record<string, string> = {
+          default: '/letters-headers-sample/Screenshot_24-12-2025_113930_localhost.jpeg',
+          dondee: '/letters-headers-sample/Screenshot_24-12-2025_113954_.jpeg',
+          fullwidth: '/letters-headers-sample/Screenshot_24-12-2025_113930_localhost.jpeg', // Using default for now, can be updated with specific image later
+     };
+
+     const handleHeaderTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+          setHeaderType(e.target.value);
+          handleChange({ target: { name: 'companyInfo.headerType', value: e.target.value, type: 'text' } });
+     };
+
      return (
           <>
                {/* Company Information Section */}
@@ -102,6 +116,36 @@ export const CompanyTab: React.FC<CompanyTabProps> = ({ settings, handleChange }
                                         className="custom-input flex-grow-1"
                                    />
                               </div>
+                         </div>
+                    </div>
+               </div>
+
+               <div className="row mt-3">
+                    <div className="col-12">
+                         <div className="form-row grid-reg">
+                              <label className="pls-label">Letterhead Type</label>
+                              <Form.Select
+                                   name="companyInfo.headerType"
+                                   value={headerType}
+                                   onChange={handleHeaderTypeChange}
+                                   className="custom-input"
+                              >
+                                   <option value="default">Original Header</option>
+                                   <option value="dondee">Dondee Header</option>
+                                   <option value="fullwidth">Full Width Header</option>
+                              </Form.Select>
+                         </div>
+                    </div>
+               </div>
+               <div className="row mt-4">
+                    <div className="col-12">
+                         <div className="border rounded p-3 bg-light">
+                              <div className="mb-2 text-muted" style={{ fontSize: '13px' }}>Letterhead Preview</div>
+                              <img
+                                   src={headerSamples[headerType]}
+                                   alt={headerType + ' letterhead sample'}
+                                   style={{ maxWidth: '100%', maxHeight: 300, border: '1px solid #ccc', borderRadius: 8 }}
+                              />
                          </div>
                     </div>
                </div>

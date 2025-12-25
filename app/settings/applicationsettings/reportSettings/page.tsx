@@ -16,10 +16,10 @@ import { UltrasoundTab } from '../../../../components/settings/UltrasoundTab';
 
 const defaultTestBodyColumnNames = {
 	trFirstColumnName: 'Investigation',
-	trSecondColumnName: 'value',
-	trThirdColumnName: 'units',
-	trFourthColumnName: 'reference',
-	trFifthColumnName: 'flag',
+	trSecondColumnName: 'Observed Value',
+	trThirdColumnName: 'Units',
+	trFourthColumnName: 'Range',
+	trFifthColumnName: 'Flag',
 };
 
 const SettingsForm = () => {
