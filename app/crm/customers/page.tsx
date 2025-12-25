@@ -13,13 +13,25 @@ import { RiResetLeftFill } from '@remixicon/react';
 
 interface Customer {
     patientid: string | number;
-    activation_status: string;
-    date: string;
-    fullname: string;
+    fullpatientid: string;
+    designation: string | null;
+    firstname: string;
+    email: string;
     dob: string;
     age: number;
-    agetype: string;
     gender: string;
+    marital_status: string;
+    mobile_number: string;
+    agetype: string;
+    occupation: string;
+    date: string;
+    activation_status: string;
+    lastname: string;
+    middlename: string;
+    organization: string;
+    contactpointer: string;
+    whatAppcontact: string | null;
+    fullname: string;
     contact: string;
 }
 
@@ -88,7 +100,7 @@ export default function Activator() {
 
 
     const columns = [
-        { Header: 'patientid', accessor: 'patientid', },
+                { Header: 'PatientID', accessor: 'fullpatientid' },
         { Header: 'registered on', accessor: 'date', Cell: ({ value }) => { return <span>{parseDate(value)}</span> } },
         {
             Header: 'fullname', accessor: 'fullname', Cell: ({ value }) => <div className='text-capitalize'>{value}</div>,
@@ -99,14 +111,26 @@ export default function Activator() {
             filteringMode: 'date'
         },
         {
-            Header: "age", accessor: "age", Cell: ({ row, value }) => {
-                return <span>{value} {row.original.agetype}</span>
-            }
+            Header: "Age & Gender", accessor: '', Cell: ({ row }) => (
+                <div>{row.original.age} {row.original.agetype}({row.original.gender === 'male' ? 'M' : 'F'})</div>
+            )
         },
-        { Header: "gender", accessor: "gender" },
         {
             Header: 'contact', accessor: 'contact',
             filteringMode: 'number'
+        },
+        { Header: 'WhatsApp Contact', accessor: 'whatAppcontact' },
+        {
+            Header: 'email', accessor: 'email',
+            filteringMode: 'text'
+        },
+        {
+            Header: 'occupation', accessor: 'occupation',
+            filteringMode: 'text'
+        },
+        {
+            Header: 'organization', accessor: 'organization',
+            filteringMode: 'text'
         },
         {
             Header: 'more', accessor: '', Cell: ({ value, row }) => {
@@ -164,8 +188,8 @@ export default function Activator() {
 
     return (
         <div className='p-2'>
-            <div className="col-md-8 col-sm-12 col-lg-5 my-2 d-lg-flex ">
-                <div className='col-8'>
+            <div className="col-md-8 col-sm-12 col-lg-6 my-2 d-lg-flex ">
+                <div style={{ minWidth: '80%' }}>
                     <PatientFiltered isDisabled={false} getSelectedPatient={filteredPatient} />
                 </div>
                 <div className='mx-3' style={{ marginTop: '3px' }}>

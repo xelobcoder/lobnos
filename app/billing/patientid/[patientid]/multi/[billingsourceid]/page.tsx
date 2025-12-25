@@ -104,7 +104,7 @@ export default function MultiStepBillingSourcePage({ params, searchParams }: any
     return (
         <div>
             {!ispricingcheckout && (
-                <div className='p-2 bg-white'>
+                <div className='p-2 bg-secondary-subtle mb-2'>
                     <BillingPagePatientInformation data={patientBasicInformation} />
                 </div>
             )}

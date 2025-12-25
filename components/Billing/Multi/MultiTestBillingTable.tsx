@@ -9,7 +9,7 @@ import { currencyFormatter, customFetch } from "../../Auth/customFetch";
 import { MultiBillingContext } from "./MultiBillingContext";
 
 
-export default function MultiTestBillingTable( {canload}: {canload:boolean}) {
+export default function MultiTestBillingTable({ canload }: { canload: boolean }) {
     const context = useContext(MultiBillingContext);
     if (!context) throw new Error("MultiBillingContext not found");
     const { billingdata, setBillingData, recalculateTotalBill } = context;
@@ -17,7 +17,7 @@ export default function MultiTestBillingTable( {canload}: {canload:boolean}) {
     const [editingItem, setEditingItem] = useState<any>(null);
     const [organizations, setOrganizations] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
-    const {amountPayable,paid } = billingdata;
+    const { amountPayable, paid } = billingdata;
 
     const removeFromCart = (testId: any) => {
         const filteredCart = cart.filter((item: any) => item.id !== testId);
@@ -66,27 +66,23 @@ export default function MultiTestBillingTable( {canload}: {canload:boolean}) {
         }
     };
 
-
-    console.log("canload value in MultiTestBillingTable:", canload);
-
-
     if (!billingdata.billingSource) {
         return <div className="br-0 alert border-2 border-danger alert-danger alert-dismissible br-5 text-sm">Select Billing Source to continue</div>;
     }
 
-       if (!canload) {
-           <Button
-                                        variant="primary"
-                                        size="sm"
-                                        className="me-2"
-                                        // onClick={onLoadBackendBilling}
-                                        // disabled={loadingBackendBilling || !canLoadData}
-                                        aria-label="Load Billing Data"
-                                        style={{ height: 38, marginLeft: '-20px !important' }}
-                                    >
-                                        {/* {loadingBackendBilling ? <Spinner as="span" animation="border" size="sm" className="me-1" /> : null} */}
-                                        Start Transaction
-                                    </Button>
+    if (!canload) {
+        <Button
+            variant="primary"
+            size="sm"
+            className="me-2"
+            // onClick={onLoadBackendBilling}
+            // disabled={loadingBackendBilling || !canLoadData}
+            aria-label="Load Billing Data"
+            style={{ height: 38, marginLeft: '-20px !important' }}
+        >
+            {/* {loadingBackendBilling ? <Spinner as="span" animation="border" size="sm" className="me-1" /> : null} */}
+            Start Transaction
+        </Button>
     }
 
     return (
@@ -125,30 +121,30 @@ export default function MultiTestBillingTable( {canload}: {canload:boolean}) {
                             <td>{currencyFormatter.format(item.discount ?? 0)}</td>
                             <td>
                                 {item.isoutsourced === 1 && (
-                                    <RiPencilLine 
-                                        className="text-primary" 
-                                        onClick={() => handleEditTest(item)} 
+                                    <RiPencilLine
+                                        className="text-primary"
+                                        onClick={() => handleEditTest(item)}
                                         style={{ cursor: "pointer" }}
                                         size={16}
                                     />
                                 )}
-                                <RiDeleteBinLine 
-                                    className="text-danger" 
-                                    onClick={() => removeFromCart(item.id)} 
+                                <RiDeleteBinLine
+                                    className="text-danger"
+                                    onClick={() => removeFromCart(item.id)}
                                     style={{ cursor: "pointer" }}
                                     size={16}
                                 />
                             </td>
                         </tr>
                     ))}
-                    <MultiTrTable  
+                    <MultiTrTable
                     />
                 </tbody>
                 <tfoot>
-                    <tr className="table-secondary">
+                    <tr >
                         <td colSpan={2}>Test Count {cart.length}</td>
                         <td>{currencyFormatter.format(billingdata.totalTestAmountPayable ?? 0)}</td>
-                        <td>{currencyFormatter.format(billingdata.totaldiscount?? 0)}</td>
+                        <td>{currencyFormatter.format(billingdata.totaldiscount ?? 0)}</td>
                         <td>
                             <button className="btn btn-danger btn-sm" onClick={() => recalculateTotalBill({ ...billingdata, cart: [] })}>
                                 <RiDeleteBinLine size={16} />

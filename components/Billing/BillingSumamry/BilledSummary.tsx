@@ -153,7 +153,7 @@ export default function BilledSummary({ branchid, from, to }: PropsQuery) {
 	}, [branchid, from, to]);
 
 	return (
-		<div className="p-3" style={{ background: "#ffffff", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+		<div className="p-3 border border-1 rounded " >
 			{branch && (
 				<div className="mb-3">
 					<div className="d-flex justify-content-between align-items-center">

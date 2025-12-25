@@ -6,7 +6,7 @@ import Link from "next/link";
 import { hasPreviousRecords } from "../../../lib/billingLib";
 import { MultiBillingContext } from "./MultiBillingContext";
 import { useApplication } from "../../Auth/useApplicationContext";
-import { customFetch } from "../../Auth/customFetch";
+import { customFetch, reactSelectCustomStyles } from "../../Auth/customFetch";
 
 
 
@@ -137,7 +137,7 @@ export default function MultiTrTable() {
     if (billingdata.isPackageUsed) return null;
 
     return (
-        <tr>
+        <tr >
 
             <td>
                 <Select
@@ -147,7 +147,7 @@ export default function MultiTrTable() {
                     getOptionLabel={(option: any) => option?.name || ''}
                     isDisabled={!Array.isArray(billingdata.testList) || billingdata.testList.length === 0}
                     getOptionValue={(option: any) => option?.id}
-                    styles={{ container: (base: any) => ({ ...base, width: "100%" }) }}
+                    styles={reactSelectCustomStyles}
                     placeholder={(!Array.isArray(billingdata.testList) || billingdata.testList.length === 0) ? "No tests available" : "Search test here"}
                     onChange={(newValue: any) => handleTestSelectedChangeVariable(newValue)}
                 />

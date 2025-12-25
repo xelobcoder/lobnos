@@ -7,7 +7,6 @@ import {
 } from './Lib/Icons'
 
 export default function BillingPagePatientInformation({ data, loadingststate = false }) {
-	console.log('PersonalInfoView data:', data);
 	if (loadingststate) {
 		return (
 			<div className="heightedBorder p-2 bg-secondary-subtle d-flex justify-content-center">
@@ -24,8 +23,8 @@ export default function BillingPagePatientInformation({ data, loadingststate = f
 	}
 
 	return (
-		<section>
-			<div className="d-flex justify-content-between">
+		<section className='bg-secondary-subtle'>
+			<div className="d-flex justify-content-between bg-se">
 				<div className="text-capitalize text-sm d-lg-flex d-xxl-flex d-sm-block">
 					<div className="d-flex align-items-center">
 						<UserIcon className="me-2" /> {/* Use imported icon */}

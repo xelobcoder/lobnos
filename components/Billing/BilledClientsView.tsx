@@ -205,13 +205,13 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 									<RiFileAddLine size={16} /> Update Transaction (Add New Service/Test)
 								</Dropdown.Item>
 								<Dropdown.Item
-									href={`${process.env.PLS_PDF_GENERATOR}generate/receipt/invoice?billingid=${row.original.billingid}&&is_pos=false`}
+									href={`/billing/cash-collection/pos-receipt-test?billingid=3832&&is_pos=false`}
 									className="m-0 p-2 border-top text-sm border-top-1 d-flex align-items-center gap-2"
 								>
 									<RiPrinterLine size={16} /> Print Receipt A4 format
 								</Dropdown.Item>
 								<Dropdown.Item
-									href={`${process.env.PLS_PDF_GENERATOR}generate/receipt/invoice?billingid=${row.original.billingid}&&is_pos=true`}
+									href={`/billing/cash-collection/pos-receipt-test?billingid=${row.original.billingid}&&is_pos=true`}
 									className="m-0 p-2 border-top text-sm border-top-1 d-flex align-items-center gap-2"
 								>
 									<RiPrinterLine size={16} /> Print Receipt POS format

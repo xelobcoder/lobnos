@@ -19,7 +19,7 @@ export default function PatientFiltered({ getSelectedPatient, isDisabled=false, 
 			const clients = result.map((client) => ({
 				value: client.patientid,
 				fullname: `${client.firstname.charAt(0).toUpperCase()}${client.firstname.slice(1)} ${client.middlename
-					} ${client.lastname.trim()} (ID: ${client.patientid})\n`,
+					} ${client.lastname.trim()} (ID: ${client.fullpatientid}) **** ${client.patientid} AS SHORTCUT\n`,
 				label: `DOB: ${new Date(client.dob).toLocaleDateString()}, Gender: ${client.gender}, Age: ${client.age} ${client.agetype},\nContact: ${client.mobile_number
 					}  Registered on: ${new Date(client.date).toLocaleDateString()}`,
 				export: client,

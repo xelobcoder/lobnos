@@ -22,6 +22,7 @@ interface Strategy {
     is_expired: number;
     createdon: string;
     updatedon: string;
+    isNHIS: number | null;
     applicableTest: Array<{
         testid: number;
         name: string;
@@ -39,11 +40,20 @@ export default function StrategiesListPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
+    const [isNHISFilter, setIsNHISFilter] = useState<'all' | 'yes' | 'no'>('all');
+    const [allConcessionFilter, setAllConcessionFilter] = useState<'all' | 'yes' | 'no'>('all');
 
     const fetchStrategies = async () => {
         try {
             setLoading(true);
-            const response = await customFetch('billing/strategies/all/mini?page=1&count=10');
+            let url = 'billing/strategies/all/mini?page=1&count=10';
+            if (isNHISFilter !== 'all') {
+                url += `&isNHIS=${isNHISFilter === 'yes' ? 1 : 0}`;
+            }
+            if (allConcessionFilter !== 'all') {
+                url += `&allconcessionApplied=${allConcessionFilter === 'yes' ? 1 : 0}`;
+            }
+            const response = await customFetch(url);
             if (response && Array.isArray(response) && response.length > 0) {
                 setStrategies(response);
             } else {
@@ -99,6 +109,16 @@ export default function StrategiesListPage() {
         { Header: 'Concession Value', accessor: 'concessionValue' },
         { Header: 'Price Type', accessor: 'price_type' },
         {
+            Header: 'All Concession Applied',
+            accessor: 'allconcessionApplied',
+            Cell: ({ value }: { value: number }) => value ? 'Yes' : 'No'
+        },
+        {
+            Header: 'NHIS',
+            accessor: 'isNHIS',
+            Cell: ({ value }: { value: number | null }) => value ? 'Yes' : 'No'
+        },
+        {
             Header: 'Valid From',
             accessor: 'valid_from',
             Cell: ({ value }: { value: string }) => dayjs(value).format('YYYY-MM-DD h:mm A'),
@@ -149,7 +169,7 @@ export default function StrategiesListPage() {
 
     useEffect(() => {
         fetchStrategies();
-    }, []);
+    }, [isNHISFilter, allConcessionFilter]);
 
     const formatConcession = (strategy: Strategy) => {
         const value = strategy.concessionMode === 'percentage'
@@ -181,7 +201,13 @@ export default function StrategiesListPage() {
 
 
     const handleSeverSideProcessing = async ({ page, count, sortby = 'DESC' }: { page: number, count: number, sortby: 'ASC' | 'DESC' }): Promise<{ result?: any[], error: boolean }> => {
-        const endpoint = `billing/strategies/all/mini?page=${page}&count=${count}&&sortby=${sortby}`;
+        let endpoint = `billing/strategies/all/mini?page=${page}&count=${count}&sortby=${sortby}`;
+        if (isNHISFilter !== 'all') {
+            endpoint += `&isNHIS=${isNHISFilter === 'yes' ? 1 : 0}`;
+        }
+        if (allConcessionFilter !== 'all') {
+            endpoint += `&allconcessionApplied=${allConcessionFilter === 'yes' ? 1 : 0}`;
+        }
         try {
             const response = await customFetch(endpoint);
             if (response && Array.isArray(response)) {
@@ -198,11 +224,40 @@ export default function StrategiesListPage() {
 
     return (
         <div >
-            <div className='d-flex justify-content-between'>
-                <h5 className='bg-secondary-subtle p-2 br-5 pls-color col-2'>Different Pricings</h5>
-                <button className='btn btn-primary float-end mb-2' onClick={() => router.push('/billing/billing-strategy/strategies/create')}>
-                    <RiAddBoxFill />  Create New Strategy
-                </button>
+            <div className="row mb-3 d-flex justify-content-between align-items-center">
+                <div className="col-md-4">
+                    <div className="row">
+                        <div className="col-md-6">
+                            <label className="form-label">NHIS Filter</label>
+                            <select
+                                className="form-select"
+                                value={isNHISFilter}
+                                onChange={(e) => setIsNHISFilter(e.target.value as 'all' | 'yes' | 'no')}
+                            >
+                                <option value="all">All</option>
+                                <option value="yes">NHIS Only</option>
+                                <option value="no">Non-NHIS</option>
+                            </select>
+                        </div>
+                        <div className="col-md-6">
+                            <label className="form-label">Concession Applied Filter</label>
+                            <select
+                                className="form-select"
+                                value={allConcessionFilter}
+                                onChange={(e) => setAllConcessionFilter(e.target.value as 'all' | 'yes' | 'no')}
+                            >
+                                <option value="all">All</option>
+                                <option value="yes">All Tests</option>
+                                <option value="no">Individual Tests</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div className="col-md-4 d-flex justify-content-end">
+                    <button className='btn btn-primary' onClick={() => router.push('/billing/billing-strategy/strategies/create')}>
+                        <RiAddBoxFill />  Create New Strategy
+                    </button>
+                </div>
             </div>
 
             <PrimeTable

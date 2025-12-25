@@ -6,7 +6,7 @@ import MultiPACKAGESELECT from './MultiPACKAGESELECT';
 import MultiRenderingWithPatientId from "./MultiRenderingWithPatientId";
 import { Button, Spinner, Modal } from "react-bootstrap";
 import { useContext, useState, useEffect } from "react";
-import { customFetch, customPost } from "../../Auth/customFetch";
+import { customFetch } from "../../Auth/customFetch";
 import { billingContextProps, defaultMultiBillingData, MultiBillingData } from "../../../lib/Multi/MultiTypes";
 import { MultiBillingProvider, MultiBillingContext } from "./MultiBillingContext";
 import MultiSummary from "./MultiSummary";
@@ -20,7 +20,6 @@ import { MultiValidateAndSubmitBillingInformation } from "../../../lib/Multi/mul
 import { RiPrinterLine, RiStore3Line } from '@remixicon/react';
 import ReceiptOptionsModal from '../ReceiptOptionsModal';
 import { BillingContextPropsProvider, useBillingContextProps } from './BillingContextPropsContext';
-import { handleCheckout } from "./checkoutMulti";
 
 
 
@@ -39,7 +38,6 @@ export default function MultiBillingLayout({ billingContextProps }: { billingCon
 
 function MultiBillingLayoutContent() {
     const { billingContextProps } = useBillingContextProps();
-    console.log("MultiBillingLayoutContent billingContextProps:", billingContextProps);
     const { categorytrackid, entitytype, entityname, entityid, patientid, billingid, isNewTransaction,
         isAdjustment, adjustmentType, adjustmentReason,
         isRelatedBilling, ispricingcheckout } = billingContextProps
@@ -425,7 +423,7 @@ function MultiBillingLayoutContent() {
             );
 
 
-            console.log(response,"MY RESPONSE ")
+            console.log(response, "MY RESPONSE ")
 
 
             const { status, message } = response;
@@ -504,6 +502,29 @@ function MultiBillingLayoutContent() {
     }, []);
 
 
+
+    const handleAdvancedPayment = () => {
+        if (billingdata.outstanding != null && billingdata.outstanding <= 0) {
+            const finalInput = {
+                ...billingdata,
+                finalCart: billingdata.cart.map(item => ({ ...item, paymentstatus: 'paid', paidamount: item?.discountedValue })),
+                finalServicesList: billingdata.servicesProvided?.map(item => ({ ...item, paymentstatus: 'paid', paidamount: item?.discountedValue })),
+                paid: billingdata.amountPayable,
+                balance: 0,
+                outstanding: 0,
+            }
+
+            handleSubmit(finalInput)
+            return toast.info("No outstanding amount to make an advanced payment. Billing is fully paid.");
+        } else {
+            setBillingData(prev => ({
+                ...prev,
+                openPaymentModal: 2,
+            }));
+        }
+    }
+
+
     const canLoadData = (() => {
         if (billingdata.isPackageUsed && !billingdata.packageid) return false;
         if (billingdata.useSpecialCode && billingdata.specialCode && !specialCodeError) return true;
@@ -531,7 +552,7 @@ function MultiBillingLayoutContent() {
 
     return (
         <React.Fragment>
-            <div className="card mt-2">
+            <div className="card mt-2 multi-billing-card">
                 <MultiBillingHeader
                     billingdata={billingdata}
                     setBillingData={setBillingData}
@@ -595,12 +616,7 @@ function MultiBillingLayoutContent() {
                 <div className="card-footer d-flex justify-content-end">
                     {billingdata?.allowAdvancePayment && (
                         <>
-                            <Button disabled={billingdata.ispricingcheckout} variant="outline-primary" className="mx-2 " size="sm" onClick={() => {
-                                setBillingData(prev => ({
-                                    ...prev,
-                                    openPaymentModal: 2,
-                                }));
-                            }} >
+                            <Button disabled={billingdata.ispricingcheckout} variant="outline-primary" className="mx-2 " size="sm" onClick={handleAdvancedPayment} >
                                 💳 Advanced Payment
                             </Button>
 

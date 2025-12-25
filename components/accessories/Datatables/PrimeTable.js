@@ -311,9 +311,7 @@ export default function PrimeTable({
 			<div style={{ overflowX: 'auto !important', maxWidth: '100%' }}>
 				<table
 					className={`${style.table} ${effectiveTheme !== 'PrimeLaboratoryTableStyling' ? `prime-table-${effectiveTheme} prime-table-theme` : ''}`}
-					style={{
-						minHeight: '30vh'
-					}}
+				
 					{...getTableProps()}
 				>
 					<thead>{customHeaderGroup()}</thead>

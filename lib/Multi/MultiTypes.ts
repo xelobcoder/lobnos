@@ -58,6 +58,7 @@ export interface MultiBillingData {
     billingSource: number;
     claimscheckcode?:number;
     nhisnumber?:number;
+    outstanding?: number;
     totalTestAmountPayable: number;
     showsummary?: boolean;
     patientid?: number | null;
@@ -160,6 +161,7 @@ export const defaultMultiBillingData: MultiBillingData = {
     totaldiscount: 0,
     isAdjustment: 0,
     adjustmentType: 'addition',
+    outstanding: 0,
     adjustmentReason: '',
     totalTestAmountPayable: 0,
     totalAmountIncurredDueTax: 0,

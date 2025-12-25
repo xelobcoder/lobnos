@@ -744,7 +744,7 @@ textarea:required:focus:invalid {
 #archives-dropdown.dropdown-toggle:hover {
   padding: 0 !important;
   outline: none !important;
-  background-color: inherit !important;
+  background-color: white !important;
   border: none !important;
 }
 
@@ -1090,16 +1090,18 @@ textarea:required:focus:invalid {
 }
 
 @media print {
+
   body,
   html {
     margin: 0 !important;
     padding: 0 !important;
     background-color: white !important;
     overflow: visible !important;
-      background: white !important;
+    background: white !important;
   }
 
-  .result,.page {
+  .result,
+  .page {
     background-color: white !important;
     border: none !important;
   }
@@ -1172,13 +1174,61 @@ textarea:required:focus:invalid {
 
 /* Archive Dropdown Global Style */
 #archives-dropdown {
-    z-index: 9999 !important;
-    background-color: #1e1e1e !important;
-    color: #ffffff !important;
-    position: relative; /* Ensure z-index works */
+  z-index: 9999 !important;
+  background-color: #1e1e1e !important;
+  color: black !important;
+  position: relative;
+  /* Ensure z-index works */
+}
+
+[data-bs-theme='light'] .dropdown-menu {
+  background-color: #ffffff !important;
+  border: 1px solid #ccc;
+  color: black !important;
+}
+
+[data-bs-theme='light'] #archives-dropdown .dropdown-menu {
+  background-color: white !important;
+  border: 1px solid #ccc;
+  color: black !important;
+}
+
+[data-bs-theme='light'] #archives-dropdown {
+  background-color: #ffffff !important;
+  border: 1px solid #333;
+  color: black !important;
+}
+
+[data-bs-theme='dark'] #archives-dropdown .dropdown-menu {
+  background-color: black !important;
+  border: 1px solid #ccc;
+  color: white !important;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.5) !important;
 }
 
 [data-bs-theme='dark'] #archives-dropdown {
-    background-color: #000000 !important;
-    border: 1px solid #333;
+  background-color: #000000 !important;
+  border: 1px solid #333;
+  color: white !important;
+}
+
+/* Multi Billing Layout Theme Support */
+.multi-billing-card {
+  background-color: var(--bs-body-bg) !important;
+  border-color: var(--bs-border-color) !important;
+  color: var(--bs-body-color) !important;
+}
+
+[data-bs-theme='dark'] .multi-billing-card .card-body {
+  background-color: var(--bs-secondary-bg) !important;
+}
+
+[data-bs-theme='dark'] .multi-billing-card .card-header {
+  background-color: var(--bs-tertiary-bg) !important;
+  border-color: var(--bs-border-color) !important;
+}
+
+[data-bs-theme='dark'] .multi-billing-card .card-footer {
+  background-color: var(--bs-tertiary-bg) !important;
+  border-color: var(--bs-border-color) !important;
 }
