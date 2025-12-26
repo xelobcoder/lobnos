@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { customFetch, currencyFormatter } from "../../Auth/customFetch";
@@ -110,13 +109,13 @@ const AnalyticCard = ({
 );
 
 const cardColors = {
-	billedClients: { bg: "var(--theme-card-bg)", icon: "#6366f1" }, // Cosmic purple
-	totalSales: { bg: "var(--bs-secondary-bg)", icon: "#0ea5e9" }, // Cosmic blue
-	amountPaid: { bg: "var(--theme-card-bg)", icon: "#10b981" }, // Cosmic emerald
-	discount: { bg: "var(--bs-secondary-bg)", icon: "#f59e0b" }, // Cosmic amber
-	pendingDebts: { bg: "var(--theme-card-bg)", icon: "#ef4444" }, // Cosmic red
-	expenses: { bg: "var(--bs-secondary-bg)", icon: "#8b5cf6" }, // Cosmic violet
-	outstanding: { bg: "var(--theme-card-bg)", icon: "#f97316" }, // Cosmic orange
+	billedClients: { bg: "var(--theme-card-bg)", icon: "#6366f1" }, 
+	totalSales: { bg: "var(--bs-secondary-bg)", icon: "#0ea5e9" },
+	amountPaid: { bg: "var(--theme-card-bg)", icon: "#10b981" },
+	discount: { bg: "var(--bs-secondary-bg)", icon: "#f59e0b" },
+	pendingDebts: { bg: "var(--theme-card-bg)", icon: "#ef4444" }, 
+	expenses: { bg: "var(--bs-secondary-bg)", icon: "#8b5cf6" }, 
+	outstanding: { bg: "var(--theme-card-bg)", icon: "#f97316" }, 
 };
 
 type PropsQuery = {
@@ -153,7 +152,7 @@ export default function BilledSummary({ branchid, from, to }: PropsQuery) {
 	}, [branchid, from, to]);
 
 	return (
-		<div className="p-3 border border-1 rounded " >
+		<div className="p-3 border border-1 rounded" >
 			{branch && (
 				<div className="mb-3">
 					<div className="d-flex justify-content-between align-items-center">

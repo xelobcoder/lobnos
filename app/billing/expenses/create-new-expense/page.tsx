@@ -160,7 +160,6 @@ export default function AddNewExpense() {
 	};
 
 
-	// Fetch categories and merchants in parallel
 	useEffect(() => {
 		if (!branchid || !employeeid) return;
 		setLoading(true);
@@ -182,7 +181,7 @@ export default function AddNewExpense() {
 			.finally(() => setLoading(false));
 	}, [branchid, employeeid]);
 
-	// Fetch payment modes
+
 	useEffect(() => {
 		setLoading(true);
 		customFetch("paymentmodes")
@@ -257,20 +256,7 @@ export default function AddNewExpense() {
 												value: merchant.id,
 												label: merchant.name,
 											}))}
-											styles={{
-												...reactSelectCustomStyles,
-												control: (provided, state) => ({
-													...provided,
-													minHeight: '31px',
-													fontSize: '0.8rem',
-													borderRadius: '6px',
-												}),
-												valueContainer: (provided) => ({
-													...provided,
-													padding: '0 8px',
-												}),
-												indicatorSeparator: () => ({ display: 'none' }),
-											}}
+											styles={reactSelectCustomStyles}
 											placeholder="Select merchant"
 											classNamePrefix="react-select"
 											isClearable
@@ -299,20 +285,7 @@ export default function AddNewExpense() {
 												value: item.id,
 												label: item.category,
 											}))}
-											styles={{
-												...reactSelectCustomStyles,
-												control: (provided, state) => ({
-													...provided,
-													minHeight: '31px',
-													fontSize: '0.8rem',
-													borderRadius: '6px',
-												}),
-												valueContainer: (provided) => ({
-													...provided,
-													padding: '0 8px',
-												}),
-												indicatorSeparator: () => ({ display: 'none' }),
-											}}
+											styles={reactSelectCustomStyles}
 											placeholder="Select category"
 											classNamePrefix="react-select"
 											isClearable

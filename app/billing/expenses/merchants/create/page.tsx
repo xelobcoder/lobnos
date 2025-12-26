@@ -15,7 +15,7 @@ import { noopServerSideHandle } from '../../../../../components/serverActions/Ac
 const merchantSchema = z.object({
     name: z.string().min(1, "Merchant name is required"),
     email: z.string().email("Invalid email address").optional().or(z.literal('')),
-    phone: z.string().min(10, "Phone number must be at least 10 digits").optional().or(z.literal('')),
+    phone: z.string().min(10, "Phone number must be exactly 10 digits").max(10, "Phone number must be exactly 10 digits").optional().or(z.literal('')),
     address: z.string().optional(),
     taxId: z.string().optional(),
     website: z.string().url("Invalid website URL").optional().or(z.literal('')),
@@ -101,8 +101,7 @@ export default function AddMerchant() {
         });
         setShowModal(true);
     };
-
-    // Handler for merchant form submit (moved from inline in JSX)
+    
     const handleMerchantFormSubmit = async (data: MerchantFormData) => {
         setLoading(true);
         try {
@@ -144,7 +143,6 @@ export default function AddMerchant() {
         }
     };
 
-    // PrimeTable columns definition
     const columns = [
         {
             Header: 'Name',
@@ -165,10 +163,6 @@ export default function AddMerchant() {
         {
             Header: 'Website',
             accessor: 'website',
-        },
-        {
-            Header: 'Notes',
-            accessor: 'notes',
         },
         {
             Header: 'Created By',
@@ -205,7 +199,7 @@ export default function AddMerchant() {
                 <>
                     <div className="d-flex justify-content-between align-items-center mb-4">
                         <h4 className="mb-0">Add New Merchant</h4>
-                        <button className="btn btn-primary btn-sm" onClick={() => setShowModal(true)}>
+                        <button className="btn btn-primary btn-sm" onClick={() => { setShowModal(true); setEditMerchant(null); reset(defaultMerchant); }}>
                             <RiAddBoxFill /> New Merchant
                         </button>
                     </div>
@@ -242,6 +236,7 @@ export default function AddMerchant() {
                                         className={`custom-input ${errors.phone ? 'is-invalid' : ''}`}
                                         type="tel"
                                         placeholder="Enter phone number"
+                                        maxLength={10}
                                     />
                                     {errors.phone && <div className="invalid-feedback">{errors.phone.message}</div>}
                                 </div>

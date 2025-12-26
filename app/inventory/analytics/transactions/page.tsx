@@ -5,8 +5,12 @@ import Link from 'next/link';
 import { toast } from 'react-toastify';
 import { Offcanvas } from 'react-bootstrap';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { RiFileListLine, RiCheckLine, RiBox3Line, RiBarChartLine, RiFileTextLine, RiTimeLine, RiArrowUpLine, RiArrowDownLine, RiAlertLine, RiMoneyDollarCircleLine, RiRecycleLine } from '@remixicon/react';
 import { currencyFormatter, customFetch } from '../../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
+
+const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_BORDER = 'var(--bs-border-color)';
 
 interface TransactionAnalytics {
      executive_summary: {
@@ -237,120 +241,125 @@ export default function TransactionAnalyticsPage() {
                     </div>
                </div>
 
-               {/* Transaction Summary - Intelligence Style */}
+               {/* Transaction Summary - Updated Style */}
                {analytics && (
-                    <div className="mb-3 bg-light p-2">
-                         {/* Header */}
-                         <div className="bg-light py-1 px-2 mb-2">
-                              <h6 className="mb-0 text-uppercase text-dark" style={{ letterSpacing: '0.5px', fontSize: '0.9rem', fontWeight: '600' }}>
-                                   TRANSACTION SUMMARY | ANALYTICS OVERVIEW
-                              </h6>
-                         </div>
-
-                         {/* Classification Header */}
-                         <div className="mb-2 pb-1 border-bottom border-light">
-                              <div className="d-flex justify-content-between align-items-center">
-                                   <div>
-                                        <span className="fw-bold me-2" style={{ fontSize: '0.9rem' }}>PERIOD: All Time</span>
-                                        <span className="fw-bold" style={{ fontSize: '0.9rem' }}>TOTAL: {analytics.detailed_analytics.core_metrics.transaction_volume.total_transactions.toLocaleString()}</span>
+                    <div className="row g-3 mb-4">
+                         <div className="col-md-2">
+                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <div className="d-flex align-items-center mb-2">
+                                        <RiFileListLine size={20} className="me-2 text-primary" />
+                                        <span className="fw-medium text-muted small">Total Transactions</span>
                                    </div>
+                                   <div className="fs-4 fw-bold text-primary">{analytics.detailed_analytics.core_metrics.transaction_volume.total_transactions.toLocaleString()}</div>
+                                   <div className="small text-muted">All time transactions</div>
                               </div>
                          </div>
-
-                         {/* Summary Cards Row */}
-                         <div className="row g-2">
-                              <div className="col-md-2">
-                                   <div className="border border-light bg-white p-2 text-center">
-                                        <div className="fw-bold" style={{ fontSize: '1.2rem' }}>{analytics.detailed_analytics.core_metrics.transaction_volume.total_transactions.toLocaleString()}</div>
-                                        <small className="text-muted" style={{ fontSize: '0.75rem' }}>TOTAL TRANSACTIONS</small>
+                         <div className="col-md-2">
+                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <div className="d-flex align-items-center mb-2">
+                                        <RiArrowUpLine size={20} className="me-2 text-success" />
+                                        <span className="fw-medium text-muted small">Additions</span>
                                    </div>
+                                   <div className="fs-4 fw-bold text-success">{analytics.detailed_analytics.core_metrics.transaction_type_distribution.addition.toLocaleString()}</div>
+                                   <div className="small text-muted">Stock additions</div>
                               </div>
-                              <div className="col-md-2">
-                                   <div className="border border-light bg-white p-2 text-center">
-                                        <div className="fw-bold text-success" style={{ fontSize: '1.2rem' }}>{analytics.detailed_analytics.core_metrics.transaction_type_distribution.addition.toLocaleString()}</div>
-                                        <small className="text-muted" style={{ fontSize: '0.75rem' }}>ADDITIONS</small>
+                         </div>
+                         <div className="col-md-2">
+                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <div className="d-flex align-items-center mb-2">
+                                        <RiArrowDownLine size={20} className="me-2 text-warning" />
+                                        <span className="fw-medium text-muted small">Consumptions</span>
                                    </div>
+                                   <div className="fs-4 fw-bold text-warning">{analytics.detailed_analytics.core_metrics.transaction_type_distribution.consumption.toLocaleString()}</div>
+                                   <div className="small text-muted">Stock consumed</div>
                               </div>
-                              <div className="col-md-2">
-                                   <div className="border border-light bg-white p-2 text-center">
-                                        <div className="fw-bold text-warning" style={{ fontSize: '1.2rem' }}>{analytics.detailed_analytics.core_metrics.transaction_type_distribution.consumption.toLocaleString()}</div>
-                                        <small className="text-muted" style={{ fontSize: '0.75rem' }}>CONSUMPTIONS</small>
+                         </div>
+                         <div className="col-md-2">
+                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <div className="d-flex align-items-center mb-2">
+                                        <RiRecycleLine size={20} className="me-2 text-danger" />
+                                        <span className="fw-medium text-muted small">Wastage</span>
                                    </div>
+                                   <div className="fs-4 fw-bold text-danger">{analytics.detailed_analytics.core_metrics.transaction_type_distribution.wastage.toLocaleString()}</div>
+                                   <div className="small text-muted">Items wasted</div>
                               </div>
-                              <div className="col-md-2">
-                                   <div className="border border-light bg-white p-2 text-center">
-                                        <div className="fw-bold text-danger" style={{ fontSize: '1.2rem' }}>{analytics.detailed_analytics.core_metrics.transaction_type_distribution.wastage.toLocaleString()}</div>
-                                        <small className="text-muted" style={{ fontSize: '0.75rem' }}>WASTAGE</small>
+                         </div>
+                         <div className="col-md-2">
+                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <div className="d-flex align-items-center mb-2">
+                                        <RiBarChartLine size={20} className="me-2 text-info" />
+                                        <span className="fw-medium text-muted small">Adjustments</span>
                                    </div>
+                                   <div className="fs-4 fw-bold text-info">{analytics.detailed_analytics.core_metrics.transaction_type_distribution.adjustment.toLocaleString()}</div>
+                                   <div className="small text-muted">Stock adjustments</div>
                               </div>
-                              <div className="col-md-2">
-                                   <div className="border border-light bg-white p-2 text-center">
-                                        <div className="fw-bold text-info" style={{ fontSize: '1.2rem' }}>{analytics.detailed_analytics.core_metrics.transaction_type_distribution.adjustment.toLocaleString()}</div>
-                                        <small className="text-muted" style={{ fontSize: '0.75rem' }}>ADJUSTMENTS</small>
+                         </div>
+                         <div className="col-md-2">
+                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <div className="d-flex align-items-center mb-2">
+                                        <RiBox3Line size={20} className="me-2 text-secondary" />
+                                        <span className="fw-medium text-muted small">Transfers</span>
                                    </div>
-                              </div>
-                              <div className="col-md-2">
-                                   <div className="border border-light bg-white p-2 text-center">
-                                        <div className="fw-bold text-secondary" style={{ fontSize: '1.2rem' }}>{analytics.detailed_analytics.core_metrics.transaction_type_distribution.transfer.toLocaleString()}</div>
-                                        <small className="text-muted" style={{ fontSize: '0.75rem' }}>TRANSFERS</small>
-                                   </div>
+                                   <div className="fs-4 fw-bold text-secondary">{analytics.detailed_analytics.core_metrics.transaction_type_distribution.transfer.toLocaleString()}</div>
+                                   <div className="small text-muted">Stock transfers</div>
                               </div>
                          </div>
                     </div>
                )}
 
-               {/* Core Metrics - Intelligence Style */}
+               {/* Core Metrics - Updated Style */}
                {analytics && analytics.detailed_analytics.core_metrics && (
                     <div className="row g-3 mb-4">
                          <div className="col-12">
-                              <div className="mb-3 bg-light p-2">
-                                   {/* Header */}
-                                   <div className="bg-light py-1 px-2 mb-3">
-                                        <h6 className="mb-0 text-uppercase text-dark" style={{ letterSpacing: '0.5px', fontSize: '0.9rem', fontWeight: '600' }}>
-                                             📊 CORE METRICS | TRANSACTION VOLUME ANALYSIS
-                                        </h6>
-                                   </div>
-
-                                   {/* Classification Header */}
-                                   <div className="mb-3 pb-1 border-bottom border-light">
-                                        <div className="d-flex justify-content-between align-items-center">
-                                             <div>
-                                                  <span className="fw-bold me-2" style={{ fontSize: '0.9rem' }}>PERIOD: All Time</span>
-                                                  <span className="fw-bold" style={{ fontSize: '0.9rem' }}>ACTIVE DAYS: N/A</span>
-                                             </div>
-                                        </div>
-                                   </div>
+                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <h5 className="mb-3 fw-semibold">📊 Core Metrics | Transaction Volume Analysis</h5>
 
                                    <div className="row g-3">
                                         {/* Transaction Volume */}
                                         <div className="col-md-6">
-                                             <div className="border border-light bg-white p-3">
-                                                  <h6 className="text-uppercase mb-3" style={{ fontSize: '0.9rem', fontWeight: '700', letterSpacing: '0.3px' }}>
+                                             <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                                  <h6 className="text-uppercase mb-3 fw-bold" style={{ fontSize: '0.9rem', letterSpacing: '0.3px' }}>
                                                        📈 Transaction Volume
                                                   </h6>
                                                   <div className="row g-2">
                                                        <div className="col-6">
-                                                            <div className="text-center p-2 bg-light rounded">
-                                                                 <div className="fw-bold text-primary" style={{ fontSize: '1.1rem' }}>{analytics.detailed_analytics.core_metrics.transaction_volume.total_transactions.toLocaleString()}</div>
-                                                                 <small className="text-muted">Total Transactions</small>
+                                                            <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                                                 <div className="d-flex align-items-center mb-2">
+                                                                      <RiFileListLine size={20} className="me-2 text-primary" />
+                                                                      <span className="fw-medium text-muted small">Total Transactions</span>
+                                                                 </div>
+                                                                 <div className="fs-4 fw-bold text-primary">{analytics.detailed_analytics.core_metrics.transaction_volume.total_transactions.toLocaleString()}</div>
+                                                                 <div className="small text-muted">All transactions</div>
                                                             </div>
                                                        </div>
                                                        <div className="col-6">
-                                                            <div className="text-center p-2 bg-light rounded">
-                                                                 <div className="fw-bold text-success" style={{ fontSize: '1.1rem' }}>{analytics.detailed_analytics.core_metrics.transaction_volume.total_quantity_moved.toLocaleString()}</div>
-                                                                 <small className="text-muted">Total Quantity</small>
+                                                            <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                                                 <div className="d-flex align-items-center mb-2">
+                                                                      <RiBox3Line size={20} className="me-2 text-success" />
+                                                                      <span className="fw-medium text-muted small">Total Quantity</span>
+                                                                 </div>
+                                                                 <div className="fs-4 fw-bold text-success">{analytics.detailed_analytics.core_metrics.transaction_volume.total_quantity_moved.toLocaleString()}</div>
+                                                                 <div className="small text-muted">Items moved</div>
                                                             </div>
                                                        </div>
                                                        <div className="col-6">
-                                                            <div className="text-center p-2 bg-light rounded">
-                                                                 <div className="fw-bold text-info" style={{ fontSize: '1.1rem' }}>{analytics.detailed_analytics.core_metrics.transaction_volume.avg_quantity_per_transaction.toFixed(1)}</div>
-                                                                 <small className="text-muted">Avg Qty/Transaction</small>
+                                                            <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                                                 <div className="d-flex align-items-center mb-2">
+                                                                      <RiBarChartLine size={20} className="me-2 text-info" />
+                                                                      <span className="fw-medium text-muted small">Avg Qty/Transaction</span>
+                                                                 </div>
+                                                                 <div className="fs-4 fw-bold text-info">{analytics.detailed_analytics.core_metrics.transaction_volume.avg_quantity_per_transaction.toFixed(1)}</div>
+                                                                 <div className="small text-muted">Per transaction</div>
                                                             </div>
                                                        </div>
                                                        <div className="col-6">
-                                                            <div className="text-center p-2 bg-light rounded">
-                                                                 <div className="fw-bold text-warning" style={{ fontSize: '1.1rem' }}>{currencyFormatter.format(analytics.detailed_analytics.core_metrics.transaction_volume.total_transaction_value)}</div>
-                                                                 <small className="text-muted">Total Value</small>
+                                                            <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                                                 <div className="d-flex align-items-center mb-2">
+                                                                      <RiMoneyDollarCircleLine size={20} className="me-2 text-warning" />
+                                                                      <span className="fw-medium text-muted small">Total Value</span>
+                                                                 </div>
+                                                                 <div className="fs-4 fw-bold text-warning">{currencyFormatter.format(analytics.detailed_analytics.core_metrics.transaction_volume.total_transaction_value)}</div>
+                                                                 <div className="small text-muted">Transaction value</div>
                                                             </div>
                                                        </div>
                                                   </div>
@@ -359,39 +368,59 @@ export default function TransactionAnalyticsPage() {
 
                                         {/* Transaction Type Distribution */}
                                         <div className="col-md-6">
-                                             <div className="border border-light bg-white p-3">
-                                                  <h6 className="text-uppercase mb-3" style={{ fontSize: '0.9rem', fontWeight: '700', letterSpacing: '0.3px' }}>
+                                             <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                                  <h6 className="text-uppercase mb-3 fw-bold" style={{ fontSize: '0.9rem', letterSpacing: '0.3px' }}>
                                                        🎯 Transaction Types
                                                   </h6>
                                                   <div className="row g-2">
                                                        <div className="col-4">
-                                                            <div className="text-center p-2 bg-light rounded">
-                                                                 <div className="fw-bold text-success" style={{ fontSize: '1.1rem' }}>{analytics.detailed_analytics.core_metrics.transaction_type_distribution.addition}</div>
-                                                                 <small className="text-muted">Additions</small>
+                                                            <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                                                 <div className="d-flex align-items-center mb-2">
+                                                                      <RiArrowUpLine size={20} className="me-2 text-success" />
+                                                                      <span className="fw-medium text-muted small">Additions</span>
+                                                                 </div>
+                                                                 <div className="fs-4 fw-bold text-success">{analytics.detailed_analytics.core_metrics.transaction_type_distribution.addition}</div>
+                                                                 <div className="small text-muted">Stock additions</div>
                                                             </div>
                                                        </div>
                                                        <div className="col-4">
-                                                            <div className="text-center p-2 bg-light rounded">
-                                                                 <div className="fw-bold text-warning" style={{ fontSize: '1.1rem' }}>{analytics.detailed_analytics.core_metrics.transaction_type_distribution.consumption}</div>
-                                                                 <small className="text-muted">Consumptions</small>
+                                                            <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                                                 <div className="d-flex align-items-center mb-2">
+                                                                      <RiArrowDownLine size={20} className="me-2 text-warning" />
+                                                                      <span className="fw-medium text-muted small">Consumptions</span>
+                                                                 </div>
+                                                                 <div className="fs-4 fw-bold text-warning">{analytics.detailed_analytics.core_metrics.transaction_type_distribution.consumption}</div>
+                                                                 <div className="small text-muted">Stock consumed</div>
                                                             </div>
                                                        </div>
                                                        <div className="col-4">
-                                                            <div className="text-center p-2 bg-light rounded">
-                                                                 <div className="fw-bold text-danger" style={{ fontSize: '1.1rem' }}>{analytics.detailed_analytics.core_metrics.transaction_type_distribution.wastage}</div>
-                                                                 <small className="text-muted">Wastage</small>
+                                                            <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                                                 <div className="d-flex align-items-center mb-2">
+                                                                      <RiRecycleLine size={20} className="me-2 text-danger" />
+                                                                      <span className="fw-medium text-muted small">Wastage</span>
+                                                                 </div>
+                                                                 <div className="fs-4 fw-bold text-danger">{analytics.detailed_analytics.core_metrics.transaction_type_distribution.wastage}</div>
+                                                                 <div className="small text-muted">Items wasted</div>
                                                             </div>
                                                        </div>
                                                        <div className="col-6">
-                                                            <div className="text-center p-2 bg-light rounded">
-                                                                 <div className="fw-bold text-info" style={{ fontSize: '1.1rem' }}>{analytics.detailed_analytics.core_metrics.transaction_type_distribution.adjustment}</div>
-                                                                 <small className="text-muted">Adjustments</small>
+                                                            <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                                                 <div className="d-flex align-items-center mb-2">
+                                                                      <RiBarChartLine size={20} className="me-2 text-info" />
+                                                                      <span className="fw-medium text-muted small">Adjustments</span>
+                                                                 </div>
+                                                                 <div className="fs-4 fw-bold text-info">{analytics.detailed_analytics.core_metrics.transaction_type_distribution.adjustment}</div>
+                                                                 <div className="small text-muted">Stock adjustments</div>
                                                             </div>
                                                        </div>
                                                        <div className="col-6">
-                                                            <div className="text-center p-2 bg-light rounded">
-                                                                 <div className="fw-bold text-secondary" style={{ fontSize: '1.1rem' }}>{analytics.detailed_analytics.core_metrics.transaction_type_distribution.transfer}</div>
-                                                                 <small className="text-muted">Transfers</small>
+                                                            <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                                                 <div className="d-flex align-items-center mb-2">
+                                                                      <RiBox3Line size={20} className="me-2 text-secondary" />
+                                                                      <span className="fw-medium text-muted small">Transfers</span>
+                                                                 </div>
+                                                                 <div className="fs-4 fw-bold text-secondary">{analytics.detailed_analytics.core_metrics.transaction_type_distribution.transfer}</div>
+                                                                 <div className="small text-muted">Stock transfers</div>
                                                             </div>
                                                        </div>
                                                   </div>
@@ -403,48 +432,59 @@ export default function TransactionAnalyticsPage() {
                     </div>
                )}
 
-               {/* Operational Efficiency - Intelligence Style */}
+               {/* Operational Efficiency - Updated Style */}
                {analytics && analytics.operational_efficiency && (
                     <div className="row g-3 mb-4">
                          <div className="col-12">
-                              <div className="mb-3 bg-light p-2">
-                                   {/* Header */}
-                                   <div className="bg-light py-1 px-2 mb-3">
-                                        <h6 className="mb-0 text-uppercase text-dark" style={{ letterSpacing: '0.5px', fontSize: '0.9rem', fontWeight: '600' }}>
-                                             ⚡ OPERATIONAL EFFICIENCY | PROCESS METRICS
-                                        </h6>
-                                   </div>
+                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <h5 className="mb-3 fw-semibold">⚡ Operational Efficiency | Process Metrics</h5>
 
                                    <div className="row g-3">
                                         {/* Processing Speed */}
                                         <div className="col-md-6">
-                                             <div className="border border-light bg-white p-3">
-                                                  <h6 className="text-uppercase mb-3" style={{ fontSize: '0.9rem', fontWeight: '700', letterSpacing: '0.3px' }}>
+                                             <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                                  <h6 className="text-uppercase mb-3 fw-bold" style={{ fontSize: '0.9rem', letterSpacing: '0.3px' }}>
                                                        📅 Processing Metrics
                                                   </h6>
                                                   <div className="row g-2">
                                                        <div className="col-6">
-                                                            <div className="text-center p-2 bg-light rounded">
-                                                                 <div className="fw-bold text-primary" style={{ fontSize: '1rem' }}>{analytics.operational_efficiency.transaction_processing_speed.toFixed(1)}</div>
-                                                                 <small className="text-muted">Avg Processing Speed</small>
+                                                            <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                                                 <div className="d-flex align-items-center mb-2">
+                                                                      <RiTimeLine size={20} className="me-2 text-primary" />
+                                                                      <span className="fw-medium text-muted small">Avg Processing Speed</span>
+                                                                 </div>
+                                                                 <div className="fs-4 fw-bold text-primary">{analytics.operational_efficiency.transaction_processing_speed.toFixed(1)}</div>
+                                                                 <div className="small text-muted">Transactions/min</div>
                                                             </div>
                                                        </div>
                                                        <div className="col-6">
-                                                            <div className="text-center p-2 bg-light rounded">
-                                                                 <div className="fw-bold text-success" style={{ fontSize: '1rem' }}>{analytics.operational_efficiency.inventory_accuracy_score}%</div>
-                                                                 <small className="text-muted">Accuracy Score</small>
+                                                            <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                                                 <div className="d-flex align-items-center mb-2">
+                                                                      <RiCheckLine size={20} className="me-2 text-success" />
+                                                                      <span className="fw-medium text-muted small">Accuracy Score</span>
+                                                                 </div>
+                                                                 <div className="fs-4 fw-bold text-success">{analytics.operational_efficiency.inventory_accuracy_score}%</div>
+                                                                 <div className="small text-muted">Inventory accuracy</div>
                                                             </div>
                                                        </div>
                                                        <div className="col-6">
-                                                            <div className="text-center p-2 bg-light rounded">
-                                                                 <div className="fw-bold text-warning" style={{ fontSize: '1rem' }}>{analytics.operational_efficiency.automation_opportunities}</div>
-                                                                 <small className="text-muted">Automation Opportunities</small>
+                                                            <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                                                 <div className="d-flex align-items-center mb-2">
+                                                                      <RiBox3Line size={20} className="me-2 text-warning" />
+                                                                      <span className="fw-medium text-muted small">Automation Opportunities</span>
+                                                                 </div>
+                                                                 <div className="fs-4 fw-bold text-warning">{analytics.operational_efficiency.automation_opportunities}</div>
+                                                                 <div className="small text-muted">Potential automations</div>
                                                             </div>
                                                        </div>
                                                        <div className="col-6">
-                                                            <div className="text-center p-2 bg-light rounded">
-                                                                 <div className="fw-bold text-info" style={{ fontSize: '1rem' }}>{analytics.operational_efficiency.efficiency_trends.error_rate}%</div>
-                                                                 <small className="text-muted">Error Rate</small>
+                                                            <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                                                 <div className="d-flex align-items-center mb-2">
+                                                                      <RiAlertLine size={20} className="me-2 text-danger" />
+                                                                      <span className="fw-medium text-muted small">Error Rate</span>
+                                                                 </div>
+                                                                 <div className="fs-4 fw-bold text-danger">{analytics.operational_efficiency.efficiency_trends.error_rate}%</div>
+                                                                 <div className="small text-muted">Processing errors</div>
                                                             </div>
                                                        </div>
                                                   </div>
@@ -453,33 +493,49 @@ export default function TransactionAnalyticsPage() {
 
                                         {/* Efficiency Trends */}
                                         <div className="col-md-6">
-                                             <div className="border border-light bg-white p-3">
-                                                  <h6 className="text-uppercase mb-3" style={{ fontSize: '0.9rem', fontWeight: '700', letterSpacing: '0.3px' }}>
+                                             <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                                  <h6 className="text-uppercase mb-3 fw-bold" style={{ fontSize: '0.9rem', letterSpacing: '0.3px' }}>
                                                        📦 Efficiency Trends
                                                   </h6>
                                                   <div className="row g-2">
                                                        <div className="col-6">
-                                                            <div className="text-center p-2 bg-light rounded">
-                                                                 <div className="fw-bold text-primary" style={{ fontSize: '1rem' }}>{analytics.operational_efficiency.efficiency_trends.transaction_volume_trend}</div>
-                                                                 <small className="text-muted">Volume Trend</small>
+                                                            <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                                                 <div className="d-flex align-items-center mb-2">
+                                                                      <RiBarChartLine size={20} className="me-2 text-primary" />
+                                                                      <span className="fw-medium text-muted small">Volume Trend</span>
+                                                                 </div>
+                                                                 <div className="fs-4 fw-bold text-primary">{analytics.operational_efficiency.efficiency_trends.transaction_volume_trend}</div>
+                                                                 <div className="small text-muted">Transaction volume</div>
                                                             </div>
                                                        </div>
                                                        <div className="col-6">
-                                                            <div className="text-center p-2 bg-light rounded">
-                                                                 <div className="fw-bold text-success" style={{ fontSize: '1rem' }}>{analytics.operational_efficiency.efficiency_trends.processing_time_efficiency}</div>
-                                                                 <small className="text-muted">Processing Efficiency</small>
+                                                            <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                                                 <div className="d-flex align-items-center mb-2">
+                                                                      <RiArrowUpLine size={20} className="me-2 text-success" />
+                                                                      <span className="fw-medium text-muted small">Processing Efficiency</span>
+                                                                 </div>
+                                                                 <div className="fs-4 fw-bold text-success">{analytics.operational_efficiency.efficiency_trends.processing_time_efficiency}</div>
+                                                                 <div className="small text-muted">Time efficiency</div>
                                                             </div>
                                                        </div>
                                                        <div className="col-6">
-                                                            <div className="text-center p-2 bg-light rounded">
-                                                                 <div className="fw-bold text-warning" style={{ fontSize: '1rem' }}>{analytics.operational_efficiency.process_bottlenecks}</div>
-                                                                 <small className="text-muted">Bottlenecks</small>
+                                                            <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                                                 <div className="d-flex align-items-center mb-2">
+                                                                      <RiAlertLine size={20} className="me-2 text-warning" />
+                                                                      <span className="fw-medium text-muted small">Bottlenecks</span>
+                                                                 </div>
+                                                                 <div className="fs-4 fw-bold text-warning">{analytics.operational_efficiency.process_bottlenecks}</div>
+                                                                 <div className="small text-muted">Process bottlenecks</div>
                                                             </div>
                                                        </div>
                                                        <div className="col-6">
-                                                            <div className="text-center p-2 bg-light rounded">
-                                                                 <div className="fw-bold text-info" style={{ fontSize: '1rem' }}>{analytics.key_performance_indicators.process_efficiency_score}%</div>
-                                                                 <small className="text-muted">Efficiency Score</small>
+                                                            <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                                                 <div className="d-flex align-items-center mb-2">
+                                                                      <RiCheckLine size={20} className="me-2 text-info" />
+                                                                      <span className="fw-medium text-muted small">Efficiency Score</span>
+                                                                 </div>
+                                                                 <div className="fs-4 fw-bold text-info">{analytics.key_performance_indicators.process_efficiency_score}%</div>
+                                                                 <div className="small text-muted">Overall efficiency</div>
                                                             </div>
                                                        </div>
                                                   </div>
@@ -493,24 +549,19 @@ export default function TransactionAnalyticsPage() {
 
 
 
-               {/* Time Pattern Analysis - Intelligence Style */}
+               {/* Time Pattern Analysis - Updated Style */}
                {analytics && analytics.detailed_analytics.time_pattern_analysis && (
                     <div className="row g-3 mb-4">
                          <div className="col-12">
-                              <div className="mb-3 bg-light p-2">
-                                   {/* Header */}
-                                   <div className="bg-light py-1 px-2 mb-3">
-                                        <h6 className="mb-0 text-uppercase text-dark" style={{ letterSpacing: '0.5px', fontSize: '0.9rem', fontWeight: '600' }}>
-                                             🕐 TIME PATTERN ANALYSIS | ACTIVITY TIMING
-                                        </h6>
-                                   </div>
+                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <h5 className="mb-3 fw-semibold">🕐 Time Pattern Analysis | Activity Timing</h5>
 
                                    <div className="row g-3" style={{ minHeight: '400px' }}>
                                         {/* Peak Hours */}
                                         <div className="col-md-6">
-                                             <div className="card h-100">
-                                                  <div className="card-header d-flex justify-content-between align-items-center">
-                                                       <h6 className="card-title mb-0">🕐 Peak Hours of Transactions</h6>
+                                             <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                                  <div className="d-flex justify-content-between align-items-center mb-3">
+                                                       <h6 className="mb-0 fw-bold">🕐 Peak Hours of Transactions</h6>
                                                        <button
                                                             className="btn btn-outline-primary btn-sm"
                                                             onClick={() => openModal('Peak Hours Chart', 'peak_hours_chart')}
@@ -519,13 +570,13 @@ export default function TransactionAnalyticsPage() {
                                                             📊
                                                        </button>
                                                   </div>
-                                                  <div className="card-body" style={{ overflowY: 'auto', maxHeight: '400px' }}>
+                                                  <div style={{ overflowY: 'auto', maxHeight: '350px' }}>
                                                        <div className="table-responsive">
                                                             <table className="table table-striped">
                                                                  <thead>
                                                                       <tr>
                                                                            <th>Hour</th>
-                                                                           <th className="text-center">Transactions</th>
+                                                                           <th className="text-start">Transactions</th>
                                                                       </tr>
                                                                  </thead>
                                                                  <tbody>
@@ -534,7 +585,7 @@ export default function TransactionAnalyticsPage() {
                                                                            .map((pattern, index) => (
                                                                                 <tr key={index}>
                                                                                      <td>{pattern.hour}:00</td>
-                                                                                     <td className="text-center fw-bold">{pattern.transaction_count}</td>
+                                                                                     <td className="text-start fw-bold">{pattern.transaction_count}</td>
                                                                                 </tr>
                                                                            ))}
                                                                  </tbody>
@@ -546,9 +597,9 @@ export default function TransactionAnalyticsPage() {
 
                                         {/* Daily Patterns */}
                                         <div className="col-md-6">
-                                             <div className="card h-100">
-                                                  <div className="card-header d-flex justify-content-between align-items-center">
-                                                       <h6 className="card-title mb-0">📅 Daily Activity</h6>
+                                             <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                                  <div className="d-flex justify-content-between align-items-center mb-3">
+                                                       <h6 className="mb-0 fw-bold">📅 Daily Activity</h6>
                                                        <button
                                                             className="btn btn-outline-primary btn-sm"
                                                             onClick={() => openModal('Daily Activity Chart', 'daily_activity_chart')}
@@ -557,22 +608,22 @@ export default function TransactionAnalyticsPage() {
                                                             📊
                                                        </button>
                                                   </div>
-                                                  <div className="card-body" style={{ overflowY: 'auto', maxHeight: '400px' }}>
+                                                  <div style={{ overflowY: 'auto', maxHeight: '350px' }}>
                                                        <div className="table-responsive">
                                                             <table className="table table-striped">
                                                                  <thead>
                                                                       <tr>
                                                                            <th>Day</th>
-                                                                           <th className="text-center">Transactions</th>
-                                                                           <th className="text-end">Quantity</th>
+                                                                           <th className="text-start">Transactions</th>
+                                                                           <th className="text-start">Quantity</th>
                                                                       </tr>
                                                                  </thead>
                                                                  <tbody>
                                                                       {analytics.detailed_analytics.time_pattern_analysis.daily_patterns.map((pattern, index) => (
                                                                            <tr key={index}>
                                                                                 <td>{new Date(pattern.date).toLocaleDateString()}</td>
-                                                                                <td className="text-center fw-bold">{pattern.transaction_count}</td>
-                                                                                <td className="text-end">{pattern.total_quantity.toLocaleString()}</td>
+                                                                                <td className="text-start fw-bold">{pattern.transaction_count}</td>
+                                                                                <td className="text-start">{pattern.total_quantity.toLocaleString()}</td>
                                                                            </tr>
                                                                       ))}
                                                                  </tbody>
@@ -593,74 +644,63 @@ export default function TransactionAnalyticsPage() {
 
 
 
-               {/* High Volume Transactions - Intelligence Style */}
+               {/* High Volume Transactions - Updated Style */}
                {analytics && analytics.detailed_analytics.high_volume_transactions && analytics.detailed_analytics.high_volume_transactions.length > 0 && (
                     <div className="row g-3 mb-4">
                          <div className="col-12">
-                              <div className="mb-3 bg-light p-2">
-                                   {/* Header */}
-                                   <div className="bg-light py-1 px-2 mb-3">
-                                        <h6 className="mb-0 text-uppercase text-dark" style={{ letterSpacing: '0.5px', fontSize: '0.9rem', fontWeight: '600' }}>
-                                             🚀 HIGH VOLUME TRANSACTIONS | MAJOR ACTIVITY LOG
-                                        </h6>
+                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <div className="d-flex justify-content-between align-items-center mb-3">
+                                        <h5 className="mb-0 fw-semibold">🚀 High Volume Transactions | Major Activity Log</h5>
+                                        <button
+                                             className="btn btn-outline-primary btn-sm"
+                                             onClick={() => openModal('High Volume Transactions Chart', 'high_volume_transactions_chart')}
+                                             title="View Chart"
+                                        >
+                                             📊
+                                        </button>
                                    </div>
-
-                                   <div className="card">
-                                        <div className="card-header d-flex justify-content-between align-items-center">
-                                             <h6 className="card-title mb-0">🚀 High Volume Transactions | Major Activity Log</h6>
-                                             <button
-                                                  className="btn btn-outline-primary btn-sm"
-                                                  onClick={() => openModal('High Volume Transactions Chart', 'high_volume_transactions_chart')}
-                                                  title="View Chart"
-                                             >
-                                                  📊
-                                             </button>
-                                        </div>
-                                        <div className="card-body">
-                                             <div className="table-responsive" style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                                                  <table className="table table-striped">
-                                                       <thead className="sticky-top">
-                                                            <tr>
-                                                                 <th>Date</th>
-                                                                 <th className="text-center">Transactions</th>
-                                                                 <th className="text-end">Total Quantity</th>
-                                                                 <th className="text-end">Total Cost</th>
-                                                                 <th className="text-center">Volume Category</th>
-                                                                 <th className="text-center">Cost Category</th>
-                                                            </tr>
-                                                       </thead>
-                                                       <tbody>
-                                                            {analytics.detailed_analytics.high_volume_transactions.map((transaction, index) => (
-                                                                 <tr key={index}>
-                                                                      <td>
-                                                                           {new Date(transaction.date).toLocaleDateString()}
-                                                                      </td>
-                                                                      <td className="text-center">
-                                                                           {transaction.transaction_count}
-                                                                      </td>
-                                                                      <td className="text-end">
-                                                                           {transaction.total_quantity.toLocaleString()}
-                                                                      </td>
-                                                                      <td className="text-end">
-                                                                           {currencyFormatter.format(transaction.total_cost)}
-                                                                      </td>
-                                                                      <td className="text-center">
-                                                                           {transaction.volume_category}
-                                                                      </td>
-                                                                      <td className="text-center">
-                                                                           {transaction.cost_category}
-                                                                      </td>
-                                                                 </tr>
-                                                            ))}
-                                                       </tbody>
-                                                  </table>
-                                             </div>
-                                        </div>
-                                        <div className="card-footer text-center">
-                                             <small className="text-muted">
-                                                  🚀 HIGH VOLUME ANALYSIS COMPLETE | {analytics.detailed_analytics.high_volume_transactions.length} MAJOR TRANSACTIONS TRACKED
-                                             </small>
-                                        </div>
+                                   <div className="table-responsive" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                                        <table className="table table-striped">
+                                             <thead className="sticky-top">
+                                                  <tr>
+                                                       <th>Date</th>
+                                                       <th className="text-start">Transactions</th>
+                                                       <th className="text-start">Total Quantity</th>
+                                                       <th className="text-start">Total Cost</th>
+                                                       <th className="text-start">Volume Category</th>
+                                                       <th className="text-start">Cost Category</th>
+                                                  </tr>
+                                             </thead>
+                                             <tbody>
+                                                  {analytics.detailed_analytics.high_volume_transactions.map((transaction, index) => (
+                                                       <tr key={index}>
+                                                            <td>
+                                                                 {new Date(transaction.date).toLocaleDateString()}
+                                                            </td>
+                                                            <td className="text-start">
+                                                                 {transaction.transaction_count}
+                                                            </td>
+                                                            <td className="text-start">
+                                                                 {transaction.total_quantity.toLocaleString()}
+                                                            </td>
+                                                            <td className="text-start">
+                                                                 {currencyFormatter.format(transaction.total_cost)}
+                                                            </td>
+                                                            <td className="text-start">
+                                                                 {transaction.volume_category}
+                                                            </td>
+                                                            <td className="text-start">
+                                                                 {transaction.cost_category}
+                                                            </td>
+                                                       </tr>
+                                                  ))}
+                                             </tbody>
+                                        </table>
+                                   </div>
+                                   <div className="text-start mt-3">
+                                        <small className="text-muted fw-medium">
+                                             🚀 HIGH VOLUME ANALYSIS COMPLETE | {analytics.detailed_analytics.high_volume_transactions.length} MAJOR TRANSACTIONS TRACKED
+                                        </small>
                                    </div>
                               </div>
                          </div>
@@ -746,7 +786,7 @@ export default function TransactionAnalyticsPage() {
                                    Clear All
                               </button>
                          </div>
-                         <div className="text-center mt-2">
+                         <div className="text-start mt-2">
                               <small className="text-muted fw-medium" style={{ fontSize: '0.8rem' }}>
                                    🔍 FILTERS WILL REFRESH ANALYTICS DATA
                               </small>
@@ -933,25 +973,25 @@ export default function TransactionAnalyticsPage() {
                                                                       <h6 className="mb-3 text-success fw-bold">📈 Summary Statistics</h6>
                                                                       <div className="row g-2">
                                                                            <div className="col-6">
-                                                                                <div className="text-center p-2 bg-white rounded">
+                                                                                <div className="text-start p-2 bg-white rounded">
                                                                                      <div className="fw-bold text-primary">{analytics.detailed_analytics.core_metrics.transaction_volume.total_transactions}</div>
                                                                                      <small className="text-muted">Total Txs</small>
                                                                                 </div>
                                                                            </div>
                                                                            <div className="col-6">
-                                                                                <div className="text-center p-2 bg-white rounded">
+                                                                                <div className="text-start p-2 bg-white rounded">
                                                                                      <div className="fw-bold text-success">{analytics.detailed_analytics.core_metrics.transaction_volume.total_quantity_moved.toLocaleString()}</div>
                                                                                      <small className="text-muted">Total Qty</small>
                                                                                 </div>
                                                                            </div>
                                                                            <div className="col-6">
-                                                                                <div className="text-center p-2 bg-white rounded">
+                                                                                <div className="text-start p-2 bg-white rounded">
                                                                                      <div className="fw-bold text-info">{analytics.detailed_analytics.core_metrics.transaction_type_distribution.addition + analytics.detailed_analytics.core_metrics.transaction_type_distribution.consumption + analytics.detailed_analytics.core_metrics.transaction_type_distribution.wastage + analytics.detailed_analytics.core_metrics.transaction_type_distribution.adjustment + analytics.detailed_analytics.core_metrics.transaction_type_distribution.transfer}</div>
                                                                                      <small className="text-muted">Types</small>
                                                                                 </div>
                                                                            </div>
                                                                            <div className="col-6">
-                                                                                <div className="text-center p-2 bg-white rounded">
+                                                                                <div className="text-start p-2 bg-white rounded">
                                                                                      <div className="fw-bold text-warning">{currencyFormatter.format(analytics.detailed_analytics.core_metrics.transaction_volume.total_transaction_value)}</div>
                                                                                      <small className="text-muted">Total Value</small>
                                                                                 </div>
@@ -964,25 +1004,25 @@ export default function TransactionAnalyticsPage() {
                                                                       <h6 className="mb-3 text-info fw-bold">⚡ Operational Efficiency</h6>
                                                                       <div className="row g-2">
                                                                            <div className="col-6">
-                                                                                <div className="text-center p-2 bg-white rounded">
+                                                                                <div className="text-start p-2 bg-white rounded">
                                                                                      <div className="fw-bold text-primary">{analytics.operational_efficiency.transaction_processing_speed.toFixed(1)}</div>
                                                                                      <small className="text-muted">Processing Speed</small>
                                                                                 </div>
                                                                            </div>
                                                                            <div className="col-6">
-                                                                                <div className="text-center p-2 bg-white rounded">
+                                                                                <div className="text-start p-2 bg-white rounded">
                                                                                      <div className="fw-bold text-success">{analytics.operational_efficiency.inventory_accuracy_score}%</div>
                                                                                      <small className="text-muted">Accuracy</small>
                                                                                 </div>
                                                                            </div>
                                                                            <div className="col-6">
-                                                                                <div className="text-center p-2 bg-white rounded">
+                                                                                <div className="text-start p-2 bg-white rounded">
                                                                                      <div className="fw-bold text-info">{analytics.operational_efficiency.automation_opportunities}</div>
                                                                                      <small className="text-muted">Automation Ops</small>
                                                                                 </div>
                                                                            </div>
                                                                            <div className="col-6">
-                                                                                <div className="text-center p-2 bg-white rounded">
+                                                                                <div className="text-start p-2 bg-white rounded">
                                                                                      <div className="fw-bold text-warning">{analytics.operational_efficiency.efficiency_trends.error_rate}%</div>
                                                                                      <small className="text-muted">Error Rate</small>
                                                                                 </div>
@@ -1146,25 +1186,25 @@ export default function TransactionAnalyticsPage() {
                                                                  <h6 className="mb-3 fw-bold">🕐 Peak Hours Summary</h6>
                                                                  <div className="row g-2">
                                                                       <div className="col-6">
-                                                                           <div className="text-center p-2 bg-white rounded">
+                                                                           <div className="text-start p-2 bg-white rounded">
                                                                                 <div className="fw-bold">{analytics.detailed_analytics.time_pattern_analysis.peak_hours.length}</div>
                                                                                 <small className="text-muted">Total Hours</small>
                                                                            </div>
                                                                       </div>
                                                                       <div className="col-6">
-                                                                           <div className="text-center p-2 bg-white rounded">
+                                                                           <div className="text-start p-2 bg-white rounded">
                                                                                 <div className="fw-bold">{analytics.detailed_analytics.time_pattern_analysis.peak_hours.reduce((sum, h) => sum + h.transaction_count, 0)}</div>
                                                                                 <small className="text-muted">Total Transactions</small>
                                                                            </div>
                                                                       </div>
                                                                       <div className="col-6">
-                                                                           <div className="text-center p-2 bg-white rounded">
+                                                                           <div className="text-start p-2 bg-white rounded">
                                                                                 <div className="fw-bold">{Math.max(...analytics.detailed_analytics.time_pattern_analysis.peak_hours.map(h => h.transaction_count))}</div>
                                                                                 <small className="text-muted">Peak Transactions</small>
                                                                            </div>
                                                                       </div>
                                                                       <div className="col-6">
-                                                                           <div className="text-center p-2 bg-white rounded">
+                                                                           <div className="text-start p-2 bg-white rounded">
                                                                                 <div className="fw-bold">{analytics.detailed_analytics.time_pattern_analysis.peak_hours.find(h => h.transaction_count === Math.max(...analytics.detailed_analytics.time_pattern_analysis.peak_hours.map(h => h.transaction_count)))?.hour}:00</div>
                                                                                 <small className="text-muted">Busiest Hour</small>
                                                                            </div>
@@ -1177,25 +1217,25 @@ export default function TransactionAnalyticsPage() {
                                                                  <h6 className="mb-3 fw-bold">📊 Activity Distribution</h6>
                                                                  <div className="row g-2">
                                                                       <div className="col-6">
-                                                                           <div className="text-center p-2 bg-white rounded">
+                                                                           <div className="text-start p-2 bg-white rounded">
                                                                                 <div className="fw-bold">{(analytics.detailed_analytics.time_pattern_analysis.peak_hours.reduce((sum, h) => sum + h.transaction_count, 0) / analytics.detailed_analytics.time_pattern_analysis.peak_hours.length).toFixed(1)}</div>
                                                                                 <small className="text-muted">Avg per Hour</small>
                                                                            </div>
                                                                       </div>
                                                                       <div className="col-6">
-                                                                           <div className="text-center p-2 bg-white rounded">
+                                                                           <div className="text-start p-2 bg-white rounded">
                                                                                 <div className="fw-bold">{analytics.detailed_analytics.time_pattern_analysis.peak_hours.filter(h => h.transaction_count > 0).length}</div>
                                                                                 <small className="text-muted">Active Hours</small>
                                                                            </div>
                                                                       </div>
                                                                       <div className="col-6">
-                                                                           <div className="text-center p-2 bg-white rounded">
+                                                                           <div className="text-start p-2 bg-white rounded">
                                                                                 <div className="fw-bold">{((Math.max(...analytics.detailed_analytics.time_pattern_analysis.peak_hours.map(h => h.transaction_count)) / analytics.detailed_analytics.time_pattern_analysis.peak_hours.reduce((sum, h) => sum + h.transaction_count, 0)) * 100).toFixed(1)}%</div>
                                                                                 <small className="text-muted">Peak % of Total</small>
                                                                            </div>
                                                                       </div>
                                                                       <div className="col-6">
-                                                                           <div className="text-center p-2 bg-white rounded">
+                                                                           <div className="text-start p-2 bg-white rounded">
                                                                                 <div className="fw-bold">{analytics.detailed_analytics.time_pattern_analysis.peak_hours.filter(h => h.transaction_count >= analytics.detailed_analytics.time_pattern_analysis.peak_hours.reduce((sum, h) => sum + h.transaction_count, 0) * 0.1).length}</div>
                                                                                 <small className="text-muted">High Activity Hours</small>
                                                                            </div>
@@ -1373,25 +1413,25 @@ export default function TransactionAnalyticsPage() {
                                                                  <h6 className="mb-3 fw-bold">📊 Daily Activity Summary</h6>
                                                                  <div className="row g-2">
                                                                       <div className="col-6">
-                                                                           <div className="text-center p-2 bg-white rounded">
+                                                                           <div className="text-start p-2 bg-white rounded">
                                                                                 <div className="fw-bold">{analytics.detailed_analytics.time_pattern_analysis.daily_patterns.length}</div>
                                                                                 <small className="text-muted">Total Days</small>
                                                                            </div>
                                                                       </div>
                                                                       <div className="col-6">
-                                                                           <div className="text-center p-2 bg-white rounded">
+                                                                           <div className="text-start p-2 bg-white rounded">
                                                                                 <div className="fw-bold">{analytics.detailed_analytics.time_pattern_analysis.daily_patterns.reduce((sum, d) => sum + d.transaction_count, 0)}</div>
                                                                                 <small className="text-muted">Total Transactions</small>
                                                                            </div>
                                                                       </div>
                                                                       <div className="col-6">
-                                                                           <div className="text-center p-2 bg-white rounded">
+                                                                           <div className="text-start p-2 bg-white rounded">
                                                                                 <div className="fw-bold">{analytics.detailed_analytics.time_pattern_analysis.daily_patterns.reduce((sum, d) => sum + d.total_quantity, 0).toLocaleString()}</div>
                                                                                 <small className="text-muted">Total Quantity</small>
                                                                            </div>
                                                                       </div>
                                                                       <div className="col-6">
-                                                                           <div className="text-center p-2 bg-white rounded">
+                                                                           <div className="text-start p-2 bg-white rounded">
                                                                                 <div className="fw-bold">{Math.max(...analytics.detailed_analytics.time_pattern_analysis.daily_patterns.map(d => d.transaction_count))}</div>
                                                                                 <small className="text-muted">Peak Transactions</small>
                                                                            </div>
@@ -1404,25 +1444,25 @@ export default function TransactionAnalyticsPage() {
                                                                  <h6 className="mb-3 fw-bold">📈 Activity Trends</h6>
                                                                  <div className="row g-2">
                                                                       <div className="col-6">
-                                                                           <div className="text-center p-2 bg-white rounded">
+                                                                           <div className="text-start p-2 bg-white rounded">
                                                                                 <div className="fw-bold">{(analytics.detailed_analytics.time_pattern_analysis.daily_patterns.reduce((sum, d) => sum + d.transaction_count, 0) / analytics.detailed_analytics.time_pattern_analysis.daily_patterns.length).toFixed(1)}</div>
                                                                                 <small className="text-muted">Avg Daily Txs</small>
                                                                            </div>
                                                                       </div>
                                                                       <div className="col-6">
-                                                                           <div className="text-center p-2 bg-white rounded">
+                                                                           <div className="text-start p-2 bg-white rounded">
                                                                                 <div className="fw-bold">{(analytics.detailed_analytics.time_pattern_analysis.daily_patterns.reduce((sum, d) => sum + d.total_quantity, 0) / analytics.detailed_analytics.time_pattern_analysis.daily_patterns.length).toLocaleString()}</div>
                                                                                 <small className="text-muted">Avg Daily Qty</small>
                                                                            </div>
                                                                       </div>
                                                                       <div className="col-6">
-                                                                           <div className="text-center p-2 bg-white rounded">
+                                                                           <div className="text-start p-2 bg-white rounded">
                                                                                 <div className="fw-bold">{new Date(analytics.detailed_analytics.time_pattern_analysis.daily_patterns.reduce((prev, current) => (prev.transaction_count > current.transaction_count) ? prev : current).date).toLocaleDateString('en-US', { weekday: 'short' })}</div>
                                                                                 <small className="text-muted">Busiest Day</small>
                                                                            </div>
                                                                       </div>
                                                                       <div className="col-6">
-                                                                           <div className="text-center p-2 bg-white rounded">
+                                                                           <div className="text-start p-2 bg-white rounded">
                                                                                 <div className="fw-bold">{analytics.detailed_analytics.time_pattern_analysis.daily_patterns.filter(d => d.transaction_count > 0).length}</div>
                                                                                 <small className="text-muted">Active Days</small>
                                                                            </div>
@@ -1600,25 +1640,25 @@ export default function TransactionAnalyticsPage() {
                                                                  <h6 className="mb-3 fw-bold">📊 High Volume Summary</h6>
                                                                  <div className="row g-2">
                                                                       <div className="col-6">
-                                                                           <div className="text-center p-2 bg-white rounded">
+                                                                           <div className="text-start p-2 bg-white rounded">
                                                                                 <div className="fw-bold">{analytics.detailed_analytics.high_volume_transactions.length}</div>
                                                                                 <small className="text-muted">Total Transactions</small>
                                                                            </div>
                                                                       </div>
                                                                       <div className="col-6">
-                                                                           <div className="text-center p-2 bg-white rounded">
+                                                                           <div className="text-start p-2 bg-white rounded">
                                                                                 <div className="fw-bold">{analytics.detailed_analytics.high_volume_transactions.reduce((sum, t) => sum + t.total_quantity, 0).toLocaleString()}</div>
                                                                                 <small className="text-muted">Total Quantity</small>
                                                                            </div>
                                                                       </div>
                                                                       <div className="col-6">
-                                                                           <div className="text-center p-2 bg-white rounded">
+                                                                           <div className="text-start p-2 bg-white rounded">
                                                                                 <div className="fw-bold">{currencyFormatter.format(analytics.detailed_analytics.high_volume_transactions.reduce((sum, t) => sum + t.total_cost, 0))}</div>
                                                                                 <small className="text-muted">Total Value</small>
                                                                            </div>
                                                                       </div>
                                                                       <div className="col-6">
-                                                                           <div className="text-center p-2 bg-white rounded">
+                                                                           <div className="text-start p-2 bg-white rounded">
                                                                                 <div className="fw-bold">{Math.max(...analytics.detailed_analytics.high_volume_transactions.map(t => t.total_quantity)).toLocaleString()}</div>
                                                                                 <small className="text-muted">Max Quantity</small>
                                                                            </div>
@@ -1631,25 +1671,25 @@ export default function TransactionAnalyticsPage() {
                                                                  <h6 className="mb-3 fw-bold">🏷️ Category Breakdown</h6>
                                                                  <div className="row g-2">
                                                                       <div className="col-6">
-                                                                           <div className="text-center p-2 bg-white rounded">
+                                                                           <div className="text-start p-2 bg-white rounded">
                                                                                 <div className="fw-bold">{analytics.detailed_analytics.high_volume_transactions.filter(t => t.volume_category === 'Very High').length}</div>
                                                                                 <small className="text-muted">Very High</small>
                                                                            </div>
                                                                       </div>
                                                                       <div className="col-6">
-                                                                           <div className="text-center p-2 bg-white rounded">
+                                                                           <div className="text-start p-2 bg-white rounded">
                                                                                 <div className="fw-bold">{analytics.detailed_analytics.high_volume_transactions.filter(t => t.volume_category === 'High').length}</div>
                                                                                 <small className="text-muted">High</small>
                                                                            </div>
                                                                       </div>
                                                                       <div className="col-6">
-                                                                           <div className="text-center p-2 bg-white rounded">
+                                                                           <div className="text-start p-2 bg-white rounded">
                                                                                 <div className="fw-bold">{analytics.detailed_analytics.high_volume_transactions.reduce((sum, t) => sum + t.transaction_breakdown.addition, 0)}</div>
                                                                                 <small className="text-muted">Additions</small>
                                                                            </div>
                                                                       </div>
                                                                       <div className="col-6">
-                                                                           <div className="text-center p-2 bg-white rounded">
+                                                                           <div className="text-start p-2 bg-white rounded">
                                                                                 <div className="fw-bold">{analytics.detailed_analytics.high_volume_transactions.reduce((sum, t) => sum + t.transaction_breakdown.consumption, 0)}</div>
                                                                                 <small className="text-muted">Consumptions</small>
                                                                            </div>

@@ -5,8 +5,10 @@ import Link from 'next/link';
 import { toast } from 'react-toastify';
 import { currencyFormatter, customFetch } from '../../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
-import { RiInformationLine } from '@remixicon/react';
-import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
+import { RiBox3Line, RiAlertLine, RiBarChartBoxLine, RiRefreshLine, RiInformationLine, RiArrowLeftLine, RiShieldCheckLine, RiLineChartLine } from '@remixicon/react';
+
+const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_BORDER = 'var(--bs-border-color)';
 
 
 
@@ -178,24 +180,31 @@ export default function StockLevelAnalyticsPage() {
                     {/* Header */}
                     <div className="d-flex justify-content-between align-items-center mb-4">
                          <div>
-                              <Link href="/inventory/analytics" className="text-decoration-none">
-                                   <span className="text-muted">← Back to Analytics Dashboard</span>
+                              <Link href="/inventory/analytics" className="text-decoration-none d-flex align-items-center mb-2">
+                                   <RiArrowLeftLine size={16} className="me-1 text-primary" />
+                                   <span className="text-muted small">Back to Analytics Dashboard</span>
                               </Link>
-                              <h2 className="mb-1">📈 Stock Level Analytics</h2>
-                              <p className="text-muted mb-0">Comprehensive stock monitoring with AI-powered predictive analytics and optimization insights</p>
+                              <h2 className="mb-1">
+                                   <RiBox3Line className="me-2 text-primary" />
+                                   Stock Level Analytics
+                              </h2>
+                              <p className="text-muted mb-0">Comprehensive stock monitoring with predictive analytics and optimization insights</p>
                          </div>
                          <div className="d-flex gap-2">
                               <button
-                                   className="btn btn-outline-secondary"
+                                   className="btn btn-outline-secondary btn-sm"
                                    onClick={() => openModal('Key Terms & Definitions', 'inventory_terms')}
                               >
-                                   📚 Key Terms
+                                   <RiInformationLine className="me-1 text-info" />
+                                   Key Terms
                               </button>
                               <button
-                                   className="btn btn-outline-primary"
+                                   className="btn btn-outline-primary btn-sm"
                                    onClick={loadStockLevelAnalytics}
+                                   disabled={loading}
                               >
-                                   ↻ Refresh
+                                   <RiRefreshLine className="me-1 text-primary" />
+                                   Refresh
                               </button>
                          </div>
                     </div>
@@ -204,35 +213,43 @@ export default function StockLevelAnalyticsPage() {
                     {analytics && (
                          <div className="row g-3 mb-4">
                               <div className="col-md-3">
-                                   <div className="card h-100">
-                                        <div className="card-body text-center">
-                                             <h3 className="text-primary">{analytics.current_stock_on_hand.toLocaleString()}</h3>
-                                             <p className="text-muted mb-0">Current Stock on Hand</p>
+                                   <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                        <div className="d-flex align-items-center mb-2">
+                                             <RiBox3Line size={20} className="me-2 text-primary" />
+                                             <span className="fw-medium text-muted small">Current Stock on Hand</span>
                                         </div>
+                                        <div className="fs-4 fw-bold text-primary">{analytics.current_stock_on_hand.toLocaleString()}</div>
+                                        <div className="small text-muted">Total inventory available</div>
                                    </div>
                               </div>
                               <div className="col-md-3">
-                                   <div className="card h-100">
-                                        <div className="card-body text-center">
-                                             <h3 className="text-success">{analytics.stock_available_for_use.toLocaleString()}</h3>
-                                             <p className="text-muted mb-0">Available for Use</p>
+                                   <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                        <div className="d-flex align-items-center mb-2">
+                                             <RiBarChartBoxLine size={20} className="me-2 text-success" />
+                                             <span className="fw-medium text-muted small">Available for Use</span>
                                         </div>
+                                        <div className="fs-4 fw-bold text-success">{analytics.stock_available_for_use.toLocaleString()}</div>
+                                        <div className="small text-muted">Unallocated stock</div>
                                    </div>
                               </div>
                               <div className="col-md-3">
-                                   <div className="card h-100">
-                                        <div className="card-body text-center">
-                                             <h3 className="text-info">{analytics.stock_on_order.toLocaleString()}</h3>
-                                             <p className="text-muted mb-0">On Order</p>
+                                   <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                        <div className="d-flex align-items-center mb-2">
+                                             <RiAlertLine size={20} className="me-2 text-info" />
+                                             <span className="fw-medium text-muted small">On Order</span>
                                         </div>
+                                        <div className="fs-4 fw-bold text-info">{analytics.stock_on_order.toLocaleString()}</div>
+                                        <div className="small text-muted">Pending delivery</div>
                                    </div>
                               </div>
                               <div className="col-md-3">
-                                   <div className="card h-100">
-                                        <div className="card-body text-center">
-                                             <h3 className="text-warning">{analytics.allocated_stock.toLocaleString()}</h3>
-                                             <p className="text-muted mb-0">Allocated Stock</p>
+                                   <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                        <div className="d-flex align-items-center mb-2">
+                                             <RiBox3Line size={20} className="me-2 text-warning" />
+                                             <span className="fw-medium text-muted small">Allocated Stock</span>
                                         </div>
+                                        <div className="fs-4 fw-bold text-warning">{analytics.allocated_stock.toLocaleString()}</div>
+                                        <div className="small text-muted">Reserved for orders</div>
                                    </div>
                               </div>
                          </div>
@@ -242,381 +259,355 @@ export default function StockLevelAnalyticsPage() {
                     <div className="row g-3 mb-4">
                          {/* Stock Threshold Alerts */}
                          <div className="col-lg-6">
-                              <div className="card">
-                                   <div className="card-header py-2">
-                                        <h5 className="mb-0">🚨 Stock Threshold Alerts</h5>
-                                   </div>
-                                   <div className="card-body">
-                                        {analytics && analytics.stock_threshold_alerts.length > 0 ? (
-                                             <div className="table-responsive">
-                                                  <table className="table table-striped">
-                                                       <thead>
-                                                            <tr>
-                                                                 <th>Item</th>
-                                                                 <th>Current Stock</th>
-                                                                 <th>Min/Max Levels</th>
-                                                                 <th>Status</th>
-                                                                 <th>Alert Type</th>
+                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <h5 className="mb-3 fw-semibold">⚠️ Stock Threshold Alerts</h5>
+                                   {analytics && analytics.stock_threshold_alerts.length > 0 ? (
+                                        <div className="table-responsive">
+                                             <table className="table table-striped">
+                                                  <thead>
+                                                       <tr>
+                                                            <th className="text-start">Item</th>
+                                                            <th className="text-start">Current Stock</th>
+                                                            <th className="text-start">Min/Max Levels</th>
+                                                            <th className="text-start">Status</th>
+                                                            <th className="text-start">Alert Type</th>
+                                                       </tr>
+                                                  </thead>
+                                                  <tbody>
+                                                       {analytics.stock_threshold_alerts.map((alert, index) => (
+                                                            <tr key={index}>
+                                                                 <td className="text-start fw-bold text-dark">{alert.item_name}</td>
+                                                                 <td className="text-start text-dark">{alert.current_stock.toLocaleString()}</td>
+                                                                 <td className="text-start text-dark">
+                                                                      Min: {alert.min_stock} | Max: {alert.max_stock}
+                                                                 </td>
+                                                                 <td className="text-start">
+                                                                      <span className={`badge bg-${getStatusColor(alert.status)}`}>
+                                                                           {alert.status}
+                                                                      </span>
+                                                                 </td>
+                                                                 <td className="text-start">
+                                                                      <span className={`badge bg-${getAlertTypeColor(alert.alert_type)}`}>
+                                                                           {alert.alert_type.replace('_', ' ')}
+                                                                      </span>
+                                                                 </td>
                                                             </tr>
-                                                       </thead>
-                                                       <tbody>
-                                                            {analytics.stock_threshold_alerts.map((alert, index) => (
-                                                                 <tr key={index}>
-                                                                      <td className="fw-bold">{alert.item_name}</td>
-                                                                      <td className="text-center">{alert.current_stock.toLocaleString()}</td>
-                                                                      <td>
-                                                                           Min: {alert.min_stock} | Max: {alert.max_stock}
-                                                                      </td>
-                                                                      <td>
-                                                                           <span className={`badge bg-${getStatusColor(alert.status)}`}>
-                                                                                {alert.status}
-                                                                           </span>
-                                                                      </td>
-                                                                      <td>
-                                                                           <span className={`badge bg-${getAlertTypeColor(alert.alert_type)}`}>
-                                                                                {alert.alert_type.replace('_', ' ')}
-                                                                           </span>
-                                                                      </td>
-                                                                 </tr>
-                                                            ))}
-                                                       </tbody>
-                                                  </table>
-                                             </div>
-                                        ) : (
-                                             <div className="alert alert-success">
-                                                  <strong>✅ All Clear!</strong> No stock threshold alerts at this time.
-                                             </div>
-                                        )}
-                                   </div>
+                                                       ))}
+                                                  </tbody>
+                                             </table>
+                                        </div>
+                                   ) : (
+                                        <div className="text-start py-4">
+                                             <p className="text-muted">No stock threshold alerts at this time.</p>
+                                        </div>
+                                   )}
                               </div>
                          </div>
 
                          {/* Days of Inventory Remaining */}
                          <div className="col-lg-6">
-                              <div className="card">
-                                   <div className="card-header py-2">
-                                        <h5 className="mb-0">📅 Days of Inventory Remaining</h5>
-                                   </div>
-                                   <div className="card-body">
-                                        {analytics && analytics.days_of_inventory_remaining.length > 0 ? (
-                                             <div className="table-responsive">
-                                                  <table className="table table-striped">
-                                                       <thead>
-                                                            <tr>
-                                                                 <th>Item</th>
-                                                                 <th>Current Stock</th>
-                                                                 <th>Daily Usage</th>
-                                                                 <th>Days Remaining</th>
-                                                                 <th>Status</th>
+                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <h5 className="mb-3 fw-semibold">📅 Days of Inventory Remaining</h5>
+                                   {analytics && analytics.days_of_inventory_remaining.length > 0 ? (
+                                        <div className="table-responsive">
+                                             <table className="table table-striped">
+                                                  <thead>
+                                                       <tr>
+                                                            <th className="text-start">Item</th>
+                                                            <th className="text-start">Current Stock</th>
+                                                            <th className="text-start">Daily Usage</th>
+                                                            <th className="text-start">Days Remaining</th>
+                                                            <th className="text-start">Status</th>
+                                                       </tr>
+                                                  </thead>
+                                                  <tbody>
+                                                       {analytics.days_of_inventory_remaining.slice(0, 10).map((item, index) => (
+                                                            <tr key={index}>
+                                                                 <td className="text-start fw-bold text-dark">{item.item_name}</td>
+                                                                 <td className="text-start text-dark">{item.current_stock.toLocaleString()}</td>
+                                                                 <td className="text-start text-dark">{item.daily_consumption_rate.toFixed(2)}</td>
+                                                                 <td className={`text-start fw-bold ${item.days_remaining < 7 ? 'text-danger' : item.days_remaining < 30 ? 'text-warning' : 'text-success'}`}>
+                                                                      {item.days_remaining.toFixed(1)}
+                                                                 </td>
+                                                                 <td className="text-start">
+                                                                      <span className={`badge bg-${getStatusColor(item.status)}`}>
+                                                                           {item.status}
+                                                                      </span>
+                                                                 </td>
                                                             </tr>
-                                                       </thead>
-                                                       <tbody>
-                                                            {analytics.days_of_inventory_remaining.slice(0, 10).map((item, index) => (
-                                                                 <tr key={index}>
-                                                                      <td className="fw-bold">{item.item_name}</td>
-                                                                      <td>{item.current_stock.toLocaleString()}</td>
-                                                                      <td>{item.daily_consumption_rate.toFixed(2)}</td>
-                                                                      <td className={`fw-bold ${item.days_remaining < 7 ? 'text-danger' : item.days_remaining < 30 ? 'text-warning' : 'text-success'}`}>
-                                                                           {item.days_remaining.toFixed(1)}
-                                                                      </td>
-                                                                      <td>
-                                                                           <span className={`badge bg-${getStatusColor(item.status)}`}>
-                                                                                {item.status}
-                                                                           </span>
-                                                                      </td>
-                                                                 </tr>
-                                                            ))}
-                                                       </tbody>
-                                                  </table>
-                                             </div>
-                                        ) : (
-                                             <div className="text-center py-4">
-                                                  <p className="text-muted">No inventory days data available</p>
-                                             </div>
-                                        )}
-                                   </div>
+                                                       ))}
+                                                  </tbody>
+                                             </table>
+                                        </div>
+                                   ) : (
+                                        <div className="text-start py-4">
+                                             <p className="text-muted">No inventory days data available</p>
+                                        </div>
+                                   )}
                               </div>
                          </div>
                     </div>
 
                     {/* Predictive Analytics - Row 1 */}
                     <div className="row g-3 mb-4">
-                         {/* Stock Out Predictions Card */}
+                         {/* Stock Out Predictions */}
                          <div className="col-lg-6">
-                              <div className="card">
-                                   <div className="card-header py-2">
-                                        <h5 className="mb-0">⚠️ Stock Out Predictions</h5>
-                                   </div>
-                                   <div className="card-body">
-                                        {analytics && analytics.predictive_analytics.stock_out_predictions.length > 0 ? (
-                                             <div>
-                                                  {analytics.predictive_analytics.stock_out_predictions.slice(0, 5).map((prediction, index) => (
-                                                       <div key={index} className="alert alert-danger py-2 mb-2">
-                                                            <strong>Item #{index + 1}</strong><br />
-                                                            {prediction.predicted_stock_out_date ?
-                                                                 `Predicted stock out: ${new Date(prediction.predicted_stock_out_date).toLocaleDateString()} (${prediction.days_until_stock_out} days)` :
-                                                                 `No prediction available (${prediction.days_until_stock_out} days)`}
+                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <h5 className="mb-3 fw-semibold">🚨 Stock Out Predictions</h5>
+                                   {analytics && analytics.predictive_analytics.stock_out_predictions.length > 0 ? (
+                                        <div>
+                                             {analytics.predictive_analytics.stock_out_predictions.slice(0, 5).map((prediction, index) => (
+                                                  <div key={index} className="border rounded p-3 mb-2" style={{ borderColor: 'var(--bs-danger)', backgroundColor: 'var(--bs-light)' }}>
+                                                       <div className="d-flex justify-content-between align-items-start">
+                                                            <div>
+                                                                 <strong className="text-danger">Item #{index + 1}</strong>
+                                                                 <div className="small text-muted mt-1">
+                                                                      {prediction.predicted_stock_out_date ?
+                                                                           `Predicted stock out: ${new Date(prediction.predicted_stock_out_date).toLocaleDateString()} (${prediction.days_until_stock_out} days)` :
+                                                                           `No prediction available (${prediction.days_until_stock_out} days)`}
+                                                                 </div>
+                                                            </div>
                                                        </div>
-                                                  ))}
-                                             </div>
-                                        ) : (
-                                             <div className="alert alert-success py-2">
-                                                  No stock out predictions
-                                             </div>
-                                        )}
-                                   </div>
+                                                  </div>
+                                             ))}
+                                        </div>
+                                   ) : (
+                                        <div className="text-start py-4">
+                                             <p className="text-muted">No stock out predictions</p>
+                                        </div>
+                                   )}
                               </div>
                          </div>
 
-                         {/* Overstock Predictions Card */}
+                         {/* Overstock Predictions */}
                          <div className="col-lg-6">
-                              <div className="card">
-                                   <div className="card-header py-2">
-                                        <h5 className="mb-0">
-                                             📦 Overstock Predictions
-                                             <button className="btn btn-sm btn-outline-secondary ms-2" onClick={() => openModal('Overstock Predictions', 'Items with excess inventory that may be costing you money in carrying costs.')}>
-                                                  <RiInformationLine size={14} />
-                                             </button>
-                                        </h5>
+                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <div className="d-flex justify-content-between align-items-center mb-3">
+                                        <h5 className="mb-0 fw-semibold">📦 Overstock Predictions</h5>
+                                        <button className="btn btn-sm btn-outline-secondary" onClick={() => openModal('Overstock Predictions', 'Items with excess inventory that may be costing you money in carrying costs.')}>
+                                             <RiInformationLine size={14} className="text-info" />
+                                        </button>
                                    </div>
-                                   <div className="card-body">
-                                        {analytics && analytics.predictive_analytics.overstock_predictions.length > 0 ? (
-                                             <div className="table-responsive">
-                                                  <table className="table table-striped">
-                                                       <thead>
-                                                            <tr>
-                                                                 <th>Item</th>
-                                                                 <th>Excess Quantity</th>
-                                                                 <th>Carrying Cost Impact</th>
+                                   {analytics && analytics.predictive_analytics.overstock_predictions.length > 0 ? (
+                                        <div className="table-responsive">
+                                             <table className="table table-striped">
+                                                  <thead>
+                                                       <tr>
+                                                            <th className="text-start">Item</th>
+                                                            <th className="text-start">Excess Quantity</th>
+                                                            <th className="text-start">Carrying Cost Impact</th>
+                                                       </tr>
+                                                  </thead>
+                                                  <tbody>
+                                                       {analytics.predictive_analytics.overstock_predictions.slice(0, 5).map((prediction, index) => (
+                                                            <tr key={index}>
+                                                                 <td className="text-start fw-bold text-dark">{prediction.item_name}</td>
+                                                                 <td className="text-start text-dark">{prediction.excess_quantity.toLocaleString()}</td>
+                                                                 <td className="text-start fw-bold text-dark">{currencyFormatter.format(prediction.carrying_cost_impact)}</td>
                                                             </tr>
-                                                       </thead>
-                                                       <tbody>
-                                                            {analytics.predictive_analytics.overstock_predictions.slice(0, 5).map((prediction, index) => (
-                                                                 <tr key={index}>
-                                                                      <td className="fw-bold">{prediction.item_name}</td>
-                                                                      <td>{prediction.excess_quantity.toLocaleString()}</td>
-                                                                      <td>{currencyFormatter.format(prediction.carrying_cost_impact)}</td>
-                                                                 </tr>
-                                                            ))}
-                                                       </tbody>
-                                                  </table>
-                                             </div>
-                                        ) : (
-                                             <div className="alert alert-success py-2">
-                                                  No overstock predictions
-                                             </div>
-                                        )}
-                                   </div>
+                                                       ))}
+                                                  </tbody>
+                                             </table>
+                                        </div>
+                                   ) : (
+                                        <div className="text-start py-4">
+                                             <p className="text-muted">No overstock predictions</p>
+                                        </div>
+                                   )}
                               </div>
                          </div>
                     </div>
 
                     {/* Predictive Analytics - Row 2 */}
                     <div className="row g-3 mb-4">
-                         {/* Safety Stock Recommendations Card */}
+                         {/* Safety Stock Recommendations */}
                          <div className="col-lg-6">
-                              <div className="card">
-                                   <div className="card-header py-2">
-                                        <h5 className="mb-0">
-                                             📊 Safety Stock Recommendations
-                                             <button className="btn btn-sm btn-outline-secondary ms-2" onClick={() => openModal('Safety Stock Recommendations', 'Click on any row to view detailed interpretation for each recommendation.')}>
-                                                  <RiInformationLine size={14} />
-                                             </button>
-                                        </h5>
+                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <div className="d-flex justify-content-between align-items-center mb-3">
+                                        <h5 className="mb-0 fw-semibold">🛡️ Safety Stock Recommendations</h5>
+                                        <button className="btn btn-sm btn-outline-secondary" onClick={() => openModal('Safety Stock Recommendations', 'Click on any row to view detailed interpretation for each recommendation.')}>
+                                             <RiInformationLine size={14} className="text-info" />
+                                        </button>
                                    </div>
-                                   <div className="card-body">
-                                        {analytics && analytics.predictive_analytics.safety_stock_recommendations.length > 0 ? (
-                                             <div className="table-responsive">
-                                                  <table className="table table-striped">
-                                                       <thead>
-                                                            <tr>
-                                                                 <th>Item</th>
-                                                                 <th>Current</th>
-                                                                 <th>Recommended</th>
-                                                                 <th>Reasoning</th>
+                                   {analytics && analytics.predictive_analytics.safety_stock_recommendations.length > 0 ? (
+                                        <div className="table-responsive">
+                                             <table className="table table-striped">
+                                                  <thead>
+                                                       <tr>
+                                                            <th className="text-start">Item</th>
+                                                            <th className="text-start">Current</th>
+                                                            <th className="text-start">Recommended</th>
+                                                            <th className="text-start">Reasoning</th>
+                                                       </tr>
+                                                  </thead>
+                                                  <tbody>
+                                                       {analytics.predictive_analytics.safety_stock_recommendations.slice(0, 5).map((rec, index) => (
+                                                            <tr key={index}
+                                                                 style={{ cursor: 'pointer' }}
+                                                                 onClick={() => openModal(`${rec.item_name} - Safety Stock`, rec.interpretation)}
+                                                                 title="Click to view detailed interpretation">
+                                                                 <td className="text-start fw-bold text-dark">{rec.item_name}</td>
+                                                                 <td className="text-start text-dark">{rec.current_safety_stock}</td>
+                                                                 <td className="text-start fw-bold text-dark">{rec.recommended_safety_stock}</td>
+                                                                 <td className="text-start text-dark">{rec.reasoning.replace('_', ' ')}</td>
                                                             </tr>
-                                                       </thead>
-                                                       <tbody>
-                                                            {analytics.predictive_analytics.safety_stock_recommendations.slice(0, 5).map((rec, index) => (
-                                                                 <tr key={index}
-                                                                      style={{ cursor: 'pointer' }}
-                                                                      onClick={() => openModal(`${rec.item_name} - Safety Stock`, rec.interpretation)}
-                                                                      title="Click to view detailed interpretation">
-                                                                      <td className="fw-bold">{rec.item_name}</td>
-                                                                      <td>{rec.current_safety_stock}</td>
-                                                                      <td>{rec.recommended_safety_stock}</td>
-                                                                      <td>{rec.reasoning.replace('_', ' ')}</td>
-                                                                 </tr>
-                                                            ))}
-                                                       </tbody>
-                                                  </table>
-                                             </div>
-                                        ) : (
-                                             <div className="alert alert-secondary py-2">
-                                                  No safety stock recommendations
-                                             </div>
-                                        )}
-                                   </div>
+                                                       ))}
+                                                  </tbody>
+                                             </table>
+                                        </div>
+                                   ) : (
+                                        <div className="text-start py-4">
+                                             <p className="text-muted">No safety stock recommendations</p>
+                                        </div>
+                                   )}
                               </div>
                          </div>
 
-                         {/* Demand Forecasting Card */}
+                         {/* Demand Forecasting */}
                          <div className="col-lg-6">
-                              <div className="card">
-                                   <div className="card-header py-2">
-                                        <h5 className="mb-0">
-                                             📈 Demand Forecasting
-                                             <button className="btn btn-sm btn-outline-secondary ms-2" onClick={() => openModal('Demand Forecasting', 'Click on any row to view detailed interpretation for each forecast.')}>
-                                                  <RiInformationLine size={14} />
-                                             </button>
-                                        </h5>
+                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <div className="d-flex justify-content-between align-items-center mb-3">
+                                        <h5 className="mb-0 fw-semibold">📈 Demand Forecasting</h5>
+                                        <button className="btn btn-sm btn-outline-secondary" onClick={() => openModal('Demand Forecasting', 'Click on any row to view detailed interpretation for each forecast.')}>
+                                             <RiInformationLine size={14} className="text-info" />
+                                        </button>
                                    </div>
-                                   <div className="card-body">
-                                        {analytics && analytics.predictive_analytics.demand_forecasting.length > 0 ? (
-                                             <div className="table-responsive">
-                                                  <table className="table table-striped">
-                                                       <thead>
-                                                            <tr>
-                                                                 <th>Item</th>
-                                                                 <th>Avg Monthly</th>
-                                                                 <th>Trend</th>
-                                                                 <th>Confidence</th>
-                                                                 <th>Next Month</th>
-                                                                 <th>Stock Cover</th>
+                                   {analytics && analytics.predictive_analytics.demand_forecasting.length > 0 ? (
+                                        <div className="table-responsive">
+                                             <table className="table table-striped">
+                                                  <thead>
+                                                       <tr>
+                                                            <th className="text-start">Item</th>
+                                                            <th className="text-start">Avg Monthly</th>
+                                                            <th className="text-start">Trend</th>
+                                                            <th className="text-start">Confidence</th>
+                                                            <th className="text-start">Next Month</th>
+                                                            <th className="text-start">Stock Cover</th>
+                                                       </tr>
+                                                  </thead>
+                                                  <tbody>
+                                                       {analytics.predictive_analytics.demand_forecasting.slice(0, 5).map((forecast, index) => (
+                                                            <tr key={index}
+                                                                 style={{ cursor: 'pointer' }}
+                                                                 onClick={() => openModal(`${forecast.item_name} - Demand Forecast`, forecast.interpretation)}
+                                                                 title="Click to view detailed interpretation">
+                                                                 <td className="text-start fw-bold text-dark">{forecast.item_name}</td>
+                                                                 <td className="text-start text-dark">{forecast.avg_monthly_demand.toLocaleString()}</td>
+                                                                 <td className="text-start text-dark">{forecast.trend_direction}</td>
+                                                                 <td className="text-start text-dark">{forecast.forecast_confidence}</td>
+                                                                 <td className="text-start fw-bold text-dark">{forecast.next_month_forecast.toLocaleString()}</td>
+                                                                 <td className="text-start text-dark">{forecast.months_of_stock_cover.toFixed(1)} months</td>
                                                             </tr>
-                                                       </thead>
-                                                       <tbody>
-                                                            {analytics.predictive_analytics.demand_forecasting.slice(0, 5).map((forecast, index) => (
-                                                                 <tr key={index}
-                                                                      style={{ cursor: 'pointer' }}
-                                                                      onClick={() => openModal(`${forecast.item_name} - Demand Forecast`, forecast.interpretation)}
-                                                                      title="Click to view detailed interpretation">
-                                                                      <td className="fw-bold">{forecast.item_name}</td>
-                                                                      <td>{forecast.avg_monthly_demand.toLocaleString()}</td>
-                                                                      <td>{forecast.trend_direction}</td>
-                                                                      <td>{forecast.forecast_confidence}</td>
-                                                                      <td>{forecast.next_month_forecast.toLocaleString()}</td>
-                                                                      <td>{forecast.months_of_stock_cover.toFixed(1)} months</td>
-                                                                 </tr>
-                                                            ))}
-                                                       </tbody>
-                                                  </table>
-                                             </div>
-                                        ) : (
-                                             <div className="alert alert-secondary py-2">
-                                                  No demand forecasting data
-                                             </div>
-                                        )}
-                                   </div>
+                                                       ))}
+                                                  </tbody>
+                                             </table>
+                                        </div>
+                                   ) : (
+                                        <div className="text-start py-4">
+                                             <p className="text-muted">No demand forecasting data</p>
+                                        </div>
+                                   )}
                               </div>
                          </div>
                     </div>
 
                     {/* Predictive Analytics - Row 3 */}
                     <div className="row g-3 mb-4">
-                         {/* Reorder Point Optimization Card */}
+                         {/* Reorder Point Optimization */}
                          <div className="col-lg-6">
-                              <div className="card">
-                                   <div className="card-header py-2">
-                                        <h5 className="mb-0">
-                                             🔄 Reorder Point Optimization
-                                             <button className="btn btn-sm btn-outline-secondary ms-2" onClick={() => openModal('Reorder Point Optimization', 'Click on any row to view detailed interpretation for each optimization.')}>
-                                                  <RiInformationLine size={14} />
-                                             </button>
-                                        </h5>
+                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <div className="d-flex justify-content-between align-items-center mb-3">
+                                        <h5 className="mb-0 fw-semibold">🔄 Reorder Point Optimization</h5>
+                                        <button className="btn btn-sm btn-outline-secondary" onClick={() => openModal('Reorder Point Optimization', 'Click on any row to view detailed interpretation for each optimization.')}>
+                                             <RiInformationLine size={14} className="text-info" />
+                                        </button>
                                    </div>
-                                   <div className="card-body">
-                                        {analytics && analytics.predictive_analytics.reorder_point_optimization.length > 0 ? (
-                                             <div className="table-responsive">
-                                                  <table className="table table-striped">
-                                                       <thead>
-                                                            <tr>
-                                                                 <th>Item</th>
-                                                                 <th>Reorder Point</th>
-                                                                 <th>EOQ</th>
-                                                                 <th>Service Level</th>
-                                                                 <th>Status</th>
+                                   {analytics && analytics.predictive_analytics.reorder_point_optimization.length > 0 ? (
+                                        <div className="table-responsive">
+                                             <table className="table table-striped">
+                                                  <thead>
+                                                       <tr>
+                                                            <th className="text-start">Item</th>
+                                                            <th className="text-start">Reorder Point</th>
+                                                            <th className="text-start">EOQ</th>
+                                                            <th className="text-start">Service Level</th>
+                                                            <th className="text-start">Status</th>
+                                                       </tr>
+                                                  </thead>
+                                                  <tbody>
+                                                       {analytics.predictive_analytics.reorder_point_optimization.slice(0, 5).map((optimization, index) => (
+                                                            <tr key={index}
+                                                                 style={{ cursor: 'pointer' }}
+                                                                 onClick={() => openModal(`${optimization.item_name} - Reorder Optimization`, optimization.interpretation)}
+                                                                 title="Click to view detailed interpretation">
+                                                                 <td className="text-start fw-bold text-dark">{optimization.item_name}</td>
+                                                                 <td className="text-start fw-bold text-dark">{optimization.optimized_reorder_point.toLocaleString()}</td>
+                                                                 <td className="text-start text-dark">{optimization.economic_order_quantity.toLocaleString()}</td>
+                                                                 <td className="text-start text-dark">{optimization.target_service_level.toFixed(1)}%</td>
+                                                                 <td className="text-start">
+                                                                      <span className={`badge bg-${getStatusColor(optimization.stock_status)}`}>
+                                                                           {optimization.stock_status}
+                                                                      </span>
+                                                                 </td>
                                                             </tr>
-                                                       </thead>
-                                                       <tbody>
-                                                            {analytics.predictive_analytics.reorder_point_optimization.slice(0, 5).map((optimization, index) => (
-                                                                 <tr key={index}
-                                                                      style={{ cursor: 'pointer' }}
-                                                                      onClick={() => openModal(`${optimization.item_name} - Reorder Optimization`, optimization.interpretation)}
-                                                                      title="Click to view detailed interpretation">
-                                                                      <td className="fw-bold">{optimization.item_name}</td>
-                                                                      <td>{optimization.optimized_reorder_point.toLocaleString()}</td>
-                                                                      <td>{optimization.economic_order_quantity.toLocaleString()}</td>
-                                                                      <td>{optimization.target_service_level.toFixed(1)}%</td>
-                                                                      <td>
-                                                                           <span className={`badge bg-${getStatusColor(optimization.stock_status)}`}>
-                                                                                {optimization.stock_status}
-                                                                           </span>
-                                                                      </td>
-                                                                 </tr>
-                                                            ))}
-                                                       </tbody>
-                                                  </table>
-                                             </div>
-                                        ) : (
-                                             <div className="alert alert-secondary py-2">
-                                                  No reorder point optimization data
-                                             </div>
-                                        )}
-                                   </div>
+                                                       ))}
+                                                  </tbody>
+                                             </table>
+                                        </div>
+                                   ) : (
+                                        <div className="text-start py-4">
+                                             <p className="text-muted">No reorder point optimization data</p>
+                                        </div>
+                                   )}
                               </div>
                          </div>
 
-                         {/* Data Quality Alerts Card */}
+                         {/* Data Quality Alerts */}
                          <div className="col-lg-6">
-                              <div className="card">
-                                   <div className="card-header py-2">
-                                        <h5 className="mb-0">
-                                             🔍 Data Quality Alerts
-                                             <button className="btn btn-sm btn-outline-secondary ms-2" onClick={() => openModal('Data Quality Alerts', 'Click on any row to view detailed interpretation for each alert.')}>
-                                                  <RiInformationLine size={14} />
-                                             </button>
-                                        </h5>
+                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <div className="d-flex justify-content-between align-items-center mb-3">
+                                        <h5 className="mb-0 fw-semibold">⚠️ Data Quality Alerts</h5>
+                                        <button className="btn btn-sm btn-outline-secondary" onClick={() => openModal('Data Quality Alerts', 'Click on any row to view detailed interpretation for each alert.')}>
+                                             <RiInformationLine size={14} className="text-info" />
+                                        </button>
                                    </div>
-                                   <div className="card-body">
-                                        {analytics && analytics.predictive_analytics.data_quality_alerts.length > 0 ? (
-                                             <div className="table-responsive">
-                                                  <table className="table table-striped">
-                                                       <thead>
-                                                            <tr>
-                                                                 <th>Item</th>
-                                                                 <th>Anomaly Type</th>
-                                                                 <th>Description</th>
-                                                                 <th>Recommended Action</th>
-                                                                 <th>Severity</th>
+                                   {analytics && analytics.predictive_analytics.data_quality_alerts.length > 0 ? (
+                                        <div className="table-responsive">
+                                             <table className="table table-striped">
+                                                  <thead>
+                                                       <tr>
+                                                            <th className="text-start">Item</th>
+                                                            <th className="text-start">Anomaly Type</th>
+                                                            <th className="text-start">Description</th>
+                                                            <th className="text-start">Recommended Action</th>
+                                                            <th className="text-start">Severity</th>
+                                                       </tr>
+                                                  </thead>
+                                                  <tbody>
+                                                       {analytics.predictive_analytics.data_quality_alerts.slice(0, 5).map((alert, index) => (
+                                                            <tr key={index}
+                                                                 style={{ cursor: 'pointer' }}
+                                                                 onClick={() => openModal(`${alert.item_name} - Data Quality Alert`, alert.interpretation)}
+                                                                 title="Click to view detailed interpretation">
+                                                                 <td className="text-start fw-bold text-dark">{alert.item_name}</td>
+                                                                 <td className="text-start text-dark">{alert.anomaly_type.replace('_', ' ')}</td>
+                                                                 <td className="text-start text-dark">{alert.description}</td>
+                                                                 <td className="text-start text-dark">{alert.recommended_action.replace('_', ' ')}</td>
+                                                                 <td className="text-start">
+                                                                      <span className={`badge ${alert.severity === 'high' ? 'bg-danger' : alert.severity === 'medium' ? 'bg-warning' : 'bg-info'}`}>
+                                                                           {alert.severity}
+                                                                      </span>
+                                                                 </td>
                                                             </tr>
-                                                       </thead>
-                                                       <tbody>
-                                                            {analytics.predictive_analytics.data_quality_alerts.slice(0, 5).map((alert, index) => (
-                                                                 <tr key={index}
-                                                                      style={{ cursor: 'pointer' }}
-                                                                      onClick={() => openModal(`${alert.item_name} - Data Quality Alert`, alert.interpretation)}
-                                                                      title="Click to view detailed interpretation">
-                                                                      <td className="fw-bold">{alert.item_name}</td>
-                                                                      <td>{alert.anomaly_type.replace('_', ' ')}</td>
-                                                                      <td>{alert.description}</td>
-                                                                      <td>{alert.recommended_action.replace('_', ' ')}</td>
-                                                                      <td>
-                                                                           <span className={`badge ${alert.severity === 'high' ? 'bg-danger' : alert.severity === 'medium' ? 'bg-warning' : 'bg-info'}`}>
-                                                                                {alert.severity}
-                                                                           </span>
-                                                                      </td>
-                                                                 </tr>
-                                                            ))}
-                                                       </tbody>
-                                                  </table>
-                                             </div>
-                                        ) : (
-                                             <div className="alert alert-success py-2">
-                                                  No data quality alerts
-                                             </div>
-                                        )}
-                                   </div>
+                                                       ))}
+                                                  </tbody>
+                                             </table>
+                                        </div>
+                                   ) : (
+                                        <div className="text-start py-4">
+                                             <p className="text-muted">No data quality alerts</p>
+                                        </div>
+                                   )}
                               </div>
                          </div>
                     </div>
@@ -624,7 +615,7 @@ export default function StockLevelAnalyticsPage() {
 
                {/* Modal for interpretation details */}
                {modalVisible && modalContent && (
-                    <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} onClick={closeModal}>
+                    <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
                          <div className={`modal-dialog modal-dialog-centered ${modalContent.interpretation === 'inventory_terms' ? 'modal-lg' : ''}`} onClick={(e) => e.stopPropagation()}>
                               <div className="modal-content">
                                    <div className="modal-header">
@@ -636,68 +627,119 @@ export default function StockLevelAnalyticsPage() {
                                              <div>
                                                   <div className="row">
                                                        <div className="col-md-6">
-                                                            <h6 className="mb-3">Core Inventory Concepts</h6>
-                                                            <div className="mb-3 border border-secondary rounded p-3">
-                                                                 <strong>Safety Stock:</strong>
+                                                            <h6 className="mb-3 d-flex align-items-center">
+                                                                 <RiShieldCheckLine size={24} className="me-2 text-success" />
+                                                                 Core Inventory Concepts
+                                                            </h6>
+                                                            <div className="mb-3 border border-secondary-subtle rounded p-3">
+                                                                 <div className="d-flex align-items-center mb-1">
+                                                                      <RiShieldCheckLine size={16} className="me-2 text-success" />
+                                                                      <strong>Safety Stock:</strong>
+                                                                 </div>
                                                                  <p className="text-muted mb-2">{analytics.key_terms_explanation.safety_stock}</p>
                                                             </div>
-                                                            <div className="mb-3 border border-secondary rounded p-3">
-                                                                 <strong>Reorder Point:</strong>
+                                                            <div className="mb-3 border border-secondary-subtle rounded p-3">
+                                                                 <div className="d-flex align-items-center mb-1">
+                                                                      <RiRefreshLine size={16} className="me-2 text-warning" />
+                                                                      <strong>Reorder Point:</strong>
+                                                                 </div>
                                                                  <p className="text-muted mb-2">{analytics.key_terms_explanation.reorder_point}</p>
                                                             </div>
-                                                            <div className="mb-3 border border-secondary rounded p-3">
-                                                                 <strong>Economic Order Quantity:</strong>
+                                                            <div className="mb-3 border border-secondary-subtle rounded p-3">
+                                                                 <div className="d-flex align-items-center mb-1">
+                                                                      <RiBarChartBoxLine size={16} className="me-2 text-info" />
+                                                                      <strong>Economic Order Quantity:</strong>
+                                                                 </div>
                                                                  <p className="text-muted mb-2">{analytics.key_terms_explanation.economic_order_quantity}</p>
                                                             </div>
-                                                            <div className="mb-3 border border-secondary rounded p-3">
-                                                                 <strong>Service Level:</strong>
+                                                            <div className="mb-3 border border-secondary-subtle rounded p-3">
+                                                                 <div className="d-flex align-items-center mb-1">
+                                                                      <RiInformationLine size={16} className="me-2 text-secondary" />
+                                                                      <strong>Service Level:</strong>
+                                                                 </div>
                                                                  <p className="text-muted mb-2">{analytics.key_terms_explanation.service_level}</p>
                                                             </div>
                                                        </div>
                                                        <div className="col-md-6">
-                                                            <h6 className="mb-3">Analytics & Forecasting</h6>
-                                                            <div className="mb-3 border border-secondary rounded p-3">
-                                                                 <strong>Demand Forecasting:</strong>
+                                                            <h6 className="mb-3 d-flex align-items-center">
+                                                                 <RiLineChartLine size={24} className="me-2 text-primary" />
+                                                                 Analytics & Forecasting
+                                                            </h6>
+                                                            <div className="mb-3 border border-secondary-subtle rounded p-3">
+                                                                 <div className="d-flex align-items-center mb-1">
+                                                                      <RiLineChartLine size={16} className="me-2 text-primary" />
+                                                                      <strong>Demand Forecasting:</strong>
+                                                                 </div>
                                                                  <p className="text-muted mb-2">{analytics.key_terms_explanation.demand_forecasting}</p>
                                                             </div>
-                                                            <div className="mb-3 border border-secondary rounded p-3">
-                                                                 <strong>Trend Direction:</strong>
+                                                            <div className="mb-3 border border-secondary-subtle rounded p-3">
+                                                                 <div className="d-flex align-items-center mb-1">
+                                                                      <RiBarChartBoxLine size={16} className="me-2 text-success" />
+                                                                      <strong>Trend Direction:</strong>
+                                                                 </div>
                                                                  <p className="text-muted mb-2">{analytics.key_terms_explanation.trend_direction}</p>
                                                             </div>
-                                                            <div className="mb-3 border border-secondary rounded p-3">
-                                                                 <strong>Forecast Confidence:</strong>
+                                                            <div className="mb-3 border border-secondary-subtle rounded p-3">
+                                                                 <div className="d-flex align-items-center mb-1">
+                                                                      <RiInformationLine size={16} className="me-2 text-warning" />
+                                                                      <strong>Forecast Confidence:</strong>
+                                                                 </div>
                                                                  <p className="text-muted mb-2">{analytics.key_terms_explanation.forecast_confidence}</p>
                                                             </div>
-                                                            <div className="mb-3 border border-secondary rounded p-3">
-                                                                 <strong>Carrying Cost:</strong>
+                                                            <div className="mb-3 border border-secondary-subtle rounded p-3">
+                                                                 <div className="d-flex align-items-center mb-1">
+                                                                      <RiBox3Line size={16} className="me-2 text-danger" />
+                                                                      <strong>Carrying Cost:</strong>
+                                                                 </div>
                                                                  <p className="text-muted mb-2">{analytics.key_terms_explanation.carrying_cost}</p>
                                                             </div>
                                                        </div>
                                                   </div>
                                                   <div className="row mt-3">
                                                        <div className="col-md-6">
-                                                            <h6 className="mb-3">Predictions & Alerts</h6>
-                                                            <div className="mb-3 border border-secondary rounded p-3">
-                                                                 <strong>Stock Out Prediction:</strong>
+                                                            <h6 className="mb-3 d-flex align-items-center">
+                                                                 <RiAlertLine size={24} className="me-2 text-warning" />
+                                                                 Predictions & Alerts
+                                                            </h6>
+                                                            <div className="mb-3 border border-secondary-subtle rounded p-3">
+                                                                 <div className="d-flex align-items-center mb-1">
+                                                                      <RiAlertLine size={16} className="me-2 text-warning" />
+                                                                      <strong>Stock Out Prediction:</strong>
+                                                                 </div>
                                                                  <p className="text-muted mb-2">{analytics.key_terms_explanation.stock_out_prediction}</p>
                                                             </div>
-                                                            <div className="mb-3 border border-secondary rounded p-3">
-                                                                 <strong>Overstock Prediction:</strong>
+                                                            <div className="mb-3 border border-secondary-subtle rounded p-3">
+                                                                 <div className="d-flex align-items-center mb-1">
+                                                                      <RiBox3Line size={16} className="me-2 text-danger" />
+                                                                      <strong>Overstock Prediction:</strong>
+                                                                 </div>
                                                                  <p className="text-muted mb-2">{analytics.key_terms_explanation.overstock_prediction}</p>
                                                             </div>
                                                        </div>
                                                        <div className="col-md-6">
-                                                            <h6 className="mb-3">Data Quality & Metrics</h6>
-                                                            <div className="mb-3 border border-secondary rounded p-3">
-                                                                 <strong>Data Quality Alerts:</strong>
+                                                            <h6 className="mb-3 d-flex align-items-center">
+                                                                 <RiBox3Line size={24} className="me-2 text-info" />
+                                                                 Data Quality & Metrics
+                                                            </h6>
+                                                            <div className="mb-3 border border-secondary-subtle rounded p-3">
+                                                                 <div className="d-flex align-items-center mb-1">
+                                                                      <RiAlertLine size={16} className="me-2 text-warning" />
+                                                                      <strong>Data Quality Alerts:</strong>
+                                                                 </div>
                                                                  <p className="text-muted mb-2">{analytics.key_terms_explanation.data_quality_alerts}</p>
                                                             </div>
-                                                            <div className="mb-3 border border-secondary rounded p-3">
-                                                                 <strong>Anomaly Types:</strong>
+                                                            <div className="mb-3 border border-secondary-subtle rounded p-3">
+                                                                 <div className="d-flex align-items-center mb-1">
+                                                                      <RiBarChartBoxLine size={16} className="me-2 text-info" />
+                                                                      <strong>Anomaly Types:</strong>
+                                                                 </div>
                                                                  <p className="text-muted mb-2">{analytics.key_terms_explanation.anomaly_types}</p>
                                                             </div>
-                                                            <div className="mb-3 border border-secondary rounded p-3">
-                                                                 <strong>Lead Time:</strong>
+                                                            <div className="mb-3 border border-secondary-subtle rounded p-3">
+                                                                 <div className="d-flex align-items-center mb-1">
+                                                                      <RiRefreshLine size={16} className="me-2 text-secondary" />
+                                                                      <strong>Lead Time:</strong>
+                                                                 </div>
                                                                  <p className="text-muted mb-2">{analytics.key_terms_explanation.lead_time}</p>
                                                             </div>
                                                        </div>
