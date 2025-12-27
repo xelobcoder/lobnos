@@ -23,29 +23,6 @@ interface OrderAnalytics {
      amount: number;
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
-     if (active && payload && payload.length) {
-          return (
-               <div className="rounded-lg border p-2 shadow-sm"
-                    style={{ backgroundColor: COLOR_TOOLTIP_BG, borderColor: COLOR_BORDER, minWidth: '220px', fontSize: '0.8rem' }}>
-                    <div className="mb-2">
-                         <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Period</span>
-                         <span className="fw-bold d-block" style={{ color: COLOR_TOOLTIP_FG }}>{label}</span>
-                    </div>
-                    {payload.map((item: any, index: number) => (
-                         <div key={index} className="mb-1">
-                              <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>{item.name}</span>
-                              <span className="fw-bold d-block" style={{ color: item.color }}>
-                                   {item.dataKey?.includes('amount') ? currencyFormatter.format(item.value) : item.value?.toLocaleString()}
-                              </span>
-                         </div>
-                    ))}
-               </div>
-          );
-     }
-     return null;
-};
-
 export default function ItemOrdersAnalyticsPage() {
      const params = useParams();
      const itemId = params?.itemid as string;
@@ -56,8 +33,14 @@ export default function ItemOrdersAnalyticsPage() {
      const [loading, setLoading] = useState(true);
      const [activePeriod, setActivePeriod] = useState<'daily' | 'monthly' | 'yearly'>('daily');
      const [chartType, setChartType] = useState<'bar' | 'line' | 'area'>('bar');
-     const [startDate, setStartDate] = useState('');
-     const [endDate, setEndDate] = useState('');
+     const [startDate, setStartDate] = useState(() => {
+          const now = new Date();
+          return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+     });
+     const [endDate, setEndDate] = useState(() => {
+          const now = new Date();
+          return new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+     });
      const [loadedPeriods, setLoadedPeriods] = useState<Set<'daily' | 'monthly' | 'yearly'>>(new Set());
 
      const { applicationsettings } = useApplicationSettings();
@@ -85,13 +68,13 @@ export default function ItemOrdersAnalyticsPage() {
                if (response.success) {
                     switch (targetPeriod) {
                          case 'daily':
-                              setDailyData(response.data);
+                              setDailyData(response.data.map((item: any) => ({ ...item, quantity: parseFloat(item.quantity) || 0, amount: parseFloat(item.amount) || 0 })));
                               break;
                          case 'monthly':
-                              setMonthlyData(response.data);
+                              setMonthlyData(response.data.map((item: any) => ({ ...item, quantity: parseFloat(item.quantity) || 0, amount: parseFloat(item.amount) || 0 })));
                               break;
                          case 'yearly':
-                              setYearlyData(response.data);
+                              setYearlyData(response.data.map((item: any) => ({ ...item, quantity: parseFloat(item.quantity) || 0, amount: parseFloat(item.amount) || 0 })));
                               break;
                     }
                     setLoadedPeriods(prev => new Set([...prev, targetPeriod]));
@@ -127,6 +110,29 @@ export default function ItemOrdersAnalyticsPage() {
           return periodValue;
      };
 
+     const CustomTooltip = ({ active, payload, label }: any) => {
+          if (active && payload && payload.length) {
+               return (
+                    <div className="rounded-lg border p-2 shadow-sm"
+                         style={{ backgroundColor: COLOR_TOOLTIP_BG, borderColor: COLOR_BORDER, minWidth: '220px', fontSize: '0.8rem' }}>
+                         <div className="mb-2">
+                              <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Period</span>
+                              <span className="fw-bold d-block" style={{ color: COLOR_TOOLTIP_FG }}>{formatPeriod(label)}</span>
+                         </div>
+                         {payload.map((item: any, index: number) => (
+                              <div key={index} className="mb-1">
+                                   <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>{item.name}</span>
+                                   <span className="fw-bold d-block" style={{ color: item.color }}>
+                                        {item.dataKey?.includes('amount') ? currencyFormatter.format(item.value) : item.value?.toLocaleString()}
+                                   </span>
+                              </div>
+                         ))}
+                    </div>
+               );
+          }
+          return null;
+     };
+
      const renderChart = () => {
           const data = getCurrentData();
           const commonProps = {
@@ -156,14 +162,6 @@ export default function ItemOrdersAnalyticsPage() {
                tickLine: { stroke: COLOR_BORDER },
           };
 
-          const yAxisProps = {
-               tickFormatter: (value: number) => value.toLocaleString(),
-               tick: { fontSize: 11, fill: COLOR_TEXT_MUTED },
-               axisLine: false,
-               tickLine: false,
-               width: 95,
-          };
-
           const legendProps = {
                verticalAlign: "top" as const,
                align: "right" as const,
@@ -177,11 +175,12 @@ export default function ItemOrdersAnalyticsPage() {
                     <BarChart {...commonProps}>
                          <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
                          <XAxis {...xAxisProps} />
-                         <YAxis {...yAxisProps} />
+                         <YAxis yAxisId="left" orientation="left" tickFormatter={(value: number) => value.toLocaleString()} tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }} axisLine={false} tickLine={false} width={95} domain={([dataMin, dataMax]: [number, number]) => [0, dataMax]} />
+                         <YAxis yAxisId="right" orientation="right" tickFormatter={(value: number) => currencyFormatter.format(value)} tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }} axisLine={false} tickLine={false} width={95} domain={([dataMin, dataMax]: [number, number]) => [0, dataMax]} />
                          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                          <Legend {...legendProps} />
-                         <Bar dataKey="quantity" name="Order Quantity" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={30} />
-                         <Bar dataKey="amount" name="Order Amount" fill={COLOR_SECONDARY} radius={[4, 4, 0, 0]} maxBarSize={30} />
+                         <Bar yAxisId="left" dataKey="quantity" name="Order Quantity" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={30} />
+                         <Bar yAxisId="right" dataKey="amount" name="Order Amount" fill={COLOR_SECONDARY} radius={[4, 4, 0, 0]} maxBarSize={30} />
                     </BarChart>
                );
           } else if (chartType === "line") {
@@ -189,13 +188,14 @@ export default function ItemOrdersAnalyticsPage() {
                     <LineChart {...commonProps}>
                          <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
                          <XAxis {...xAxisProps} />
-                         <YAxis {...yAxisProps} />
+                         <YAxis yAxisId="left" orientation="left" tickFormatter={(value: number) => value.toLocaleString()} tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }} axisLine={false} tickLine={false} width={95} domain={([dataMin, dataMax]: [number, number]) => [0, dataMax]} />
+                         <YAxis yAxisId="right" orientation="right" tickFormatter={(value: number) => currencyFormatter.format(value)} tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }} axisLine={false} tickLine={false} width={95} domain={([dataMin, dataMax]: [number, number]) => [0, dataMax]} />
                          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                          <Legend {...legendProps} />
-                         <Line type="monotone" dataKey="quantity" name="Order Quantity" stroke={COLOR_ACCENT} strokeWidth={2}
+                         <Line yAxisId="left" type="monotone" dataKey="quantity" name="Order Quantity" stroke={COLOR_ACCENT} strokeWidth={2}
                               dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }}
                               activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
-                         <Line type="monotone" dataKey="amount" name="Order Amount" stroke={COLOR_SECONDARY} strokeWidth={2}
+                         <Line yAxisId="right" type="monotone" dataKey="amount" name="Order Amount" stroke={COLOR_SECONDARY} strokeWidth={2}
                               dot={{ r: 3, strokeWidth: 1, fill: COLOR_SECONDARY }}
                               activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_SECONDARY, stroke: COLOR_TOOLTIP_BG }} />
                     </LineChart>
@@ -215,13 +215,14 @@ export default function ItemOrdersAnalyticsPage() {
                          </defs>
                          <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
                          <XAxis {...xAxisProps} />
-                         <YAxis {...yAxisProps} />
+                         <YAxis yAxisId="left" orientation="left" tickFormatter={(value: number) => value.toLocaleString()} tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }} axisLine={false} tickLine={false} width={95} domain={([dataMin, dataMax]: [number, number]) => [0, dataMax]} />
+                         <YAxis yAxisId="right" orientation="right" tickFormatter={(value: number) => currencyFormatter.format(value)} tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }} axisLine={false} tickLine={false} width={95} domain={([dataMin, dataMax]: [number, number]) => [0, dataMax]} />
                          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                          <Legend {...legendProps} />
-                         <Area type="monotone" dataKey="quantity" name="Order Quantity" stroke={COLOR_ACCENT} fill="url(#quantityFill)" strokeWidth={2}
+                         <Area yAxisId="left" type="monotone" dataKey="quantity" name="Order Quantity" stroke={COLOR_ACCENT} fill="url(#quantityFill)" strokeWidth={2}
                               dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }}
                               activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
-                         <Area type="monotone" dataKey="amount" name="Order Amount" stroke={COLOR_SECONDARY} fill="url(#amountFill)" strokeWidth={2}
+                         <Area yAxisId="right" type="monotone" dataKey="amount" name="Order Amount" stroke={COLOR_SECONDARY} fill="url(#amountFill)" strokeWidth={2}
                               dot={{ r: 3, strokeWidth: 1, fill: COLOR_SECONDARY }}
                               activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_SECONDARY, stroke: COLOR_TOOLTIP_BG }} />
                     </AreaChart>
@@ -339,19 +340,20 @@ export default function ItemOrdersAnalyticsPage() {
                                              </div>
                                              <button
                                                   onClick={() => {
-                                                       setStartDate('');
-                                                       setEndDate('');
+                                                       const now = new Date();
+                                                       setStartDate(new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]);
+                                                       setEndDate(new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0]);
                                                   }}
                                                   className="btn btn-sm btn-outline-secondary d-flex align-items-center"
                                                   type="button"
                                                   style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}
                                              >
-                                                  <RiRefreshLine size={14} className="me-1" /> Clear
+                                                  <RiRefreshLine size={14} className="me-1" /> Reset to Current Month
                                              </button>
                                         </div>
                                    )}
                                    <button onClick={() => loadOrderAnalytics(activePeriod, true)} className="btn btn-sm btn-outline-secondary d-flex align-items-center" type="button" disabled={loading} style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
-                                        <RiRefreshLine size={16} className="me-1" /> Refresh
+                                        <RiRefreshLine size={16} className="me-1" /> Load Data
                                    </button>
                               </div>
                          </div>

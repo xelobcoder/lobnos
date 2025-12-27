@@ -56,8 +56,14 @@ export default function ItemUsageAnalyticsPage() {
      const [loading, setLoading] = useState(true);
      const [activePeriod, setActivePeriod] = useState<'daily' | 'monthly' | 'yearly'>('daily');
      const [chartType, setChartType] = useState<'bar' | 'line' | 'area'>('bar');
-     const [startDate, setStartDate] = useState('');
-     const [endDate, setEndDate] = useState('');
+     const [startDate, setStartDate] = useState(() => {
+          const now = new Date();
+          return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+     });
+     const [endDate, setEndDate] = useState(() => {
+          const now = new Date();
+          return new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+     });
      const [loadedPeriods, setLoadedPeriods] = useState<Set<'daily' | 'monthly' | 'yearly'>>(new Set());
 
      const { applicationsettings } = useApplicationSettings();
@@ -156,14 +162,6 @@ export default function ItemUsageAnalyticsPage() {
                tickLine: { stroke: COLOR_BORDER },
           };
 
-          const yAxisProps = {
-               tickFormatter: (value: number) => value.toLocaleString(),
-               tick: { fontSize: 11, fill: COLOR_TEXT_MUTED },
-               axisLine: false,
-               tickLine: false,
-               width: 95,
-          };
-
           const legendProps = {
                verticalAlign: "top" as const,
                align: "right" as const,
@@ -177,11 +175,12 @@ export default function ItemUsageAnalyticsPage() {
                     <BarChart {...commonProps}>
                          <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
                          <XAxis {...xAxisProps} />
-                         <YAxis {...yAxisProps} />
+                         <YAxis yAxisId="left" orientation="left" tickFormatter={(value: number) => value.toLocaleString()} tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }} axisLine={false} tickLine={false} width={95} domain={([dataMin, dataMax]: [number, number]) => [0, dataMax]} />
+                         <YAxis yAxisId="right" orientation="right" tickFormatter={(value: number) => currencyFormatter.format(value)} tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }} axisLine={false} tickLine={false} width={95} domain={([dataMin, dataMax]: [number, number]) => [0, dataMax]} />
                          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                          <Legend {...legendProps} />
-                         <Bar dataKey="quantity" name="Usage Quantity" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={30} />
-                         <Bar dataKey="amount" name="Usage Amount" fill={COLOR_SECONDARY} radius={[4, 4, 0, 0]} maxBarSize={30} />
+                         <Bar yAxisId="left" dataKey="quantity" name="Usage Quantity" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={30} />
+                         <Bar yAxisId="right" dataKey="amount" name="Usage Amount" fill={COLOR_SECONDARY} radius={[4, 4, 0, 0]} maxBarSize={30} />
                     </BarChart>
                );
           } else if (chartType === "line") {
@@ -189,13 +188,14 @@ export default function ItemUsageAnalyticsPage() {
                     <LineChart {...commonProps}>
                          <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
                          <XAxis {...xAxisProps} />
-                         <YAxis {...yAxisProps} />
+                         <YAxis yAxisId="left" orientation="left" tickFormatter={(value: number) => value.toLocaleString()} tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }} axisLine={false} tickLine={false} width={95} domain={([dataMin, dataMax]: [number, number]) => [0, dataMax]} />
+                         <YAxis yAxisId="right" orientation="right" tickFormatter={(value: number) => currencyFormatter.format(value)} tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }} axisLine={false} tickLine={false} width={95} domain={([dataMin, dataMax]: [number, number]) => [0, dataMax]} />
                          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                          <Legend {...legendProps} />
-                         <Line type="monotone" dataKey="quantity" name="Usage Quantity" stroke={COLOR_ACCENT} strokeWidth={2}
+                         <Line yAxisId="left" type="monotone" dataKey="quantity" name="Usage Quantity" stroke={COLOR_ACCENT} strokeWidth={2}
                               dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }}
                               activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
-                         <Line type="monotone" dataKey="amount" name="Usage Amount" stroke={COLOR_SECONDARY} strokeWidth={2}
+                         <Line yAxisId="right" type="monotone" dataKey="amount" name="Usage Amount" stroke={COLOR_SECONDARY} strokeWidth={2}
                               dot={{ r: 3, strokeWidth: 1, fill: COLOR_SECONDARY }}
                               activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_SECONDARY, stroke: COLOR_TOOLTIP_BG }} />
                     </LineChart>
@@ -215,13 +215,14 @@ export default function ItemUsageAnalyticsPage() {
                          </defs>
                          <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
                          <XAxis {...xAxisProps} />
-                         <YAxis {...yAxisProps} />
+                         <YAxis yAxisId="left" orientation="left" tickFormatter={(value: number) => value.toLocaleString()} tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }} axisLine={false} tickLine={false} width={95} domain={([dataMin, dataMax]: [number, number]) => [0, dataMax]} />
+                         <YAxis yAxisId="right" orientation="right" tickFormatter={(value: number) => currencyFormatter.format(value)} tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }} axisLine={false} tickLine={false} width={95} domain={([dataMin, dataMax]: [number, number]) => [0, dataMax]} />
                          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                          <Legend {...legendProps} />
-                         <Area type="monotone" dataKey="quantity" name="Usage Quantity" stroke={COLOR_ACCENT} fill="url(#quantityFill)" strokeWidth={2}
+                         <Area yAxisId="left" type="monotone" dataKey="quantity" name="Usage Quantity" stroke={COLOR_ACCENT} fill="url(#quantityFill)" strokeWidth={2}
                               dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }}
                               activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
-                         <Area type="monotone" dataKey="amount" name="Usage Amount" stroke={COLOR_SECONDARY} fill="url(#amountFill)" strokeWidth={2}
+                         <Area yAxisId="right" type="monotone" dataKey="amount" name="Usage Amount" stroke={COLOR_SECONDARY} fill="url(#amountFill)" strokeWidth={2}
                               dot={{ r: 3, strokeWidth: 1, fill: COLOR_SECONDARY }}
                               activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_SECONDARY, stroke: COLOR_TOOLTIP_BG }} />
                     </AreaChart>
@@ -340,19 +341,20 @@ export default function ItemUsageAnalyticsPage() {
                                              </div>
                                              <button
                                                   onClick={() => {
-                                                       setStartDate('');
-                                                       setEndDate('');
+                                                       const now = new Date();
+                                                       setStartDate(new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]);
+                                                       setEndDate(new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0]);
                                                   }}
                                                   className="btn btn-sm btn-outline-secondary d-flex align-items-center"
                                                   type="button"
                                                   style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}
                                              >
-                                                  <RiRefreshLine size={14} className="me-1" /> Clear
+                                                  <RiRefreshLine size={14} className="me-1" /> Reset to Current Month
                                              </button>
                                         </div>
                                    )}
                                    <button onClick={() => loadUsageAnalytics(activePeriod, true)} className="btn btn-sm btn-outline-secondary d-flex align-items-center" type="button" disabled={loading} style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
-                                        <RiRefreshLine size={16} className="me-1" /> Refresh
+                                        <RiRefreshLine size={16} className="me-1" /> Load Data
                                    </button>
                               </div>
                          </div>

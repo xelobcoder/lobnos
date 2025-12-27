@@ -84,8 +84,6 @@ export default function ItemTestConsumptionAnalyticsPage() {
                if (endDate) {
                     url += `&endDate=${endDate}`;
                }
-
-               console.log('Loading test consumption from:', url);
                const response = await customFetch(url);
 
                if (response.success) {
@@ -95,7 +93,6 @@ export default function ItemTestConsumptionAnalyticsPage() {
                     toast.error('Failed to load test consumption analytics');
                }
           } catch (error) {
-               console.error('Error loading test consumption analytics:', error);
                toast.error('Error loading test consumption analytics');
           } finally {
                setLoading(false);
@@ -135,12 +132,21 @@ export default function ItemTestConsumptionAnalyticsPage() {
                tickLine: { stroke: COLOR_BORDER },
           };
 
+          // Calculate the maximum value for proper y-axis scaling
+          const maxValue = Math.max(
+               ...data.flatMap(d => [
+                    Number(d.expected_consumption_quantity) || 0,
+                    Number(d.actual_consumption_quantity_linked) || 0
+               ])
+          );
+
           const yAxisProps = {
                tickFormatter: (value: number) => value.toLocaleString(),
                tick: { fontSize: 11, fill: COLOR_TEXT_MUTED },
                axisLine: false,
                tickLine: false,
                width: 95,
+               domain: [0, maxValue],
           };
 
           const legendProps = {

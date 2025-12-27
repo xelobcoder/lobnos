@@ -1,0 +1,13 @@
+{
+  "fingerprint": "77edd56c1aab9774e55e4a20527420bcde856a3b2d2d763ea5cfb57e6b2c5785",
+  "expires": "2026-12-27T13:46:30.9607851Z",
+  "build_hash": "b85b7a421d7f98550b854b900595536b5f24f69b4943ddbf8299428490705eb7",
+  "signature": "MzA0NjAyMjEwMDkzOWFkODc0MTRlYzVlMDUyNGUzNjkxMjlmM2ZkYzU3YWZiYWYxNzk0ZmMzOTc2NzgxMmFiNzVmYWYxZWU3NWYwMjIxMDA5OGJjNmJhYTE4MWI0ZTUwNDhhYmI4ODU3ZDdmYjVkNDI0ZTMxZTIzYmI5MDAzYWJlOTRlZDM3ZjM1YmM4MjZi",
+  "proprietary": "LOB-NOS-PROPRIETARY-KEY-2024-1766843162",
+  "features": [
+    "full-access",
+    "analytics",
+    "laboratory",
+    "imaging"
+  ]
+}

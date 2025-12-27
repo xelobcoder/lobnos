@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
+import { RiMoneyDollarCircleLine, RiFileListLine, RiTimeLine, RiCheckboxCircleLine, RiCloseCircleLine, RiBankCardLine } from '@remixicon/react';
 import { Offcanvas } from 'react-bootstrap';
-import { currencyFormatter, customFetch } from '../../../../components/Auth/customFetch';
 import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
+import { currencyFormatter, customFetch } from '../../../../components/Auth/customFetch';
 
 interface JournalEntry {
      id: string;
@@ -240,13 +241,64 @@ export default function JournalPage() {
 
                {/* Payment Summary */}
                {summary && (
-                    <div className="mb-4 p-3 bg-light rounded">
-                         <div className="text-muted small d-flex justify-content-between">
-                              <div className='text-decoration-underline'>Total payments: {summary.total_payments}</div>
-                              <div className='text-decoration-underline'>Total Amount: {currencyFormatter.format(summary.total_amount)}</div>
-                              <div className='text-decoration-underline'>Pending: {summary.pending_payments}</div>
-                              <div className='text-decoration-underline'>Completed: {summary.completed_payments}</div>
+                    <div className="row g-3 mb-4">
+                         <div className="col-md-3">
+                              <div className="border rounded h-100">
+                                   <div className="p-3">
+                                        <div className="d-flex align-items-center mb-2">
+                                             <RiBankCardLine size={24} className="text-primary me-2" />
+                                             <h6 className="mb-0 fw-semibold">Total Payments</h6>
+                                        </div>
+                                        <div className="fs-4 fw-bold text-primary">{summary.total_payments.toLocaleString()}</div>
+                                   </div>
+                              </div>
                          </div>
+                         <div className="col-md-3">
+                              <div className="border rounded h-100">
+                                   <div className="p-3">
+                                        <div className="d-flex align-items-center mb-2">
+                                             <RiMoneyDollarCircleLine size={24} className="text-success me-2" />
+                                             <h6 className="mb-0 fw-semibold">Total Amount</h6>
+                                        </div>
+                                        <div className="fs-4 fw-bold text-success">{currencyFormatter.format(summary.total_amount)}</div>
+                                   </div>
+                              </div>
+                         </div>
+                         <div className="col-md-3">
+                              <div className="border rounded h-100">
+                                   <div className="p-3">
+                                        <div className="d-flex align-items-center mb-2">
+                                             <RiTimeLine size={24} className="text-warning me-2" />
+                                             <h6 className="mb-0 fw-semibold">Pending</h6>
+                                        </div>
+                                        <div className="fs-4 fw-bold text-warning">{summary.pending_payments.toLocaleString()}</div>
+                                   </div>
+                              </div>
+                         </div>
+                         <div className="col-md-3">
+                              <div className="border rounded h-100">
+                                   <div className="p-3">
+                                        <div className="d-flex align-items-center mb-2">
+                                             <RiCheckboxCircleLine size={24} className="text-success me-2" />
+                                             <h6 className="mb-0 fw-semibold">Completed</h6>
+                                        </div>
+                                        <div className="fs-4 fw-bold text-success">{summary.completed_payments.toLocaleString()}</div>
+                                   </div>
+                              </div>
+                         </div>
+                         {summary.failed_payments > 0 && (
+                              <div className="col-md-3">
+                                   <div className="border rounded h-100">
+                                        <div className="p-3">
+                                             <div className="d-flex align-items-center mb-2">
+                                                  <RiCloseCircleLine size={24} className="text-danger me-2" />
+                                                  <h6 className="mb-0 fw-semibold">Failed</h6>
+                                             </div>
+                                             <div className="fs-4 fw-bold text-danger">{summary.failed_payments.toLocaleString()}</div>
+                                        </div>
+                                   </div>
+                              </div>
+                         )}
                     </div>
                )}
 

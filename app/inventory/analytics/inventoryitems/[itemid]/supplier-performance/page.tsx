@@ -133,11 +133,20 @@ export default function ItemSupplierPerformanceAnalyticsPage() {
                tickLine: { stroke: COLOR_BORDER },
           };
 
+          // Calculate the maximum value for proper y-axis scaling
+          const maxValue = Math.max(
+               ...data.flatMap(d => [
+                    Number(d.onTimeDeliveryRate) || 0,
+                    Number(d.rejectionRate) || 0
+               ])
+          );
+
           const yAxisProps = {
                tick: { fontSize: 11, fill: COLOR_TEXT_MUTED },
                axisLine: false,
                tickLine: false,
                width: 60,
+               domain: [0, maxValue],
           };
 
           const legendProps = {
