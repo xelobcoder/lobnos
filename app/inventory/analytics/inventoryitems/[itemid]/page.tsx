@@ -143,7 +143,7 @@ export default function ItemAnalyticsPage() {
                {/* Header */}
                <div className="d-flex justify-content-between align-items-center mb-4">
                     <div className="d-flex align-items-center">
-                         <Link href="/inventory/analytics" className="btn btn-outline-secondary me-3">
+                         <Link href="/inventory/analytics/items" className="btn btn-outline-secondary me-3">
                               <RiArrowLeftLine size={16} className="me-2" />
                               Back to Inventory Analytics
                          </Link>

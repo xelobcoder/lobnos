@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
-import { RiStoreLine, RiAlertLine, RiBox3Line, RiRefreshLine, RiBarChartBoxLine, RiMoneyDollarCircleLine } from '@remixicon/react';
+import { RiStoreLine, RiAlertLine, RiBox3Line, RiRefreshLine, RiBarChartBoxLine, RiMoneyDollarCircleLine, RiTableLine, RiGridLine } from '@remixicon/react';
 import { currencyFormatter, customFetch } from '../../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
 
@@ -18,10 +18,17 @@ const STATUS_COLORS = {
 };
 
 const STATUS_ICONS = {
-     in_stock: <RiStoreLine size={20} />,
-     low_stock: <RiAlertLine size={20} />,
-     out_of_stock: <RiBox3Line size={20} />,
-     expired: <RiAlertLine size={20} />
+     in_stock: <RiStoreLine size={28} strokeWidth={2} />,
+     low_stock: <RiAlertLine size={28} strokeWidth={2} />,
+     out_of_stock: <RiBox3Line size={28} strokeWidth={2} />,
+     expired: <RiAlertLine size={28} strokeWidth={2} />
+};
+
+const STATUS_ICONS_TABLE = {
+     in_stock: <RiStoreLine size={20} strokeWidth={2} />,
+     low_stock: <RiAlertLine size={20} strokeWidth={2} />,
+     out_of_stock: <RiBox3Line size={20} strokeWidth={2} />,
+     expired: <RiAlertLine size={20} strokeWidth={2} />
 };
 
 interface InventoryItem {
@@ -68,6 +75,7 @@ export default function ItemAnalyticsOverview() {
      const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
      const [loading, setLoading] = useState(true);
      const [error, setError] = useState<string | null>(null);
+     const [view, setView] = useState<"table" | "cards">("table");
 
      useEffect(() => {
           if (branchid && employeeid) {
@@ -174,7 +182,7 @@ export default function ItemAnalyticsOverview() {
                                    className="btn btn-outline-primary btn-sm mt-3"
                                    onClick={loadInventoryItems}
                               >
-                                   <RiRefreshLine className="me-1" />
+                                   <RiRefreshLine className="me-1" size={16} strokeWidth={2} />
                                    Retry
                               </button>
                          </div>
@@ -189,7 +197,7 @@ export default function ItemAnalyticsOverview() {
                <div className="d-flex justify-content-between align-items-center mb-4">
                     <div>
                          <h2 className="mb-1">
-                              <RiBarChartBoxLine className="me-2" />
+                              <RiBarChartBoxLine className="me-2" size={24} strokeWidth={2} />
                               Item Analytics
                          </h2>
                          <p className="text-muted mb-0">Detailed analytics for individual inventory items</p>
@@ -200,7 +208,7 @@ export default function ItemAnalyticsOverview() {
                               onClick={loadInventoryItems}
                               disabled={loading}
                          >
-                              <RiRefreshLine className="me-1" />
+                              <RiRefreshLine className="me-1" size={16} strokeWidth={2} />
                               Refresh Data
                          </button>
                     </div>
@@ -211,20 +219,20 @@ export default function ItemAnalyticsOverview() {
                     <div className="col-md-3">
                          <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex align-items-center mb-2">
-                                   <RiBox3Line size={20} className="me-2 text-primary" />
+                                   <RiBox3Line size={32} strokeWidth={3} className="me-2 text-primary" />
                                    <span className="fw-medium text-muted small">Total Items</span>
                               </div>
-                              <div className="fs-4 fw-bold text-primary">{inventoryItems.length.toLocaleString()}</div>
+                              <div className="fs-2 fw-bold text-primary">{inventoryItems.length.toLocaleString()}</div>
                               <div className="small text-muted">Items available for analysis</div>
                          </div>
                     </div>
                     <div className="col-md-3">
                          <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex align-items-center mb-2">
-                                   <RiStoreLine size={20} className="me-2 text-success" />
+                                   <RiStoreLine size={32} strokeWidth={3} className="me-2 text-success" />
                                    <span className="fw-medium text-muted small">In Stock</span>
                               </div>
-                              <div className="fs-4 fw-bold text-success">
+                              <div className="fs-2 fw-bold text-success">
                                    {inventoryItems.filter(item => item.status === 'in_stock').length}
                               </div>
                               <div className="small text-muted">Items currently available</div>
@@ -233,10 +241,10 @@ export default function ItemAnalyticsOverview() {
                     <div className="col-md-3">
                          <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex align-items-center mb-2">
-                                   <RiAlertLine size={20} className="me-2 text-warning" />
+                                   <RiAlertLine size={32} strokeWidth={3} className="me-2 text-warning" />
                                    <span className="fw-medium text-muted small">Low Stock</span>
                               </div>
-                              <div className="fs-4 fw-bold text-warning">
+                              <div className="fs-2 fw-bold text-warning">
                                    {inventoryItems.filter(item => item.status === 'low_stock').length}
                               </div>
                               <div className="small text-muted">Items needing attention</div>
@@ -245,10 +253,10 @@ export default function ItemAnalyticsOverview() {
                     <div className="col-md-3">
                          <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex align-items-center mb-2">
-                                   <RiMoneyDollarCircleLine size={20} className="me-2 text-info" />
+                                   <RiMoneyDollarCircleLine size={32} strokeWidth={3} className="me-2 text-info" />
                                    <span className="fw-medium text-muted small">Total Value</span>
                               </div>
-                              <div className="fs-4 fw-bold text-info">
+                              <div className="fs-2 fw-bold text-info">
                                    {currencyFormatter.format(inventoryItems.reduce((sum, item) => sum + (item.totalValue || 0), 0))}
                               </div>
                               <div className="small text-muted">Combined inventory value</div>
@@ -256,78 +264,139 @@ export default function ItemAnalyticsOverview() {
                     </div>
                </div>
 
-               {/* Item Analytics Cards */}
+               {/* Item Analytics Table/Cards */}
                <div className="mb-4">
-                    <h5 className="mb-3 fw-semibold">Select Item for Analytics</h5>
-                    <div className="row g-3">
-                         {inventoryItems.map((item) => (
-                              <div key={item.id} className="col-md-6 col-lg-4">
-                                   <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                        <div className="d-flex align-items-start mb-3">
-                                             <div className="me-3">
-                                                  <div className="rounded-circle d-flex align-items-center justify-content-center"
-                                                       style={{
-                                                            width: '48px',
-                                                            height: '48px',
-                                                            backgroundColor: STATUS_COLORS[item.status],
-                                                            color: 'white'
-                                                       }}>
-                                                       {STATUS_ICONS[item.status]}
+                    <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-3">
+                         <h5 className="mb-3 mb-lg-0 fw-semibold">Select Item for Analytics</h5>
+                         <div className="btn-group btn-group-sm" role="group" aria-label="View type">
+                              <button
+                                   type="button"
+                                   className={`btn ${view === "table" ? 'btn-primary' : 'btn-outline-secondary'}`}
+                                   onClick={() => setView("table")}
+                              >
+                                   <RiTableLine size={18} strokeWidth={2} className="me-1" /> Table
+                              </button>
+                              <button
+                                   type="button"
+                                   className={`btn ${view === "cards" ? 'btn-primary' : 'btn-outline-secondary'}`}
+                                   onClick={() => setView("cards")}
+                              >
+                                   <RiGridLine size={18} strokeWidth={2} className="me-1" /> Cards
+                              </button>
+                         </div>
+                    </div>
+                    {view === "table" ? (
+                         <div className="table-responsive">
+                              <table className="table table-sm table-hover table-striped small printable-table-with-borders">
+                                   <thead className="sticky-top bg-body-tertiary">
+                                        <tr>
+                                             <th className="text-start">Name</th>
+                                             <th className="text-start">SKU</th>
+                                             <th className="text-start">Category</th>
+                                             <th className="text-start">Stock</th>
+                                             <th className="text-start">Value</th>
+                                             <th className="text-start">Status</th>
+                                             <th className="text-start">Actions</th>
+                                        </tr>
+                                   </thead>
+                                   <tbody>
+                                        {inventoryItems.map((item) => (
+                                             <tr key={item.id}>
+                                                  <td className="text-start">{item.name}</td>
+                                                  <td className="text-start">{item.sku}</td>
+                                                  <td className="text-start">{item.category}</td>
+                                                  <td className="text-start">{item.currentStock} {item.consumption_unit_name || item.consumption_unit}</td>
+                                                  <td className="text-start">{currencyFormatter.format(item.totalValue || 0)}</td>
+                                                  <td className="text-start">
+                                                       <div className="d-flex align-items-center">
+                                                            {STATUS_ICONS_TABLE[item.status]}
+                                                            <span className="ms-1" style={{ color: getStatusColor(item.status) }}>
+                                                                 {item.status.replace('_', ' ').toUpperCase()}
+                                                            </span>
+                                                       </div>
+                                                  </td>
+                                                  <td className="text-start">
+                                                       <Link href={getItemAnalyticsPath(item.id)} className="btn btn-sm btn-primary">
+                                                            <RiBarChartBoxLine className="me-1" size={16} strokeWidth={2} />
+                                                            View Analytics
+                                                       </Link>
+                                                  </td>
+                                             </tr>
+                                        ))}
+                                   </tbody>
+                              </table>
+                         </div>
+                    ) : (
+                         <div className="row g-3">
+                              {inventoryItems.map((item) => (
+                                   <div key={item.id} className="col-md-6 col-lg-4">
+                                        <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                             <div className="d-flex align-items-start mb-3">
+                                                  <div className="me-3">
+                                                       <div className="rounded-circle d-flex align-items-center justify-content-center"
+                                                            style={{
+                                                                 width: '48px',
+                                                                 height: '48px',
+                                                                 backgroundColor: STATUS_COLORS[item.status],
+                                                                 color: 'white'
+                                                            }}>
+                                                            {STATUS_ICONS[item.status]}
+                                                       </div>
+                                                  </div>
+                                                  <div className="flex-grow-1">
+                                                       <h6 className="fw-bold mb-1">{item.name}</h6>
+                                                       <p className="small text-muted mb-1">SKU: {item.sku}</p>
+                                                       <p className="small text-muted mb-2">{item.description}</p>
                                                   </div>
                                              </div>
-                                             <div className="flex-grow-1">
-                                                  <h6 className="fw-bold mb-1">{item.name}</h6>
-                                                  <p className="small text-muted mb-1">SKU: {item.sku}</p>
-                                                  <p className="small text-muted mb-2">{item.description}</p>
-                                             </div>
-                                        </div>
 
-                                        <div className="row g-2 mb-3">
-                                             <div className="col-6">
-                                                  <div className="small text-muted">Stock</div>
-                                                  <div className="fw-medium">{item.currentStock} {item.consumption_unit_name || item.consumption_unit}</div>
+                                             <div className="row g-2 mb-3">
+                                                  <div className="col-6">
+                                                       <div className="small text-muted">Stock</div>
+                                                       <div className="fw-medium">{item.currentStock} {item.consumption_unit_name || item.consumption_unit}</div>
+                                                  </div>
+                                                  <div className="col-6">
+                                                       <div className="small text-muted">Value</div>
+                                                       <div className="fw-medium">{currencyFormatter.format(item.totalValue || 0)}</div>
+                                                  </div>
+                                                  <div className="col-6">
+                                                       <div className="small text-muted">Category</div>
+                                                       <div className="fw-medium">{item.category}</div>
+                                                  </div>
+                                                  <div className="col-6">
+                                                       <div className="small text-muted">Location</div>
+                                                       <div className="fw-medium">{item.location}</div>
+                                                  </div>
                                              </div>
-                                             <div className="col-6">
-                                                  <div className="small text-muted">Value</div>
-                                                  <div className="fw-medium">{currencyFormatter.format(item.totalValue || 0)}</div>
-                                             </div>
-                                             <div className="col-6">
-                                                  <div className="small text-muted">Category</div>
-                                                  <div className="fw-medium">{item.category}</div>
-                                             </div>
-                                             <div className="col-6">
-                                                  <div className="small text-muted">Location</div>
-                                                  <div className="fw-medium">{item.location}</div>
-                                             </div>
-                                        </div>
 
-                                        <div className="mb-3">
-                                             <div className="small text-muted mb-1">
-                                                  • {item.brand || 'No brand specified'}
+                                             <div className="mb-3">
+                                                  <div className="small text-muted mb-1">
+                                                       • {item.brand || 'No brand specified'}
+                                                  </div>
+                                                  <div className="small text-muted mb-1">
+                                                       • {item.supplier || 'No supplier specified'}
+                                                  </div>
+                                                  <div className="small text-muted">
+                                                       • Last updated: {new Date(item.lastUpdated).toLocaleDateString()}
+                                                  </div>
                                              </div>
-                                             <div className="small text-muted mb-1">
-                                                  • {item.supplier || 'No supplier specified'}
-                                             </div>
-                                             <div className="small text-muted">
-                                                  • Last updated: {new Date(item.lastUpdated).toLocaleDateString()}
-                                             </div>
-                                        </div>
 
-                                        <Link
-                                             href={getItemAnalyticsPath(item.id)}
-                                             className="btn btn-sm w-100"
-                                             style={{
-                                                  backgroundColor: STATUS_COLORS[item.status],
-                                                  borderColor: STATUS_COLORS[item.status]
-                                             }}
-                                        >
-                                             <RiBarChartBoxLine className="me-1" size={16} />
-                                             View Analytics
-                                        </Link>
+                                             <Link
+                                                  href={getItemAnalyticsPath(item.id)}
+                                                  className="btn btn-sm w-100"
+                                                  style={{
+                                                       backgroundColor: STATUS_COLORS[item.status],
+                                                       borderColor: STATUS_COLORS[item.status]
+                                                  }}
+                                             >
+                                                  <RiBarChartBoxLine className="me-1" size={18} strokeWidth={2} />
+                                                  View Analytics
+                                             </Link>
+                                        </div>
                                    </div>
-                              </div>
-                         ))}
-                    </div>
+                              ))}
+                         </div>
+                    )}
                </div>
 
                {inventoryItems.length === 0 && (
