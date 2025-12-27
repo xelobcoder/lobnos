@@ -39,3 +39,14 @@ next-env.d.ts
 .qodo
 
 certificates
+
+# launcher build artifacts
+launcher/*.exe
+launcher/license-generator.exe
+launcher/launcher.exe
+launcher/launcher-*.exe
+launcher/deployer.exe
+
+# launcher .next folder (if copied for embedding)
+launcher/.next/
+launcher/cmd/launcher/.next/
