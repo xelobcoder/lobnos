@@ -38,7 +38,8 @@ export const InventoryLinks: Link[] = [
                { title: "Batch Expiry", link: "/inventory/analytics/batch-expiry", icon: <RiAlertLine /> },
                { title: "Procurement", link: "/inventory/analytics/procurement", icon: <RiShoppingCartLine /> },
                { title: "Cost Valuation", link: "/inventory/analytics/cost-valuation", icon: <RiCalculatorLine /> },
-               { title: "Usage", link: "/inventory/analytics/usage", icon: <RiBarChartBoxLine /> }
+               { title: "Usage", link: "/inventory/analytics/usage", icon: <RiBarChartBoxLine /> },
+               { title: "Item Analytics", link: "/inventory/analytics/items", icon: <RiBox3Line /> }
 
           ]
      },

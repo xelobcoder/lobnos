@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { RiBox3Line, RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiInboxLine, RiHistoryLine } from '@remixicon/react';
+import { RiBox3Line, RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiInboxLine, RiHistoryLine, RiBarChartLine } from '@remixicon/react';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 import { customFetch, customPost } from '../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
@@ -335,6 +335,13 @@ export default function InventoryItemsPage() {
                               onClick={() => handleViewHistory(row.original)}
                          >
                               <RiHistoryLine size={14} />
+                         </button>
+                         <button
+                              className="btn btn-sm btn-outline-secondary"
+                              title="View Analytics"
+                              onClick={() => router.push(`/inventory/analytics/inventoryitems/${row.original.id}`)}
+                         >
+                              <RiBarChartLine size={14} />
                          </button>
                          <button
                               className="btn btn-sm btn-outline-primary"
