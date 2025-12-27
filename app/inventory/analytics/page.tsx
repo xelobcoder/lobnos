@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { toast } from 'react-toastify';
 import { currencyFormatter, customFetch } from '../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
-import { RiBarChartBoxLine, RiStockLine, RiShoppingCartLine, RiMoneyDollarCircleLine, RiSettingsLine, RiRefreshLine, RiBox3Line, RiAlertLine, RiCheckLine, RiArrowRightLine, RiFileListLine, RiRecycleLine, RiStoreLine, RiTruckLine, RiPriceTagLine } from '@remixicon/react';
+import { RiBarChartBoxLine, RiStockLine, RiShoppingCartLine, RiMoneyDollarCircleLine, RiSettingsLine, RiRefreshLine, RiBox3Line, RiAlertLine, RiCheckLine, RiArrowRightLine, RiFileListLine, RiRecycleLine, RiStoreLine, RiTruckLine, RiPriceTagLine, RiTimeLine } from '@remixicon/react';
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
 const COLOR_BORDER = 'var(--bs-border-color)';
@@ -89,6 +89,14 @@ export default function AnalyticsDashboard() {
                path: '/inventory/analytics/payments',
                icon: <RiMoneyDollarCircleLine size={32} />,
                color: "#8b5cf6",
+               category: 'Finance'
+          },
+          {
+               title: 'Payment Time Analytics',
+               description: 'Payment timing patterns and temporal analysis',
+               path: '/inventory/analytics/payment-time',
+               icon: <RiTimeLine size={32} />,
+               color: "#ec4899",
                category: 'Finance'
           },
           {

@@ -199,6 +199,32 @@ export default function PaymentsPage() {
           }
      };
 
+     const handleMakeAsExpense = async (paymentId: string) => {
+          if (!confirm('Are you sure you want to convert this payment to an expense?')) {
+               return;
+          }
+
+          try {
+               setLoading(true);
+               const response = await customPost(`inventory/supplier-payments/payments/${paymentId}/convert-to-expense`, 'POST', {
+                    payment_id: paymentId,
+                    converted_by: employeeid
+               });
+
+               if (response.success) {
+                    toast.success('Payment converted to expense successfully');
+                    loadPayments();
+               } else {
+                    toast.error(response.message || 'Failed to convert payment to expense');
+               }
+          } catch (error) {
+               console.error('Error converting payment to expense:', error);
+               toast.error('Failed to convert payment to expense');
+          } finally {
+               setLoading(false);
+          }
+     };
+
      const handleViewPaymentDetails = async (paymentId: string) => {
           try {
                setLoadingDetails(true);
@@ -311,7 +337,7 @@ export default function PaymentsPage() {
           {
                Header: 'Actions',
                Cell: ({ row }) => (
-                    <div className="d-flex gap-1">
+                    <div className="d-flex gap-1 flex-wrap">
                          {row.original.payment_status === 'pending' && (
                               <>
                                    <button
@@ -347,6 +373,14 @@ export default function PaymentsPage() {
                                    👁 {loadingDetails ? 'Loading...' : 'View Details'}
                               </button>
                          )}
+                         <button
+                              className="btn btn-sm btn-secondary"
+                              title="Convert to Expense"
+                              onClick={() => handleMakeAsExpense(row.original.id)}
+                              disabled={loading}
+                         >
+                              💰 Make Expense
+                         </button>
                     </div>
                )
           }

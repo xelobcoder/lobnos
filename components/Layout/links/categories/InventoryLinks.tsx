@@ -30,6 +30,7 @@ export const InventoryLinks: Link[] = [
                { title: "Purchase Orders", link: "/inventory/analytics/purchase-orders", icon: <RiShoppingCartLine /> },
                { title: "Transactions", link: "/inventory/analytics/transactions", icon: <RiHistoryLine /> },
                { title: "Payments", link: "/inventory/analytics/payments", icon: <RiMoneyDollarCircleLine /> },
+               { title: 'Payment Time', link: '/inventory/analytics/payment-time', icon: <RiFileChartLine /> },
                { title: "Costs", link: "/inventory/analytics/costs", icon: <RiCalculatorLine /> },
                { title: "Suppliers", link: "/inventory/analytics/suppliers", icon: <RiTruckLine /> },
                { title: "Stock Levels", link: "/inventory/analytics/stock-levels", icon: <RiBarChartBoxLine /> },
@@ -38,6 +39,7 @@ export const InventoryLinks: Link[] = [
                { title: "Procurement", link: "/inventory/analytics/procurement", icon: <RiShoppingCartLine /> },
                { title: "Cost Valuation", link: "/inventory/analytics/cost-valuation", icon: <RiCalculatorLine /> },
                { title: "Usage", link: "/inventory/analytics/usage", icon: <RiBarChartBoxLine /> }
+
           ]
      },
      {
