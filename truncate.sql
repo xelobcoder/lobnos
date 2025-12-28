@@ -1,1 +1,0 @@
-ALTER TABLE applicationsettings ADD COLUMN withnessRefund TINYINT(1) DEFAULT 0

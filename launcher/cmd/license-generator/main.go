@@ -1,16 +1,20 @@
 package main
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"log"
 	"math/big"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/lobnos/launcher/pkg/types"
@@ -22,6 +26,7 @@ const (
 	ExpectedFingerprint = "77edd56c1aab9774e55e4a20527420bcde856a3b2d2d763ea5cfb57e6b2c5785"   // Launcher expects this
 	ExpectedBuildHash   = "a1b2c3d4e5f6789012345678901234567890123456789012345678901234567890" // Launcher expects this
 	ProprietaryKeyword  = "LOB-NOS-INTERNAL-ONLY-2024"                                         // Launcher expects this
+	aesKey              = "12345678901234567890123456789012"                                   // 32-byte AES key
 )
 
 // Hardcoded ECDSA private key for license signing
@@ -45,6 +50,23 @@ func fromHex(s string) *big.Int {
 	result := new(big.Int)
 	result.SetBytes(data)
 	return result
+}
+
+// encryptAES encrypts plaintext using AES
+func encryptAES(plaintext string) (string, error) {
+	block, err := aes.NewCipher([]byte(aesKey))
+	if err != nil {
+		return "", err
+	}
+	plaintextBytes := []byte(plaintext)
+	ciphertext := make([]byte, aes.BlockSize+len(plaintextBytes))
+	iv := ciphertext[:aes.BlockSize]
+	if _, err := rand.Read(iv); err != nil {
+		return "", err
+	}
+	stream := cipher.NewCFBEncrypter(block, iv)
+	stream.XORKeyStream(ciphertext[aes.BlockSize:], plaintextBytes)
+	return base64.StdEncoding.EncodeToString(ciphertext), nil
 }
 
 // getPrivateKey returns the hardcoded private key for license signing
@@ -106,6 +128,38 @@ func main() {
 	fmt.Printf("🔒 Build Hash: %s\n", buildHash[:16]+"...")
 	fmt.Println("\n⚠️  IMPORTANT: This license is bound to the hardcoded values in the launcher!")
 	fmt.Println("⚠️  The license generator binary contains your private signing key - keep it secure!")
+
+	// Encrypt the app path from .env for the config
+	envData, err := os.ReadFile(".env")
+	if err != nil {
+		log.Fatalf("Failed to read .env file: %v", err)
+	}
+	envContent := string(envData)
+	var appPath string
+	for _, line := range strings.Split(envContent, "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "APP_PATH=") {
+			appPath = strings.TrimPrefix(line, "APP_PATH=")
+			break
+		}
+	}
+	if appPath == "" {
+		log.Fatalf("APP_PATH not found in .env")
+	}
+	appPath = strings.Replace(appPath, "%USERNAME%", os.Getenv("USERNAME"), -1)
+	encryptedPath, err := encryptAES(appPath)
+	if err != nil {
+		log.Fatalf("Failed to encrypt app path: %v", err)
+	}
+
+	// Write to launcher.config
+	configContent := fmt.Sprintf("appPath=%s\nexpectedBuildHash=%s\n", encryptedPath, buildHash)
+	if err := os.WriteFile("launcher.config", []byte(configContent), 0644); err != nil {
+		log.Fatalf("Failed to write launcher.config: %v", err)
+	}
+	fmt.Println("\n✅ launcher.config updated successfully!")
+	fmt.Printf("🔐 Encrypted appPath: %s\n", encryptedPath)
+	fmt.Printf("🔒 Build Hash: %s\n", buildHash)
 }
 
 // getProprietaryData returns developer-controlled secret data

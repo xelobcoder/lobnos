@@ -69,7 +69,7 @@ func shouldSkipFile(path string) bool {
 	// Skip common development files
 	ext := filepath.Ext(path)
 	switch ext {
-	case ".log", ".tmp", ".pid", ".lock":
+	case ".log", ".tmp", ".pid", ".lock", ".enc": // Added .enc for encrypted files
 		return true
 	}
 
