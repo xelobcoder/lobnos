@@ -20,7 +20,12 @@ import { currencyFormatter } from '../Auth/customFetch';
 
 interface BranchData {
     branchid: number;
-    revenue: string;
+    accrued_revenue: string;
+    actual_revenue: string;
+    total_discount: string;
+    total_outstanding: string;
+    total_tests: number;
+    total_refunds: string;
     branchname: string;
 }
 
@@ -53,7 +58,7 @@ export function CEOFinancialCharts({ branchesData, modesData }: FinancialChartsP
     const processedBranchData = useMemo(() =>
         branchesData.map(branch => ({
             ...branch,
-            revenue: parseFloat(branch.revenue),
+            revenue: parseFloat(branch.actual_revenue),
         })), [branchesData]);
 
     const processedModesData = useMemo(() =>
@@ -110,7 +115,7 @@ export function CEOFinancialCharts({ branchesData, modesData }: FinancialChartsP
                                 nameKey="name"
                                 label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                             >
-                                {Array.isArray(processedBranchData) && processedBranchData.length > 0 && processedModesData.map((entry, index) => (
+                                {processedModesData.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                             </Pie>

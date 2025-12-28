@@ -119,19 +119,19 @@ export default function Activator() {
             Header: 'contact', accessor: 'contact',
             filteringMode: 'number'
         },
-        { Header: 'WhatsApp Contact', accessor: 'whatAppcontact' },
-        {
-            Header: 'email', accessor: 'email',
-            filteringMode: 'text'
-        },
-        {
-            Header: 'occupation', accessor: 'occupation',
-            filteringMode: 'text'
-        },
-        {
-            Header: 'organization', accessor: 'organization',
-            filteringMode: 'text'
-        },
+        // { Header: 'WhatsApp Contact', accessor: 'whatAppcontact' },
+        // {
+        //     Header: 'email', accessor: 'email',
+        //     filteringMode: 'text'
+        // },
+        // {
+        //     Header: 'occupation', accessor: 'occupation',
+        //     filteringMode: 'text'
+        // },
+        // {
+        //     Header: 'organization', accessor: 'organization',
+        //     filteringMode: 'text'
+        // },
         {
             Header: 'more', accessor: '', Cell: ({ value, row }) => {
                 const item = row.original;

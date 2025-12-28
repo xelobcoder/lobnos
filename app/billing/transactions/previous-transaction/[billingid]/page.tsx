@@ -5,6 +5,7 @@ import { Button, Spinner, Modal } from 'react-bootstrap';
 import RefundServiceShowDetailModal from '../../../../../components/Billing/BillingContextComponents/BillingSourceComponents/RefundServiceShowDetailModal';
 import { currencyFormatter, customFetch, customPost } from '../../../../../components/Auth/customFetch';
 import { DollarSignIcon, CreditCardIcon, CheckCircleIcon, RotateCcwIcon, AlertCircleIcon, RefreshCwIcon, EditIcon, SettingsIcon } from '../../../../../components/Billing/BillingContextComponents/Lib/Icons';
+import { RiCalculatorLine, RiMoneyDollarCircleLine, RiArrowGoBackLine, RiScalesLine } from '@remixicon/react';
 import WriteOffModal from '../../../../../components/Billing/BillingContextComponents/BillingSourceComponents/WriteOffModal';
 import { useParams } from 'next/navigation';
 import PrimeTable from '../../../../../components/accessories/Datatables/PrimeTable';
@@ -669,11 +670,6 @@ export default function PreviousTransactionSummaryPage() {
 
 		return (
 			<div>
-				<div className="d-flex justify-content-end mb-3">
-					<button className='d-flex align-items-center btn btn-secondary btn-sm' onClick={() => fetchRecords(Number(params?.billingid))}>
-						<RiRefreshFill /> Refresh
-					</button>
-				</div>
 				<div className="bg-body-tertiary br-5 p-3">
 					{renderRefundModal()}
 					<WriteOffModal
@@ -697,27 +693,34 @@ export default function PreviousTransactionSummaryPage() {
 					/>
 					{renderTaxModal()}
 					{renderWitnessModal()}
-					<div className="card border-0 shadow-sm mb-4">
+					<div className="card border-0 mb-4">
 						<div className="card-body p-3 p-md-4">
+							<div className="d-flex justify-content-between align-items-center mb-3">
+								<h5 className="mb-0 fw-semibold text-body-emphasis">Billing Summary</h5>
+								<button className='d-flex align-items-center btn btn-secondary btn-sm' onClick={() => fetchRecords(Number(params?.billingid))}>
+									<RiRefreshFill /> Refresh
+								</button>
+							</div>
 							<div className="row g-3 g-md-4">
 								{[
-									{ label: 'Trans. Cost', value: billingdata.totalTransactionCost, color: 'dark', icon: <DollarSignIcon /> },
-									{ label: 'Total Cost', value: billingdata.totalcost, color: 'secondary', icon: <DollarSignIcon /> },
-									{ label: 'Payable', value: billingdata.payable, color: 'primary', icon: <CreditCardIcon /> },
-									{ label: 'Refunded', value: billingdata.totalrefunded, color: 'warning', icon: <RotateCcwIcon /> },
-									{ label: 'Paid', value: billingdata.paid, color: 'info', icon: <CheckCircleIcon /> },
-									{ label: 'Outstanding', value: billingdata.outstanding, color: 'danger', icon: <AlertCircleIcon /> },
-									{ label: 'Balance', value: (Number(billingdata.payable) || 0) - (Number(billingdata.paid) || 0), color: 'success', icon: <DollarSignIcon /> },
+									{ label: 'Trans. Cost', value: billingdata.totalTransactionCost, color: 'dark', icon: <RiCalculatorLine />, desc: 'Transaction cost' },
+									{ label: 'Total Cost', value: billingdata.totalcost, color: 'secondary', icon: <RiMoneyDollarCircleLine />, desc: 'Total billed amount' },
+									{ label: 'Payable', value: billingdata.payable, color: 'primary', icon: <CreditCardIcon />, desc: 'Amount to be paid' },
+									{ label: 'Refunded', value: billingdata.totalrefunded, color: 'warning', icon: <RiArrowGoBackLine />, desc: 'Total refunds issued' },
+									{ label: 'Paid', value: billingdata.paid, color: 'info', icon: <CheckCircleIcon />, desc: 'Amount received' },
+									{ label: 'Outstanding', value: billingdata.outstanding, color: 'danger', icon: <AlertCircleIcon />, desc: 'Amount due' },
+									{ label: 'Balance', value: (Number(billingdata.payable) || 0) - (Number(billingdata.paid) || 0), color: 'success', icon: <RiScalesLine />, desc: 'Remaining balance' },
 								].map((item, index) => (
-									<div key={index} className="col-12 col-sm-6 col-md-4 col-lg-3 col-xl">
-										<div className="d-flex align-items-center h-100 p-2 rounded border border-secondary-subtle bg-body-tertiary bg-opacity-10">
-											<div className={`rounded-circle bg-${item.color} bg-opacity-10 text-${item.color} me-3 d-flex align-items-center justify-content-center flex-shrink-0`} style={{ width: '40px', height: '40px' }}>
-												<span style={{ fontSize: '1.1rem' }}>{item.icon}</span>
+									<div key={index} className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
+										<div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+											<div className="d-flex align-items-center mb-2">
+												<div className={`me-2 text-${item.color}`}>
+													{React.cloneElement(item.icon, { size: 20 })}
+												</div>
+												<span className="fw-medium text-muted small">{item.label}</span>
 											</div>
-											<div>
-												<div className="text-muted small fw-bold text-uppercase" style={{ fontSize: '0.65rem', letterSpacing: '0.5px' }}>{item.label}</div>
-												<div className="h6 mb-0 fw-bold text-body">{currencyFormatter.format(Number(item.value) || 0)}</div>
-											</div>
+											<div className={`fs-4 fw-bold text-${item.color}`}>{currencyFormatter.format(Number(item.value) || 0)}</div>
+											<div className="small text-muted">{item.desc}</div>
 										</div>
 									</div>
 								))}

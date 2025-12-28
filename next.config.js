@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-     turbopack: {},
 	reactStrictMode: true,
 	env: {
 		PRODUCTION_BASEURL: "http://localhost:5000/api/v1/",

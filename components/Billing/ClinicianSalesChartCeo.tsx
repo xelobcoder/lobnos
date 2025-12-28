@@ -5,7 +5,6 @@ import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
     ResponsiveContainer
 } from 'recharts';
-import styles from '../../app/billing/sales/branches/[branchid]/day-transaction-break-down/FinancialSummary.module.css';
 import { RiUserHeartLine } from '@remixicon/react';
 
 interface ClinicianSale {
@@ -52,14 +51,36 @@ const ChartTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
         const data = payload[0].payload;
         return (
-            <div className={styles.chartTooltip}>
-                <p className={styles.tooltipLabel}>{label}</p>
-                <p className={styles.tooltipValue}>
-                    {fullCurrencyFormatter(data.total_value)}
-                </p>
-                <p className={styles.tooltipDetail}>Total Services: {data.total_services}</p>
-                <p className={styles.tooltipDetail}>Test Panels: {data.test_panels_count}</p>
-                <p className={styles.tooltipDetail}>Additional Services: {data.additional_services_count}</p>
+            <div className="rounded-lg border p-2 shadow-sm"
+                style={{ backgroundColor: 'var(--bs-body-bg)', borderColor: 'var(--bs-border-color)', minWidth: '220px', fontSize: '0.8rem' }}>
+                <div className="mb-2">
+                    <span className="text-xs uppercase fw-medium" style={{ color: 'var(--bs-secondary-color)' }}>Clinician</span>
+                    <span className="fw-bold d-block" style={{ color: 'var(--bs-body-color)' }}>{label}</span>
+                </div>
+                <div className="mb-1">
+                    <span className="text-xs uppercase fw-medium" style={{ color: 'var(--bs-secondary-color)' }}>Total Sales</span>
+                    <span className="fw-bold d-block" style={{ color: 'oklch(0.646 0.222 41.116)' }}>
+                        {fullCurrencyFormatter(data.total_value)}
+                    </span>
+                </div>
+                <div className="mb-1">
+                    <span className="text-xs uppercase fw-medium" style={{ color: 'var(--bs-secondary-color)' }}>Total Services</span>
+                    <span className="fw-bold d-block" style={{ color: 'var(--bs-body-color)' }}>
+                        {data.total_services}
+                    </span>
+                </div>
+                <div className="mb-1">
+                    <span className="text-xs uppercase fw-medium" style={{ color: 'var(--bs-secondary-color)' }}>Test Panels</span>
+                    <span className="fw-bold d-block" style={{ color: 'var(--bs-body-color)' }}>
+                        {data.test_panels_count}
+                    </span>
+                </div>
+                <div className="mb-0">
+                    <span className="text-xs uppercase fw-medium" style={{ color: 'var(--bs-secondary-color)' }}>Additional Services</span>
+                    <span className="fw-bold d-block" style={{ color: 'var(--bs-body-color)' }}>
+                        {data.additional_services_count}
+                    </span>
+                </div>
             </div>
         );
     }
@@ -95,58 +116,74 @@ export function CeoClinicianSalesChart({ data }: ClinicianSalesProps) {
 
     if (!aggregatedData || aggregatedData.length === 0) {
         return (
-            <section className={styles.chartCard}>
-                <h2 className={styles.cardTitle}>
-                    <RiUserHeartLine />
-                    Clinician Sales Performance
-                </h2>
-                <p>No clinician sales data available for this period.</p>
-            </section>
+            <div className="border rounded mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                <div className="p-3 border-bottom" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: 'var(--bs-border-color)' }}>
+                    <h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
+                        <RiUserHeartLine className="me-2" size={20} style={{ color: 'oklch(0.646 0.222 41.116)' }} />
+                        Clinician Sales Performance
+                    </h2>
+                </div>
+                <div className="p-3">
+                    <div className="d-flex flex-column justify-content-center align-items-center text-center" style={{ minHeight: '200px' }}>
+                        <RiUserHeartLine size={48} className="mb-3 text-muted" />
+                        <h5 className="fw-medium mb-1">No Data Available</h5>
+                        <p className="text-muted px-3">No clinician sales data available for this period.</p>
+                    </div>
+                </div>
+            </div>
         );
     }
 
     return (
-        <section className={styles.chartCard} style={{ backgroundColor: 'white' ,padding:'10px'}}>
-            <h2 className={styles.cardTitle}>
-                <RiUserHeartLine />
-                Clinician Sales Performance
-            </h2>
-            <div className={styles.chartGrid}>
-                <div className={styles.tableContainer} style={{ gridColumn: 'span 1', marginBottom: '1.5rem' }}>
-                    <table className={styles.table}>
-                        <thead>
-                            <tr>
-                                <th className={styles.th}>Clinician</th>
-                                <th className={styles.th}>Total Sales</th>
-                                <th className={styles.th}>Total Services</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {aggregatedData.map((clinician) => (
-                                <tr key={clinician.clinician_id}>
-                                    <td className={styles.td}>
-                                        <div>{clinician.clinician_name}</div>
-                                        <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                                            {clinician.occupation || 'N/A'}
-                                        </div>
-                                    </td>
-                                    <td className={styles.td}>{fullCurrencyFormatter(clinician.total_value)}</td>
-                                    <td className={styles.td}>{clinician.total_services}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-                <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={aggregatedData} margin={{ left: 12, right: 12 }}>
-                        <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(240 3.7% 15.9% / 0.1)" />
-                        <XAxis dataKey="clinician_name" tickLine={false} axisLine={false} stroke="hsl(240 3.8% 46.1%)" fontSize={12} />
-                        <YAxis tickLine={false} axisLine={false} stroke="hsl(240 3.8% 46.1%)" fontSize={12} tickFormatter={compactCurrencyFormatter} />
-                        <Tooltip cursor={{ fill: "hsl(240 3.7% 15.9% / 0.1)" }} content={<ChartTooltip />} />
-                        <Bar dataKey="total_value" fill={COLORS[0]} radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                </ResponsiveContainer>
+        <div className="border rounded mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+            <div className="p-3 border-bottom" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: 'var(--bs-border-color)' }}>
+                <h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
+                    <RiUserHeartLine className="me-2" size={20} style={{ color: 'oklch(0.646 0.222 41.116)' }} />
+                    Clinician Sales Performance
+                </h2>
             </div>
-        </section>
+            <div className="p-3">
+                <div className="row g-3">
+                    <div className="col-12 col-lg-6">
+                        <div className="table-responsive">
+                            <table className="table table-sm table-hover table-striped small">
+                                <thead className="table-light">
+                                    <tr>
+                                        <th className="text-start">Clinician</th>
+                                        <th className="text-end">Total Sales</th>
+                                        <th className="text-end">Total Services</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {aggregatedData.map((clinician) => (
+                                        <tr key={clinician.clinician_id}>
+                                            <td className="text-start">
+                                                <div>{clinician.clinician_name}</div>
+                                                <div style={{ fontSize: '0.75rem', color: 'var(--bs-secondary-color)' }}>
+                                                    {clinician.occupation || 'N/A'}
+                                                </div>
+                                            </td>
+                                            <td className="text-end">{fullCurrencyFormatter(clinician.total_value)}</td>
+                                            <td className="text-end">{clinician.total_services}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div className="col-12 col-lg-6">
+                        <ResponsiveContainer width="100%" height={300}>
+                            <BarChart data={aggregatedData} margin={{ left: 12, right: 12 }}>
+                                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" />
+                                <XAxis dataKey="clinician_name" tickLine={false} axisLine={false} stroke="var(--bs-secondary-color)" fontSize={12} />
+                                <YAxis tickLine={false} axisLine={false} stroke="var(--bs-secondary-color)" fontSize={12} tickFormatter={compactCurrencyFormatter} />
+                                <Tooltip cursor={{ fill: 'var(--bs-tertiary-bg)' }} content={<ChartTooltip />} />
+                                <Bar dataKey="total_value" fill="oklch(0.646 0.222 41.116)" radius={[4, 4, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 }

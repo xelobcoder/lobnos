@@ -1,14 +1,14 @@
 "use client";
 import React, { useState, useMemo, useEffect } from "react";
 import { Dropdown } from "react-bootstrap";
-import { RiEdit2Line, RiFileAddLine, RiDeleteBinLine, RiPrinterLine, RiRefund2Line, RiFileList2Line } from '@remixicon/react';
+import { RiEdit2Line, RiFileAddLine, RiDeleteBinLine, RiPrinterLine, RiRefund2Line, RiFileList2Line, RiMore2Line, RiEyeLine } from '@remixicon/react';
 import { currencyFormatter } from "../Auth/customFetch";
 import { plsEncryption } from "../../lib/encryption";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Modal, Button, Form } from "react-bootstrap";
 import { handleDatePicker, handleSeverSideProcessing } from "../serverActions/ActionFiltering";
-import { useApplicationSettings } from "../Auth/useApplicationContext";
-import { RiSearchLine } from "@remixicon/react";
+import { useApplication, useApplicationSettings } from "../Auth/useApplicationContext";
+import { RiSearchLine, RiCalendarEventLine, RiTableLine, RiBarChartBoxLine } from "@remixicon/react";
 import styles from './../../styles/SmsTemplateList.module.css'
 import { billingSource } from "../../lib/billingLib";
 import AdjustBillingSourceModal from './AdjustBillingSourceModal';
@@ -62,6 +62,9 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 	const [datequery, setDatequery] = useState<DateQuery>({
 		from: pquery.from || '', to: pquery.to || ''
 	});
+	const role = useApplication()?.user;
+
+	const isAdmin = role?.role === 'admin' || role?.role === 'superadmin';
 
 
 	useEffect(() => {
@@ -88,6 +91,7 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 	const [modalRandString, setModalRandString] = useState<string>("");
 	const [modalUserRandInput, setModalUserRandInput] = useState<string>("");
 	const [modalReason, setModalReason] = useState<string>("");
+	const [useSimpleView, setUseSimpleView] = useState<boolean>(true);
 
 	// State for view more modal
 	const [showViewMore, setShowViewMore] = useState<boolean>(false);
@@ -159,14 +163,10 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 
 	const coreColumns = [
 		{ Header: "Date", accessor: "billedon", Cell: ({ value }) => value ? <span>{new Date(value).toLocaleDateString()}</span> : '' },
-		{ Header: "Fullname", accessor: "fullname" },
-		{ Header: "Patient ID", accessor: "fullpatientid" },
+		{ Header: "Patient", accessor: "fullname", Cell: ({ row }) => <div><div className="fw-semibold">{row.original.fullname}</div><div className="text-muted small">{row.original.fullpatientid}</div></div> },
 		{ Header: "Bill Id", accessor: "billingid" },
 		{
-			Header: "Billing Source", accessor: "billingSource", Cell: ({ value }) => {
-				const source = billingSource.find(src => src.value === value);
-				return source ? <span>{source.label}</span> : <span className="text-muted">Not specified</span>;
-			}
+			Header: "Billing Source", accessor: "billingSource",
 		},
 		{ Header: "Amt Payable", accessor: "payable", Cell: ({ value }) => <div>{currencyFormatter.format(Number(value) || 0)}</div> },
 		{ Header: "Total Cost", accessor: "totalcost", Cell: ({ value }) => <div>{currencyFormatter.format(Number(value) || 0)}</div> },
@@ -183,60 +183,62 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 				const outstandingBill = Number(row.original?.outstanding);
 				return (
 					<>
-						<Dropdown className="btn btn-sm btn-primary">
-							<Dropdown.Toggle variant="light" id="archives-dropdown" >
-								show
+						<Dropdown>
+							<Dropdown.Toggle variant="outline-secondary" size="sm" className="btn-icon-only">
+								<RiMore2Line size={16} />
 							</Dropdown.Toggle>
-							<Dropdown.Menu className="m-0 p-0 bg-white">
+							<Dropdown.Menu className="shadow-sm">
 								<Dropdown.Item
-									className="m-0 p-2 border-top text-sm border-top-1 d-flex align-items-center gap-2"
+									className="d-flex align-items-center gap-2 py-2 px-3"
 									onClick={() => openAdjustModal(row.original.billingid, row.original.patientid)}
 									as="button"
-									style={{ width: "100%", textAlign: "left" }}
 								>
 									<RiEdit2Line size={16} /> Correct Billing Source
 								</Dropdown.Item>
 								<Dropdown.Item
 									onClick={() => openUpdateModal(row.original.billingid, row.original.patientid)}
 									as="button"
-									className="text-capitalize text-sm m-0 px-2 border-top border-top-1 d-flex align-items-center gap-2"
-									style={{ width: "100%", textAlign: "left" }}
+									className="d-flex align-items-center gap-2 py-2 px-3"
 								>
 									<RiFileAddLine size={16} /> Update Transaction (Add New Service/Test)
 								</Dropdown.Item>
+								<Dropdown.Divider />
 								<Dropdown.Item
-									href={`/billing/cash-collection/pos-receipt-test?billingid=3832&&is_pos=false`}
-									className="m-0 p-2 border-top text-sm border-top-1 d-flex align-items-center gap-2"
+									href={`/billing/cash-collection/pos-receipt-test?billingid=${row.original.billingid}&&is_pos=false`}
+									className="d-flex align-items-center gap-2 py-2 px-3"
 								>
 									<RiPrinterLine size={16} /> Print Receipt A4 format
 								</Dropdown.Item>
 								<Dropdown.Item
 									href={`/billing/cash-collection/pos-receipt-test?billingid=${row.original.billingid}&&is_pos=true`}
-									className="m-0 p-2 border-top text-sm border-top-1 d-flex align-items-center gap-2"
+									className="d-flex align-items-center gap-2 py-2 px-3"
 								>
 									<RiPrinterLine size={16} /> Print Receipt POS format
 								</Dropdown.Item>
+								<Dropdown.Divider />
 								<Dropdown.Item
-									className="m-0 p-2 border-top text-sm border-top-1 d-flex align-items-center gap-2"
+									className="d-flex align-items-center gap-2 py-2 px-3"
 									href={`/billing/transactions/previous-transaction/${row.original.billingid}`}
 								>
 									<RiFileList2Line size={16} /> View Transactions Details
 								</Dropdown.Item>
 								<Dropdown.Item
-									className="m-0 p-2 border-top text-sm border-top-1 d-flex align-items-center gap-2"
+									className="d-flex align-items-center gap-2 py-2 px-3"
 									onClick={() => handleViewMore(row.original)}
 									as="button"
-									style={{ width: "100%", textAlign: "left" }}
 								>
-									View More
+									<RiEyeLine size={16} /> View More
 								</Dropdown.Item>
 								{outstandingBill > 0 && (
-									<Dropdown.Item
-										className="text-sm m-0 px-2 border-top border-top-1"
-										href={`/billing/patientid/${plsEncryption(row.original.patientid.toString())}/outstanding-debt`}
-									>
-										Settle Bill
-									</Dropdown.Item>
+									<>
+										<Dropdown.Divider />
+										<Dropdown.Item
+											className="d-flex align-items-center gap-2 py-2 px-3 text-success fw-semibold"
+											href={`/billing/patientid/${plsEncryption(row.original.patientid.toString())}/outstanding-debt`}
+										>
+											<RiRefund2Line size={16} /> Settle Bill
+										</Dropdown.Item>
+									</>
 								)}
 							</Dropdown.Menu>
 						</Dropdown>
@@ -351,60 +353,102 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 				</Modal.Footer>
 			</Modal>
 
-			<div className="d-flex justify-content-end col-12 my-2">
-				<div className="col-4 d-flex">
-					{datequery.from && datequery.to && (
-						<button
-							className="btn btn-primary btn-sm mx-2"
-							onClick={() => router.push(`${plsEncryption(branchid.toString())}/day-transaction-break-down?date=${datequery.from}&&from=${datequery.from}&&end=${datequery.to}`)}
-						>
-							View
-						</button>
-					)}
-					<input
-						type="date"
-						className="form-control form-control-sm"
-						value={datequery.from}
-						onChange={(ev) => setDatequery({ ...datequery, from: ev.target.value })}
-					/>
-					<input
-						type="date"
-						className="form-control form-control-sm mx-2"
-						value={datequery.to}
-						onChange={(ev) => setDatequery({ ...datequery, to: ev.target.value })}
-					/>
+			<div className="card" style={{ borderRadius: '0.75rem', borderColor: 'var(--bs-border-color)' }}>
+				<div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: 'var(--bs-border-color)' }}>
+					<div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
+						<h2 className="fs-6 fw-semibold text-body-emphasis mb-3 mb-lg-0 d-flex align-items-center">
+							<RiTableLine size={22} style={{ color: 'oklch(0.646 0.222 41.116)' }} className="me-2 flex-shrink-0" />
+							Billed Clients
+						</h2>
+						<div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
+							{isAdmin && <div className="btn-group btn-group-sm" role="group" aria-label="View type">
+								<button
+									type="button"
+									className={`btn ${useSimpleView ? 'btn-outline-secondary' : 'btn-primary'}`}
+									onClick={() => setUseSimpleView(false)}
+									style={useSimpleView ? {} : { backgroundColor: 'oklch(0.646 0.222 41.116)', borderColor: 'oklch(0.646 0.222 41.116)' }}
+								>
+									<RiBarChartBoxLine size={16} className="me-1 align-text-bottom" /> Pivot Table
+								</button>
+								<button
+									type="button"
+									className={`btn ${useSimpleView ? 'btn-primary' : 'btn-outline-secondary'}`}
+									onClick={() => setUseSimpleView(true)}
+									style={useSimpleView ? { backgroundColor: 'oklch(0.646 0.222 41.116)', borderColor: 'oklch(0.646 0.222 41.116)' } : {}}
+								>
+									<RiTableLine size={16} className="me-1 align-text-bottom" /> Simple Table
+								</button>
+							</div>}
+							<div className="d-flex align-items-center gap-2 mt-2 mt-sm-0">
+								<div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
+									<span className="input-group-text bg-transparent border-end-0" style={{ borderColor: 'var(--bs-border-color)' }}>
+										<RiCalendarEventLine size={16} className="text-muted" />
+									</span>
+									<input type="date" className="form-control shadow-none border-start-0" value={datequery.from} onChange={(ev) => setDatequery({ ...datequery, from: ev.target.value })} />
+								</div>
+								<div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
+									<span className="input-group-text bg-transparent border-end-0" style={{ borderColor: 'var(--bs-border-color)' }}>
+										<RiCalendarEventLine size={16} className="text-muted" />
+									</span>
+									<input type="date" className="form-control shadow-none border-start-0" value={datequery.to} onChange={(ev) => setDatequery({ ...datequery, to: ev.target.value })} min={datequery.from} />
+								</div>
+								{datequery.from && datequery.to && (
+									<button
+										className="btn btn-primary btn-sm d-flex align-items-center"
+										onClick={() => router.push(`${plsEncryption(branchid.toString())}/day-transaction-break-down?date=${datequery.from}&&from=${datequery.from}&&end=${datequery.to}`)}
+									>
+										<RiBarChartBoxLine size={16} className="me-1" /> View Breakdown
+									</button>
+								)}
+								<button
+									className="btn btn-outline-secondary btn-sm d-flex align-items-center"
+									onClick={() => {
+										console.log("Search button clicked with dates:", datequery);
+										handleDatePicker({
+											branchid,
+											date: datequery.from,
+											from: datequery.from,
+											to: datequery.to
+										}, router);
+									}}
+								>
+									<RiSearchLine size={16} className="me-1" /> Search
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div className="card-body p-0">
+					{
+						isAdmin && (useSimpleView) ? <PrimeTable
+							column={coreColumns}
+							urlparams={{ ...datequery, branchid }}
+							data={data || []}
+							serverSideFiltering={true}
+							handleSeverSideProcessing={handleSeverSideProcessing}
+						/>
+							:
+							<PrimeTablePivot
+								column={coreColumns}
+								urlparams={{ ...datequery, branchid }}
+								data={data || []}
+								serverSideFiltering={true}
+								handleSeverSideProcessing={handleSeverSideProcessing}
+							/>
+					}
 
-					<button
-						className="btn btn-outline-secondary btn-sm mx-2"
-						onClick={() => {
-							console.log("Search button clicked with dates:", datequery);
-							handleDatePicker({
-								branchid,
-								date: datequery.from,
-								from: datequery.from,
-								to: datequery.to
-							}, router);
-						}}
-					>
-						<RiSearchLine />
-					</button>
+					{!isAdmin && <PrimeTable
+						column={coreColumns}
+						urlparams={{ ...datequery, branchid }}
+						data={data || []}
+						serverSideFiltering={true}
+						handleSeverSideProcessing={handleSeverSideProcessing}
+					/>}
 				</div>
 			</div>
-			<PrimeTable
-				column={coreColumns}
-				urlparams={{ ...datequery, branchid }}
-				data={data || []}
-				serverSideFiltering={true}
-				handleSeverSideProcessing={handleSeverSideProcessing}
-			/>
 
-			<PrimeTablePivot
-				column={coreColumns}
-				urlparams={{ ...datequery, branchid }}
-				data={data || []}
-				serverSideFiltering={true}
-				handleSeverSideProcessing={handleSeverSideProcessing}
-			/>
+
+
 		</div>
 	);
 }
