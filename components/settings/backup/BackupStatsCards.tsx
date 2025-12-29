@@ -1,5 +1,5 @@
 import React from 'react';
-import { Row, Col, Card } from 'react-bootstrap';
+import { RiDatabaseLine, RiCheckLine, RiCloseLine, RiBox3Line, RiBarChartLine, RiTimeLine } from '@remixicon/react';
 
 interface BackupStats {
      total_backups: number;
@@ -42,61 +42,73 @@ const formatDate = (dateString: string): string => {
 
 export default function BackupStatsCards({ backupStats }: BackupStatsCardsProps) {
      return (
-          <Row className="g-3">
-               <Col md={4} lg={2}>
-                    <Card className="text-center">
-                         <Card.Body>
-                              <div className="h4 text-success mb-1">{backupStats?.successful_backups || 0}</div>
-                              <small className="text-muted">Successful</small>
-                         </Card.Body>
-                    </Card>
-               </Col>
-               <Col md={4} lg={2}>
-                    <Card className="text-center">
-                         <Card.Body>
-                              <div className="h4 text-warning mb-1">{backupStats?.failed_backups || 0}</div>
-                              <small className="text-muted">Failed</small>
-                         </Card.Body>
-                    </Card>
-               </Col>
-               <Col md={4} lg={2}>
-                    <Card className="text-center">
-                         <Card.Body>
-                              <div className="h4 text-info mb-1">
-                                   {backupStats ? formatFileSize(backupStats.total_size) : '0 B'}
-                              </div>
-                              <small className="text-muted">Total Size</small>
-                         </Card.Body>
-                    </Card>
-               </Col>
-               <Col md={4} lg={2}>
-                    <Card className="text-center">
-                         <Card.Body>
-                              <div className="h4 text-primary mb-1">
-                                   {backupStats ? Math.round((backupStats.successful_backups / Math.max(backupStats.total_backups, 1)) * 100) : 0}%
-                              </div>
-                              <small className="text-muted">Success Rate</small>
-                         </Card.Body>
-                    </Card>
-               </Col>
-               <Col md={4} lg={2}>
-                    <Card className="text-center">
-                         <Card.Body>
-                              <div className="h4 text-secondary mb-1">{backupStats?.total_backups || 0}</div>
-                              <small className="text-muted">Total Backups</small>
-                         </Card.Body>
-                    </Card>
-               </Col>
-               <Col md={4} lg={2}>
-                    <Card className="text-center">
-                         <Card.Body>
-                              <div className="h6 text-dark mb-1" style={{ fontSize: '0.75rem', lineHeight: '1.2' }}>
-                                   {backupStats ? formatDate(backupStats.last_backup_date) : 'Never'}
-                              </div>
-                              <small className="text-muted">Last Backup</small>
-                         </Card.Body>
-                    </Card>
-               </Col>
-          </Row>
+          <div className="row g-3">
+               <div className="col-md-4">
+                    <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className="d-flex align-items-center mb-2">
+                              <RiDatabaseLine size={32} className="me-2 text-primary" />
+                              <span className="fw-medium text-muted small">Total Backups</span>
+                         </div>
+                         <div className="fs-4 fw-bold text-primary">{backupStats?.total_backups || 0}</div>
+                         <div className="small text-muted">All backup records</div>
+                    </div>
+               </div>
+               <div className="col-md-4">
+                    <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className="d-flex align-items-center mb-2">
+                              <RiCheckLine size={32} className="me-2 text-success" />
+                              <span className="fw-medium text-muted small">Successful</span>
+                         </div>
+                         <div className="fs-4 fw-bold text-success">{backupStats?.successful_backups || 0}</div>
+                         <div className="small text-muted">Completed backups</div>
+                    </div>
+               </div>
+               <div className="col-md-4">
+                    <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className="d-flex align-items-center mb-2">
+                              <RiCloseLine size={32} className="me-2 text-danger" />
+                              <span className="fw-medium text-muted small">Failed</span>
+                         </div>
+                         <div className="fs-4 fw-bold text-danger">{backupStats?.failed_backups || 0}</div>
+                         <div className="small text-muted">Failed backups</div>
+                    </div>
+               </div>
+               <div className="col-md-4">
+                    <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className="d-flex align-items-center mb-2">
+                              <RiBox3Line size={32} className="me-2 text-info" />
+                              <span className="fw-medium text-muted small">Total Size</span>
+                         </div>
+                         <div className="fs-4 fw-bold text-info">
+                              {backupStats ? formatFileSize(backupStats.total_size) : '0 B'}
+                         </div>
+                         <div className="small text-muted">Backup storage used</div>
+                    </div>
+               </div>
+               <div className="col-md-4">
+                    <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className="d-flex align-items-center mb-2">
+                              <RiBarChartLine size={32} className="me-2 text-warning" />
+                              <span className="fw-medium text-muted small">Success Rate</span>
+                         </div>
+                         <div className="fs-4 fw-bold text-warning">
+                              {backupStats ? Math.round((backupStats.successful_backups / Math.max(backupStats.total_backups, 1)) * 100) : 0}%
+                         </div>
+                         <div className="small text-muted">Backup reliability</div>
+                    </div>
+               </div>
+               <div className="col-md-4">
+                    <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className="d-flex align-items-center mb-2">
+                              <RiTimeLine size={32} className="me-2 text-secondary" />
+                              <span className="fw-medium text-muted small">Last Backup</span>
+                         </div>
+                         <div className="fs-6 fw-bold text-secondary" style={{ lineHeight: '1.2' }}>
+                              {backupStats ? formatDate(backupStats.last_backup_date) : 'Never'}
+                         </div>
+                         <div className="small text-muted">Most recent backup</div>
+                    </div>
+               </div>
+          </div>
      );
 }

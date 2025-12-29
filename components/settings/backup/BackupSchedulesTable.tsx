@@ -136,7 +136,7 @@ export default function BackupSchedulesTable({
      ];
 
      return (
-          <div className="border bg-white border-secondary-subtle mx-2 p-2 mb-4">
+          <div className="border p-3  rounded bg-white mx-2 p-2 mb-4">
                <div className="d-flex align-items-center gap-2 mb-3">
                     <RiSettings4Line size={20} />
                     <h5 className="mb-0">Backup Schedules</h5>

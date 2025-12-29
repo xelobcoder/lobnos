@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Button, Form, Alert, Card, Badge } from 'react-bootstrap';
-import { RiShieldLine, RiLockLine, RiKeyLine, RiDeleteBinLine, RiRefreshLine, RiSaveLine, RiShieldCrossFill, RiHomeLine } from '@remixicon/react';
+import { RiShieldLine, RiLockLine, RiKeyLine, RiDeleteBinLine, RiRefreshLine, RiSaveLine, RiShieldCrossFill, RiHomeLine, RiFolderLine } from '@remixicon/react';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
 import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
@@ -20,9 +20,30 @@ export default function BackupSecurityPage() {
      const [deletionPasses, setDeletionPasses] = useState(3);
      const [currentKeyId, setCurrentKeyId] = useState('KEY-2025-001');
      const [keyLastRotated, setKeyLastRotated] = useState('2025-10-15');
+     const [storagePath, setStoragePath] = useState('C:\\Lobnos\\Backups');
+     const [storagePathError, setStoragePathError] = useState('');
      const [loading, setLoading] = useState(true);
      const [saving, setSaving] = useState(false);
      const [rotating, setRotating] = useState(false);
+
+     const validateStoragePath = (path: string) => {
+          if (!path.trim()) {
+               setStoragePathError('Storage path is required');
+               return false;
+          }
+
+          // Basic path validation - check for absolute paths
+          const isWindowsPath = /^[A-Za-z]:\\.*/.test(path);
+          const isUnixPath = /^\/.*/.test(path);
+
+          if (!isWindowsPath && !isUnixPath) {
+               setStoragePathError('Please enter an absolute path (starting with drive letter on Windows or / on Unix/Linux)');
+               return false;
+          }
+
+          setStoragePathError('');
+          return true;
+     };
 
      // Load security settings on component mount
      useEffect(() => {
@@ -70,6 +91,9 @@ export default function BackupSecurityPage() {
                     setDeletionPasses(settings.deletion_passes);
                     setCurrentKeyId(settings.current_key_id);
                     setKeyLastRotated(new Date(settings.key_last_rotated).toISOString().split('T')[0]);
+                    setStoragePath(settings.storage_path || 'C:\\Lobnos\\Backups');
+               } else if (response?.status && response?.data == null) {
+                    toast.info('No security settings found. Using default values.');
                } else {
                     toast.error('Failed to load security settings');
                }
@@ -107,6 +131,12 @@ export default function BackupSecurityPage() {
      };
 
      const handleSaveSettings = async () => {
+          // Validate storage path before saving
+          if (!validateStoragePath(storagePath)) {
+               toast.error('Please correct the storage path before saving');
+               return;
+          }
+
           try {
                setSaving(true);
                const payload = {
@@ -115,7 +145,8 @@ export default function BackupSecurityPage() {
                          encryptionAlgorithm === 'AES-128' ? 'aes-128-cbc' : 'chacha20',
                     key_rotation_days: keyRotationDays,
                     secure_deletion_enabled: secureDeletionEnabled,
-                    deletion_passes: deletionPasses
+                    deletion_passes: deletionPasses,
+                    storage_path: storagePath
                };
 
                const response = await customPost(`security-features/backup/security-settings`, 'PUT', payload);
@@ -254,6 +285,57 @@ export default function BackupSecurityPage() {
                                                   </div>
                                              </Card.Body>
                                         </Card>
+                                   </div>
+
+                                   {/* Storage Configuration */}
+                                   <div className="border bg-white border-secondary-subtle mx-2 p-3 mb-4">
+                                        <div className="d-flex align-items-center gap-2 mb-3">
+                                             <RiFolderLine size={20} className="text-info" />
+                                             <h5 className="mb-0">Storage Configuration</h5>
+                                        </div>
+
+                                        <Form.Group className="mb-3">
+                                             <Form.Label>Backup Storage Path</Form.Label>
+                                             <div className="d-flex gap-2 mb-3">
+                                                  <div className="flex-grow-1">
+                                                       <Form.Control
+                                                            type="text"
+                                                            value={storagePath}
+                                                            onChange={(e) => {
+                                                                 setStoragePath(e.target.value);
+                                                                 if (storagePathError) validateStoragePath(e.target.value);
+                                                            }}
+                                                            onBlur={(e) => validateStoragePath(e.target.value)}
+                                                            placeholder="Enter full path for backup storage (e.g., C:\Lobnos\Backups or /home/user/backups)"
+                                                            isInvalid={!!storagePathError}
+                                                       />
+                                                       <Form.Control.Feedback type="invalid">
+                                                            {storagePathError}
+                                                       </Form.Control.Feedback>
+                                                  </div>
+                                                  <Button
+                                                       variant="outline-secondary"
+                                                       size="sm"
+                                                       onClick={() => {
+                                                            if (validateStoragePath(storagePath)) {
+                                                                 toast.success('Storage path format is valid');
+                                                            }
+                                                       }}
+                                                       disabled={!storagePath.trim()}
+                                                  >
+                                                       Validate
+                                                  </Button>
+                                             </div>
+                                             <Form.Text className="text-muted">
+                                                  Specify the directory where backup files will be stored. Use absolute paths for best results.
+                                             </Form.Text>
+                                        </Form.Group>
+
+                                        <Alert variant="info">
+                                             <small>
+                                                  <strong>Path Requirements:</strong> Ensure the specified directory exists and the application has write permissions. Use forward slashes (/) on Linux/Unix systems and backslashes (\) on Windows.
+                                             </small>
+                                        </Alert>
                                    </div>
 
                                    {/* Secure Deletion */}

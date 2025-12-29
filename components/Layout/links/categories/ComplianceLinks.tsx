@@ -26,22 +26,5 @@ export const ComplianceLinks: Link[] = [
                     icon: <RiBarChartLine />
                }
           ]
-     },
-     {
-          title: "Quality Assurance",
-          link: "",
-          icon: <RiClipboardLine />,
-          children: [
-               {
-                    title: "Quality Metrics",
-                    link: "/compliance/quality-metrics",
-                    icon: <RiFileList3Line />
-               },
-               {
-                    title: "Audit Trails",
-                    link: "/compliance/audit-trails",
-                    icon: <RiGovernmentLine />
-               }
-          ]
      }
 ];

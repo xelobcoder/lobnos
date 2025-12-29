@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Row, Col, Button, Alert } from 'react-bootstrap';
+import { Row, Col, Button, Alert, Modal } from 'react-bootstrap';
 import { RiShieldCheckLine, RiAddLine, RiDatabaseLine } from '@remixicon/react';
 import Link from 'next/link';
 import { customFetch, customPost } from '../../../../components/Auth/customFetch';
@@ -86,6 +86,10 @@ export default function DataBackupRestorePage() {
      const [loading, setLoading] = useState(false);
 
      const [executingSchedules, setExecutingSchedules] = useState<Set<number>>(new Set());
+
+     // Decrypt modal states
+     const [showDecryptModal, setShowDecryptModal] = useState(false);
+     const [backupToDownload, setBackupToDownload] = useState<BackupLog | null>(null);
 
      // Form states for schedule creation/editing
      const [scheduleForm, setScheduleForm] = useState({
@@ -343,7 +347,6 @@ export default function DataBackupRestorePage() {
                backup_time: schedule.backup_time,
                retention_days: schedule.retention_days,
                backup_type: schedule.backup_type,
-               // coerce to boolean in case API returns 1/0
                is_active: !!(schedule as any).is_active
           });
           setShowEditScheduleModal(true);
@@ -353,12 +356,22 @@ export default function DataBackupRestorePage() {
           toast.info(`Restore initiated from backup: ${backupLog.backup_name}`);
      };
 
-     const handleDownloadFromLog = async (backupLog: BackupLog) => {
+     const handleDownloadFromLog = (backupLog: BackupLog) => {
+          setBackupToDownload(backupLog);
+          setShowDecryptModal(true);
+     };
+
+     const performDownload = async (decrypt: boolean = false) => {
+          if (!backupToDownload) return;
+
           try {
-               const baseUrl = process.env.NEXT_PUBLIC_BASEURL
-               const url = new URL(`${API_BASE}/logs/${backupLog.id}/download`, baseUrl);
+               const baseUrl = process.env.NEXT_PUBLIC_BASEURL;
+               const url = new URL(`${API_BASE}/logs/${backupToDownload.id}/download`, baseUrl);
                if (process.env.NEXT_PUBLIC_TENANTID) {
                     url.searchParams.append("tenantId", process.env.NEXT_PUBLIC_TENANTID);
+               }
+               if (decrypt) {
+                    url.searchParams.append("decrypt", "true");
                }
 
                const response = await fetch(url.toString(), {
@@ -378,9 +391,16 @@ export default function DataBackupRestorePage() {
                const blob = await response.blob();
                const downloadUrl = window.URL.createObjectURL(blob);
 
+               const contentDisposition = response.headers.get('content-disposition');
+               let filename: string | null = null;
+               if (contentDisposition) {
+                    const match = contentDisposition.match(/filename="([^"]+)"/);
+                    if (match) filename = match[1];
+               }
+
                const link = document.createElement('a');
                link.href = downloadUrl;
-               link.download = `${backupLog.backup_name}.encrypted.bin`;
+               link.download = filename  as string;
                link.style.display = 'none';
 
                document.body.appendChild(link);
@@ -389,10 +409,13 @@ export default function DataBackupRestorePage() {
                window.URL.revokeObjectURL(downloadUrl);
                document.body.removeChild(link);
 
-               toast.success(`Download completed for backup: ${backupLog.backup_name}`);
+               toast.success(`Download completed for backup: ${backupToDownload.backup_name}`);
           } catch (error) {
                console.error('Download backup error:', error);
                toast.error(`Failed to download backup file: ${error.message}`);
+          } finally {
+               setShowDecryptModal(false);
+               setBackupToDownload(null);
           }
      };
 
@@ -463,7 +486,7 @@ export default function DataBackupRestorePage() {
 
                <Row className="g-4">
                     <Col lg={12}>
-                         <div className="border bg-white border-secondary-subtle mx-2 p-2 mb-4">
+                         <div className=" mx-2 p-2 mb-4">
                               <div className="d-flex align-items-center gap-2 mb-3">
                                    <RiDatabaseLine size={20} />
                                    <h5 className="mb-0">Backup Overview</h5>
@@ -522,6 +545,27 @@ export default function DataBackupRestorePage() {
                     loading={loading}
                     isEdit={true}
                />
+
+               {/* Decrypt Modal */}
+               <Modal show={showDecryptModal} onHide={() => setShowDecryptModal(false)} centered>
+                    <Modal.Header closeButton>
+                         <Modal.Title>Download Backup</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                         <p>Would you like to decrypt the backup data before downloading?</p>
+                         <div className="alert alert-info">
+                              <strong>Note:</strong> Decrypted backups will be in plain text format. Encrypted backups maintain security but require decryption tools to access.
+                         </div>
+                    </Modal.Body>
+                    <Modal.Footer>
+                         <Button variant="secondary" onClick={() => performDownload(false)}>
+                              Download Encrypted
+                         </Button>
+                         <Button variant="primary" onClick={() => performDownload(true)}>
+                              Download Decrypted
+                         </Button>
+                    </Modal.Footer>
+               </Modal>
           </div>
      );
 }
