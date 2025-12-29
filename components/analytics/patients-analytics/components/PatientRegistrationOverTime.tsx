@@ -69,70 +69,7 @@ const PatientRegistrationOverTime: React.FC = () => {
 	};
 
 	const handlePrint = () => {
-		const printWindow = window.open('', '_blank');
-		if (printWindow) {
-			printWindow.document.write(`
-				<html>
-					<head>
-						<title>Patient Registration Report</title>
-						<style>
-							body { font-family: Arial, sans-serif; margin: 20px; }
-							.header { text-align: center; margin-bottom: 30px; }
-							.summary { display: flex; justify-content: space-around; margin-bottom: 20px; }
-							.summary-item { text-align: center; }
-							table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-							th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-							th { background-color: #f2f2f2; }
-							.print-date { text-align: right; margin-bottom: 20px; color: #666; }
-							@media print { .no-print { display: none; } }
-						</style>
-					</head>
-					<body>
-						<div class="print-date">Generated on: ${new Date().toLocaleDateString()}</div>
-						<div class="header">
-							<h2>Patient Registration Over Time</h2>
-							<p>Period: ${moment(startDate).format('MMM DD, YYYY')} - ${moment(endDate).format('MMM DD, YYYY')}</p>
-						</div>
-						<div class="summary">
-							<div class="summary-item">
-								<h4>${calculateTotals(data).totalPatients.toLocaleString()}</h4>
-								<p>Total Patients</p>
-							</div>
-							<div class="summary-item">
-								<h4>${calculateTotals(data).totalDays}</h4>
-								<p>Days</p>
-							</div>
-							<div class="summary-item">
-								<h4>${calculateTotals(data).avgPatientsPerDay}</h4>
-								<p>Avg per Day</p>
-							</div>
-							<div class="summary-item">
-								<h4>${calculateTotals(data).maxPatientsInDay}</h4>
-								<p>Max per Day</p>
-							</div>
-						</div>
-						<table>
-							<thead>
-								<tr>
-									<th>Registration Date</th>
-									<th>Patient Count</th>
-								</tr>
-							</thead>
-							<tbody>
-								${data.map(item => `
-									<tr>
-										<td>${item.registration_date}</td>
-										<td>${item.patient_count.toLocaleString()}</td>
-									</tr>
-								`).join('')}
-							</tbody>
-						</table>
-					</body>
-				</html>
-			`);
-			printWindow.document.close();
-			printWindow.print();
-		}
+		window.print();
 	};
 
 	const totals = calculateTotals(data);
@@ -223,7 +160,7 @@ const PatientRegistrationOverTime: React.FC = () => {
 
 			{/* Summary Cards */}
 			{!loading && !error && data.length > 0 && (
-				<div className="px-4 py-3">
+				<div className="px-4 py-3 d-print-none">
 					<div className="row g-3 mb-4">
 						<div className="col-md-3">
 							<div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
@@ -332,17 +269,15 @@ const PatientRegistrationOverTime: React.FC = () => {
 
 						{/* Table Section */}
 						<div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-							<div className="d-flex justify-content-between align-items-center mb-3">
-								<h6 className="fw-bold mb-0 d-flex align-items-center">
-									<RiTableLine size={20} className="me-2 text-info" />
+							<div className="print-date-range" style={{ display: 'none' }}>
+								Patient Registration Report Period: {new Date(startDate).toLocaleDateString()} - {new Date(endDate).toLocaleDateString()}
+							</div>
+							<div className="d-flex justify-content-between mb-2">
+								<h4 className="fs-6 fw-medium mb-3">
 									Data Table
-								</h6>
-								<button
-									className="btn btn-sm btn-outline-secondary"
-									onClick={handlePrint}
-									title="Print registration data"
-								>
-									<RiPrinterLine size={16} className="me-1" /> Print
+								</h4>
+								<button className="btn btn-sm btn-outline-primary" onClick={handlePrint}>
+									Print
 								</button>
 							</div>
 							<div className="table-responsive">
@@ -401,6 +336,22 @@ const PatientRegistrationOverTime: React.FC = () => {
 					.printable-table-with-borders th,
 					.printable-table-with-borders td {
 						padding: 0.25rem 0.5rem !important;
+					}
+					.printable-table-with-borders {
+						width: 100% !important;
+						max-width: none !important;
+					}
+					.table-responsive {
+						overflow: visible !important;
+						max-width: none !important;
+					}
+					.container-fluid {
+						max-width: none !important;
+						padding-left: 0 !important;
+						padding-right: 0 !important;
+					}
+					.border {
+						border: none !important;
 					}
 				}
 			`}</style>
