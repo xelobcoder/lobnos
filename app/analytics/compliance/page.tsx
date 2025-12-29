@@ -5,6 +5,10 @@ import { Button, Badge, Alert } from 'react-bootstrap';
 import { customFetch } from '../../../components/Auth/customFetch';
 import Loader from '../../../components/isLoading';
 import dayjs from 'dayjs';
+import { RiBarChartBoxLine, RiAlertLine, RiCheckLine, RiTimeLine, RiUserLine, RiMapPinLine, RiShieldLine, RiRefreshLine } from '@remixicon/react';
+
+const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_BORDER = 'var(--bs-border-color)';
 
 interface ComplianceAnalyticsData {
      totalIncidents: number;
@@ -35,6 +39,8 @@ interface ComplianceAnalyticsData {
      }>;
      incidentsByEmployee: Array<{
           employee_id: number;
+          employee_name: string;
+          employee_email: string;
           count: number;
      }>;
      regulatoryReportingIncidents: number;
@@ -90,63 +96,67 @@ export default function ComplianceAnalyticsPage() {
      }
 
      return (
-          <div className="container-fluid px-4 py-3">
+          <div className="container-fluid p-4">
                {/* Header */}
                <div className="d-flex justify-content-between align-items-center mb-4">
                     <div>
-                         <h2 className="text-dark fw-medium mb-0">Compliance Analytics Dashboard</h2>
-                         <small className="text-muted">Comprehensive insights into compliance incident management</small>
+                         <h2 className="mb-1">
+                              <RiShieldLine className="me-2" />
+                              Compliance Analytics Dashboard
+                         </h2>
+                         <p className="text-muted mb-0">Comprehensive insights into compliance incident management</p>
+                    </div>
+                    <div className="d-flex gap-2">
+                         <button
+                              className="btn btn-outline-secondary btn-sm"
+                              onClick={() => window.location.reload()}
+                         >
+                              <RiRefreshLine className="me-1" />
+                              Refresh Data
+                         </button>
                     </div>
                </div>
 
                {/* Key Metrics Cards */}
                <div className="row g-3 mb-4">
                     <div className="col-md-3">
-                         <div className="border rounded h-100">
-                              <div className="p-3">
-                                   <div className="d-flex align-items-center justify-content-between">
-                                        <div>
-                                             <p className="text-muted mb-1 small">Total Incidents</p>
-                                             <h3 className="mb-0">{analyticsData.totalIncidents}</h3>
-                                        </div>
-                                   </div>
+                         <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <div className="d-flex align-items-center mb-2">
+                                   <RiShieldLine size={20} className="me-2 text-primary" />
+                                   <span className="fw-medium text-muted small">Total Incidents</span>
                               </div>
+                              <div className="fs-4 fw-bold text-primary">{analyticsData.totalIncidents}</div>
+                              <div className="small text-muted">Reported incidents</div>
                          </div>
                     </div>
                     <div className="col-md-3">
-                         <div className="border rounded h-100">
-                              <div className="p-3">
-                                   <div className="d-flex align-items-center justify-content-between">
-                                        <div>
-                                             <p className="text-muted mb-1 small">Open Incidents</p>
-                                             <h3 className="mb-0">{analyticsData.openIncidents}</h3>
-                                        </div>
-                                   </div>
+                         <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <div className="d-flex align-items-center mb-2">
+                                   <RiAlertLine size={20} className="me-2 text-warning" />
+                                   <span className="fw-medium text-muted small">Open Incidents</span>
                               </div>
+                              <div className="fs-4 fw-bold text-warning">{analyticsData.openIncidents}</div>
+                              <div className="small text-muted">Under investigation</div>
                          </div>
                     </div>
                     <div className="col-md-3">
-                         <div className="border rounded h-100">
-                              <div className="p-3">
-                                   <div className="d-flex align-items-center justify-content-between">
-                                        <div>
-                                             <p className="text-muted mb-1 small">Avg Resolution Time</p>
-                                             <h3 className="mb-0">{parseFloat(analyticsData.averageResolutionTime).toFixed(1)} days</h3>
-                                        </div>
-                                   </div>
+                         <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <div className="d-flex align-items-center mb-2">
+                                   <RiTimeLine size={20} className="me-2 text-info" />
+                                   <span className="fw-medium text-muted small">Avg Resolution Time</span>
                               </div>
+                              <div className="fs-4 fw-bold text-info">{parseFloat(analyticsData.averageResolutionTime).toFixed(1)} days</div>
+                              <div className="small text-muted">Time to resolve</div>
                          </div>
                     </div>
                     <div className="col-md-3">
-                         <div className="border rounded h-100">
-                              <div className="p-3">
-                                   <div className="d-flex align-items-center justify-content-between">
-                                        <div>
-                                             <p className="text-muted mb-1 small">Escalation Rate</p>
-                                             <h3 className="mb-0">{analyticsData.escalationRate}%</h3>
-                                        </div>
-                                   </div>
+                         <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <div className="d-flex align-items-center mb-2">
+                                   <RiBarChartBoxLine size={20} className="me-2 text-danger" />
+                                   <span className="fw-medium text-muted small">Escalation Rate</span>
                               </div>
+                              <div className="fs-4 fw-bold text-danger">{analyticsData.escalationRate}%</div>
+                              <div className="small text-muted">Incidents escalated</div>
                          </div>
                     </div>
                </div>
@@ -154,38 +164,40 @@ export default function ComplianceAnalyticsPage() {
                {/* Incident Breakdown */}
                <div className="row g-3 mb-4">
                     <div className="col-md-6">
-                         <div className="border rounded h-100">
-                              <div className="p-3">
-                                   <h6 className="mb-3 fw-bold">Incidents by Type</h6>
-                                   <div className="list-group list-group-flush">
-                                        {analyticsData.incidentsByType.map(type => (
-                                             <div key={type.type} className="list-group-item d-flex justify-content-between align-items-center">
-                                                  {type.type.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                                                  <div className="d-flex align-items-center gap-2">
-                                                       <Badge bg="primary">{type.count}</Badge>
-                                                       <small className="text-muted">{type.percentage}%</small>
-                                                  </div>
+                         <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <h6 className="fw-bold mb-3 d-flex align-items-center">
+                                   <RiShieldLine size={20} className="me-2 text-primary" />
+                                   Incidents by Type
+                              </h6>
+                              <div className="list-group list-group-flush">
+                                   {analyticsData.incidentsByType.map(type => (
+                                        <div key={type.type} className="list-group-item d-flex justify-content-between align-items-center">
+                                             {type.type.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                             <div className="d-flex align-items-center gap-2">
+                                                  <Badge bg="primary">{type.count}</Badge>
+                                                  <small className="text-muted">{type.percentage}%</small>
                                              </div>
-                                        ))}
-                                   </div>
+                                        </div>
+                                   ))}
                               </div>
                          </div>
                     </div>
                     <div className="col-md-6">
-                         <div className="border rounded h-100">
-                              <div className="p-3">
-                                   <h6 className="mb-3 fw-bold">Incidents by Severity</h6>
-                                   <div className="list-group list-group-flush">
-                                        {analyticsData.incidentsBySeverity.map(severity => (
-                                             <div key={severity.severity} className="list-group-item d-flex justify-content-between align-items-center">
-                                                  {severity.severity.charAt(0).toUpperCase() + severity.severity.slice(1)}
-                                                  <div className="d-flex align-items-center gap-2">
-                                                       <Badge bg={severity.severity === 'low' ? 'primary' : severity.severity === 'medium' ? 'warning' : severity.severity === 'high' ? 'danger' : 'dark'}>{severity.count}</Badge>
-                                                       <small className="text-muted">{severity.percentage}%</small>
-                                                  </div>
+                         <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <h6 className="fw-bold mb-3 d-flex align-items-center">
+                                   <RiAlertLine size={20} className="me-2 text-warning" />
+                                   Incidents by Severity
+                              </h6>
+                              <div className="list-group list-group-flush">
+                                   {analyticsData.incidentsBySeverity.map(severity => (
+                                        <div key={severity.severity} className="list-group-item d-flex justify-content-between align-items-center">
+                                             {severity.severity.charAt(0).toUpperCase() + severity.severity.slice(1)}
+                                             <div className="d-flex align-items-center gap-2">
+                                                  <Badge bg={severity.severity === 'low' ? 'primary' : severity.severity === 'medium' ? 'warning' : severity.severity === 'high' ? 'danger' : 'dark'}>{severity.count}</Badge>
+                                                  <small className="text-muted">{severity.percentage}%</small>
                                              </div>
-                                        ))}
-                                   </div>
+                                        </div>
+                                   ))}
                               </div>
                          </div>
                     </div>
@@ -194,37 +206,39 @@ export default function ComplianceAnalyticsPage() {
                {/* Additional Analytics */}
                <div className="row g-3 mb-4">
                     <div className="col-md-6">
-                         <div className="border rounded h-100">
-                              <div className="p-3">
-                                   <h6 className="mb-3 fw-bold">Incidents by Status</h6>
-                                   <div className="list-group list-group-flush">
-                                        {analyticsData.incidentsByStatus.map(status => (
-                                             <div key={status.status} className="list-group-item d-flex justify-content-between align-items-center">
-                                                  {status.status.charAt(0).toUpperCase() + status.status.slice(1)}
-                                                  <div className="d-flex align-items-center gap-2">
-                                                       <Badge bg="secondary">{status.count}</Badge>
-                                                       <small className="text-muted">{status.percentage}%</small>
-                                                  </div>
+                         <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <h6 className="fw-bold mb-3 d-flex align-items-center">
+                                   <RiCheckLine size={20} className="me-2 text-success" />
+                                   Incidents by Status
+                              </h6>
+                              <div className="list-group list-group-flush">
+                                   {analyticsData.incidentsByStatus.map(status => (
+                                        <div key={status.status} className="list-group-item d-flex justify-content-between align-items-center">
+                                             {status.status.charAt(0).toUpperCase() + status.status.slice(1)}
+                                             <div className="d-flex align-items-center gap-2">
+                                                  <Badge bg="secondary">{status.count}</Badge>
+                                                  <small className="text-muted">{status.percentage}%</small>
                                              </div>
-                                        ))}
-                                   </div>
+                                        </div>
+                                   ))}
                               </div>
                          </div>
                     </div>
                     <div className="col-md-6">
-                         <div className="border rounded h-100">
-                              <div className="p-3">
-                                   <h6 className="mb-3 fw-bold">Incidents by Location</h6>
-                                   <div className="list-group list-group-flush">
-                                        {analyticsData.incidentsByLocation.map(location => (
-                                             <div key={location.location} className="list-group-item d-flex justify-content-between align-items-center">
-                                                  <span className="text-truncate" style={{ maxWidth: '200px' }} title={location.location}>
-                                                       {location.location}
-                                                  </span>
-                                                  <Badge bg="info">{location.count}</Badge>
-                                             </div>
-                                        ))}
-                                   </div>
+                         <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <h6 className="fw-bold mb-3 d-flex align-items-center">
+                                   <RiMapPinLine size={20} className="me-2 text-info" />
+                                   Incidents by Location
+                              </h6>
+                              <div className="list-group list-group-flush">
+                                   {analyticsData.incidentsByLocation.map(location => (
+                                        <div key={location.location} className="list-group-item d-flex justify-content-between align-items-center">
+                                             <span className="text-truncate" style={{ maxWidth: '200px' }} title={location.location}>
+                                                  {location.location}
+                                             </span>
+                                             <Badge bg="info">{location.count}</Badge>
+                                        </div>
+                                   ))}
                               </div>
                          </div>
                     </div>
@@ -232,37 +246,52 @@ export default function ComplianceAnalyticsPage() {
 
                <div className="row g-3 mb-4">
                     <div className="col-md-6">
-                         <div className="border rounded h-100">
-                              <div className="p-3">
-                                   <h6 className="mb-3 fw-bold">Incidents by Employee</h6>
-                                   <div className="list-group list-group-flush">
-                                        {analyticsData.incidentsByEmployee.map(employee => (
-                                             <div key={employee.employee_id} className="list-group-item d-flex justify-content-between align-items-center">
-                                                  Employee ID: {employee.employee_id}
-                                                  <Badge bg="success">{employee.count}</Badge>
+                         <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <h6 className="fw-bold mb-3 d-flex align-items-center">
+                                   <RiUserLine size={20} className="me-2 text-primary" />
+                                   Incidents by Employee
+                              </h6>
+                              <div className="list-group list-group-flush">
+                                   {analyticsData.incidentsByEmployee.map(employee => (
+                                        <div key={employee.employee_id} className="list-group-item d-flex justify-content-between align-items-center">
+                                             <div>
+                                                  <div className="fw-medium">{employee.employee_name}</div>
+                                                  <small className="text-muted">{employee.employee_email}</small>
                                              </div>
-                                        ))}
-                                   </div>
+                                             <Badge bg="success">{employee.count}</Badge>
+                                        </div>
+                                   ))}
                               </div>
                          </div>
                     </div>
                     <div className="col-md-6">
-                         <div className="border rounded h-100">
-                              <div className="p-3">
-                                   <div className="d-flex align-items-center justify-content-between">
-                                        <div>
-                                             <p className="text-muted mb-1 small">Regulatory Reporting Incidents</p>
-                                             <h3 className="mb-0">{analyticsData.regulatoryReportingIncidents}</h3>
-                                        </div>
-                                   </div>
+                         <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <h6 className="fw-bold mb-3 d-flex align-items-center">
+                                   <RiShieldLine size={20} className="me-2 text-danger" />
+                                   Regulatory Compliance
+                              </h6>
+                              <div className="d-flex justify-content-between align-items-center mb-2">
+                                   <span className="small">Regulatory Reporting Incidents</span>
+                                   <span className="badge bg-danger">{analyticsData.regulatoryReportingIncidents}</span>
+                              </div>
+                              <div className="d-flex justify-content-between align-items-center mb-2">
+                                   <span className="small">Average Time to Resolution</span>
+                                   <span className="badge bg-info">{parseFloat(analyticsData.averageTimeToResolution).toFixed(1)} days</span>
+                              </div>
+                              <div className="d-flex justify-content-between align-items-center">
+                                   <span className="small">Compliance Health</span>
+                                   <span className="badge bg-success">Good</span>
                               </div>
                          </div>
                     </div>
                </div>
 
                {/* Trend Analysis */}
-               <div className="border rounded p-3 mb-4">
-                    <h5 className="mb-3">Trend Analysis - Systemic Issues</h5>
+               <div className="border rounded p-4 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                    <h5 className="mb-3 d-flex align-items-center">
+                         <RiBarChartBoxLine size={20} className="me-2 text-primary" />
+                         Trend Analysis - Systemic Issues
+                    </h5>
                     <div className="text-center py-4">
                          <div className="text-muted mb-2">📊</div>
                          <p className="text-muted">Systemic issues analysis not available from current API endpoint.</p>
@@ -270,8 +299,11 @@ export default function ComplianceAnalyticsPage() {
                </div>
 
                {/* Monthly Incident Trends */}
-               <div className="border rounded p-3">
-                    <h5 className="mb-3">Monthly Incident Trends</h5>
+               <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                    <h5 className="mb-3 d-flex align-items-center">
+                         <RiTimeLine size={20} className="me-2 text-info" />
+                         Monthly Incident Trends
+                    </h5>
                     <div className="table-responsive">
                          <table className="table table-striped">
                               <thead>
