@@ -154,9 +154,6 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                         >
                             {theme === 'light' ? '🌙' : '☀️'}
                         </button>
-                        <a href={`/human-resource/profile?employeeid=${employeeid}`} className={styles.profileLink} title="Profile">
-                            <span>👤</span>
-                        </a>
                         <button
                             className={styles.fontSelectorButton}
                             onClick={() => setIsFontSelectorOpen(true)}
@@ -191,13 +188,6 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                                                 <span className={styles.dropdownGridLabel}>{link.label}</span>
                                             </a>
                                         ))}
-                                        <a
-                                            href="/human-resource/payroll"
-                                            className={styles.dropdownGridItem}
-                                        >
-                                            <span className={styles.dropdownGridIcon}>💰</span>
-                                            <span className={styles.dropdownGridLabel}>Payroll</span>
-                                        </a>
                                     </div>
                                 </div>
 

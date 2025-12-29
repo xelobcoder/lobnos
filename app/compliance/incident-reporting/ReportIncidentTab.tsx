@@ -24,6 +24,7 @@ const severityLevels = [
 ];
 
 export default function ReportIncidentTab({ onIncidentReported }: ReportIncidentTabProps) {
+     const employeeId = useApplication()?.user.employeeid;
      const [formData, setFormData] = useState({
           type: '',
           title: '',
@@ -49,14 +50,14 @@ export default function ReportIncidentTab({ onIncidentReported }: ReportIncident
                     severity: formData.severity,
                     affectedParties: formData.affectedParties,
                     location: formData.location,
-                    employeeId: store.user.employeeid,
+                    employeeId: employeeId,
                     immediateActions: formData.immediateActions
                };
 
                // Import customPost here to avoid circular dependencies
                const { customPost } = await import('../../../components/Auth/customFetch');
 
-               const response = await customPost('compliance/incidents', 'POST', incidentData);
+               const response = await customPost(`compliance/incidents?employeeId=${employeeId}`, 'POST', incidentData);
 
                if (response && response.success && response.data) {
                     // Add the new incident to the list
@@ -86,107 +87,97 @@ export default function ReportIncidentTab({ onIncidentReported }: ReportIncident
      };
 
      return (
-          <div className="row g-3">
-               <div className="col-12">
-                    <div className="card">
-                         <div className="card-header">
-                              <h5 className="card-title mb-0">Report New Incident</h5>
-                         </div>
-                         <div className="card-body">
-                              <Form onSubmit={handleSubmit}>
-                                   <div className="form-row grid-reg mt-2">
-                                        <label className="pls-label">Incident Type</label>
-                                        <Form.Select
-                                             value={formData.type}
-                                             onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}
-                                             required
-                                             className="custom-select"
-                                        >
-                                             <option value="">Select incident type</option>
-                                             {incidentTypes.map(type => (
-                                                  <option key={type.value} value={type.value}>
-                                                       {type.label}
-                                                  </option>
-                                             ))}
-                                        </Form.Select>
-                                   </div>
-                                   <div className="form-row grid-reg mt-2">
-                                        <label className="pls-label">Severity</label>
-                                        <Form.Select
-                                             value={formData.severity}
-                                             onChange={(e) => setFormData(prev => ({ ...prev, severity: e.target.value }))}
-                                             required
-                                             className="custom-select"
-                                        >
-                                             <option value="">Select severity</option>
-                                             {severityLevels.map(level => (
-                                                  <option key={level.value} value={level.value}>
-                                                       {level.label}
-                                                  </option>
-                                             ))}
-                                        </Form.Select>
-                                   </div>
-                                   <div className="form-row grid-reg mt-2">
-                                        <label className="pls-label">Title</label>
-                                        <Form.Control
-                                             type="text"
-                                             value={formData.title}
-                                             onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                                             placeholder="Brief description of the incident"
-                                             required
-                                             className="custom-input"
-                                        />
-                                   </div>
-                                   <div className="form-row mt-2">
-                                        <label className="pls-label">Description</label>
-                                        <Form.Control
-                                             as="textarea"
-                                             rows={4}
-                                             value={formData.description}
-                                             onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                                             placeholder="Detailed description of what happened"
-                                             required
-                                        />
-                                   </div>
-                                   <div className="form-row grid-reg mt-2">
-                                        <label className="pls-label">Affected Parties</label>
-                                        <Form.Control
-                                             type="text"
-                                             value={formData.affectedParties}
-                                             onChange={(e) => setFormData(prev => ({ ...prev, affectedParties: e.target.value }))}
-                                             placeholder="Patients, staff, or systems affected"
-                                             className="custom-input"
-                                        />
-                                   </div>
-                                   <div className="form-row grid-reg mt-2">
-                                        <label className="pls-label">Location</label>
-                                        <Form.Control
-                                             type="text"
-                                             value={formData.location}
-                                             onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                                             placeholder="Lab section or department"
-                                             className="custom-input"
-                                        />
-                                   </div>
-                                   <div className="form-row mt-2">
-                                        <label className="pls-label">Immediate Actions Taken</label>
-                                        <Form.Control
-                                             as="textarea"
-                                             rows={3}
-                                             value={formData.immediateActions}
-                                             onChange={(e) => setFormData(prev => ({ ...prev, immediateActions: e.target.value }))}
-                                             placeholder="What was done immediately to contain the incident"
-                                        />
-                                   </div>
-                                   <div className="d-flex gap-2 mt-4 justify-content-end">
-                                        <Button type="submit" disabled={isSubmitting} variant="primary" className="px-4">
-                                             {isSubmitting ? 'Reporting...' : 'Report Incident'}
-                                        </Button>
-                                   </div>
-                              </Form>
-                         </div>
-                    </div>
+
+          <Form onSubmit={handleSubmit}>
+               <div className="form-row grid-reg mt-2">
+                    <label className="pls-label">Incident Type</label>
+                    <Form.Select
+                         value={formData.type}
+                         onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}
+                         required
+                         className="custom-select"
+                    >
+                         <option value="">Select incident type</option>
+                         {incidentTypes.map(type => (
+                              <option key={type.value} value={type.value}>
+                                   {type.label}
+                              </option>
+                         ))}
+                    </Form.Select>
                </div>
-          </div>
+               <div className="form-row grid-reg mt-2">
+                    <label className="pls-label">Severity</label>
+                    <Form.Select
+                         value={formData.severity}
+                         onChange={(e) => setFormData(prev => ({ ...prev, severity: e.target.value }))}
+                         required
+                         className="custom-select"
+                    >
+                         <option value="">Select severity</option>
+                         {severityLevels.map(level => (
+                              <option key={level.value} value={level.value}>
+                                   {level.label}
+                              </option>
+                         ))}
+                    </Form.Select>
+               </div>
+               <div className="form-row grid-reg mt-2">
+                    <label className="pls-label">Title</label>
+                    <Form.Control
+                         type="text"
+                         value={formData.title}
+                         onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                         placeholder="Brief description of the incident"
+                         required
+                         className="custom-input"
+                    />
+               </div>
+               <div className="form-row mt-2">
+                    <label className="pls-label">Description</label>
+                    <Form.Control
+                         as="textarea"
+                         rows={4}
+                         value={formData.description}
+                         onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                         placeholder="Detailed description of what happened"
+                         required
+                    />
+               </div>
+               <div className="form-row grid-reg mt-2">
+                    <label className="pls-label">Affected Parties</label>
+                    <Form.Control
+                         type="text"
+                         value={formData.affectedParties}
+                         onChange={(e) => setFormData(prev => ({ ...prev, affectedParties: e.target.value }))}
+                         placeholder="Patients, staff, or systems affected"
+                         className="custom-input"
+                    />
+               </div>
+               <div className="form-row grid-reg mt-2">
+                    <label className="pls-label">Location</label>
+                    <Form.Control
+                         type="text"
+                         value={formData.location}
+                         onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                         placeholder="Lab section or department"
+                         className="custom-input"
+                    />
+               </div>
+               <div className="form-row mt-2">
+                    <label className="pls-label">Immediate Actions Taken</label>
+                    <Form.Control
+                         as="textarea"
+                         rows={3}
+                         value={formData.immediateActions}
+                         onChange={(e) => setFormData(prev => ({ ...prev, immediateActions: e.target.value }))}
+                         placeholder="What was done immediately to contain the incident"
+                    />
+               </div>
+               <div className="d-flex gap-2 mt-4 justify-content-end">
+                    <Button type="submit" disabled={isSubmitting} variant="primary" className="px-4">
+                         {isSubmitting ? 'Reporting...' : 'Report Incident'}
+                    </Button>
+               </div>
+          </Form>
      );
 }

@@ -107,8 +107,23 @@ export const AdminRoleLinks = [
           label: 'Doctor',
           category: 'Healthcare',
           description: 'Doctor portal'
+     },
+     {
+          href: "/human-resource/payroll",
+          icon: <RiMoneyDollarCircleLine size={24} />,
+          text: "Manage payroll and employee compensation",
+          label: 'Payroll',
+          category: 'Human Resources',
+          description: 'Employee payroll management'
+     },
+     {
+          href: '/compliance/incident-reporting',
+          icon: <RiShieldCheckLine size={24} />,
+          text: "Report and manage incidents for quality and compliance tracking",
+          label: 'Incident Reporting',
+          category: 'Quality & Compliance',
+          description: 'Incident reporting and management system'
      }
-
 ];
 
 
@@ -165,6 +180,14 @@ export const LaboratoryScientistRoleLinks = [
           label: 'Instructions',
           category: 'Support',
           description: 'System documentation and procedures'
+     },
+     {
+          href: '/compliance/incident-reporting',
+          icon: <RiShieldCheckLine size={24} />,
+          text: "Report and manage incidents for quality and compliance tracking",
+          label: 'Incident Reporting',
+          category: 'Quality & Compliance',
+          description: 'Incident reporting and management system'
      }
 ];
 
@@ -185,6 +208,14 @@ export const PhelobotomyRoleLinks = [
           label: 'Instructions',
           category: 'Support',
           description: 'Documentation and procedures'
+     },
+     {
+          href: '/compliance/incident-reporting',
+          icon: <RiShieldCheckLine size={24} />,
+          text: "Report and manage incidents for quality and compliance tracking",
+          label: 'Incident Reporting',
+          category: 'Quality & Compliance',
+          description: 'Incident reporting and management system'
      }
 ];
 
@@ -200,12 +231,12 @@ export const SonographerRoleLinks = [
           description: 'Ultrasound and imaging management'
      },
      {
-          href: '/instructions',
-          icon: <RiFileTextLine size={24} />,
-          text: "Access sonography procedures and guidelines",
-          label: 'Instructions',
-          category: 'Support',
-          description: 'Documentation and procedures'
+          href: '/compliance/incident-reporting',
+          icon: <RiShieldCheckLine size={24} />,
+          text: "Report and manage incidents for quality and compliance tracking",
+          label: 'Incident Reporting',
+          category: 'Quality & Compliance',
+          description: 'Incident reporting and management system'
      }
 ];
 

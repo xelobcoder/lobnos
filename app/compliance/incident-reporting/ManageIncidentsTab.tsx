@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { Button } from 'react-bootstrap';
+import React from 'react';
 import { toast } from 'react-toastify';
 import dayjs from 'dayjs';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 import { customPost } from '../../../components/Auth/customFetch';
+import { useApplication } from '../../../components/Auth/useApplicationContext';
 
 interface Incident {
      id: string;
@@ -51,6 +51,7 @@ interface ManageIncidentsTabProps {
      onIncidentsUpdate: (incidents: Incident[]) => void;
      onStartInvestigation: (incident: Incident) => void;
      onViewIncident: (incident: Incident) => void;
+     isAdmin: boolean;
 }
 
 const incidentTypes = [
@@ -76,25 +77,29 @@ const severityLevels = [
      { value: 'critical', label: 'Critical', color: 'bg-red-100 text-red-800' }
 ];
 
-export default function ManageIncidentsTab({ incidents, onIncidentsUpdate, onStartInvestigation, onViewIncident }: ManageIncidentsTabProps) {
+export default function ManageIncidentsTab({ incidents, onIncidentsUpdate, isAdmin, onStartInvestigation, onViewIncident }: ManageIncidentsTabProps) {
+
+     const employeeid = useApplication()?.user.employeeid;
      const updateIncidentStatus = async (incidentId: string, newStatus: Incident['status']) => {
+
           try {
                const updateData = { status: newStatus };
-               const response = await customPost(`compliance/incidents/${incidentId}`, 'PUT', updateData);
+               const response = await customPost(`compliance/incidents/${incidentId}?employeeId=${employeeid}`, 'PUT', updateData);
 
                if (response && response.success && response.data) {
-                    // Update the incident in the local state
-                    onIncidentsUpdate(
-                         incidents.map(inc =>
-                              inc.id === incidentId ? { ...inc, ...response.data } : inc
-                         )
+                    let updatedIncidents = incidents.map(inc =>
+                         inc.id === incidentId ? { ...inc, ...response.data } : inc
                     );
+                    // Filter for non-admin users: only show closed incidents
+                    if (!isAdmin) {
+                         updatedIncidents = updatedIncidents.filter(inc => inc.status === 'closed');
+                    }
+                    onIncidentsUpdate(updatedIncidents);
                     toast.success(`Incident status updated to ${newStatus}`);
                } else {
                     throw new Error('Invalid response from server');
                }
           } catch (error) {
-               console.error('Error updating incident status:', error);
                toast.error('Error updating incident status. Please try again.');
           }
      };
@@ -103,21 +108,25 @@ export default function ManageIncidentsTab({ incidents, onIncidentsUpdate, onSta
           try {
                // Try API first
                const { customFetch } = await import('../../../components/Auth/customFetch');
-               const response = await customFetch(`compliance/incidents?page=${page}&count=${count}&sortby=${sortby}`);
+               const response = await customFetch(`compliance/incidents?page=${page}&count=${count}&sortby=${sortby}&&employeeId=${employeeid}`);
                if (response && response.data && Array.isArray(response.data)) {
-                    // Ensure employee information is included in the response
-                    const incidentsWithEmployeeInfo = response.data.map((incident: any) => ({
+                    let incidentsWithEmployeeInfo = response.data.map((incident: any) => ({
                          ...incident,
                          reportedByUsername: incident.reportedByUsername || 'N/A',
                          reportedByEmail: incident.reportedByEmail || 'N/A',
                          reportedByRole: incident.reportedByRole || 'N/A'
                     }));
+
+                    // Filter for non-admin users: only show closed incidents
+                    if (!isAdmin) {
+                         incidentsWithEmployeeInfo = incidentsWithEmployeeInfo.filter((incident: any) => incident.status === 'closed');
+                    }
+
                     return { result: incidentsWithEmployeeInfo, error: false };
                } else {
                     return { result: [], error: true };
                }
           } catch (error) {
-               console.log('API call failed:', error);
                return { result: [], error: true };
           }
      };
@@ -176,53 +185,55 @@ export default function ManageIncidentsTab({ incidents, onIncidentsUpdate, onSta
                disableSortBy: true,
                Cell: ({ row }: any) => (
                     <div className="d-flex gap-2 flex-wrap">
-                         <button
-                              className="btn btn-outline-info btn-sm"
-                              onClick={() => onViewIncident(row.original)}
-                         >
-                              View
-                         </button>
-                         {row.original.status === 'reported' && (
+                         {(isAdmin || row.original.status === 'closed') && (
                               <button
-                                   className="btn btn-outline-warning btn-sm"
-                                   onClick={() => updateIncidentStatus(row.original.id, 'investigating')}
+                                   className="btn btn-outline-info btn-sm"
+                                   onClick={() => onViewIncident(row.original)}
                               >
-                                   Start Investigation
+                                   View
                               </button>
                          )}
-                         {row.original.status === 'investigating' && (
-                              <button
-                                   className="btn btn-outline-primary btn-sm"
-                                   onClick={() => onStartInvestigation(row.original)}
-                              >
-                                   Root Cause Analysis
-                              </button>
-                         )}
-                         {row.original.status === 'root-cause-analysis' && (
-                              <button
-                                   className="btn btn-outline-secondary btn-sm"
-                                   onClick={() => onStartInvestigation(row.original)}
-                              >
-                                   Update Investigation
-                              </button>
-                         )}
-                         {row.original.status === 'corrective-actions' && (
-                              <button
-                                   className="btn btn-outline-success btn-sm"
-                                   onClick={() => updateIncidentStatus(row.original.id, 'resolved')}
-                              >
-                                   Mark Resolved
-                              </button>
-                         )}
-                         {row.original.status === 'resolved' && (
-                              <button
-                                   className="btn btn-outline-dark btn-sm"
-                                   onClick={() => updateIncidentStatus(row.original.id, 'closed')}
-                              >
-                                   Close Incident
-                              </button>
-                         )}
+                         {
+                              isAdmin && row.original.status !== 'resolved' && row.original.status !== 'closed' && (
+                                   <>
+                                        {row.original.status === 'reported' && (
+                                             <button
+                                                  className="btn btn-outline-warning btn-sm"
+                                                  onClick={() => updateIncidentStatus(row.original.id, 'investigating')}
+                                             >
+                                                  Start Investigation
+                                             </button>
+                                        )}
+                                        {row.original.status === 'investigating' && (
+                                             <button
+                                                  className="btn btn-outline-primary btn-sm"
+                                                  onClick={() => onStartInvestigation(row.original)}
+                                             >
+                                                  Root Cause Analysis
+                                             </button>
+                                        )}
+                                        {row.original.status === 'root-cause-analysis' && (
+                                             <button
+                                                  className="btn btn-outline-secondary btn-sm"
+                                                  onClick={() => onStartInvestigation(row.original)}
+                                             >
+                                                  Update Investigation
+                                             </button>
+                                        )}
+                                        {row.original.status === 'corrective-actions' && (
+                                             <button
+                                                  className="btn btn-outline-success btn-sm"
+                                                  onClick={() => updateIncidentStatus(row.original.id, 'resolved')}
+                                             >
+                                                  Mark Resolved
+                                             </button>
+                                        )}
+                                   </>
+                              )
+                         }
+
                     </div>
+
                )
           }
      ];

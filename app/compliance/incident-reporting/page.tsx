@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import { Button, Form, Modal, Row, Col, Tab, Tabs } from 'react-bootstrap';
 import { customFetch, customPost } from '../../../components/Auth/customFetch';
 import { toast } from 'react-toastify';
@@ -8,7 +8,8 @@ import Loader from '../../../components/isLoading';
 import ReportIncidentTab from './ReportIncidentTab';
 import ManageIncidentsTab from './ManageIncidentsTab';
 import AuditTrailTab from './AuditTrailTab';
-import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
+import { useApplication, useApplicationSettings } from '../../../components/Auth/useApplicationContext';
+import { RiAddBoxFill } from '@remixicon/react';
 
 interface Incident {
      id: string;
@@ -90,13 +91,14 @@ const statusOptions = [
 ];
 
 export default function IncidentReportingPage() {
-     const { user } = useApplicationSettings().applicationsettings;
+     const user = useApplication()?.user;
      const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'manager';
      const [incidents, setIncidents] = useState<Incident[]>([]);
      const [loading, setLoading] = useState(true);
      const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
      const [showModal, setShowModal] = useState(false);
      const [showInvestigationModal, setShowInvestigationModal] = useState(false);
+     const [showCreateModal, setShowCreateModal] = useState(false);
      const [showReportView, setShowReportView] = useState(false);
      const [investigationData, setInvestigationData] = useState({
           rootCause: '',
@@ -111,35 +113,36 @@ export default function IncidentReportingPage() {
      });
 
      // Fetch incidents from API
+
+     
      useEffect(() => {
           const fetchIncidents = async () => {
                try {
                     setLoading(true);
-                    const response = await customFetch('compliance/incidents?page=1&count=10');
+                    if (!user?.employeeid) return;
+                    const response = await customFetch('compliance/incidents?page=1&count=10&&employeeId=' + user?.employeeid);
                     if (response && response.data && Array.isArray(response.data)) {
                          setIncidents(response.data);
                     } else {
                          setIncidents([]);
                     }
                } catch (error) {
-                    console.log('API call failed:', error);
                     setIncidents([]);
                } finally {
                     setLoading(false);
                }
           };
           fetchIncidents();
-     }, []);
+     }, [user?.employeeid]);
 
 
 
      const updateIncidentStatus = async (incidentId: string, newStatus: Incident['status']) => {
           try {
                const updateData = { status: newStatus };
-               const response = await customPost(`compliance/incidents/${incidentId}`, 'PUT', updateData);
+               const response = await customPost(`compliance/incidents/${incidentId}?employeeId=${user?.employeeid}`, 'PUT', updateData);
 
                if (response && response.success && response.data) {
-                    // Update the incident in the local state
                     setIncidents(prev =>
                          prev.map(inc =>
                               inc.id === incidentId ? { ...inc, ...response.data } : inc
@@ -209,7 +212,7 @@ export default function IncidentReportingPage() {
                     }
                };
 
-               const response = await customPost(`compliance/incidents/${selectedIncident.id}`, 'PUT', updateData);
+               const response = await customPost(`compliance/incidents/${selectedIncident.id}?employeeId=${user?.employeeid}`, 'PUT', updateData);
 
                if (response && response.success && response.data) {
                     // Update the incident in the local state
@@ -265,36 +268,29 @@ export default function IncidentReportingPage() {
                               <div className="card-body d-flex flex-column">
                                    <div className="d-flex justify-content-between align-items-center mb-3">
                                         <h2 className="card-title fs-5 fw-bold text-dark">Incident Reporting System</h2>
+                                        <Button variant="primary" onClick={() => setShowCreateModal(true)}>
+                                             <RiAddBoxFill size={20} className="me-2" />
+                                             New Incident
+                                        </Button>
                                    </div>
                                    <div className="flex-grow-1">
-                                        <Tabs defaultActiveKey="report" id="incident-tabs" className="mb-4">
-                                             <Tab eventKey="report" title="Report Incident">
-                                                  <ReportIncidentTab
-                                                       onIncidentReported={(newIncident) => {
-                                                            setIncidents(prev => [newIncident, ...prev]);
+                                        <Tabs defaultActiveKey="manage" id="incident-tabs" className="mb-4">
+                                             <Tab eventKey="manage" title="Manage Incidents">
+                                                  <ManageIncidentsTab
+                                                       incidents={incidents}
+                                                       onIncidentsUpdate={setIncidents}
+                                                       onStartInvestigation={startInvestigation}
+                                                       onViewIncident={(incident) => {
+                                                            setSelectedIncident(incident);
+                                                            setShowModal(true);
                                                        }}
+                                                       isAdmin={isAdmin}
                                                   />
                                              </Tab>
 
-                                             {isAdmin && (
-                                                  <Tab eventKey="manage" title="Manage Incidents">
-                                                       <ManageIncidentsTab
-                                                            incidents={incidents}
-                                                            onIncidentsUpdate={setIncidents}
-                                                            onStartInvestigation={startInvestigation}
-                                                            onViewIncident={(incident) => {
-                                                                 setSelectedIncident(incident);
-                                                                 setShowModal(true);
-                                                            }}
-                                                       />
-                                                  </Tab>
-                                             )}
-
-                                             {isAdmin && (
-                                                  <Tab eventKey="audit" title="Audit Trail">
-                                                       <AuditTrailTab />
-                                                  </Tab>
-                                             )}
+                                             <Tab eventKey="audit" title="Audit Trail">
+                                                  <AuditTrailTab />
+                                             </Tab>
                                         </Tabs>
                                    </div>
                               </div>
@@ -303,7 +299,7 @@ export default function IncidentReportingPage() {
                </div>
 
                {/* Incident Detail Modal */}
-               <Modal show={showModal} onHide={() => { setShowModal(false); setShowReportView(false); }} size={showReportView ? undefined : "xl"} fullscreen={showReportView ? true : undefined} backdrop="static" className="modal-top text-sm">
+               <Modal show={showModal} onHide={() => { setShowModal(false); setShowReportView(false); }} fullscreen={showReportView ? true : undefined} backdrop="static" className="modal-top text-sm">
                     <Modal.Header closeButton >
                          <div className='d-flex justify-content-between col-8'>
                               <Modal.Title>Incident Details - {selectedIncident?.id}</Modal.Title>
@@ -318,7 +314,7 @@ export default function IncidentReportingPage() {
                          {selectedIncident && (
                               showReportView ? (
                                    // Two-column report view
-                                   <div className="row h-100">
+                                   <div className="row h-100 p-2">
                                         {/* Left Column - Incident Details */}
                                         <div className="col-md-6 border-end pe-4" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
                                              <h4 className="fw-bold mb-4 text-primary">INCIDENT DETAILS</h4>
@@ -996,6 +992,22 @@ export default function IncidentReportingPage() {
                               Save Investigation
                          </Button>
                     </Modal.Footer>
+               </Modal>
+
+               {/* Create New Incident Modal */}
+               <Modal show={showCreateModal} onHide={() => setShowCreateModal(false)} size="lg" backdrop="static">
+                    <Modal.Header closeButton>
+                         <Modal.Title>Report New Incident</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                         <ReportIncidentTab
+                              onIncidentReported={(newIncident) => {
+                                   setIncidents(prev => [newIncident, ...prev]);
+                                   setShowCreateModal(false);
+                                   toast.success('Incident reported successfully!');
+                              }}
+                         />
+                    </Modal.Body>
                </Modal>
           </div>
      );

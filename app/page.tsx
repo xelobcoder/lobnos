@@ -53,14 +53,10 @@ export default function page() {
                                                   <RiUserLine className="me-2" size={20} />
                                                   Login to PLS
                                              </Link>
-                                             <Link href="/onboarding" className="btn btn-outline-light btn-lg px-5 py-3 border-2 fw-semibold">
-                                                  <RiFlaskLine className="me-2" size={20} />
-                                                  Setup New Lab
-                                             </Link>
                                         </div>
                                         <Link href="/crm/registration" className="btn btn-link text-warning text-decoration-none fw-semibold">
                                              <RiArrowRightLine className="me-2" size={18} />
-                                             Quick Patient Registration
+                                             Quick Access
                                         </Link>
                                    </div>
                               </div>
