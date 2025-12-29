@@ -84,11 +84,14 @@ export default function BackupScheduleModal({
                               </Col>
                               <Col md={6}>
                                    <Form.Group>
-                                        <Form.Label>Backup Time *</Form.Label>
+                                        <Form.Label>Backup Time (24-hour format) *</Form.Label>
                                         <Form.Control
-                                             type="time"
+                                             type="text"
                                              value={scheduleForm.backup_time}
                                              onChange={(e) => updateForm({ backup_time: e.target.value })}
+                                             placeholder="HH:MM"
+                                             pattern="^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$"
+                                             title="Enter time in 24-hour format (HH:MM)"
                                         />
                                    </Form.Group>
                               </Col>

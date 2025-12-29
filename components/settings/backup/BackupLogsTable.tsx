@@ -21,14 +21,13 @@ interface BackupLog {
 
 interface BackupLogsTableProps {
      backupLogs: BackupLog[];
-     onRestoreBackup?: (backupLog: BackupLog) => void;
      onDownloadBackup?: (backupLog: BackupLog) => void;
      onDeleteBackup?: (backupLog: BackupLog) => void;
      onServerFilter?: (pagination: { count: number, page: number, sortby: string }) => Promise<{ result: any; error: boolean }>;
      loading?: boolean;
 }
 
-export default function BackupLogsTable({ backupLogs, onRestoreBackup, onDownloadBackup, onDeleteBackup, onServerFilter, loading = false }: BackupLogsTableProps) {
+export default function BackupLogsTable({ backupLogs, onDownloadBackup, onDeleteBackup, onServerFilter, loading = false }: BackupLogsTableProps) {
      const columns = [
           {
                Header: 'Backup Name',
@@ -80,16 +79,6 @@ export default function BackupLogsTable({ backupLogs, onRestoreBackup, onDownloa
                accessor: 'actions',
                Cell: ({ row }) => (
                     <div className="d-flex gap-1">
-                         <Button
-                              variant="outline-success"
-                              size="sm"
-                              onClick={() => onRestoreBackup?.(row.original)}
-                              disabled={!row.original.is_successful}
-                              title="Restore from this backup"
-                         >
-                              <RiRefreshLine size={14} className="me-1" />
-                              Restore
-                         </Button>
                          <Button
                               variant="outline-info"
                               size="sm"

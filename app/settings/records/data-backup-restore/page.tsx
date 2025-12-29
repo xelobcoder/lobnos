@@ -352,10 +352,6 @@ export default function DataBackupRestorePage() {
           setShowEditScheduleModal(true);
      };
 
-     const handleRestoreFromLog = (backupLog: BackupLog) => {
-          toast.info(`Restore initiated from backup: ${backupLog.backup_name}`);
-     };
-
      const handleDownloadFromLog = (backupLog: BackupLog) => {
           setBackupToDownload(backupLog);
           setShowDecryptModal(true);
@@ -400,7 +396,7 @@ export default function DataBackupRestorePage() {
 
                const link = document.createElement('a');
                link.href = downloadUrl;
-               link.download = filename  as string;
+               link.download = filename as string;
                link.style.display = 'none';
 
                document.body.appendChild(link);
@@ -510,7 +506,6 @@ export default function DataBackupRestorePage() {
 
                          <BackupLogsTable
                               backupLogs={backupLogs}
-                              onRestoreBackup={handleRestoreFromLog}
                               onDownloadBackup={handleDownloadFromLog}
                               onDeleteBackup={handleDeleteFromLog}
                               onServerFilter={handleLogsServerFilter}

@@ -6,6 +6,7 @@ import { RiShieldCheckLine, RiSettings4Line, RiSaveLine } from '@remixicon/react
 import { customFetch, customPost } from '../../../../components/Auth/customFetch';
 import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
 import { toast } from 'react-toastify';
+import { useApplication } from '../../../../components/Auth/useApplicationContext';
 
 interface Employee {
      employeeid: number;
@@ -45,6 +46,7 @@ export default function ResultAccessibleSettingsPage() {
      const [employeeEditWindow, setEmployeeEditWindow] = useState<'1h' | '4h' | '8h' | '12h' | '24h' | '1d' | '1w' | '2w' | '1m'>('24h');
      const [employeeAccessWindow, setEmployeeAccessWindow] = useState<'1h' | '4h' | '8h' | '12h' | '24h' | '1d' | '1w' | '2w' | '1m'>('24h');
      const [employeeRequireApproval, setEmployeeRequireApproval] = useState(true);
+     const currentUser = useApplication()?.user?.employeeid;
 
      const [isSavingDefaults, setIsSavingDefaults] = useState(false);
      const [isSavingIndividual, setIsSavingIndividual] = useState(false);
@@ -118,7 +120,7 @@ export default function ResultAccessibleSettingsPage() {
           try {
                const payload = {
                     ...(editingGlobalId && { id: editingGlobalId }),
-                    employeeid: 0,
+                    employeeid:0,
                     category: "global",
                     edit_window: defaultEditWindow,
                     access_window: defaultAccessWindow,

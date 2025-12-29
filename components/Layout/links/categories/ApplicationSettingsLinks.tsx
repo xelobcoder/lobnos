@@ -101,12 +101,10 @@ export const ApplicationSettingsLinks: Link[] =
             icon: <RiFileListLine />,
             children: [
                 { title: "Record Management", link: "/settings/records", icon: <RiFileListLine /> },
-                { title: "Data Retention", link: "/settings/records/retention", icon: <RiFileTextLine /> },
                 { title: "Result Accessibility", link: "/settings/records/result-accessible-settings", icon: <RiEyeLine /> },
                 { title: "Result Access Requests", link: "/settings/records/result-access-requests", icon: <RiListCheck2 /> },
                 { title: "Data Backup & Restore", link: "/settings/records/data-backup-restore", icon: <RiShieldCheckLine /> },
                 { title: "Backup Security", link: "/settings/records/backup-security", icon: <RiShieldLine /> },
-                { title: "Audit Logs", link: "/settings/records/audit", icon: <RiListCheck2 /> }
             ]
         },
         { title: "Email Management", link: "/crm/customers/send-email", icon: <RiMailSettingsLine /> }
