@@ -13,9 +13,9 @@ import {
 	Legend,
 	ResponsiveContainer
 } from 'recharts';
-import { RiLineChartLine, RiTableLine, RiPrinterLine, RiErrorWarningLine, RiInbox2Line, RiLoader4Line } from "@remixicon/react";
+import { RiLineChartLine, RiTableLine, RiPrinterLine, RiErrorWarningLine, RiInbox2Line, RiLoader4Line, RiUserLine, RiCalendarLine, RiBarChartLine, RiTimeLine } from "@remixicon/react";
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)'; // Primary chart color
+const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
 const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
 const COLOR_BORDER = 'var(--bs-border-color)';
 const COLOR_TOOLTIP_BG = 'var(--bs-body-bg)';
@@ -69,11 +69,9 @@ const PatientRegistrationOverTime: React.FC = () => {
 	};
 
 	const handlePrint = () => {
-		const printContent = document.getElementById('registration-print');
-		if (printContent) {
-			const printWindow = window.open('', '_blank');
-			if (printWindow) {
-				printWindow.document.write(`
+		const printWindow = window.open('', '_blank');
+		if (printWindow) {
+			printWindow.document.write(`
 				<html>
 					<head>
 						<title>Patient Registration Report</title>
@@ -132,9 +130,8 @@ const PatientRegistrationOverTime: React.FC = () => {
 					</body>
 				</html>
 			`);
-				printWindow.document.close();
-				printWindow.print();
-			}
+			printWindow.document.close();
+			printWindow.print();
 		}
 	};
 
@@ -177,124 +174,102 @@ const PatientRegistrationOverTime: React.FC = () => {
 	}
 
 	return (
-		<div className="card" style={{ borderRadius: '0.75rem', borderColor: COLOR_BORDER }}>
-			<div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
-				<div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
-					<h2 className="fs-6 fw-semibold text-body-emphasis mb-3 mb-lg-0 d-flex align-items-center">
-						<RiLineChartLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" />
-						Patient Registration Over Time
-					</h2>
-					<div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
-						<div className="d-flex align-items-center gap-2">
-							<label htmlFor="start-date-input" className="mb-0 small fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Start Date:</label>
+		<div className="container-fluid p-4">
+			<div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-4">
+				<h2 className="fs-6 fw-semibold text-body-emphasis mb-3 mb-lg-0 d-flex align-items-center">
+					<RiLineChartLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" />
+					Patient Registration Over Time
+				</h2>
+				<div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
+					<div className="d-flex align-items-center gap-2 mt-2 mt-sm-0 mx-4">
+						<div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
+							<span className="input-group-text bg-transparent border-end-0" style={{ borderColor: COLOR_BORDER }}>
+								<RiCalendarLine size={16} className="text-muted" />
+							</span>
 							<input
 								id="start-date-input"
 								type="date"
-								className="form-control form-control-sm shadow-none"
-								style={{ width: 130, fontSize: '0.875rem', borderColor: COLOR_BORDER }}
+								className="form-control shadow-none border-start-0"
 								value={startDate}
 								max={endDate}
 								onChange={e => setStartDate(e.target.value)}
 							/>
-							<label htmlFor="end-date-input" className="mb-0 small fw-medium" style={{ color: COLOR_TEXT_MUTED }}>End Date:</label>
+						</div>
+						<div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
+							<span className="input-group-text bg-transparent border-end-0" style={{ borderColor: COLOR_BORDER }}>
+								<RiCalendarLine size={16} className="text-muted" />
+							</span>
 							<input
 								id="end-date-input"
 								type="date"
-								className="form-control form-control-sm shadow-none"
-								style={{ width: 130, fontSize: '0.875rem', borderColor: COLOR_BORDER }}
+								className="form-control shadow-none border-start-0"
 								value={endDate}
 								min={startDate}
 								onChange={e => setEndDate(e.target.value)}
 							/>
-							<button
-								className="btn btn-sm btn-primary d-flex align-items-center"
-								style={{ backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT, fontSize: '0.875rem', padding: '0.25rem 0.75rem' }}
-								onClick={() => fetchRegistrationData(startDate, endDate)}
-								disabled={loading}
-							>
-								{loading ? <RiLoader4Line size={14} className="animate-spin me-1" /> : null}
-								{loading ? 'Loading...' : 'Apply'}
-							</button>
 						</div>
+						<button
+							className="btn btn-sm btn-primary d-flex align-items-center"
+							style={{ backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT, fontSize: '0.875rem', padding: '0.25rem 0.75rem' }}
+							onClick={() => fetchRegistrationData(startDate, endDate)}
+							disabled={loading}
+						>
+							{loading ? <RiLoader4Line size={14} className="animate-spin me-1" /> : null}
+							{loading ? 'Loading...' : 'Apply'}
+						</button>
 					</div>
 				</div>
 			</div>
 
 			{/* Summary Cards */}
 			{!loading && !error && data.length > 0 && (
-				<div className="card-body px-4 pt-3 pb-2">
-					<div className="row g-3 mb-3">
+				<div className="px-4 py-3">
+					<div className="row g-3 mb-4">
 						<div className="col-md-3">
-							<div className="card h-100" style={{ borderRadius: '0.5rem', borderColor: COLOR_BORDER }}>
-								<div className="card-body text-center p-3">
-									<div className="d-flex align-items-center justify-content-center mb-2">
-										<span className="me-2" style={{ color: COLOR_ACCENT, fontSize: 24 }}>
-											<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" /><path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-										</span>
-										<h4 className="mb-0 fw-bold" style={{ color: COLOR_ACCENT }}>{totals.totalPatients.toLocaleString()}</h4>
-									</div>
-									<p className="text-muted mb-0 small" style={{ color: COLOR_TEXT_MUTED }}>Total Patients</p>
+							<div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+								<div className="d-flex align-items-center mb-2">
+									<RiUserLine size={20} className="me-2 text-primary" />
+									<span className="fw-medium text-muted small">Total Patients</span>
 								</div>
+								<div className="fs-4 fw-bold text-primary">{totals.totalPatients.toLocaleString()}</div>
+								<div className="small text-muted">Registered patients</div>
 							</div>
 						</div>
 						<div className="col-md-3">
-							<div className="card h-100" style={{ borderRadius: '0.5rem', borderColor: COLOR_BORDER }}>
-								<div className="card-body text-center p-3">
-									<div className="d-flex align-items-center justify-content-center mb-2">
-										<span className="me-2" style={{ color: COLOR_ACCENT, fontSize: 24 }}>
-											<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" /><path d="M9 9h6v6H9z" stroke="currentColor" strokeWidth="2" /></svg>
-										</span>
-										<h4 className="mb-0 fw-bold" style={{ color: COLOR_ACCENT }}>{totals.totalDays}</h4>
-									</div>
-									<p className="text-muted mb-0 small" style={{ color: COLOR_TEXT_MUTED }}>Days</p>
+							<div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+								<div className="d-flex align-items-center mb-2">
+									<RiCalendarLine size={20} className="me-2 text-info" />
+									<span className="fw-medium text-muted small">Total Days</span>
 								</div>
+								<div className="fs-4 fw-bold text-info">{totals.totalDays}</div>
+								<div className="small text-muted">Period covered</div>
 							</div>
 						</div>
 						<div className="col-md-3">
-							<div className="card h-100" style={{ borderRadius: '0.5rem', borderColor: COLOR_BORDER }}>
-								<div className="card-body text-center p-3">
-									<div className="d-flex align-items-center justify-content-center mb-2">
-										<span className="me-2" style={{ color: COLOR_ACCENT, fontSize: 24 }}>
-											<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 4h4v16H4V4h4" stroke="currentColor" strokeWidth="2" /><path d="M9 8h6M9 12h6M9 16h6" stroke="currentColor" strokeWidth="2" /></svg>
-										</span>
-										<h4 className="mb-0 fw-bold" style={{ color: COLOR_ACCENT }}>{totals.avgPatientsPerDay}</h4>
-									</div>
-									<p className="text-muted mb-0 small" style={{ color: COLOR_TEXT_MUTED }}>Avg per Day</p>
+							<div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+								<div className="d-flex align-items-center mb-2">
+									<RiBarChartLine size={20} className="me-2 text-success" />
+									<span className="fw-medium text-muted small">Avg per Day</span>
 								</div>
+								<div className="fs-4 fw-bold text-success">{totals.avgPatientsPerDay}</div>
+								<div className="small text-muted">Daily average</div>
 							</div>
 						</div>
 						<div className="col-md-3">
-							<div className="card h-100" style={{ borderRadius: '0.5rem', borderColor: COLOR_BORDER }}>
-								<div className="card-body text-center p-3">
-									<div className="d-flex align-items-center justify-content-center mb-2">
-										<span className="me-2" style={{ color: COLOR_ACCENT, fontSize: 24 }}>
-											<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-										</span>
-										<h4 className="mb-0 fw-bold" style={{ color: COLOR_ACCENT }}>{totals.maxPatientsInDay}</h4>
-									</div>
-									<p className="text-muted mb-0 small" style={{ color: COLOR_TEXT_MUTED }}>Max per Day</p>
+							<div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+								<div className="d-flex align-items-center mb-2">
+									<RiTimeLine size={20} className="me-2 text-warning" />
+									<span className="fw-medium text-muted small">Max per Day</span>
 								</div>
+								<div className="fs-4 fw-bold text-warning">{totals.maxPatientsInDay}</div>
+								<div className="small text-muted">Peak registration</div>
 							</div>
 						</div>
 					</div>
 				</div>
 			)}
 
-			<div className="card-body p-3 p-md-4">
-				{/* Print Button */}
-				{!loading && !error && data.length > 0 && (
-					<div className="d-flex justify-content-end">
-						<button
-							className="btn btn-sm btn-outline-secondary d-flex align-items-center"
-							onClick={handlePrint}
-							title="Print Report"
-							style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}
-						>
-							<RiPrinterLine size={16} className="me-1" /> Print
-						</button>
-					</div>
-				)}
-
+			<div className="px-4 py-3">
 				{loading ? (
 					<div className="d-flex flex-column justify-content-center align-items-center" style={{ minHeight: '350px' }}>
 						<RiLoader4Line size={48} className="animate-spin mb-3" style={{ color: COLOR_ACCENT }} />
@@ -309,8 +284,12 @@ const PatientRegistrationOverTime: React.FC = () => {
 				) : data.length > 0 ? (
 					<>
 						{/* Chart Section */}
-						<div style={{ width: "100%", height: 350, marginBottom: '2rem' }}>
-							<ResponsiveContainer>
+						<div className="border rounded p-4 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+							<h6 className="fw-bold mb-3 d-flex align-items-center">
+								<RiLineChartLine size={20} className="me-2 text-primary" />
+								Patient Registration Trend
+							</h6>
+							<ResponsiveContainer width="100%" height={350}>
 								<LineChart data={data} margin={{ top: 5, right: 5, left: 20, bottom: 45 }}>
 									<CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
 									<XAxis
@@ -352,24 +331,38 @@ const PatientRegistrationOverTime: React.FC = () => {
 						</div>
 
 						{/* Table Section */}
-						<div id="registration-print" className="table-responsive">
-							<h6 className="fw-semibold mb-3" style={{ color: 'var(--bs-body-color)' }}>Data Table</h6>
-							<table className="table table-sm table-hover table-striped small printable-table-with-borders">
-								<thead className="sticky-top bg-body-tertiary">
-									<tr>
-										<th scope="col" className="py-2">Registration Date</th>
-										<th scope="col" className="py-2 text-end">Patient Count</th>
-									</tr>
-								</thead>
-								<tbody>
-									{data.map((item, index) => (
-										<tr key={index}>
-											<td className="py-2">{item.registration_date}</td>
-											<td className="py-2 text-end fw-semibold" style={{ color: COLOR_ACCENT }}>{item.patient_count.toLocaleString()}</td>
+						<div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+							<div className="d-flex justify-content-between align-items-center mb-3">
+								<h6 className="fw-bold mb-0 d-flex align-items-center">
+									<RiTableLine size={20} className="me-2 text-info" />
+									Data Table
+								</h6>
+								<button
+									className="btn btn-sm btn-outline-secondary"
+									onClick={handlePrint}
+									title="Print registration data"
+								>
+									<RiPrinterLine size={16} className="me-1" /> Print
+								</button>
+							</div>
+							<div className="table-responsive">
+								<table className="table table-sm table-hover table-striped small printable-table-with-borders">
+									<thead className="sticky-top bg-body-tertiary">
+										<tr>
+											<th scope="col" className="py-2">Registration Date</th>
+											<th scope="col" className="py-2 text-end">Patient Count</th>
 										</tr>
-									))}
-								</tbody>
-							</table>
+									</thead>
+									<tbody>
+										{data.map((item, index) => (
+											<tr key={index}>
+												<td className="py-2">{item.registration_date}</td>
+												<td className="py-2 text-end fw-semibold" style={{ color: COLOR_ACCENT }}>{item.patient_count.toLocaleString()}</td>
+											</tr>
+										))}
+									</tbody>
+								</table>
+							</div>
 						</div>
 					</>
 				) : (
