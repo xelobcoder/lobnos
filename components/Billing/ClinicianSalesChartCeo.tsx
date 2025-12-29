@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-    ResponsiveContainer
+    ResponsiveContainer, LineChart, Line, AreaChart, Area
 } from 'recharts';
-import { RiUserHeartLine } from '@remixicon/react';
+import { RiUserHeartLine, RiBarChartBoxLine, RiLineChartLine, RiBubbleChartLine } from '@remixicon/react';
 
 interface ClinicianSale {
     sale_date: string;
@@ -114,6 +114,110 @@ export function CeoClinicianSalesChart({ data }: ClinicianSalesProps) {
         return Array.from(clinicianMap.values()).sort((a, b) => b.total_value - a.total_value);
     }, [data]);
 
+    const [chartType, setChartType] = useState<'bar' | 'line' | 'area'>('bar');
+
+    const viewButtons = [
+        { type: 'bar' as const, label: 'Bar', icon: RiBarChartBoxLine },
+        { type: 'line' as const, label: 'Line', icon: RiLineChartLine },
+        { type: 'area' as const, label: 'Area', icon: RiBubbleChartLine }
+    ];
+
+    const renderChart = () => {
+        const commonProps = {
+            data: aggregatedData,
+            margin: { top: 5, right: 5, left: 12, bottom: 45 }
+        };
+
+        const xAxisProps = {
+            dataKey: 'clinician_name',
+            tickLine: false,
+            axisLine: false,
+            stroke: 'var(--bs-secondary-color)',
+            fontSize: 12,
+            angle: -45,
+            textAnchor: 'end' as const,
+            height: 60,
+            interval: 'preserveStartEnd' as const
+        };
+
+        const yAxisProps = {
+            tickLine: false,
+            axisLine: false,
+            stroke: 'var(--bs-secondary-color)',
+            fontSize: 12,
+            tickFormatter: compactCurrencyFormatter,
+            width: 80
+        };
+
+        if (chartType === 'bar') {
+            return (
+                <BarChart {...commonProps}>
+                    <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" />
+                    <XAxis {...xAxisProps} />
+                    <YAxis {...yAxisProps} />
+                    <Tooltip cursor={{ fill: 'var(--bs-tertiary-bg)' }} content={<ChartTooltip />} />
+                    <Bar dataKey="total_value" fill="oklch(0.646 0.222 41.116)" radius={[4, 4, 0, 0]} />
+                </BarChart>
+            );
+        }
+
+        if (chartType === 'line') {
+            return (
+                <LineChart {...commonProps}>
+                    <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" />
+                    <XAxis {...xAxisProps} />
+                    <YAxis {...yAxisProps} />
+                    <Tooltip cursor={{ fill: 'var(--bs-tertiary-bg)' }} content={<ChartTooltip />} />
+                    <Line
+                        type="monotone"
+                        dataKey="total_value"
+                        stroke="oklch(0.646 0.222 41.116)"
+                        strokeWidth={2}
+                        dot={{ r: 3, strokeWidth: 1, fill: "oklch(0.646 0.222 41.116)" }}
+                        activeDot={{ r: 6, strokeWidth: 1.5, fill: "oklch(0.646 0.222 41.116)", stroke: 'var(--bs-body-bg)' }}
+                    />
+                </LineChart>
+            );
+        }
+
+        if (chartType === 'area') {
+            return (
+                <AreaChart {...commonProps}>
+                    <defs>
+                        <linearGradient id="colorFill" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="oklch(0.646 0.222 41.116)" stopOpacity={0.5} />
+                            <stop offset="95%" stopColor="oklch(0.646 0.222 41.116)" stopOpacity={0.05} />
+                        </linearGradient>
+                    </defs>
+                    <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" />
+                    <XAxis {...xAxisProps} />
+                    <YAxis {...yAxisProps} />
+                    <Tooltip cursor={{ fill: 'var(--bs-tertiary-bg)' }} content={<ChartTooltip />} />
+                    <Area
+                        type="monotone"
+                        dataKey="total_value"
+                        stroke="oklch(0.646 0.222 41.116)"
+                        fill="url(#colorFill)"
+                        strokeWidth={2}
+                        dot={{ r: 3, strokeWidth: 1, fill: "oklch(0.646 0.222 41.116)" }}
+                        activeDot={{ r: 6, strokeWidth: 1.5, fill: "oklch(0.646 0.222 41.116)", stroke: 'var(--bs-body-bg)' }}
+                    />
+                </AreaChart>
+            );
+        }
+
+        // Default to bar chart if somehow none match
+        return (
+            <BarChart {...commonProps}>
+                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" />
+                <XAxis {...xAxisProps} />
+                <YAxis {...yAxisProps} />
+                <Tooltip cursor={{ fill: 'var(--bs-tertiary-bg)' }} content={<ChartTooltip />} />
+                <Bar dataKey="total_value" fill="oklch(0.646 0.222 41.116)" radius={[4, 4, 0, 0]} />
+            </BarChart>
+        );
+    };
+
     if (!aggregatedData || aggregatedData.length === 0) {
         return (
             <div className="border rounded mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
@@ -137,14 +241,34 @@ export function CeoClinicianSalesChart({ data }: ClinicianSalesProps) {
     return (
         <div className="border rounded mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
             <div className="p-3 border-bottom" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: 'var(--bs-border-color)' }}>
-                <h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
-                    <RiUserHeartLine className="me-2" size={20} style={{ color: 'oklch(0.646 0.222 41.116)' }} />
-                    Clinician Sales Performance
-                </h2>
+                <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
+                    <h2 className="fs-6 fw-semibold text-body-emphasis mb-3 mb-lg-0 d-flex align-items-center">
+                        <RiUserHeartLine className="me-2" size={20} style={{ color: 'oklch(0.646 0.222 41.116)' }} />
+                        Clinician Sales Performance
+                    </h2>
+                    <div className="btn-group btn-group-sm" role="group" aria-label="Chart type">
+                        {viewButtons.map(btn => (
+                            <button
+                                key={btn.type}
+                                type="button"
+                                className={`btn ${chartType === btn.type ? 'btn-primary active' : 'btn-outline-secondary'}`}
+                                onClick={() => setChartType(btn.type)}
+                                style={chartType === btn.type ? { backgroundColor: 'oklch(0.646 0.222 41.116)', borderColor: 'oklch(0.646 0.222 41.116)' } : {}}
+                            >
+                                <btn.icon size={16} className="me-1 align-text-bottom" /> {btn.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
             </div>
             <div className="p-3">
                 <div className="row g-3">
-                    <div className="col-12 col-lg-6">
+                    <div className="col-12">
+                        <ResponsiveContainer width="100%" height={300}>
+                            {renderChart()}
+                        </ResponsiveContainer>
+                    </div>
+                    <div className="col-12">
                         <div className="table-responsive">
                             <table className="table table-sm table-hover table-striped small">
                                 <thead className="table-light">
@@ -170,17 +294,6 @@ export function CeoClinicianSalesChart({ data }: ClinicianSalesProps) {
                                 </tbody>
                             </table>
                         </div>
-                    </div>
-                    <div className="col-12 col-lg-6">
-                        <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={aggregatedData} margin={{ left: 12, right: 12 }}>
-                                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" />
-                                <XAxis dataKey="clinician_name" tickLine={false} axisLine={false} stroke="var(--bs-secondary-color)" fontSize={12} />
-                                <YAxis tickLine={false} axisLine={false} stroke="var(--bs-secondary-color)" fontSize={12} tickFormatter={compactCurrencyFormatter} />
-                                <Tooltip cursor={{ fill: 'var(--bs-tertiary-bg)' }} content={<ChartTooltip />} />
-                                <Bar dataKey="total_value" fill="oklch(0.646 0.222 41.116)" radius={[4, 4, 0, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
                     </div>
                 </div>
             </div>

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
-import { customPost, customFetch, validatePin } from '../../../../../../components/Auth/customFetch';
+import { customPost, customFetch, validatePin, generateRandomTextAndNumbers } from '../../../../../../components/Auth/customFetch';
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import Loader from '../../../../../../components/accessories/Loader';
@@ -14,6 +14,7 @@ import { RiFileTextLine, RiImageLine, RiHistoryLine } from '@remixicon/react';
 import AccessHistoryTab from './AccessHistoryTab';
 import AccessRequestForm from './AccessRequestForm';
 import ImageUploadTab from './ImageUploadTab';
+import { plsEncryption } from '../../../../../../lib/encryption';
 const MARKDOWN_EDITOR = dynamic(() => import('../../../../../../components/accessories/markdownEditor'), { ssr: false });
 
 
@@ -153,6 +154,14 @@ export default function EnterResultUltrasound() {
 				toast.success(message, { autoClose: 3000 });
 			} else {
 				toast.error(message, { autoClose: 3000 });
+
+				if (statusCode == 500 && message == "Edit window period has elapsed, you can no longer edit this result") {
+					const confimation = window.confirm("Your edit window has elapsed. Do you want to request access to edit this result?");
+					if (confimation) {
+						// redirect to request access page
+						window.open(`/operations/imaging/ultrasound/access-request?ascensionid=${ascensionid}${patientid ? `&patientid=${generateRandomTextAndNumbers(50) + patientid}` : ''}`, '_blank');
+					}
+				}
 			}
 		} catch (error) {
 			console.error(error);

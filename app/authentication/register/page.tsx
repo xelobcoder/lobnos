@@ -5,6 +5,7 @@ import Loader from '../../../components/accessories/Loader';
 import { useSearchParams } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { z } from 'zod';
+import { useApplication } from '../../../components/Auth/useApplicationContext';
 
 const schema = z.object({
 	name: z.string().min(1, 'Name is required'),
@@ -52,10 +53,10 @@ interface Branch {
 export default function AuthenticationIndexPage() {
 	const searchParams = useSearchParams();
 	const employeeid = searchParams ? searchParams.get('employeeid') : null;
-
 	const [register, setRegister] = useState<RegisterData>(defaultData);
 	const [isLoading, setLoading] = useState<boolean>(false);
 	const [branches, setBranches] = useState<Branch[]>([]);
+	const currentUserEmployeeid = useApplication()?.user?.employeeid;
 
 	const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
 		const { name, value } = e.target;
@@ -102,7 +103,7 @@ export default function AuthenticationIndexPage() {
 					data,
 					false,
 					["name", "email", "password", "cpassword", "role", "mobile", "pin"],
-					employeeid ? 'logins/update' : 'logins',
+					employeeid ? 'logins/update?employeeid=' + currentUserEmployeeid : 'logins',
 					(response) => {
 						handleResponse(response, toast);
 						if (response.status === "success" && !employeeid) {
@@ -182,7 +183,7 @@ export default function AuthenticationIndexPage() {
 												className="form-control border-1 py-2"
 												placeholder="Enter username"
 												required
-						
+
 											/>
 										</div>
 										<div className="col-md-6">

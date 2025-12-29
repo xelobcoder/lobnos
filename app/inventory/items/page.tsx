@@ -79,6 +79,13 @@ interface StorageLocation {
      updated_at: string;
 }
 
+interface ConsumptionUnit {
+     id: string;
+     name: string;
+     description: string;
+     is_standard: number;
+}
+
 const STATUS_BADGES = {
      in_stock: { label: 'In Stock', color: 'success' },
      low_stock: { label: 'Low Stock', color: 'warning' },
@@ -95,6 +102,7 @@ export default function InventoryItemsPage() {
      const [suppliers, setSuppliers] = useState<Supplier[]>([]);
      const [brands, setBrands] = useState<Brand[]>([]);
      const [storageLocations, setStorageLocations] = useState<StorageLocation[]>([]);
+     const [consumptionUnits, setConsumptionUnits] = useState<ConsumptionUnit[]>([]);
      const [showAddModal, setShowAddModal] = useState(false);
      const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
      const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
@@ -112,7 +120,7 @@ export default function InventoryItemsPage() {
           category: '',
           sku: '',
           description: '',
-          consumption_unit: 'pieces', // Changed from unit
+          consumption_unit: '1', // Default to Pieces (ID: 1)
           currentStock: 0,
           minStock: 0,
           maxStock: 0,
@@ -215,6 +223,17 @@ export default function InventoryItemsPage() {
           }
      };
 
+     const loadConsumptionUnits = async () => {
+          try {
+               const response = await customFetch(`inventory/units?branchid=${branchid}&employeeid=${employeeid}`);
+               if (response.success) {
+                    setConsumptionUnits(response.data.units || []);
+               }
+          } catch (error) {
+               console.error('Error loading consumption units:', error);
+          }
+     };
+
      // Load all data on component mount
      useEffect(() => {
           if (branchid && employeeid) {
@@ -223,6 +242,7 @@ export default function InventoryItemsPage() {
                loadSuppliers();
                loadBrands();
                loadStorageLocations();
+               loadConsumptionUnits();
           }
      }, [branchid, employeeid]);
 
@@ -288,7 +308,7 @@ export default function InventoryItemsPage() {
                accessor: 'currentStock',
                Cell: ({ row }) => (
                     <div>
-                         <span className="fw-bold">{row.original.currentStock} {row.original.consumption_unit}</span>
+                         <span className="fw-bold">{row.original.currentStock} {row.original.consumption_unit_name || row.original.consumption_unit}</span>
                          <br />
                          <small className="text-muted">
                               Min: {row.original.minStock} | Max: {row.original.maxStock}
@@ -494,7 +514,7 @@ export default function InventoryItemsPage() {
                category: item.category || '',
                sku: item.sku || '',
                description: item.description || '',
-               consumption_unit: item.consumption_unit || 'pieces',
+               consumption_unit: item.consumption_unit || '1',
                currentStock: item.currentStock || 0,
                minStock: item.minStock || 0,
                maxStock: item.maxStock || 0,
@@ -667,7 +687,7 @@ export default function InventoryItemsPage() {
                category: '',
                sku: '',
                description: '',
-               consumption_unit: 'pieces',
+               consumption_unit: '1', // Default to Pieces (ID: 1)
                currentStock: 0,
                minStock: 0,
                maxStock: 0,
@@ -775,14 +795,12 @@ export default function InventoryItemsPage() {
                                                             value={itemForm.consumption_unit}
                                                             onChange={(e) => setItemForm(prev => ({ ...prev, consumption_unit: e.target.value }))}
                                                        >
-                                                            <option value="pieces">Pieces</option>
-                                                            <option value="boxes">Boxes</option>
-                                                            <option value="bottles">Bottles</option>
-                                                            <option value="packs">Packs</option>
-                                                            <option value="liters">Liters</option>
-                                                            <option value="kg">Kilograms</option>
-                                                            <option value="ml">Milliliters</option>
-                                                            <option value="tubes">Tubes</option>
+                                                            <option value="">Select unit</option>
+                                                            {consumptionUnits.map(unit => (
+                                                                 <option key={unit.id} value={unit.id}>
+                                                                      {unit.name}
+                                                                 </option>
+                                                            ))}
                                                        </select>
                                                   </div>
                                                   <div className="row">

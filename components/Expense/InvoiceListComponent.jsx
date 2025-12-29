@@ -109,7 +109,6 @@ const InvoiceList = ({ branchid, employeeid }) => {
                     setInvoicePayments([]);
                }
           } catch (error) {
-               console.log("Error fetching invoice payments:", error);
                setInvoicePayments([]);
           } finally {
                setLoadingPayments(false);
@@ -213,7 +212,7 @@ const InvoiceList = ({ branchid, employeeid }) => {
           const filterFrom = from || localFilter.from;
           const filterTo = to || localFilter.to;
 
-          const urlString = `expenses/invoices?employeeid=${employeeid}&branchid=${branchid}&count=${count}&page=${page}&from=${filterFrom}&to=${filterTo}&status=${filterStatus}`;
+          const urlString = `expenses/invoices?employeeid=${employeeid}&branchid=${branchid}&count=${count}&page=${page}&from=${filterFrom}&to=${filterTo}&status=${filterStatus}&&sortby=${sortby}`;
           try {
                const response = await customFetch(urlString);
                let data = [];

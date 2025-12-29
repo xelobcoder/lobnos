@@ -18,6 +18,9 @@ import {
 import { currencyFormatter, customFetch } from "../../../../components/Auth/customFetch";
 import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
 import { RiLineChartLine, RiBarChartBoxLine, RiBubbleChartLine, RiErrorWarningLine, RiCalendarEventLine, RiInbox2Line, RiLoader4Line, RiRefreshLine, RiArrowUpSFill, RiArrowDownSFill } from "@remixicon/react";
+import { randomBytes } from "crypto";
+import { plsEncryption } from "../../../../lib/encryption";
+import dayjs from "dayjs";
 
 interface SalesDataEntry {
     date: string;
@@ -158,8 +161,9 @@ export default function DailySalesTrend() {
     };
 
     const handleBreakdownClick = (entry: SalesDataEntry) => {
-        // TODO: Implement detailed breakdown modal or navigation
-        alert(`Breakdown for ${formatDateForTable(entry.date)}:\n\nTotal Cost: ${currencyFormatter.format(entry.totalCost)}\nAccrued Revenue: ${currencyFormatter.format(entry.accrued_revenue)}\nActual Revenue: ${currencyFormatter.format(entry.actual_revenue)}\nExpenses: ${currencyFormatter.format(entry.total_expenses)}\nDiscount: ${currencyFormatter.format(entry.total_discount)}\nNet Revenue: ${currencyFormatter.format(entry.net_revenue)}\nOutstanding: ${currencyFormatter.format(entry.outstanding_debt)}\nRefunded: ${currencyFormatter.format(entry.totalRefunded)}`);
+        const dateParam = dayjs(entry.date).format('YYYY-MM-DD');
+        const link = `/billing/sales/branches/${plsEncryption(branchid.toString())}/day-transaction-break-down?date=${dateParam}&from=${dateParam}&end=${dateParam}&branchid=${branchid}`;
+        window.open(link, "_blank");
     };
 
     const totalPositiveRevenue = useMemo(() => data.reduce((sum, entry) => entry.net_revenue > 0 ? sum + entry.net_revenue : sum, 0), [data]);

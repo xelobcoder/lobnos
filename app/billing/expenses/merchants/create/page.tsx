@@ -8,7 +8,7 @@ import { customPost, customFetch } from '../../../../../components/Auth/customFe
 import { useApplication } from '../../../../../components/Auth/useApplicationContext';
 import Loader from '../../../../../components/accessories/Loader';
 import Modal from 'react-bootstrap/Modal';
-import { RiAddBoxFill, RiDeleteBack2Fill, RiEdit2Fill } from '@remixicon/react';
+import { RiAddBoxFill, RiDeleteBack2Fill, RiDeleteBin2Fill, RiEdit2Fill } from '@remixicon/react';
 import PrimeTable from '../../../../../components/accessories/Datatables/PrimeTable';
 import { noopServerSideHandle } from '../../../../../components/serverActions/ActionFiltering';
 
@@ -50,7 +50,7 @@ export default function AddMerchant() {
     useEffect(() => {
         async function fetchMerchants() {
             try {
-                const response = await customFetch(`expense/merchants?branchid=${branchid}&&employeeid=${employeeid}`);
+                const response = await customFetch(`expense/merchants?branchid=${branchid}&&count=10&&page=1&&employeeid=${employeeid}`);
                 if (Array.isArray(response)) {
                     setMerchants(response);
                 } else if (response?.data && Array.isArray(response.data)) {
@@ -101,7 +101,7 @@ export default function AddMerchant() {
         });
         setShowModal(true);
     };
-    
+
     const handleMerchantFormSubmit = async (data: MerchantFormData) => {
         setLoading(true);
         try {
@@ -145,8 +145,9 @@ export default function AddMerchant() {
 
     const columns = [
         {
-            Header: 'Name',
+            Header: 'Merchant Name',
             accessor: 'name',
+            Cell: ({ value }: any) => <strong className='text-capitalize'>{value}</strong>,
         },
         {
             Header: 'Email',
@@ -180,10 +181,10 @@ export default function AddMerchant() {
             Cell: ({ row }: any) => (
                 <div className="d-flex gap-2">
                     <button className="btn btn-outline-primary btn-sm me-2" onClick={() => handleEditMerchant(row.original)}>
-                        <RiEdit2Fill /> Edit
+                        <RiEdit2Fill size={16} />
                     </button>
                     <button className="btn btn-outline-danger btn-sm" onClick={() => handleDeleteMerchant(row.original)}>
-                        <RiDeleteBack2Fill /> Delete
+                        <RiDeleteBin2Fill size={16} />
                     </button>
                 </div>
             ),
@@ -293,7 +294,7 @@ export default function AddMerchant() {
                     </Modal>
 
                     {Array.isArray(merchants) && merchants.length > 0 && (
-                        <div className="mt-5">
+                        <div >
                             <PrimeTable column={columns}
                                 data={merchants}
                                 filtering={true}

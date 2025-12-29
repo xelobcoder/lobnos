@@ -214,6 +214,25 @@ interface AllIndividualExpense {
     description: string;
 }
 
+interface ExpenseApprovalStatusSummary {
+    status: string;
+    count: number;
+    total_amount: string;
+}
+
+interface TotalReimbursedPaid {
+    total_reimbursed: string;
+    expenses_paid_count: number;
+}
+
+interface BillableExpenses {
+    billable_expenses_count: number;
+    total_billable_amount: string;
+}
+
+
+
+
 const Card = ({ title, children, icon }: { title: string, children: React.ReactNode, icon: React.ReactNode }) => (
     <div className="border rounded mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
         <div className="p-3 border-bottom" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: 'var(--bs-border-color)' }}>
@@ -291,7 +310,6 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
     const [error, setError] = useState<string | null>(null);
     const [selectedFrom, setSelectedFrom] = useState(from || '');
     const [selectedEnd, setSelectedEnd] = useState(end || '');
-    const [activeTab, setActiveTab] = useState('summary');
     const router = useRouter();
 
     const handleApplyDateRange = () => {
@@ -313,6 +331,18 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
         async function loadData() {
             try {
                 setLoading(true);
+
+                if (new Date(from) > new Date(end)) {
+                    setError("'From' date cannot be later than 'End' date.");
+                    setLoading(false);
+                    return;
+                }
+
+                if (!date || !from || !end) {
+                    setError("Please provide 'date', 'from', and 'end' query parameters.");
+                    setLoading(false);
+                    return;
+                }
                 const result = await getFinancialData(date, from, end, employeeid);
                 if (result.error) {
                     setError(result.error);
@@ -465,726 +495,709 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                 </p>
             </div>
 
-            <ul className="nav nav-tabs mb-4" id="financialTabs" role="tablist">
-                <li className="nav-item" role="presentation">
-                    <button
-                        className={`nav-link ${activeTab === 'summary' ? 'active' : ''}`}
-                        id="summary-tab"
-                        type="button"
-                        role="tab"
-                        onClick={() => setActiveTab('summary')}
-                    >
-                        Summary
-                    </button>
-                </li>
-                <li className="nav-item" role="presentation">
-                    <button
-                        className={`nav-link ${activeTab === 'financial' ? 'active' : ''}`}
-                        id="financial-tab"
-                        type="button"
-                        role="tab"
-                        onClick={() => setActiveTab('financial')}
-                    >
-                        Financial Details
-                    </button>
-                </li>
-                <li className="nav-item" role="presentation">
-                    <button
-                        className={`nav-link ${activeTab === 'transactions' ? 'active' : ''}`}
-                        id="transactions-tab"
-                        type="button"
-                        role="tab"
-                        onClick={() => setActiveTab('transactions')}
-                    >
-                        Transactions
-                    </button>
-                </li>
-                <li className="nav-item" role="presentation">
-                    <button
-                        className={`nav-link ${activeTab === 'expenses' ? 'active' : ''}`}
-                        id="expenses-tab"
-                        type="button"
-                        role="tab"
-                        onClick={() => setActiveTab('expenses')}
-                    >
-                        Expenses
-                    </button>
-                </li>
-                <li className="nav-item" role="presentation">
-                    <button
-                        className={`nav-link ${activeTab === 'other' ? 'active' : ''}`}
-                        id="other-tab"
-                        type="button"
-                        role="tab"
-                        onClick={() => setActiveTab('other')}
-                    >
-                        Other
-                    </button>
-                </li>
-                <li className="nav-item" role="presentation">
-                    <button
-                        className={`nav-link ${activeTab === 'issues' ? 'active' : ''}`}
-                        id="issues-tab"
-                        type="button"
-                        role="tab"
-                        onClick={() => setActiveTab('issues')}
-                    >
-                        Issues
-                    </button>
-                </li>
-            </ul>
+            <Card title="Executive Summary" icon={<RiPieChartLine />}>
+                <div className="row g-3">
+                    <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
+                        <Stat label="Total Cost" value={currencyFormatter.format(Number(aggregatedSnapshot.totalCost || 0))} icon={<RiLineChartLine />} />
+                    </div>
+                    <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
+                        <Stat label="Accrued Revenue(total payable)" value={currencyFormatter.format(Number(aggregatedSnapshot.accrued_revenue || 0))} icon={<RiLineChartLine />} />
+                    </div>
+                    <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
+                        <Stat label="Actual Revenue(paid amount)" value={currencyFormatter.format(Number(aggregatedSnapshot.actual_revenue || 0))} icon={<RiHandCoinLine />} />
+                    </div>
+                    <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
+                        <Stat label="Outstanding Debt" value={currencyFormatter.format(Number(aggregatedSnapshot.outstanding_debt || 0))} icon={<RiBankCardLine />} />
+                    </div>
+                    <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
+                        <Stat label="Total Discounts" value={currencyFormatter.format(Number(aggregatedSnapshot.total_discount || 0))} icon={<RiCashLine />} />
+                    </div>
+                    <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
+                        <Stat label="Total Refunds" value={currencyFormatter.format(Number(aggregatedSnapshot.total_refunds || 0))} icon={<RiCashLine />} />
+                    </div>
+                    <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
+                        <Stat label="Active Services" value={serviceStatus.active_services || 0} icon={<RiFileList3Line />} />
+                    </div>
+                    <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
+                        <Stat label="Total Services" value={serviceStatus.total_services || 0} icon={<RiFileList3Line />} />
+                    </div>
+                    <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
+                        <Stat label="Cancelled Services" value={serviceStatus.cancelled_services || 0} icon={<RiFileList3Line />} />
+                    </div>
+                    <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
+                        <Stat label="Unique Clients" value={uniqueClients.unique_registered_clients || 0} icon={<RiGroupLine />} />
+                    </div>
+                    <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
+                        <Stat label="Refunded Services" value={serviceStatus.refunded_services || 0} icon={<RiCashLine />} />
+                    </div>
+                </div>
+            </Card>
 
-            <div className="tab-content">
-                {activeTab === 'summary' && (
-                    <div className="tab-pane fade show active" id="summary" role="tabpanel">
-                        <Card title="Executive Summary" icon={<RiPieChartLine />}>
-                            <div className="row g-3">
-                                <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                                    <Stat label="Total Cost" value={currencyFormatter.format(Number(aggregatedSnapshot.totalCost || 0))} icon={<RiLineChartLine />} />
-                                </div>
-                                <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                                    <Stat label="Accrued Revenue(total payable)" value={currencyFormatter.format(Number(aggregatedSnapshot.accrued_revenue || 0))} icon={<RiLineChartLine />} />
-                                </div>
-                                <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                                    <Stat label="Actual Revenue(paid amount)" value={currencyFormatter.format(Number(aggregatedSnapshot.actual_revenue || 0))} icon={<RiHandCoinLine />} />
-                                </div>
-                                <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                                    <Stat label="Outstanding Debt" value={currencyFormatter.format(Number(aggregatedSnapshot.outstanding_debt || 0))} icon={<RiBankCardLine />} />
-                                </div>
-                                <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                                    <Stat label="Total Discounts" value={currencyFormatter.format(Number(aggregatedSnapshot.total_discount || 0))} icon={<RiCashLine />} />
-                                </div>
-                                <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                                    <Stat label="Total Refunds" value={currencyFormatter.format(Number(aggregatedSnapshot.total_refunds || 0))} icon={<RiCashLine />} />
-                                </div>
-                                <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                                    <Stat label="Active Services" value={serviceStatus.active_services || 0} icon={<RiFileList3Line />} />
-                                </div>
-                                <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                                    <Stat label="Total Services" value={serviceStatus.total_services || 0} icon={<RiFileList3Line />} />
-                                </div>
-                                <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                                    <Stat label="Cancelled Services" value={serviceStatus.cancelled_services || 0} icon={<RiFileList3Line />} />
-                                </div>
-                                <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                                    <Stat label="Unique Clients" value={uniqueClients.unique_registered_clients || 0} icon={<RiGroupLine />} />
-                                </div>
-                                <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                                    <Stat label="Refunded Services" value={serviceStatus.refunded_services || 0} icon={<RiCashLine />} />
-                                </div>
+            <CEOFinancialCharts branchesData={branchesData} modesData={modesData} />
+
+            <Card title="Daily Financial Breakdown" icon={<RiCalendarLine />}>
+                {Array.isArray(dailyCeoSnapshot) && dailyCeoSnapshot.length > 0 ? (
+                    <div className="table-responsive">
+                        <table className="table table-sm table-hover table-striped small">
+                            <thead className="table-light">
+                                <tr>
+                                    <th className="text-start">Total Cost</th>
+                                    <th className="text-start">Accrued Revenue(total payable)</th>
+                                    <th className="text-start">Actual Revenue(paid amount)</th>
+                                    <th className="text-start">Outstanding Debt</th>
+                                    <th className="text-start">Total Discount</th>
+                                    <th className="text-start">Total Refunds</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {Array.isArray(dailyCeoSnapshot) && dailyCeoSnapshot.length > 0 && dailyCeoSnapshot.map((daily: DailyCeoSnapshot, index: number) => (
+                                    <tr key={index}>
+                                        <td className="text-start">
+                                            {currencyFormatter.format(Number(daily.totalCost))}
+                                        </td>
+                                        <td className="text-start">
+                                            {currencyFormatter.format(Number(daily.accrued_revenue))}
+                                        </td>
+                                        <td className="text-start">
+                                            {currencyFormatter.format(Number(daily.actual_revenue))}
+                                        </td>
+                                        <td className="text-start">
+                                            {currencyFormatter.format(Number(daily.outstanding_debt))}
+                                        </td>
+                                        <td className="text-start">
+                                            {currencyFormatter.format(Number(daily.total_discount))}
+                                        </td>
+                                        <td className="text-start">
+                                            {currencyFormatter.format(Number(daily.total_refunds))}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : (
+                    <div className={styles.emptyState}>
+                        <RiCalendarLine size={32} style={{ opacity: 0.5, marginBottom: '0.5rem' }} />
+                        <p>No daily financial data available for the selected period.</p>
+                    </div>
+                )}
+            </Card>
+
+            <div className={styles.sectionDivider}></div>
+
+            <Card title="Night Adjustment Impact Analysis" icon={<RiLineChartLine />}>
+                {Array.isArray(dailyNightAdjustmentImpact) && dailyNightAdjustmentImpact.length > 0 ? (
+                    <div className="table-responsive">
+                        <table className="table table-sm table-hover table-striped small">
+                            <thead className="table-light">
+                                <tr>
+                                    <th className="text-start">Report Date</th>
+                                    <th className="text-start">Accrued Revenue(total payable)</th>
+                                    <th className="text-start">Total Night Adjustment Payable</th>
+                                    <th className="text-start">Total Normal Payable</th>
+                                    <th className="text-start">Night Adjustment Cases</th>
+                                    <th className="text-start">Normal Cases</th>
+                                    <th className="text-start">Total Cases</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {dailyNightAdjustmentImpact.map((adjustment: any, index: number) => (
+                                    <tr key={index}>
+                                        <td className="text-start">
+                                            {new Date(adjustment.report_date).toLocaleDateString()}
+                                        </td>
+                                        <td className="text-start">
+                                            {currencyFormatter.format(Number(adjustment.accrued_revenue))}
+                                        </td>
+                                        <td className="text-start">
+                                            {currencyFormatter.format(Number(adjustment.total_night_adjustment_payable))}
+                                        </td>
+                                        <td className="text-start">
+                                            {currencyFormatter.format(Number(adjustment.total_normal_payable))}
+                                        </td>
+                                        <td className="text-start">
+                                            {adjustment.night_adjustment_cases_count}
+                                        </td>
+                                        <td className="text-start">
+                                            {adjustment.normal_cases_count}
+                                        </td>
+                                        <td className="text-start">
+                                            {adjustment.total_cases}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : (
+                    <div className={styles.emptyState}>
+                        <RiLineChartLine size={32} style={{ opacity: 0.5, marginBottom: '0.5rem' }} />
+                        <p>No night adjustment data available for the selected period.</p>
+                    </div>
+                )}
+            </Card>
+
+            {Array.isArray(auditTrailActions) && auditTrailActions.length > 0 && (
+                <Card title="Audit Trail Actions" icon={<RiFileList3Line />}>
+                    <div className="row g-3">
+                        {auditTrailActions.map((action: AuditTrailAction, index: number) => (
+                            <div key={index} className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
+                                <Stat label={`${action.action_type} Actions`} value={action.count} icon={<RiFileList3Line />} />
                             </div>
-                        </Card>
+                        ))}
                     </div>
+                </Card>
+            )}
+
+            {Array.isArray(OrganizationCommissions) && OrganizationCommissions.length > 0 && (
+                <Card title="Organization Commissions" icon={<RiGroupLine />}>
+                    <div className="table-responsive">
+                        <table className="table table-sm table-hover table-striped small">
+                            <thead className="table-light">
+                                <tr>
+                                    <th className="text-start">Service Date</th>
+                                    <th className="text-start">Organization</th>
+                                    <th className="text-start">Contact</th>
+                                    <th className="text-start">Services</th>
+                                    <th className="text-start">Total Value</th>
+                                    <th className="text-start">Commission %</th>
+                                    <th className="text-start">Commission Earned</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {OrganizationCommissions.map((commission: OrganizationCommission, index: number) => (
+                                    <tr key={index}>
+                                        <td className="text-start">
+                                            {new Date(commission.service_date).toLocaleDateString()}
+                                        </td>
+                                        <td className="text-start">
+                                            <div>
+                                                <strong>{commission.organization_name}</strong>
+                                                <br />
+                                                <small style={{ color: 'var(--bs-secondary-color)' }}>{commission.organization_email}</small>
+                                            </div>
+                                        </td>
+                                        <td className="text-start">
+                                            {commission.organization_phone}
+                                        </td>
+                                        <td className="text-start">
+                                            <span className="badge bg-primary">{commission.total_services}</span>
+                                        </td>
+                                        <td className="text-start">
+                                            {currencyFormatter.format(Number(commission.total_value))}
+                                        </td>
+                                        <td className="text-start">
+                                            {commission.commission_percent}%
+                                        </td>
+                                        <td className="text-start">
+                                            {currencyFormatter.format(Number(commission.commission_earned))}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </Card>
+            )}
+
+
+
+            <CeoClinicianSalesChart data={cliniciansalesdailyData} />
+
+            {Array.isArray(mismatchedPaymentHistory) && mismatchedPaymentHistory.length > 0 && (
+                <Card title="Mismatched Payment History" icon={<RiAlertLine />}>
+                    <div className="table-responsive">
+                        <table className="table table-sm table-hover table-striped small">
+                            <thead className="table-light">
+                                <tr>
+                                    <th className="text-start">Billing ID</th>
+                                    <th className="text-start">Paid in Billing</th>
+                                    <th className="text-start">Total in Billing History</th>
+                                    <th className="text-start">Difference</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {mismatchedPaymentHistory.map((mismatch: any, index: number) => (
+                                    <tr key={index}>
+                                        <td className="text-start">
+                                            {mismatch.billingid}
+                                        </td>
+                                        <td className="text-start">
+                                            {currencyFormatter.format(Number(mismatch.paid_in_billing))}
+                                        </td>
+                                        <td className="text-start">
+                                            {currencyFormatter.format(Number(mismatch.total_in_billinghx))}
+                                        </td>
+                                        <td className="text-start" style={{ color: Number(mismatch.difference) < 0 ? 'var(--bs-danger)' : 'var(--bs-success)' }}>
+                                            {currencyFormatter.format(Number(mismatch.difference))}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </Card>
+            )}
+            <div className="tab-pane fade show active" id="expenses" role="tabpanel">
+
+                {Array.isArray(ceoExpenseSummarySnapshot) && ceoExpenseSummarySnapshot.length > 0 && (
+                    <Card title="Expense Summary" icon={<RiCashLine />}>
+                        <div className="row g-3">
+                            <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
+                                <Stat label="Total Expenses" value={currencyFormatter.format(Number(ceoExpenseSummarySnapshot[0]?.total_expenses_amount || 0))} icon={<RiCashLine />} />
+                            </div>
+                            <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
+                                <Stat label="Approved Expenses" value={currencyFormatter.format(Number(ceoExpenseSummarySnapshot[0]?.approved_expenses_amount || 0))} icon={<RiFileList3Line />} />
+                            </div>
+                            <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
+                                <Stat label="Total Reimbursed" value={currencyFormatter.format(Number(ceoExpenseSummarySnapshot[0]?.total_reimbursed_amount || 0))} icon={<RiHandCoinLine />} />
+                            </div>
+                            <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
+                                <Stat label="Billable to Clients" value={currencyFormatter.format(Number(ceoExpenseSummarySnapshot[0]?.total_billable_to_clients_amount || 0))} icon={<RiBankCardLine />} />
+                            </div>
+                            <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
+                                <Stat label="Pending Expenses" value={ceoExpenseSummarySnapshot[0]?.pending_expenses_count || 0} icon={<RiFileList3Line />} />
+                            </div>
+                        </div>
+                    </Card>
                 )}
 
-                {activeTab === 'financial' && (
-                    <div className="tab-pane fade show active" id="financial" role="tabpanel">
-                        <Card title="Daily Financial Breakdown" icon={<RiCalendarLine />}>
-                            {Array.isArray(dailyCeoSnapshot) && dailyCeoSnapshot.length > 0 ? (
-                                <div className="table-responsive">
-                                    <table className="table table-sm table-hover table-striped small">
-                                        <thead className="table-light">
-                                            <tr>
-                                                <th className="text-start">Total Cost</th>
-                                                <th className="text-start">Accrued Revenue(total payable)</th>
-                                                <th className="text-start">Actual Revenue(paid amount)</th>
-                                                <th className="text-start">Outstanding Debt</th>
-                                                <th className="text-start">Total Discount</th>
-                                                <th className="text-start">Total Refunds</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {Array.isArray(dailyCeoSnapshot) && dailyCeoSnapshot.length > 0 && dailyCeoSnapshot.map((daily: DailyCeoSnapshot, index: number) => (
-                                                <tr key={index}>
-                                                    <td className="text-start">
-                                                        {currencyFormatter.format(Number(daily.totalCost))}
-                                                    </td>
-                                                    <td className="text-start">
-                                                        {currencyFormatter.format(Number(daily.accrued_revenue))}
-                                                    </td>
-                                                    <td className="text-start">
-                                                        {currencyFormatter.format(Number(daily.actual_revenue))}
-                                                    </td>
-                                                    <td className="text-start">
-                                                        {currencyFormatter.format(Number(daily.outstanding_debt))}
-                                                    </td>
-                                                    <td className="text-start">
-                                                        {currencyFormatter.format(Number(daily.total_discount))}
-                                                    </td>
-                                                    <td className="text-start">
-                                                        {currencyFormatter.format(Number(daily.total_refunds))}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            ) : (
-                                <div className={styles.emptyState}>
-                                    <RiCalendarLine size={32} style={{ opacity: 0.5, marginBottom: '0.5rem' }} />
-                                    <p>No daily financial data available for the selected period.</p>
-                                </div>
-                            )}
-                        </Card>
-
-                        <div className={styles.sectionDivider}></div>
-
-                        <Card title="Night Adjustment Impact Analysis" icon={<RiLineChartLine />}>
-                            {Array.isArray(dailyNightAdjustmentImpact) && dailyNightAdjustmentImpact.length > 0 ? (
-                                <div className="table-responsive">
-                                    <table className="table table-sm table-hover table-striped small">
-                                        <thead className="table-light">
-                                            <tr>
-                                                <th className="text-start">Report Date</th>
-                                                <th className="text-start">Accrued Revenue(total payable)</th>
-                                                <th className="text-start">Total Night Adjustment Payable</th>
-                                                <th className="text-start">Total Normal Payable</th>
-                                                <th className="text-start">Night Adjustment Cases</th>
-                                                <th className="text-start">Normal Cases</th>
-                                                <th className="text-start">Total Cases</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {dailyNightAdjustmentImpact.map((adjustment: any, index: number) => (
-                                                <tr key={index}>
-                                                    <td className="text-start">
-                                                        {new Date(adjustment.report_date).toLocaleDateString()}
-                                                    </td>
-                                                    <td className="text-start">
-                                                        {currencyFormatter.format(Number(adjustment.accrued_revenue))}
-                                                    </td>
-                                                    <td className="text-start">
-                                                        {currencyFormatter.format(Number(adjustment.total_night_adjustment_payable))}
-                                                    </td>
-                                                    <td className="text-start">
-                                                        {currencyFormatter.format(Number(adjustment.total_normal_payable))}
-                                                    </td>
-                                                    <td className="text-start">
-                                                        {adjustment.night_adjustment_cases_count}
-                                                    </td>
-                                                    <td className="text-start">
-                                                        {adjustment.normal_cases_count}
-                                                    </td>
-                                                    <td className="text-start">
-                                                        {adjustment.total_cases}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            ) : (
-                                <div className={styles.emptyState}>
-                                    <RiLineChartLine size={32} style={{ opacity: 0.5, marginBottom: '0.5rem' }} />
-                                    <p>No night adjustment data available for the selected period.</p>
-                                </div>
-                            )}
-                        </Card>
-                    </div>
-                )}
-
-                {activeTab === 'other' && (
-                    <div className="tab-pane fade show active" id="other" role="tabpanel">
-                        {Array.isArray(auditTrailActions) && auditTrailActions.length > 0 && (
-                            <Card title="Audit Trail Actions" icon={<RiFileList3Line />}>
-                                <div className="row g-3">
-                                    {auditTrailActions.map((action: AuditTrailAction, index: number) => (
-                                        <div key={index} className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                                            <Stat label={`${action.action_type} Actions`} value={action.count} icon={<RiFileList3Line />} />
-                                        </div>
+                {Array.isArray(totalExpensesPeriodComparison) && totalExpensesPeriodComparison.length > 0 && (
+                    <Card title="Expense Period Comparison" icon={<RiBarChartGroupedLine />}>
+                        <div className="table-responsive">
+                            <table className="table table-sm table-hover table-striped small">
+                                <thead className="table-light">
+                                    <tr>
+                                        <th className="text-start">Period</th>
+                                        <th className="text-start">Total Expenses</th>
+                                        <th className="text-start">Expense Count</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {totalExpensesPeriodComparison.map((comparison: TotalExpensesPeriodComparison, index: number) => (
+                                        <tr key={index}>
+                                            <td className="text-start">{comparison.period}</td>
+                                            <td className="text-start">
+                                                {comparison.total_expenses ? currencyFormatter.format(Number(comparison.total_expenses)) : 'N/A'}
+                                            </td>
+                                            <td className="text-start">{comparison.expense_count}</td>
+                                        </tr>
                                     ))}
-                                </div>
-                            </Card>
-                        )}
-
-                        {Array.isArray(OrganizationCommissions) && OrganizationCommissions.length > 0 && (
-                            <Card title="Organization Commissions" icon={<RiGroupLine />}>
-                                <div className="table-responsive">
-                                    <table className="table table-sm table-hover table-striped small">
-                                        <thead className="table-light">
-                                            <tr>
-                                                <th className="text-start">Service Date</th>
-                                                <th className="text-start">Organization</th>
-                                                <th className="text-start">Contact</th>
-                                                <th className="text-start">Services</th>
-                                                <th className="text-start">Total Value</th>
-                                                <th className="text-start">Commission %</th>
-                                                <th className="text-start">Commission Earned</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {OrganizationCommissions.map((commission: OrganizationCommission, index: number) => (
-                                                <tr key={index}>
-                                                    <td className="text-start">
-                                                        {new Date(commission.service_date).toLocaleDateString()}
-                                                    </td>
-                                                    <td className="text-start">
-                                                        <div>
-                                                            <strong>{commission.organization_name}</strong>
-                                                            <br />
-                                                            <small style={{ color: 'var(--bs-secondary-color)' }}>{commission.organization_email}</small>
-                                                        </div>
-                                                    </td>
-                                                    <td className="text-start">
-                                                        {commission.organization_phone}
-                                                    </td>
-                                                    <td className="text-start">
-                                                        <span className="badge bg-primary">{commission.total_services}</span>
-                                                    </td>
-                                                    <td className="text-start">
-                                                        {currencyFormatter.format(Number(commission.total_value))}
-                                                    </td>
-                                                    <td className="text-start">
-                                                        {commission.commission_percent}%
-                                                    </td>
-                                                    <td className="text-start">
-                                                        {currencyFormatter.format(Number(commission.commission_earned))}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </Card>
-                        )}
-
-                        
-
-                        <CeoClinicianSalesChart data={cliniciansalesdailyData} />
-                    </div>
+                                </tbody>
+                            </table>
+                        </div>
+                    </Card>
                 )}
 
-                {activeTab === 'issues' && (
-                    <div className="tab-pane fade show active" id="issues" role="tabpanel">
-                        {Array.isArray(mismatchedPaymentHistory) && mismatchedPaymentHistory.length > 0 && (
-                            <Card title="Mismatched Payment History" icon={<RiAlertLine />}>
-                                <div className="table-responsive">
-                                    <table className="table table-sm table-hover table-striped small">
-                                        <thead className="table-light">
-                                            <tr>
-                                                <th className="text-start">Billing ID</th>
-                                                <th className="text-start">Paid in Billing</th>
-                                                <th className="text-start">Total in Billing History</th>
-                                                <th className="text-start">Difference</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {mismatchedPaymentHistory.map((mismatch: any, index: number) => (
-                                                <tr key={index}>
-                                                    <td className="text-start">
-                                                        {mismatch.billingid}
-                                                    </td>
-                                                    <td className="text-start">
-                                                        {currencyFormatter.format(Number(mismatch.paid_in_billing))}
-                                                    </td>
-                                                    <td className="text-start">
-                                                        {currencyFormatter.format(Number(mismatch.total_in_billinghx))}
-                                                    </td>
-                                                    <td className="text-start" style={{ color: Number(mismatch.difference) < 0 ? 'var(--bs-danger)' : 'var(--bs-success)' }}>
-                                                        {currencyFormatter.format(Number(mismatch.difference))}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </Card>
-                        )}
-                    </div>
+                {Array.isArray(monthlyExpenseTrend) && monthlyExpenseTrend.length > 0 && (
+                    <Card title="Monthly Expense Trend" icon={<RiLineChartLine />}>
+                        <div className="table-responsive">
+                            <table className="table table-sm table-hover table-striped small">
+                                <thead className="table-light">
+                                    <tr>
+                                        <th className="text-start">Month</th>
+                                        <th className="text-start">Total Expenses</th>
+                                        <th className="text-start">Expense Count</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {monthlyExpenseTrend.map((trend: MonthlyExpenseTrend, index: number) => (
+                                        <tr key={index}>
+                                            <td className="text-start">{trend.month}</td>
+                                            <td className="text-start">
+                                                {trend.total_expenses ? currencyFormatter.format(Number(trend.total_expenses)) : 'N/A'}
+                                            </td>
+                                            <td className="text-start">{trend.expense_count}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </Card>
                 )}
 
-                {activeTab === 'expenses' && (
-                    <div className="tab-pane fade show active" id="expenses" role="tabpanel">
-
-                        {Array.isArray(ceoExpenseSummarySnapshot) && ceoExpenseSummarySnapshot.length > 0 && (
-                            <Card title="Expense Summary" icon={<RiCashLine />}>
-                                <div className="row g-3">
-                                    <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                                        <Stat label="Total Expenses" value={currencyFormatter.format(Number(ceoExpenseSummarySnapshot[0]?.total_expenses_amount || 0))} icon={<RiCashLine />} />
-                                    </div>
-                                    <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                                        <Stat label="Approved Expenses" value={currencyFormatter.format(Number(ceoExpenseSummarySnapshot[0]?.approved_expenses_amount || 0))} icon={<RiFileList3Line />} />
-                                    </div>
-                                    <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                                        <Stat label="Total Reimbursed" value={currencyFormatter.format(Number(ceoExpenseSummarySnapshot[0]?.total_reimbursed_amount || 0))} icon={<RiHandCoinLine />} />
-                                    </div>
-                                    <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                                        <Stat label="Billable to Clients" value={currencyFormatter.format(Number(ceoExpenseSummarySnapshot[0]?.total_billable_to_clients_amount || 0))} icon={<RiBankCardLine />} />
-                                    </div>
-                                    <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                                        <Stat label="Pending Expenses" value={ceoExpenseSummarySnapshot[0]?.pending_expenses_count || 0} icon={<RiFileList3Line />} />
-                                    </div>
-                                </div>
-                            </Card>
-                        )}
-
-                        {Array.isArray(totalExpensesPeriodComparison) && totalExpensesPeriodComparison.length > 0 && (
-                            <Card title="Expense Period Comparison" icon={<RiBarChartGroupedLine />}>
-                                <div className="table-responsive">
-                                    <table className="table table-sm table-hover table-striped small">
-                                        <thead className="table-light">
-                                            <tr>
-                                                <th className="text-start">Period</th>
-                                                <th className="text-start">Total Expenses</th>
-                                                <th className="text-start">Expense Count</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {totalExpensesPeriodComparison.map((comparison: TotalExpensesPeriodComparison, index: number) => (
-                                                <tr key={index}>
-                                                    <td className="text-start">{comparison.period}</td>
-                                                    <td className="text-start">
-                                                        {comparison.total_expenses ? currencyFormatter.format(Number(comparison.total_expenses)) : 'N/A'}
-                                                    </td>
-                                                    <td className="text-start">{comparison.expense_count}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </Card>
-                        )}
-
-                        {Array.isArray(monthlyExpenseTrend) && monthlyExpenseTrend.length > 0 && (
-                            <Card title="Monthly Expense Trend" icon={<RiLineChartLine />}>
-                                <div className="table-responsive">
-                                    <table className="table table-sm table-hover table-striped small">
-                                        <thead className="table-light">
-                                            <tr>
-                                                <th className="text-start">Month</th>
-                                                <th className="text-start">Total Expenses</th>
-                                                <th className="text-start">Expense Count</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {monthlyExpenseTrend.map((trend: MonthlyExpenseTrend, index: number) => (
-                                                <tr key={index}>
-                                                    <td className="text-start">{trend.month}</td>
-                                                    <td className="text-start">
-                                                        {trend.total_expenses ? currencyFormatter.format(Number(trend.total_expenses)) : 'N/A'}
-                                                    </td>
-                                                    <td className="text-start">{trend.expense_count}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </Card>
-                        )}
-
-                        {Array.isArray(expensesByBranch) && expensesByBranch.length > 0 && (
-                            <Card title="Expenses by Branch" icon={<RiBuildingLine />}>
-                                <div className="table-responsive">
-                                    <table className="table table-sm table-hover table-striped small">
-                                        <thead className="table-light">
-                                            <tr>
-                                                <th className="text-start">Branch ID</th>
-                                                <th className="text-start">Total Expenses</th>
-                                                <th className="text-start">Expense Count</th>
-                                                <th className="text-start">Percentage of Total</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {expensesByBranch.map((expense: ExpensesByBranch, index: number) => (
-                                                <tr key={expense.branchid}>
-                                                    <td className="text-start">{expense.branchid}</td>
-                                                    <td className="text-start">
-                                                        {currencyFormatter.format(Number(expense.total_amount))}
-                                                    </td>
-                                                    <td className="text-start">{expense.expense_count}</td>
-                                                    <td className="text-start">{expense.percentage_of_total}%</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </Card>
-                        )}
-
-                        {Array.isArray(allExpenseCategories) && allExpenseCategories.length > 0 && (
-                            <Card title="Expense Categories" icon={<RiBarChartGroupedLine />}>
-                                <div className="table-responsive">
-                                    <table className="table table-sm table-hover table-striped small">
-                                        <thead className="table-light">
-                                            <tr>
-                                                <th className="text-start">Category</th>
-                                                <th className="text-start">Expense Count</th>
-                                                <th className="text-start">Total Amount</th>
-                                                <th className="text-start">Percentage of Total</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {allExpenseCategories.map((category: AllExpenseCategory, index: number) => (
-                                                <tr key={index}>
-                                                    <td className="text-start">{category.category}</td>
-                                                    <td className="text-start">{category.expense_count}</td>
-                                                    <td className="text-start">
-                                                        {currencyFormatter.format(Number(category.total_amount))}
-                                                    </td>
-                                                    <td className="text-start">{category.percentage_of_total}%</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </Card>
-                        )}
-
-                        {Array.isArray(expensePaymentsSummary) && expensePaymentsSummary.length > 0 && (
-                            <Card title="Expense Payments Summary" icon={<RiHandCoinLine />}>
-                                <div className="table-responsive">
-                                    <table className="table table-sm table-hover table-striped small">
-                                        <thead className="table-light">
-                                            <tr>
-                                                <th className="text-start">Status</th>
-                                                <th className="text-start">Method</th>
-                                                <th className="text-start">Payments Made</th>
-                                                <th className="text-start">Unique Expenses Reimbursed</th>
-                                                <th className="text-start">Total Reimbursed Amount</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {expensePaymentsSummary.map((summary: ExpensePaymentsSummary, index: number) => (
-                                                <tr key={index}>
-                                                    <td className="text-start">{summary.status}</td>
-                                                    <td className="text-start">{summary.method}</td>
-                                                    <td className="text-start">{summary.payments_made}</td>
-                                                    <td className="text-start">{summary.unique_expenses_reimbursed}</td>
-                                                    <td className="text-start">
-                                                        {currencyFormatter.format(Number(summary.total_reimbursed_amount))}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </Card>
-                        )}
-
-                        {Array.isArray(expensePaymentsFullList) && expensePaymentsFullList.length > 0 && (
-                            <Card title="Expense Payments Full List" icon={<RiFileList3Line />}>
-                                <div className="table-responsive">
-                                    <table className="table table-sm table-hover table-striped small">
-                                        <thead className="table-light">
-                                            <tr>
-                                                <th className="text-start">Payment ID</th>
-                                                <th className="text-start">Expense Name</th>
-                                                <th className="text-start">Merchant</th>
-                                                <th className="text-start">Claimed Amount</th>
-                                                <th className="text-start">Paid Amount</th>
-                                                <th className="text-start">Payment Date</th>
-                                                <th className="text-start">Method</th>
-                                                <th className="text-start">Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {expensePaymentsFullList.map((payment: ExpensePaymentsFullList, index: number) => (
-                                                <tr key={payment.payment_id}>
-                                                    <td className="text-start">{payment.payment_id}</td>
-                                                    <td className="text-start">{payment.expense_name}</td>
-                                                    <td className="text-start">{payment.merchant}</td>
-                                                    <td className="text-start">
-                                                        {currencyFormatter.format(Number(payment.claimed_amount))}
-                                                    </td>
-                                                    <td className="text-start">
-                                                        {currencyFormatter.format(Number(payment.paid_amount))}
-                                                    </td>
-                                                    <td className="text-start">
-                                                        {new Date(payment.payment_date).toLocaleDateString()}
-                                                    </td>
-                                                    <td className="text-start">{payment.method}</td>
-                                                    <td className="text-start">{payment.status}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </Card>
-                        )}
-
-                        {Array.isArray(allIndividualExpenses) && allIndividualExpenses.length > 0 && (
-                            <Card title="All Individual Expenses" icon={<RiCashLine />}>
-                                <div className="table-responsive">
-                                    <table className="table table-sm table-hover table-striped small">
-                                        <thead className="table-light">
-                                            <tr>
-                                                <th className="text-start">Expense ID</th>
-                                                <th className="text-start">Name</th>
-                                                <th className="text-start">Merchant</th>
-                                                <th className="text-start">Amount</th>
-                                                <th className="text-start">Expense Date</th>
-                                                <th className="text-start">Category</th>
-                                                <th className="text-start">Approval Status</th>
-                                                <th className="text-start">Employee ID</th>
-                                                <th className="text-start">Branch ID</th>
-                                                <th className="text-start">Description</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {allIndividualExpenses.map((expense: AllIndividualExpense, index: number) => (
-                                                <tr key={expense.expense_id}>
-                                                    <td className="text-start">{expense.expense_id}</td>
-                                                    <td className="text-start">{expense.name}</td>
-                                                    <td className="text-start">{expense.merchant}</td>
-                                                    <td className="text-start">
-                                                        {currencyFormatter.format(Number(expense.amount))}
-                                                    </td>
-                                                    <td className="text-start">
-                                                        {new Date(expense.expense_date).toLocaleDateString()}
-                                                    </td>
-                                                    <td className="text-start">{expense.category}</td>
-                                                    <td className="text-start">{expense.approval_status}</td>
-                                                    <td className="text-start">{expense.employeeid}</td>
-                                                    <td className="text-start">{expense.branchid}</td>
-                                                    <td className="text-start">{expense.description}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </Card>
-                        )}
-
-                        {Array.isArray(unapprovedExpensesPeriod) && unapprovedExpensesPeriod.length > 0 && (
-                            <Card title="Unapproved Expenses" icon={<RiAlertLine />}>
-                                <div className="table-responsive">
-                                    <table className="table table-sm table-hover table-striped small">
-                                        <thead className="table-light">
-                                            <tr>
-                                                <th className="text-start">Expense ID</th>
-                                                <th className="text-start">Description</th>
-                                                <th className="text-start">Amount</th>
-                                                <th className="text-start">Submitted Date</th>
-                                                <th className="text-start">Submitted By</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {unapprovedExpensesPeriod.map((expense: UnapprovedExpense, index: number) => (
-                                                <tr key={expense.expense_id}>
-                                                    <td className="text-start">{expense.expense_id}</td>
-                                                    <td className="text-start">{expense.description}</td>
-                                                    <td className="text-start">
-                                                        {currencyFormatter.format(Number(expense.amount))}
-                                                    </td>
-                                                    <td className="text-start">
-                                                        {new Date(expense.submitted_date).toLocaleDateString()}
-                                                    </td>
-                                                    <td className="text-start">{expense.submitted_by}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </Card>
-                        )}
-
-                    </div>
+                {Array.isArray(expensesByBranch) && expensesByBranch.length > 0 && (
+                    <Card title="Expenses by Branch" icon={<RiBuildingLine />}>
+                        <div className="table-responsive">
+                            <table className="table table-sm table-hover table-striped small">
+                                <thead className="table-light">
+                                    <tr>
+                                        <th className="text-start">Branch ID</th>
+                                        <th className="text-start">Total Expenses</th>
+                                        <th className="text-start">Expense Count</th>
+                                        <th className="text-start">Percentage of Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {expensesByBranch.map((expense: ExpensesByBranch, index: number) => (
+                                        <tr key={expense.branchid}>
+                                            <td className="text-start">{expense.branchid}</td>
+                                            <td className="text-start">
+                                                {currencyFormatter.format(Number(expense.total_amount))}
+                                            </td>
+                                            <td className="text-start">{expense.expense_count}</td>
+                                            <td className="text-start">{expense.percentage_of_total}%</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </Card>
                 )}
 
-                {activeTab === 'transactions' && (
-                    <div className="tab-pane fade show active" id="transactions" role="tabpanel">
-
-                        <Card title="Daily Test Transaction Details" icon={<RiTestTubeLine />}>
-                            {Array.isArray(dailyTestTransactionSnapshot) && dailyTestTransactionSnapshot.length > 0 ? (
-                                <div className="table-responsive">
-                                    <table className="table table-sm table-hover table-striped small">
-                                        <thead className="table-light">
-                                            <tr>
-                                                <th className="text-start">Test Name</th>
-                                                <th className="text-start">Category</th>
-                                                <th className="text-start">Count</th>
-                                                <th className="text-start">Accrued Revenue(total payable)</th>
-                                                <th className="text-start">Actual Revenue(paid amount)</th>
-                                                <th className="text-start">Total Cost</th>
-                                                <th className="text-start">Discount</th>
-                                                <th className="text-start">Outstanding</th>
-                                                <th className="text-start">Refunds</th>
-                                                <th className="text-start">Added On</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {dailyTestTransactionSnapshot.map((test: DailyTestTransaction, index: number) => (
-                                                <tr key={`${test.trackId}-${index}`}>
-                                                    <td className="text-start">{test.test_panel_name || 'N/A'}</td>
-                                                    <td className="text-start">{test.serviceCategory}</td>
-                                                    <td className="text-start">
-                                                        <span className="badge bg-primary">{test.test_count}</span>
-                                                    </td>
-                                                    <td className="text-start">
-                                                        {currencyFormatter.format(Number(test.accrued_revenue))}
-                                                    </td>
-                                                    <td className="text-start">
-                                                        {currencyFormatter.format(Number(test.actual_revenue))}
-                                                    </td>
-                                                    <td className="text-start">
-                                                        {currencyFormatter.format(Number(test.total_cost))}
-                                                    </td>
-                                                    <td className="text-start">
-                                                        {currencyFormatter.format(Number(test.total_discount))}
-                                                    </td>
-                                                    <td className="text-start">
-                                                        {currencyFormatter.format(Number(test.total_outstanding))}
-                                                    </td>
-                                                    <td className="text-start">
-                                                        {currencyFormatter.format(Number(test.total_refunds))}
-                                                    </td>
-                                                    <td className="text-start">
-                                                        {new Date(test.serviceAddedOn).toLocaleTimeString()}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            ) : (
-                                <div className={styles.emptyState}>
-                                    <RiTestTubeLine size={32} style={{ opacity: 0.5, marginBottom: '0.5rem' }} />
-                                    <p>No test transaction data available for the selected period.</p>
-                                </div>
-                            )}
-                        </Card>
-
-                        <Card title="Employee Cash Collection Summary" icon={<RiGroupLine />}>
-                            {Array.isArray(employeesWhoCollectedCash) && employeesWhoCollectedCash.length > 0 ? (
-                                <div className="table-responsive">
-                                    <table className="table table-sm table-hover table-striped small">
-                                        <thead className="table-light">
-                                            <tr>
-                                                <th className="text-start">Payment Date</th>
-                                                <th className="text-start">Employee</th>
-                                                <th className="text-start">Transactions</th>
-                                                <th className="text-start">Total Amount</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {employeesWhoCollectedCash.map((employee: EmployeeCashCollection, index: number) => (
-                                                <tr key={index}>
-                                                    <td className="text-start">
-                                                        {new Date(employee.payment_date).toLocaleDateString()}
-                                                    </td>
-                                                    <td className="text-start">{employee.username}</td>
-                                                    <td className="text-start">
-                                                        <span className="badge bg-primary">{employee.total_transactions}</span>
-                                                    </td>
-                                                    <td className="text-start">
-                                                        {currencyFormatter.format(Number(employee.total_amount))}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            ) : (
-                                <div className={styles.emptyState}>
-                                    <RiGroupLine size={32} style={{ opacity: 0.5, marginBottom: '0.5rem' }} />
-                                    <p>No cash collection data available for the selected period.</p>
-                                </div>
-                            )}
-                        </Card>
-
-                    </div>
+                {Array.isArray(allExpenseCategories) && allExpenseCategories.length > 0 && (
+                    <Card title="Expense Categories" icon={<RiBarChartGroupedLine />}>
+                        <div className="table-responsive">
+                            <table className="table table-sm table-hover table-striped small">
+                                <thead className="table-light">
+                                    <tr>
+                                        <th className="text-start">Category</th>
+                                        <th className="text-start">Expense Count</th>
+                                        <th className="text-start">Total Amount</th>
+                                        <th className="text-start">Percentage of Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {allExpenseCategories.map((category: AllExpenseCategory, index: number) => (
+                                        <tr key={index}>
+                                            <td className="text-start">{category.category}</td>
+                                            <td className="text-start">{category.expense_count}</td>
+                                            <td className="text-start">
+                                                {currencyFormatter.format(Number(category.total_amount))}
+                                            </td>
+                                            <td className="text-start">{category.percentage_of_total}%</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </Card>
                 )}
+
+                {Array.isArray(expensePaymentsSummary) && expensePaymentsSummary.length > 0 && (
+                    <Card title="Expense Payments Summary" icon={<RiHandCoinLine />}>
+                        <div className="table-responsive">
+                            <table className="table table-sm table-hover table-striped small">
+                                <thead className="table-light">
+                                    <tr>
+                                        <th className="text-start">Status</th>
+                                        <th className="text-start">Method</th>
+                                        <th className="text-start">Payments Made</th>
+                                        <th className="text-start">Unique Expenses Reimbursed</th>
+                                        <th className="text-start">Total Reimbursed Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {expensePaymentsSummary.map((summary: ExpensePaymentsSummary, index: number) => (
+                                        <tr key={index}>
+                                            <td className="text-start">{summary.status}</td>
+                                            <td className="text-start">{summary.method}</td>
+                                            <td className="text-start">{summary.payments_made}</td>
+                                            <td className="text-start">{summary.unique_expenses_reimbursed}</td>
+                                            <td className="text-start">
+                                                {currencyFormatter.format(Number(summary.total_reimbursed_amount))}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </Card>
+                )}
+
+                {Array.isArray(expensePaymentsFullList) && expensePaymentsFullList.length > 0 && (
+                    <Card title="Expense Payments Full List" icon={<RiFileList3Line />}>
+                        <div className="table-responsive">
+                            <table className="table table-sm table-hover table-striped small">
+                                <thead className="table-light">
+                                    <tr>
+                                        <th className="text-start">Payment ID</th>
+                                        <th className="text-start">Expense Name</th>
+                                        <th className="text-start">Merchant</th>
+                                        <th className="text-start">Claimed Amount</th>
+                                        <th className="text-start">Paid Amount</th>
+                                        <th className="text-start">Payment Date</th>
+                                        <th className="text-start">Method</th>
+                                        <th className="text-start">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {expensePaymentsFullList.map((payment: ExpensePaymentsFullList, index: number) => (
+                                        <tr key={payment.payment_id}>
+                                            <td className="text-start">{payment.payment_id}</td>
+                                            <td className="text-start">{payment.expense_name}</td>
+                                            <td className="text-start">{payment.merchant}</td>
+                                            <td className="text-start">
+                                                {currencyFormatter.format(Number(payment.claimed_amount))}
+                                            </td>
+                                            <td className="text-start">
+                                                {currencyFormatter.format(Number(payment.paid_amount))}
+                                            </td>
+                                            <td className="text-start">
+                                                {new Date(payment.payment_date).toLocaleDateString()}
+                                            </td>
+                                            <td className="text-start">{payment.method}</td>
+                                            <td className="text-start">{payment.status}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </Card>
+                )}
+
+                {Array.isArray(allIndividualExpenses) && allIndividualExpenses.length > 0 && (
+                    <Card title="All Individual Expenses" icon={<RiCashLine />}>
+                        <div className="table-responsive">
+                            <table className="table table-sm table-hover table-striped small">
+                                <thead className="table-light">
+                                    <tr>
+                                        <th className="text-start">Expense ID</th>
+                                        <th className="text-start">Name</th>
+                                        <th className="text-start">Merchant</th>
+                                        <th className="text-start">Amount</th>
+                                        <th className="text-start">Expense Date</th>
+                                        <th className="text-start">Category</th>
+                                        <th className="text-start">Approval Status</th>
+                                        <th className="text-start">Employee ID</th>
+                                        <th className="text-start">Branch ID</th>
+                                        <th className="text-start">Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {allIndividualExpenses.map((expense: AllIndividualExpense, index: number) => (
+                                        <tr key={expense.expense_id}>
+                                            <td className="text-start">{expense.expense_id}</td>
+                                            <td className="text-start">{expense.name}</td>
+                                            <td className="text-start">{expense.merchant}</td>
+                                            <td className="text-start">
+                                                {currencyFormatter.format(Number(expense.amount))}
+                                            </td>
+                                            <td className="text-start">
+                                                {new Date(expense.expense_date).toLocaleDateString()}
+                                            </td>
+                                            <td className="text-start">{expense.category}</td>
+                                            <td className="text-start">{expense.approval_status}</td>
+                                            <td className="text-start">{expense.employeeid}</td>
+                                            <td className="text-start">{expense.branchid}</td>
+                                            <td className="text-start">{expense.description}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </Card>
+                )}
+
+                {Array.isArray(unapprovedExpensesPeriod) && unapprovedExpensesPeriod.length > 0 && (
+                    <Card title="Unapproved Expenses" icon={<RiAlertLine />}>
+                        <div className="table-responsive">
+                            <table className="table table-sm table-hover table-striped small">
+                                <thead className="table-light">
+                                    <tr>
+                                        <th className="text-start">Expense ID</th>
+                                        <th className="text-start">Description</th>
+                                        <th className="text-start">Amount</th>
+                                        <th className="text-start">Submitted Date</th>
+                                        <th className="text-start">Submitted By</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {unapprovedExpensesPeriod.map((expense: UnapprovedExpense, index: number) => (
+                                        <tr key={expense.expense_id}>
+                                            <td className="text-start">{expense.expense_id}</td>
+                                            <td className="text-start">{expense.description}</td>
+                                            <td className="text-start">
+                                                {currencyFormatter.format(Number(expense.amount))}
+                                            </td>
+                                            <td className="text-start">
+                                                {new Date(expense.submitted_date).toLocaleDateString()}
+                                            </td>
+                                            <td className="text-start">{expense.submitted_by}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </Card>
+                )}
+
+                {Array.isArray(expenseApprovalStatusSummary) && expenseApprovalStatusSummary.length > 0 && (
+                    <Card title="Expense Approval Status Summary" icon={<RiFileList3Line />}>
+                        <div className="table-responsive">
+                            <table className="table table-sm table-hover table-striped small">
+                                <thead className="table-light">
+                                    <tr>
+                                        <th className="text-start">Status</th>
+                                        <th className="text-start">Count</th>
+                                        <th className="text-start">Total Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {expenseApprovalStatusSummary.map((summary: ExpenseApprovalStatusSummary, index: number) => (
+                                        <tr key={index}>
+                                            <td className="text-start">{summary.status}</td>
+                                            <td className="text-start">{summary.count}</td>
+                                            <td className="text-start">
+                                                {currencyFormatter.format(Number(summary.total_amount))}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </Card>
+                )}
+
+                {Array.isArray(totalReimbursedPaid) && totalReimbursedPaid.length > 0 && (
+                    <Card title="Total Reimbursed & Paid Summary" icon={<RiHandCoinLine />}>
+                        <div className="table-responsive">
+                            <table className="table table-sm table-hover table-striped small">
+                                <thead className="table-light">
+                                    <tr>
+                                        <th className="text-start">Total Reimbursed</th>
+                                        <th className="text-start">Expenses Paid Count</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {totalReimbursedPaid.map((summary: TotalReimbursedPaid, index: number) => (
+                                        <tr key={index}>
+                                            <td className="text-start">
+                                                {currencyFormatter.format(Number(summary.total_reimbursed))}
+                                            </td>
+                                            <td className="text-start">{summary.expenses_paid_count}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </Card>
+                )}
+
+                {Array.isArray(billableExpenses) && billableExpenses.length > 0 && (
+                    <Card title="Billable Expenses" icon={<RiBankCardLine />}>
+                        <div className="table-responsive">
+                            <table className="table table-sm table-hover table-striped small">
+                                <thead className="table-light">
+                                    <tr>
+                                        <th className="text-start">Billable Expenses Count</th>
+                                        <th className="text-start">Total Billable Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {billableExpenses.map((expense: BillableExpenses, index: number) => (
+                                        <tr key={index}>
+                                            <td className="text-start">{expense.billable_expenses_count}</td>
+                                            <td className="text-start">
+                                                {currencyFormatter.format(Number(expense.total_billable_amount))}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </Card>
+                )}
+
             </div>
+
+            <Card title="Daily Test Transaction Details" icon={<RiTestTubeLine />}>
+                {Array.isArray(dailyTestTransactionSnapshot) && dailyTestTransactionSnapshot.length > 0 ? (
+                    <div className="table-responsive">
+                        <table className="table table-sm table-hover table-striped small">
+                            <thead className="table-light">
+                                <tr>
+                                    <th className="text-start">Test Name</th>
+                                    <th className="text-start">Category</th>
+                                    <th className="text-start">Count</th>
+                                    <th className="text-start">Accrued Revenue(total payable)</th>
+                                    <th className="text-start">Actual Revenue(paid amount)</th>
+                                    <th className="text-start">Total Cost</th>
+                                    <th className="text-start">Discount</th>
+                                    <th className="text-start">Outstanding</th>
+                                    <th className="text-start">Refunds</th>
+                                    <th className="text-start">Added On</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {dailyTestTransactionSnapshot.map((test: DailyTestTransaction, index: number) => (
+                                    <tr key={`${test.trackId}-${index}`}>
+                                        <td className="text-start">{test.test_panel_name || 'N/A'}</td>
+                                        <td className="text-start">{test.serviceCategory}</td>
+                                        <td className="text-start">
+                                            <span className="badge bg-primary">{test.test_count}</span>
+                                        </td>
+                                        <td className="text-start">
+                                            {currencyFormatter.format(Number(test.accrued_revenue))}
+                                        </td>
+                                        <td className="text-start">
+                                            {currencyFormatter.format(Number(test.actual_revenue))}
+                                        </td>
+                                        <td className="text-start">
+                                            {currencyFormatter.format(Number(test.total_cost))}
+                                        </td>
+                                        <td className="text-start">
+                                            {currencyFormatter.format(Number(test.total_discount))}
+                                        </td>
+                                        <td className="text-start">
+                                            {currencyFormatter.format(Number(test.total_outstanding))}
+                                        </td>
+                                        <td className="text-start">
+                                            {currencyFormatter.format(Number(test.total_refunds))}
+                                        </td>
+                                        <td className="text-start">
+                                            {new Date(test.serviceAddedOn).toLocaleTimeString()}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : (
+                    <div className={styles.emptyState}>
+                        <RiTestTubeLine size={32} style={{ opacity: 0.5, marginBottom: '0.5rem' }} />
+                        <p>No test transaction data available for the selected period.</p>
+                    </div>
+                )}
+            </Card>
+
+            <Card title="Employee Cash Collection Summary" icon={<RiGroupLine />}>
+                {Array.isArray(employeesWhoCollectedCash) && employeesWhoCollectedCash.length > 0 ? (
+                    <div className="table-responsive">
+                        <table className="table table-sm table-hover table-striped small">
+                            <thead className="table-light">
+                                <tr>
+                                    <th className="text-start">Payment Date</th>
+                                    <th className="text-start">Employee</th>
+                                    <th className="text-start">Transactions</th>
+                                    <th className="text-start">Total Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {employeesWhoCollectedCash.map((employee: EmployeeCashCollection, index: number) => (
+                                    <tr key={index}>
+                                        <td className="text-start">
+                                            {new Date(employee.payment_date).toLocaleDateString()}
+                                        </td>
+                                        <td className="text-start">{employee.username}</td>
+                                        <td className="text-start">
+                                            <span className="badge bg-primary">{employee.total_transactions}</span>
+                                        </td>
+                                        <td className="text-start">
+                                            {currencyFormatter.format(Number(employee.total_amount))}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : (
+                    <div className={styles.emptyState}>
+                        <RiGroupLine size={32} style={{ opacity: 0.5, marginBottom: '0.5rem' }} />
+                        <p>No cash collection data available for the selected period.</p>
+                    </div>
+                )}
+            </Card>
         </main>
     );
 }

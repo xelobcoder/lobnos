@@ -539,11 +539,11 @@ export default function PurchaseOrdersPage() {
                                              <RiMailLine size={14} />
                                         </button>
                                    )}
-                                   {row.original.status !== 'received' && (
+                                   {(row.original.status !== 'received' && row.original.status !== 'cancelled') && (
                                         <button
                                              className="btn btn-sm btn-outline-danger"
                                              title="Delete Order"
-                                             onClick={() => handleDeleteOrder(row.original.id)}
+                                             onClick={() => handleCancelOrder(row.original.id)}
                                         >
                                              <RiDeleteBinLine size={14} />
                                         </button>
@@ -868,25 +868,8 @@ export default function PurchaseOrdersPage() {
           }
      };
 
-     const handleDeleteOrder = async (orderId: string) => {
-          if (confirm('Are you sure you want to delete this order?')) {
-               try {
-                    const response = await customPost(`inventory/orders/${orderId}`, 'DELETE', {} as any);
 
-                    if (response.success) {
-                         toast.success('Order deleted successfully!');
-                         await loadPurchaseOrders();
-                    } else {
-                         toast.error('Failed to delete order: ' + (response.message || 'Unknown error'));
-                    }
-               } catch (error) {
-                    console.error('Error deleting order:', error);
-                    toast.error('Failed to delete order. Please try again.');
-               }
-          }
-     };
-
-     const handleCancelOrder = async (order: PurchaseOrder) => {
+     const handleCancelOrder = async (order: number) => {
           const reason = prompt('Please enter the reason for cancelling this order:');
           if (!reason || !reason.trim()) {
                toast.error('Cancellation reason is required');
@@ -899,15 +882,11 @@ export default function PurchaseOrdersPage() {
                     reason: reason.trim()
                };
 
-               const response = await customPost(`inventory/orders/${order.id}/cancel`, 'POST', cancelData);
+               const response = await customPost(`inventory/orders/${order}/cancel`, 'DELETE', cancelData);
 
                if (response.success) {
-                    setPurchaseOrders(prev => prev.map(o =>
-                         o.id === order.id
-                              ? { ...o, status: 'cancelled' }
-                              : o
-                    ));
                     toast.success('Order cancelled successfully!');
+                    await loadPurchaseOrders();
                } else {
                     toast.error(`Failed to cancel order: ${response.error?.message || 'Unknown error'}`);
                }

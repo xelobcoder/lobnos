@@ -47,6 +47,11 @@ export default function PrimeLabLoginPage() {
 
 			const backendResponse = await customPost('prime/login', 'POST', { email, password, browserInfo });
 
+			if (backendResponse.status === "error" && backendResponse.message === "License expired or invalid") {
+				router.push("/authentications/license-expired");
+				return;
+			}
+
 			const { status, accessToken, user } = backendResponse;
 
 			if (!status) {

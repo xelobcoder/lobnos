@@ -48,18 +48,29 @@ export default function AscentionUltrasoundUnCompletedTable({ stage }) {
 		{ Header: 'Age', accessor: 'age', width: 50 },
 		{
 			Header: 'Patient ID & Bill ID',
-			accessor: 'patientid',
+			accessor: 'fullpatientid',
 			Cell: ({ row }) => (
 				<div>
-					{row.original.patientid} <br />
+					{row.original.fullpatientid} <br />
 					{row.original.billingid}
 				</div>
 			),
-			width: 100,
+			width: 120,
 		},
 		{
-			Header: 'Test Name',
-			accessor: 'name',
+			Header: 'Status',
+			accessor: 'clientstatus',
+			Cell: ({ value }) => (
+				<span className={`badge ${value === 'paid' ? 'bg-success' : 'bg-warning'}`}>
+					{value}
+				</span>
+			),
+			width: 70,
+		},
+		{
+			Header: 'Entered By',
+			accessor: 'entered_by_username',
+			width: 120,
 		},
 		{
 			Header: 'Action',

@@ -46,7 +46,18 @@ export async function middleware(request: NextRequest) {
             const role = user.role || "";
             const currentPath = request.nextUrl.pathname;
 
-            // Handle sonographer access
+            // Check CRM access first
+            if (currentPath.startsWith("/crm")) {
+                if (!["admin", "manager", "customer service representative"].includes(role.toString().toLowerCase().trim())) {
+                    console.log("Redirecting from CRM due to role:", role);
+                    if (role == "sonographer") {
+                        return NextResponse.redirect(new URL('/operations/imaging/ultrasound', request.url));
+                    } else if (role == "scientist") {
+                        return NextResponse.redirect(new URL('/operations/laboratory', request.url));
+                    } else { return NextResponse.redirect(new URL('/unauthorized', request.url)) }
+                }
+            }
+
             if (role === "sonographer") {
                 if (!currentPath.startsWith('/operations/imaging')) {
                     return NextResponse.redirect(new URL('/unauthorized', request.url));
@@ -55,31 +66,12 @@ export async function middleware(request: NextRequest) {
             }
 
             // Handle lab scientist access
-            if (role === "labscientist") {
+            if (role === "scientist") {
                 if (!currentPath.startsWith('/operations/laboratory')) {
                     return NextResponse.redirect(new URL('/unauthorized', request.url));
                 }
                 return NextResponse.next();
             }
-           
-        
-            // Handle admin and manager access
-            // if (['admin', 'manager'].includes(role.toString().toLowerCase().trim())) {
-            //     if (currentPath.startsWith('/operations/imaging') ||
-            //         currentPath.startsWith('/operations/laboratory')) {
-            //         return NextResponse.redirect(new URL('/unauthorized', request.url));
-            //     }
-            //     return NextResponse.next();
-            // }
-
-
-            // Only admin can access analytics
-            if (currentPath.startsWith('/analytics')) {
-                if (role.toString().toLowerCase().trim() !== 'admin') {
-                    return NextResponse.redirect(new URL('/unauthorized', request.url));
-                }
-            }
-
 
             if (!["admin", "manager"].includes(role.toString().toLowerCase().trim())) {
                 const restrictedPaths = [
@@ -88,7 +80,8 @@ export async function middleware(request: NextRequest) {
                     '/billing/settings/night-adjustments',
                     '/billing/billing-strategy/strategies',
                     '/day-transaction-break-down',
-                
+                    '/analytics',
+                    '/inventory'
                 ];
                 if (restrictedPaths.some(path => currentPath.startsWith(path))) {
                     return NextResponse.redirect(new URL('/unauthorized', request.url));
@@ -120,6 +113,8 @@ export const config = {
         '/crm/:path*',
         '/sales/:path*',
         '/billing/billing-sessions/:path*',
+        '/inventory/:path*',
+        '/day-transaction-break-down'
     ]
 };
 

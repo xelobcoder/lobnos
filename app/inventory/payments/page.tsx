@@ -206,16 +206,17 @@ export default function PaymentsPage() {
 
           try {
                setLoading(true);
-               const response = await customPost(`inventory/supplier-payments/payments/${paymentId}/convert-to-expense`, 'POST', {
-                    payment_id: paymentId,
-                    converted_by: employeeid
+               const response = await customPost(`supplier-payments/mark-expense`, 'POST', {
+                    paymentId: paymentId,
+                    employeeid: employeeid,
+                    branchid: branchid
                });
 
-               if (response.success) {
-                    toast.success('Payment converted to expense successfully');
+               if (response.status?.success) {
+                    toast.success(response.status.message || 'Payment converted to expense successfully');
                     loadPayments();
                } else {
-                    toast.error(response.message || 'Failed to convert payment to expense');
+                    toast.error(response.status?.message || response.message || 'Failed to convert payment to expense');
                }
           } catch (error) {
                console.error('Error converting payment to expense:', error);
@@ -373,14 +374,16 @@ export default function PaymentsPage() {
                                    👁 {loadingDetails ? 'Loading...' : 'View Details'}
                               </button>
                          )}
-                         <button
-                              className="btn btn-sm btn-secondary"
-                              title="Convert to Expense"
-                              onClick={() => handleMakeAsExpense(row.original.id)}
-                              disabled={loading}
-                         >
-                              💰 Make Expense
-                         </button>
+                         {!row.original.expense_synced && (
+                              <button
+                                   className="btn btn-sm btn-secondary"
+                                   title="Convert to Expense"
+                                   onClick={() => handleMakeAsExpense(row.original.id)}
+                                   disabled={loading}
+                              >
+                                   💰 Make Expense
+                              </button>
+                         )}
                     </div>
                )
           }
@@ -420,6 +423,50 @@ export default function PaymentsPage() {
                          >
                               ↻ Refresh
                          </button>
+                    </div>
+               </div>
+
+               {/* Statistics Cards */}
+               <div className="row g-3 mb-4">
+                    <div className="col-md-3">
+                         <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <div className="d-flex align-items-center mb-2">
+                                   <span className="me-2 text-primary">💰</span>
+                                   <span className="fw-medium text-muted small">Total Payments</span>
+                              </div>
+                              <div className="fs-4 fw-bold text-primary">{stats.totalPayments}</div>
+                              <div className="small text-muted">All payment records</div>
+                         </div>
+                    </div>
+                    <div className="col-md-3">
+                         <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <div className="d-flex align-items-center mb-2">
+                                   <span className="me-2 text-warning">⏳</span>
+                                   <span className="fw-medium text-muted small">Pending Payments</span>
+                              </div>
+                              <div className="fs-4 fw-bold text-warning">{stats.pendingPayments}</div>
+                              <div className="small text-muted">Awaiting approval</div>
+                         </div>
+                    </div>
+                    <div className="col-md-3">
+                         <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <div className="d-flex align-items-center mb-2">
+                                   <span className="me-2 text-success">✅</span>
+                                   <span className="fw-medium text-muted small">Completed Payments</span>
+                              </div>
+                              <div className="fs-4 fw-bold text-success">{stats.completedPayments}</div>
+                              <div className="small text-muted">Successfully processed</div>
+                         </div>
+                    </div>
+                    <div className="col-md-3">
+                         <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <div className="d-flex align-items-center mb-2">
+                                   <span className="me-2 text-info">💵</span>
+                                   <span className="fw-medium text-muted small">Total Amount</span>
+                              </div>
+                              <div className="fs-4 fw-bold text-info">{currencyFormatter.format(stats.totalAmount)}</div>
+                              <div className="small text-muted">Total payment value</div>
+                         </div>
                     </div>
                </div>
 
