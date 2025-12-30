@@ -14,7 +14,6 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-
 	"github.com/google/uuid"
 	"github.com/lobnos/launcher/internal/fingerprint"
 	"github.com/lobnos/launcher/internal/license"
@@ -23,9 +22,9 @@ import (
 
 const (
 	ExpectedFingerprint = "77edd56c1aab9774e55e4a20527420bcde856a3b2d2d763ea5cfb57e6b2c5785"
-	ExpectedBuildHash   = "D983BF72DD59DE1978B999CEA25DE5C8A3117CB8EF03098CF0EDE9A64E293898"
+	ExpectedBuildHash   = "a1b2c3d4e5f6789012345678901234567890123456789012345678901234567890"
 	ProprietaryKeyword  = "LOB-NOS-INTERNAL-ONLY-2024"
-	LicenseFileName     = "license.dat"
+	LicenseFileName     = "license-global-medical-center.dat"
 	BuildDirName        = ".next"
 	BuildPassword       = "LobnosSecure2025!"
 	aesKey              = "12345678901234567890123456789012"

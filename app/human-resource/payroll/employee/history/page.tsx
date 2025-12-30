@@ -1,309 +1,387 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { customFetch } from '../../../../../components/Auth/customFetch';
-import { PayrollStatusBadge } from '../../../../../components/HR/Payroll/StatusBadges';
-import { currencyFormatter, formatDate } from '../../../../../components/HR/Payroll/utils';
-import Loader from '../../../../../components/isLoading';
-import {
-     RiUserLine,
-     RiHistoryLine,
-     RiSearchLine,
-     RiEyeLine,
-     RiDownloadLine,
-     RiCalendarLine
-} from '@remixicon/react';
+import { useApplication } from '../../../../../components/Auth/useApplicationContext';
+
 
 interface PayrollTransaction {
      id: number;
-     period_id: number;
+     payroll_period_id: number;
+     employeeid: number;
+     basic_salary: string;
+     hourly_earnings: string;
+     overtime_earnings: string;
+     commission_earnings: string;
+     total_allowances: string;
+     total_bonuses: string;
+     gross_salary: string;
+     income_tax: string;
+     employee_ssnit: string;
+     employer_ssnit: string;
+     employee_tier3: string;
+     employer_tier3: string;
+     nhis: string;
+     total_other_deductions: string;
+     total_deductions: string;
+     net_salary: string;
+     employer_cost: string;
+     days_worked: number;
+     hours_worked: string;
+     overtime_hours: string;
+     days_absent: number;
+     days_leave: number;
+     status: string;
+     payment_date: string;
+     payment_method: string;
+     payment_reference: string | null;
+     allowances_detail: string;
+     bonuses_detail: string;
+     other_deductions_detail: string;
+     created_at: string;
+     updated_at: string;
      period_name: string;
      period_start_date: string;
      period_end_date: string;
-     gross_salary: number;
-     tax_amount: number;
-     ssnit_employee: number;
-     ssnit_employer: number;
-     other_deductions: number;
-     net_salary: number;
-     payment_status: string;
-     created_at: string;
+     period_payment_date: string;
+     employee_name: string;
+     employee_role: string;
+     email: string;
+     branch_name: string;
 }
-
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
 
 export default function EmployeeHistoryPage() {
      const searchParams = useSearchParams();
-     const router = useRouter();
-     const employeeId = searchParams?.get('employeeId');
-
+     const employeeId = useApplication()?.user?.employeeid;
      const [transactions, setTransactions] = useState<PayrollTransaction[]>([]);
-     const [filteredTransactions, setFilteredTransactions] = useState<PayrollTransaction[]>([]);
-     const [loading, setLoading] = useState(true);
-     const [startDate, setStartDate] = useState('');
-     const [endDate, setEndDate] = useState('');
-     const [statusFilter, setStatusFilter] = useState('all');
+     const [selectedTransaction, setSelectedTransaction] = useState<PayrollTransaction | null>(null);
+     const [showModal, setShowModal] = useState(false);
+     const [currentPage, setCurrentPage] = useState(1);
+     const [pageSize, setPageSize] = useState(10);
+     const [customPageSize, setCustomPageSize] = useState('');
+     const [totalRecords, setTotalRecords] = useState(0);
+     const [loading, setLoading] = useState(false);
 
      useEffect(() => {
-          if (employeeId) {
-               fetchEmployeeHistory();
+          fetchEmployeeHistory();
+     }, [currentPage, pageSize]);
+
+     useEffect(() => {
+          // Sync customPageSize with pageSize when it changes
+          if (![5, 10, 25, 50, 100, 250, 500, 1000].includes(pageSize)) {
+               setCustomPageSize(pageSize.toString());
           } else {
-               setLoading(false);
+               setCustomPageSize('');
           }
-     }, [employeeId]);
-
-     useEffect(() => {
-          applyFilters();
-     }, [transactions, startDate, endDate, statusFilter]);
+     }, [pageSize]);
 
      const fetchEmployeeHistory = async () => {
           setLoading(true);
           try {
-               const response = await customFetch(`payroll/employee/${employeeId}/history`);
+               const response = await customFetch(
+                    `payroll/employee/${employeeId}/history?page=${currentPage}&count=${pageSize}`
+               );
                if (response?.status === 'success' && response?.statusCode === 200) {
                     setTransactions(response.result || []);
+                    setTotalRecords(response.result?.length || 0);
                }
+          } catch (err) {
+               setTransactions([]);
+               setTotalRecords(0);
           } finally {
                setLoading(false);
           }
      };
 
-     const applyFilters = () => {
-          let filtered = [...transactions];
-
-          // Date filter
-          if (startDate) {
-               filtered = filtered.filter(t => new Date(t.period_start_date) >= new Date(startDate));
-          }
-          if (endDate) {
-               filtered = filtered.filter(t => new Date(t.period_end_date) <= new Date(endDate));
-          }
-
-          // Status filter
-          if (statusFilter !== 'all') {
-               filtered = filtered.filter(t => t.payment_status === statusFilter);
-          }
-
-          setFilteredTransactions(filtered);
+     const openBreakdownModal = (transaction: PayrollTransaction) => {
+          setSelectedTransaction(transaction);
+          setShowModal(true);
      };
 
-     const handleResetFilters = () => {
-          setStartDate('');
-          setEndDate('');
-          setStatusFilter('all');
+     const closeModal = () => {
+          setShowModal(false);
+          setSelectedTransaction(null);
      };
 
-     // Calculate totals
-     const totalGross = filteredTransactions.reduce((sum, t) => sum + (t.gross_salary || 0), 0);
-     const totalNet = filteredTransactions.reduce((sum, t) => sum + (t.net_salary || 0), 0);
-     const totalTax = filteredTransactions.reduce((sum, t) => sum + (t.tax_amount || 0), 0);
-     const totalSSNIT = filteredTransactions.reduce((sum, t) => sum + ((t.ssnit_employee || 0) + (t.ssnit_employer || 0)), 0);
+     const handlePageChange = (page: number) => {
+          setCurrentPage(page);
+     };
 
-     if (!employeeId) {
-          return (
-               <div className="container-fluid px-4 py-3">
-                    <div className="text-center py-5">
-                         <RiUserLine size={48} className="text-muted mb-3" />
-                         <h5 className="fw-medium mb-2">No Employee Selected</h5>
-                         <p className="text-muted">Please provide an employee ID to view payroll history</p>
-                         <div className="mt-3">
-                              <input
-                                   type="number"
-                                   className="form-control d-inline-block"
-                                   placeholder="Enter Employee ID"
-                                   style={{ width: '200px' }}
-                                   onKeyPress={(e) => {
-                                        if (e.key === 'Enter') {
-                                             const value = (e.target as HTMLInputElement).value;
-                                             if (value) {
-                                                  router.push(`/human-resource/payroll/employee/history?employeeId=${value}`);
-                                             }
-                                        }
-                                   }}
-                              />
-                         </div>
-                    </div>
-               </div>
-          );
+     const handlePageSizeChange = (size: number) => {
+          const cappedSize = Math.min(Math.max(size, 1), 1000); // Ensure size is between 1 and 1000
+          setPageSize(cappedSize);
+          setCurrentPage(1); // Reset to first page when changing page size
+     };
+
+
+
+
+     const handleSeverSideProcessing = async (params: { page: number, count: number }) => {
+          setLoading(true);
+          try {
+               const { page, count } = params;
+               const response = await customFetch(
+                    `payroll/history?employeeId=${employeeId}&page=${page}&count=${count}`
+               );
+               if (response?.status === 'success' && response?.statusCode === 200) {
+                    return { result: response?.result?.data, error: false }
+               } else {
+                    return { result: [], error: false }
+               }
+          } catch (err) {
+               return { result: [], error: true }
+          } finally {
+               setLoading(false);
+          }
      }
 
-     if (loading) return <Loader />;
-
      return (
-          <div className="container-fluid px-4 py-3">
+          <div className="container-fluid p-4">
                {/* Header */}
                <div className="d-flex justify-content-between align-items-center mb-4">
-                    <div className="d-flex align-items-center">
-                         <RiHistoryLine size={28} style={{ color: COLOR_ACCENT }} className="me-2" />
-                         <div>
-                              <h1 className="h4 mb-0 fw-bold">Employee Payroll History</h1>
-                              <p className="text-muted mb-0 small">
-                                   Employee ID: {employeeId} | {filteredTransactions.length} of {transactions.length} records
-                              </p>
-                         </div>
-                    </div>
-                    <div className="d-flex gap-2">
-                         <Link href={`/human-resource/payroll/employee/ytd?employeeId=${employeeId}`} className="btn btn-outline-secondary btn-sm">
-                              View YTD Report
-                         </Link>
-                         <button className="btn btn-outline-primary btn-sm" onClick={() => window.print()}>
-                              <RiDownloadLine size={18} className="me-1" />
-                              Print
-                         </button>
+                    <div>
+                         <h2 className="mb-1">
+                              Employee Payroll History
+                         </h2>
+                         <p className="text-muted mb-0">View and manage employee payroll transactions</p>
                     </div>
                </div>
 
-               {/* Summary Cards */}
-               <div className="row g-3 mb-4">
-                    <div className="col-md-3">
-                         <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                              <div className="small text-muted mb-1">Total Periods</div>
-                              <div className="fs-4 fw-bold">{filteredTransactions.length}</div>
-                         </div>
-                    </div>
-                    <div className="col-md-3">
-                         <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                              <div className="small text-muted mb-1">Total Gross Salary</div>
-                              <div className="fs-5 fw-bold text-success">{currencyFormatter.format(totalGross)}</div>
-                         </div>
-                    </div>
-                    <div className="col-md-3">
-                         <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                              <div className="small text-muted mb-1">Total Net Salary</div>
-                              <div className="fs-5 fw-bold" style={{ color: COLOR_ACCENT }}>{currencyFormatter.format(totalNet)}</div>
-                         </div>
-                    </div>
-                    <div className="col-md-3">
-                         <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                              <div className="small text-muted mb-1">Total Deductions</div>
-                              <div className="fs-5 fw-bold text-danger">{currencyFormatter.format(totalGross - totalNet)}</div>
-                         </div>
-                    </div>
-               </div>
-
-               {/* Filters */}
+               {/* Card Table Section */}
                <div className="border rounded p-3 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                    <div className="row g-3 align-items-end">
-                         <div className="col-md-3">
-                              <label className="form-label small mb-1">Start Date</label>
-                              <input
-                                   type="date"
-                                   className="form-control form-control-sm"
-                                   value={startDate}
-                                   onChange={(e) => setStartDate(e.target.value)}
-                              />
-                         </div>
-                         <div className="col-md-3">
-                              <label className="form-label small mb-1">End Date</label>
-                              <input
-                                   type="date"
-                                   className="form-control form-control-sm"
-                                   value={endDate}
-                                   onChange={(e) => setEndDate(e.target.value)}
-                                   min={startDate}
-                              />
-                         </div>
-                         <div className="col-md-3">
-                              <label className="form-label small mb-1">Payment Status</label>
+                    <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
+                         <div className="d-flex align-items-center gap-2">
+                              <label className="form-label mb-0">Show:</label>
                               <select
                                    className="form-select form-select-sm"
-                                   value={statusFilter}
-                                   onChange={(e) => setStatusFilter(e.target.value)}
+                                   value={[5, 10, 25, 50, 100, 250, 500, 1000].includes(pageSize) ? pageSize : ''}
+                                   onChange={(e) => {
+                                        const value = Number(e.target.value);
+                                        handlePageSizeChange(value);
+                                        setCustomPageSize(''); // Clear custom input when selecting from dropdown
+                                   }}
+                                   style={{ width: 'auto' }}
                               >
-                                   <option value="all">All Status</option>
-                                   <option value="paid">Paid</option>
-                                   <option value="pending">Pending</option>
+                                   <option value={5}>5</option>
+                                   <option value={10}>10</option>
+                                   <option value={25}>25</option>
+                                   <option value={50}>50</option>
+                                   <option value={100}>100</option>
+                                   <option value={250}>250</option>
+                                   <option value={500}>500</option>
+                                   <option value={1000}>1000</option>
                               </select>
-                         </div>
-                         <div className="col-md-3">
-                              <button className="btn btn-outline-secondary btn-sm w-100" onClick={handleResetFilters}>
-                                   Reset Filters
-                              </button>
+                              <span>entries</span>
+                              <span className="text-muted mx-2">or</span>
+                              <input
+                                   type="number"
+                                   className="form-control form-control-sm"
+                                   placeholder="Custom"
+                                   min="1"
+                                   max="1000"
+                                   value={customPageSize}
+                                   onChange={(e) => {
+                                        const value = e.target.value;
+                                        setCustomPageSize(value);
+                                        const numValue = Number(value);
+                                        if (numValue >= 1 && numValue <= 1000) {
+                                             handlePageSizeChange(numValue);
+                                        }
+                                   }}
+                                   onBlur={() => {
+                                        // Clear custom input if it's not a valid number or out of range
+                                        const numValue = Number(customPageSize);
+                                        if (isNaN(numValue) || numValue < 1 || numValue > 1000) {
+                                             setCustomPageSize('');
+                                        }
+                                   }}
+                                   style={{ width: '80px' }}
+                              />
                          </div>
                     </div>
-               </div>
-
-               {/* Transactions Table */}
-               {filteredTransactions.length === 0 ? (
-                    <div className="text-center py-5">
-                         <RiHistoryLine size={48} className="text-muted mb-3" />
-                         <h5 className="fw-medium mb-2">No Payroll History Found</h5>
-                         <p className="text-muted">
-                              {startDate || endDate || statusFilter !== 'all'
-                                   ? 'Try adjusting your filters'
-                                   : 'This employee has no payroll records yet'}
-                         </p>
-                    </div>
-               ) : (
-                    <div className="border rounded" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                         <div className="table-responsive">
-                              <table className="table table-hover mb-0 align-middle">
-                                   <thead className="table-light">
+                    <div className="table-responsive">
+                         <table className="table table-striped">
+                              <thead>
+                                   <tr>
+                                        <th className="text-start">Employee Name</th>
+                                        <th className="text-start">Payment Period</th>
+                                        <th className="text-start">Payment Date</th>
+                                        <th className="text-start">Gross Salary</th>
+                                        <th className="text-start">Total Deductions</th>
+                                        <th className="text-start">Net Salary</th>
+                                        <th className="text-start">Days Worked</th>
+                                        <th className="text-start">Hours Worked</th>
+                                        <th className="text-start">Status</th>
+                                        <th className="text-start">Payment Method</th>
+                                        <th className="text-start">Actions</th>
+                                   </tr>
+                              </thead>
+                              <tbody>
+                                   {loading ? (
                                         <tr>
-                                             <th>Period</th>
-                                             <th>Period Dates</th>
-                                             <th className="text-end">Gross Salary</th>
-                                             <th className="text-end">Tax</th>
-                                             <th className="text-end">SSNIT (Total)</th>
-                                             <th className="text-end">Other Deductions</th>
-                                             <th className="text-end">Net Salary</th>
-                                             <th>Status</th>
-                                             <th className="text-end">Actions</th>
+                                             <td colSpan={11} className="text-center py-4">
+                                                  <div className="spinner-border spinner-border-sm" role="status">
+                                                       <span className="visually-hidden">Loading...</span>
+                                                  </div>
+                                                  <span className="ms-2">Loading...</span>
+                                             </td>
                                         </tr>
-                                   </thead>
-                                   <tbody>
-                                        {filteredTransactions.map((transaction) => (
+                                   ) : transactions.length === 0 ? (
+                                        <tr>
+                                             <td colSpan={11} className="text-start py-4">
+                                                  No payroll records found.
+                                             </td>
+                                        </tr>
+                                   ) : (
+                                        Array.isArray(transactions) && transactions.map((transaction) => (
                                              <tr key={transaction.id}>
-                                                  <td className="fw-medium">{transaction.period_name}</td>
-                                                  <td className="small">
-                                                       {formatDate(transaction.period_start_date)} - {formatDate(transaction.period_end_date)}
+                                                  <td className="text-start">{transaction.employee_name}</td>
+                                                  <td className="text-start">{transaction.period_name}</td>
+                                                  <td className="text-start">{transaction.payment_date}</td>
+                                                  <td className="text-start fw-bold">{transaction.gross_salary}</td>
+                                                  <td className="text-start text-danger">{transaction.total_deductions}</td>
+                                                  <td className="text-start fw-bold text-success">{transaction.net_salary}</td>
+                                                  <td className="text-start">{transaction.days_worked}</td>
+                                                  <td className="text-start">{transaction.hours_worked}</td>
+                                                  <td className="text-start">
+                                                       <span className={`badge ${transaction.status === 'paid' ? 'bg-success' : 'bg-warning'}`}>
+                                                            {transaction.status}
+                                                       </span>
                                                   </td>
-                                                  <td className="text-end fw-bold text-success">
-                                                       {currencyFormatter.format(transaction.gross_salary)}
+                                                  <td className="text-start">
+                                                       {transaction.payment_method}
                                                   </td>
-                                                  <td className="text-end">{currencyFormatter.format(transaction.tax_amount)}</td>
-                                                  <td className="text-end">
-                                                       {currencyFormatter.format((transaction.ssnit_employee || 0) + (transaction.ssnit_employer || 0))}
-                                                  </td>
-                                                  <td className="text-end">{currencyFormatter.format(transaction.other_deductions)}</td>
-                                                  <td className="text-end fw-bold" style={{ color: COLOR_ACCENT }}>
-                                                       {currencyFormatter.format(transaction.net_salary)}
-                                                  </td>
-                                                  <td>
-                                                       <PayrollStatusBadge status={transaction.payment_status as any} />
-                                                  </td>
-                                                  <td>
-                                                       <div className="d-flex gap-1 justify-content-end">
-                                                            <Link
-                                                                 href={`/human-resource/payroll/periods/${transaction.period_id}`}
-                                                                 className="btn btn-sm btn-outline-primary"
-                                                                 title="View Period Details"
-                                                            >
-                                                                 <RiEyeLine size={16} />
-                                                            </Link>
-                                                       </div>
+                                                  <td className="text-start">
+                                                       <button
+                                                            className="btn btn-sm btn-primary me-2"
+                                                            onClick={() => openBreakdownModal(transaction)}
+                                                       >
+                                                            View Breakdown
+                                                       </button>
+                                                       <button
+                                                            className="btn btn-sm btn-secondary"
+                                                            onClick={() => window.open(`/human-resource/payroll/employee/history/${transaction.employeeid}`, '_blank')}
+                                                       >
+                                                            View History
+                                                       </button>
                                                   </td>
                                              </tr>
-                                        ))}
-                                   </tbody>
-                                   <tfoot className="table-light fw-bold">
-                                        <tr>
-                                             <td colSpan={2}>Total</td>
-                                             <td className="text-end text-success">{currencyFormatter.format(totalGross)}</td>
-                                             <td className="text-end">{currencyFormatter.format(totalTax)}</td>
-                                             <td className="text-end">{currencyFormatter.format(totalSSNIT)}</td>
-                                             <td className="text-end">
-                                                  {currencyFormatter.format(
-                                                       filteredTransactions.reduce((sum, t) => sum + (t.other_deductions || 0), 0)
+                                        ))
+                                   )}
+                              </tbody>
+                         </table>
+                    </div>
+                    {/* Pagination */}
+                    <div className="d-flex justify-content-between align-items-center mt-3">
+                         <div>
+                              Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalRecords)} of {totalRecords} entries
+                         </div>
+                         <nav>
+                              <ul className="pagination pagination-sm mb-0">
+                                   <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                                        <button
+                                             className="page-link"
+                                             onClick={() => handlePageChange(currentPage - 1)}
+                                             disabled={currentPage === 1}
+                                        >
+                                             Previous
+                                        </button>
+                                   </li>
+                                   {Array.from({ length: Math.ceil(totalRecords / pageSize) }, (_, i) => i + 1)
+                                        .filter(page => {
+                                             const totalPages = Math.ceil(totalRecords / pageSize);
+                                             if (totalPages <= 7) return true;
+                                             if (page === 1 || page === totalPages) return true;
+                                             if (Math.abs(page - currentPage) <= 1) return true;
+                                             return false;
+                                        })
+                                        .map((page, index, array) => (
+                                             <React.Fragment key={page}>
+                                                  {index > 0 && array[index - 1] !== page - 1 && (
+                                                       <li className="page-item disabled">
+                                                            <span className="page-link">...</span>
+                                                       </li>
                                                   )}
-                                             </td>
-                                             <td className="text-end" style={{ color: COLOR_ACCENT }}>{currencyFormatter.format(totalNet)}</td>
-                                             <td colSpan={2}></td>
-                                        </tr>
-                                   </tfoot>
-                              </table>
+                                                  <li className={`page-item ${page === currentPage ? 'active' : ''}`}>
+                                                       <button
+                                                            className="page-link"
+                                                            onClick={() => handlePageChange(page)}
+                                                       >
+                                                            {page}
+                                                       </button>
+                                                  </li>
+                                             </React.Fragment>
+                                        ))}
+                                   <li className={`page-item ${currentPage === Math.ceil(totalRecords / pageSize) ? 'disabled' : ''}`}>
+                                        <button
+                                             className="page-link"
+                                             onClick={() => handlePageChange(currentPage + 1)}
+                                             disabled={currentPage === Math.ceil(totalRecords / pageSize)}
+                                        >
+                                             Next
+                                        </button>
+                                   </li>
+                              </ul>
+                         </nav>
+                    </div>
+               </div>
+               {showModal && selectedTransaction && (
+                    <div className="modal fade show d-block" tabIndex={-1} style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                         <div className="modal-dialog modal-lg">
+                              <div className="modal-content">
+                                   <div className="modal-header">
+                                        <h5 className="modal-title">Payroll Breakdown - {selectedTransaction.employee_name}</h5>
+                                        <button type="button" className="btn-close" onClick={closeModal}></button>
+                                   </div>
+                                   <div className="modal-body">
+                                        <div className="row">
+                                             <div className="col-md-6">
+                                                  <h6 className="text-primary">Earnings</h6>
+                                                  <div className="mb-2 text-start"><strong>Basic Salary:</strong> {selectedTransaction.basic_salary}</div>
+                                                  <div className="mb-2 text-start"><strong>Hourly Earnings:</strong> {selectedTransaction.hourly_earnings}</div>
+                                                  <div className="mb-2 text-start"><strong>Overtime Earnings:</strong> {selectedTransaction.overtime_earnings}</div>
+                                                  <div className="mb-2 text-start"><strong>Commission:</strong> {selectedTransaction.commission_earnings}</div>
+                                                  <div className="mb-2 text-start"><strong>Total Allowances:</strong> {selectedTransaction.total_allowances}</div>
+                                                  <div className="mb-2 text-start"><strong>Total Bonuses:</strong> {selectedTransaction.total_bonuses}</div>
+                                                  <div className="mb-2 fw-bold text-start"><strong>Gross Salary:</strong> {selectedTransaction.gross_salary}</div>
+                                             </div>
+                                             <div className="col-md-6">
+                                                  <h6 className="text-danger">Deductions</h6>
+                                                  <div className="mb-2 text-start"><strong>Income Tax:</strong> {selectedTransaction.income_tax}</div>
+                                                  <div className="mb-2 text-start"><strong>Employee SSNIT:</strong> {selectedTransaction.employee_ssnit}</div>
+                                                  <div className="mb-2 text-start"><strong>Employee Tier 3:</strong> {selectedTransaction.employee_tier3}</div>
+                                                  <div className="mb-2 text-start"><strong>NHIS:</strong> {selectedTransaction.nhis}</div>
+                                                  <div className="mb-2 text-start"><strong>Other Deductions:</strong> {selectedTransaction.total_other_deductions}</div>
+                                                  <div className="mb-2 fw-bold text-start"><strong>Total Deductions:</strong> {selectedTransaction.total_deductions}</div>
+                                                  <div className="mb-2 fw-bold text-success text-start"><strong>Net Salary:</strong> {selectedTransaction.net_salary}</div>
+                                             </div>
+                                        </div>
+                                        <hr />
+                                        <div className="row">
+                                             <div className="col-md-6">
+                                                  <h6 className="text-info">Work Details</h6>
+                                                  <div className="mb-2 text-start"><strong>Days Worked:</strong> {selectedTransaction.days_worked}</div>
+                                                  <div className="mb-2 text-start"><strong>Hours Worked:</strong> {selectedTransaction.hours_worked}</div>
+                                                  <div className="mb-2 text-start"><strong>Overtime Hours:</strong> {selectedTransaction.overtime_hours}</div>
+                                                  <div className="mb-2 text-start"><strong>Days Absent:</strong> {selectedTransaction.days_absent}</div>
+                                                  <div className="mb-2 text-start"><strong>Days Leave:</strong> {selectedTransaction.days_leave}</div>
+                                             </div>
+                                             <div className="col-md-6">
+                                                  <h6 className="text-secondary">Period & Payment</h6>
+                                                  <div className="mb-2 text-start"><strong>Period:</strong> {selectedTransaction.period_name}</div>
+                                                  <div className="mb-2 text-start"><strong>Start Date:</strong> {selectedTransaction.period_start_date}</div>
+                                                  <div className="mb-2 text-start"><strong>End Date:</strong> {selectedTransaction.period_end_date}</div>
+                                                  <div className="mb-2 text-start"><strong>Payment Date:</strong> {selectedTransaction.period_payment_date}</div>
+                                                  <div className="mb-2 text-start"><strong>Payment Method:</strong> {selectedTransaction.payment_method}</div>
+                                                  <div className="mb-2 text-start"><strong>Reference:</strong> {selectedTransaction.payment_reference || 'N/A'}</div>
+                                             </div>
+                                        </div>
+                                   </div>
+                                   <div className="modal-footer">
+                                        <button type="button" className="btn btn-outline-secondary btn-sm" onClick={closeModal}>Close</button>
+                                   </div>
+                              </div>
                          </div>
                     </div>
                )}

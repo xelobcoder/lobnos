@@ -1,0 +1,612 @@
+
+> lobnos@0.1.0 build
+> cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 next build
+
+  ▲ Next.js 14.2.35
+  - Environments: .env
+
+   Creating an optimized production build ...
+(node:4140) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable 
+to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ⚠ Failed to download the stylesheet for https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Rajdhani:wght@300;400;500;600;700&family=Raleway:ital,wght@0,100..900;1,100..900&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap. Skipped optimizing this font.
+ ✓ Compiled successfully
+   Skipping validation of types
+
+Failed to compile.
+
+./app/analytics/expenses/comparison-by-period/page.tsx
+91:8  Warning: React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/analytics/expenses/expense-approval-timeline/page.tsx
+80:9  Warning: React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/analytics/expenses/expense-buckets/page.tsx
+83:9  Warning: React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/analytics/expenses/expense-growth-rate/page.tsx
+78:9  Warning: React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/analytics/expenses/expense-payment-status/page.tsx
+88:9  Warning: React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/analytics/expenses/top-expense-employees/page.tsx
+94:9  Warning: React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/analytics/expenses/top-expense-merchants/page.tsx
+95:9  Warning: React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/analytics/outsourcing/daily/page.tsx
+87:9  Warning: React Hook useCallback has a missing dependency: 'selectedBranch'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps      
+
+./app/analytics/outsourcing/monthly/page.tsx
+83:9  Warning: React Hook useCallback has a missing dependency: 'selectedBranch'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps      
+
+./app/analytics/outsourcing/quarterly/page.tsx
+83:9  Warning: React Hook useCallback has a missing dependency: 'selectedBranch'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps      
+
+./app/analytics/outsourcing/weekly/page.tsx
+83:9  Warning: React Hook useCallback has a missing dependency: 'selectedBranch'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps      
+
+./app/analytics/outsourcing/yearly/page.tsx
+80:9  Warning: React Hook useCallback has a missing dependency: 'selectedBranch'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps      
+
+./app/analytics/outsourcing/[outsourceid]/page.tsx
+97:9  Warning: React Hook useCallback has a missing dependency: 'selectedBranch'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps      
+
+./app/analytics/resultanalysis/monthcasecount/page.tsx
+67:6  Warning: React Hook useEffect has missing dependencies: 'monthCasesShow' and 
+'monthResultShow'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/analytics/resultanalysis/monthresultsvalues/page.tsx
+85:8  Warning: React Hook useEffect has missing dependencies: 'employeeid' and 'groupingField'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/analytics/sales/organizations/page.tsx
+98:9  Warning: React Hook useCallback has a missing dependency: 'employeeid'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/analytics/sales/totalSalesByClinician/page.tsx
+137:8  Warning: React Hook useEffect has missing dependencies: 'endDate', 'fetchData', and 'startDate'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/analytics/sales/totalSalesByEmployee/page.tsx
+164:8  Warning: React Hook useEffect has missing dependencies: 'endDate', 'fetchData', and 'startDate'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/analytics/sales/totalSalesByOrganization/page.tsx
+140:8  Warning: React Hook useEffect has missing dependencies: 'endDate', 'fetchData', and 'startDate'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/analytics/sales/totalSalesByOutsourcedStatus/page.tsx
+81:8  Warning: React Hook useEffect has missing dependencies: 'endDate' and 'startDate'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/analytics/sales/totalSalesByServiceCategory/page.tsx
+159:8  Warning: React Hook useEffect has missing dependencies: 'endDate', 'fetchData', and 'startDate'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/analytics/sales/weeklySalesTrend/page.tsx
+128:8  Warning: React Hook useEffect has missing dependencies: 'branchid' and 'employeeid'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/appointments/attendance/create-attendance/[cycleid]/page.tsx
+163:8  Warning: React Hook useEffect has missing dependencies: 'checkIfReadOnly', 'generateCalendarData', and 'generateDateRange'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/appointments/attendance/preference-shift/[employeeid]/page.tsx
+69:8  Warning: React Hook useEffect has missing dependencies: 'loadShifts' and 'loadUnavailableDays'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/billing/billing-sessions/sales-session/EndSessionModal.tsx
+152:9  Warning: React Hook useEffect has missing dependencies: 'branchid' and 'employeeid'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/billing/billing-sessions/sales-session/page.tsx
+76:5  Warning: React Hook useCallback has a missing dependency: 'currentPage'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/billing/billing-strategy/strategies/page.tsx
+172:8  Warning: React Hook useEffect has a missing dependency: 'fetchStrategies'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps      
+
+./app/billing/billing-strategy/[entitytype]/[entityid]/check/page.tsx
+171:8  Warning: React Hook useEffect has missing dependencies: 'entityid', 'entitytype', and 'router'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/billing/cash-collection/page.tsx
+350:9  Warning: React Hook useEffect has a missing dependency: 'searchBilling'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps        
+
+./app/billing/cash-collection/pos-receipt-test/page.tsx
+194:9  Warning: React Hook useEffect has missing dependencies: 'error' and 'fetchData'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/billing/expenses/category/page.tsx
+35:9  Warning: React Hook useEffect has missing dependencies: 'branchid' and 'employeeid'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/billing/expenses/merchants/create/page.tsx
+66:8  Warning: React Hook useEffect has missing dependencies: 'branchid' and 'employeeid'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/billing/expenses/receipt/[id]/page.jsx
+65:9  Warning: React Hook useEffect has missing dependencies: 'branchid' and 'employeeid'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/billing/sales/branches/[branchid]/day-transaction-break-down/page.tsx        
+359:8  Warning: React Hook useEffect has a missing dependency: 'employeeid'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/clinicians/commision-information/[clinicianid]/commission-update/page.tsx    
+65:9  Warning: React Hook useEffect has a missing dependency: 'handleServerSideProcessing'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/clinicians/commision-information/[clinicianid]/page.tsx
+99:5  Warning: React Hook useEffect has missing dependencies: 'endDate' and 'startDate'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/clinicians/commissions-payments-made/page.tsx
+114:9  Warning: React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/clinicians/page.tsx
+156:8  Warning: React Hook useEffect has missing dependencies: 'getClinicianData' and 'role'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/compliance/incident-reporting/AuditTrailTab.tsx
+80:9  Warning: React Hook useEffect has a missing dependency: 'fetchAuditTrail'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps       
+
+./app/crm/leads/follow-up/page.tsx
+94:9  Warning: React Hook useEffect has a missing dependency: 'itemsPerPage'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/crm/leads/followups/[id]/page.tsx
+191:9  Warning: React Hook useEffect has missing dependencies: 'fetchFollowups' and 'fetchLeadDetails'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/crm/leads/list/page.tsx
+63:9  Warning: React Hook useEffect has a missing dependency: 'fetchLeads'. Either 
+include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/doctor/ascension/ascension-status/page.tsx
+260:11  Warning: React Hook React.useMemo has a missing dependency: 'handleViewResult'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps265:9  Warning: React Hook useEffect has a missing dependency: 'fetchAscensionData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps   
+
+./app/doctor/consultation/allconsultations/page.tsx
+53:8  Warning: React Hook useEffect has a missing dependency: 'fetchConsultationRecords'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/doctor/consultation/clients/pending/page.tsx
+79:8  Warning: React Hook useEffect has a missing dependency: 'fetchPendingConsultations'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/human-resource/payroll/analytics/page.tsx
+45:9  Warning: React Hook useEffect has a missing dependency: 'fetchAnalytics'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps        
+
+./app/human-resource/payroll/attendance/page.tsx
+168:9  Warning: React Hook useEffect has missing dependencies: 'fetchAttendanceRecords' and 'fetchAttendanceSummary'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+173:9  Warning: React Hook useEffect has missing dependencies: 'fetchAttendanceRecords' and 'fetchAttendanceSummary'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/human-resource/payroll/attendance/summary/page.tsx
+84:9  Warning: React Hook useEffect has a missing dependency: 'fetchAttendanceData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps   
+
+./app/human-resource/payroll/attendance/[id]/edit/page.tsx
+85:9  Warning: React Hook useEffect has a missing dependency: 'fetchAttendanceRecord'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps 
+
+./app/human-resource/payroll/attendance/[id]/page.tsx
+81:9  Warning: React Hook useEffect has a missing dependency: 'fetchAttendanceRecord'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps 
+
+./app/human-resource/payroll/compensation/active/page.tsx
+57:9  Warning: React Hook useEffect has a missing dependency: 'applyFilters'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/human-resource/payroll/compensation/page.tsx
+84:9  Warning: React Hook useEffect has a missing dependency: 'fetchCompensations'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps    
+88:9  Warning: React Hook useEffect has a missing dependency: 'applyFilters'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/human-resource/payroll/compensation/[id]/edit/page.tsx
+207:9  Warning: React Hook useEffect has a missing dependency: 'fetchCompensationDetails'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/human-resource/payroll/compensation/[id]/page.tsx
+78:9  Warning: React Hook useEffect has a missing dependency: 'fetchCompensationDetails'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/human-resource/payroll/employee/history/page.tsx
+68:9  Warning: React Hook useEffect has a missing dependency: 'fetchEmployeeHistory'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps  
+
+./app/human-resource/payroll/employee/ytd/page.tsx
+54:9  Warning: React Hook useEffect has a missing dependency: 'fetchYTDReport'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps        
+
+./app/human-resource/payroll/employee/[id]/page.tsx
+106:26  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+135:31  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+140:31  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+147:74  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+150:31  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+380:9  Warning: React Hook useEffect has a missing dependency: 'loadEmployeePayslip'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps  
+
+./app/human-resource/payroll/page.tsx
+76:9  Warning: React Hook useEffect has a missing dependency: 'fetchAnalytics'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps        
+
+./app/human-resource/payroll/periods/process/page.tsx
+63:9  Warning: React Hook useEffect has a missing dependency: 'fetchPeriodDetails'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps    
+
+./app/human-resource/payroll/periods/[id]/page.tsx
+106:9  Warning: React Hook useEffect has missing dependencies: 'fetchPeriodDetails' and 'fetchTransactions'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+112:9  Warning: React Hook useEffect has missing dependencies: 'fetchTransactions' 
+and 'periodId'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/human-resource/payroll/salary-grades/page.tsx
+57:9  Warning: React Hook useEffect has a missing dependency: 'fetchSalaryGrades'. 
+Either include it or remove the dependency array.  react-hooks/exhaustive-deps     
+61:9  Warning: React Hook useEffect has a missing dependency: 'filterGrades'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/human-resource/payroll/salary-grades/[id]/edit/page.tsx
+62:9  Warning: React Hook useEffect has a missing dependency: 'fetchSalaryGrade'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps      
+
+./app/human-resource/payroll/salary-grades/[id]/page.tsx
+50:9  Warning: React Hook useEffect has a missing dependency: 'fetchSalaryGrade'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps      
+
+./app/human-resource/payroll/tax-configurations/page.tsx
+72:9  Warning: React Hook useEffect has a missing dependency: 'fetchTaxConfigurations'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps76:9  Warning: React Hook useEffect has a missing dependency: 'filterConfigurations'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps  
+
+./app/human-resource/payroll/tax-configurations/[id]/audit/page.tsx
+104:9  Warning: React Hook useEffect has a missing dependency: 'fetchAuditHistory'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps    
+
+./app/human-resource/payroll/tax-configurations/[id]/edit/page.tsx
+103:9  Warning: React Hook useEffect has a missing dependency: 'fetchTaxConfiguration'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+./app/human-resource/payroll/tax-configurations/[id]/page.tsx
+58:9  Warning: React Hook useEffect has a missing dependency: 'fetchTaxConfiguration'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps 
+
+./app/inventory/analytics/batch-expiry/page.tsx
+68:9  Warning: React Hook useEffect has a missing dependency: 'loadBatchExpiryAnalytics'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/inventory/analytics/cost-valuation/page.tsx
+37:9  Warning: React Hook useEffect has a missing dependency: 'loadCostValuationAnalytics'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/inventory/analytics/costs/page.tsx
+36:9  Warning: React Hook useEffect has a missing dependency: 'loadCostAnalytics'. 
+Either include it or remove the dependency array.  react-hooks/exhaustive-deps     
+
+./app/inventory/analytics/inventoryitems/[itemid]/orders/page.tsx
+54:9  Warning: React Hook useEffect has a missing dependency: 'loadOrderAnalytics'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps    
+
+./app/inventory/analytics/inventoryitems/[itemid]/page.tsx
+90:9  Warning: React Hook useEffect has a missing dependency: 'loadItemAnalytics'. 
+Either include it or remove the dependency array.  react-hooks/exhaustive-deps     
+
+./app/inventory/analytics/inventoryitems/[itemid]/supplier-performance/page.tsx    
+80:9  Warning: React Hook useEffect has a missing dependency: 'loadSupplierPerformanceAnalytics'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/inventory/analytics/inventoryitems/[itemid]/test-consumption/page.tsx        
+74:9  Warning: React Hook useEffect has a missing dependency: 'loadTestConsumptionAnalytics'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/inventory/analytics/inventoryitems/[itemid]/usage/page.tsx
+77:9  Warning: React Hook useEffect has a missing dependency: 'loadUsageAnalytics'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps    
+
+./app/inventory/analytics/inventoryitems/[itemid]/wastage/page.tsx
+77:9  Warning: React Hook useEffect has a missing dependency: 'loadWastageAnalytics'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps  
+
+./app/inventory/analytics/items/page.tsx
+84:9  Warning: React Hook useEffect has a missing dependency: 'loadInventoryItems'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps    
+
+./app/inventory/analytics/movement/page.tsx
+128:9  Warning: React Hook useEffect has missing dependencies: 'initializeFiltersFromURL' and 'loadInventoryMovementAnalytics'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/inventory/analytics/page.tsx
+43:9  Warning: React Hook useEffect has a missing dependency: 'loadDashboardSummary'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps  
+
+./app/inventory/analytics/payment-time/page.tsx
+95:9  Warning: React Hook useEffect has a missing dependency: 'loadPaymentTimeAnalytics'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/inventory/analytics/payments/page.tsx
+42:9  Warning: React Hook useEffect has a missing dependency: 'loadPaymentAnalytics'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps  
+
+./app/inventory/analytics/procurement/page.tsx
+171:9  Warning: React Hook useEffect has a missing dependency: 'loadProcurementAnalytics'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/inventory/analytics/purchase-orders/page.tsx
+86:9  Warning: React Hook useEffect has a missing dependency: 'loadPurchaseOrderAnalytics'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/inventory/analytics/stock-levels/page.tsx
+118:9  Warning: React Hook useEffect has a missing dependency: 'loadStockLevelAnalytics'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/inventory/analytics/suppliers/page.tsx
+46:9  Warning: React Hook useEffect has a missing dependency: 'loadSupplierAnalytics'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps 
+
+./app/inventory/analytics/suppliers/[supplierid]/page.tsx
+270:9  Warning: React Hook useEffect has a missing dependency: 'loadSupplierAnalytics'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+./app/inventory/analytics/transactions/page.tsx
+146:9  Warning: React Hook useEffect has a missing dependency: 'loadTransactionAnalytics'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/inventory/analytics/usage/page.tsx
+156:9  Warning: React Hook useEffect has a missing dependency: 'loadUsageAnalytics'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps   
+
+./app/inventory/categories/page.tsx
+37:9  Warning: React Hook useEffect has a missing dependency: 'loadCategories'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps        
+
+./app/inventory/consumption/page.tsx
+165:9  Warning: React Hook useEffect has missing dependencies: 'loadConsumptionRecords' and 'loadInventoryItems'. Either include them or remove the dependency array. 
+ react-hooks/exhaustive-deps
+
+./app/inventory/expired-products/consumption-history/page.tsx
+43:9  Warning: React Hook useEffect has a missing dependency: 'loadConsumptionHistory'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+./app/inventory/items/page.tsx
+247:9  Warning: React Hook useEffect has missing dependencies: 'loadBrands', 'loadCategories', 'loadConsumptionUnits', 'loadInventoryItems', 'loadStorageLocations', and 'loadSuppliers'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/inventory/items/[itemid]/history/page.tsx
+113:9  Warning: React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/inventory/locations/page.tsx
+48:9  Warning: React Hook useEffect has a missing dependency: 'loadLocations'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/inventory/orders/page.tsx
+396:9  Warning: React Hook useEffect has missing dependencies: 'loadInventoryItems', 'loadPurchaseOrders', and 'loadSuppliers'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+414:9  Warning: React Hook useEffect has a missing dependency: 'handleServerSideProcessing'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/inventory/orders/receive-ordered-items/[orderid]/page.tsx
+40:9  Warning: React Hook useEffect has a missing dependency: 'loadOrderDetails'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps      
+
+./app/inventory/orders/received-items-history/page.tsx
+138:9  Warning: React Hook useEffect has a missing dependency: 'loadOrders'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/inventory/payments/journal/page.tsx
+65:9  Warning: React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/inventory/payments/page.tsx
+71:9  Warning: React Hook useEffect has a missing dependency: 'loadPayments'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/inventory/payments/[id]/page.tsx
+52:9  Warning: React Hook useEffect has a missing dependency: 'loadPaymentDetails'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps    
+
+./app/inventory/suppliers/page.tsx
+41:9  Warning: React Hook useEffect has a missing dependency: 'loadSuppliers'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/inventory/templates/page.tsx
+77:9  Warning: React Hook useEffect has missing dependencies: 'loadInventoryItems', 'loadTemplates', and 'loadTests'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/inventory/units/page.tsx
+58:9  Warning: React Hook useEffect has a missing dependency: 'loadUnits'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/inventory/wastage/page.tsx
+78:9  Warning: React Hook useEffect has a missing dependency: 'loadWastageRecords'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps    
+
+./app/layout.tsx
+23:21  Warning: Custom fonts not added in `pages/_document.js` will only load for a single page. This is discouraged. See: https://nextjs.org/docs/messages/no-page-custom-font  @next/next/no-page-custom-font
+
+./app/me/page.tsx
+343:61  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+414:36  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+441:46  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/operations/imaging/ultrasound/result/[branchid]/ImageUploadTab.tsx
+148:9  Warning: React Hook useEffect has a missing dependency: 'fetchUploadedImages'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps  
+220:51  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+255:51  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/operations/imaging/ultrasound/result/[branchid]/page.tsx
+239:5  Warning: React Hook useEffect has missing dependencies: 'fetchTemplates' and 'testid'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/operations/laboratory/auditlogs/[ascensionid]/page.tsx
+76:8  Warning: React Hook useEffect has a missing dependency: 'fetchLogs'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/operations/laboratory/patientarchives/page.tsx
+190:5  Warning: React Hook useEffect has a missing dependency: 'getDataArchives'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps      
+
+./app/operations/laboratory/sample/rejected/history/page.jsx
+40:9  Warning: React Hook useEffect has a missing dependency: 'branchid'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/operations/laboratory/validated/printing-tracking/[ascensionid]/page.tsx     
+63:9  Warning: React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/operations/phelobotomy/pending-samples-collection/page.tsx
+33:8  Warning: React Hook useEffect has a missing dependency: 'handleLoad'. Either 
+include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/page.tsx
+65:41  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+307:46  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+310:46  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+313:46  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+316:46  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/result/lab-report-multiple/page.tsx
+86:5  Warning: React Hook useEffect has missing dependencies: 'ascensionid', 'billingid', 'employeeid', 'testid', and 'url'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+359:5  Warning: React Hook useEffect has a missing dependency: 'ascensionid'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+380:5  Warning: React Hook useEffect has a missing dependency: 'getSelectedAscensionIds'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+439:5  Warning: React Hook useEffect has a missing dependency: 'computePrintPageStarters'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/result/labreport/4/page.tsx
+67:8  Warning: React Hook useEffect has missing dependencies: 'isScan', 'ptid', 'router', and 'url'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+188:8  Warning: React Hook useEffect has a missing dependency: 'ascensionid'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/result/labreport/5/page.tsx
+104:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+170:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/result/labreport/page.tsx
+138:8  Warning: React Hook useEffect has a missing dependency: 'url'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+206:8  Warning: React Hook useEffect has missing dependencies: 'ascensionid' and 'test'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/settings/applicationsettings/customization/page.tsx
+64:5  Warning: React Hook useEffect contains a call to 'setHasLoaded'. Without a list of dependencies, this can lead to an infinite chain of updates. To fix this, pass [] as a second argument to the useEffect Hook.  react-hooks/exhaustive-deps      
+
+./app/settings/applicationsettings/resultentrysettings/page.tsx
+129:8  Warning: React Hook useEffect has a missing dependency: 'getInitData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/settings/applicationsettings/testpanels/fieldscategory/[testid]/page.tsx     
+41:8  Warning: React Hook useEffect has a missing dependency: 'fetchCategories'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps       
+
+./app/settings/applicationsettings/testpanels/multiple-test-conditions/[testid]/page.tsx
+37:8  Warning: React Hook useEffect has a missing dependency: 'fetchConditions'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps       
+
+./app/settings/applicationsettings/testpanels/testlist/createfields/page.tsx       
+44:5  Warning: React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/accessories/Datatables/PrimePivotTable.js
+150:5  Warning: React Hook useEffect has a missing dependency: 'loadSharedConfig'. 
+Either include it or remove the dependency array.  react-hooks/exhaustive-deps     
+157:5  Warning: React Hook useEffect has missing dependencies: 'RunServerAction', 'queryParams.count', and 'queryParams.page'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+225:5  Warning: React Hook useEffect has a missing dependency: 'contextMenu'. Either include it or remove the dependency array. You can also do a functional update 'setContextMenu(c => ...)' if you only need 'contextMenu' in the 'setContextMenu' call.  react-hooks/exhaustive-deps
+280:5  Warning: React Hook useEffect has missing dependencies: 'handleSeverSideProcessing', 'queryParams', and 'refreshTimer'. Either include them or remove the dependency array. If 'handleSeverSideProcessing' changes too often, find the parent component that defines it and wrap that definition in useCallback.  react-hooks/exhaustive-deps
+
+./components/accessories/message.js
+34:6  Warning: React Hook useEffect has a missing dependency: 'handleView'. Either 
+include it or remove the dependency array. If 'handleView' changes too often, find 
+the parent component that defines it and wrap that definition in useCallback.  react-hooks/exhaustive-deps
+
+./components/accessories/SampleAssessmentModal/SampleAssessmentModal.jsx
+184:5  Warning: React Hook useEffect has a missing dependency: 'currentBillingId'. 
+Either include it or remove the dependency array.  react-hooks/exhaustive-deps     
+
+./components/accessories/SectorFileringComponents/FetchColumns.tsx
+39:9  Warning: React Hook useEffect has a missing dependency: 'isSMS'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/analytics/clinicians-analytics/ClinicianAnalyticsDailyCaseChange.tsx  
+180:5  Warning: React Hook useEffect has a missing dependency: 'fetchData'. Either 
+include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/analytics/patients-analytics/components/AgeDistribution.tsx
+76:5  Warning: React Hook useEffect has missing dependencies: 'fetchAgeDistribution' and 'interval'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/Billing/BillingContextComponents/BillingOptionsSource.jsx
+108:8  Warning: React Hook useEffect has missing dependencies: 'billingdata' and 'updateBilling'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+115:8  Warning: React Hook useEffect has missing dependencies: 'initdata' and 'updateBilling'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/Billing/BillingContextComponents/BillingSourceComponents/RefundServiceShowDetailModal.tsx
+79:5  Warning: React Hook useEffect has a missing dependency: 'setRefundableAmount'. Either include it or remove the dependency array. If 'setRefundableAmount' changes too often, find the parent component that defines it and wrap that definition in 
+useCallback.  react-hooks/exhaustive-deps
+
+./components/Billing/BillingContextComponents/Lib/packages/SelectPackages.tsx      
+148:5  Warning: React Hook useEffect has a missing dependency: 'fetchPackages'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps        
+152:5  Warning: React Hook useEffect has a missing dependency: 'loadSelectedPackage'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps  
+
+./components/Billing/FinancialAnalyticsReport.tsx
+334:8  Warning: React Hook useEffect has a missing dependency: 'employeeid'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/Billing/Multi/MultBillingLayout.tsx
+502:8  Warning: React Hook useEffect has a missing dependency: 'onMountedRun'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/Billing/Multi/PaymentModal.tsx
+201:9  Warning: React Hook React.useEffect has missing dependencies: 'items', 'payable', and 'selectedPayments'. Either include them or remove the dependency array. You can also do a functional update 'setSelectedPayments(s => ...)' if you only need 'selectedPayments' in the 'setSelectedPayments' call.  react-hooks/exhaustive-deps
+./components/Billing/packages/ApplicableOrganization.tsx
+32:8  Warning: React Hook useEffect has a missing dependency: 'fetchOrganizationPackages'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/Billing/packages/ApplicableTest.tsx
+44:8  Warning: React Hook useEffect has a missing dependency: 'fetchPackageTests'. 
+Either include it or remove the dependency array.  react-hooks/exhaustive-deps     
+
+./components/Billing/Refund/RefundAdmin.tsx
+94:5  Warning: React Hook useEffect has a missing dependency: 'employeeid'. Either 
+include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/Billing/testprofile.js
+63:6  Warning: React Hook useEffect has a missing dependency: 'readjustBill'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/customer/vitalSignCustomerList.jsx
+39:8  Warning: React Hook useEffect has missing dependencies: 'filterFrom' and 'filterTo'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/Dashboards/ClinicianGeneralPerformanceChart.jsx
+35:6  Warning: React Hook useCallback has missing dependencies: 'upCallReceiver' and 'upcall'. Either include them or remove the dependency array. If 'upCallReceiver' changes too often, find the parent component that defines it and wrap that definition in useCallback.  react-hooks/exhaustive-deps
+
+./components/Expense/AdminExpenseListView.jsx
+32:5  Warning: React Hook useEffect has a missing dependency: 'getExpenseData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps        
+
+./components/Expense/InvoiceListComponent.jsx
+38:9  Warning: React Hook useEffect has a missing dependency: 'getInvoiceData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps        
+
+./components/inventory/limsConnection/StockManagementCompo.jsx
+57:5  Warning: React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/laboratory/QualityControl/ControlManager/ControlParametersModal.tsx   
+37:8  Warning: React Hook useEffect has a missing dependency: 'fetchParameters'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps       
+
+./components/laboratory/QualityControl/QCRecording/QCReadingRecorder.tsx
+28:8  Warning: React Hook useEffect has a missing dependency: 'loadExistingReadings'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/LabTestForms/ResultEntryDrugsForm.jsx
+31:5  Warning: React Hook useEffect has a missing dependency: 'loadDrugsIfHasDrugs'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps   
+44:5  Warning: React Hook useEffect has a missing dependency: 'setModifiedDrugs'. Either include it or remove the dependency array. If 'setModifiedDrugs' changes too 
+often, find the parent component that defines it and wrap that definition in useCallback.  react-hooks/exhaustive-deps
+
+./components/LabTestForms/testrule.jsx
+83:5  Warning: React Hook useEffect has missing dependencies: 'ascensionid', 'getAscensionEditCount', and 'resultEntryStart'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/Layout/MainLayout.tsx
+54:9  Warning: React Hook useEffect has a missing dependency: 'getRetrieval'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/OldResultTemplate/ResultView/CompanyHeaders.jsx
+20:9  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may 
+incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./components/operations/Laboratory/DocumentInventoryDeductionLab.jsx
+228:9  Warning: React Hook useEffect has a missing dependency: 'getTemplates'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/operations/Laboratory/LaboratoryAscensionFiltering.jsx
+17:11  Warning: React Hook useEffect has missing dependencies: '_getAscensionData', 'branchid', and 'setLoadCounter'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+23:11  Warning: React Hook useEffect has missing dependencies: '_getAscensionData', 'branchid', and 'loadCounter'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/operations/Laboratory/ValidationModal.jsx
+37:41  Warning: React Hook useEffect has a missing dependency: 'getInitData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/operations/PatientTrendModalJsx/TrendSingleList.jsx
+15:6  Warning: React Hook useEffect has missing dependencies: 'data', 'filtAndDisplay', and 'parameters'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/operations/Ultrasound/AccessHistoryTable.tsx
+68:9  Warning: React Hook useEffect has a missing dependency: 'fetchAccessRequests'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps   
+
+./components/operations/Ultrasound/UtrasoundFiltering.jsx
+12:11  Warning: React Hook useEffect has missing dependencies: '_getAscensionData', 'ascension_stage', 'employeeid', 'loadCounter', 'queryParams', and 'setLoadCounter'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps18:11  Warning: React Hook useEffect has missing dependencies: '_getAscensionData', 'ascension_stage', 'employeeid', 'loadCounter', and 'queryParams'. Either include 
+them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/organization/BasicOrganizationForm.jsx
+58:5  Warning: React Hook useEffect has missing dependencies: 'getOrganizationData' and 'loadOrganizationImage'. Either include them or remove the dependency array.  
+react-hooks/exhaustive-deps
+379:13  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./components/organization/ContactPerson.jsx
+45:5  Warning: React Hook useEffect has a missing dependency: 'contactDetails'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps        
+
+./components/organization/List.tsx
+189:5  Warning: React Hook useEffect has a missing dependency: 'getOrganizationData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps  
+
+./components/organization/OrganizationSettings.tsx
+72:8  Warning: React Hook useEffect has missing dependencies: 'loadAllTestBackend' 
+and 'organizationSettings.testList.length'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/petientsComponent/patientportal/AnalyticsSummaryCards.tsx
+55:8  Warning: React Hook useEffect has a missing dependency: 'fetchMonthlyData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps      
+
+./components/petientsComponent/patientportal/LifetimeAnalytics.tsx
+48:6  Warning: React Hook useEffect has a missing dependency: 'fetchLifetimeData'. 
+Either include it or remove the dependency array.  react-hooks/exhaustive-deps     
+
+./components/petientsComponent/patientportal/PatientImage.tsx
+39:8  Warning: React Hook useEffect has a missing dependency: 'preview'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+44:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./components/petientsComponent/patientportal/TrendsAnalytics.tsx
+41:6  Warning: React Hook useEffect has a missing dependency: 'fetchTrendsData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps       
+
+./components/phelobotomy/Analytics/TemplatesComponentAnalytics/monthlyApprovalRateByMonthAndYear.jsx
+33:8  Warning: React Hook useEffect has a missing dependency: 'year'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/phelobotomy/CollectionSampleModal.jsx
+35:5  Warning: React Hook useCallback has a missing dependency: 'employeeid'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/registration/PersonalRegistrationForms/AdditionalPersonalInformation.jsx
+11:8  Warning: React Hook useEffect has a missing dependency: 'setFormData'. Either include it or remove the dependency array. If 'setFormData' changes too often, find the parent component that defines it and wrap that definition in useCallback.  react-hooks/exhaustive-deps
+
+./components/registration/PersonalRegistrationForms/PatientImageUpload.jsx
+50:8  Warning: React Hook useEffect has missing dependencies: 'preview' and 'tenantId'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+105:8  Warning: React Hook useCallback has a missing dependency: 'handleImageChange'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps  
+132:25  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./components/registration/PersonalRegistrationForms/PatientSettings.jsx
+62:8  Warning: React Hook useEffect has missing dependencies: 'authModeOptions', 'methodOptions', and 'modeOptions'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/ResultView/CompanyHeaders.tsx
+38:5  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may 
+incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./components/ResultView/CompanyHeadersDONDEE.tsx
+40:26  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./components/ResultView/MdsCompanyInformation.tsx
+33:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./components/ResutlUI/useResultCommentSingle.jsx
+24:5  Warning: React Hook useEffect has a missing dependency: 'patientid'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/salesSummary/PerformanceChartGeneral.jsx
+28:6  Warning: React Hook useCallback has missing dependencies: 'upCallReceiver' and 'upcall'. Either include them or remove the dependency array. If 'upCallReceiver' changes too often, find the parent component that defines it and wrap that definition in useCallback.  react-hooks/exhaustive-deps
+
+./components/settings/CompanyTab.tsx
+144:31  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./components/settingsComponents/EmailSidebar.jsx
+16:7  Warning: React Hook useEffect has a missing dependency: 'appset'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/settingsComponents/FieldsCreation/CreateFieldConstraintsModal.tsx     
+60:8  Warning: React Hook useEffect has a missing dependency: 'show'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/settingsComponents/test/DeviceInterfaceMappingModal.tsx
+30:5  Warning: React Hook useEffect has missing dependencies: 'onChange' and 'value'. Either include them or remove the dependency array. If 'onChange' changes too often, find the parent component that defines it and wrap that definition in useCallback.  react-hooks/exhaustive-deps
+
+./components/settingsComponents/test/testForm.tsx
+153:5  Warning: React Hook useEffect has a missing dependency: 'data'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./lib/resultanalaysis/TestValueChartModal.tsx
+148:8  Warning: React Hook useEffect has missing dependencies: 'maxValue' and 'minValue'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
