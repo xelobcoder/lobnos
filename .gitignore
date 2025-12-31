@@ -19,6 +19,8 @@
 .DS_Store
 *.pem
 *.zip
+/ VITALSCAN-MEDICAL-CENTER
+/GLOBAL-MEDICAL-CENTER
 
 # debug
 npm-debug.log*
