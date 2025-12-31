@@ -10,12 +10,10 @@ interface CompanyTabProps {
 
 export const CompanyTab: React.FC<CompanyTabProps> = ({ settings, handleChange }) => {
      const [headerType, setHeaderType] = useState(settings.companyInfo.headerType || 'default');
-
-     // Map header type to sample image
      const headerSamples: Record<string, string> = {
           default: '/letters-headers-sample/Screenshot_24-12-2025_113930_localhost.jpeg',
           dondee: '/letters-headers-sample/Screenshot_24-12-2025_113954_.jpeg',
-          fullwidth: '/letters-headers-sample/Screenshot_24-12-2025_113930_localhost.jpeg', // Using default for now, can be updated with specific image later
+          fullwidth: '/letters-headers-sample/Global-Full-Width.jpeg',
      };
 
      const handleHeaderTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -25,7 +23,6 @@ export const CompanyTab: React.FC<CompanyTabProps> = ({ settings, handleChange }
 
      return (
           <>
-               {/* Company Information Section */}
                <h5 className="mb-3">Company Information</h5>
                <hr />
 

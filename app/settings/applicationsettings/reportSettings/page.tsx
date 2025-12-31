@@ -1,11 +1,11 @@
 "use client"
 import React, { useEffect, useState } from 'react';
-import { Form, Button, Col, Row, Card, Container, Nav, Tab } from 'react-bootstrap';
+import { Button, Nav, Tab } from 'react-bootstrap';
 import { defaultResultSettings, ResultSettings } from '../../../../components/ResultView/result-settings';
 import { customFetch, customPost } from '../../../../components/Auth/customFetch';
 import { toast } from 'react-toastify';
 import Loader from '../../../../components/accessories/Loader';
-import { RiSettingsLine, RiFileTextLine, RiMessage2Line, RiPulseLine, RiSaveLine, RiBuildingLine, RiFileSettingsLine } from '@remixicon/react';
+import { RiSettingsLine, RiPulseLine, RiSaveLine, RiBuildingLine, RiFileSettingsLine } from '@remixicon/react';
 import { GeneralTab } from '../../../../components/settings/GeneralTab';
 import { CompanyTab } from '../../../../components/settings/CompanyTab';
 import { ReportOptionsTab } from '../../../../components/settings/ReportOptionsTab';

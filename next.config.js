@@ -1,3 +1,5 @@
+const { hostname } = require('os');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
 	reactStrictMode: true,
@@ -8,7 +10,7 @@ const nextConfig = {
 		HASH_SECRET: "leonides",
 		JWT_SECRET_KEY: "leonides-prime-server",
 		TENANTID: "3",
-		HOST: "192.168.0.128"
+		HOST: "192.168.0.128",
 	},
 	images: {
 		domains: ["localhost", "192.168.0.128", "192.168.0.128:2399"],

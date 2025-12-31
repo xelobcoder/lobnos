@@ -36,25 +36,44 @@ export default function CompanyHeadersFULLWIDTH({ companyInfo, logo, resultsetti
 
      return (
           <div className={`${styles['company-info-fullwidth']} ${subsequent ? styles.subsequent : ''}`}>
-               <div className="company-header-content" >
-                    <div style={{
-                         fontSize: "45px",
-                         color: '#4A90E2',
-                         fontWeight: '900',
-                         letterSpacing: '2px',
-                         textTransform: 'uppercase',
-                         wordBreak: 'keep-all',
-                         whiteSpace: 'nowrap',
-                         fontFamily: 'Arial, Helvetica, sans-serif',
-                         textShadow: '2px 2px 4px rgba(0,0,0,0.1)',
-                    }} className={styles['company-name-fullwidth']}>{name}</div>
+               <div className="company-header-content">
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                         {logo && (
+                              <div style={{ width: '25%', flexShrink: 0, display: 'flex', justifyContent: 'center' }}>
+                                   <img
+                                        src={logo}
+                                        alt="Company Logo"
+                                        style={{
+                                             maxWidth: '100%',
+                                             maxHeight: '80px',
+                                             objectFit: 'contain'
+                                        }}
+                                   />
+                              </div>
+                         )}
+                         <div style={{
+                              flex: 1,
+                              fontSize: companyNamefontSize || "31px",
+                              color: companyNamefontColor,
+                              fontWeight: '900',
+                              letterSpacing: '3px',
+                              textTransform: 'uppercase',
+                              wordBreak: 'keep-all',
+                              whiteSpace: 'nowrap',
+                              fontFamily: 'Arial, Helvetica, sans-serif',
+                              textShadow: '2px 2px 4px rgba(0,0,0,0.1)',
+                              textAlign: 'center',
+                              padding: '0 0px',
+                              lineHeight: '1.2'
+                         }} className={styles['company-name-fullwidth']}>{name}</div>
+                    </div>
 
                     <div style={{
                          width: '100%',
                          height: '4px',
                          backgroundColor: '#E74C3C',
                          marginTop: '0px',
-                         marginBottom: '4px',
+                         marginBottom: '8px',
                     }}></div>
 
                     {additionalInfo && (
