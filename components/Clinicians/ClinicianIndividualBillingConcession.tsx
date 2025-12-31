@@ -72,6 +72,19 @@ const ClinicianIndividualBillingConcession: React.FC<ClinicianIndividualBillingC
         fetchAllTests();
     }, []);
 
+    // Initialize input values when selectedTests change
+    useEffect(() => {
+        const newInputValues: { [key: string]: string } = {};
+        selectedTests.forEach(test => {
+            if (!inputValues[test.testid]) {
+                newInputValues[test.testid] = isNHIS ? (test.nhisTariff || '').toString() : test.actualPrice.toString();
+            }
+        });
+        if (Object.keys(newInputValues).length > 0) {
+            setInputValues(prev => ({ ...prev, ...newInputValues }));
+        }
+    }, [selectedTests, isNHIS]);
+
 
 
 
@@ -246,7 +259,7 @@ const ClinicianIndividualBillingConcession: React.FC<ClinicianIndividualBillingC
                                                         placeholder={isNHIS ? "Enter NHIS tariff" : "Enter final price"}
                                                         min="0"
                                                         step="0.01"
-                                                        value={test.price === 0 ? '0' : (inputValues[test.id] || (selectedTest ? (isNHIS ? selectedTest.nhisTariff || '' : selectedTest.actualPrice) : ''))}
+                                                        value={inputValues[test.id] !== undefined ? inputValues[test.id] : (selectedTest ? (isNHIS ? (selectedTest.nhisTariff?.toString() || '') : (selectedTest.actualPrice?.toString() || '')) : '')}
                                                         disabled={test.price === 0}
                                                         onChange={(e) => setInputValues(prev => ({ ...prev, [test.id]: e.target.value }))}
                                                         onBlur={(e) => {
@@ -254,8 +267,12 @@ const ClinicianIndividualBillingConcession: React.FC<ClinicianIndividualBillingC
                                                                 handleDirectPriceEntry(test.id.toString(), '0');
                                                             } else {
                                                                 const value = inputValues[test.id];
-                                                                if (value && value !== '') {
+                                                                if (value !== undefined && value !== '') {
                                                                     handleDirectPriceEntry(test.id.toString(), value);
+                                                                    setInputValues(prev => ({ ...prev, [test.id]: '' }));
+                                                                } else if (value === '') {
+                                                                    // Remove the test from selectedTests if input is cleared
+                                                                    setSelectedTests(prev => prev.filter(t => t.testid !== test.id));
                                                                     setInputValues(prev => ({ ...prev, [test.id]: '' }));
                                                                 }
                                                             }
