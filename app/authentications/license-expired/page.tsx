@@ -1,8 +1,12 @@
 'use client'
 import styles from '../login/login.module.css';
-import { RiShieldCrossFill, RiErrorWarningLine } from '@remixicon/react';
+import { RiShieldCrossFill, RiErrorWarningLine, RiBankCardLine } from '@remixicon/react';
+import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
 
 export default function LicenseExpiredPage() {
+     const { applicationsettings } = useApplicationSettings();
+     const company = applicationsettings?.company || "Your Company";
+
      return (
           <div className={styles.splitLayout}>
                {/* Left side - Branding */}
@@ -31,7 +35,31 @@ export default function LicenseExpiredPage() {
                                    <RiErrorWarningLine size={64} className="text-danger mb-3" />
                                    <h2 className={styles.welcomeTitle}>License Expired</h2>
                                    <p className={styles.welcomeSubtitle}>
-                                        Your license has expired or is invalid. Please contact your administrator to renew the license.
+                                        Your license has expired or is invalid. Please renew your license to continue using the system.
+                                   </p>
+                              </div>
+                         </div>
+
+                         {/* Payment Instructions */}
+                         <div className="card border-warning mb-4">
+                              <div className="card-body text-center">
+                                   <RiBankCardLine size={48} className="text-warning mb-3" />
+                                   <h5 className="card-title text-warning">Renew Your License</h5>
+                                   <p className="card-text mb-3">
+                                        Make payment to renew your license and continue using Prime Lab System.
+                                   </p>
+                                   <div className="bg-light p-3 rounded mb-3">
+                                        <div className="mb-2">
+                                             <strong>Mobile Money Number:</strong>
+                                             <div className="h4 text-primary mb-0">059 596 4565</div>
+                                        </div>
+                                        <div>
+                                             <strong>Reference:</strong>
+                                             <div className="h5 text-success mb-0">{company} License Renewal </div>
+                                        </div>
+                                   </div>
+                                   <p className="text-muted small mb-0">
+                                        After payment, contact support for license activation.
                                    </p>
                               </div>
                          </div>

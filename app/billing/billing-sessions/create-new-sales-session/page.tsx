@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState, useMemo } from 'react';
-import Table from 'react-bootstrap/Table';
 import ttable from '../../../../styles/SmsTemplateList.module.css'
 const createDefaultSessionRow = (now) => ({
     branch: '',
@@ -44,22 +43,22 @@ interface FetchResponse<T> {
 }
 
 export default function BillingSessions() {
-    const [sessionMode, setSessionMode] = useState<'today' | 'ahead'>('today');
+    const [sessionMode, setSessionMode] = useState<'today' | 'ahead' | 'month'>('today');
     const { user } = useApplication();
     const loggedInUserEmployeeId = user?.employeeid;
 
     const [openingAmount, setOpeningAmount] = useState('');
     const [selectedBranch, setSelectedBranch] = useState<string>('');
     const [selectedEmployee, setSelectedEmployee] = useState<string>('');
-    // New state for session start date/time
     const [sessionStartDateTime, setSessionStartDateTime] = useState<string>(() => {
-        // Default to now in local ISO format (yyyy-MM-ddTHH:mm)
         const now = new Date();
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
         return now.toISOString().slice(0, 16);
     });
 
-    // Batch session creation states
+    const [selectedMonth, setSelectedMonth] = useState<number>(() => new Date().getMonth());
+    const [selectedYear, setSelectedYear] = useState<number>(() => new Date().getFullYear());
+
     const [numSessions, setNumSessions] = useState(1);
     const [numSessionsInput, setNumSessionsInput] = useState('1');
     const [sessionRows, setSessionRows] = useState([
@@ -72,7 +71,6 @@ export default function BillingSessions() {
         )
     ]);
 
-    // Calculate min/max for scheduling (today to 7 days ahead)
     const now = new Date();
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
     const minDateTime = now.toISOString().slice(0, 16);
@@ -144,7 +142,6 @@ export default function BillingSessions() {
         setSessionRows(updated);
     };
 
-    // Allow free typing, clamp on blur or valid entry
     const handleNumSessionsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
         setNumSessionsInput(val);
@@ -182,7 +179,6 @@ export default function BillingSessions() {
         });
     };
 
-    // Save a single session row
     const handleSaveSessionRow = async (idx: number) => {
         setError('');
         setSuccessMessage('');
@@ -265,36 +261,80 @@ export default function BillingSessions() {
 
         setIsLoading(true);
         try {
-            let sessionDateToUse = sessionStartDateTime;
-            if (sessionMode === 'today') {
-                const now = new Date();
-                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-                sessionDateToUse = now.toISOString().slice(0, 16);
-            }
-            const payload = {
-                branchid: parseInt(selectedBranch, 10),
-                session_started_by: loggedInUserEmployeeId,
-                amountreceivedby: parseInt(selectedEmployee, 10),
-                openingamount: amount,
-                sessiondate: new Date(sessionDateToUse).toISOString(),
-            };
+            if (sessionMode === 'month') {
+                const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
 
-            const response: { status: boolean; message?: string, error?: string } = await customPost(
-                'billing/sales/session/create', 'POST', payload
-            );
+                let successCount = 0;
+                let errorMessages: string[] = [];
 
-            if (response && response.status === true) {
-                setSuccessMessage(`Sales session activated for ${employeesList.find(e => e.employeeid === parseInt(selectedEmployee))?.username || 'employee'} with opening amount: ${amount.toFixed(2)}`);
-                setOpeningAmount('');
-                setSelectedBranch('');
-                setSelectedEmployee('');
-                setSessionMode('today');
-                // Reset session start date/time to now
-                const now = new Date();
-                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-                setSessionStartDateTime(now.toISOString().slice(0, 16));
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const sessionDate = new Date(selectedYear, selectedMonth, day, 9, 0, 0);
+                    const payload = {
+                        branchid: parseInt(selectedBranch, 10),
+                        session_started_by: loggedInUserEmployeeId,
+                        amountreceivedby: parseInt(selectedEmployee, 10),
+                        openingamount: amount,
+                        sessiondate: sessionDate.toISOString(),
+                    };
+
+                    try {
+                        const response: { status: boolean; message?: string, error?: string } = await customPost(
+                            'billing/sales/session/create', 'POST', payload
+                        );
+
+                        if (response && response.status === true) {
+                            successCount++;
+                        } else {
+                            errorMessages.push(`Day ${day}: ${response.error || response.message || 'Failed to create session'}`);
+                        }
+                    } catch (err: any) {
+                        errorMessages.push(`Day ${day}: ${err.message || 'An unexpected error occurred'}`);
+                    }
+                }
+
+                if (successCount > 0) {
+                    setSuccessMessage(`Successfully created ${successCount} sales sessions for ${new Date(selectedYear, selectedMonth).toLocaleString('default', { month: 'long', year: 'numeric' })}`);
+                    if (errorMessages.length > 0) {
+                        setError(`Some sessions failed to create:\n${errorMessages.join('\n')}`);
+                    }
+                    setOpeningAmount('');
+                    setSelectedBranch('');
+                    setSelectedEmployee('');
+                    setSessionMode('today');
+                } else {
+                    setError(`Failed to create any sessions. Errors:\n${errorMessages.join('\n')}`);
+                }
             } else {
-                throw new Error(response.error || response.message || 'Failed to create session.');
+                let sessionDateToUse = sessionStartDateTime;
+                if (sessionMode === 'today') {
+                    const now = new Date();
+                    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                    sessionDateToUse = now.toISOString().slice(0, 16);
+                }
+                const payload = {
+                    branchid: parseInt(selectedBranch, 10),
+                    session_started_by: loggedInUserEmployeeId,
+                    amountreceivedby: parseInt(selectedEmployee, 10),
+                    openingamount: amount,
+                    sessiondate: new Date(sessionDateToUse).toISOString(),
+                };
+
+                const response: { status: boolean; message?: string, error?: string } = await customPost(
+                    'billing/sales/session/create', 'POST', payload
+                );
+
+                if (response && response.status === true) {
+                    setSuccessMessage(`Sales session activated for ${employeesList.find(e => e.employeeid === parseInt(selectedEmployee))?.username || 'employee'} with opening amount: ${amount.toFixed(2)}`);
+                    setOpeningAmount('');
+                    setSelectedBranch('');
+                    setSelectedEmployee('');
+                    setSessionMode('today');
+                    const now = new Date();
+                    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                    setSessionStartDateTime(now.toISOString().slice(0, 16));
+                } else {
+                    throw new Error(response.error || response.message || 'Failed to create session.');
+                }
             }
 
         } catch (err: any) {
@@ -331,7 +371,7 @@ export default function BillingSessions() {
             </Row>
 
             <Row className="justify-content-center">
-                <Col className='bg-white p-4 rounded mx-3 '  xs={12} md={8} lg={11}>
+                <Col className='bg-white p-4 rounded mx-3 ' xs={12} md={8} lg={11}>
                     <div>
                         {error && (
                             <Alert
@@ -383,9 +423,67 @@ export default function BillingSessions() {
                                         onChange={() => setSessionMode('ahead')}
                                         disabled={isLoading || isLoadingData}
                                     />
+                                    <Form.Check
+                                        inline
+                                        label="Create for entire month"
+                                        type="radio"
+                                        id="session-month"
+                                        name="sessionMode"
+                                        value="month"
+                                        checked={sessionMode === 'month'}
+                                        onChange={() => setSessionMode('month')}
+                                        disabled={isLoading || isLoadingData}
+                                    />
                                 </div>
                                 <hr style={{ margin: '1rem 0', borderTop: '2px solid #bbb' }} />
                             </Form.Group>
+                            {sessionMode === 'month' && (
+                                <Form.Group controlId="monthYearSelect" className="mb-3">
+                                    <Form.Label className={styles.formLabel}>Select Month & Year</Form.Label>
+                                    <Row>
+                                        <Col md={6}>
+                                            <Form.Select
+                                                value={selectedMonth}
+                                                onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                                                className={styles.googleFormControl}
+                                                disabled={isLoading || isLoadingData}
+                                            >
+                                                {Array.from({ length: 12 }, (_, i) => (
+                                                    <option key={i} value={i}>
+                                                        {new Date(0, i).toLocaleString('default', { month: 'long' })}
+                                                    </option>
+                                                ))}
+                                            </Form.Select>
+                                        </Col>
+                                        <Col md={6}>
+                                            <Form.Select
+                                                value={selectedYear}
+                                                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                                                className={styles.googleFormControl}
+                                                disabled={isLoading || isLoadingData}
+                                            >
+                                                {Array.from({ length: 5 }, (_, i) => {
+                                                    const year = new Date().getFullYear() - 2 + i;
+                                                    return (
+                                                        <option key={year} value={year}>
+                                                            {year}
+                                                        </option>
+                                                    );
+                                                })}
+                                            </Form.Select>
+                                        </Col>
+                                    </Row>
+                                    <Form.Text className={styles.formHelperText}>
+                                        Choose the month and year for which you want to create daily sales sessions.
+                                    </Form.Text>
+                                </Form.Group>
+                            )}
+                            {sessionMode === 'month' && (
+                                <Alert variant="info" className="mb-3">
+                                    <strong>Monthly Session Creation:</strong> This will create sales sessions for every day of {new Date(selectedYear, selectedMonth).toLocaleString('default', { month: 'long', year: 'numeric' })}
+                                    with the same opening amount and employee. Sessions will be scheduled at 9:00 AM each day.
+                                </Alert>
+                            )}
                             {sessionMode === 'ahead' && (
                                 <Form.Group controlId="numSessions" className="mb-3">
                                     <Form.Label className={styles.formLabel}>How many sessions?</Form.Label>
@@ -546,22 +644,24 @@ export default function BillingSessions() {
                                         </Form.Select>
                                         {selectedBranch && filteredEmployees.length === 0 && !isLoadingData && <Form.Text className="text-danger small mt-1">No employees found for this branch.</Form.Text>}
                                     </Form.Group>
-                                    <Form.Group controlId="sessionStartDateTime" className="mb-3">
-                                        <Form.Label className={styles.formLabel}>Session Start Date & Time</Form.Label>
-                                        <Form.Control
-                                            type="datetime-local"
-                                            value={sessionStartDateTime}
-                                            onChange={e => setSessionStartDateTime(e.target.value)}
-                                            required
-                                            disabled={isLoading || isLoadingData}
-                                            min={minDateTime}
-                                            max={maxDateTime}
-                                            className={styles.googleFormControl}
-                                        />
-                                        <Form.Text className={styles.formHelperText}>
-                                            {'Pick a date/time up to 1 week from now.'}
-                                        </Form.Text>
-                                    </Form.Group>
+                                    {sessionMode !== 'month' && (
+                                        <Form.Group controlId="sessionStartDateTime" className="mb-3">
+                                            <Form.Label className={styles.formLabel}>Session Start Date & Time</Form.Label>
+                                            <Form.Control
+                                                type="datetime-local"
+                                                value={sessionStartDateTime}
+                                                onChange={e => setSessionStartDateTime(e.target.value)}
+                                                required
+                                                disabled={isLoading || isLoadingData}
+                                                min={minDateTime}
+                                                max={maxDateTime}
+                                                className={styles.googleFormControl}
+                                            />
+                                            <Form.Text className={styles.formHelperText}>
+                                                {'Pick a date/time up to 1 week from now.'}
+                                            </Form.Text>
+                                        </Form.Group>
+                                    )}
                                     <Form.Group controlId="openingAmountInput" className="mb-3">
                                         <Form.Label className={styles.formLabel}>Opening Amount</Form.Label>
                                         <Form.Control
@@ -600,6 +700,8 @@ export default function BillingSessions() {
                                         />
                                         Activating...
                                     </>
+                                ) : sessionMode === 'month' ? (
+                                    `Create ${new Date(selectedYear, selectedMonth).toLocaleString('default', { month: 'long', year: 'numeric' })} Sessions`
                                 ) : (
                                     'Activate Sales Session'
                                 )}

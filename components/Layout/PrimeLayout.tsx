@@ -9,6 +9,7 @@ import { AdminRoleLinks, FrontdeskRoleLinks, LaboratoryScientistRoleLinks, Phelo
 import { FontSelector } from "./FontSelector";
 import { getFontPreference, applyFontToDocument } from "../../lib/themes";
 import { useTheme } from "../ThemeProvider";
+import { useRouter } from 'next/navigation';
 
 
 interface PrimeLayoutProps {
@@ -17,8 +18,10 @@ interface PrimeLayoutProps {
 }
 
 const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
-    const { company, user } = useApplicationSettings().applicationsettings;
+    const { company, user, daysToExpiration } = useApplicationSettings().applicationsettings;
     const { theme, toggleTheme } = useTheme();
+    const router = useRouter();
+
 
     const roleViews = {
         "customer service representative": FrontdeskRoleLinks,
@@ -59,6 +62,13 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
         const savedFont = getFontPreference();
         applyFontToDocument(savedFont);
     }, []);
+
+    // Redirect to license expired page if license has expired or expires today
+    useEffect(() => {
+        if (daysToExpiration !== undefined && daysToExpiration !== null && daysToExpiration <= 0) {
+            router.push("/authentications/license-expired");
+        }
+    }, [daysToExpiration, router]);
 
     const handleNavigation = (path: string) => {
         if (window.location.pathname !== path) {
@@ -144,7 +154,11 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                     <div className={styles.headerActions}>
                         <div className="d-none d-md-flex flex-column align-items-end me-2" style={{ lineHeight: '1.2' }}>
                             <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{user?.username}({user?.role})</span>
-
+                            {daysToExpiration !== undefined && daysToExpiration !== null && (
+                                <span style={{ fontSize: '0.8rem', color: daysToExpiration <= 7 ? '#dc3545' : daysToExpiration <= 30 ? '#ffc107' : '#28a745' }}>
+                                    {daysToExpiration > 0 ? `${daysToExpiration} days to expiration of license` : daysToExpiration === 0 ? 'Expires today' : 'Expired'}
+                                </span>
+                            )}
                         </div>
                         <button
                             className={styles.themeToggle}
