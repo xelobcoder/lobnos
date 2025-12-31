@@ -3,12 +3,12 @@ const { parse } = require('url')
 const next = require('next')
 const fs = require('fs')
 const path = require('path')
+const { exec } = require('child_process')
 
 const dev = process.env.NODE_ENV !== 'production'
-const hostname = process.env.HOST|| 'localhost'
+const hostname = process.env.HOST || 'localhost'
 const port = process.env.NODE_ENV == "production" ? process.env.PRODUCTION_PORT || 2377 : process.env.DEVELOPMENT_PORT || 3000
 const app = next({ dev, hostname, port })
-
 const handle = app.getRequestHandler()
 
 const httpsOptions = {
@@ -16,7 +16,31 @@ const httpsOptions = {
 	cert: fs.readFileSync(path.join(__dirname, 'certificates', 'localhost.pem')),
 }
 
-app.prepare().then(() => {
+const killPort = (port) => {
+	return new Promise((resolve) => {
+		exec(`netstat -ano | findstr :${port}`, (err, stdout) => {
+			if (err || !stdout) return resolve();
+			const lines = stdout.split('\n');
+			lines.forEach(line => {
+				const parts = line.trim().split(/\s+/);
+				if (parts.length >= 5) {
+					const pid = parts[4];
+					if (pid && pid !== '0') {
+						exec(`taskkill /PID ${pid} /F`, (killErr) => {
+							if (!killErr) {
+								console.log(`Killed process ${pid} using port ${port}`);
+							}
+						});
+					}
+				}
+			});
+			setTimeout(resolve, 2000); // Wait for processes to terminate
+		});
+	});
+};
+
+app.prepare().then(async () => {
+	await killPort(port);
 	createServer(httpsOptions, async (req, res) => {
 		try {
 			const parsedUrl = parse(req.url, true)

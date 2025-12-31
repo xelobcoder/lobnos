@@ -623,6 +623,7 @@ export default function LabReportPrintingMultiple() {
 											patientInformation={resultdata.patientInformation}
 											labRef={`BILL${resultdata.billingid}`}
 											isBulk={true}
+											resultsettings={resultSettings}
 										/>
 									</div>
 									<div className="print-content" style={{ flex: 1 }}>
@@ -676,6 +677,7 @@ export default function LabReportPrintingMultiple() {
 																	styles={styles}
 																	patientInformation={resultdata.patientInformation}
 																	labRef={`BILL${resultdata.billingid}`}
+																	resultsettings={resultSettings}
 																/>
 															</div>
 														)}

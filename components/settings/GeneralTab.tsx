@@ -52,6 +52,24 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, handleChange }
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
+                              <label className="pls-label">Patient Information Font Family</label>
+                              <Form.Select
+                                   name="patientInfo.fontFamily"
+                                   value={settings.patientInfo?.fontFamily || settings.fontfamily}
+                                   onChange={handleChange}
+                                   className="custom-select"
+                              >
+                                   {fontFamilies.map((f) => (
+                                        <option key={f} value={f}>{f}</option>
+                                   ))}
+                              </Form.Select>
+                         </div>
+                    </div>
+               </div>
+
+               <div className="row mt-3">
+                    <div className="col-12">
+                         <div className="form-row grid-reg">
                               <label className="pls-label">Test Name Font Size (px)</label>
                               <Form.Control
                                    type="number"

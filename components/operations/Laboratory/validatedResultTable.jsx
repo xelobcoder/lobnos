@@ -112,6 +112,11 @@ export default function ValidatedResultTable({ employeeid }) {
 
      const columns = [
           {
+               Header: 'Ascension Date',
+               accessor: 'ascension_date',
+               Cell: ({ row }) => <div>{new Date(row.original.ascension_date).toLocaleDateString()}</div>
+          },
+          {
                Header: 'Patient ID',
                accessor: 'fullpatientid'
           },

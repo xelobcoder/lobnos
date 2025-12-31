@@ -15,11 +15,15 @@ export interface ResultSettings {
      companyInfo: {
           namefontsize: number;
           color: string;
-          breakname: boolean; // Indicates if the company name should be split into large and subname
+          breakname: boolean; 
           subnameFontSize?: number;
           subnameColor?: string;
           headerType?: string;
+          fontFamily?: string;
 
+     };
+     patientInfo: {
+          fontFamily: string;
      };
      testBody: {
           fontSize: number;
@@ -86,7 +90,12 @@ export const defaultResultSettings: ResultSettings = {
           color: "black",
           breakname: true,
           subnameFontSize: 12,
-          subnameColor: "black"
+          subnameColor: "black",
+          fontFamily: 'Times New Roman, Times, serif'
+     },
+
+     patientInfo: {
+          fontFamily: 'Times New Roman, Times, serif',
      },
 
      testBody: {

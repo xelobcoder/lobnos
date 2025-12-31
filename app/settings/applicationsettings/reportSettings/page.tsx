@@ -39,8 +39,11 @@ const SettingsForm = () => {
 			if (response && Object.keys(response).length == 0) return;
 			// Merge in default column names if missing
 			const merged = {
+				...defaultResultSettings,
 				...response,
 				testBody: { ...defaultTestBodyColumnNames, ...(response?.testBody || {}) },
+				patientInfo: { ...defaultResultSettings.patientInfo, ...(response?.patientInfo || {}) },
+				companyInfo: { ...defaultResultSettings.companyInfo, ...(response?.companyInfo || {}) },
 			};
 			setSettings(merged);
 		} catch (error) {
@@ -61,6 +64,12 @@ const SettingsForm = () => {
 			setSettings((prev) => ({
 				...prev,
 				companyInfo: { ...prev.companyInfo, [key]: type === 'number' ? Number(value) : value },
+			}));
+		} else if (name.startsWith('patientInfo.')) {
+			const key = name.split('.')[1];
+			setSettings((prev) => ({
+				...prev,
+				patientInfo: { ...prev.patientInfo, [key]: value },
 			}));
 		} else if (name.startsWith('testBody.')) {
 			const key = name.split('.')[1];

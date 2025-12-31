@@ -29,7 +29,7 @@ export default function CompanyHeadersDONDEE({ companyInfo, logo, resultsettings
 
      const companyNamefontSize = (resultsettings?.companyInfo?.namefontsize ? resultsettings.companyInfo.namefontsize + 'px' : '25px');
      const companyNamefontColor = resultsettings?.companyInfo?.color || 'black';
-     const companyNamefontFamily = resultsettings?.fontfamily || 'Arial Black';
+     const companyNamefontFamily = resultsettings?.companyInfo?.fontFamily || resultsettings?.fontfamily || 'Arial Black';
 
 
      return (

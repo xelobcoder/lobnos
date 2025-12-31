@@ -3,6 +3,21 @@ import React, { useState } from 'react';
 import { Form } from 'react-bootstrap';
 import { ResultSettings } from '../ResultView/result-settings';
 
+const fontFamilies = [
+     'Arial, Helvetica, sans-serif',
+     'Verdana, Geneva, sans-serif',
+     'Tahoma, Geneva, sans-serif',
+     'Trebuchet MS, Helvetica, sans-serif',
+     'Times New Roman, Times, serif',
+     'Georgia, serif',
+     'Garamond, serif',
+     'Courier New, Courier, monospace',
+     'Brush Script MT, cursive',
+     'Lexend Deca, Helvetica, Arial, sans-serif',
+     'Cambria, Georgia, serif',
+     'Ralleway, Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
+];
+
 interface CompanyTabProps {
      settings: ResultSettings;
      handleChange: (e: any) => void;
@@ -113,6 +128,24 @@ export const CompanyTab: React.FC<CompanyTabProps> = ({ settings, handleChange }
                                         className="custom-input flex-grow-1"
                                    />
                               </div>
+                         </div>
+                    </div>
+               </div>
+
+               <div className="row mt-3">
+                    <div className="col-12">
+                         <div className="form-row grid-reg">
+                              <label className="pls-label">Company Information Font Family</label>
+                              <Form.Select
+                                   name="companyInfo.fontFamily"
+                                   value={settings.companyInfo.fontFamily || ''}
+                                   onChange={(e) => handleChange({ target: { name: 'companyInfo.fontFamily', value: e.target.value, type: 'text' } })}
+                                   className="custom-select"
+                              >
+                                   {fontFamilies.map((f) => (
+                                        <option key={f} value={f}>{f}</option>
+                                   ))}
+                              </Form.Select>
                          </div>
                     </div>
                </div>

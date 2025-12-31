@@ -31,7 +31,7 @@ export default function CompanyHeaders({ companyInfo, logo, resultsettings, subs
 
 	const companyNamefontSize = resultsettings?.companyInfo?.namefontsize + 'px' || '25px';
 	const companyNamefontColor = resultsettings?.companyInfo?.color || 'black';
-	const companyNamefontFamily = resultsettings?.fontfamily || 'Arial Black';
+	const companyNamefontFamily = resultsettings?.companyInfo?.fontFamily || resultsettings?.fontfamily || 'Arial Black';
 	return (
 		<div className={`${styles['company-info-result']} ${subsequent ? styles.subsequent : ''}`}>
 			<div className="logo" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>

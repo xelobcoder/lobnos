@@ -1,0 +1,131 @@
+.prime-lab-layout {
+     margin: 0;
+     padding: 0;
+     overflow-y: auto;
+     display: grid;
+     grid-template-columns: 15% auto;
+     background-color: inherit;
+
+   }
+
+.sidebarr  {
+     margin: 0;
+      background: #2c3e50; 
+     padding: 0;
+     position: fixed;
+            overflow: hidden;
+  transition: width 0.3s;
+     left: 0;
+     width: 15%;
+     border-right: 1px solid lightgray;
+     height: 100vh;
+     top: 50px;
+}
+
+.prime-lab-layout-less:hover{
+     grid-template-columns: 5% 95% !important;
+     margin: 0;
+     padding: 0;
+     transition: 500 cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.sidebar-active{
+     background-color: black;
+}
+
+
+.sidebarr-expand-less {
+     width: 5%;
+}
+
+.sidebarr-expand-less .content .icon svg {
+    margin-left: 5px;
+    font-size: 30px;
+}
+
+
+
+.sidebarr > .content {
+     height: 90%;
+     margin: 0;
+     padding: 0;
+     overflow-y: auto;
+     /* overflow-x: hidden; */
+}
+
+
+.sidebarr > .content > ul,
+.sidebarr> ul > li  {
+     margin: 0;
+     padding: 0;
+     overflow-y: auto;
+     overflow-x: hidden;
+     height: 100%;
+}
+.sidebarr > .content > ul  > li > a {
+     color: inherit;
+     display: grid;
+     grid-template-columns: 10% 80% 10%;
+     padding: 5px;
+}
+
+.sidebarr > .content > ul  > li > a > span:nth-child(2) {
+    padding-left: 10px;
+    text-transform: capitalize;
+}
+.sidebarr > .content > ul  > li  {
+     background-color: inherit;
+     border-bottom: 1px solid lightgray;
+}
+
+@media screen and (max-height: 450px) {
+  .sidebarr {padding-top: 15px;}
+  .sidebarr ul li a {font-size: 18px;}
+  .app-partitioner {
+    display: grid;
+    grid-template-columns: 100%;
+  }
+
+  .sidebar-macro-wrapper {
+    width: 100%;
+  }
+
+  .sidebar-macro-wrapper:hover{
+    width: 100%;
+}
+}
+
+
+@media  screen and (max-width: 400px) {
+  .pls-header,
+  #prime-header-branch{
+    font-size: 15px;
+    display: none;
+  }
+  .sidebarr ul li a {font-size: 15px;}
+}
+
+/* @media  screen and (max-width: 1200px) {
+     .prime-lab-layout {
+          display: block;
+     }
+     .sidebarr {
+          width: 100%;
+          padding: 10px;
+          z-index: 10;
+          height: max-content;
+     }
+     .prime-lab-layout > .prime-main {
+          width: 100% !important;
+        }
+        .pls-header {
+          display: none;
+        }
+        #menubar {
+          display: block !important;
+        }
+   } */
+
+
+
+   

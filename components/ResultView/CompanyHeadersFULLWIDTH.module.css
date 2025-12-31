@@ -30,7 +30,15 @@
      width: 100%;
 }
 
+.red-line {
+     width: 100%;
+}
+
 @media print {
+     @page {
+          margin: 0;
+     }
+
      .company-info-fullwidth {
           font-size: 12px;
           page-break-inside: avoid;
@@ -53,5 +61,14 @@
 
      .company-address-fullwidth {
           font-size: 11px;
+     }
+
+     .red-line {
+          width: 100% !important;
+          margin: 0 !important;
+          border-top: 4px solid #E74C3C !important;
+          height: 0 !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
      }
 }

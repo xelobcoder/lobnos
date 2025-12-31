@@ -67,7 +67,7 @@ export async function middleware(request: NextRequest) {
 
             // Handle lab scientist access
             if (role === "scientist") {
-                if (!currentPath.startsWith('/operations/laboratory')) {
+                if (!currentPath.startsWith('/operations/laboratory') && !currentPath.startsWith('/operations/phelobotomy') && !currentPath.startsWith('/phelobotomy') && !currentPath.startsWith('/operations/phlebotomy') && !currentPath.startsWith('/phlebotomy')) {
                     return NextResponse.redirect(new URL('/unauthorized', request.url));
                 }
                 return NextResponse.next();
@@ -110,6 +110,8 @@ export const config = {
         '/analytics/:path*',
         '/settings/:path*',
         '/operations/:path*',
+        '/phelobotomy/:path*',
+        '/phlebotomy/:path*',
         '/crm/:path*',
         '/sales/:path*',
         '/billing/billing-sessions/:path*',

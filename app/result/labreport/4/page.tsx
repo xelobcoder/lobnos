@@ -43,7 +43,7 @@ const MDSLancetTemplate: React.FC = () => {
 
     const url = `result/printout/ascension/getResult?csvid=${csvid}&&employeeid=${employeeid}&&testid=${testid}&&isScan=${isScan}&&testname=${test}&tenantId=3&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&target=${target}&password=&&isBrowserPrintout=1`;
 
-console.log("url for fetching result:", url,employeeid);
+    console.log("url for fetching result:", url, employeeid);
     useEffect(() => {
         if (employeeid && ascensionid && billingid) {
             setLoader(true);
@@ -275,7 +275,8 @@ console.log("url for fetching result:", url,employeeid);
             {!showPdfControls && (
                 <div style={{ position: 'relative', width: '100%', height: '100vh', backgroundColor: 'white' }}>
                     <div className={styles.page} style={{
-                        fontFamily: resultSettings.fontfamily, minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'white',
+                        ['--font-family' as any]: resultSettings.fontfamily,
+                        minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'white',
 
                     }}>
                         <div className='result'>
@@ -285,9 +286,9 @@ console.log("url for fetching result:", url,employeeid);
                                 resultsettings={resultSettings}
                                 companyInfo={resultdata.companyInfo}
                             />
-                            <div className={styles.reportTitleBar}
+                            <div className={`${styles.reportTitleBar}`}
                                 style={{
-                                    backgroundColor: resultSettings.mainReportHeaderBgColor,
+                                    ['--bg-color' as any]: resultSettings.mainReportHeaderBgColor,
                                     color: resultSettings.mainReportHeaderColor
                                 }}>
                                 {isScan ? 'ULTRASOUND REPORT ' : 'MEDICAL LABORATORY REPORT'}
@@ -298,6 +299,7 @@ console.log("url for fetching result:", url,employeeid);
                                 labRef={`BILL${resultdata.samplingInformation?.billingid || billingid}(${resultdata.samplingInformation?.id})`}
                                 collectionDate={!isScan ? resultdata.samplingInformation?.collectionEndDate : ''}
                                 finalReportDate={resultdata.samplingInformation?.resultEntryEnd}
+                                resultsettings={resultSettings}
                             />
                             <div style={{ width: '100%', margin: '0' }}>
                                 <section>

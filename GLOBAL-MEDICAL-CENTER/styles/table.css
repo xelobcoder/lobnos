@@ -1,0 +1,37 @@
+.flair-table {
+   width: 100%;
+   height: inherit;
+   background-color: white;
+   border: 1px solid lightgray;
+   margin-top: 10px;
+   margin-bottom: 10px;
+   border-collapse: collapse;
+}
+
+.flair-table > thead,
+.flair-table > tbody,
+.flair-table > thead > tr,
+.flair-table > tbody > tr{
+   width: inherit;
+   height: auto;
+   margin: 0;
+   border-bottom: 1px solid lightgray;
+   padding: 0;
+}
+
+.flair-table > thead > tr  {
+   background-color: #007bff;
+}
+
+.flair-table > thead > tr > th {
+   color: white;
+}
+
+.flair-table > tbody > tr > td,
+.flair-table > thead > tr > th {
+   padding: 10px;
+   font-size: 14px;
+   min-width: auto !important ;
+   max-width: 200px !important;
+}
+

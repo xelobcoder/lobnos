@@ -11,7 +11,7 @@
    - others.css: Miscellaneous styles (billing, animations, utilities, etc.)
    =========================================== */
 
-* {
+html, body {
    font-family: var(--theme-font-family);
    font-size: var(--theme-font-size, 15px);
 }

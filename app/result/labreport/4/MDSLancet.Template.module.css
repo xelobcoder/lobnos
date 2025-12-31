@@ -9,7 +9,7 @@
     }
 
     .page {
-        border : none !important;
+        border: none !important;
         box-shadow: none !important;
     }
 }
@@ -58,6 +58,7 @@
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
+    font-family: var(--font-family), var(--theme-font-family) !important;
 }
 
 
@@ -113,10 +114,18 @@
     font-weight: bold;
     margin: 10px -12mm;
     letter-spacing: 1px;
+    background-color: var(--bg-color, #f0f0f0);
 }
+
+.print-bg {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
 .TableTitleBar {
-       margin: 10px -12mm;
+    margin: 10px -12mm;
 }
+
 .patientInfoSection {
     display: grid;
     grid-template-columns: 1.2fr 1fr;
@@ -290,11 +299,13 @@
 }
 
 @media print {
+
     /* Add print page margins */
     @page {
         margin: 10mm 10mm 10mm 10mm;
 
     }
+
     .result {
         background: white !important;
         margin: 0 !important;
@@ -313,22 +324,17 @@
 
 
     .page {
-        margin: 0 !important;
-        padding: 0mm 0mm !important;
+        margin: 5px auto !important;
+        padding: 5mm 5mm !important;
         border: none !important;
         box-shadow: none !important;
-        width: 100% !important;
-        min-height: initial !important;
+        width: 210mm !important;
+        min-height: 297mm !important;
         page-break-after: auto;
         background: white !important;
     }
 
-    .reportTitleBar {
-        margin: 10px 0;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-        /* color: white !important; */
-    }
+
 
     .header,
     .patientInfoSection,

@@ -32,8 +32,8 @@ const MdsCompanyInformation = ({ companyInfo, styles, logourl, resultsettings, s
                 <div className={styles?.logoSection}>
                     <img src={`${logourl}?tenantid=3`} alt="Lab Logo" className={styles?.logo} />
                     <div>
-                        <div className={styles?.labNameLarge} style={{ fontSize: resultsettings.companyInfo.namefontsize || '20px' }}>{largeName}</div>
-                        <div className={styles?.labNameSub} style={{ fontSize: resultsettings.companyInfo.subnameFontSize || '4px' }}>{subName}</div>
+                        <div className={styles?.labNameLarge} style={{ fontSize: resultsettings.companyInfo.namefontsize || '20px', fontFamily: resultsettings.companyInfo.fontFamily || 'inherit' }}>{largeName}</div>
+                        <div className={styles?.labNameSub} style={{ fontSize: resultsettings.companyInfo.subnameFontSize || '4px', fontFamily: resultsettings.companyInfo.fontFamily || 'inherit' }}>{subName}</div>
                     </div>
                 </div>
                 <div className={styles?.labContactHeader}>

@@ -24,6 +24,7 @@ interface MdsPersonalInformationProps {
     isBulk?: boolean;
     finalReportDate?: string;
     styles?: { [key: string]: string };
+    resultsettings?: any;
 }
 
 const MdsPersonalInformation: React.FC<MdsPersonalInformationProps> = ({
@@ -33,10 +34,11 @@ const MdsPersonalInformation: React.FC<MdsPersonalInformationProps> = ({
     receivedDate,
     isBulk = false,
     finalReportDate,
-    styles = {}
+    styles = {},
+    resultsettings
 }) => {
     return (
-        <section className={styles.patientInfoSection}>
+        <section className={styles.patientInfoSection} style={{ fontFamily: resultsettings?.patientInfo?.fontFamily || 'inherit' }}>
             <div className={styles.infoBlock}>
                 <div className={styles.infoPair}>
                     <span className={styles.infoLabel}>Patient Name</span>: <span className={styles.infoValue}>{`${patientInformation.firstname} ${patientInformation.middlename} ${patientInformation.lastname}`}

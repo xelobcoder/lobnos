@@ -29,7 +29,7 @@ export default function CompanyHeadersFULLWIDTH({ companyInfo, logo, resultsetti
 
      const companyNamefontSize = resultsettings?.companyInfo?.namefontsize + 'px' || '25px';
      const companyNamefontColor = resultsettings?.companyInfo?.color || 'black';
-     const companyNamefontFamily = resultsettings?.fontfamily || 'Arial Black';
+     const companyNamefontFamily = resultsettings?.companyInfo?.fontFamily || resultsettings?.fontfamily || 'Arial Black';
 
 
      console.log('Rendering FULLWIDTH header with company info:', companyInfo);
@@ -55,12 +55,12 @@ export default function CompanyHeadersFULLWIDTH({ companyInfo, logo, resultsetti
                               flex: 1,
                               fontSize: companyNamefontSize || "31px",
                               color: companyNamefontColor,
+                              fontFamily: companyNamefontFamily,
                               fontWeight: '900',
                               letterSpacing: '3px',
                               textTransform: 'uppercase',
                               wordBreak: 'keep-all',
                               whiteSpace: 'nowrap',
-                              fontFamily: 'Arial, Helvetica, sans-serif',
                               textShadow: '2px 2px 4px rgba(0,0,0,0.1)',
                               textAlign: 'center',
                               padding: '0 0px',
@@ -68,10 +68,10 @@ export default function CompanyHeadersFULLWIDTH({ companyInfo, logo, resultsetti
                          }} className={styles['company-name-fullwidth']}>{name}</div>
                     </div>
 
-                    <div style={{
-                         width: '100%',
-                         height: '4px',
-                         backgroundColor: '#E74C3C',
+                    <div className={styles['red-line']} style={{
+                         width: '100% !important',
+                         height: '0px',
+                         borderTop: '4px solid #E74C3C',
                          marginTop: '0px',
                          marginBottom: '8px',
                     }}></div>
@@ -80,7 +80,7 @@ export default function CompanyHeadersFULLWIDTH({ companyInfo, logo, resultsetti
                          <div style={{
                               fontSize: '14px',
                               color: 'black',
-                              fontFamily: 'Arial, Helvetica, sans-serif',
+                              fontFamily: companyNamefontFamily,
                               fontWeight: '700',
                               marginBottom: '4px',
                               letterSpacing: '0.5px',
@@ -91,14 +91,14 @@ export default function CompanyHeadersFULLWIDTH({ companyInfo, logo, resultsetti
                          fontSize: '14px',
                          color: 'black',
                          fontWeight: '700',
-                         fontFamily: 'Arial, Helvetica, sans-serif',
+                         fontFamily: companyNamefontFamily,
                          marginBottom: '2px',
                     }} className={styles['company-address-fullwidth']}>{address}</div>
 
                     <div style={{
                          fontSize: '13px',
                          color: '#333',
-                         fontFamily: 'Arial, Helvetica, sans-serif',
+                         fontFamily: companyNamefontFamily,
                          fontWeight: '600',
                          marginTop: '4px',
                     }}>
