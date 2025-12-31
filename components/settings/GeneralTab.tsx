@@ -14,6 +14,7 @@ const fontFamilies = [
      'Verdana, Geneva, sans-serif',
      'Tahoma, Geneva, sans-serif',
      'Trebuchet MS, Helvetica, sans-serif',
+     'Rajdhani, sans-serif',
      'Times New Roman, Times, serif',
      'Georgia, serif',
      'Garamond, serif',
