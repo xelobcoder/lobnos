@@ -14,15 +14,14 @@ import { handleServerSidePatientArchives } from "../../../../components/serverAc
 import { RiCodeView } from "@remixicon/react";
 import { plsEncryption } from "../../../../lib/encryption";
 
-const today = dayjs().format("YYYY-MM-DD");
 const DEFAULTVALUES = {
 	billingid: "",
 	patientid: "",
 	fullname: "",
 	page: 1,
 	count: 10,
-	from: today,
-	to: today,
+	from: "",
+	to: "",
 };
 
 const generateRandomTextAndNumbers = (length) => {
@@ -35,11 +34,11 @@ const generateRandomTextAndNumbers = (length) => {
 };
 
 const handleBrowserView = (data) => {
-	const { testid, test_name, patientid, ascensionid, billingid } = data;
+	const { testid, testname, billingid, ascensionid, patientid } = data;
 	const csvid = `${generateRandomTextAndNumbers(70)}${billingid}`;
 	const ptid = `${generateRandomTextAndNumbers(50)}${patientid}`;
-	const url = `csvid=${csvid}&&testid=${testid}&&testname=${test_name}&&ptid=${ptid}&&target=70,50&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&&password=`;
-	window.open(`/result/labreport/4?${url}`);
+	const url = `csvid=${csvid}&&testid=${testid}&&testname=${testname}&&ptid=${ptid}&&target=70,50&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&&password=&&isScan=false&&testname=${testname}&&ptid=TKUGSzyQHfg7e9rkp39sXF8Q96cRWYLMVi4NztxwpIgM8JVJWU3380&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&&target=70%2C50&&password=&&isBrowserPrintout=1&&tenantId=`;
+	window.open(`/result/labreport/4?${url}`, '_blank');
 };
 
 const PatientArchivesPage = () => {
@@ -60,14 +59,14 @@ const PatientArchivesPage = () => {
 
 	const getRange = (value) => {
 		const [start, end] = value;
-		setQuery({ ...query, from: start || today, to: end || today });
+		setQuery({ ...query, from: start || "", to: end || "" });
 	};
 
 	const getDataArchives = async () => {
 		const { from, to, billingid, patientid, fullname, page, count } = query;
 		const response = await customFetch(
 			`operations/collection/result?from=${from == null ? "" : from}&&to=${to == null ? "" : to
-			}&&billingid=${billingid}&&patientid=${patientid}&&fullname=${fullname}&&page=${page}&&count=${count}`
+			}&&billingid=${billingid}&&ascensionid=${patientid}&&fullname=${fullname}&&page=${page}&&count=${count}`
 		);
 		const { statusCode, result } = response;
 		if (Array.isArray(result) && statusCode === 200) {
@@ -91,76 +90,102 @@ const PatientArchivesPage = () => {
 	};
 
 	const clearFilters = () => {
-		setQuery({ ...DEFAULTVALUES, from: today, to: today, count: 10, page: 1 });
+		setQuery({ ...DEFAULTVALUES, from: "", to: "", count: 10, page: 1 });
 	};
 
 	const columns = [
-		{ Header: "Billed On", accessor: "billing_date", Cell: ({ value }) => value ? dayjs(value).format("DD MMM YYYY, hh:mm A") : "" },
+		{
+			Header: "Billed On",
+			accessor: "billing_date",
+			Cell: ({ value }) => value ? dayjs(value).format("DD MMM YYYY, hh:mm A") : ""
+		},
 		{
 			Header: "Patient Info",
 			accessor: "patientinfo",
-			Cell: ({ row }) => (
-				<div>
-					<div><b>Name:</b> {row.original.fullname}({row.original.patientid})</div>
-					<div><b>Gender:</b> {row.original.gender}</div>
-				</div>
-			),
+			Cell: ({ row }) => {
+				const { fullname, patientid, gender } = row.original;
+				return (
+					<div>
+						<div><b>Name:</b> {fullname}</div>
+						<div><b>Patient ID:</b> {patientid}</div>
+						<div><b>Gender:</b> {gender}</div>
+					</div>
+				);
+			},
 		},
 		{
-			Header: "Case Info",
-			accessor: "caseinfo",
+			Header: "Test Info",
+			accessor: "testinfo",
 			Cell: ({ row }) => (
 				<div>
-					<div><b>Billing ID:</b> {row.original.billingid}</div>
-					<div><b>Ascension ID:</b> {row.original.ascensionid}</div>
+					<div><b>Test Name:</b> {row.original.test_name}</div>
 					<div><b>Test ID:</b> {row.original.testid}</div>
-					<div><b>Test Name:</b> {row.original.test_name || '-'}</div>
+					<div><b>Ascension ID:</b> {row.original.ascensionid}</div>
 				</div>
 			),
 		},
 		{
-			Header: "Result Info",
-			accessor: "resultinfo",
-			Cell: ({ row }) => (
-				<div>
-					<div><b>Entry Date:</b> {row.original.result_entry_date ? dayjs(row.original.result_entry_date).format("DD MMM YYYY, HH:mm") : ""}</div>
-					<div><b>Approved By:</b> {row.original.approvedBy || "-"}</div>
-					<div><b>Print Count:</b> {row.original.printCount}</div>
-				</div>
-			),
+			Header: "Approval Status",
+			accessor: "approvalstatus",
+			Cell: ({ row }) => {
+				const { isapproved, approvedBy } = row.original;
+				return (
+					<div>
+						<div><b>Status:</b>
+							<span className={`badge ms-1 ${isapproved ? 'bg-success' : 'bg-warning'}`}>
+								{isapproved ? 'Approved' : 'Pending'}
+							</span>
+						</div>
+						{approvedBy && <div><b>Approved By:</b> {approvedBy}</div>}
+					</div>
+				);
+			},
 		},
-		{ Header: "Last Updated On", accessor: "lastupdatedon", Cell: ({ value }) => value ? dayjs(value).format("DD MMM YYYY, HH:mm") : "" },
-
+		{
+			Header: "Print Count",
+			accessor: "printCount",
+			Cell: ({ value }) => value || 0
+		},
+		{
+			Header: "Last Updated",
+			accessor: "lastupdatedon",
+			Cell: ({ value }) => value ? dayjs(value).format("DD MMM YYYY, HH:mm") : ""
+		},
 		{
 			Header: "Validation Info",
 			accessor: "validationinfo",
-			Cell: ({ row }) => (
-				<div>
-					<div><b>Sample Validated On:</b> {row.original.samplevalidatedon ? dayjs(row.original.samplevalidatedon).format("DD MMM YYYY, HH:mm") : ""}</div>
-					<div><b>Validated By:</b> {
-						Array.isArray(row.original.validators) && row.original.validators.length > 0
-							? row.original.validators.map((v, idx) => (
-								<span key={v.employeeid || idx} className="badge bg-secondary me-1">{v.username}</span>
-							))
-							: (row.original.validatedby || "-")
-					}</div>
-				</div>
-			),
+			Cell: ({ row }) => {
+				const { samplevalidatedon, validatedby, validators } = row.original;
+				return (
+					<div>
+						<div><b>Sample Validated On:</b> {samplevalidatedon ? dayjs(samplevalidatedon).format("DD MMM YYYY, HH:mm") : ""}</div>
+						<div><b>Validated By:</b> {
+							Array.isArray(validators) && validators.length > 0
+								? validators.map((v, idx) => (
+									<span key={v.employeeid || idx} className="badge bg-secondary me-1">{v.username}</span>
+								))
+								: (validatedby || "-")
+						}</div>
+					</div>
+				);
+			},
 		},
-
 		{
 			Header: "Actions",
 			accessor: "actions",
 			Cell: ({ row }) => {
-				const { patientid, fullname } = row.original;
-				const encryptedId = encodeURIComponent(patientid);
-				const encodedPatientId = encodeURIComponent(patientid || "");
-				const encodedFullname = encodeURIComponent(fullname || "");
+				const { billingid, testid, test_name, ascensionid, patientid, fullname } = row.original;
 
 				return (
 					<>
 						<button
-							onClick={() => handleBrowserView(row.original)}
+							onClick={() => handleBrowserView({
+								testid,
+								testname: test_name,
+								patientid,
+								ascensionid,
+								billingid
+							})}
 							className="btn btn-primary btn-sm mx-1"
 						>
 							View Result
@@ -169,11 +194,13 @@ const PatientArchivesPage = () => {
 							title="View Patient Archive"
 							className="btn btn-info btn-sm mx-1"
 							onClick={() => {
+								const encryptedId = encodeURIComponent(billingid);
+								const encodedPatientId = encodeURIComponent(patientid || "");
+								const encodedFullname = encodeURIComponent(fullname || "");
 								window.open(`/operations/laboratory/patientarchives/${plsEncryption(encryptedId)}?patientid=${encodedPatientId}&fullname=${encodedFullname}`);
 							}}
 						>
 							<RiCodeView />
-
 						</button>
 					</>
 				);
@@ -193,68 +220,100 @@ const PatientArchivesPage = () => {
 
 	return (
 		<div>
-			<section className="grid-5">
-				<div className="mx-2">
-					<input
-						placeholder="Billing Id"
-						className="custom-input"
-						id="billingid"
-						value={query.billingid}
-						onChange={(e) => handleComments(e, query, "billingid", setQuery)}
+			{/* Filter Section */}
+			<div className="card mb-4">
+				<div className="card-header">
+					<h5 className="mb-0">Search Patient Archives</h5>
+				</div>
+				<div className="card-body">
+					<div className="row g-3 align-items-end">
+						{/* ID Filters Row */}
+						<div className="col-lg-2 col-md-6">
+							<label htmlFor="billingid" className="form-label fw-semibold">Billing ID</label>
+							<input
+								placeholder="Enter Billing ID"
+								className="form-control"
+								id="billingid"
+								value={query.billingid}
+								onChange={(e) => handleComments(e, query, "billingid", setQuery)}
+							/>
+						</div>
+						<div className="col-lg-2 col-md-6">
+							<label htmlFor="patientid" className="form-label fw-semibold">Ascension ID</label>
+							<input
+								placeholder="Enter Ascension ID"
+								className="form-control"
+								value={query.patientid}
+								id="patientid"
+								onChange={(e) => handleComments(e, query, "patientid", setQuery)}
+							/>
+						</div>
+
+						{/* Name Filter */}
+						<div className="col-lg-3 col-md-6">
+							<label htmlFor="fullname" className="form-label fw-semibold">Patient Name</label>
+							<input
+								placeholder="Enter Full Name"
+								className="form-control"
+								value={query.fullname}
+								id="fullname"
+								onChange={(e) => handleComments(e, query, "fullname", setQuery)}
+							/>
+						</div>
+
+						{/* Date Range Filter */}
+						<div className="col-lg-3 col-md-6">
+							<label className="form-label fw-semibold">Date Range</label>
+							<div>
+								<DatePickerRange
+									getRange={getRange}
+									start={query.from}
+									end={query.to}
+								/>
+							</div>
+						</div>
+
+						{/* Action Buttons */}
+						<div className="col-lg-2 col-md-12">
+							<div className="d-flex gap-2">
+								<button
+									className="btn btn-success flex-fill"
+									onClick={(e) => {
+										submitData();
+									}}
+									disabled={isLoading}
+								>
+									{isLoading ? 'Searching...' : 'Search'}
+								</button>
+								<button
+									onClick={(ev) => {
+										clearFilters();
+									}}
+									className="btn btn-outline-secondary flex-fill"
+									disabled={isLoading}
+								>
+									Clear
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			{/* Results Section */}
+			<div className="card">
+				<div className="card-header">
+					<h5 className="mb-0">Patient Archives Results</h5>
+				</div>
+				<div className="card-body p-0">
+					<PrimeTable
+						column={columns}
+						data={collection}
+						filtering={false}
+						serverSideFiltering={true}
+						handleSeverSideProcessing={handleServerSidePatientArchives}
 					/>
 				</div>
-				<div className="mx-2">
-					<input
-						placeholder="Patient Id"
-						className="custom-input"
-						value={query.patientid}
-						id="patientid"
-						onChange={(e) => handleComments(e, query, "patientid", setQuery)}
-					/>
-				</div>
-				<div className="mx-2">
-					<input
-						placeholder="Fullname"
-						className="custom-input"
-						value={query.fullname}
-						id="fullname"
-						onChange={(e) => handleComments(e, query, "fullname", setQuery)}
-					/>
-				</div>
-				<div>
-					<DatePickerRange
-						getRange={getRange}
-						start={query.from}
-						end={query.to}
-					/>
-				</div>
-				<div>
-					<button
-						className="btn btn-success "
-						onClick={(e) => {
-							submitData();
-						}}
-					>
-						Search
-					</button>
-					<button
-						onClick={(ev) => {
-							clearFilters();
-						}}
-						className="btn mx-2 btn-secondary "
-					>
-						Clear Filter
-					</button>
-				</div>
-			</section>
-			<h5 className="mx-1 text-capitalize">Archives</h5>
-			<div>
-				<PrimeTable
-					column={columns}
-					data={collection}
-					filtering={false}
-					serverSideFiltering={true}
-					handleSeverSideProcessing={handleServerSidePatientArchives} />
 			</div>
 		</div>
 	);

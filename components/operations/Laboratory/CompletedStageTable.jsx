@@ -5,6 +5,7 @@ import { Button } from 'react-bootstrap';
 import { RiCheckLine } from '@remixicon/react';
 import PrimeTable from "../../accessories/Datatables/PrimeTable";
 import { handleServerSideProcessingAscensionData } from "../../serverActions/ActionFiltering";
+import dayjs from "dayjs";
 
 export default function AscentionCompletedTable({ employeeid, branchid }) {
 	const {
@@ -18,7 +19,7 @@ export default function AscentionCompletedTable({ employeeid, branchid }) {
 		{
 			Header: 'Ascension Date(ID)',
 			accessor: 'ascension_date',
-			Cell: ({ value, row }) => <>{new Date(value).toLocaleDateString()} ({row.original.ascensionid})</>,
+			Cell: ({ value, row }) => <>{dayjs(value).format('DD-MM-YYYY hh:mm:ss')} ({row.original.ascensionid})</>,
 			width: 70
 		},
 		{

@@ -32,7 +32,6 @@ export default function CompanyHeadersFULLWIDTH({ companyInfo, logo, resultsetti
      const companyNamefontFamily = resultsettings?.companyInfo?.fontFamily || resultsettings?.fontfamily || 'Arial Black';
 
 
-     console.log('Rendering FULLWIDTH header with company info:', companyInfo);
 
      return (
           <div className={`${styles['company-info-fullwidth']} ${subsequent ? styles.subsequent : ''}`}>

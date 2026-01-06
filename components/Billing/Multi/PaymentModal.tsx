@@ -27,7 +27,7 @@ interface PaymentModalProps {
      setNewPayment: React.Dispatch<React.SetStateAction<{ mode: string | number; amount: string }>>;
      setBillingData: (data: any) => void;
      billingdata: any;
-     handlesubmit: (data: MultiBillingData) => Promise<{ status: boolean, message?: string, billingid?: number | string } | undefined>;
+     handlesubmit?: (data: MultiBillingData) => Promise<{ status: boolean, message?: string, billingid?: number | string } | undefined>;
 }
 
 
@@ -233,11 +233,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                const total = payAllPayments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
                if (total !== payable) {
                     setPayAllError(`Total payment must equal exactly ${payable.toLocaleString(undefined, { minimumFractionDigits: 2 })}`);
+                    setIsSyncing(false);
                     return;
                }
                // Validate that all payment modes are selected
                if (payAllPayments.some(p => !p.mode)) {
                     setPayAllError('Please select payment mode for all entries.');
+                    setIsSyncing(false);
                     return;
                }
                setPayAllError('');
@@ -307,8 +309,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     openPaymentModal: 0,
                }
                setBillingData(newCurrentData);
-               const result = await handlesubmit(newCurrentData);
-               if (result?.status === true) {
+               if (handlesubmit) {
+                    const result = await handlesubmit(newCurrentData);
+                    if (result?.status === true) {
+                         setIsValueSynchronized(true);
+                         setIsSyncing(false)
+                    }
+               } else {
                     setIsValueSynchronized(true);
                     setIsSyncing(false)
                }
@@ -395,13 +402,19 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     openPaymentModal: 0,
                }
                setBillingData(newCurrentData);
-               const result = await handlesubmit(newCurrentData);
-               if (result?.status === true) {
+               if (handlesubmit) {
+                    const result = await handlesubmit(newCurrentData);
+                    if (result?.status === true) {
+                         setIsValueSynchronized(true);
+                         setIsSyncing(false);
+                    }
+               } else {
                     setIsValueSynchronized(true);
                     setIsSyncing(false);
                }
 
           }
+          setIsSyncing(false);
      }
 
      return (
@@ -759,11 +772,14 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                          >
                               Reset All
                          </Button>
+                         <Button onClick={() => { handlesubmit ? handlesubmit(billingdata) : null }} variant="outline-primary" className="mx-2 " size="sm" >
+                              Bill Without Payment
+                         </Button>
                          <Button variant="primary" size="sm"
                               disabled={isValueSynchronized || isSyncing}
                               onClick={handlePaymentSyncing}
                          >
-                              {isSyncing ? 'Syncing...' : 'Sync Payments and Bill Client'}
+                              {isSyncing ? 'Billing Client Please Wait ...' : 'Bill Client With After Payment'}
                          </Button>
 
                     </Modal.Footer>

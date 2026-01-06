@@ -17,7 +17,7 @@ interface PaymentEntry {
 
 
 interface MultiPaymentProps {
-    handlesubmit?: (data: MultiBillingData) => void;
+    handlesubmit?: (data: MultiBillingData) => Promise<{ status: boolean; message?: string; billingid?: string | number; } | undefined>;
 }
 
 const MultiPayment: React.FC<MultiPaymentProps> = ({ handlesubmit }) => {
@@ -129,7 +129,7 @@ const MultiPayment: React.FC<MultiPaymentProps> = ({ handlesubmit }) => {
         <React.Fragment>
             <PaymentModal
                 show={billingdata.openPaymentModal == 2}
-                onHide={() =>  {
+                onHide={() => {
                     if (billingdata.openPaymentModal === 2 || billingdata.openPaymentModal === 4) {
                         setBillingData(prev => ({ ...prev, openPaymentModal: 0 }));
                     }

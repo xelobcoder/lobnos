@@ -7,6 +7,7 @@ import { useLaboratoryContext } from "./LaboratoryStagesContext";
 import { fnTiming } from "./Lib";
 import ProcessingButtons from "./ProcessingButtons";
 import { handleServerSideProcessingAscensionData } from "../../serverActions/ActionFiltering";
+import dayjs from 'dayjs';
 
 export default function AscensionProcessingTable() {
     const { isLoading, collection, queryParams, toast, setCollection } = useLaboratoryContext();
@@ -106,7 +107,7 @@ export default function AscensionProcessingTable() {
         {
             Header: 'Ascension Date(ID)',
             accessor: 'ascension_date',
-            Cell: ({ value, row }) => <>{new Date(value).toLocaleDateString()} ({row.original.ascensionid})</>,
+            Cell: ({ value, row }) => <>{dayjs(value).format('DD-MM-YYYY hh:mm:ss')} ({row.original.ascensionid})</>,
         },
         { Header: 'CustomerId', accessor: 'fullpatientid' },
         { Header: 'BillID', accessor: 'billingid' },

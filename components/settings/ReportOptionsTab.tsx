@@ -72,7 +72,7 @@ export const ReportOptionsTab: React.FC<ReportOptionsTabProps> = ({ settings, ha
                               value={settings.limitations}
                               onChange={handleChange}
                               rows={3}
-                              className="custom-input"
+                              className="form-control"
                          />
                     </div>
                )}

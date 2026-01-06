@@ -80,6 +80,11 @@ export const CrmLinks: Link[] = [
                 icon: <RiMoneyDollarCircleLine />
             },
             {
+                title: 'Receipts',
+                link: "/billing/receipts",
+                icon: <RiMoneyDollarCircleLine />
+            },
+            {
                 title: "Outsourced cases",
                 link: "/billing/outsourced-cases",
                 icon: <RiStoreLine />

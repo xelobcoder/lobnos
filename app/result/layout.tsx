@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { ApplicationProvider } from '../../components/Auth/useApplicationContext';
 import MAIN_LAYOUT from '../../components/Layout/MainLayout';
-// import '../../styles/result.css'
+
 
 
 

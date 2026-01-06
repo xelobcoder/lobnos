@@ -5,6 +5,81 @@ import '../node_modules/react-toastify/dist/ReactToastify.min.css';
 import '../node_modules/react-datepicker/dist/react-datepicker.min.css'
 import PrimeToast from "../components/accessories/PrimeToast";
 import { ThemeProvider } from '../components/ThemeProvider';
+import { Inter, Roboto, Barlow, Rajdhani, Raleway, Roboto_Condensed, Poppins, Montserrat, Open_Sans, Lato, Lexend } from 'next/font/google';
+
+const inter = Inter({
+     subsets: ['latin'],
+     variable: '--font-inter',
+     display: 'swap',
+});
+
+const roboto = Roboto({
+     weight: ['100', '300', '400', '500', '700', '900'],
+     subsets: ['latin'],
+     variable: '--font-roboto',
+     display: 'swap',
+});
+
+const barlow = Barlow({
+     weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
+     subsets: ['latin'],
+     variable: '--font-barlow',
+     display: 'swap',
+});
+
+const rajdhani = Rajdhani({
+     weight: ['300', '400', '500', '600', '700'],
+     subsets: ['latin'],
+     variable: '--font-rajdhani',
+     display: 'swap',
+});
+
+const raleway = Raleway({
+     subsets: ['latin'],
+     variable: '--font-raleway',
+     display: 'swap',
+});
+
+const robotoCondensed = Roboto_Condensed({
+     subsets: ['latin'],
+     variable: '--font-roboto-condensed',
+     display: 'swap',
+});
+
+const poppins = Poppins({
+     weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
+     subsets: ['latin'],
+     variable: '--font-poppins',
+     display: 'swap',
+});
+
+const montserrat = Montserrat({
+     weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
+     subsets: ['latin'],
+     variable: '--font-montserrat',
+     display: 'swap',
+});
+
+const openSans = Open_Sans({
+     weight: ['300', '400', '500', '600', '700', '800'],
+     subsets: ['latin'],
+     variable: '--font-open-sans',
+     display: 'swap',
+});
+
+const lato = Lato({
+     weight: ['100', '300', '400', '700', '900'],
+     subsets: ['latin'],
+     variable: '--font-lato',
+     display: 'swap',
+});
+
+const lexend = Lexend({
+     weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
+     subsets: ['latin'],
+     variable: '--font-lexend',
+     display: 'swap',
+});
 
 
 
@@ -16,16 +91,9 @@ export default function SRootLayout({
 }) {
 
      return (
-          <html lang="en">
-               <head>
-                    <link rel="preconnect" href="https://fonts.googleapis.com" />
-                    <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-                    <link
-                         href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Rajdhani:wght@300;400;500;600;700&family=Raleway:ital,wght@0,100..900;1,100..900&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
-                         rel="stylesheet"
-                    />
-               </head>
-               <body>
+          <html lang="en" className={`${inter.variable} ${roboto.variable} ${barlow.variable} ${rajdhani.variable} ${raleway.variable} ${robotoCondensed.variable} ${poppins.variable} ${montserrat.variable} ${openSans.variable} ${lato.variable} ${lexend.variable}`}>
+               <head></head>
+               <body className={inter.className}>
                     <ThemeProvider>
                          <PrimeToast />
                          {children}

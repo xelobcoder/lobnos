@@ -80,13 +80,17 @@ export async function middleware(request: NextRequest) {
                     '/billing/settings/night-adjustments',
                     '/billing/billing-strategy/strategies',
                     '/day-transaction-break-down',
-                    '/analytics',
-                    '/inventory'
+                    '/inventory',
+                    '/commission-payments'
                 ];
                 if (restrictedPaths.some(path => currentPath.startsWith(path))) {
                     return NextResponse.redirect(new URL('/unauthorized', request.url));
                 }
-                return NextResponse.next();
+            }
+
+            // Analytics access restricted to admin and super admin only
+            if (currentPath.startsWith('/analytics') && !["admin", "super admin"].includes(role.toString().toLowerCase().trim())) {
+                return NextResponse.redirect(new URL('/unauthorized', request.url));
             }
 
             // Redirect /billing/expenses to /billing/expenses/expenseslist for admin
@@ -116,7 +120,8 @@ export const config = {
         '/sales/:path*',
         '/billing/billing-sessions/:path*',
         '/inventory/:path*',
-        '/day-transaction-break-down'
+        '/day-transaction-break-down',
+        '/commission-payments/:path*'
     ]
 };
 

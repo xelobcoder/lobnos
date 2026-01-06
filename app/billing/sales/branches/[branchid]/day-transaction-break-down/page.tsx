@@ -311,6 +311,7 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
     const [selectedFrom, setSelectedFrom] = useState(from || '');
     const [selectedEnd, setSelectedEnd] = useState(end || '');
     const router = useRouter();
+    const role = useApplication()?.users?.role;
 
     const handleApplyDateRange = () => {
         const params = new URLSearchParams();
@@ -368,6 +369,8 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
         );
     }
 
+
+   
     if (error) {
         return (
             <main className={styles.container}>

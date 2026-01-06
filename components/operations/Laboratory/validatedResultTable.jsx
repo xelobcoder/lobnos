@@ -17,6 +17,7 @@ import { handleServerSideProcessingAscensionData } from '../../serverActions/Act
 import { RiMoreLine } from '@remixicon/react';
 import { useApplication } from '../../Auth/useApplicationContext';
 import PrimeTable from '../../accessories/Datatables/PrimeTable';
+import dayjs from 'dayjs';
 
 
 const Print = (
@@ -101,9 +102,6 @@ export default function ValidatedResultTable({ employeeid }) {
 
 
 
-     const downloadMultipleReportsHandler = (data) => {
-          console.log('Downloading multiple reports:', data);
-     };
 
      const downloadSvg = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path fill="none" d="M0 0h24v24H0z"></path><path d="M13 12H16L12 16L8 12H11V8H13V12ZM15 4H5V20H19V8H15V4ZM3 2.9918C3 2.44405 3.44749 2 3.9985 2H16L20.9997 7L21 20.9925C21 21.5489 20.5551 22 20.0066 22H3.9934C3.44476 22 3 21.5447 3 21.0082V2.9918Z"></path></svg>
 
@@ -111,10 +109,11 @@ export default function ValidatedResultTable({ employeeid }) {
      const EmailSvg = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path fill="none" d="M0 0h24v24H0z"></path><path d="M3 3H21C21.5523 3 22 3.44772 22 4V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V4C2 3.44772 2.44772 3 3 3ZM20 7.23792L12.0718 14.338L4 7.21594V19H20V7.23792ZM4.51146 5L12.0619 11.662L19.501 5H4.51146Z"></path></svg>
 
      const columns = [
+          {Header: 'Ascension ID', accessor: 'ascensionid'},
           {
                Header: 'Ascension Date',
                accessor: 'ascension_date',
-               Cell: ({ row }) => <div>{new Date(row.original.ascension_date).toLocaleDateString()}</div>
+               Cell: ({ row }) => <div>{dayjs(row.original.ascension_date).format('DD-MM-YYYY hh:mm:ss')}</div>
           },
           {
                Header: 'Patient ID',
@@ -186,10 +185,7 @@ export default function ValidatedResultTable({ employeeid }) {
                                    View Result Tracking
                               </Dropdown.Item>
                               <Dropdown.Item className='pls-label' onClick={() => PrepareResultEntryHeader({ id: row.original.testid, ...row.original }, false, branchid,)}>
-                                   {downloadSvg} Edit Result
-                              </Dropdown.Item>
-                              <Dropdown.Item className='pls-label' onClick={() => downloadMultipleReportsHandler(row.original)}>
-                                   {downloadSvg}  Download Multiple Reports
+                                   {downloadSvg} Edit Patient Result
                               </Dropdown.Item>
                          </Dropdown.Menu>
                     </Dropdown>

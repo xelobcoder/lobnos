@@ -39,7 +39,7 @@ export const FontSelector: React.FC<FontSelectorProps> = ({ isOpen, onClose }) =
      return (
           <div className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
                style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(2px)', zIndex: 1050 }}>
-               <div className="bg-body rounded shadow-lg p-4 border" style={{ maxWidth: '600px', width: '90%' }}>
+               <div className="bg-body rounded shadow-lg p-3 border" style={{ maxWidth: '400px', width: '90%' }}>
                     <div className="d-flex justify-content-between align-items-center mb-4">
                          <h5 className="mb-0 d-flex align-items-center text-body">
                               <RiFontSize size={20} className="me-2" />
@@ -82,10 +82,10 @@ export const FontSelector: React.FC<FontSelectorProps> = ({ isOpen, onClose }) =
                          {activeTab === 'fonts' && (
                               <div className="tab-pane active">
                                    <div className="row g-3">
-                                        {availableFonts.map((font, index) => (
+                                        {availableFonts.length > 0 && availableFonts.map((font, index) => (
                                              <div key={index} className="col-6">
                                                   <button
-                                                       className={`btn w-100 text-start p-3 border rounded position-relative ${currentFont === font.value ? 'btn-primary' : 'btn-outline-secondary'
+                                                       className={`btn w-100 text-start p-2 border rounded position-relative ${currentFont === font.value ? 'btn-primary' : 'btn-outline-secondary'
                                                             }`}
                                                        onClick={() => handleFontSelect(font.value)}
                                                        style={{ fontFamily: font.value }}
@@ -94,7 +94,6 @@ export const FontSelector: React.FC<FontSelectorProps> = ({ isOpen, onClose }) =
                                                             <RiCheckLine size={16} className="position-absolute top-50 end-0 translate-middle-y me-2 text-light" />
                                                        )}
                                                        <div className="fw-semibold text-body">{font.name}</div>
-                                                       <small className="text-muted">The quick brown fox jumps over the lazy dog</small>
                                                   </button>
                                              </div>
                                         ))}
@@ -104,24 +103,22 @@ export const FontSelector: React.FC<FontSelectorProps> = ({ isOpen, onClose }) =
 
                          {activeTab === 'size' && (
                               <div className="tab-pane active">
-                                   <div className="row g-3">
+                                   <label className="form-label fw-semibold mb-3">Font Size</label>
+                                   <select
+                                        value={currentFontSize}
+                                        onChange={(e) => handleFontSizeSelect(e.target.value)}
+                                        className="form-select"
+                                   >
                                         {availableFontSizes.map((size, index) => (
-                                             <div key={index} className="col-6">
-                                                  <button
-                                                       className={`btn w-100 p-3 border rounded position-relative ${currentFontSize === size.value ? 'btn-primary' : 'btn-outline-secondary'
-                                                            }`}
-                                                       onClick={() => handleFontSizeSelect(size.value)}
-                                                       style={{ fontSize: size.value }}
-                                                  >
-                                                       {currentFontSize === size.value && (
-                                                            <RiCheckLine size={16} className="position-absolute top-50 end-0 translate-middle-y me-2 text-light" />
-                                                       )}
-                                                       <div className="fw-semibold text-body">{size.name}</div>
-                                                       <small className="text-muted">{size.value}</small>
-                                                  </button>
-                                             </div>
+                                             <option
+                                                  key={index}
+                                                  value={size.value}
+                                                  style={{ fontSize: size.value }}
+                                             >
+                                                  {size.name} ({size.value})
+                                             </option>
                                         ))}
-                                   </div>
+                                   </select>
                               </div>
                          )}
                     </div>

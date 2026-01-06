@@ -43,7 +43,7 @@ launcher/*.exe
 # vercel
 .vercel
 
-
+*.exe
 
 # typescript
 *.tsbuildinfo

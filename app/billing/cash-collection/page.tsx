@@ -75,7 +75,7 @@ interface PaymentMode {
 
 export default function CashCollection() {
      const [searchPatientId, setSearchPatientId] = useState<string>('');
-     const [statusFilter, setStatusFilter] = useState<string>('all');
+     const [statusFilter, setStatusFilter] = useState<string>(useSearchParams()?.get('paymentstatus') || 'all');
      const [billingRecords, setBillingRecords] = useState<BillingRecord[]>([]);
      const [selectedBillingId, setSelectedBillingId] = useState<number | null>(null);
      const [outstandingAmount, setOutstandingAmount] = useState<string>('0.00');
@@ -97,6 +97,7 @@ export default function CashCollection() {
      const [paymentModes, setPaymentModes] = useState<PaymentMode[]>([]);
      const [selectedPaymentModes, setSelectedPaymentModes] = useState<{ [key: string | number]: number | null }>({});
      const urlPatientid = useSearchParams()?.get('patientid') || '';
+
      useEffect(() => {
           fetchPaymentModes();
      }, []);
@@ -146,17 +147,15 @@ export default function CashCollection() {
           setIsLoading(true);
           try {
                const bulkUrl = `billing/client/bulk/outstanding?patientid=${searchPatientIdFinal}&status=${statusFilter}`;
-               console.log('Fetching bulk outstanding from URL:', bulkUrl);
                const response = await customFetch(bulkUrl) as BulkOutstandingResponse;
                console.log('Bulk Outstanding Response:', response);
 
                if (response?.success && response?.data?.records && response.data.records.length > 0) {
                     setBillingRecords(response.data.records);
-                    setSelectedBillingId(response.data.records[0].billingid); // Auto-select first billing record
+                    setSelectedBillingId(response.data.records[0].billingid); 
                     setOutstandingAmount(response.data.outstandingAmount);
                     setPatientId(parseInt(searchPatientIdFinal));
 
-                    // Fetch patient information
                     try {
                          const patientInfo = await fetchPatientPersonalInfo(parseInt(searchPatientIdFinal)) as any;
                          if (patientInfo?.result) {

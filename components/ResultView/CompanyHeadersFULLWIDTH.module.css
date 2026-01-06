@@ -1,12 +1,9 @@
 .company-info-fullwidth {
-     display: flex;
-     flex-direction: column;
-     align-items: flex-start;
      margin: 0;
      padding: 10px 0;
      margin-bottom: 0px !important;
-     width: auto;
-     max-width: none;
+     width: 100%;
+     /* max-width: none; */
 }
 
 .company-name-fullwidth {
@@ -44,7 +41,10 @@
           page-break-inside: avoid;
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
-          /* padding: 5px 0; */
+          width: 100% !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          margin-top: 0 !important;
      }
 
      .company-name-fullwidth {

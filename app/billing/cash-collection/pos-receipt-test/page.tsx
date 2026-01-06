@@ -3,9 +3,11 @@
 import jsPDF from "jspdf";
 import { useState, useEffect } from "react";
 import CompanyHeaders, { CompanyHeadersProps } from "../../../../components/ResultView/CompanyHeaders";
-import { customFetch, currencyFormatter } from "../../../../components/Auth/customFetch";
+import { customFetch, currencyFormatter, customPost } from "../../../../components/Auth/customFetch";
 import { useTheme } from "../../../../components/ThemeProvider";
 import { useApplication } from "../../../../components/Auth/useApplicationContext";
+import { useSearchParams } from "next/navigation";
+import { toast } from "react-toastify";
 
 interface BillingData {
      billingid: number;
@@ -35,6 +37,12 @@ interface BillingData {
      isAdjustment: number;
      adjustedBy: number | null;
      adjustmentReason: string | null;
+     adjustmentType: string | null;
+     islocked: number;
+     adjustmentdate: string | null;
+     adjustmentamount: string | null;
+     additionalinformation: string | null;
+     writeoff: string;
 }
 
 interface ServiceData {
@@ -45,14 +53,14 @@ interface ServiceData {
      employeeid: number;
      serviceCategory: string;
      categoryTrackId: number;
-     clinicianId: number;
-     organizationId: null;
+     clinicianId: number | null;
+     organizationId: number | null;
      registrationType: string;
      branchid: number;
      isoutsourced: number;
-     outsourceid: null;
+     outsourceid: number | null;
      serviceAddedOn: string;
-     taxList: null;
+     taxList: string | null;
      taxValue: string;
      amountIncurredDueTax: string;
      taxIncluded: number;
@@ -61,115 +69,157 @@ interface ServiceData {
      totalpayable: string;
      isNHIS: number;
      isPHIS: number;
-     insuranceid: null;
-     claimCode: null;
+     insuranceid: number | null;
+     claimCode: string | null;
      hasNightAdjustment: number;
      nightAdjustmentValue: string;
      nightAdjustmentMode: string;
      isPackageUsed: number;
-     packageid: null;
+     packageid: number | null;
      status: string;
      isRefunded: number;
      isLocked: number;
      isAdjustment: number;
-     isCorrected: null;
-     relatedbillingid: null;
+     isCorrected: number | null;
+     relatedbillingid: number | null;
      paidamount: string;
      paymentstatus: string;
      outstanding: string;
      outsourceprice: string;
-     isRefundCompleted: number;
-     isRefundApproved: number;
-     isRefundInitiated: number;
-     amountRefunded: string;
-     name: string;
-     witnesses: [];
-     medicalCode?: string;
-     urgency?: string;
-     expectedCompletion?: string;
+     nhismembershipid: number | null;
+     claimscheckcode: string | null;
+     test_report_title: string;
+     service_name: string;
 }
 
 interface PatientData {
      patientid: number;
+     fullpatientid: string;
+     designation: string;
      firstname: string;
      lastname: string;
-     phone: string;
      email: string;
-     dateofbirth: string;
+     dob: string | null;
+     age: number;
      gender: string;
-     address: string;
-     emergencycontact?: string;
-     insuranceid?: string;
-     medicalrecordnumber?: string;
+     marital_status: string;
+     mobile_number: string;
+     agetype: string;
+     occupation: string;
+     date: string;
+     activation_status: string;
+     middlename: string;
+     organization: string;
+     contactpointer: string;
+     whatAppcontact: string | null;
 }
 
-interface InvoiceMetadata {
-     invoiceNumber: string;
-     generatedBy: string;
-     generatedAt: Date;
-     branchName: string;
-     paymentMethod: string;
-     transactionRef: string;
+interface PaymentHistory {
+     KeyID: number;
+     Billingid: number;
+     Date: string;
+     PaymentMode: string;
+     Amount: string;
+     employeeid: number;
+     type: string;
+}
+
+interface ReceiptData {
+     receiptId: number;
+     receiptNumber: string;
+     billing: BillingData;
+     patient: PatientData;
+     services: ServiceData[];
+     generatedAt: string;
+     tenantId: number;
+     paymenthistory: PaymentHistory[];
+     companyInfo?: any;
+}
+
+interface ApiResponse {
+     status: string;
+     data: ReceiptData;
 }
 
 
 export default function PosReceiptTestPage() {
      const [billingData, setBillingData] = useState<BillingData | null>(null);
      const [services, setServices] = useState<ServiceData[]>([]);
+     const [patientData, setPatientData] = useState<PatientData | null>(null);
      const [companyInfo, setCompanyInfo] = useState<CompanyHeadersProps['companyInfo'] | null>(null);
+     const [paymentHistory, setPaymentHistory] = useState<PaymentHistory[]>([]);
+     const [receiptId, setReceiptId] = useState<number | null>(null);
+     const [receiptNumber, setReceiptNumber] = useState<string | null>(null);
      const [loading, setLoading] = useState(true);
      const [error, setError] = useState<string | null>(null);
      const [retryCount, setRetryCount] = useState(0);
+     const billingid = useSearchParams()?.get('billingid');
      const { theme } = useTheme();
      const companyLogoUrl = process.env.NODE_ENV === "development" ?
           `${process.env.DEVELOPMENT_BASEURL}` + `settings/companyprofile/images` : `${process.env.PRODUCTION_BASEURL}` + `settings/companyprofile/images`;
 
      const printedBy = useApplication()?.user?.username;
      const printedByRole = useApplication()?.user?.role;
-
-     const laodCompanyInfor = async () => {
-          try {
-               const response = await customFetch('settings/companyprofile');
-               if (Object.keys(response).length > 0) {
-                    setCompanyInfo(response);
-               }
-          } catch (err: any) {
-               console.error('Failed to load company information:', err);
-          }
-     };
+     const { user, company } = useApplication();
 
      const fetchData = async () => {
           try {
-               console.log('Starting data fetch...');
+               if (!billingid) {
+                    setLoading(false);
+                    setError('No billing ID available');
+                    return;
+               }
                setLoading(true);
                setError(null);
 
-               const billingResponse = await customFetch('billing/previous/transaction/data?billingid=3800');
-               console.log('Billing response:', billingResponse);
-               if (billingResponse?.result?.[0]) {
-                    setBillingData(billingResponse.result[0]);
+               const employeeid = user?.employeeid;
+               const tenantId = company?.tenantId || 1;
+
+               const response = await customFetch(`billing/client/generate/receipt?tenantId=${tenantId}&billingid=${billingid}&employeeid=${employeeid}`);
+               if (response?.status === 'success' && response?.data) {
+                    setBillingData(response.data.billing);
+                    setPatientData(response.data.patient);
+                    setServices(response.data.services);
+                    setPaymentHistory(response.data.paymenthistory || []);
+                    setReceiptId(response.data.receiptId);
+                    setReceiptNumber(response.data.receiptNumber);
+
+                    // Company info is already included in the receipt data
+                    if (response.data.companyInfo) {
+                         const companyData = response.data.companyInfo;
+                         const companyInfoMapped = {
+                              id: companyData.ID,
+                              name: companyData.NAME,
+                              email: companyData.EMAIL,
+                              motto: companyData.MOTTO,
+                              phonenumber: companyData.PHONENUMBER,
+                              address: companyData.ADDRESS,
+                              alternativenumber: companyData.ALTERNATIVENUMBER,
+                              website: companyData.WEBSITE,
+                              street: companyData.STREET,
+                              additionalInfo: companyData.additionalInfo
+                         };
+                         setCompanyInfo(companyInfoMapped);
+                    } else {
+                         setCompanyInfo({
+                              name: 'Company Name',
+                              email: '',
+                              motto: '',
+                              address: '',
+                              alternativenumber: '',
+                              website: '',
+                              additionalInfo: '',
+                              phonenumber: 0
+                         });
+                    }
                } else {
-                    throw new Error('No billing data found');
+                    throw new Error('No data found');
                }
-
-
-               const servicesResponse = await customFetch('billing/information/single?billingid=3800');
-               console.log('Services response:', servicesResponse);
-               if (servicesResponse?.result) {
-                    setServices(servicesResponse.result);
-               } else {
-                    throw new Error('No services data found');
-               }
-
-
-               await laodCompanyInfor();
-               console.log('Data fetch completed successfully');
 
           } catch (err: any) {
                console.error('Failed to load data:', err);
                setError(err?.message || 'Failed to load data');
           } finally {
-               console.log('Setting loading to false');
                setLoading(false);
           }
      };
@@ -180,17 +230,7 @@ export default function PosReceiptTestPage() {
      };
 
      useEffect(() => {
-          const timeoutId = setTimeout(() => {
-               console.log('Loading timeout reached, forcing loading to false');
-               setLoading(false);
-               if (!error) {
-                    setError('Loading timeout - please check your connection and try again');
-               }
-          }, 30000);
-
           fetchData();
-
-          return () => clearTimeout(timeoutId);
      }, [retryCount]);
 
 
@@ -219,14 +259,12 @@ export default function PosReceiptTestPage() {
                const discount = services.reduce((sum, service) => sum + parseFloat(service.discount || '0'), 0);
 
                const formatCurrency = (amount: number) => `GHS ${amount.toFixed(2)}`;
-
                const companyName = companyInfo.name || 'COMPANY NAME';
 
                const splitTextIntoLines = (text: string, maxCharsPerLine: number = 20): string[] => {
                     const words = text.split(' ');
                     const lines: string[] = [];
                     let currentLine = '';
-
                     for (const word of words) {
                          if ((currentLine + ' ' + word).trim().length <= maxCharsPerLine) {
                               currentLine = currentLine ? currentLine + ' ' + word : word;
@@ -240,6 +278,27 @@ export default function PosReceiptTestPage() {
                     return lines;
                };
 
+               // Load company logo
+               let logoImage: string | null = null;
+               if (companyLogoUrl) {
+                    try {
+                         const response = await fetch(companyLogoUrl);
+                         const blob = await response.blob();
+                         const reader = new FileReader();
+                         logoImage = await new Promise<string>((resolve) => {
+                              reader.onload = () => resolve(reader.result as string);
+                              reader.readAsDataURL(blob);
+                         });
+                    } catch (e) {
+                    }
+               }
+
+               // Add company logo if available
+               if (logoImage) {
+                    pdf.addImage(logoImage, 'JPEG', pageWidth / 2 - 7.5, yPosition, 15, 15);
+                    yPosition += 20;
+               }
+
                const companyNameLines = splitTextIntoLines(companyName, 20);
 
                pdf.setFontSize(10);
@@ -249,11 +308,6 @@ export default function PosReceiptTestPage() {
                     pdf.text(line, pageWidth / 2, yPosition, { align: 'center' });
                     yPosition += 5;
                });
-
-               pdf.setFontSize(10);
-               pdf.setFont('times', 'normal');
-               pdf.text('POINT OF SALE RECEIPT', pageWidth / 2, yPosition, { align: 'center' });
-               yPosition += 6;
 
                pdf.setFontSize(7);
                pdf.setFont('times', 'normal');
@@ -271,6 +325,32 @@ export default function PosReceiptTestPage() {
                pdf.text(displayAddress, pageWidth / 2, yPosition, { align: 'center' });
                yPosition += 3;
                pdf.text(displayPhone, pageWidth / 2, yPosition, { align: 'center' });
+               yPosition += 6;
+
+               // Patient Information - Two column format
+               pdf.setFontSize(9);
+               pdf.setFont('times', 'bold');
+               pdf.text('PATIENT INFORMATION', pageWidth / 2, yPosition, { align: 'center' });
+               yPosition += 4;
+               pdf.setFont('times', 'normal');
+
+               if (patientData) {
+                    pdf.text('Patient ID:', 5, yPosition);
+                    pdf.text(patientData.fullpatientid, pageWidth - 5, yPosition, { align: 'right' });
+                    yPosition += 3;
+                    pdf.text('Name:', 5, yPosition);
+                    pdf.text(`${patientData.designation} ${patientData.firstname} ${patientData.lastname}`, pageWidth - 5, yPosition, { align: 'right' });
+                    yPosition += 3;
+                    pdf.text('Phone:', 5, yPosition);
+                    pdf.text(String(patientData.mobile_number), pageWidth - 5, yPosition, { align: 'right' });
+                    yPosition += 3;
+               }
+
+               pdf.text('Receipt #:', 5, yPosition);
+               pdf.text(receiptNumber || `RCP-${billingData?.billingid}-${Date.now()}`, pageWidth - 5, yPosition, { align: 'right' });
+               yPosition += 3;
+               pdf.text('Date:', 5, yPosition);
+               pdf.text(billingData ? new Date(billingData.billedon).toLocaleDateString() : 'N/A', pageWidth - 5, yPosition, { align: 'right' });
                yPosition += 6;
 
                pdf.text('----------------------------------------------------------------------------------------------------', 0, yPosition, { align: 'left' });
@@ -296,9 +376,10 @@ export default function PosReceiptTestPage() {
                pdf.setFont('times', 'normal');
                services.forEach((service) => {
                     const cost = parseFloat(service.totalcost || '0');
-                    const serviceName = service.name.length > 25 ? service.name.substring(0, 22) + '...' : service.name;
+                    const serviceName = (service.test_report_title || service.service_name);
+                    const displayName = serviceName.length > 25 ? serviceName.substring(0, 22) + '...' : serviceName;
 
-                    pdf.text(serviceName, 5, yPosition);
+                    pdf.text(displayName, 5, yPosition);
                     pdf.text(formatCurrency(cost), pageWidth - 5, yPosition, { align: 'right' });
                     yPosition += 4;
                });
@@ -306,7 +387,7 @@ export default function PosReceiptTestPage() {
                pdf.text('----------------------------------------------------------------------------------------------------', 0, yPosition, { align: 'left' });
                yPosition += 3;
 
-               pdf.setFontSize(8);
+               pdf.setFontSize(9);
                pdf.setFont('times', 'bold');
                pdf.text('SUBTOTAL', 5, yPosition);
                pdf.text(formatCurrency(subtotal), pageWidth - 5, yPosition, { align: 'right' });
@@ -323,7 +404,7 @@ export default function PosReceiptTestPage() {
                pdf.text('----------------------------------------------------------------------------------------------------', 0, yPosition, { align: 'left' });
                yPosition += 3;
 
-               pdf.setFontSize(10);
+               pdf.setFontSize(9);
                pdf.text('TOTAL AMOUNT', 5, yPosition);
                pdf.text(formatCurrency(total), pageWidth - 5, yPosition, { align: 'right' });
                yPosition += 6;
@@ -331,7 +412,7 @@ export default function PosReceiptTestPage() {
                pdf.text('----------------------------------------------------------------------------------------------------', 0, yPosition, { align: 'left' });
                yPosition += 3;
 
-               pdf.setFontSize(10);
+               pdf.setFontSize(9);
                pdf.setFont('times', 'bold');
                pdf.text('PAYMENT SUMMARY', pageWidth / 2, yPosition, { align: 'center' });
                yPosition += 4;
@@ -343,7 +424,7 @@ export default function PosReceiptTestPage() {
                pdf.setFont('times', 'normal');
                const paid = parseFloat(billingData.paid || '0');
                const balance = parseFloat(billingData.balance || '0');
-               const outstanding = parseFloat(billingData.outstanding || '0');
+               const outstanding = total - paid;
                const refunded = parseFloat(billingData.totalrefunded || '0');
                pdf.text(`Total Amount:`, 5, yPosition);
                pdf.text(formatCurrency(total), pageWidth - 5, yPosition, { align: 'right' });
@@ -352,8 +433,15 @@ export default function PosReceiptTestPage() {
                pdf.text(formatCurrency(paid), pageWidth - 5, yPosition, { align: 'right' });
                yPosition += 4;
 
+               // Show outstanding amount for partial payments
+               if (paid < total) {
+                    pdf.text(`Outstanding:`, 5, yPosition);
+                    pdf.text(formatCurrency(outstanding), pageWidth - 5, yPosition, { align: 'right' });
+                    yPosition += 4;
+               }
+
                pdf.setFont('times', 'bold');
-               pdf.text(`Payment Status: ${parseFloat(billingData.balance || '0') <= 0 ? 'FULLY PAID' : 'PARTIAL PAYMENT'}`, 5, yPosition);
+               pdf.text(`Payment Status: ${paid >= total ? 'FULLY PAID' : 'PARTIAL PAYMENT'}`, 5, yPosition);
                yPosition += 4;
                pdf.text('Payment Method: CASH / POS', 5, yPosition);
                yPosition += 6;
@@ -391,11 +479,60 @@ export default function PosReceiptTestPage() {
                     pdf.save(`pos_receipt_${billingData.billingid}.pdf`);
                }
 
+               // Update receipt as printed
+               try {
+                    if (receiptId) {
+                         const response = await customPost(`receipt/update/printed?employeeid=${user?.employeeid}`, 'POST', { receiptId, employeeid: user?.employeeid, printed_at: new Date().toISOString() });
+                         const { status, message } = response;
+                         if (status === 'success') {
+                              toast.success(message || 'Receipt print status updated successfully');
+                         } else {
+                              toast.error(`Failed to update receipt print status: ${message}`);
+                         }
+                    }
+               } catch (updateError) {
+                    console.error('Failed to update receipt print status:', updateError);
+               }
+
           } catch (error) {
                console.error('POS receipt generation failed:', error);
                alert('Failed to generate POS receipt');
           }
      };
+
+     if (loading) {
+          return (
+               <div className="container-fluid p-4">
+                    <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '400px' }}>
+                         <div className="text-center">
+                              <div className="spinner-border text-primary mb-3" role="status">
+                                   <span className="visually-hidden">Loading...</span>
+                              </div>
+                              <h5>Loading receipt data...</h5>
+                              <p className="text-muted">Please wait while we fetch your billing information.</p>
+                         </div>
+                    </div>
+               </div>
+          );
+     }
+
+     if (error) {
+          return (
+               <div className="container-fluid p-4">
+                    <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '400px' }}>
+                         <div className="text-center">
+                              <div className="alert alert-danger" role="alert">
+                                   <h5 className="alert-heading">Error Loading Data</h5>
+                                   <p>{error}</p>
+                                   <button className="btn btn-primary" onClick={handleRetry}>
+                                        Retry
+                                   </button>
+                              </div>
+                         </div>
+                    </div>
+               </div>
+          );
+     }
 
      return (
           <>
@@ -469,9 +606,9 @@ export default function PosReceiptTestPage() {
                                    <div className="p-3 border-bottom">
                                         <div className="row">
                                              <div className="col-6">
-                                                  <p className="mb-0"><strong>Invoice #:</strong> {billingData?.billingid || 'Loading...'}</p>
-                                                  <p className="mb-0"><strong>Date:</strong> {billingData ? new Date(billingData.billedon).toLocaleDateString() : 'Loading...'}</p>
-                                                  <p className="mb-1"><strong>Patient ID:</strong> {billingData?.patientid}</p>
+                                                  <p className="mb-0"><strong>Patient ID:</strong> {patientData?.fullpatientid || billingData?.patientid}</p>
+                                                  <p className="mb-0"><strong>Name:</strong> {patientData ? `${patientData.designation} ${patientData.firstname} ${patientData.lastname}` : 'Loading...'}</p>
+                                                  <p className="mb-0"><strong>Receipt #:</strong> {receiptNumber || `RCP-${billingData?.billingid}-${Date.now()}`}</p>
                                              </div>
                                              <div className="col-6 text-end">
                                                   <p className="mb-0"><strong>Generated:</strong> {new Date().toLocaleDateString()}</p>
@@ -488,10 +625,12 @@ export default function PosReceiptTestPage() {
                                                   <thead className="table-active">
                                                        <tr>
                                                             <th style={{ width: '5%' }}>#</th>
-                                                            <th style={{ width: '50%' }}>Service Description</th>
-                                                            <th style={{ width: '15%' }} className="text-center">Qty</th>
-                                                            <th style={{ width: '15%' }} className="text-end">Unit Price</th>
-                                                            <th style={{ width: '15%' }} className="text-end">Total</th>
+                                                            <th style={{ width: '30%' }}>Service Description</th>
+                                                            <th style={{ width: '10%' }} className="text-center">Qty</th>
+                                                            <th style={{ width: '12%' }} className="text-start">Payable</th>
+                                                            <th style={{ width: '12%' }} className="text-start">Paid</th>
+                                                            <th style={{ width: '12%' }} className="text-start">Discount</th>
+                                                            <th style={{ width: '12%' }} className="text-start">Outstanding</th>
                                                        </tr>
                                                   </thead>
                                                   <tbody>
@@ -500,38 +639,28 @@ export default function PosReceiptTestPage() {
                                                                  <td>{index + 1}</td>
                                                                  <td>
                                                                       <div>
-                                                                           <strong>{service.name}</strong>
-                                                                           {service.medicalCode && (
-                                                                                <div className="small text-muted">Code: {service.medicalCode}</div>
-                                                                           )}
+                                                                           <strong>{service.test_report_title || service.service_name}</strong>
                                                                       </div>
                                                                  </td>
                                                                  <td className="text-center">1</td>
-                                                                 <td className="text-end">{currencyFormatter.format(parseFloat(service.totalcost || '0'))}</td>
-                                                                 <td className="text-end">{currencyFormatter.format(parseFloat(service.totalcost || '0'))}</td>
+                                                                 <td className="text-start">{currencyFormatter.format(parseFloat(service.totalpayable || '0'))}</td>
+                                                                 <td className="text-start">{currencyFormatter.format(parseFloat(service.paidamount || '0'))}</td>
+                                                                 <td className="text-start">{currencyFormatter.format(parseFloat(service.discount || '0'))}</td>
+                                                                 <td className="text-start">{currencyFormatter.format(parseFloat(service.outstanding || '0'))}</td>
                                                             </tr>
                                                        ))}
                                                   </tbody>
                                                   <tfoot>
                                                        <tr className="table-active">
-                                                            <td colSpan={4} className="text-end"><strong>Subtotal:</strong></td>
-                                                            <td className="text-end"><strong>{currencyFormatter.format(services.reduce((sum, service) => sum + parseFloat(service.totalcost || '0'), 0))}</strong></td>
+                                                            <td colSpan={3} className="text-end"><strong>Totals:</strong></td>
+                                                            <td className="text-start"><strong>{currencyFormatter.format(services.reduce((sum, service) => sum + parseFloat(service.totalpayable || '0'), 0))}</strong></td>
+                                                            <td className="text-start"><strong>{currencyFormatter.format(services.reduce((sum, service) => sum + parseFloat(service.paidamount || '0'), 0))}</strong></td>
+                                                            <td className="text-start"><strong>{currencyFormatter.format(services.reduce((sum, service) => sum + parseFloat(service.discount || '0'), 0))}</strong></td>
+                                                            <td className="text-start"><strong>{currencyFormatter.format(services.reduce((sum, service) => sum + parseFloat(service.outstanding || '0'), 0))}</strong></td>
                                                        </tr>
-                                                       {services.some(service => parseFloat(service.taxValue || '0') > 0) && (
-                                                            <tr className="table-active">
-                                                                 <td colSpan={4} className="text-end"><strong>Tax:</strong></td>
-                                                                 <td className="text-end"><strong>{currencyFormatter.format(services.reduce((sum, service) => sum + parseFloat(service.taxValue || '0'), 0))}</strong></td>
-                                                            </tr>
-                                                       )}
-                                                       {services.some(service => parseFloat(service.discount || '0') > 0) && (
-                                                            <tr className="table-active">
-                                                                 <td colSpan={4} className="text-end"><strong>Discount:</strong></td>
-                                                                 <td className="text-end"><strong>-{currencyFormatter.format(services.reduce((sum, service) => sum + parseFloat(service.discount || '0'), 0))}</strong></td>
-                                                            </tr>
-                                                       )}
                                                        <tr>
-                                                            <td colSpan={4} className="text-end"><strong>TOTAL AMOUNT:</strong></td>
-                                                            <td className="text-end"><strong className="fs-5">{currencyFormatter.format(parseFloat(billingData?.totalcost || '0'))}</strong></td>
+                                                            <td colSpan={3} className="text-end"><strong>TOTAL AMOUNT:</strong></td>
+                                                            <td colSpan={4} className="text-start"><strong className="fs-5">{currencyFormatter.format(parseFloat(billingData?.totalcost || '0'))}</strong></td>
                                                        </tr>
                                                   </tfoot>
                                              </table>
@@ -552,18 +681,25 @@ export default function PosReceiptTestPage() {
                                                             <p className="mb-1"><strong>Amount Paid:</strong> {currencyFormatter.format(parseFloat(billingData.paid || '0'))}</p>
                                                        </div>
                                                        <div className="col-6">
-                                                            <p className="mb-1">
-                                                                 <strong>Outstanding:</strong>
-                                                                 <span className={parseFloat(billingData.balance || '0') > 0 ? 'text-danger' : 'text-success'}>
-                                                                      {currencyFormatter.format(parseFloat(billingData.balance || '0'))}
-                                                                 </span>
-                                                            </p>
+                                                            <p className="mb-1"><strong>Total Amount:</strong> {currencyFormatter.format(parseFloat(billingData.totalcost || '0'))}</p>
                                                        </div>
                                                   </div>
+                                                  {parseFloat(billingData.paid || '0') < parseFloat(billingData.totalcost || '0') && (
+                                                       <div className="row mt-2">
+                                                            <div className="col-12">
+                                                                 <p className="mb-1">
+                                                                      <strong>Outstanding:</strong>
+                                                                      <span className="text-danger ms-2">
+                                                                           {currencyFormatter.format(parseFloat(billingData.totalcost || '0') - parseFloat(billingData.paid || '0'))}
+                                                                      </span>
+                                                                 </p>
+                                                            </div>
+                                                       </div>
+                                                  )}
                                                   <div className="mt-2">
                                                        <strong>Payment Status:</strong>
-                                                       <span className={`badge ms-2 ${parseFloat(billingData.balance || '0') <= 0 ? 'bg-success' : 'bg-warning'}`}>
-                                                            {parseFloat(billingData.balance || '0') <= 0 ? 'FULLY PAID' : 'PARTIAL PAYMENT'}
+                                                       <span className={`badge ms-2 ${parseFloat(billingData.paid || '0') >= parseFloat(billingData.totalcost || '0') ? 'bg-success' : 'bg-warning'}`}>
+                                                            {parseFloat(billingData.paid || '0') >= parseFloat(billingData.totalcost || '0') ? 'FULLY PAID' : 'PARTIAL PAYMENT'}
                                                        </span>
                                                   </div>
                                              </>

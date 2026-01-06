@@ -19,15 +19,14 @@ import BillingPagePatientInformation from "../../../../../components/Billing/Bil
 import { RiUserFill } from "@remixicon/react";
 
 
-const today = dayjs().format("YYYY-MM-DD");
 const DEFAULTVALUES = {
 	billingid: "",
 	patientid: "",
 	fullname: "",
 	page: 1,
 	count: 10,
-	from: today,
-	to: today,
+	from: null,
+	to: null,
 };
 
 const PatientSpecificArchivesCases = () => {
@@ -51,7 +50,7 @@ const PatientSpecificArchivesCases = () => {
 
 	const getRange = (value) => {
 		const [start, end] = value;
-		setQuery({ ...query, from: start || today, to: end || today });
+		setQuery({ ...query, from: start || null, to: end || null });
 	};
 
 	const getDataArchives = async () => {
@@ -106,11 +105,11 @@ const PatientSpecificArchivesCases = () => {
 
 
 	const clearFilters = () => {
-		setQuery({ ...DEFAULTVALUES, patientid: patientidParam, from: today, to: today, count: 10, page: 1 });
+		setQuery({ ...DEFAULTVALUES, patientid: patientidParam, from: null, to: null, count: 10, page: 1 });
 	};
 
 	const columns = [
-{ Header: "Billed On", accessor: "billing_date", Cell: ({ value }) => value ? dayjs(value).format("DD MMM YYYY, hh:mm A") : "" },
+		{ Header: "Billed On", accessor: "billing_date", Cell: ({ value }) => value ? dayjs(value).format("DD MMM YYYY, hh:mm A") : "" },
 		{
 			Header: "Patient Info",
 			accessor: "patientinfo",
@@ -184,14 +183,14 @@ const PatientSpecificArchivesCases = () => {
 		<div>
 			<div className="bg-secondary-subtle rounded-3 shadow-sm p-3 mb-4">
 				<div className="d-flex align-items-center">
-					<RiUserFill className="me-2 text-capitalize" /> 
+					<RiUserFill className="me-2 text-capitalize" />
 					<span className="ms-2 text-capitalize ">
 						{fullname}
 					</span>
 				</div>
 			</div>
-			<section className="grid-5">
-				<div className="mx-2">
+			<div className="row g-3 align-items-end">
+				<div className="col">
 					<input
 						placeholder="Billing Id"
 						className="custom-input"
@@ -200,25 +199,16 @@ const PatientSpecificArchivesCases = () => {
 						onChange={(e) => handleComments(e, query, "billingid", setQuery)}
 					/>
 				</div>
-				<div className="mx-2">
-					<input
-						placeholder="Fullname"
-						className="custom-input"
-						value={query.fullname}
-						id="fullname"
-						onChange={(e) => handleComments(e, query, "fullname", setQuery)}
-					/>
-				</div>
-				<div>
+				<div className="col">
 					<DatePickerRange
 						getRange={getRange}
 						start={query.from}
 						end={query.to}
 					/>
 				</div>
-				<div>
+				<div className="col-auto">
 					<button
-						className="btn btn-success "
+						className="btn btn-success"
 						onClick={(e) => {
 							submitData();
 						}}
@@ -229,12 +219,12 @@ const PatientSpecificArchivesCases = () => {
 						onClick={(ev) => {
 							clearFilters();
 						}}
-						className="btn mx-2 btn-secondary "
+						className="btn mx-2 btn-secondary"
 					>
 						Clear Filter
 					</button>
 				</div>
-			</section>
+			</div>
 			<h5 className="mx-1 text-capitalize">Patient Specific Archives Cases</h5>
 			<div>
 				<PrimeTable

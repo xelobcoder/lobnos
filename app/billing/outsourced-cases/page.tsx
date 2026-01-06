@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { currencyFormatter, customFetch, customPost } from "../../../components/Auth/customFetch";
 import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
 import { useApplication } from "../../../components/Auth/useApplicationContext";
+import { toast } from "react-toastify";
 interface Column {
      Header: string;
      accessor?: keyof OutsourcedCase;
@@ -126,25 +127,55 @@ export default function OutsourcedCasesPage() {
                     outsourcedid: caseItem.outsourceid
                });
 
-               if (response) {
-                    // Update the local data - you might want to update a different field or status
+               if (response && response?.status?.invoiceId) {
+
                     setData(prevData =>
                          prevData.map(item =>
                               item.id === caseItem.id
-                                   ? { ...item, status: 2 } // Mark as expense (using status 2)
+                                   ? { ...item, status: 2 }
                                    : item
                          )
                     );
                }
+
+               if (response?.statusCode === 500 && response?.message) {
+                    toast.error(response.message);
+                    return;
+               }
+
+               toast.success(response?.status?.message || 'Case marked as expense successfully');
           } catch (err) {
-               console.error('Error marking case as expense:', err);
-               setError('Failed to mark case as expense');
+
           } finally {
                setExpenseIds(prev => {
                     const newSet = new Set(prev);
                     newSet.delete(caseItem.id);
                     return newSet;
                });
+          }
+     };
+
+
+     const handleserverProcessing = async (pagination: { page: number, count: number, sortby: string, sortdirection: string }, filters: { [key: string]: string }) => {
+          try {
+               setLoading(true);
+               setError(null);
+
+               const response = await customFetch('outsourced/cases?page=' + pagination.page + '&count=' + pagination.count + '&sortby=' + pagination.sortby + '&sortdirection=' + pagination.sortdirection);
+               if (response && Array.isArray(response)) {
+                    setData(response);
+                    return { result: response, error: false }
+               } else {
+                    setData([]);
+                    setError("Failed to fetch outsourced cases or data is in an unexpected format.");
+                    return { result: [], error: false }
+               }
+          }
+          catch (err) {
+               return { result: [], error: true }
+          }
+          finally {
+               setLoading(false);
           }
      };
 
@@ -281,7 +312,7 @@ export default function OutsourcedCasesPage() {
                     column={columns}
                     data={data}
                     filtering={true}
-                    handleSeverSideProcessing={() => { }}
+                    handleSeverSideProcessing={handleserverProcessing}
                     serverSideFiltering={true}
                />
 

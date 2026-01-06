@@ -16,7 +16,7 @@
     height: 100vh;
     max-height: 100vh;
     background-color: var(--theme-body-bg);
-    font-family: var(--theme-font-family, 'Inter', sans-serif);
+    font-family: var(--theme-font-family, var(--font-inter));
     overflow: hidden;
 }
 

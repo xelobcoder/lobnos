@@ -43,7 +43,6 @@ const MDSLancetTemplate: React.FC = () => {
 
     const url = `result/printout/ascension/getResult?csvid=${csvid}&&employeeid=${employeeid}&&testid=${testid}&&isScan=${isScan}&&testname=${test}&tenantId=3&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&target=${target}&password=&&isBrowserPrintout=1`;
 
-    console.log("url for fetching result:", url, employeeid);
     useEffect(() => {
         if (employeeid && ascensionid && billingid) {
             setLoader(true);
@@ -325,16 +324,20 @@ const MDSLancetTemplate: React.FC = () => {
                                     </>)}
                                 </section>
                                 <section>
-                                    {!isScan && resultSettings.useIndividualValidations && !resultSettings.useGeneraralValidation && <UseResultEntryScientist
-                                        lastupdatedon={resultdata?.lastupdatedon}
-                                        validators={resultdata?.validators}
-                                        resultentry={resultdata?.resultentry}
-                                        enteredOn={resultdata?.enteredOn}
-                                        ascensionid={ascensionid}
-                                        billingid={resultdata?.billingid}
-                                        resultsettings={resultSettings}
-                                        patientid={resultdata?.patientInformation?.patientid}
-                                    />}
+                                    {!isScan && resultSettings.useIndividualValidations && !resultSettings.useGeneraralValidation &&
+                                        <div style={{ pageBreakInside: 'avoid' }}>
+                                            <UseResultEntryScientist
+                                                lastupdatedon={resultdata?.lastupdatedon}
+                                                validators={resultdata?.validators}
+                                                resultentry={resultdata?.resultentry}
+                                                enteredOn={resultdata?.enteredOn}
+                                                ascensionid={ascensionid}
+                                                billingid={resultdata?.billingid}
+                                                resultsettings={resultSettings}
+                                                patientid={resultdata?.patientInformation?.patientid}
+                                                useIndividualValidation={resultSettings.useIndividualValidations}
+                                            />
+                                        </div>}
                                     {!isScan && resultSettings.showMethod && resultdata.testInfo && resultdata.testInfo.method && (
                                         <div className='d-flex '>
                                             <div className='fw-bold'>Method: </div>
@@ -347,9 +350,15 @@ const MDSLancetTemplate: React.FC = () => {
                                             <p className='mx-1'>{resultdata.testInfo.instrumentation}</p>
                                         </div>
                                     )}
-                                    {resultdata.generalValidation && (
+                                    {resultSettings?.useGeneraralValidation && resultdata.generalValidation && (
                                         <div className="d-flex" style={{ justifyContent: 'center', marginTop: 8 }}>
                                             <div className="text-uppercase">Verified By:</div>
+                                            <div className="mx-2">{resultdata.generalValidation.username}</div>
+                                        </div>
+                                    )}
+                                    {(resultSettings?.useGeneraralValidation == false && resultdata.generalValidation) && (
+                                        <div className="d-flex" style={{ justifyContent: 'center', marginTop: 8 }}>
+                                            <div className="text-uppercase">Printed By:</div>
                                             <div className="mx-2">{resultdata.generalValidation.username}</div>
                                         </div>
                                     )}

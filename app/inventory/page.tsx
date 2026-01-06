@@ -1,17 +1,11 @@
 'use client';
 
 import React from 'react';
-import { RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiAlertLine, RiCheckLine, RiCloseLine, RiStoreLine, RiBox3Line, RiPriceTagLine, RiBarChartLine, RiShoppingCartLine, RiFileListLine, RiArrowRightLine, RiTruckLine, RiRecycleLine, RiMoneyDollarCircleLine } from '@remixicon/react';
+import { RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiAlertLine, RiCloseLine, RiStoreLine, RiBox3Line, RiPriceTagLine, RiBarChartLine, RiShoppingCartLine, RiFileListLine, RiArrowRightLine, RiTruckLine, RiRecycleLine, RiMoneyDollarCircleLine } from '@remixicon/react';
 import Link from 'next/link';
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
 const COLOR_BORDER = 'var(--bs-border-color)';
-
-const currencyFormatter = new Intl.NumberFormat('en-GH', {
-     style: 'currency',
-     currency: 'GHS',
-     minimumFractionDigits: 2,
-});
 
 interface QuickAccessCard {
      title: string;
@@ -19,7 +13,6 @@ interface QuickAccessCard {
      link: string;
      icon: React.ReactNode;
      color: string;
-     stats?: string;
 }
 
 interface InventoryModule {
@@ -37,32 +30,28 @@ const quickAccessCards: QuickAccessCard[] = [
           description: "Manage products and stock levels",
           link: "/inventory/items",
           icon: <RiBox3Line size={32} />,
-          color: "#2563eb",
-          stats: "500+ items"
+          color: "#2563eb"
      },
      {
           title: "Purchase Orders",
           description: "Create and track supplier orders",
           link: "/inventory/orders",
           icon: <RiShoppingCartLine size={32} />,
-          color: "#16a34a",
-          stats: "25 active"
+          color: "#16a34a"
      },
      {
           title: "Suppliers",
           description: "Manage supplier information",
           link: "/inventory/suppliers",
           icon: <RiTruckLine size={32} />,
-          color: "#ea580c",
-          stats: "15 vendors"
+          color: "#ea580c"
      },
      {
           title: "Stock Templates",
           description: "Create reusable item templates",
           link: "/inventory/templates",
           icon: <RiFileListLine size={32} />,
-          color: "#8b5cf6",
-          stats: "8 templates"
+          color: "#8b5cf6"
      }
 ];
 
@@ -155,103 +144,6 @@ export default function InventoryPage() {
 
                {/* Overview Content */}
                <div>
-                    {/* Key Statistics */}
-                    <div className="row g-3 mb-4">
-                         <div className="col-md-3">
-                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                   <div className="d-flex align-items-center mb-2">
-                                        <RiBox3Line size={20} className="me-2 text-primary" />
-                                        <span className="fw-medium text-muted small">Total Items</span>
-                                   </div>
-                                   <div className="fs-4 fw-bold text-primary">500+</div>
-                                   <div className="small text-muted">Active inventory items</div>
-                              </div>
-                         </div>
-                         <div className="col-md-3">
-                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                   <div className="d-flex align-items-center mb-2">
-                                        <RiMoneyDollarCircleLine size={20} className="me-2 text-success" />
-                                        <span className="fw-medium text-muted small">Total Value</span>
-                                   </div>
-                                   <div className="fs-4 fw-bold text-success">{currencyFormatter.format(125000)}</div>
-                                   <div className="small text-muted">Current stock value</div>
-                              </div>
-                         </div>
-                         <div className="col-md-3">
-                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                   <div className="d-flex align-items-center mb-2">
-                                        <RiAlertLine size={20} className="me-2 text-warning" />
-                                        <span className="fw-medium text-muted small">Low Stock Items</span>
-                                   </div>
-                                   <div className="fs-4 fw-bold text-warning">23</div>
-                                   <div className="small text-muted">Need reordering</div>
-                              </div>
-                         </div>
-                         <div className="col-md-3">
-                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                   <div className="d-flex align-items-center mb-2">
-                                        <RiShoppingCartLine size={20} className="me-2 text-info" />
-                                        <span className="fw-medium text-muted small">Active Orders</span>
-                                   </div>
-                                   <div className="fs-4 fw-bold text-info">15</div>
-                                   <div className="small text-muted">Pending delivery</div>
-                              </div>
-                         </div>
-                    </div>
-
-                    {/* System Health Overview */}
-                    <div className="row g-3 mb-4">
-                         <div className="col-md-6">
-                              <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                   <h6 className="fw-bold mb-3 d-flex align-items-center">
-                                        <RiCheckLine size={20} className="me-2 text-success" />
-                                        System Status
-                                   </h6>
-                                   <div className="d-flex justify-content-between align-items-center mb-2">
-                                        <span className="small">Inventory Accuracy</span>
-                                        <span className="badge bg-success">98.5%</span>
-                                   </div>
-                                   <div className="d-flex justify-content-between align-items-center mb-2">
-                                        <span className="small">Stock Alerts</span>
-                                        <span className="badge bg-warning">23 items</span>
-                                   </div>
-                                   <div className="d-flex justify-content-between align-items-center mb-2">
-                                        <span className="small">Expired Items</span>
-                                        <span className="badge bg-danger">2 items</span>
-                                   </div>
-                                   <div className="d-flex justify-content-between align-items-center">
-                                        <span className="small">Data Sync</span>
-                                        <span className="badge bg-success">Up to date</span>
-                                   </div>
-                              </div>
-                         </div>
-                         <div className="col-md-6">
-                              <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                   <h6 className="fw-bold mb-3 d-flex align-items-center">
-                                        <RiBarChartLine size={20} className="me-2 text-primary" />
-                                        Recent Activity
-                                   </h6>
-                                   <div className="small">
-                                        <div className="d-flex justify-content-between py-1">
-                                             <span>New order received</span>
-                                             <span className="text-muted">2 hours ago</span>
-                                        </div>
-                                        <div className="d-flex justify-content-between py-1">
-                                             <span>Stock level updated</span>
-                                             <span className="text-muted">4 hours ago</span>
-                                        </div>
-                                        <div className="d-flex justify-content-between py-1">
-                                             <span>Supplier payment processed</span>
-                                             <span className="text-muted">1 day ago</span>
-                                        </div>
-                                        <div className="d-flex justify-content-between py-1">
-                                             <span>Low stock alert triggered</span>
-                                             <span className="text-muted">2 days ago</span>
-                                        </div>
-                                   </div>
-                              </div>
-                         </div>
-                    </div>
 
                     {/* Quick Access Cards */}
                     <div className="mb-4">
@@ -283,11 +175,6 @@ export default function InventoryPage() {
                                                   </div>
                                                   <h6 className="fw-bold mb-2 text-body-emphasis">{card.title}</h6>
                                                   <p className="small text-muted mb-2">{card.description}</p>
-                                                  {card.stats && (
-                                                       <div className="small fw-medium" style={{ color: card.color }}>
-                                                            {card.stats}
-                                                       </div>
-                                                  )}
                                                   <div className="d-flex align-items-center small mt-2" style={{ color: card.color }}>
                                                        <span className="me-1">Access</span>
                                                        <RiArrowRightLine size={16} />

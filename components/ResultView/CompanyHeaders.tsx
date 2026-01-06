@@ -10,6 +10,7 @@ export interface CompanyHeadersProps {
 		name: string;
 		alternativenumber?: string;
 		motto?: string;
+		website?: string;
 		additionalInfo?: string;
 	} | null;
 	logo: string,

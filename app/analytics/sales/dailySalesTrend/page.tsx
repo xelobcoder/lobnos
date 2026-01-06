@@ -399,6 +399,9 @@ export default function DailySalesTrend() {
                                 </span>
                                 <input id="endDateDST" type="date" className="form-control shadow-none border-start-0" value={endDate} onChange={handleEndDateChange} min={startDate} aria-label="End Date" style={{ fontSize: '0.875rem', borderColor: COLOR_BORDER, paddingLeft: '0.3rem' }} />
                             </div>
+                            <button onClick={() => fetchData(startDate, endDate, branchid, employeeid)} className="btn btn-sm btn-primary d-flex align-items-center" type="button" aria-label="Load data" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem', whiteSpace: 'nowrap' }}>
+                                <RiRefreshLine size={16} className="me-1" /> Load Data
+                            </button>
                             <button onClick={handleResetFilters} className="btn btn-sm btn-outline-secondary d-flex align-items-center" type="button" aria-label="Reset date filters" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
                                 <RiRefreshLine size={16} className="me-1" /> Reset
                             </button>

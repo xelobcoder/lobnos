@@ -10,7 +10,6 @@ const nextConfig = {
 		HASH_SECRET: "leonides",
 		JWT_SECRET_KEY: "leonides-prime-server",
 		TENANTID: "3",
-		HOST: "192.168.0.45",
 	},
 	images: {
 		domains: ["localhost", "192.168.0.45", "192.168.0.45:2399"],

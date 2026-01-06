@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
 import { Container, Row, Col, Form, ListGroup, ListGroupItem, Button, Modal } from "react-bootstrap";
 import PreviewPatientInformation from "../../../../components/petientsComponent/PreviewPatientInformation";
 import { customFetch, customPost } from "../../../../components/Auth/customFetch";
@@ -11,7 +10,6 @@ import PreviousConsulation from "../../../../components/doctors/PreviousConsulat
 import { useSearchParams, useRouter } from "next/navigation";
 import VitalSignCustomerListInformation from '../../../../components/customer/vitalSignCustomerList'
 import styles from './ConsultationPanel.module.css'
-import { RiBarChart2Fill } from "@remixicon/react";
 import { plsDecryption } from "../../../../lib/encryption";
 type RecordType = 'Old Record' | 'In-Process (Today)' | 'IPD Review' | 'OPD New Cases';
 

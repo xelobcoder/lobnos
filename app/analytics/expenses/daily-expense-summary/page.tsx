@@ -34,6 +34,10 @@ export default function DailyExpenseSummary() {
         return `${currentYear}-12-31`;
     });
     const [chartType, setChartType] = useState<"bar" | "line" | "area">("bar");
+    const [showModal, setShowModal] = useState(false);
+    const [selectedEntry, setSelectedEntry] = useState<any>(null);
+    const [breakdownData, setBreakdownData] = useState<any[]>([]);
+    const [breakdownLoading, setBreakdownLoading] = useState(false);
 
     const { branchid, user } = useApplication();
 
@@ -41,6 +45,23 @@ export default function DailyExpenseSummary() {
         const currentYear = new Date().getFullYear();
         setStartDate(`${currentYear}-01-01`);
         setEndDate(`${currentYear}-12-31`);
+    };
+
+    const fetchBreakdown = async (date: string) => {
+        setBreakdownLoading(true);
+        try {
+            const endpoint = `expenses/analytics/breakdown-admin-level?startDate=${date}&endDate=${date}`;
+            const response = await customFetch(endpoint);
+            if (response?.status === 'success' && response?.statusCode === 200) {
+                setBreakdownData(response.data || response.result || []);
+            } else {
+                setBreakdownData([]);
+            }
+        } catch (error) {
+            setBreakdownData([]);
+        } finally {
+            setBreakdownLoading(false);
+        }
     };
 
     const fetchData = async () => {
@@ -232,6 +253,9 @@ export default function DailyExpenseSummary() {
                                 </span>
                                 <input id="endDateDES" type="date" className="form-control shadow-none border-start-0" value={endDate} onChange={e => setEndDate(e.target.value)} aria-label="End Date" style={{ fontSize: '0.875rem', borderColor: COLOR_BORDER, paddingLeft: '0.3rem' }} />
                             </div>
+                            <button onClick={fetchData} className="btn btn-sm btn-primary d-flex align-items-center" type="button" aria-label="Load data" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem', whiteSpace: 'nowrap' }}>
+                                <RiRefreshLine size={16} className="me-1" /> Load Data
+                            </button>
                             <button onClick={handleResetFilters} className="btn btn-sm btn-outline-secondary d-flex align-items-center" type="button" aria-label="Reset date filters" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
                                 <RiRefreshLine size={16} className="me-1" /> Reset
                             </button>
@@ -287,6 +311,7 @@ export default function DailyExpenseSummary() {
                                     <th scope="col" className="py-2 text-start">Expense Count</th>
                                     <th scope="col" className="py-2 text-start">Employees</th>
                                     <th scope="col" className="py-2 text-start">Merchants</th>
+                                    <th scope="col" className="py-2 text-start">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -297,6 +322,11 @@ export default function DailyExpenseSummary() {
                                         <td className="py-2 text-start">{entry.expense_count}</td>
                                         <td className="py-2 text-start">{entry.unique_employees}</td>
                                         <td className="py-2 text-start">{entry.unique_merchants}</td>
+                                        <td className="py-2 text-start">
+                                            <button className="btn btn-sm btn-outline-secondary" onClick={() => { setSelectedEntry(entry); setShowModal(true); fetchBreakdown(entry.expense_date); }}>
+                                                Break Down
+                                            </button>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -307,9 +337,104 @@ export default function DailyExpenseSummary() {
                                     <td className="py-2 text-start">{totalExpensesSum}</td>
                                     <td className="py-2 text-start">{chartData.reduce((sum, entry) => sum + entry.unique_employees, 0)}</td>
                                     <td className="py-2 text-start">{chartData.reduce((sum, entry) => sum + entry.unique_merchants, 0)}</td>
+                                    <td className="py-2 text-start"></td>
                                 </tr>
                             </tfoot>
                         </table>
+                    </div>
+                </div>
+            )}
+            {showModal && (
+                <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                    <div className="modal-dialog modal-fullscreen">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">Expense Breakdown for {selectedEntry?.dateLabel}</h5>
+                                <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
+                            </div>
+                            <div className="modal-body">
+                                {breakdownLoading ? (
+                                    <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '200px' }}>
+                                        <div className="animate-spin" style={{ fontSize: '2rem', color: 'var(--bs-primary)' }}></div>
+                                        <span className="ms-2">Loading breakdown...</span>
+                                    </div>
+                                ) : breakdownData && breakdownData.length > 0 ? (
+                                    <div className="table-responsive">
+                                        <table className="table table-sm table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Expense ID</th>
+                                                    <th>Expense Description</th>
+                                                    <th>Amount</th>
+                                                    <th>Category</th>
+                                                    <th>Requested By</th>
+                                                    <th>Merchant</th>
+                                                    <th>Branch</th>
+                                                    <th>Expense Date</th>
+                                                    <th>Approval Status</th>
+                                                    <th>Approved Date</th>
+                                                    <th>Approved By</th>
+                                                    <th>Payment Status</th>
+                                                    <th>Payment Method</th>
+                                                    <th>Payment Date</th>
+                                                    <th>Payment Amount</th>
+                                                    <th>Payment Created By</th>
+                                                    <th>Invoice Status</th>
+                                                    <th>Invoice Number</th>
+                                                    <th>Invoice Date</th>
+                                                    <th>Invoice Total</th>
+                                                    <th>Invoice Tax</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {Array.isArray(breakdownData) && breakdownData.map((expense: any, index: number) => (
+                                                    <tr key={index}>
+                                                        <td>{expense.expense_id}</td>
+                                                        <td>{expense.expense_description}</td>
+                                                        <td>{currencyFormatter.format(expense.expense_amount)}</td>
+                                                        <td>{expense.category_name || `Category ${expense.expense_category}`}</td>
+                                                        <td>{expense.employee_name}</td>
+                                                        <td>{expense.merchant_name}</td>
+                                                        <td>{expense.branch_name}</td>
+                                                        <td>{new Date(expense.expense_date).toLocaleDateString()}</td>
+                                                        <td>
+                                                            <span className={`badge ${expense.is_approved === 1 ? 'bg-success' : expense.is_approved === 2 ? 'bg-warning' : 'bg-secondary'}`}>
+                                                                {expense.is_approved === 1 ? 'Approved' : expense.is_approved === 2 ? 'Pending' : 'Rejected'}
+                                                            </span>
+                                                        </td>
+                                                        <td>{expense.approved_date ? new Date(expense.approved_date).toLocaleDateString() : 'N/A'}</td>
+                                                        <td>{expense.approved_by_username || 'N/A'}</td>
+                                                        <td>
+                                                            <span className={`badge ${expense.payment_status === 'Paid' ? 'bg-success' : expense.payment_status === 'Pending' ? 'bg-warning' : 'bg-secondary'}`}>
+                                                                {expense.payment_status || 'N/A'}
+                                                            </span>
+                                                        </td>
+                                                        <td>{expense.payment_method || 'N/A'}</td>
+                                                        <td>{expense.payment_date ? new Date(expense.payment_date).toLocaleDateString() : 'N/A'}</td>
+                                                        <td>{expense.payment_amount ? currencyFormatter.format(expense.payment_amount) : 'N/A'}</td>
+                                                        <td>{expense.payment_created_by_username || 'N/A'}</td>
+                                                        <td>
+                                                            <span className={`badge ${expense.invoice_status === 'Paid' ? 'bg-success' : expense.invoice_status === 'Pending' ? 'bg-warning' : 'bg-secondary'}`}>
+                                                                {expense.invoice_status || 'N/A'}
+                                                            </span>
+                                                        </td>
+                                                        <td>{expense.invoice_number || 'N/A'}</td>
+                                                        <td>{expense.invoice_date ? new Date(expense.invoice_date).toLocaleDateString() : 'N/A'}</td>
+                                                        <td>{expense.invoice_total ? currencyFormatter.format(expense.invoice_total) : 'N/A'}</td>
+                                                        <td>{expense.invoice_tax ? currencyFormatter.format(expense.invoice_tax) : 'N/A'}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ) : (
+                                    <p>No breakdown data available for this date.</p>
+                                )}
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Close</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

@@ -36,15 +36,11 @@ export default function PreviousConsulation({ patientid }: { patientid: number }
                               <span>{new Date(item.created_at).toLocaleDateString()}</span>
                               <span>{item.consultationby}</span>
                               <span>
-                                   <Link href={`/doctor/consultation/${patientid}?consultationid=${item.id}`}>
-                                        Edit
+                                   <Link className='btn btn-primary btn-sm' href={`/doctor/consultation/${patientid}?consultationid=${item.id}`}>
+                                        Edit/view
                                    </Link>
                               </span>
-                              <span>
-                                   <Link href={`${process.env.PLS_PDF_GENERATOR}consultation/report/pdf?consultationid=1`}>
-                                        View 
-                                   </Link>
-                              </span>
+                              
                          </li>
                     ))}
                </ul>

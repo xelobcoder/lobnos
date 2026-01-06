@@ -6,6 +6,7 @@ import PrimeTable from '../accessories/Datatables/PrimeTable';
 import { handleServerSideProcessingSampleValidation } from '../serverActions/ActionFiltering';
 import { RiInformationLine, RiCheckboxCircleLine, RiCalendarLine, RiRefreshLine } from '@remixicon/react';
 import { customFetch } from '../Auth/customFetch';
+import dayjs from 'dayjs';
 
 
 
@@ -107,7 +108,7 @@ export default function SampleValidationComponent({ data: initialData, initialSt
 			Header: "Billing Date",
 			accessor: "date",
 			Cell: function ({ value }) {
-				return <div className="text-nowrap">{new Date(value).toLocaleDateString()}</div>;
+				return <div className="text-nowrap">{dayjs(value).format('DD-MM-YYYY hh:mm:ss')}</div>;
 			},
 		},
 		{

@@ -17,19 +17,15 @@ export default function SMSLayout({
 }) {
 
 	return (
-		<html lang="en">
-			<body >
-				<Suspense>
-					<ApplicationProvider >
-						<MAIN_LAYOUT>
-							<PrimeToast />
-							<PrimeLayout links={CrmLinks}>
-								{children}
-							</PrimeLayout>
-						</MAIN_LAYOUT>
-					</ApplicationProvider>
-				</Suspense>
-			</body>
-		</html>
+		<Suspense>
+			<ApplicationProvider >
+				<MAIN_LAYOUT>
+					<PrimeToast />
+					<PrimeLayout links={CrmLinks}>
+						{children}
+					</PrimeLayout>
+				</MAIN_LAYOUT>
+			</ApplicationProvider>
+		</Suspense>
 	);
 }

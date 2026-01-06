@@ -97,12 +97,17 @@ export const applyThemeToDocument = (theme: Theme) => {
 };
 
 export const availableFonts = [
-     { name: 'Rajdhani', value: "'Rajdhani', sans-serif" },
-     { name: 'Raleway', value: "'Raleway', sans-serif" },
-     { name: 'Barlow', value: "'Barlow', sans-serif" },
-     { name: 'Roboto', value: "'Roboto', sans-serif" },
-     { name: 'Roboto Condensed', value: "'Roboto Condensed', sans-serif" },
-     { name: 'Inter', value: "'Inter', sans-serif" }
+     { name: 'Inter', value: "var(--font-inter)" },
+     { name: 'Roboto', value: "var(--font-roboto)" },
+     { name: 'Barlow', value: "var(--font-barlow)" },
+     { name: 'Rajdhani', value: "var(--font-rajdhani)" },
+     { name: 'Raleway', value: "var(--font-raleway)" },
+     { name: 'Roboto Condensed', value: "var(--font-roboto-condensed)" },
+     { name: 'Poppins', value: "var(--font-poppins)" },
+     { name: 'Montserrat', value: "var(--font-montserrat)" },
+     { name: 'Open Sans', value: "var(--font-open-sans)" },
+     { name: 'Lato', value: "var(--font-lato)" },
+     { name: 'Lexend', value: "var(--font-lexend)" }
 ];
 
 export const availableSidebarStyles = [
@@ -110,10 +115,18 @@ export const availableSidebarStyles = [
 ];
 
 export const availableFontSizes = [
-     { name: 'Small', value: '14px' },
+     { name: 'Extra Small', value: '12px' },
+     { name: 'Small', value: '13px' },
+     { name: 'Medium Small', value: '14px' },
      { name: 'Medium', value: '15px' },
-     { name: 'Large', value: '16px' },
-     { name: 'Extra Large', value: '18px' }
+     { name: 'Medium Large', value: '16px' },
+     { name: 'Large', value: '17px' },
+     { name: 'Extra Large', value: '18px' },
+     { name: 'XX Large', value: '19px' },
+     { name: 'XXX Large', value: '20px' },
+     { name: 'Huge', value: '21px' },
+     { name: 'Extra Huge', value: '22px' },
+     { name: 'Massive', value: '24px' }
 ];
 
 export const availableTableThemes = [
@@ -128,9 +141,9 @@ export const saveFontPreference = (fontValue: string) => {
 
 export const getFontPreference = (): string => {
      if (typeof window !== 'undefined') {
-          return localStorage.getItem('lobnos-font-preference') || "'Raleway', sans-serif";
+          return localStorage.getItem('lobnos-font-preference') || "var(--font-raleway)";
      }
-     return "'Raleway', sans-serif";
+     return "var(--font-raleway)";
 };
 
 export const getFontSizePreference = (): string => {

@@ -15,6 +15,8 @@ import UseResultCommentSinglePreview from "../../../components/ResutlUI/useResul
 import { useApplication } from "../../../components/Auth/useApplicationContext";
 import { trackReportView, trackReportPrint } from "../../../lib/printingTracker";
 import DrugsList from "../../../components/Drugs/DrugsList";
+import UseResultEntryScientist from '../../../components/ResutlUI/UseResultEntryFormat';
+import dayjs from "dayjs";
 
 export default function LabReportPrintingMultiple() {
 	const [loader, setLoader] = useState(false);
@@ -522,7 +524,7 @@ export default function LabReportPrintingMultiple() {
 					</div>
 				) : resultdata && Array.isArray(resultdata.test) ? (
 					<div style={{ display: 'flex', flexDirection: 'row', width: '100vw', minHeight: '100vh' }}>
-						<aside className="no-print" style={{ width: 240, background: '#f7f7fa', borderRight: '1px solid #e0e0e0', padding: 16, minHeight: '100vh', position: 'sticky', top: 0 }}>
+						<aside className="no-print" style={{ width: 240, fontFamily: 'Rajdhani, sans-serif', borderRight: '1px solid #e0e0e0', padding: 16, minHeight: '100vh', position: 'sticky', top: 0 }}>
 							<h4 style={{ marginBottom: 16, fontWeight: 700, fontSize: 18 }}>Select Tests</h4>
 							<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 								{resultdata.test.map((testItem, idx) => (
@@ -644,10 +646,11 @@ export default function LabReportPrintingMultiple() {
 
 											const nodes = selected.map((idx, i) => {
 												const literature = resultdata.test[idx]?.literatureReview ?? resultdata?.literatureReview;
+												const isLastTest = i === selected.length - 1;
 												return (
 													<section
 														key={idx}
-														className="test-section"
+														className={`test-section ${printPageStarters.has(idx) && i !== 0 ? 'break-before' : ''}`}
 														data-test-idx={idx}
 														style={{
 															marginBottom: 20,
@@ -658,7 +661,7 @@ export default function LabReportPrintingMultiple() {
 														}}
 													>
 														{printPageStarters.has(idx) && (
-															<div className={`page-header-marker ${i !== 0 ? 'break-before subsequent-header' : ''}`}>
+															<div className="page-header-marker">
 																<MdsCompanyInformation
 																	styles={styles}
 																	logourl={resultdata.logourl}
@@ -712,6 +715,19 @@ export default function LabReportPrintingMultiple() {
 																<UseClinicalLiteratureReview literature={literature} />
 															</div>
 														)}
+														<hr style={{ margin: '10px 0', border: 'none', borderTop: '2px solid #000' }} />
+														<UseResultEntryScientist
+															validators={getValidators(idx)}
+															resultentry={resultdata.test[idx].resultentry}
+															enteredOn={resultdata.test[idx].enteredOn}
+															resultsettings={resultSettings}
+															lastupdatedon={resultdata.test[idx].lastupdatedon}
+															patientid={resultdata.patientInformation.patientid}
+															billingid={resultdata.billingid}
+															ascensionid={ascensionid}
+															useIndividualValidation={resultSettings?.useIndividualValidations}
+															showBarcode={isLastTest}
+														/>
 													</section>
 												);
 											});
@@ -730,13 +746,20 @@ export default function LabReportPrintingMultiple() {
 								</div>
 
 								<div ref={verifiedRef} style={{ width: '100%', textAlign: 'center', marginTop: 5, marginBottom: 5, breakInside: 'avoid', pageBreakInside: 'avoid' }}>
-									{resultdata.generalValidation && (
+									{resultSettings?.useGeneraralValidation && resultdata.generalValidation && (
 										<div className="d-flex" style={{ justifyContent: 'center', marginTop: 0 }}>
 											<div className="text-uppercase">Verified By:</div>
 											<div className="mx-2">{resultdata.generalValidation.username}</div>
 										</div>
 									)}
 								</div>
+								{(resultSettings?.useGeneraralValidation == false && resultdata.generalValidation) && (
+									<div style={{ display: 'grid', gridTemplateColumns: "25% 50% 25%" }}>
+										<div className="text-uppercase">Printed By:</div>
+										<div className="mx-2">{resultdata.generalValidation.username}</div>
+										<div>{dayjs().format('YYYY-MM-DD HH:mm:ss')}</div>
+									</div>
+								)}
 								<div ref={footerRef} className={`report-footer ${footerForceBreak ? 'force-break' : ''}`} style={{ width: '100%', marginTop: 5, textAlign: 'center', breakInside: 'avoid', pageBreakInside: 'avoid' }}>
 									{resultSettings.includeLimitations && (
 										<span className="text-muted d-flex justify-content-center text-sm">******End of Report ******</span>
@@ -769,7 +792,7 @@ export default function LabReportPrintingMultiple() {
 					.print-page { box-shadow: none !important; background: #fff !important; }
 					.screen-header { display: none !important; }
 					.page-header-marker { display: block !important; }
-					.page-header-marker.break-before { page-break-before: always; }
+					.test-section.break-before { page-break-before: always !important; break-before: page !important; margin-top: 0 !important; }
 					.result { display: block !important; width: 100%; }
 					.print-content { display: block !important; margin: 0 !important; }
 					.test-section { break-inside: avoid-page; page-break-inside: avoid; }

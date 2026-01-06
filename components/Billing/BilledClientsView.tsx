@@ -14,6 +14,7 @@ import { billingSource } from "../../lib/billingLib";
 import AdjustBillingSourceModal from './AdjustBillingSourceModal';
 import PrimeTablePivot from '../accessories/Datatables/PrimePivotTable'
 import PrimeTable from "../accessories/Datatables/PrimeTable";
+import dayjs from "dayjs";
 
 export interface BillingSourceOption {
 	value: number;
@@ -83,21 +84,33 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 	const { employeeid } = useApplicationSettings().applicationsettings.user;
 	const router = useRouter();
 
-	// Unified modal state
 	const [showModal, setShowModal] = useState<boolean>(false);
-	const [modalType, setModalType] = useState<ModalType>(null); // 'adjust' or 'update'
+	const [modalType, setModalType] = useState<ModalType>(null);
 	const [modalBillingId, setModalBillingId] = useState<number | null>(null);
 	const [modalPatientId, setModalPatientId] = useState<number | string | null>(null);
 	const [modalRandString, setModalRandString] = useState<string>("");
 	const [modalUserRandInput, setModalUserRandInput] = useState<string>("");
 	const [modalReason, setModalReason] = useState<string>("");
 	const [useSimpleView, setUseSimpleView] = useState<boolean>(true);
-
-	// State for view more modal
 	const [showViewMore, setShowViewMore] = useState<boolean>(false);
 	const [viewMoreData, setViewMoreData] = useState<any>(null);
+	const processedData = useMemo(() => {
+		if (!data) return [];
+		const sorted = [...data].sort((a, b) => {
+			const dateA = new Date(a.billedon as string || 0);
+			const dateB = new Date(b.billedon as string || 0);
+			return dateA.getTime() - dateB.getTime();
+		});
+		const seenDates = new Set<string>();
+		return sorted.map(item => {
+			const dateStr = item.billedon ? dayjs(item.billedon).format('YYYY-MM-DD') : '';
+			const isFirstOfDay = dateStr && !seenDates.has(dateStr);
+			if (isFirstOfDay) seenDates.add(dateStr);
+			return { ...item, isFirstOfDay };
+		});
+	}, [data]);
 
-	// Generate a random string (6 chars)
+
 	function generateRandString(): string {
 		return Math.random().toString(36).substring(2, 8).toUpperCase();
 	}
@@ -110,7 +123,6 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 		setModalRandString(str);
 		setModalUserRandInput("");
 		setModalReason("");
-		// Find the full item to edit from data
 		const foundItem = data.find(item => item.billingid === billingid);
 		setItemToEdit(foundItem || null);
 		setShowModal(true);
@@ -162,7 +174,12 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 
 
 	const coreColumns = [
-		{ Header: "Date", accessor: "billedon", Cell: ({ value }) => value ? <span>{new Date(value).toLocaleDateString()}</span> : '' },
+		{
+			Header: "Date", accessor: "billedon", Cell: ({ value, row }) => {
+				const formatted = value ? dayjs(value).format('MM/DD/YYYY HH:mm:ss') : '';
+				return row.original.isFirstOfDay ? <span style={{ backgroundColor: 'red', color: 'white', padding: '2px 4px', borderRadius: '4px' }}>{formatted}</span> : <span>{formatted}</span>;
+			}
+		},
 		{ Header: "Patient", accessor: "fullname", Cell: ({ row }) => <div><div className="fw-semibold">{row.original.fullname}</div><div className="text-muted small">{row.original.fullpatientid}</div></div> },
 		{ Header: "Bill Id", accessor: "billingid" },
 		{
@@ -234,7 +251,7 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 										<Dropdown.Divider />
 										<Dropdown.Item
 											className="d-flex align-items-center gap-2 py-2 px-3 text-success fw-semibold"
-											href={`/billing/patientid/${plsEncryption(row.original.patientid.toString())}/outstanding-debt`}
+											href={`/billing/cash-collection?patientid=${plsEncryption(row.original.patientid.toString())}&&billingid=${row.original.billingid}&&paymentstatus=pending`}
 										>
 											<RiRefund2Line size={16} /> Settle Bill
 										</Dropdown.Item>
@@ -253,7 +270,7 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 		setShowViewMore(true);
 	}
 
-	// List of fields that should be formatted as currency
+
 	const monetaryFields: string[] = [
 		'payable', 'paid', 'outstanding', 'discount', 'totalrefunded', 'balance', 'totalcost', 'totalTransactionCost', 'amountIncurredDueTax', 'adjustmentamount', 'promoValue', 'currentPayable', 'previousPaid', 'newPayments', 'totalPaid', 'outstandingToWriteOff'
 	];
@@ -261,7 +278,6 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 
 	return (
 		<div>
-			{/* Modal for Update Transaction */}
 			<Modal show={showModal && modalType === 'update'} onHide={closeModal} centered>
 				<Modal.Header closeButton>
 					<Modal.Title>Update Transaction (Add New Service/Test)</Modal.Title>
@@ -302,7 +318,7 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 					</Button>
 				</Modal.Footer>
 			</Modal>
-			{/* Modal for Adjust Transaction (moved to separate component) */}
+
 			<AdjustBillingSourceModal
 				show={showModal && modalType === 'adjust'}
 				onClose={closeModal}
@@ -311,8 +327,6 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 				billingid={modalBillingId}
 			/>
 
-
-			{/* View More Modal */}
 			<Modal show={showViewMore} onHide={() => setShowViewMore(false)} centered>
 				<Modal.Header closeButton>
 					<Modal.Title>Billing Details</Modal.Title>
@@ -392,14 +406,6 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 									</span>
 									<input type="date" className="form-control shadow-none border-start-0" value={datequery.to} onChange={(ev) => setDatequery({ ...datequery, to: ev.target.value })} min={datequery.from} />
 								</div>
-								{datequery.from && datequery.to && (
-									<button
-										className="btn btn-primary btn-sm d-flex align-items-center"
-										onClick={() => router.push(`${plsEncryption(branchid.toString())}/day-transaction-break-down?date=${datequery.from}&&from=${datequery.from}&&end=${datequery.to}`)}
-									>
-										<RiBarChartBoxLine size={16} className="me-1" /> View Breakdown
-									</button>
-								)}
 								<button
 									className="btn btn-outline-secondary btn-sm d-flex align-items-center"
 									onClick={() => {
@@ -414,33 +420,37 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 								>
 									<RiSearchLine size={16} className="me-1" /> Search
 								</button>
+								{isAdmin && datequery.from && datequery.to && (
+									<button
+										className="btn btn-primary btn-sm d-flex align-items-center"
+										onClick={() => router.push(`${plsEncryption(branchid.toString())}/day-transaction-break-down?date=${datequery.from}&&from=${datequery.from}&&end=${datequery.to}`)}
+									>
+										<RiBarChartBoxLine size={16} className="me-1" /> View Breakdown
+									</button>
+								)}
 							</div>
 						</div>
 					</div>
 				</div>
 				<div className="card-body p-0">
-					{
-						isAdmin && (useSimpleView) ? <PrimeTable
+					{isAdmin ? (
+						useSimpleView ? <PrimeTable
 							column={coreColumns}
 							urlparams={{ ...datequery, branchid }}
-							data={data || []}
+							data={processedData}
+							serverSideFiltering={true}
+							handleSeverSideProcessing={handleSeverSideProcessing}
+						/> : <PrimeTablePivot
+							column={coreColumns}
+							urlparams={{ ...datequery, branchid }}
+							data={processedData}
 							serverSideFiltering={true}
 							handleSeverSideProcessing={handleSeverSideProcessing}
 						/>
-							:
-							<PrimeTablePivot
-								column={coreColumns}
-								urlparams={{ ...datequery, branchid }}
-								data={data || []}
-								serverSideFiltering={true}
-								handleSeverSideProcessing={handleSeverSideProcessing}
-							/>
-					}
-
-					{!isAdmin && <PrimeTable
+					) : <PrimeTable
 						column={coreColumns}
 						urlparams={{ ...datequery, branchid }}
-						data={data || []}
+						data={processedData}
 						serverSideFiltering={true}
 						handleSeverSideProcessing={handleSeverSideProcessing}
 					/>}

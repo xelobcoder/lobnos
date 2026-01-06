@@ -1,9 +1,12 @@
-const { createServer } = require('https')
-const { parse } = require('url')
+const http = require('http')
+const { createServer } = http
 const next = require('next')
 const fs = require('fs')
 const path = require('path')
 const { exec } = require('child_process')
+const dotenv = require('dotenv')
+
+dotenv.config()
 
 const dev = process.env.NODE_ENV !== 'production'
 const hostname = process.env.HOST || 'localhost'
@@ -11,10 +14,7 @@ const port = process.env.NODE_ENV == "production" ? process.env.PRODUCTION_PORT 
 const app = next({ dev, hostname, port })
 const handle = app.getRequestHandler()
 
-const httpsOptions = {
-	key: fs.readFileSync(path.join(__dirname, 'certificates', 'localhost-key.pem')),
-	cert: fs.readFileSync(path.join(__dirname, 'certificates', 'localhost.pem')),
-}
+
 
 const killPort = (port) => {
 	return new Promise((resolve) => {
@@ -34,17 +34,37 @@ const killPort = (port) => {
 					}
 				}
 			});
-			setTimeout(resolve, 2000); // Wait for processes to terminate
+			setTimeout(resolve, 2000);
 		});
 	});
 };
 
 app.prepare().then(async () => {
 	await killPort(port);
-	createServer(httpsOptions, async (req, res) => {
+	createServer(async (req, res) => {
 		try {
-			const parsedUrl = parse(req.url, true)
-			const { pathname, query } = parsedUrl
+			const baseUrl = req.headers.host ? `http://${req.headers.host}` : `http://${hostname}:${port}`
+			const url = new URL(req.url, baseUrl)
+			console.log(process.env.PRODUCTION_BASEURL, process.env.DEVELOPMENT_BASEURL);
+			const pathname = url.pathname
+			const query = {}
+			for (let [key, value] of url.searchParams) {
+				if (query[key]) {
+					if (Array.isArray(query[key])) {
+						query[key].push(value)
+					} else {
+						query[key] = [query[key], value]
+					}
+				} else {
+					query[key] = value
+				}
+			}
+			const parsedUrl = {
+				pathname,
+				query,
+				href: url.href,
+				path: url.pathname + url.search
+			}
 			if (pathname === '/a') {
 				await app.render(req, res, '/a', query)
 			} else if (pathname === '/b') {
@@ -63,6 +83,6 @@ app.prepare().then(async () => {
 			process.exit(1)
 		})
 		.listen(port, () => {
-			console.log(`> Ready on https://${hostname}:${port}`)
+			console.log(`> Ready on http://${hostname}:${port}`)
 		})
 })

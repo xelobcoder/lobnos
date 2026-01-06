@@ -244,7 +244,7 @@ export const UltrasoundTab: React.FC<UltrasoundTabProps> = ({ settings, handleCh
                               value={settings.ultrasoundSettings?.disclaimerText || ''}
                               onChange={handleChange}
                               rows={3}
-                              className="custom-input"
+                              className="form-control"
                          />
                     </div>
                )}

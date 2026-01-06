@@ -36,14 +36,32 @@ interface Branch {
     name: string;
 }
 
+interface SalesSessionConfig {
+    id?: number;
+    branchid: number;
+    allow_multiple_sessions: boolean;
+    session_count?: number;
+    start_time?: string;
+    end_time?: string;
+    time_ranges?: TimeRange[];
+    created_at?: string;
+    updated_at?: string;
+}
+
+interface TimeRange {
+    start: string;
+    end: string;
+}
+
 interface FetchResponse<T> {
     status: string;
+    statusCode: number;
     result: T[];
     message?: string;
 }
 
 export default function BillingSessions() {
-    const [sessionMode, setSessionMode] = useState<'today' | 'ahead' | 'month'>('today');
+    const [sessionMode, setSessionMode] = useState<'today' | 'ahead' | 'month' | 'timeRanges'>('today');
     const { user } = useApplication();
     const loggedInUserEmployeeId = user?.employeeid;
 
@@ -80,6 +98,14 @@ export default function BillingSessions() {
 
     const [branchesList, setBranchesList] = useState<Branch[]>([]);
     const [employeesList, setEmployeesList] = useState<Employee[]>([]);
+    const [sessionConfig, setSessionConfig] = useState<SalesSessionConfig | null>(null);
+
+    // State for time range based sessions
+    const [timeRangeSessions, setTimeRangeSessions] = useState<Array<{
+        timeRange: TimeRange;
+        employee: string;
+        openingAmount: string;
+    }>>([]);
 
     const [isLoading, setIsLoading] = useState(false);
     const [isLoadingData, setIsLoadingData] = useState(true);
@@ -108,6 +134,11 @@ export default function BillingSessions() {
                 setError(prev => `${prev} ${employeesResponse?.message || 'Failed to load employees.'}`.trim());
             }
 
+            // Load session configuration for the user's branch
+            if (user?.branchid) {
+                await loadSessionConfig(user.branchid);
+            }
+
         } catch (err: any) {
             setError(err.message || 'An error occurred while loading data.');
         } finally {
@@ -115,9 +146,62 @@ export default function BillingSessions() {
         }
     };
 
+    const loadSessionConfig = async (branchId: number) => {
+        try {
+            const response = await customFetch(`billing/sales/session/config?branchid=${branchId}`);
+
+            if (response?.config !== undefined) {
+                setSessionConfig(response.config);
+
+                // Initialize time range sessions if multiple sessions are allowed and time ranges exist
+                if (response.config.allow_multiple_sessions && response.config.time_ranges && response.config.time_ranges.length > 0) {
+                    const initialTimeRangeSessions = response.config.time_ranges.map(timeRange => ({
+                        timeRange,
+                        employee: '',
+                        openingAmount: ''
+                    }));
+                    setTimeRangeSessions(initialTimeRangeSessions);
+                } else {
+                    setTimeRangeSessions([]);
+                }
+            } else {
+                // Set default config if none exists
+                setSessionConfig({
+                    branchid: branchId,
+                    allow_multiple_sessions: false,
+                    time_ranges: []
+                });
+                setTimeRangeSessions([]);
+            }
+        } catch (err: any) {
+            console.error('Failed to load session configuration:', err);
+            // Set default config on error
+            setSessionConfig({
+                branchid: branchId,
+                allow_multiple_sessions: false,
+                time_ranges: []
+            });
+            setTimeRangeSessions([]);
+        }
+    };
+
     useEffect(() => {
         LoadInitData();
     }, []);
+
+    useEffect(() => {
+        if (sessionConfig) {
+            if (sessionConfig.allow_multiple_sessions && sessionConfig.time_ranges && sessionConfig.time_ranges.length > 0) {
+                if (sessionMode !== 'timeRanges') {
+                    setSessionMode('timeRanges');
+                }
+            } else {
+                if (sessionMode === 'timeRanges') {
+                    setSessionMode('today');
+                }
+            }
+        }
+    }, [sessionConfig]);
 
     const filteredEmployees = useMemo(() => {
         if (!selectedBranch) return [];
@@ -125,6 +209,8 @@ export default function BillingSessions() {
     }, [selectedBranch, employeesList]);
 
     const handleBranchChange = (e: React.ChangeEvent<HTMLSelectElement>, idx?: number) => {
+        const newBranchId = parseInt(e.target.value, 10);
+
         if (sessionMode === 'ahead' && typeof idx === 'number') {
             const updated = [...sessionRows];
             updated[idx].branch = e.target.value;
@@ -133,6 +219,13 @@ export default function BillingSessions() {
         } else {
             setSelectedBranch(e.target.value);
             setSelectedEmployee('');
+            // Reset time range sessions when branch changes
+            setTimeRangeSessions([]);
+        }
+
+        // Reload session config when branch changes
+        if (newBranchId) {
+            loadSessionConfig(newBranchId);
         }
     };
 
@@ -140,6 +233,12 @@ export default function BillingSessions() {
         const updated = [...sessionRows];
         updated[idx][field] = value;
         setSessionRows(updated);
+    };
+
+    const handleTimeRangeSessionChange = (idx: number, field: 'employee' | 'openingAmount', value: string) => {
+        const updated = [...timeRangeSessions];
+        updated[idx][field] = value;
+        setTimeRangeSessions(updated);
     };
 
     const handleNumSessionsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -195,7 +294,7 @@ export default function BillingSessions() {
             setError(`Please select an employee for session #${idx + 1}.`);
             return;
         }
-        const amount = parseFloat(row.openingAmount);
+        const amount = parseFloat(row.openingAmount.trim());
         if (isNaN(amount) || amount < 0) {
             setError(`Please enter a valid opening amount for session #${idx + 1}.`);
             return;
@@ -204,14 +303,37 @@ export default function BillingSessions() {
             setError(`Please select a date/time for session #${idx + 1}.`);
             return;
         }
+
+        if (sessionConfig) {
+            // Check time range validation if configured
+            if (sessionConfig.time_ranges && sessionConfig.time_ranges.length > 0) {
+                const sessionTime = new Date(row.dateTime);
+                const sessionHour = sessionTime.getHours();
+                const sessionMinute = sessionTime.getMinutes();
+                const sessionTimeString = `${sessionHour.toString().padStart(2, '0')}:${sessionMinute.toString().padStart(2, '0')}`;
+
+                const isWithinRange = sessionConfig.time_ranges.some(range => {
+                    return sessionTimeString >= range.start && sessionTimeString <= range.end;
+                });
+
+                if (!isWithinRange) {
+                    const allowedRanges = sessionConfig.time_ranges.map(range => `${range.start} - ${range.end}`).join(', ');
+                    setError(`Session time ${sessionTimeString} for session #${idx + 1} is not within allowed ranges: ${allowedRanges}`);
+                    return;
+                }
+            }
+        }
+
         setIsLoading(true);
         try {
             const payload = {
+                sessiondate: new Date(row.dateTime).toISOString(),
                 branchid: parseInt(row.branch, 10),
                 session_started_by: loggedInUserEmployeeId,
-                amountreceivedby: parseInt(row.employee, 10),
                 openingamount: parseFloat(row.openingAmount),
-                sessiondate: new Date(row.dateTime).toISOString(),
+                amountreceivedby: parseInt(row.employee, 10),
+                validatedby: 0,
+                handingoveramount: parseFloat(row.openingAmount),
             };
             const response = await customPost('billing/sales/session/create', 'POST', payload);
             if (response && response.status === true) {
@@ -240,6 +362,41 @@ export default function BillingSessions() {
         setError('');
         setSuccessMessage('');
 
+        let amount: number = 0;
+
+        // Validate against session configuration
+        if (sessionConfig) {
+            // Check if multiple sessions are allowed (only for ahead mode)
+            if (sessionMode === 'ahead' && !sessionConfig.allow_multiple_sessions && numSessions > 1) {
+                setError("Multiple sessions are not allowed for this branch. Please create sessions one at a time.");
+                return;
+            }
+
+            // For timeRanges mode, validate that configuration allows multiple sessions
+            if (sessionMode === 'timeRanges' && !sessionConfig.allow_multiple_sessions) {
+                setError("Multiple sessions are not allowed for this branch.");
+                return;
+            }
+
+            // Check time range validation if configured (only for single sessions)
+            if (sessionMode !== 'timeRanges' && sessionConfig.time_ranges && sessionConfig.time_ranges.length > 0) {
+                const sessionTime = new Date(sessionStartDateTime);
+                const sessionHour = sessionTime.getHours();
+                const sessionMinute = sessionTime.getMinutes();
+                const sessionTimeString = `${sessionHour.toString().padStart(2, '0')}:${sessionMinute.toString().padStart(2, '0')}`;
+
+                const isWithinRange = sessionConfig.time_ranges.some(range => {
+                    return sessionTimeString >= range.start && sessionTimeString <= range.end;
+                });
+
+                if (!isWithinRange) {
+                    const allowedRanges = sessionConfig.time_ranges.map(range => `${range.start} - ${range.end}`).join(', ');
+                    setError(`Session time ${sessionTimeString} is not within allowed ranges: ${allowedRanges}`);
+                    return;
+                }
+            }
+        }
+
         if (!loggedInUserEmployeeId) {
             setError("Logged-in user information not available. Cannot activate session.");
             return;
@@ -248,15 +405,17 @@ export default function BillingSessions() {
             setError("Please select a branch.");
             return;
         }
-        if (!selectedEmployee) {
-            setError("Please select an employee for the session.");
-            return;
-        }
 
-        const amount = parseFloat(openingAmount);
-        if (isNaN(amount) || amount < 0) {
-            setError("Please enter a valid opening amount (0.0 or greater).");
-            return;
+        if (sessionMode !== 'timeRanges') {
+            if (!selectedEmployee) {
+                setError("Please select an employee for the session.");
+                return;
+            }
+            amount = parseFloat(openingAmount.trim());
+            if (isNaN(amount) || amount < 0) {
+                setError("Please enter a valid opening amount (0.0 or greater).");
+                return;
+            }
         }
 
         setIsLoading(true);
@@ -270,11 +429,13 @@ export default function BillingSessions() {
                 for (let day = 1; day <= daysInMonth; day++) {
                     const sessionDate = new Date(selectedYear, selectedMonth, day, 9, 0, 0);
                     const payload = {
+                        sessiondate: sessionDate.toISOString(),
                         branchid: parseInt(selectedBranch, 10),
                         session_started_by: loggedInUserEmployeeId,
-                        amountreceivedby: parseInt(selectedEmployee, 10),
                         openingamount: amount,
-                        sessiondate: sessionDate.toISOString(),
+                        amountreceivedby: parseInt(selectedEmployee, 10),
+                        validatedby: 0,
+                        handingoveramount: amount,
                     };
 
                     try {
@@ -304,6 +465,62 @@ export default function BillingSessions() {
                 } else {
                     setError(`Failed to create any sessions. Errors:\n${errorMessages.join('\n')}`);
                 }
+            } else if (sessionMode === 'timeRanges') {
+                // Validate all time range sessions
+                const invalidSessions = timeRangeSessions.filter(session =>
+                    !session.employee || !session.openingAmount.trim() || parseFloat(session.openingAmount.trim()) < 0 || isNaN(parseFloat(session.openingAmount.trim()))
+                );
+
+                if (invalidSessions.length > 0) {
+                    setError("Please fill in all required fields for all time range sessions (employee and valid opening amount).");
+                    return;
+                }
+
+                let successCount = 0;
+                let errorMessages: string[] = [];
+
+                for (let i = 0; i < timeRangeSessions.length; i++) {
+                    const session = timeRangeSessions[i];
+                    const timeRange = session.timeRange;
+
+                    // Create session date using selected date with the time range start time
+                    const selectedDate = new Date(sessionStartDateTime);
+                    const [hours, minutes] = timeRange.start.split(':').map(Number);
+                    const sessionDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), hours, minutes, 0);
+
+                    const payload = {
+                        sessiondate: sessionDate.toISOString(),
+                        branchid: parseInt(selectedBranch, 10),
+                        session_started_by: loggedInUserEmployeeId,
+                        openingamount: parseFloat(session.openingAmount),
+                        amountreceivedby: parseInt(session.employee, 10),
+                        validatedby: 0,
+                        handingoveramount: parseFloat(session.openingAmount),
+                    };
+
+                    try {
+                        const response: { status: boolean; message?: string, error?: string } = await customPost(
+                            'billing/sales/session/create', 'POST', payload
+                        );
+
+                        if (response && response.status === true) {
+                            successCount++;
+                        } else {
+                            errorMessages.push(`Time range ${timeRange.start}-${timeRange.end}: ${response.error || response.message || 'Failed to create session'}`);
+                        }
+                    } catch (err: any) {
+                        errorMessages.push(`Time range ${timeRange.start}-${timeRange.end}: ${err.message || 'An unexpected error occurred'}`);
+                    }
+                }
+
+                if (successCount > 0) {
+                    setSuccessMessage(`Successfully created ${successCount} time range sales sessions. ${errorMessages.length > 0 ? `Errors: ${errorMessages.length}` : ''}`);
+                    setSelectedBranch('');
+                    setSessionMode('today');
+                    setTimeRangeSessions([]);
+                } else {
+                    setError(`Failed to create any sessions. Errors:\n${errorMessages.join('\n')}`);
+                }
             } else {
                 let sessionDateToUse = sessionStartDateTime;
                 if (sessionMode === 'today') {
@@ -312,11 +529,13 @@ export default function BillingSessions() {
                     sessionDateToUse = now.toISOString().slice(0, 16);
                 }
                 const payload = {
+                    sessiondate: new Date(sessionDateToUse).toISOString(),
                     branchid: parseInt(selectedBranch, 10),
                     session_started_by: loggedInUserEmployeeId,
-                    amountreceivedby: parseInt(selectedEmployee, 10),
                     openingamount: amount,
-                    sessiondate: new Date(sessionDateToUse).toISOString(),
+                    amountreceivedby: parseInt(selectedEmployee, 10),
+                    validatedby: 0,
+                    handingoveramount: amount,
                 };
 
                 const response: { status: boolean; message?: string, error?: string } = await customPost(
@@ -397,6 +616,33 @@ export default function BillingSessions() {
                             </Alert>
                         )}
 
+                        {/* Session Configuration Display */}
+                        {sessionConfig && (
+                            <div className="border rounded p-3 mb-4" style={{ backgroundColor: '#f8f9fa' }}>
+                                <h6 className="mb-2 fw-semibold">Session Configuration</h6>
+                                <Row>
+                                    <Col md={6}>
+                                        <small className="text-muted">Multiple Sessions Allowed:</small>
+                                        <div className="fw-semibold">
+                                            {sessionConfig.allow_multiple_sessions ? 'Yes' : 'No'}
+                                        </div>
+                                    </Col>
+                                    {sessionConfig.time_ranges && sessionConfig.time_ranges.length > 0 && (
+                                        <Col md={6}>
+                                            <small className="text-muted">Configured Time Ranges:</small>
+                                            <div>
+                                                {sessionConfig.time_ranges.map((range, index) => (
+                                                    <div key={index} className="fw-semibold">
+                                                        {range.start} - {range.end}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </Col>
+                                    )}
+                                </Row>
+                            </div>
+                        )}
+
                         <Form onSubmit={handleSubmit}>
                             <Form.Group controlId="sessionMode" className="mb-3">
                                 <Form.Label className={styles.formLabel}>Session Timing</Form.Label>
@@ -410,8 +656,21 @@ export default function BillingSessions() {
                                         value="today"
                                         checked={sessionMode === 'today'}
                                         onChange={() => setSessionMode('today')}
-                                        disabled={isLoading || isLoadingData}
+                                        disabled={isLoading || isLoadingData || (sessionConfig?.allow_multiple_sessions && sessionConfig?.time_ranges && sessionConfig.time_ranges.length > 0)}
                                     />
+                                    {sessionConfig?.allow_multiple_sessions && sessionConfig?.time_ranges && sessionConfig.time_ranges.length > 0 && (
+                                        <Form.Check
+                                            inline
+                                            label="Create sessions for configured time ranges"
+                                            type="radio"
+                                            id="session-timeRanges"
+                                            name="sessionMode"
+                                            value="timeRanges"
+                                            checked={sessionMode === 'timeRanges'}
+                                            onChange={() => setSessionMode('timeRanges')}
+                                            disabled={isLoading || isLoadingData}
+                                        />
+                                    )}
                                     <Form.Check
                                         inline
                                         label="Schedule ahead (max 1 week)"
@@ -421,7 +680,7 @@ export default function BillingSessions() {
                                         value="ahead"
                                         checked={sessionMode === 'ahead'}
                                         onChange={() => setSessionMode('ahead')}
-                                        disabled={isLoading || isLoadingData}
+                                        disabled={isLoading || isLoadingData || (sessionConfig?.allow_multiple_sessions && sessionConfig?.time_ranges && sessionConfig.time_ranges.length > 0)}
                                     />
                                     <Form.Check
                                         inline
@@ -432,7 +691,7 @@ export default function BillingSessions() {
                                         value="month"
                                         checked={sessionMode === 'month'}
                                         onChange={() => setSessionMode('month')}
-                                        disabled={isLoading || isLoadingData}
+                                        disabled={isLoading || isLoadingData || (sessionConfig?.allow_multiple_sessions && sessionConfig?.time_ranges && sessionConfig.time_ranges.length > 0)}
                                     />
                                 </div>
                                 <hr style={{ margin: '1rem 0', borderTop: '2px solid #bbb' }} />
@@ -482,6 +741,12 @@ export default function BillingSessions() {
                                 <Alert variant="info" className="mb-3">
                                     <strong>Monthly Session Creation:</strong> This will create sales sessions for every day of {new Date(selectedYear, selectedMonth).toLocaleString('default', { month: 'long', year: 'numeric' })}
                                     with the same opening amount and employee. Sessions will be scheduled at 9:00 AM each day.
+                                </Alert>
+                            )}
+                            {sessionMode === 'timeRanges' && (
+                                <Alert variant="info" className="mb-3">
+                                    <strong>Time Range Sessions:</strong> This will create one sales session for each configured time range ({sessionConfig?.time_ranges?.length || 0} sessions total).
+                                    Each session will start at the specified time range for today.
                                 </Alert>
                             )}
                             {sessionMode === 'ahead' && (
@@ -604,6 +869,106 @@ export default function BillingSessions() {
                                         })}
                                     </tbody>
                                 </table>
+                            ) : sessionMode === 'timeRanges' ? (
+                                <>
+                                    <Form.Group controlId="branchSelectTimeRanges" className="mb-3">
+                                        <Form.Label className={styles.formLabel}>Branch</Form.Label>
+                                        <Form.Select
+                                            aria-label="Select Branch"
+                                            value={selectedBranch}
+                                            onChange={handleBranchChange}
+                                            className={styles.googleFormControl}
+                                            disabled={isLoading || isLoadingData || branchesList.length === 0}
+                                            required
+                                        >
+                                            <option value="">Select a Branch</option>
+                                            {branchesList.map((branch) => (
+                                                <option key={branch.branchid} value={branch.branchid}>
+                                                    {branch.name}
+                                                </option>
+                                            ))}
+                                        </Form.Select>
+                                        {branchesList.length === 0 && !isLoadingData && <Form.Text className="text-danger small mt-1">No branches available.</Form.Text>}
+                                    </Form.Group>
+                                    <Form.Group controlId="timeRangesStartDate" className="mb-3">
+                                        <Form.Label className={styles.formLabel}>Session Start Date</Form.Label>
+                                        <Form.Control
+                                            type="date"
+                                            value={sessionStartDateTime.split('T')[0]}
+                                            onChange={e => {
+                                                const currentTime = sessionStartDateTime.split('T')[1] || '09:00';
+                                                setSessionStartDateTime(`${e.target.value}T${currentTime}`);
+                                            }}
+                                            required
+                                            disabled={isLoading || isLoadingData}
+                                            min={new Date().toISOString().split('T')[0]}
+                                            className={styles.googleFormControl}
+                                        />
+                                        <Form.Text className={styles.formHelperText}>
+                                            Choose the date when these time range sessions should start.
+                                        </Form.Text>
+                                    </Form.Group>
+                                    <table className={ttable.table}>
+                                        <thead className="table-light">
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Time Range</th>
+                                                <th>Employee</th>
+                                                <th>Opening Amount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {timeRangeSessions.map((session, idx) => {
+                                                const filteredEmployeesRow = employeesList.filter(emp => emp.branch === parseInt(selectedBranch, 10));
+                                                return (
+                                                    <tr key={idx}>
+                                                        <td>{idx + 1}</td>
+                                                        <td>
+                                                            <div className="fw-semibold">
+                                                                {session.timeRange.start} - {session.timeRange.end}
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <Form.Select
+                                                                aria-label="Select Employee"
+                                                                value={session.employee}
+                                                                onChange={e => handleTimeRangeSessionChange(idx, 'employee', e.target.value)}
+                                                                className={styles.googleFormControl}
+                                                                disabled={isLoading || isLoadingData || !selectedBranch || filteredEmployeesRow.length === 0}
+                                                                required
+                                                            >
+                                                                <option value="">Select an Employee</option>
+                                                                {filteredEmployeesRow.map((employee) => (
+                                                                    <option key={employee.employeeid} value={employee.employeeid}>
+                                                                        {employee.username}
+                                                                    </option>
+                                                                ))}
+                                                            </Form.Select>
+                                                            {selectedBranch && filteredEmployeesRow.length === 0 && !isLoadingData && <Form.Text className="text-danger small mt-1">No employees found for this branch.</Form.Text>}
+                                                        </td>
+                                                        <td>
+                                                            <Form.Control
+                                                                type="number"
+                                                                placeholder="0.00"
+                                                                value={session.openingAmount}
+                                                                onChange={e => handleTimeRangeSessionChange(idx, 'openingAmount', e.target.value)}
+                                                                min="0.00"
+                                                                step="0.01"
+                                                                required
+                                                                disabled={isLoading || isLoadingData}
+                                                                aria-label="Opening Amount"
+                                                                className={styles.googleFormControl}
+                                                            />
+                                                            <Form.Text className={styles.formHelperText}>
+                                                                Enter the initial cash amount for this sales session.
+                                                            </Form.Text>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </>
                             ) : (
                                 <>
                                     <Form.Group controlId="branchSelect" className="mb-3">
@@ -644,7 +1009,7 @@ export default function BillingSessions() {
                                         </Form.Select>
                                         {selectedBranch && filteredEmployees.length === 0 && !isLoadingData && <Form.Text className="text-danger small mt-1">No employees found for this branch.</Form.Text>}
                                     </Form.Group>
-                                    {sessionMode !== 'month' && (
+                                    {(sessionMode === 'today' || sessionMode === 'ahead' as any) && (
                                         <Form.Group controlId="sessionStartDateTime" className="mb-3">
                                             <Form.Label className={styles.formLabel}>Session Start Date & Time</Form.Label>
                                             <Form.Control
@@ -685,7 +1050,16 @@ export default function BillingSessions() {
 
                             <Button
                                 type="submit"
-                                disabled={isLoading || isLoadingData || !loggedInUserEmployeeId || !selectedBranch || !selectedEmployee || !openingAmount.trim()}
+                                disabled={
+                                    isLoading ||
+                                    isLoadingData ||
+                                    !loggedInUserEmployeeId ||
+                                    !selectedBranch ||
+                                    (sessionMode === 'timeRanges'
+                                        ? timeRangeSessions.some(session => !session.employee || !session.openingAmount.trim())
+                                        : !selectedEmployee || !openingAmount.trim()
+                                    )
+                                }
                                 className={`${styles.googleButtonPrimary} w-100 mt-3`}
                             >
                                 {isLoading ? (
@@ -700,6 +1074,8 @@ export default function BillingSessions() {
                                         />
                                         Activating...
                                     </>
+                                ) : sessionMode === 'timeRanges' ? (
+                                    `Create ${timeRangeSessions.length} Time Range Sessions`
                                 ) : sessionMode === 'month' ? (
                                     `Create ${new Date(selectedYear, selectedMonth).toLocaleString('default', { month: 'long', year: 'numeric' })} Sessions`
                                 ) : (

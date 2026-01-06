@@ -613,6 +613,7 @@ function MultiBillingLayoutContent() {
                         </div>
                     </div>
                 </div>
+
                 <div className="card-footer d-flex justify-content-end">
                     {billingdata?.allowAdvancePayment && (
                         <>

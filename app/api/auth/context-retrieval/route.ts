@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
           });
 
           const data = await response.json();
+   
           const { message, statusCode, status } = data;
           if (status != true) {
                return new Response(

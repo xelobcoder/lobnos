@@ -7,18 +7,19 @@
   height: 100%;
   width: 60px;
   list-style-type: none;
-  background: #2c3e50; 
-      font-family: "Karla",Sans-serif;
-    font-size: 18px;
-    font-weight: 400;
+  background: #2c3e50;
+  font-family: var(--theme-font-family);
+  font-size: 18px;
+  font-weight: 400;
   overflow: hidden;
   transition: width 0.3s;
 }
 
 .side-menu:hover {
-  width: 250px; 
+  width: 250px;
 }
-.side-menu > li > a {
+
+.side-menu>li>a {
   color: #ecf0f1;
   display: flex;
   align-items: center;
@@ -26,18 +27,17 @@
   padding: 10px;
 }
 
-.side-menu > li > a > span > svg {
+.side-menu>li>a>span>svg {
   font-size: 24px;
-  margin-right: 10px; 
+  margin-right: 10px;
 }
 
-.side-menu > li > a > .text,
-.side-menu > li > a > .drop-down {
+.side-menu>li>a>.text,
+.side-menu>li>a>.drop-down {
   display: none;
 }
 
-.side-menu:hover > li > a > .text,
-.side-menu:hover> li > a > .drop-down
-{
+.side-menu:hover>li>a>.text,
+.side-menu:hover>li>a>.drop-down {
   display: block;
 }
