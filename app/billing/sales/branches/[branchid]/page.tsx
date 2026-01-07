@@ -45,7 +45,7 @@ export default function DailySalesViewCustomerRepresentative({ params, searchPar
 			} else if (to) {
 				endpoint += `?to=${to}`;
 			}
-			endpoint = endpoint + `&&branchid=${branchIdState}`;
+			endpoint = endpoint + `&&branchid=${branchIdState}&&isloadall=true`;
 			try {
 				const data = await customFetch(endpoint);
 				if (data.status === "success" && data.statusCode === 200) {

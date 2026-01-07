@@ -14,6 +14,7 @@ import {
     RiGroupLine,
     RiHandCoinLine,
     RiLineChartLine,
+    RiMoneyDollarCircleLine,
     RiTestTubeLine,
     RiPieChartLine,
     RiDashboardLine,
@@ -29,6 +30,9 @@ interface DailyCeoSnapshot {
     total_discount: string;
     outstanding_debt: string;
     total_refunds: string;
+    total_expense_payments: string;
+    total_tests_conducted: number;
+    net_revenue: string;
 }
 
 interface ServiceStatusCounts {
@@ -107,6 +111,19 @@ interface EmployeeCashCollection {
     payment_date: string;
 }
 
+interface ClinicianSalesDailyData {
+    sale_date: string;
+    clinician_id: number;
+    clinician_name: string;
+    clinician_phone: string;
+    occupation: string | null;
+    organization: number;
+    total_services: number;
+    total_value: string;
+    additional_services_count: string;
+    test_panels_count: string;
+}
+
 interface TotalExpensesPeriodComparison {
     period: string;
     total_expenses: string | null;
@@ -122,7 +139,7 @@ interface AllExpenseCategory {
 
 interface ExpenseApprovalStatusSummary {
     status: string;
-    count: number;
+    expense_count: number;
     total_amount: string;
 }
 
@@ -132,8 +149,12 @@ interface TotalReimbursedPaid {
 }
 
 interface BillableExpenses {
-    billable_expenses_count: number;
-    total_billable_amount: string;
+    expense_id: number;
+    expense_name: string;
+    merchant: string;
+    billable_amount: number;
+    expense_date: string;
+    employeeid: number;
 }
 
 interface MonthlyExpenseTrend {
@@ -152,14 +173,18 @@ interface TopHighestExpense {
 
 interface UnapprovedExpense {
     expense_id: number;
-    description: string;
-    amount: string;
-    submitted_date: string;
-    submitted_by: string;
+    name: string;
+    merchant: string;
+    amount: number;
+    expense_date: string;
+    days_since_submission: number;
+    employeeid: number;
+    branchid: number;
 }
 
 interface ExpensesByBranch {
     branchid: number;
+    branch_name: string;
     expense_count: number;
     total_amount: string;
     percentage_of_total: string;
@@ -183,6 +208,7 @@ interface AuditTrailAction {
 interface ExpensePaymentsSummary {
     status: string;
     method: string;
+    merchant_name: string;
     payments_made: number;
     unique_expenses_reimbursed: number;
     total_reimbursed_amount: string;
@@ -193,6 +219,7 @@ interface ExpensePaymentsFullList {
     expense_id: number;
     expense_name: string;
     merchant: string;
+    merchant_name: string;
     claimed_amount: number;
     paid_amount: string;
     payment_date: string;
@@ -205,10 +232,13 @@ interface AllIndividualExpense {
     expense_id: number;
     name: string;
     merchant: string;
+    merchant_name: string;
     amount: number;
     expense_date: string;
     category: string;
     approval_status: string;
+    branch_name: string;
+    submitted_by: string;
     employeeid: number;
     branchid: number;
     description: string;
@@ -216,7 +246,7 @@ interface AllIndividualExpense {
 
 interface ExpenseApprovalStatusSummary {
     status: string;
-    count: number;
+    expense_count: number;
     total_amount: string;
 }
 
@@ -226,12 +256,91 @@ interface TotalReimbursedPaid {
 }
 
 interface BillableExpenses {
-    billable_expenses_count: number;
-    total_billable_amount: string;
+    expense_id: number;
+    expense_name: string;
+    merchant: string;
+    billable_amount: number;
+    expense_date: string;
+    employeeid: number;
 }
 
 
 
+
+const cardColors = {
+    billedClients: { bg: "#4f46e5", icon: "#6366f1" },
+    totalSales: { bg: "#059669", icon: "#0ea5e9" },
+    amountPaid: { bg: "#dc2626", icon: "#10b981" },
+    discount: { bg: "#7c3aed", icon: "#f59e0b" },
+    pendingDebts: { bg: "#ea580c", icon: "#ef4444" },
+    expenses: { bg: "#0891b2", icon: "#8b5cf6" },
+    outstanding: { bg: "#c2410c", icon: "#f97316" },
+};
+
+export type AnalyticCardProps = {
+    title: string;
+    value: number | string;
+    Icon: React.ElementType;
+    bgColor: string;
+    iconColor: string;
+    formatAsCurrency?: boolean;
+};
+
+const AnalyticCard = ({
+    title,
+    value,
+    Icon,
+    bgColor,
+    iconColor,
+    formatAsCurrency = true,
+}: AnalyticCardProps) => (
+    <div
+        className="card border-0 shadow-sm rounded"
+        style={{
+            background: bgColor,
+            borderRadius: "8px",
+            transition: "all 0.2s ease",
+            height: "150px",
+            flex: "1 1 auto",
+            margin: "0 4px",
+            border: "1px solid var(--bs-border-color)",
+            cursor: "pointer",
+            color: "white",
+        }}
+        onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-2px)";
+            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.08)";
+        }}
+        onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.05)";
+        }}
+    >
+        <div className="card-body p-3 d-flex flex-column h-100">
+            <div className="d-flex align-items-center mb-2">
+                <div
+                    className="d-flex align-items-center justify-content-center me-2"
+                    style={{
+                        background: iconColor,
+                        padding: "6px",
+                        borderRadius: "6px",
+                        width: "32px",
+                        height: "32px",
+                    }}
+                >
+                    <Icon style={{ fontSize: "1.2rem", color: "white" }} />
+                </div>
+                <h6 className="mb-0 fw-bold" style={{ fontSize: "1rem", lineHeight: "1.2", color: "rgba(255,255,255,0.9)" }}>
+                    {title}
+                </h6>
+            </div>
+            <hr className="my-2" style={{ borderColor: "rgba(255,255,255,0.3)", borderWidth: "1px" }} />
+            <div className="fw-bold" style={{ fontSize: "1.8rem", lineHeight: "1.3" }}>
+                {formatAsCurrency ? currencyFormatter.format(Number(value) || 0) : (typeof value === 'number' ? value.toLocaleString() : value)}
+            </div>
+        </div>
+    </div>
+);
 
 const Card = ({ title, children, icon }: { title: string, children: React.ReactNode, icon: React.ReactNode }) => (
     <div className="border rounded mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
@@ -370,7 +479,7 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
     }
 
 
-   
+
     if (error) {
         return (
             <main className={styles.container}>
@@ -427,22 +536,47 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
         expensePaymentsFullList = []
     } = data;
 
+
     // Calculate aggregated totals from all daily snapshots
-    const aggregatedSnapshot = dailyCeoSnapshot.reduce((acc, snapshot) => ({
-        totalCost: (Number(acc.totalCost || 0) + Number(snapshot.totalCost || 0)).toString(),
-        actual_revenue: (Number(acc.actual_revenue || 0) + Number(snapshot.actual_revenue || 0)).toString(),
-        accrued_revenue: (Number(acc.accrued_revenue || 0) + Number(snapshot.accrued_revenue || 0)).toString(),
-        outstanding_debt: (Number(acc.outstanding_debt || 0) + Number(snapshot.outstanding_debt || 0)).toString(),
-        total_discount: (Number(acc.total_discount || 0) + Number(snapshot.total_discount || 0)).toString(),
-        total_refunds: (Number(acc.total_refunds || 0) + Number(snapshot.total_refunds || 0)).toString(),
-    }), {
+    const aggregatedSnapshot = dailyCeoSnapshot.length > 0 ? dailyCeoSnapshot[0] : {
         totalCost: '0',
         actual_revenue: '0',
         accrued_revenue: '0',
         outstanding_debt: '0',
         total_discount: '0',
         total_refunds: '0',
-    });
+        total_expense_payments: '0',
+        total_tests_conducted: 0,
+        net_revenue: '0',
+    };
+
+    // Aggregate test transactions by test name
+    const aggregatedTestTransactions = dailyTestTransactionSnapshot.reduce((acc, test) => {
+        const key = test.test_panel_name || 'N/A';
+        if (!acc[key]) {
+            acc[key] = {
+                test_panel_name: key,
+                serviceCategory: test.serviceCategory,
+                total_cost: 0,
+                test_count: 0,
+                accrued_revenue: 0,
+                actual_revenue: 0,
+                total_discount: 0,
+                total_outstanding: 0,
+                total_refunds: 0,
+            };
+        }
+        acc[key].total_cost += Number(test.total_cost) || 0;
+        acc[key].test_count += Number(test.test_count) || 0;
+        acc[key].accrued_revenue += Number(test.accrued_revenue) || 0;
+        acc[key].actual_revenue += Number(test.actual_revenue) || 0;
+        acc[key].total_discount += Number(test.total_discount) || 0;
+        acc[key].total_outstanding += Number(test.total_outstanding) || 0;
+        acc[key].total_refunds += Number(test.total_refunds) || 0;
+        return acc;
+    }, {} as Record<string, any>);
+
+    const aggregatedTestData = Object.values(aggregatedTestTransactions);
 
     const serviceStatus = serviceStatusCounts[0] || {};
     const uniqueClients = dailyUniqueClientsSummary[0] || {};
@@ -454,144 +588,366 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
 
     return (
         <main className={styles.container}>
-            <div className="border rounded p-4 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-3">
-                    <h1 className="fs-4 fw-semibold text-body-emphasis mb-3 mb-lg-0 d-flex align-items-center">
-                        <RiDashboardLine className="me-2" size={24} style={{ color: 'var(--pls-accent)' }} />
-                        Financial Analytics Report
-                    </h1>
-                    <div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
-                        <div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
-                            <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: 'var(--bs-border-color)' }}>
-                                <RiCalendarLine size={16} className="text-muted" />
+            <div className="border rounded p-3 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                <div className="d-flex justify-content-between align-items-center">
+                    <div className="d-flex align-items-center gap-3">
+                        <h1 className="fs-5 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
+                            <RiDashboardLine className="me-2" size={20} style={{ color: 'var(--pls-accent)' }} />
+                            Financial Analytics Report
+                        </h1>
+                        <div className="d-flex align-items-center gap-2 text-muted small">
+                            <RiCalendarLine size={14} />
+                            <span>Report Period: <span className="fw-medium" style={{ color: 'var(--pls-accent)' }}>{dateRangeText}</span></span>
+                        </div>
+                    </div>
+                    <div className="d-flex align-items-center gap-2">
+                        <div className="input-group input-group-sm" style={{ width: '140px' }}>
+                            <span className="input-group-text bg-transparent border-end-0 p-1" style={{ borderColor: 'var(--bs-border-color)' }}>
+                                <RiCalendarLine size={14} className="text-muted" />
                             </span>
                             <input
                                 type="date"
-                                className="form-control shadow-none border-start-0"
+                                className="form-control shadow-none border-start-0 p-1"
                                 value={selectedFrom}
                                 onChange={(e) => setSelectedFrom(e.target.value)}
+                                style={{ fontSize: '0.875rem' }}
                             />
                         </div>
-                        <div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
-                            <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: 'var(--bs-border-color)' }}>
-                                <RiCalendarLine size={16} className="text-muted" />
+                        <div className="input-group input-group-sm" style={{ width: '140px' }}>
+                            <span className="input-group-text bg-transparent border-end-0 p-1" style={{ borderColor: 'var(--bs-border-color)' }}>
+                                <RiCalendarLine size={14} className="text-muted" />
                             </span>
                             <input
                                 type="date"
-                                className="form-control shadow-none border-start-0"
+                                className="form-control shadow-none border-start-0 p-1"
                                 value={selectedEnd}
                                 onChange={(e) => setSelectedEnd(e.target.value)}
                                 min={selectedFrom}
+                                style={{ fontSize: '0.875rem' }}
                             />
                         </div>
                         <button
                             onClick={handleApplyDateRange}
-                            className="btn btn-sm btn-primary d-flex align-items-center"
+                            className="btn btn-sm btn-primary px-3"
                         >
                             Apply
                         </button>
                     </div>
                 </div>
-                <p className="text-muted mb-0 d-flex align-items-center">
-                    <RiCalendarLine className="me-2" size={16} />
-                    Report Period: <span className="fw-medium ms-1" style={{ color: 'var(--pls-accent)' }}>{dateRangeText}</span>
-                </p>
             </div>
 
             <Card title="Executive Summary" icon={<RiPieChartLine />}>
-                <div className="row g-3">
-                    <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                        <Stat label="Total Cost" value={currencyFormatter.format(Number(aggregatedSnapshot.totalCost || 0))} icon={<RiLineChartLine />} />
+                {/* Desktop Card View */}
+                <div className="d-none d-md-block">
+                    <div className="d-flex flex-row gap-3 mb-3">
+                        <div className="flex-fill" style={{ height: '150px' }}>
+                            <AnalyticCard
+                                title="Net Revenue"
+                                value={Number(aggregatedSnapshot.net_revenue || 0)}
+                                Icon={RiMoneyDollarCircleLine}
+                                bgColor={cardColors.totalSales.bg}
+                                iconColor={cardColors.totalSales.icon}
+                            />
+                        </div>
+                        <div className="flex-fill" style={{ height: '150px' }}>
+                            <AnalyticCard
+                                title="Accrued Revenue"
+                                value={Number(aggregatedSnapshot.accrued_revenue || 0)}
+                                Icon={RiLineChartLine}
+                                bgColor={cardColors.discount.bg}
+                                iconColor={cardColors.discount.icon}
+                            />
+                        </div>
+                        <div className="flex-fill" style={{ height: '150px' }}>
+                            <AnalyticCard
+                                title="Actual Revenue "
+                                value={Number(aggregatedSnapshot.actual_revenue || 0)}
+                                Icon={RiHandCoinLine}
+                                bgColor={cardColors.amountPaid.bg}
+                                iconColor={cardColors.amountPaid.icon}
+                            />
+                        </div>
+                        <div className="flex-fill" style={{ height: '150px' }}>
+                            <AnalyticCard
+                                title="Outstanding Debt"
+                                value={Number(aggregatedSnapshot.outstanding_debt || 0)}
+                                Icon={RiBankCardLine}
+                                bgColor={cardColors.outstanding.bg}
+                                iconColor={cardColors.outstanding.icon}
+                            />
+                        </div>
+                        <div className="flex-fill" style={{ height: '150px' }}>
+                            <AnalyticCard
+                                title="Total Discounts"
+                                value={Number(aggregatedSnapshot.total_discount || 0)}
+                                Icon={RiCashLine}
+                                bgColor={cardColors.expenses.bg}
+                                iconColor={cardColors.expenses.icon}
+                            />
+                        </div>
+                        <div className="flex-fill" style={{ height: '150px' }}>
+                            <AnalyticCard
+                                title="Total Refunds"
+                                value={Number(aggregatedSnapshot.total_refunds || 0)}
+                                Icon={RiCashLine}
+                                bgColor={cardColors.pendingDebts.bg}
+                                iconColor={cardColors.pendingDebts.icon}
+                            />
+                        </div>
                     </div>
-                    <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                        <Stat label="Accrued Revenue(total payable)" value={currencyFormatter.format(Number(aggregatedSnapshot.accrued_revenue || 0))} icon={<RiLineChartLine />} />
+                    <div className="d-flex flex-row gap-3 mb-3">
+                        <div className="flex-fill" style={{ height: '150px' }}>
+                            <AnalyticCard
+                                title="Total Expenses"
+                                value={Number(ceoExpenseSummarySnapshot[0]?.total_expenses_amount || 0)}
+                                Icon={RiCashLine}
+                                bgColor={cardColors.expenses.bg}
+                                iconColor={cardColors.expenses.icon}
+                            />
+                        </div>
+                        <div className="flex-fill" style={{ height: '150px' }}>
+                            <AnalyticCard
+                                title="Approved Expenses"
+                                value={Number(ceoExpenseSummarySnapshot[0]?.approved_expenses_amount || 0)}
+                                Icon={RiFileList3Line}
+                                bgColor={cardColors.amountPaid.bg}
+                                iconColor={cardColors.amountPaid.icon}
+                            />
+                        </div>
+                        <div className="flex-fill" style={{ height: '150px' }}>
+                            <AnalyticCard
+                                title="Pending Expenses"
+                                value={ceoExpenseSummarySnapshot[0]?.pending_expenses_count || 0}
+                                Icon={RiFileList3Line}
+                                bgColor={cardColors.pendingDebts.bg}
+                                iconColor={cardColors.pendingDebts.icon}
+                                formatAsCurrency={false}
+                            />
+                        </div>
                     </div>
-                    <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                        <Stat label="Actual Revenue(paid amount)" value={currencyFormatter.format(Number(aggregatedSnapshot.actual_revenue || 0))} icon={<RiHandCoinLine />} />
-                    </div>
-                    <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                        <Stat label="Outstanding Debt" value={currencyFormatter.format(Number(aggregatedSnapshot.outstanding_debt || 0))} icon={<RiBankCardLine />} />
-                    </div>
-                    <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                        <Stat label="Total Discounts" value={currencyFormatter.format(Number(aggregatedSnapshot.total_discount || 0))} icon={<RiCashLine />} />
-                    </div>
-                    <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                        <Stat label="Total Refunds" value={currencyFormatter.format(Number(aggregatedSnapshot.total_refunds || 0))} icon={<RiCashLine />} />
-                    </div>
-                    <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                        <Stat label="Active Services" value={serviceStatus.active_services || 0} icon={<RiFileList3Line />} />
-                    </div>
-                    <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                        <Stat label="Total Services" value={serviceStatus.total_services || 0} icon={<RiFileList3Line />} />
-                    </div>
-                    <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                        <Stat label="Cancelled Services" value={serviceStatus.cancelled_services || 0} icon={<RiFileList3Line />} />
-                    </div>
-                    <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                        <Stat label="Unique Clients" value={uniqueClients.unique_registered_clients || 0} icon={<RiGroupLine />} />
-                    </div>
-                    <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                        <Stat label="Refunded Services" value={serviceStatus.refunded_services || 0} icon={<RiCashLine />} />
+                </div>
+
+                {/* Mobile List View */}
+                <div className="d-md-none">
+                    <div className="list-group list-group-flush">
+                        <div className="list-group-item px-3 py-2 border-0">
+                            <div className="d-flex justify-content-between align-items-center">
+                                <div className="d-flex align-items-center gap-2">
+                                    <div
+                                        className="d-flex align-items-center justify-content-center"
+                                        style={{
+                                            background: cardColors.totalSales.icon,
+                                            padding: "4px",
+                                            borderRadius: "4px",
+                                            width: "24px",
+                                            height: "24px",
+                                        }}
+                                    >
+                                        <RiMoneyDollarCircleLine style={{ fontSize: "0.8rem", color: "white" }} />
+                                    </div>
+                                    <span className="small fw-medium text-muted">Net Revenue</span>
+                                </div>
+                                <span className="fw-semibold text-dark small">
+                                    {currencyFormatter.format(Number(aggregatedSnapshot.net_revenue || 0))}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="list-group-item px-3 py-2 border-0">
+                            <div className="d-flex justify-content-between align-items-center">
+                                <div className="d-flex align-items-center gap-2">
+                                    <div
+                                        className="d-flex align-items-center justify-content-center"
+                                        style={{
+                                            background: cardColors.discount.icon,
+                                            padding: "4px",
+                                            borderRadius: "4px",
+                                            width: "24px",
+                                            height: "24px",
+                                        }}
+                                    >
+                                        <RiLineChartLine style={{ fontSize: "0.8rem", color: "white" }} />
+                                    </div>
+                                    <span className="small fw-medium text-muted">Accrued Revenue</span>
+                                </div>
+                                <span className="fw-semibold text-dark small">
+                                    {currencyFormatter.format(Number(aggregatedSnapshot.accrued_revenue || 0))}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="list-group-item px-3 py-2 border-0">
+                            <div className="d-flex justify-content-between align-items-center">
+                                <div className="d-flex align-items-center gap-2">
+                                    <div
+                                        className="d-flex align-items-center justify-content-center"
+                                        style={{
+                                            background: cardColors.amountPaid.icon,
+                                            padding: "4px",
+                                            borderRadius: "4px",
+                                            width: "24px",
+                                            height: "24px",
+                                        }}
+                                    >
+                                        <RiHandCoinLine style={{ fontSize: "0.8rem", color: "white" }} />
+                                    </div>
+                                    <span className="small fw-medium text-muted">Actual Revenue(paid amount)</span>
+                                </div>
+                                <span className="fw-semibold text-dark small">
+                                    {currencyFormatter.format(Number(aggregatedSnapshot.actual_revenue || 0))}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="list-group-item px-3 py-2 border-0">
+                            <div className="d-flex justify-content-between align-items-center">
+                                <div className="d-flex align-items-center gap-2">
+                                    <div
+                                        className="d-flex align-items-center justify-content-center"
+                                        style={{
+                                            background: cardColors.outstanding.icon,
+                                            padding: "4px",
+                                            borderRadius: "4px",
+                                            width: "24px",
+                                            height: "24px",
+                                        }}
+                                    >
+                                        <RiBankCardLine style={{ fontSize: "0.8rem", color: "white" }} />
+                                    </div>
+                                    <span className="small fw-medium text-muted">Outstanding Debt</span>
+                                </div>
+                                <span className="fw-semibold text-dark small">
+                                    {currencyFormatter.format(Number(aggregatedSnapshot.outstanding_debt || 0))}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="list-group-item px-3 py-2 border-0">
+                            <div className="d-flex justify-content-between align-items-center">
+                                <div className="d-flex align-items-center gap-2">
+                                    <div
+                                        className="d-flex align-items-center justify-content-center"
+                                        style={{
+                                            background: cardColors.expenses.icon,
+                                            padding: "4px",
+                                            borderRadius: "4px",
+                                            width: "24px",
+                                            height: "24px",
+                                        }}
+                                    >
+                                        <RiCashLine style={{ fontSize: "0.8rem", color: "white" }} />
+                                    </div>
+                                    <span className="small fw-medium text-muted">Total Discounts</span>
+                                </div>
+                                <span className="fw-semibold text-dark small">
+                                    {currencyFormatter.format(Number(aggregatedSnapshot.total_discount || 0))}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="list-group-item px-3 py-2 border-0">
+                            <div className="d-flex justify-content-between align-items-center">
+                                <div className="d-flex align-items-center gap-2">
+                                    <div
+                                        className="d-flex align-items-center justify-content-center"
+                                        style={{
+                                            background: cardColors.pendingDebts.icon,
+                                            padding: "4px",
+                                            borderRadius: "4px",
+                                            width: "24px",
+                                            height: "24px",
+                                        }}
+                                    >
+                                        <RiCashLine style={{ fontSize: "0.8rem", color: "white" }} />
+                                    </div>
+                                    <span className="small fw-medium text-muted">Total Refunds</span>
+                                </div>
+                                <span className="fw-semibold text-dark small">
+                                    {currencyFormatter.format(Number(aggregatedSnapshot.total_refunds || 0))}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="list-group-item px-3 py-2 border-0">
+                            <div className="d-flex justify-content-between align-items-center">
+                                <div className="d-flex align-items-center gap-2">
+                                    <div
+                                        className="d-flex align-items-center justify-content-center"
+                                        style={{
+                                            background: cardColors.expenses.icon,
+                                            padding: "4px",
+                                            borderRadius: "4px",
+                                            width: "24px",
+                                            height: "24px",
+                                        }}
+                                    >
+                                        <RiCashLine style={{ fontSize: "0.8rem", color: "white" }} />
+                                    </div>
+                                    <span className="small fw-medium text-muted">Total Expenses</span>
+                                </div>
+                                <span className="fw-semibold text-dark small">
+                                    {currencyFormatter.format(Number(ceoExpenseSummarySnapshot[0]?.total_expenses_amount || 0))}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="list-group-item px-3 py-2 border-0">
+                            <div className="d-flex justify-content-between align-items-center">
+                                <div className="d-flex align-items-center gap-2">
+                                    <div
+                                        className="d-flex align-items-center justify-content-center"
+                                        style={{
+                                            background: cardColors.amountPaid.icon,
+                                            padding: "4px",
+                                            borderRadius: "4px",
+                                            width: "24px",
+                                            height: "24px",
+                                        }}
+                                    >
+                                        <RiFileList3Line style={{ fontSize: "0.8rem", color: "white" }} />
+                                    </div>
+                                    <span className="small fw-medium text-muted">Approved Expenses</span>
+                                </div>
+                                <span className="fw-semibold text-dark small">
+                                    {currencyFormatter.format(Number(ceoExpenseSummarySnapshot[0]?.approved_expenses_amount || 0))}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="list-group-item px-3 py-2 border-0">
+                            <div className="d-flex justify-content-between align-items-center">
+                                <div className="d-flex align-items-center gap-2">
+                                    <div
+                                        className="d-flex align-items-center justify-content-center"
+                                        style={{
+                                            background: cardColors.pendingDebts.icon,
+                                            padding: "4px",
+                                            borderRadius: "4px",
+                                            width: "24px",
+                                            height: "24px",
+                                        }}
+                                    >
+                                        <RiFileList3Line style={{ fontSize: "0.8rem", color: "white" }} />
+                                    </div>
+                                    <span className="small fw-medium text-muted">Pending Expenses</span>
+                                </div>
+                                <span className="fw-semibold text-dark small">
+                                    {ceoExpenseSummarySnapshot[0]?.pending_expenses_count || 0}
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </Card>
 
             <CEOFinancialCharts branchesData={branchesData} modesData={modesData} />
 
-            <Card title="Daily Financial Breakdown" icon={<RiCalendarLine />}>
-                {Array.isArray(dailyCeoSnapshot) && dailyCeoSnapshot.length > 0 ? (
-                    <div className="table-responsive">
-                        <table className="table table-sm table-hover table-striped small">
-                            <thead className="table-light">
-                                <tr>
-                                    <th className="text-start">Total Cost</th>
-                                    <th className="text-start">Accrued Revenue(total payable)</th>
-                                    <th className="text-start">Actual Revenue(paid amount)</th>
-                                    <th className="text-start">Outstanding Debt</th>
-                                    <th className="text-start">Total Discount</th>
-                                    <th className="text-start">Total Refunds</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {Array.isArray(dailyCeoSnapshot) && dailyCeoSnapshot.length > 0 && dailyCeoSnapshot.map((daily: DailyCeoSnapshot, index: number) => (
-                                    <tr key={index}>
-                                        <td className="text-start">
-                                            {currencyFormatter.format(Number(daily.totalCost))}
-                                        </td>
-                                        <td className="text-start">
-                                            {currencyFormatter.format(Number(daily.accrued_revenue))}
-                                        </td>
-                                        <td className="text-start">
-                                            {currencyFormatter.format(Number(daily.actual_revenue))}
-                                        </td>
-                                        <td className="text-start">
-                                            {currencyFormatter.format(Number(daily.outstanding_debt))}
-                                        </td>
-                                        <td className="text-start">
-                                            {currencyFormatter.format(Number(daily.total_discount))}
-                                        </td>
-                                        <td className="text-start">
-                                            {currencyFormatter.format(Number(daily.total_refunds))}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                ) : (
-                    <div className={styles.emptyState}>
-                        <RiCalendarLine size={32} style={{ opacity: 0.5, marginBottom: '0.5rem' }} />
-                        <p>No daily financial data available for the selected period.</p>
-                    </div>
-                )}
-            </Card>
-
             <div className={styles.sectionDivider}></div>
 
             <Card title="Night Adjustment Impact Analysis" icon={<RiLineChartLine />}>
                 {Array.isArray(dailyNightAdjustmentImpact) && dailyNightAdjustmentImpact.length > 0 ? (
                     <div className="table-responsive">
-                        <table className="table table-sm table-hover table-striped small">
+                        <table className="table table-hover table-striped">
                             <thead className="table-light">
                                 <tr>
                                     <th className="text-start">Report Date</th>
@@ -655,7 +1011,7 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
             {Array.isArray(OrganizationCommissions) && OrganizationCommissions.length > 0 && (
                 <Card title="Organization Commissions" icon={<RiGroupLine />}>
                     <div className="table-responsive">
-                        <table className="table table-sm table-hover table-striped small">
+                        <table className="table table-hover table-striped">
                             <thead className="table-light">
                                 <tr>
                                     <th className="text-start">Service Date</th>
@@ -684,7 +1040,7 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                                             {commission.organization_phone}
                                         </td>
                                         <td className="text-start">
-                                            <span className="badge bg-primary">{commission.total_services}</span>
+                                            {commission.total_services}
                                         </td>
                                         <td className="text-start">
                                             {currencyFormatter.format(Number(commission.total_value))}
@@ -710,7 +1066,7 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
             {Array.isArray(mismatchedPaymentHistory) && mismatchedPaymentHistory.length > 0 && (
                 <Card title="Mismatched Payment History" icon={<RiAlertLine />}>
                     <div className="table-responsive">
-                        <table className="table table-sm table-hover table-striped small">
+                        <table className="table table-hover table-striped">
                             <thead className="table-light">
                                 <tr>
                                     <th className="text-start">Billing ID</th>
@@ -743,32 +1099,12 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
             )}
             <div className="tab-pane fade show active" id="expenses" role="tabpanel">
 
-                {Array.isArray(ceoExpenseSummarySnapshot) && ceoExpenseSummarySnapshot.length > 0 && (
-                    <Card title="Expense Summary" icon={<RiCashLine />}>
-                        <div className="row g-3">
-                            <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                                <Stat label="Total Expenses" value={currencyFormatter.format(Number(ceoExpenseSummarySnapshot[0]?.total_expenses_amount || 0))} icon={<RiCashLine />} />
-                            </div>
-                            <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                                <Stat label="Approved Expenses" value={currencyFormatter.format(Number(ceoExpenseSummarySnapshot[0]?.approved_expenses_amount || 0))} icon={<RiFileList3Line />} />
-                            </div>
-                            <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                                <Stat label="Total Reimbursed" value={currencyFormatter.format(Number(ceoExpenseSummarySnapshot[0]?.total_reimbursed_amount || 0))} icon={<RiHandCoinLine />} />
-                            </div>
-                            <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                                <Stat label="Billable to Clients" value={currencyFormatter.format(Number(ceoExpenseSummarySnapshot[0]?.total_billable_to_clients_amount || 0))} icon={<RiBankCardLine />} />
-                            </div>
-                            <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                                <Stat label="Pending Expenses" value={ceoExpenseSummarySnapshot[0]?.pending_expenses_count || 0} icon={<RiFileList3Line />} />
-                            </div>
-                        </div>
-                    </Card>
-                )}
+
 
                 {Array.isArray(totalExpensesPeriodComparison) && totalExpensesPeriodComparison.length > 0 && (
                     <Card title="Expense Period Comparison" icon={<RiBarChartGroupedLine />}>
                         <div className="table-responsive">
-                            <table className="table table-sm table-hover table-striped small">
+                            <table className="table table-hover table-striped">
                                 <thead className="table-light">
                                     <tr>
                                         <th className="text-start">Period</th>
@@ -795,7 +1131,7 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                 {Array.isArray(monthlyExpenseTrend) && monthlyExpenseTrend.length > 0 && (
                     <Card title="Monthly Expense Trend" icon={<RiLineChartLine />}>
                         <div className="table-responsive">
-                            <table className="table table-sm table-hover table-striped small">
+                            <table className="table table-hover table-striped">
                                 <thead className="table-light">
                                     <tr>
                                         <th className="text-start">Month</th>
@@ -822,10 +1158,11 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                 {Array.isArray(expensesByBranch) && expensesByBranch.length > 0 && (
                     <Card title="Expenses by Branch" icon={<RiBuildingLine />}>
                         <div className="table-responsive">
-                            <table className="table table-sm table-hover table-striped small">
+                            <table className="table table-hover table-striped">
                                 <thead className="table-light">
                                     <tr>
                                         <th className="text-start">Branch ID</th>
+                                        <th className="text-start">Branch Name</th>
                                         <th className="text-start">Total Expenses</th>
                                         <th className="text-start">Expense Count</th>
                                         <th className="text-start">Percentage of Total</th>
@@ -835,6 +1172,7 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                                     {expensesByBranch.map((expense: ExpensesByBranch, index: number) => (
                                         <tr key={expense.branchid}>
                                             <td className="text-start">{expense.branchid}</td>
+                                            <td className="text-start">{expense.branch_name}</td>
                                             <td className="text-start">
                                                 {currencyFormatter.format(Number(expense.total_amount))}
                                             </td>
@@ -851,7 +1189,7 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                 {Array.isArray(allExpenseCategories) && allExpenseCategories.length > 0 && (
                     <Card title="Expense Categories" icon={<RiBarChartGroupedLine />}>
                         <div className="table-responsive">
-                            <table className="table table-sm table-hover table-striped small">
+                            <table className="table table-hover table-striped">
                                 <thead className="table-light">
                                     <tr>
                                         <th className="text-start">Category</th>
@@ -880,7 +1218,7 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                 {Array.isArray(expensePaymentsSummary) && expensePaymentsSummary.length > 0 && (
                     <Card title="Expense Payments Summary" icon={<RiHandCoinLine />}>
                         <div className="table-responsive">
-                            <table className="table table-sm table-hover table-striped small">
+                            <table className="table table-hover table-striped">
                                 <thead className="table-light">
                                     <tr>
                                         <th className="text-start">Status</th>
@@ -911,15 +1249,14 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                 {Array.isArray(expensePaymentsFullList) && expensePaymentsFullList.length > 0 && (
                     <Card title="Expense Payments Full List" icon={<RiFileList3Line />}>
                         <div className="table-responsive">
-                            <table className="table table-sm table-hover table-striped small">
+                            <table className="table table-hover table-striped">
                                 <thead className="table-light">
                                     <tr>
-                                        <th className="text-start">Payment ID</th>
+                                        <th className="text-start">Payment Date</th>
                                         <th className="text-start">Expense Name</th>
                                         <th className="text-start">Merchant</th>
                                         <th className="text-start">Claimed Amount</th>
                                         <th className="text-start">Paid Amount</th>
-                                        <th className="text-start">Payment Date</th>
                                         <th className="text-start">Method</th>
                                         <th className="text-start">Status</th>
                                     </tr>
@@ -927,17 +1264,16 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                                 <tbody>
                                     {expensePaymentsFullList.map((payment: ExpensePaymentsFullList, index: number) => (
                                         <tr key={payment.payment_id}>
-                                            <td className="text-start">{payment.payment_id}</td>
+                                            <td className="text-start">
+                                                {new Date(payment.payment_date).toLocaleDateString()}
+                                            </td>
                                             <td className="text-start">{payment.expense_name}</td>
-                                            <td className="text-start">{payment.merchant}</td>
+                                            <td className="text-start">{payment.merchant_name}</td>
                                             <td className="text-start">
                                                 {currencyFormatter.format(Number(payment.claimed_amount))}
                                             </td>
                                             <td className="text-start">
                                                 {currencyFormatter.format(Number(payment.paid_amount))}
-                                            </td>
-                                            <td className="text-start">
-                                                {new Date(payment.payment_date).toLocaleDateString()}
                                             </td>
                                             <td className="text-start">{payment.method}</td>
                                             <td className="text-start">{payment.status}</td>
@@ -952,18 +1288,18 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                 {Array.isArray(allIndividualExpenses) && allIndividualExpenses.length > 0 && (
                     <Card title="All Individual Expenses" icon={<RiCashLine />}>
                         <div className="table-responsive">
-                            <table className="table table-sm table-hover table-striped small">
+                            <table className="table table-hover table-striped">
                                 <thead className="table-light">
                                     <tr>
                                         <th className="text-start">Expense ID</th>
                                         <th className="text-start">Name</th>
-                                        <th className="text-start">Merchant</th>
+                                        <th className="text-start">Merchant Name</th>
                                         <th className="text-start">Amount</th>
                                         <th className="text-start">Expense Date</th>
                                         <th className="text-start">Category</th>
                                         <th className="text-start">Approval Status</th>
-                                        <th className="text-start">Employee ID</th>
-                                        <th className="text-start">Branch ID</th>
+                                        <th className="text-start">Submitted By</th>
+                                        <th className="text-start">Branch</th>
                                         <th className="text-start">Description</th>
                                     </tr>
                                 </thead>
@@ -972,7 +1308,7 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                                         <tr key={expense.expense_id}>
                                             <td className="text-start">{expense.expense_id}</td>
                                             <td className="text-start">{expense.name}</td>
-                                            <td className="text-start">{expense.merchant}</td>
+                                            <td className="text-start">{expense.merchant_name}</td>
                                             <td className="text-start">
                                                 {currencyFormatter.format(Number(expense.amount))}
                                             </td>
@@ -981,42 +1317,9 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                                             </td>
                                             <td className="text-start">{expense.category}</td>
                                             <td className="text-start">{expense.approval_status}</td>
-                                            <td className="text-start">{expense.employeeid}</td>
-                                            <td className="text-start">{expense.branchid}</td>
-                                            <td className="text-start">{expense.description}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </Card>
-                )}
-
-                {Array.isArray(unapprovedExpensesPeriod) && unapprovedExpensesPeriod.length > 0 && (
-                    <Card title="Unapproved Expenses" icon={<RiAlertLine />}>
-                        <div className="table-responsive">
-                            <table className="table table-sm table-hover table-striped small">
-                                <thead className="table-light">
-                                    <tr>
-                                        <th className="text-start">Expense ID</th>
-                                        <th className="text-start">Description</th>
-                                        <th className="text-start">Amount</th>
-                                        <th className="text-start">Submitted Date</th>
-                                        <th className="text-start">Submitted By</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {unapprovedExpensesPeriod.map((expense: UnapprovedExpense, index: number) => (
-                                        <tr key={expense.expense_id}>
-                                            <td className="text-start">{expense.expense_id}</td>
-                                            <td className="text-start">{expense.description}</td>
-                                            <td className="text-start">
-                                                {currencyFormatter.format(Number(expense.amount))}
-                                            </td>
-                                            <td className="text-start">
-                                                {new Date(expense.submitted_date).toLocaleDateString()}
-                                            </td>
                                             <td className="text-start">{expense.submitted_by}</td>
+                                            <td className="text-start">{expense.branch_name}</td>
+                                            <td className="text-start">{expense.description}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -1028,7 +1331,7 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                 {Array.isArray(expenseApprovalStatusSummary) && expenseApprovalStatusSummary.length > 0 && (
                     <Card title="Expense Approval Status Summary" icon={<RiFileList3Line />}>
                         <div className="table-responsive">
-                            <table className="table table-sm table-hover table-striped small">
+                            <table className="table table-hover table-striped">
                                 <thead className="table-light">
                                     <tr>
                                         <th className="text-start">Status</th>
@@ -1040,7 +1343,7 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                                     {expenseApprovalStatusSummary.map((summary: ExpenseApprovalStatusSummary, index: number) => (
                                         <tr key={index}>
                                             <td className="text-start">{summary.status}</td>
-                                            <td className="text-start">{summary.count}</td>
+                                            <td className="text-start">{summary.expense_count}</td>
                                             <td className="text-start">
                                                 {currencyFormatter.format(Number(summary.total_amount))}
                                             </td>
@@ -1055,7 +1358,7 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                 {Array.isArray(totalReimbursedPaid) && totalReimbursedPaid.length > 0 && (
                     <Card title="Total Reimbursed & Paid Summary" icon={<RiHandCoinLine />}>
                         <div className="table-responsive">
-                            <table className="table table-sm table-hover table-striped small">
+                            <table className="table table-hover table-striped">
                                 <thead className="table-light">
                                     <tr>
                                         <th className="text-start">Total Reimbursed</th>
@@ -1077,67 +1380,39 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                     </Card>
                 )}
 
-                {Array.isArray(billableExpenses) && billableExpenses.length > 0 && (
-                    <Card title="Billable Expenses" icon={<RiBankCardLine />}>
-                        <div className="table-responsive">
-                            <table className="table table-sm table-hover table-striped small">
-                                <thead className="table-light">
-                                    <tr>
-                                        <th className="text-start">Billable Expenses Count</th>
-                                        <th className="text-start">Total Billable Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {billableExpenses.map((expense: BillableExpenses, index: number) => (
-                                        <tr key={index}>
-                                            <td className="text-start">{expense.billable_expenses_count}</td>
-                                            <td className="text-start">
-                                                {currencyFormatter.format(Number(expense.total_billable_amount))}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </Card>
-                )}
-
             </div>
 
             <Card title="Daily Test Transaction Details" icon={<RiTestTubeLine />}>
-                {Array.isArray(dailyTestTransactionSnapshot) && dailyTestTransactionSnapshot.length > 0 ? (
+                {Array.isArray(aggregatedTestData) && aggregatedTestData.length > 0 ? (
                     <div className="table-responsive">
-                        <table className="table table-sm table-hover table-striped small">
+                        <table className="table table-hover table-striped">
                             <thead className="table-light">
                                 <tr>
                                     <th className="text-start">Test Name</th>
-                                    <th className="text-start">Category</th>
-                                    <th className="text-start">Count</th>
-                                    <th className="text-start">Accrued Revenue(total payable)</th>
-                                    <th className="text-start">Actual Revenue(paid amount)</th>
                                     <th className="text-start">Total Cost</th>
-                                    <th className="text-start">Discount</th>
-                                    <th className="text-start">Outstanding</th>
-                                    <th className="text-start">Refunds</th>
-                                    <th className="text-start">Added On</th>
+                                    <th className="text-start">Total Count</th>
+                                    <th className="text-start">Total Payable</th>
+                                    <th className="text-start">Total Paid</th>
+                                    <th className="text-start">Total Discount</th>
+                                    <th className="text-start">Total Outstanding</th>
+                                    <th className="text-start">Total Refunds</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {dailyTestTransactionSnapshot.map((test: DailyTestTransaction, index: number) => (
-                                    <tr key={`${test.trackId}-${index}`}>
-                                        <td className="text-start">{test.test_panel_name || 'N/A'}</td>
-                                        <td className="text-start">{test.serviceCategory}</td>
+                                {aggregatedTestData.map((test: any, index: number) => (
+                                    <tr key={`${test.test_panel_name}-${index}`}>
+                                        <td className="text-start">{test.test_panel_name}</td>
                                         <td className="text-start">
-                                            <span className="badge bg-primary">{test.test_count}</span>
+                                            {currencyFormatter.format(Number(test.total_cost))}
+                                        </td>
+                                        <td className="text-start">
+                                            {test.test_count}
                                         </td>
                                         <td className="text-start">
                                             {currencyFormatter.format(Number(test.accrued_revenue))}
                                         </td>
                                         <td className="text-start">
                                             {currencyFormatter.format(Number(test.actual_revenue))}
-                                        </td>
-                                        <td className="text-start">
-                                            {currencyFormatter.format(Number(test.total_cost))}
                                         </td>
                                         <td className="text-start">
                                             {currencyFormatter.format(Number(test.total_discount))}
@@ -1147,9 +1422,6 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                                         </td>
                                         <td className="text-start">
                                             {currencyFormatter.format(Number(test.total_refunds))}
-                                        </td>
-                                        <td className="text-start">
-                                            {new Date(test.serviceAddedOn).toLocaleTimeString()}
                                         </td>
                                     </tr>
                                 ))}
@@ -1167,7 +1439,7 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
             <Card title="Employee Cash Collection Summary" icon={<RiGroupLine />}>
                 {Array.isArray(employeesWhoCollectedCash) && employeesWhoCollectedCash.length > 0 ? (
                     <div className="table-responsive">
-                        <table className="table table-sm table-hover table-striped small">
+                        <table className="table table-hover table-striped">
                             <thead className="table-light">
                                 <tr>
                                     <th className="text-start">Payment Date</th>
@@ -1184,7 +1456,7 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                                         </td>
                                         <td className="text-start">{employee.username}</td>
                                         <td className="text-start">
-                                            <span className="badge bg-primary">{employee.total_transactions}</span>
+                                            {employee.total_transactions}
                                         </td>
                                         <td className="text-start">
                                             {currencyFormatter.format(Number(employee.total_amount))}

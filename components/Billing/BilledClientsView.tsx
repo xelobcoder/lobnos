@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Dropdown } from "react-bootstrap";
 import { RiEdit2Line, RiFileAddLine, RiDeleteBinLine, RiPrinterLine, RiRefund2Line, RiFileList2Line, RiMore2Line, RiEyeLine } from '@remixicon/react';
-import { currencyFormatter } from "../Auth/customFetch";
+import { currencyFormatter, customFetch } from "../Auth/customFetch";
 import { plsEncryption } from "../../lib/encryption";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Modal, Button, Form } from "react-bootstrap";
@@ -34,7 +34,7 @@ interface DateQuery {
 interface TableColumn {
 	Header: string;
 	accessor: string;
-	Cell?: ({ value }: { value: any }) => React.ReactElement | string;
+	Cell?: ({ value, row }: { value: any, row: any }) => React.ReactElement | string;
 }
 
 interface RowData {
@@ -56,21 +56,19 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 	const pquery = useMemo(() => {
 		const from = searchParams?.get('from') || '';
 		const to = searchParams?.get('to') || '';
-		console.log("URL params:", { from, to });
 		return { from, to };
 	}, [searchParams]);
 
 	const [datequery, setDatequery] = useState<DateQuery>({
 		from: pquery.from || '', to: pquery.to || ''
 	});
-	const role = useApplication()?.user;
 
+	const role = useApplication()?.user;
 	const isAdmin = role?.role === 'admin' || role?.role === 'superadmin';
 
 
 	useEffect(() => {
 		if (pquery.from || pquery.to) {
-			console.log("Updating datequery from URL params:", pquery);
 			setDatequery({
 				from: pquery.from || '',
 				to: pquery.to || ''
@@ -180,7 +178,7 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 				return row.original.isFirstOfDay ? <span style={{ backgroundColor: 'red', color: 'white', padding: '2px 4px', borderRadius: '4px' }}>{formatted}</span> : <span>{formatted}</span>;
 			}
 		},
-		{ Header: "Patient", accessor: "fullname", Cell: ({ row }) => <div><div className="fw-semibold">{row.original.fullname}</div><div className="text-muted small">{row.original.fullpatientid}</div></div> },
+		{ Header: "Patient", accessor: "fullname", Cell: ({ row }) => <div className="d-flex justify-content-between align-items-center"><span className="fw-semibold">{row.original.fullname}</span><span className="text-muted small">{row.original.fullpatientid}</span></div> },
 		{ Header: "Bill Id", accessor: "billingid" },
 		{
 			Header: "Billing Source", accessor: "billingSource",
@@ -274,6 +272,11 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 	const monetaryFields: string[] = [
 		'payable', 'paid', 'outstanding', 'discount', 'totalrefunded', 'balance', 'totalcost', 'totalTransactionCost', 'amountIncurredDueTax', 'adjustmentamount', 'promoValue', 'currentPayable', 'previousPaid', 'newPayments', 'totalPaid', 'outstandingToWriteOff'
 	];
+
+
+
+
+
 
 
 	return (
@@ -422,39 +425,63 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 								</button>
 								{isAdmin && datequery.from && datequery.to && (
 									<button
-										className="btn btn-primary btn-sm d-flex align-items-center"
+										className="btn btn-primary btn-sm"
 										onClick={() => router.push(`${plsEncryption(branchid.toString())}/day-transaction-break-down?date=${datequery.from}&&from=${datequery.from}&&end=${datequery.to}`)}
 									>
-										<RiBarChartBoxLine size={16} className="me-1" /> View Breakdown
+									BreakDown
 									</button>
 								)}
 							</div>
 						</div>
 					</div>
 				</div>
-				<div className="card-body p-0">
-					{isAdmin ? (
-						useSimpleView ? <PrimeTable
-							column={coreColumns}
-							urlparams={{ ...datequery, branchid }}
-							data={processedData}
-							serverSideFiltering={true}
-							handleSeverSideProcessing={handleSeverSideProcessing}
-						/> : <PrimeTablePivot
-							column={coreColumns}
-							urlparams={{ ...datequery, branchid }}
-							data={processedData}
-							serverSideFiltering={true}
-							handleSeverSideProcessing={handleSeverSideProcessing}
-						/>
-					) : <PrimeTable
+				{isAdmin ? (
+					useSimpleView ? <div className="table-responsive">
+						<table className="table table-striped table-hover text-nowrap">
+							<thead>
+								<tr>
+									{coreColumns.map(col => <th key={col.accessor}>{col.Header}</th>)}
+								</tr>
+							</thead>
+							<tbody>
+								{processedData.map((row, index) => (
+									<tr key={index}>
+										{coreColumns.map(col => {
+											const value = row[col.accessor];
+											const cellContent = col.Cell ? col.Cell({ value, row: { original: row } }) : value;
+											return <td key={col.accessor}>{cellContent}</td>;
+										})}
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</div> : <PrimeTablePivot
 						column={coreColumns}
 						urlparams={{ ...datequery, branchid }}
 						data={processedData}
 						serverSideFiltering={true}
 						handleSeverSideProcessing={handleSeverSideProcessing}
-					/>}
-				</div>
+					/>
+				) : <div className="table-responsive">
+					<table className="table table-striped table-hover text-nowrap">
+						<thead>
+							<tr>
+								{coreColumns.map(col => <th key={col.accessor}>{col.Header}</th>)}
+							</tr>
+						</thead>
+						<tbody>
+							{processedData.map((row, index) => (
+								<tr key={index}>
+									{coreColumns.map(col => {
+										const value = row[col.accessor];
+										const cellContent = col.Cell ? col.Cell({ value, row: { original: row } }) : value;
+										return <td key={col.accessor}>{cellContent}</td>;
+									})}
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</div>}
 			</div>
 
 
