@@ -6,6 +6,7 @@ import { generateRandomTextAndNumbers, PrepareResultEntryHeader } from "../../Au
 import PrimeTable from '../../accessories/Datatables/PrimeTable';
 import { useApplication } from "../../Auth/useApplicationContext";
 import { handleServerSideProcessingAscensionData } from "../../serverActions/ActionFiltering";
+import dayjs from 'dayjs';
 
 
 export default function AscentionUltrasoundUnCompletedTable({ stage }) {
@@ -33,47 +34,104 @@ export default function AscentionUltrasoundUnCompletedTable({ stage }) {
 		{
 			Header: 'Ascension Date',
 			accessor: 'ascension_date',
-			Cell: ({ value }) => new Date(value).toLocaleDateString(),
-			width: 70,
+			Cell: ({ value }) => (
+				<div className="fw-bold">
+					{dayjs(value).format('DD-MM-YY HH:mm:ss')}
+				</div>
+			),
+			width: 100,
 		},
 		{
-			Header: 'Name',
+			Header: 'Patient Details',
 			accessor: 'fullname',
 			Cell: ({ row }) => (
-				<div className="text-uppercase fw-bold">
-					{row.original.fullname} <br />
+				<div>
+					<div className="text-uppercase fw-bold text-primary">
+						{row.original.fullname}
+					</div>
+					<div className="small text-muted">
+						Age: {row.original.age}
+					</div>
+					<div className="small">
+						<strong>ID:</strong> {row.original.fullpatientid}
+					</div>
 				</div>
 			),
+			width: 180,
 		},
-		{ Header: 'Age', accessor: 'age', width: 50 },
 		{
-			Header: 'Patient ID & Bill ID',
-			accessor: 'fullpatientid',
+			Header: 'Test Information',
+			accessor: 'name',
 			Cell: ({ row }) => (
 				<div>
-					{row.original.fullpatientid} <br />
-					{row.original.billingid}
+					<div className="fw-bold">{row.original.name}</div>
+					<div className="small text-muted">
+						Bill ID: {row.original.billingid}
+					</div>
+					{row.original.organization && (
+						<div className="small text-info">
+							<strong>Org:</strong> {row.original.organization}
+						</div>
+					)}
 				</div>
 			),
-			width: 120,
+			width: 150,
 		},
 		{
-			Header: 'Status',
+			Header: 'Payment Status',
 			accessor: 'clientstatus',
 			Cell: ({ value }) => (
-				<span className={`badge ${value === 'paid' ? 'bg-success' : 'bg-warning'}`}>
-					{value}
+				<span className={`badge ${value === 'paid' ? 'bg-success' : value === 'pending' ? 'bg-warning' : 'bg-secondary'}`}>
+					{value?.toUpperCase()}
 				</span>
 			),
-			width: 70,
+			width: 100,
+		},
+		{
+			Header: 'Result Entry',
+			accessor: 'resultEntryStart',
+			Cell: ({ row }) => {
+				const start = row.original.resultEntryStart;
+				const end = row.original.resultEntryEnd;
+				const isCompleted = start && end;
+
+				return (
+					<div>
+						{isCompleted ? (
+							<div>
+								<span className="badge bg-success">Completed</span>
+								<div className="small text-muted mt-1">
+									{dayjs(start).format('DD-MM-YY HH:mm:ss')}
+								</div>
+							</div>
+						) : start ? (
+							<div>
+								<span className="badge bg-info">In Progress</span>
+								<div className="small text-muted mt-1">
+									Started: {dayjs(start).format('DD-MM-YY HH:mm:ss')}
+								</div>
+							</div>
+						) : (
+							<span className="badge bg-secondary">Not Started</span>
+						)}
+					</div>
+				);
+			},
+			width: 120,
 		},
 		{
 			Header: 'Entered By',
 			accessor: 'entered_by_username',
-			width: 120,
+			Cell: ({ row }) => (
+				<div>
+					<div className="fw-bold">{row.original.entered_by_username}</div>
+					<div className="small text-muted">{row.original.entered_by_role}</div>
+				</div>
+			),
+			width: 150,
 		},
 		{
-			Header: 'Action',
+			Header: 'Actions',
 			accessor: 'action',
 			Cell: ({ row }) => (
 				<Dropdown>
@@ -81,10 +139,14 @@ export default function AscentionUltrasoundUnCompletedTable({ stage }) {
 						<RiMoreLine size={16} />
 					</Dropdown.Toggle>
 					<Dropdown.Menu>
-						<Dropdown.Item onClick={() => PrepareResultEntryHeader(row.original, true, branchid)}>
-							<RiCheckLine size={16} className="me-1" /> Enter result
+						<Dropdown.Item
+							onClick={() => PrepareResultEntryHeader(row.original, true, branchid)}
+							disabled={row.original.clientstatus === 'pending'}
+						>
+							<RiCheckLine size={16} className="me-1" />
+							{row.original.resultEntryStart ? 'Continue Result Entry' : 'Enter Result'}
 						</Dropdown.Item>
-						{stage == "ULTRASOUND_COMPLETED" && (
+						{stage == "ULTRASOUND_COMPLETED" && row.original.resultEntryEnd && (
 							<Dropdown.Item onClick={() => handlePrintResult(row.original)}>
 								<RiCloseLine size={16} className="me-1" />
 								Print Result
@@ -109,7 +171,7 @@ export default function AscentionUltrasoundUnCompletedTable({ stage }) {
 				urlparams={{
 					_dateFrom: queryParams._dateFrom,
 					_dateEnd: queryParams._dateEnd,
-					searchString: queryParams.searchString,
+					searchString: queryParams.searchString ? decodeURIComponent(queryParams.searchString) : '',
 					isUltrasound: true,
 					employeeid: queryParams.employeeid,
 					ascension_stage: stage

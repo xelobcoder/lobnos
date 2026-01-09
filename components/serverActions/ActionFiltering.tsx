@@ -114,7 +114,7 @@ export const handleRefundServerSideProcessing = async (values: { count: number; 
 
 export const handleServerSideProcessingAscensionData = async (pagination) => {
 	try {
-		const { page, count, employeeid, ascension_stage, _dateFrom, _dateEnd, isUltrasound, searchString, sortby='DESC' } = pagination;
+		const { page, count, employeeid, ascension_stage, _dateFrom, _dateEnd, isUltrasound, searchString, sortby = 'DESC' } = pagination;
 
 		const parsedFrom = _dateFrom ? formatDate(_dateFrom) : _dateFrom;
 		const parsedEnd = _dateEnd ? formatDate(_dateEnd) : _dateEnd;
@@ -159,8 +159,17 @@ export const getPhelobotomy = async (page: number, count: number) => {
 
 
 export const handleSeverSideProcessingPhelobotomy = async (pagination) => {
-	const { count, page } = pagination;
-	return await getPhelobotomy(page, count);
+	try {
+		const { filter, page, count, start_date, end_date, sortby = "DESC" } = pagination;
+		const { result } = await customFetch(`test/ascension/pendingCases?count=${count}&&page=${page}&&filter=${filter}&&start_date=${start_date}&&end_date=${end_date}&&sortby=${sortby}`);
+		if (Array.isArray(result)) {
+			return { result, err: false };
+		}
+		return { result: [], err: false };
+	} catch (error) {
+		console.error(error);
+		return { result: [], err: true };
+	}
 }
 
 
@@ -416,7 +425,7 @@ export async function LoadTestConditionsDefinition(testid: number) {
 
 export async function loadTaskDefinition(pagination) {
 	try {
-		const { page, count ,sortby ='DESC'} = pagination;
+		const { page, count, sortby = 'DESC' } = pagination;
 		const data = await customFetch(`primelims/tasks?page=${page}&&count=${count}&&sortby=${sortby}`);
 		if (Array.isArray(data) && data.length > 0) {
 			const mappedTasks = data.map(task => ({
@@ -441,7 +450,7 @@ export async function loadTaskDefinition(pagination) {
 
 export const handleServerCriticalValues = async (paginate) => {
 	try {
-		const { page, count ,sortby} = paginate
+		const { page, count, sortby } = paginate
 		const response = await customFetch(`result/criticalvalues/logging/paginated?sortby=${sortby}&&page=${page}&&count=${count}`);
 		if (response?.data && Array.isArray(response?.data)) {
 			return { result: response?.data, error: false }
@@ -503,7 +512,7 @@ export const handleServerProcessingSmsTemplates = async (pagination: { page: num
 
 export const fetchServerSideAppointments = async (pagination: { page: number, count: number, sortby: 'DESC' | 'ASC' }) => {
 	try {
-		const { page, count, sortby='DESC'} = pagination;
+		const { page, count, sortby = 'DESC' } = pagination;
 		const response = await customFetch(`appointments?page=${page}&count=${count}&&sortby=${sortby}`);
 		if (Array.isArray(response)) {
 			return { result: response, error: false };

@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useMemo, useEffect } from "react";
 import { Dropdown } from "react-bootstrap";
-import { RiEdit2Line, RiFileAddLine, RiDeleteBinLine, RiPrinterLine, RiRefund2Line, RiFileList2Line, RiMore2Line, RiEyeLine } from '@remixicon/react';
+import { RiEdit2Line, RiFileAddLine, RiDeleteBinLine, RiPrinterLine, RiRefund2Line, RiFileList2Line, RiMore2Line, RiEyeLine, RiMoneyDollarCircleLine } from '@remixicon/react';
 import { currencyFormatter, customFetch } from "../Auth/customFetch";
 import { plsEncryption } from "../../lib/encryption";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -15,6 +15,7 @@ import AdjustBillingSourceModal from './AdjustBillingSourceModal';
 import PrimeTablePivot from '../accessories/Datatables/PrimePivotTable'
 import PrimeTable from "../accessories/Datatables/PrimeTable";
 import dayjs from "dayjs";
+import ISLOADING from "../isLoading";
 
 export interface BillingSourceOption {
 	value: number;
@@ -24,6 +25,8 @@ export interface BillingSourceOption {
 interface BilledClientsViewProps {
 	data: any[];
 	branchid: number | string;
+	expensesPaymentMade?: any[];
+	isLoading?: boolean;
 }
 
 interface DateQuery {
@@ -49,7 +52,7 @@ interface RowData {
 
 type ModalType = 'adjust' | 'update' | null;
 
-export default function BilledClientsView({ data, branchid }: BilledClientsViewProps) {
+export default function BilledClientsView({ data, branchid, expensesPaymentMade, isLoading = false }: BilledClientsViewProps) {
 	const [selectedBillingSource, setSelectedBillingSource] = useState<BillingSourceOption | null>(null);
 	const [itemToEdit, setItemToEdit] = useState<any>(null);
 	const searchParams = useSearchParams();
@@ -78,7 +81,6 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 
 
 
-	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const { employeeid } = useApplicationSettings().applicationsettings.user;
 	const router = useRouter();
 
@@ -90,6 +92,7 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 	const [modalUserRandInput, setModalUserRandInput] = useState<string>("");
 	const [modalReason, setModalReason] = useState<string>("");
 	const [useSimpleView, setUseSimpleView] = useState<boolean>(true);
+	const [viewMode, setViewMode] = useState<'sales' | 'expenses'>('sales');
 	const [showViewMore, setShowViewMore] = useState<boolean>(false);
 	const [viewMoreData, setViewMoreData] = useState<any>(null);
 	const processedData = useMemo(() => {
@@ -178,7 +181,7 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 				return row.original.isFirstOfDay ? <span style={{ backgroundColor: 'red', color: 'white', padding: '2px 4px', borderRadius: '4px' }}>{formatted}</span> : <span>{formatted}</span>;
 			}
 		},
-		{ Header: "Patient", accessor: "fullname", Cell: ({ row }) => <div className="d-flex justify-content-between align-items-center"><span className="fw-semibold">{row.original.fullname}</span><span className="text-muted small">{row.original.fullpatientid}</span></div> },
+		{ Header: "Patient", accessor: "fullname", Cell: ({ row }) => <div className="d-flex flex-column"><span className="fw-semibold">{row.original.fullname}</span><span className="text-muted small">{row.original.fullpatientid}</span></div> },
 		{ Header: "Bill Id", accessor: "billingid" },
 		{
 			Header: "Billing Source", accessor: "billingSource",
@@ -374,10 +377,38 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 				<div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: 'var(--bs-border-color)' }}>
 					<div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
 						<h2 className="fs-6 fw-semibold text-body-emphasis mb-3 mb-lg-0 d-flex align-items-center">
-							<RiTableLine size={22} style={{ color: 'oklch(0.646 0.222 41.116)' }} className="me-2 flex-shrink-0" />
-							Billed Clients
+							{viewMode === 'sales' ? (
+								<>
+									<RiTableLine size={22} style={{ color: 'oklch(0.646 0.222 41.116)' }} className="me-2 flex-shrink-0" />
+									Billed Clients
+								</>
+							) : (
+								<>
+									<RiMoneyDollarCircleLine size={22} style={{ color: 'oklch(0.646 0.222 41.116)' }} className="me-2 flex-shrink-0" />
+									Expenses Payment Made
+								</>
+							)}
 						</h2>
 						<div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
+							<div className="btn-group btn-group-sm" role="group" aria-label="Data view">
+								<button
+									type="button"
+									className={`btn ${viewMode === 'sales' ? 'btn-primary' : 'btn-outline-secondary'}`}
+									onClick={() => setViewMode('sales')}
+									style={viewMode === 'sales' ? { backgroundColor: 'oklch(0.646 0.222 41.116)', borderColor: 'oklch(0.646 0.222 41.116)' } : {}}
+								>
+									<RiTableLine size={16} className="me-1 align-text-bottom" /> Sales
+								</button>
+								<button
+									type="button"
+									className={`btn ${viewMode === 'expenses' ? 'btn-primary' : 'btn-outline-secondary'}`}
+									onClick={() => setViewMode('expenses')}
+									disabled={!expensesPaymentMade || expensesPaymentMade.length === 0}
+									style={viewMode === 'expenses' ? { backgroundColor: 'oklch(0.646 0.222 41.116)', borderColor: 'oklch(0.646 0.222 41.116)' } : {}}
+								>
+									<RiMoneyDollarCircleLine size={16} className="me-1 align-text-bottom" /> Expenses
+								</button>
+							</div>
 							{isAdmin && <div className="btn-group btn-group-sm" role="group" aria-label="View type">
 								<button
 									type="button"
@@ -428,15 +459,46 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 										className="btn btn-primary btn-sm"
 										onClick={() => router.push(`${plsEncryption(branchid.toString())}/day-transaction-break-down?date=${datequery.from}&&from=${datequery.from}&&end=${datequery.to}`)}
 									>
-									BreakDown
+										BreakDown
 									</button>
 								)}
 							</div>
 						</div>
 					</div>
 				</div>
-				{isAdmin ? (
-					useSimpleView ? <div className="table-responsive">
+				{isLoading ? (
+					<div className="d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
+						<ISLOADING />
+					</div>
+				) : viewMode === 'sales' ? (
+					isAdmin ? (
+						useSimpleView ? <div className="table-responsive" style={{ minHeight: '60vh' }}>
+							<table className="table table-striped table-hover text-nowrap">
+								<thead>
+									<tr>
+										{coreColumns.map(col => <th key={col.accessor}>{col.Header}</th>)}
+									</tr>
+								</thead>
+								<tbody>
+									{processedData.map((row, index) => (
+										<tr key={index}>
+											{coreColumns.map(col => {
+												const value = row[col.accessor];
+												const cellContent = col.Cell ? col.Cell({ value, row: { original: row } }) : value;
+												return <td key={col.accessor}>{cellContent}</td>;
+											})}
+										</tr>
+									))}
+								</tbody>
+							</table>
+						</div> : <PrimeTablePivot
+							column={coreColumns}
+							urlparams={{ ...datequery, branchid }}
+							data={processedData}
+							serverSideFiltering={true}
+							handleSeverSideProcessing={handleSeverSideProcessing}
+						/>
+					) : <div className="table-responsive" style={{ minHeight: '50vh' }}>
 						<table className="table table-striped table-hover text-nowrap">
 							<thead>
 								<tr>
@@ -455,33 +517,47 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 								))}
 							</tbody>
 						</table>
-					</div> : <PrimeTablePivot
-						column={coreColumns}
-						urlparams={{ ...datequery, branchid }}
-						data={processedData}
-						serverSideFiltering={true}
-						handleSeverSideProcessing={handleSeverSideProcessing}
-					/>
-				) : <div className="table-responsive">
-					<table className="table table-striped table-hover text-nowrap">
-						<thead>
-							<tr>
-								{coreColumns.map(col => <th key={col.accessor}>{col.Header}</th>)}
-							</tr>
-						</thead>
-						<tbody>
-							{processedData.map((row, index) => (
-								<tr key={index}>
-									{coreColumns.map(col => {
-										const value = row[col.accessor];
-										const cellContent = col.Cell ? col.Cell({ value, row: { original: row } }) : value;
-										return <td key={col.accessor}>{cellContent}</td>;
-									})}
-								</tr>
-							))}
-						</tbody>
-					</table>
-				</div>}
+					</div>
+				) : (
+					expensesPaymentMade && expensesPaymentMade.length > 0 ? (
+						<div className="table-responsive" style={{ minHeight: '40vh' }}>
+							<table className="table table-striped table-hover text-nowrap">
+								<thead className="table-light">
+									<tr>
+										<th>Status</th>
+										<th>Method</th>
+										<th>Merchant Name</th>
+										<th>Payments Made</th>
+										<th>Unique Expenses Reimbursed</th>
+										<th>Total Reimbursed Amount</th>
+									</tr>
+								</thead>
+								<tbody>
+									{expensesPaymentMade.map((expense, index) => (
+										<tr key={index}>
+											<td>
+												<span className={`badge ${expense.status === 'Paid' ? 'bg-success' : 'bg-warning'}`}>
+													{expense.status}
+												</span>
+											</td>
+											<td>{expense.method}</td>
+											<td>{expense.merchant_name}</td>
+											<td>{expense.payments_made}</td>
+											<td>{expense.unique_expenses_reimbursed}</td>
+											<td>{currencyFormatter.format(Number(expense.total_reimbursed_amount) || 0)}</td>
+										</tr>
+									))}
+								</tbody>
+							</table>
+						</div>
+					) : (
+						<div className="d-flex flex-column justify-content-center align-items-center text-center" style={{ minHeight: '40vh' }}>
+							<RiMoneyDollarCircleLine size={48} className="mb-3 text-muted" />
+							<h5 className="fw-medium mb-1">No Expenses Data</h5>
+							<p className="text-muted px-3">No expenses payment data available for the selected period.</p>
+						</div>
+					)
+				)}
 			</div>
 
 

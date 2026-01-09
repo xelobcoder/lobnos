@@ -7,7 +7,7 @@ import {
 	RiHealthBookLine,
 } from "@remixicon/react";
 
-export default function PhelobotomyMainPageClientModule({ data }) {
+export default function PhelobotomyMainPageClientModule({ data ,filter}) {
 	const { applicationsettings } = useApplicationSettings();
 	const employeeid = applicationsettings?.user?.employeeid;
 	const [localData, setLocalData] = useState(data);
@@ -87,7 +87,6 @@ export default function PhelobotomyMainPageClientModule({ data }) {
 
 	const hideModal = () => {
 		setShowModal(false);
-		// Clear all selections when modal is closed
 		setSelectedItems([]);
 		setCollections([]);
 		setCurrentIndex(0);
@@ -149,6 +148,7 @@ export default function PhelobotomyMainPageClientModule({ data }) {
 			<ListTable
 				data={localData}
 				receive={receiveSample}
+				filter={filter}
 				handleCollectSample={handleCollectSample}
 				selectedItems={selectedItems}
 				onToggleSelection={handleToggleSelection}

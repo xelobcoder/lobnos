@@ -4,7 +4,7 @@ import { calculateTimeUsed, customPost } from "../Auth/customFetch";
 import moment from "moment/moment";
 import { RiPlayCircleLine, RiCheckDoubleLine, RiPlayFill, RiStopFill } from '@remixicon/react';
 
-export default function ReceivedCollectionModalTableTr({ item, toggleMultipleSelection, multipleSelected, toast, updateCollectionStatus}) {
+export default function ReceivedCollectionModalTableTr({ item, toggleMultipleSelection, multipleSelected, toast, updateCollectionStatus }) {
     const [isCollectionLoading, setIsCollectionLoading] = useState(false);
     const [isCompletedLoading, setIsCompletedLoading] = useState(false);
 
@@ -17,7 +17,7 @@ export default function ReceivedCollectionModalTableTr({ item, toggleMultipleSel
             };
             stage === "collectionStartDate" && setIsCollectionLoading(true);
             stage === "collectionEndDate" && setIsCompletedLoading(true);
-            await updateCollectionStatus(updatedItem,stage,value)
+            await updateCollectionStatus(updatedItem, stage, value)
 
         } catch (err) {
             toast.error("Failed to initiate sample");
@@ -27,8 +27,8 @@ export default function ReceivedCollectionModalTableTr({ item, toggleMultipleSel
         }
     };
 
-   
-    
+
+
 
 
     const statusView = (item) => {
@@ -69,17 +69,17 @@ export default function ReceivedCollectionModalTableTr({ item, toggleMultipleSel
             </td>
             <td style={{ width: '10%' }}>
                 <div className="d-flex flex-column gap-1">
-                    <button 
-                        disabled={isCollectionLoading || item.collectionStartDate} 
-                        onClick={() => handleIndividualSample('collectionStartDate', item)} 
+                    <button
+                        disabled={isCollectionLoading || item.collectionStartDate}
+                        onClick={() => handleIndividualSample('collectionStartDate', item)}
                         className="btn btn-outline-primary btn-sm d-flex align-items-center gap-1"
                     >
                         {isCollectionLoading ? <Spinner size="sm" /> : <RiPlayCircleLine />}
                         Initiate
                     </button>
-                    <button 
-                        onClick={() => handleIndividualSample('collectionEndDate', item)} 
-                        disabled={isCompletedLoading || item.collectionEndDate} 
+                    <button
+                        onClick={() => handleIndividualSample('collectionEndDate', item)}
+                        disabled={isCompletedLoading || item.collectionEndDate || !item.collectionStartDate}
                         className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
                     >
                         {isCompletedLoading ? <Spinner size="sm" /> : <RiCheckDoubleLine />}

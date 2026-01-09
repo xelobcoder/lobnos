@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"golang.org/x/term"
+	"github.com/joho/godotenv"
 )
 
 func isLeapYear(year int) bool {
@@ -60,6 +60,13 @@ func getWmicValue(command string) string {
 }
 
 func main() {
+	// Load environment variables from .env file
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("Error loading .env file:", err)
+		return
+	}
+
 	cpuId := getWmicValue("cpu get ProcessorId /value")
 	diskSerial := getWmicValue("diskdrive get SerialNumber /value")
 	motherboardSerial := getWmicValue("baseboard get SerialNumber /value")
@@ -68,7 +75,7 @@ func main() {
 
 	systemDrive := os.Getenv("SystemDrive")
 	folderPath := systemDrive + "\\advanced\\prime-lab-system"
-	err := os.MkdirAll(folderPath, 0755)
+	err = os.MkdirAll(folderPath, 0755)
 	if err != nil && !os.IsExist(err) {
 		fmt.Println("Error creating folder:", err)
 		return
@@ -88,14 +95,12 @@ func main() {
 		break
 	}
 
-	fmt.Print("Enter password: ")
-	passwordBytes, err := term.ReadPassword(int(os.Stdin.Fd()))
-	if err != nil {
-		fmt.Println("Error reading password:", err)
+	// Read password from environment variable instead of prompting
+	password := os.Getenv("LICENSE_PASSWORD")
+	if password == "" {
+		fmt.Println("Error: LICENSE_PASSWORD not set in .env file")
 		return
 	}
-	fmt.Println() // Print newline after password input
-	password := string(passwordBytes)
 	if password != "PrimeLabTiifuHamza" {
 		fmt.Println("Invalid password")
 		return

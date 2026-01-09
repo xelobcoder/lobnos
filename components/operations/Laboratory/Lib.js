@@ -3,12 +3,12 @@ import { customFetch } from "../../Auth/customFetch";
 import { RiPlayFill, RiStopFill } from '@remixicon/react';
 
 export const formatDate = (date) => {
-       return new Date(date).toISOString().split('T')[0];
+       return new Date(date).toISOString().split('T')[0]
 };
 
-export async function getAscensionData(ascension_stage, setCollection, queryParams, setLoading,employeeid,branchid) {
+export async function getAscensionData(ascension_stage, setCollection, queryParams, setLoading, employeeid, branchid) {
        try {
-              const { _dateFrom, _dateEnd, isUltrasound,sortby } = queryParams;
+              const { _dateFrom, _dateEnd, isUltrasound, sortby } = queryParams;
 
               const parsedFrom = _dateFrom ? formatDate(_dateFrom) : _dateFrom;
               const parsedEnd = _dateEnd ? formatDate(_dateEnd) : _dateEnd;
@@ -19,12 +19,12 @@ export async function getAscensionData(ascension_stage, setCollection, queryPara
                             `operations/ascension/staging?operationsStaging=${ascension_stage}` +
                             `&&dateFrom=${parsedFrom}` +
                             `&&dateEnd=${parsedEnd}` +
-                            `&&searchString=${queryParams.searchString}` +
+                            `&&searchString=${queryParams.searchString ? decodeURIComponent(queryParams.searchString) : ''}` +
                             `&&page=${queryParams.page}` +
                             `&&count=${queryParams.count}` +
                             `&&isUltrasound=${isUltrasound}` +
                             `&&employeeid=${employeeid}` +
-                            `&&branchid=${branchid}`+
+                            `&&branchid=${branchid}` +
                             `&&sortby=${sortby}`
                      );
                      if (Array.isArray(result)) {
@@ -59,12 +59,12 @@ export const fnTiming = (item) => {
                      {parsedEnd && <span> <RiStopFill color='red' />{parsedEnd}</span>}
               </div>
        )
-} 
+}
 
 
 
 
-export const getAscensionStaffApproved= async (ascensionId,employeeid) =>{
+export const getAscensionStaffApproved = async (ascensionId, employeeid) => {
        const { staff } = await customFetch(`test/approval/get/staffQualifiedToValidationResult?employeeid=${employeeid}&&ascensionid=${ascensionId}`);
 
        return staff;

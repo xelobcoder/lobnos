@@ -48,6 +48,7 @@ interface YearlySalesAPIEntry {
     accrued_revenue: string;
     total_discount: string;
     totalRefunded: string;
+    total_expenses: string;
     net_revenue: string;
     outstanding_debt: string;
 }
@@ -59,6 +60,7 @@ interface ChartDataEntry {
     accrued_revenue: number;
     total_discount: number;
     totalRefunded: number;
+    total_expenses: number;
     net_revenue: number;
     outstanding_debt: number;
 }
@@ -68,13 +70,12 @@ export default function YearlySalesTrend() {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [view, setView] = useState<"pie" | "bar" | "line" | "area">("bar");
+    const [pieMetric, setPieMetric] = useState<"totalCost" | "accrued_revenue" | "actual_revenue" | "total_expenses" | "net_revenue" | "outstanding_debt" | "total_discount" | "totalRefunded">("accrued_revenue");
 
     const { branchid, user } = useApplicationSettings().applicationsettings || {};
     const employeeid = user?.employeeid;
 
-    const [year, setYear] = useState<number>(new Date().getFullYear());
-
-    const fetchData = useCallback(async (fetchYear: number, currentBranchId?: string, currentEmployeeId?: number) => {
+    const fetchData = useCallback(async (currentBranchId?: string, currentEmployeeId?: number) => {
         if (!currentBranchId) {
             setError("Branch ID is not available.");
             setData([]);
@@ -90,7 +91,7 @@ export default function YearlySalesTrend() {
         setLoading(true);
         setError(null);
         try {
-            const url = `financials/billing/summary?key=yearlySalesTrend&year=${fetchYear}&branchid=${currentBranchId}&employeeid=${currentEmployeeId}`;
+            const url = `financials/billing/summary?key=yearlySalesTrend&branchid=${currentBranchId}&employeeid=${currentEmployeeId}`;
             const response: YearlySalesAPIEntry[] = await customFetch(url);
 
             if (response && Array.isArray(response)) {
@@ -100,8 +101,7 @@ export default function YearlySalesTrend() {
                     actual_revenue: parseFloat(item.actual_revenue) || 0,
                     accrued_revenue: parseFloat(item.accrued_revenue) || 0,
                     total_discount: parseFloat(item.total_discount) || 0,
-                    totalRefunded: parseFloat(item.totalRefunded) || 0,
-                    net_revenue: parseFloat(item.net_revenue) || 0,
+                    totalRefunded: parseFloat(item.totalRefunded) || 0, total_expenses: parseFloat(item.total_expenses) || 0, net_revenue: parseFloat(item.net_revenue) || 0,
                     outstanding_debt: parseFloat(item.outstanding_debt) || 0,
                 })).sort((a, b) => parseInt(b.year) - parseInt(a.year));
                 setData(formattedData);
@@ -123,19 +123,19 @@ export default function YearlySalesTrend() {
 
     useEffect(() => {
         if (branchid && employeeid) {
-            fetchData(year, branchid, employeeid);
+            fetchData(branchid, employeeid);
         } else {
             setLoading(false);
             setError("Branch and employee information is not loaded yet.");
         }
-    }, [fetchData, year, branchid, employeeid]);
+    }, [fetchData, branchid, employeeid]);
 
     const handleViewToggle = (newView: "pie" | "bar" | "line" | "area") => {
         setView(newView);
     };
 
     const handleResetFilters = () => {
-        setYear(new Date().getFullYear());
+        // No filters to reset
     };
 
     const overallSummary = useMemo(() => {
@@ -145,10 +145,11 @@ export default function YearlySalesTrend() {
             acc.accrued_revenue += curr.accrued_revenue;
             acc.total_discount += curr.total_discount;
             acc.totalRefunded += curr.totalRefunded;
+            acc.total_expenses += curr.total_expenses;
             acc.net_revenue += curr.net_revenue;
             acc.outstanding_debt += curr.outstanding_debt;
             return acc;
-        }, { totalCost: 0, actual_revenue: 0, accrued_revenue: 0, total_discount: 0, totalRefunded: 0, net_revenue: 0, outstanding_debt: 0 });
+        }, { totalCost: 0, actual_revenue: 0, accrued_revenue: 0, total_discount: 0, totalRefunded: 0, total_expenses: 0, net_revenue: 0, outstanding_debt: 0 });
     }, [data]);
 
     const CustomTooltip = ({ active, payload, label }: any) => {
@@ -170,15 +171,23 @@ export default function YearlySalesTrend() {
                         <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Year</span>
                         <span className="fw-bold d-block" style={{ color: COLOR_TOOLTIP_FG }}>{yearLabel}</span>
                     </div>
-                    {payload.map((pld: any, index: number) => (
-                        <div key={index} className="mt-1">
-                            <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>{pld.name}</span>
-                            <span className="fw-bold d-block" style={{ color: pld.color || pld.payload?.fill || COLOR_ACCENT }}>
-                                {currencyFormatter.format(pld.value)}
-                                {overallSummary.totalCost > 0 && pld.dataKey === "totalCost" && ` (${((pld.value / overallSummary.totalCost) * 100).toFixed(1)}%)`}
-                            </span>
-                        </div>
-                    ))}
+                    {payload.map((pld: any, index: number) => {
+                        const actualDataKey = view === 'pie' ? pieMetric : pld.dataKey;
+                        const totalForMetric = overallSummary[actualDataKey as keyof typeof overallSummary] || 0;
+                        const showPercentage = totalForMetric > 0 && (view === 'pie' || pld.dataKey === "totalCost");
+
+                        return (
+                            <div key={index} className="mt-1">
+                                <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>
+                                    {view === 'pie' ? pieMetricOptions.find(opt => opt.value === pieMetric)?.label || pld.name : pld.name}
+                                </span>
+                                <span className="fw-bold d-block" style={{ color: pld.color || pld.payload?.fill || COLOR_ACCENT }}>
+                                    {currencyFormatter.format(pld.value)}
+                                    {showPercentage && ` (${((pld.value / totalForMetric) * 100).toFixed(1)}%)`}
+                                </span>
+                            </div>
+                        );
+                    })}
                 </div>
             );
         }
@@ -231,9 +240,9 @@ export default function YearlySalesTrend() {
         };
 
         if (view === "pie") {
-            const pieDataKey = "accrued_revenue";
+            const pieDataKey = pieMetric;
             return (
-                <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                <PieChart key={`pie-${pieMetric}`} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                     <Pie
                         data={data}
                         cx="50%"
@@ -383,7 +392,16 @@ export default function YearlySalesTrend() {
         { type: "pie" as const, icon: RiPieChartLine, label: "Pie" },
     ];
 
-
+    const pieMetricOptions = [
+        { value: "totalCost" as const, label: "Total Cost" },
+        { value: "accrued_revenue" as const, label: "Accrued Revenue" },
+        { value: "actual_revenue" as const, label: "Actual Revenue" },
+        { value: "total_expenses" as const, label: "Total Expenses" },
+        { value: "net_revenue" as const, label: "Net Revenue" },
+        { value: "outstanding_debt" as const, label: "Outstanding Debt" },
+        { value: "total_discount" as const, label: "Total Discount" },
+        { value: "totalRefunded" as const, label: "Refunded" },
+    ];
 
     return (
         <div className="card" style={{ borderRadius: '0.75rem', borderColor: COLOR_BORDER }}>
@@ -391,7 +409,7 @@ export default function YearlySalesTrend() {
                 <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
                     <h2 className="fs-6 fw-semibold text-body-emphasis mb-3 mb-lg-0 d-flex align-items-center">
                         <RiBarChartBoxLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" />
-                        Yearly Sales Trend
+                        {view === "pie" ? `${pieMetricOptions.find(opt => opt.value === pieMetric)?.label || 'Yearly'} Distribution` : 'Yearly Sales Trend'}
                     </h2>
                     <div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
                         <div className="btn-group btn-group-sm" role="group" aria-label="Chart type">
@@ -399,28 +417,32 @@ export default function YearlySalesTrend() {
                                 <button
                                     key={btn.type}
                                     type="button"
-                                    className={`btn ${view === btn.type ? 'btn-primary active' : 'btn-outline-secondary'}`}
+                                    className={`btn ${view === btn.type ? 'btn-primary active' : 'btn-outline-secondary'} d-flex align-items-center justify-content-center`}
                                     onClick={() => handleViewToggle(btn.type)}
                                     style={view === btn.type ? { backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT } : {}}
                                 >
-                                    <btn.icon size={16} className="me-1 align-text-bottom" /> {btn.label}
+                                    <btn.icon size={16} className="me-1 flex-shrink-0" /> {btn.label}
                                 </button>
                             ))}
                         </div>
-                        <div className="d-flex align-items-center gap-2 mt-2 mt-sm-0">
-                            <div className="input-group input-group-sm" style={{ flexBasis: '120px', minWidth: '110px' }}>
-                                <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: COLOR_BORDER, paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
-                                    <RiCalendarEventLine size={16} className="text-muted" style={{ color: COLOR_TEXT_MUTED }} />
-                                </span>
-                                <select className="form-select shadow-none border-start-0" value={year} onChange={(e) => setYear(parseInt(e.target.value))} aria-label="Year" style={{ fontSize: '0.875rem', borderColor: COLOR_BORDER, paddingLeft: '0.3rem' }}>
-                                    {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(y => (
-                                        <option key={y} value={y}>{y}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <button onClick={handleResetFilters} className="btn btn-sm btn-outline-secondary d-flex align-items-center" type="button" aria-label="Reset filters" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
-                                <RiRefreshLine size={16} className="me-1" /> Reset
-                            </button>
+                        <div className="input-group input-group-sm" style={{ flexBasis: '180px', minWidth: '170px' }}>
+                            <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: COLOR_BORDER, paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
+                                <RiMoneyDollarCircleLine size={16} className="text-muted" style={{ color: COLOR_TEXT_MUTED }} />
+                            </span>
+                            <select
+                                className="form-select shadow-none border-start-0"
+                                value={pieMetric}
+                                onChange={(e) => setPieMetric(e.target.value as typeof pieMetric)}
+                                disabled={view !== "pie"}
+                                title={view === "pie" ? "Select metric for pie chart" : "Switch to pie view to select metric"}
+                                style={{ fontSize: '0.875rem', borderColor: COLOR_BORDER, paddingLeft: '0.3rem', opacity: view === "pie" ? 1 : 0.5 }}
+                            >
+                                {pieMetricOptions.map(option => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -439,7 +461,7 @@ export default function YearlySalesTrend() {
             {data.length > 0 && !loading && !error && (
                 <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{ borderTop: `1px solid ${COLOR_BORDER}` }}>
                     <div className="print-date-range" style={{ display: 'none' }}>
-                        Sales Report Year: {year}
+                        Sales Report - All Years
                     </div>
                     <div className="d-flex justify-content-between mb-2">
                         <h4 className="fs-6 fw-medium mb-3">
@@ -454,30 +476,78 @@ export default function YearlySalesTrend() {
                             <thead className="sticky-top bg-body-tertiary">
                                 <tr>
                                     <th scope="col" className="py-2">Year</th>
-                                    <th scope="col" className="py-2">Total Cost</th>
-                                    <th scope="col" className="py-2">Accrued<span className="d-print-none"> Revenue</span></th>
-                                    <th scope="col" className="py-2">Actual<span className="d-print-none"> Revenue</span></th>
-                                    <th scope="col" className="py-2">Total Discount</th>
-                                    <th scope="col" className="py-2">Refunded</th>
-                                    <th scope="col" className="py-2">Net<span className="d-print-none"> Revenue</span></th>
-                                    <th scope="col" className="py-2">Outstanding Debt</th>
-                                    <th scope="col" className="py-2">%</th>
+                                    <th scope="col" className="py-2 text-start">Total Cost</th>
+                                    <th scope="col" className="py-2 text-start">Accrued Revenue</th>
+                                    <th scope="col" className="py-2 text-start">Actual Revenue</th>
+                                    <th scope="col" className="py-2 text-start">Outstanding Debt</th>
+                                    <th scope="col" className="py-2 text-start">Total Discount</th>
+                                    <th scope="col" className="py-2 text-start">Refunded</th>
+                                    <th scope="col" className="py-2 text-start">Total Expenses</th>
+                                    <th scope="col" className="py-2 text-start">Net Revenue</th>
+                                    <th scope="col" className="py-2 text-start">Sales Change</th>
+                                    <th scope="col" className="py-2 text-start">Net Revenue Change</th>
+                                    <th scope="col" className="py-2 text-start">Expense Change</th>
+                                    <th scope="col" className="py-2 text-start">% of Total</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {data.map((entry) => {
-                                    const percentage = entry.totalCost > 0 ? ((entry.net_revenue / entry.totalCost) * 100).toFixed(2) : '0.00';
+                                {data.map((entry, index) => {
+                                    const percentageOfTotal = overallSummary.accrued_revenue > 0 ? ((entry.accrued_revenue / overallSummary.accrued_revenue) * 100).toFixed(1) : '0.0';
+
+                                    // Calculate changes from previous year
+                                    let salesChange = '-';
+                                    let netRevenueChange = '-';
+                                    let expenseChange = '-';
+
+                                    if (index > 0) {
+                                        const prevEntry = data[index - 1];
+
+                                        // Sales change (accrued_revenue)
+                                        if (prevEntry.accrued_revenue === 0 && entry.accrued_revenue > 0) {
+                                            salesChange = 'New';
+                                        } else if (prevEntry.accrued_revenue > 0) {
+                                            const change = ((entry.accrued_revenue - prevEntry.accrued_revenue) / prevEntry.accrued_revenue) * 100;
+                                            salesChange = change.toFixed(1) + '%';
+                                        }
+
+                                        // Net revenue change
+                                        if (prevEntry.net_revenue === 0 && entry.net_revenue > 0) {
+                                            netRevenueChange = 'New';
+                                        } else if (prevEntry.net_revenue > 0) {
+                                            const change = ((entry.net_revenue - prevEntry.net_revenue) / prevEntry.net_revenue) * 100;
+                                            netRevenueChange = change.toFixed(1) + '%';
+                                        }
+
+                                        // Expense change
+                                        if (prevEntry.total_expenses === 0 && entry.total_expenses > 0) {
+                                            expenseChange = 'New';
+                                        } else if (prevEntry.total_expenses > 0) {
+                                            const change = ((entry.total_expenses - prevEntry.total_expenses) / prevEntry.total_expenses) * 100;
+                                            expenseChange = change.toFixed(1) + '%';
+                                        }
+                                    }
+
                                     return (
                                         <tr key={entry.year}>
                                             <td className="py-2 fw-medium">{entry.year}</td>
                                             <td className="py-2 fw-medium">{currencyFormatter.format(entry.totalCost)}</td>
                                             <td className="py-2 fw-medium">{currencyFormatter.format(entry.accrued_revenue)}</td>
                                             <td className="py-2 fw-medium">{currencyFormatter.format(entry.actual_revenue)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.outstanding_debt)}</td>
                                             <td className="py-2 fw-medium">{currencyFormatter.format(entry.total_discount)}</td>
                                             <td className="py-2 fw-medium">{currencyFormatter.format(entry.totalRefunded)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.total_expenses)}</td>
                                             <td className="py-2 fw-medium">{currencyFormatter.format(entry.net_revenue)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.outstanding_debt)}</td>
-                                            <td className="py-2 fw-medium">{percentage}%</td>
+                                            <td className={`py-2 fw-medium ${salesChange !== '-' && salesChange !== 'New' && parseFloat(salesChange) >= 0 ? 'text-success' : salesChange !== '-' && salesChange !== 'New' ? 'text-danger' : ''}`}>
+                                                {salesChange}
+                                            </td>
+                                            <td className={`py-2 fw-medium ${netRevenueChange !== '-' && netRevenueChange !== 'New' && parseFloat(netRevenueChange) >= 0 ? 'text-success' : netRevenueChange !== '-' && netRevenueChange !== 'New' ? 'text-danger' : ''}`}>
+                                                {netRevenueChange}
+                                            </td>
+                                            <td className={`py-2 fw-medium ${expenseChange !== '-' && expenseChange !== 'New' && parseFloat(expenseChange) >= 0 ? 'text-success' : expenseChange !== '-' && expenseChange !== 'New' ? 'text-danger' : ''}`}>
+                                                {expenseChange}
+                                            </td>
+                                            <td className="py-2 fw-medium">{percentageOfTotal}%</td>
                                         </tr>
                                     );
                                 })}
@@ -488,11 +558,15 @@ export default function YearlySalesTrend() {
                                     <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.totalCost)}</td>
                                     <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.accrued_revenue)}</td>
                                     <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.actual_revenue)}</td>
+                                    <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.outstanding_debt)}</td>
                                     <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.total_discount)}</td>
                                     <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.totalRefunded)}</td>
+                                    <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.total_expenses)}</td>
                                     <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.net_revenue)}</td>
-                                    <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.outstanding_debt)}</td>
-                                    <td className="py-2 fw-medium">100.00%</td>
+                                    <td className="py-2 fw-medium"></td>
+                                    <td className="py-2 fw-medium"></td>
+                                    <td className="py-2 fw-medium"></td>
+                                    <td className="py-2 fw-medium">100.0%</td>
                                 </tr>
                             </tfoot>
                         </table>

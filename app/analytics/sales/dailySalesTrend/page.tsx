@@ -33,6 +33,9 @@ interface SalesDataEntry {
     net_revenue: number;
     outstanding_debt: number;
     changeFromPreviousDay: number | null; // Calculated field
+    expenseChangeFromPrevious: number | null;
+    salesChangeFromPrevious: number | null;
+    netRevenueChangeFromPrevious: number | null;
 }
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)'; // Primary chart color
@@ -112,14 +115,20 @@ export default function DailySalesTrend() {
                         total_expenses: parseFloat(item.total_expenses) || 0,
                         net_revenue: parseFloat(item.net_revenue) || 0,
                         outstanding_debt: parseFloat(item.outstanding_debt) || 0,
-                        changeFromPreviousDay: null, // Will be calculated below
+                        changeFromPreviousDay: null,
+                        expenseChangeFromPrevious: null,
+                        salesChangeFromPrevious: null,
+                        netRevenueChangeFromPrevious: null,
                     };
                     return formatted;
-                }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-                for (let i = 1; i < formattedData.length; i++) {
-                    const current = formattedData[i].net_revenue;
-                    const previous = formattedData[i - 1].net_revenue;
-                    (formattedData[i] as any).changeFromPreviousDay = current - previous;
+                }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+                for (let i = 0; i < formattedData.length - 1; i++) {
+                    const current = formattedData[i];
+                    const previous = formattedData[i + 1];
+                    (formattedData[i] as any).changeFromPreviousDay = current.net_revenue - previous.net_revenue;
+                    (formattedData[i] as any).expenseChangeFromPrevious = current.total_expenses - previous.total_expenses;
+                    (formattedData[i] as any).salesChangeFromPrevious = current.accrued_revenue - previous.accrued_revenue;
+                    (formattedData[i] as any).netRevenueChangeFromPrevious = current.net_revenue - previous.net_revenue;
                 }
 
                 setData(formattedData);
@@ -173,7 +182,11 @@ export default function DailySalesTrend() {
     };
 
     const formatDateForTable = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString(undefined, { month: '2-digit', day: '2-digit', year: 'numeric' });
+        const date = new Date(dateString);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}-${month}-${year}`;
     };
 
 
@@ -439,38 +452,62 @@ export default function DailySalesTrend() {
                                 <tr>
                                     <th scope="col" className="py-2">Date</th>
                                     <th scope="col" className="py-2">Total Cost</th>
-                                    <th scope="col" className="py-2">Accrued <span className="d-print-none">Revenue</span></th>
-                                    <th scope="col" className="py-2">Actual <span className="d-print-none">Revenue</span></th>
                                     <th scope="col" className="py-2">Expenses</th>
                                     <th scope="col" className="py-2">Discount</th>
                                     <th scope="col" className="py-2">Net Revenue</th>
+                                    <th scope="col" className="py-2">Accrued <span className="d-print-none">Revenue</span></th>
+                                    <th scope="col" className="py-2">Actual <span className="d-print-none">Revenue</span></th>
                                     <th scope="col" className="py-2">Outstanding</th>
                                     <th scope="col" className="py-2">Refunded</th>
-                                    <th scope="col" className="py-2">Change</th>
+                                    <th scope="col" className="py-2">Expense Change</th>
+                                    <th scope="col" className="py-2">Sales Change</th>
+                                    <th scope="col" className="py-2">Net Revenue Change</th>
                                     <th scope="col" className="py-2" title="it represent % of net revenue for that period sales">% </th>
                                     <th scope="col" className="py-2 d-print-none">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {data.map((entry) => {
-                                    const change = entry.changeFromPreviousDay; // Use the provided value
+                                    const expenseChange = entry.expenseChangeFromPrevious;
+                                    const salesChange = entry.salesChangeFromPrevious;
+                                    const netRevenueChange = entry.netRevenueChangeFromPrevious;
                                     const percentageOfTotal = entry.net_revenue > 0 && totalPositiveRevenue > 0 ? ((entry.net_revenue / totalPositiveRevenue) * 100).toFixed(1) : '0.0';
                                     return (
                                         <tr key={entry.date}>
                                             <td className="py-2">{formatDateForTable(entry.date)}</td>
                                             <td className="py-2 fw-medium">{currencyFormatter.format(entry.totalCost)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.accrued_revenue)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.actual_revenue)}</td>
                                             <td className="py-2 fw-medium">{currencyFormatter.format(entry.total_expenses)}</td>
                                             <td className="py-2 fw-medium">{currencyFormatter.format(entry.total_discount)}</td>
                                             <td className="py-2 fw-medium">{currencyFormatter.format(entry.net_revenue)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.accrued_revenue)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.actual_revenue)}</td>
                                             <td className="py-2 fw-medium">{currencyFormatter.format(entry.outstanding_debt)}</td>
                                             <td className="py-2 fw-medium">{currencyFormatter.format(entry.totalRefunded)}</td>
-                                            <td className={`py-2 ${change !== null ? (change >= 0 ? 'text-success' : 'text-danger') : 'text-muted'}`}>
-                                                {change !== null ? (
+                                            <td className={`py-2 ${expenseChange !== null ? (expenseChange >= 0 ? 'text-danger' : 'text-success') : 'text-muted'}`}>
+                                                {expenseChange !== null ? (
                                                     <>
-                                                        {change >= 0 ? <RiArrowUpSFill className="align-text-bottom" /> : <RiArrowDownSFill className="align-text-bottom" />}
-                                                        {currencyFormatter.format(change)}
+                                                        {expenseChange >= 0 ? <RiArrowUpSFill className="align-text-bottom" /> : <RiArrowDownSFill className="align-text-bottom" />}
+                                                        {currencyFormatter.format(expenseChange)}
+                                                    </>
+                                                ) : (
+                                                    <span className="text-muted">-</span>
+                                                )}
+                                            </td>
+                                            <td className={`py-2 ${salesChange !== null ? (salesChange >= 0 ? 'text-success' : 'text-danger') : 'text-muted'}`}>
+                                                {salesChange !== null ? (
+                                                    <>
+                                                        {salesChange >= 0 ? <RiArrowUpSFill className="align-text-bottom" /> : <RiArrowDownSFill className="align-text-bottom" />}
+                                                        {currencyFormatter.format(salesChange)}
+                                                    </>
+                                                ) : (
+                                                    <span className="text-muted">-</span>
+                                                )}
+                                            </td>
+                                            <td className={`py-2 ${netRevenueChange !== null ? (netRevenueChange >= 0 ? 'text-success' : 'text-danger') : 'text-muted'}`}>
+                                                {netRevenueChange !== null ? (
+                                                    <>
+                                                        {netRevenueChange >= 0 ? <RiArrowUpSFill className="align-text-bottom" /> : <RiArrowDownSFill className="align-text-bottom" />}
+                                                        {currencyFormatter.format(netRevenueChange)}
                                                     </>
                                                 ) : (
                                                     <span className="text-muted">-</span>
@@ -493,13 +530,15 @@ export default function DailySalesTrend() {
                                 <tr className="fw-bold border-top">
                                     <td className="py-2">Total</td>
                                     <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalCost, 0))}</td>
-                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.accrued_revenue, 0))}</td>
-                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.actual_revenue, 0))}</td>
                                     <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.total_expenses, 0))}</td>
                                     <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.total_discount, 0))}</td>
                                     <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.net_revenue, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.accrued_revenue, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.actual_revenue, 0))}</td>
                                     <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.outstanding_debt, 0))}</td>
                                     <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalRefunded, 0))}</td>
+                                    <td className="py-2"></td>
+                                    <td className="py-2"></td>
                                     <td className="py-2"></td>
                                     <td className="py-2">100.0%</td>
                                     <td className="py-2 d-print-none"></td>
@@ -533,8 +572,8 @@ export default function DailySalesTrend() {
                     .printable-table-with-borders tbody tr:nth-child(odd) {
                         background-color: #f8f9fa !important;
                     }
-                    .printable-table-with-borders th:nth-child(11),
-                    .printable-table-with-borders td:nth-child(11) {
+                    .printable-table-with-borders th:nth-child(14),
+                    .printable-table-with-borders td:nth-child(14) {
                         display: none !important;
                     }
                     .printable-table-with-borders th,

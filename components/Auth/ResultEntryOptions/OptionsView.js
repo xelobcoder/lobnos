@@ -6,8 +6,12 @@ export default function OptionsViewHtmlGenerator({ fieldItem, statehandler, inde
     const [dropdownOptions, setOptions] = useState([]);
 
     useEffect(() => {
-        if (typeof options === 'string' && options.includes(',')) {
+        if (Array.isArray(options)) {
+            setOptions(options);
+        } else if (typeof options === 'string' && options.includes(',')) {
             setOptions(options.split(',').map(option => option.trim()));
+        } else if (typeof options === 'string') {
+            setOptions([options]);
         }
     }, [options]);
 

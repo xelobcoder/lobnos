@@ -949,20 +949,19 @@ export const getSingleEditTest = (testid, setTestData, setLoading, withoutdepart
 
 export const getDateRange = (range) => {
 	if (Array.isArray(range) && range.length == 2) {
-		const start = new Date(range[0]);
-		const end = new Date(range[1]);
-		const startYear = start.getFullYear();
-		const startMonth = String(start.getMonth() + 1).padStart(2, '0');
-		const startDay = String(start.getDate()).padStart(2, '0');
+		const start = range[0] ? new Date(range[0]) : null;
+		const end = range[1] ? new Date(range[1]) : null;
 
-		const endYear = end.getFullYear();
-		const endMonth = String(end.getMonth() + 1).padStart(2, '0');
-		const endDay = String(end.getDate()).padStart(2, '0');
+		if (!start && !end) {
+			return ['', ''];
+		}
 
-		const formattedStartDate = `${startYear}-${startMonth}-${startDay}`;
-		const formattedEndDate = `${endYear}-${endMonth}-${endDay}`;
+		const formattedStartDate = start ? `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-${String(start.getDate()).padStart(2, '0')}` : '';
+		const formattedEndDate = end ? `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}-${String(end.getDate()).padStart(2, '0')}` : '';
+
 		return [formattedStartDate, formattedEndDate];
 	}
+	return ['', ''];
 }
 
 

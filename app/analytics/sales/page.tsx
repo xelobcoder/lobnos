@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { RiMoneyDollarCircleLine, RiShoppingCartLine, RiGroupLine, RiBarChartLine, RiCalendarLine, RiArrowUpLine, RiFileListLine, RiArrowRightLine, RiStoreLine, RiPieChartLine, RiLineChartLine, RiUserLine } from '@remixicon/react';
+import { RiMoneyDollarCircleLine, RiShoppingCartLine, RiGroupLine, RiBarChartLine, RiCalendarLine, RiArrowUpLine, RiFileListLine, RiArrowRightLine, RiStoreLine, RiPieChartLine, RiLineChartLine, RiUserLine, RiTimeLine, RiBuildingLine, RiHospitalLine, RiExternalLinkLine, RiServiceLine, RiBubbleChartLine } from '@remixicon/react';
 import Link from 'next/link';
 import { currencyFormatter } from '../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
@@ -59,6 +59,70 @@ const salesModules: SalesModule[] = [
 		icon: <RiUserLine size={32} />,
 		color: "#ef4444",
 		features: ["Employee rankings", "Performance metrics", "Contribution analysis", "Productivity trends"]
+	},
+	{
+		title: "Weekly Sales Trend",
+		description: "Analyze weekly sales patterns and changes",
+		link: "/analytics/sales/weeklySalesTrend",
+		icon: <RiCalendarLine size={32} />,
+		color: "#8b5cf6",
+		features: ["Weekly totals", "Change tracking", "Performance metrics", "Trend analysis"]
+	},
+	{
+		title: "Yearly Sales Trend",
+		description: "View annual sales performance and growth",
+		link: "/analytics/sales/yearlySalesTrend",
+		icon: <RiBubbleChartLine size={32} />,
+		color: "#06b6d4",
+		features: ["Annual overview", "Year-over-year growth", "Long-term trends", "Performance analysis"]
+	},
+	{
+		title: "Sales by Hour of Day",
+		description: "Analyze sales patterns throughout the day",
+		link: "/analytics/sales/salesbyhourofday",
+		icon: <RiTimeLine size={32} />,
+		color: "#f59e0b",
+		features: ["Hourly breakdown", "Peak hours analysis", "Time-based trends", "Operational insights"]
+	},
+	{
+		title: "Sales by Week and Branch",
+		description: "Compare weekly performance across branches",
+		link: "/analytics/sales/salesByWeekAndBranch",
+		icon: <RiBuildingLine size={32} />,
+		color: "#10b981",
+		features: ["Weekly branch comparison", "Regional trends", "Performance analysis", "Branch insights"]
+	},
+	{
+		title: "Clinician Sales",
+		description: "Track sales performance by clinician",
+		link: "/analytics/sales/totalSalesByClinician",
+		icon: <RiHospitalLine size={32} />,
+		color: "#3b82f6",
+		features: ["Clinician rankings", "Medical service sales", "Performance metrics", "Specialty analysis"]
+	},
+	{
+		title: "Organization Sales",
+		description: "Analyze sales by organization/client",
+		link: "/analytics/sales/totalSalesByOrganization",
+		icon: <RiGroupLine size={32} />,
+		color: "#8b5cf6",
+		features: ["Client analysis", "Organization rankings", "B2B sales tracking", "Account management"]
+	},
+	{
+		title: "Outsourced Services",
+		description: "Track performance of outsourced services",
+		link: "/analytics/sales/totalSalesByOutsourcedStatus",
+		icon: <RiExternalLinkLine size={32} />,
+		color: "#f97316",
+		features: ["Outsourcing analysis", "Service comparison", "Cost vs performance", "Vendor metrics"]
+	},
+	{
+		title: "Service Category Sales",
+		description: "Analyze sales by service categories",
+		link: "/analytics/sales/totalSalesByServiceCategory",
+		icon: <RiServiceLine size={32} />,
+		color: "#ec4899",
+		features: ["Category breakdown", "Service popularity", "Revenue analysis", "Product mix"]
 	}
 ];
 
@@ -99,6 +163,30 @@ export default function AnalyticsSales() {
 			icon: <RiUserLine size={32} />,
 			color: "#8b5cf6",
 			stats: "Monthly"
+		},
+		{
+			title: "Weekly Trends",
+			description: "Analyze weekly sales patterns",
+			link: "/analytics/sales/weeklySalesTrend",
+			icon: <RiCalendarLine size={32} />,
+			color: "#06b6d4",
+			stats: "This Year"
+		},
+		{
+			title: "Yearly Overview",
+			description: "View annual sales performance",
+			link: "/analytics/sales/yearlySalesTrend",
+			icon: <RiBubbleChartLine size={32} />,
+			color: "#84cc16",
+			stats: "Annual"
+		},
+		{
+			title: "Hourly Analysis",
+			description: "Sales patterns by hour",
+			link: "/analytics/sales/salesbyhourofday",
+			icon: <RiTimeLine size={32} />,
+			color: "#f59e0b",
+			stats: "Daily"
 		}
 	];
 
@@ -117,7 +205,6 @@ export default function AnalyticsSales() {
 
 			{/* Overview Content */}
 			<div>
-				{/* Quick Access Cards */}
 				<div className="mb-4">
 					<h5 className="mb-3 fw-semibold">Quick Access</h5>
 					<div className="row g-3">

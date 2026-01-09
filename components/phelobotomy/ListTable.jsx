@@ -4,7 +4,7 @@ import { handleSeverSideProcessingPhelobotomy } from "../serverActions/ActionFil
 import { RiInboxLine, RiTestTubeLine } from '@remixicon/react';
 
 
-export default function ListTable({ data, handleCollectSample, selectedItems = [], onToggleSelection }) {
+export default function ListTable({ data, handleCollectSample,filter, selectedItems = [], onToggleSelection }) {
 	const columns = [
 		{
 			Header: "Select",
@@ -68,6 +68,7 @@ export default function ListTable({ data, handleCollectSample, selectedItems = [
 				column={columns}
 				handleSeverSideProcessing={handleSeverSideProcessingPhelobotomy}
 				data={data}
+				urlparams={filter}
 				filtering={false}
 				serverSideFiltering={true}
 

@@ -2,20 +2,24 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { customFetch, currencyFormatter } from "../../Auth/customFetch";
-import { RiFileList3Line, RiWalletLine, RiRefund2Line, RiAccountCircleLine, RiCheckboxCircleLine, RiAlarmWarningLine } from "@remixicon/react";
+import { RiFileList3Line, RiWalletLine, RiRefund2Line, RiAccountCircleLine, RiCheckboxCircleLine, RiAlarmWarningLine, RiMoneyDollarCircleLine, RiBarChartLine, RiEyeLine, RiEyeOffLine } from "@remixicon/react";
 import { useApplication } from "../../Auth/useApplicationContext";
+
+const COLOR_BORDER = 'var(--bs-border-color)';
 
 interface Summary {
 	totalTransactionCost: number;
 	totalCost: number;
-	totalPaid: number;
-	totalPayable: number;
+	actualRevenue: number;
+	accruedRevenue: number;
 	totalRefunded: number;
 	totalBalance: number;
 	totalDiscount: number;
 	totalOutstanding: number;
 	totalTaxIncurred: number;
 	transactionCount: number;
+	totalExpensePayments?: number;
+	netRevenue?: number;
 }
 
 interface Branch {
@@ -32,14 +36,16 @@ interface Branch {
 const _default: Summary = {
 	totalTransactionCost: 0,
 	totalCost: 0,
-	totalPaid: 0,
-	totalPayable: 0,
+	actualRevenue: 0,
+	accruedRevenue: 0,
 	totalRefunded: 0,
 	totalBalance: 0,
 	totalDiscount: 0,
 	totalOutstanding: 0,
 	totalTaxIncurred: 0,
 	transactionCount: 0,
+	totalExpensePayments: 0,
+	netRevenue: 0,
 };
 
 export type AnalyticCardProps = {
@@ -60,76 +66,67 @@ const AnalyticCard = ({
 	formatAsCurrency = true,
 }: AnalyticCardProps) => (
 	<div
-		className="card border-0 shadow-sm rounded"
+		className="border-0 rounded shadow-sm p-4 h-100"
 		style={{
-			background: bgColor,
-			borderRadius: "8px",
-			transition: "all 0.2s ease",
-			height: "150px",
-			flex: "1 1 auto",
-			margin: "0 4px",
-			border: "1px solid var(--bs-border-color)",
-			cursor: "pointer",
-			color: "white",
+			backgroundColor: bgColor,
+			transition: 'all 0.2s',
+			cursor: 'pointer',
+			minHeight: '130px',
+			color: 'white'
 		}}
 		onMouseEnter={(e) => {
 			e.currentTarget.style.transform = "translateY(-2px)";
-			e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.08)";
+			e.currentTarget.style.boxShadow = "0 6px 16px rgba(0,0,0,0.15)";
 		}}
 		onMouseLeave={(e) => {
 			e.currentTarget.style.transform = "translateY(0)";
-			e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.05)";
+			e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
 		}}
 	>
-		<div className="card-body p-3 d-flex flex-column h-100">
-			<div className="d-flex align-items-center mb-2">
-				<div
-					className="d-flex align-items-center justify-content-center me-2"
-					style={{
-						background: iconColor,
-						padding: "6px",
-						borderRadius: "6px",
-						width: "32px",
-						height: "32px",
-					}}
-				>
-					<Icon style={{ fontSize: "1.2rem", color: "white" }} />
-				</div>
-				<h6 className="mb-0 fw-bold" style={{ fontSize: "1rem", lineHeight: "1.2", color: "rgba(255,255,255,0.9)" }}>
-					{title}
-				</h6>
+		<div className="d-flex align-items-center mb-3">
+			<div style={{ color: 'white' }} className="me-2">
+				<Icon size={32} />
 			</div>
-			<hr className="my-2" style={{ borderColor: "rgba(255,255,255,0.3)", borderWidth: "1px" }} />
-			<div className="fw-bold" style={{ fontSize: "1.8rem", lineHeight: "1.3" }}>
-				{formatAsCurrency ? currencyFormatter.format(Number(value) || 0) : value.toLocaleString()}
-			</div>
+			<h6 className="mb-0 fw-semibold" style={{ fontSize: "0.9rem", color: 'rgba(255,255,255,0.95)' }}>
+				{title}
+			</h6>
+		</div>
+		<div className="fw-bold" style={{ fontSize: "1.6rem", color: 'white' }}>
+			{formatAsCurrency ? currencyFormatter.format(Number(value) || 0) : value.toLocaleString()}
 		</div>
 	</div>
 );
 
 const cardColors = {
-	billedClients: { bg: "#4f46e5", icon: "#6366f1" },
-	totalSales: { bg: "#059669", icon: "#0ea5e9" },
-	amountPaid: { bg: "#dc2626", icon: "#10b981" },
-	discount: { bg: "#7c3aed", icon: "#f59e0b" },
-	pendingDebts: { bg: "#ea580c", icon: "#ef4444" },
-	expenses: { bg: "#0891b2", icon: "#8b5cf6" },
-	outstanding: { bg: "#c2410c", icon: "#f97316" },
+	totalCost: { bg: "#4f46e5", icon: "#6366f1" }, // Indigo
+	transactionCount: { bg: "#0891b2", icon: "#06b6d4" }, // Cyan
+	outstanding: { bg: "#ea580c", icon: "#f97316" }, // Orange
+	refunded: { bg: "#be123c", icon: "#e11d48" }, // Crimson
+	expenses: { bg: "#dc2626", icon: "#ef4444" }, // Red
+	accrued: { bg: "#7c3aed", icon: "#8b5cf6" }, // Violet
+	actual: { bg: "#059669", icon: "#10b981" }, // Emerald
+	net: { bg: "#16a34a", icon: "#22c55e" }, // Green
 };
 
 type PropsQuery = {
 	branchid: string;
 	from?: string;
 	to?: string;
+	summary?: Summary;
 };
 
-export default function BilledSummary({ branchid, from, to }: PropsQuery) {
-	const [internalSummary, setInternalSummary] = useState<Summary>(_default);
+export default function BilledSummary({ branchid, from, to, summary }: PropsQuery) {
+	const [internalSummary, setInternalSummary] = useState<Summary>(summary || _default);
 	const [branch, setBranch] = useState<Branch | null>(null);
+	const [isVisible, setIsVisible] = useState<boolean>(true);
 	const role = useApplication()?.user?.role;
 	const isAdmin = role === "admin" || role === "manager";
 
 	useEffect(() => {
+		if (summary) {
+			setInternalSummary(summary);
+			return;
+		}
 		async function fetchSummary() {
 			try {
 				const data = await customFetch(
@@ -147,15 +144,15 @@ export default function BilledSummary({ branchid, from, to }: PropsQuery) {
 			}
 		}
 		fetchSummary();
-	}, [branchid, from, to]);
+	}, [branchid, from, to, summary]);
 
 	return (
 		<div className="p-3 border border-1 rounded" >
-			{branch && (
-				<div className="mb-3">
-					<div className="d-flex justify-content-between align-items-center">
-						<div>
-							<h5 className="mb-1 fw-semibold text-dark">Financial Summary</h5>
+			<div className="mb-3">
+				<div className="d-flex justify-content-between align-items-center">
+					<div>
+						<h5 className="mb-1 fw-semibold text-dark">Financial Summary</h5>
+						{branch && (
 							<div className="d-flex align-items-center gap-2">
 								<span className="text-muted small">Branch:</span>
 								<span className="fw-medium text-dark">{branch.name}</span>
@@ -163,57 +160,118 @@ export default function BilledSummary({ branchid, from, to }: PropsQuery) {
 									Active
 								</span>
 							</div>
-						</div>
+						)}
 					</div>
+					{isAdmin && (
+						<button
+							className="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2"
+							onClick={() => setIsVisible(!isVisible)}
+						>
+							{isVisible ? (
+								<>
+									<RiEyeOffLine size={16} /> Hide Summary
+								</>
+							) : (
+								<>
+									<RiEyeLine size={16} /> Show Summary
+								</>
+							)}
+						</button>
+					)}
 				</div>
-			)}
-			{isAdmin && (
+			</div>
+			{isVisible && isAdmin && (
 				<>
 					{/* Desktop Card View */}
-					<div className="d-none d-md-flex flex-row gap-2">
-						<AnalyticCard
-							title="Total Cost"
-							value={internalSummary.totalCost}
-							Icon={RiFileList3Line}
-							bgColor={cardColors.totalSales.bg}
-							iconColor={cardColors.totalSales.icon}
-						/>
-						<AnalyticCard
-							title="Total Paid"
-							value={internalSummary.totalPaid}
-							Icon={RiCheckboxCircleLine}
-							bgColor={cardColors.amountPaid.bg}
-							iconColor={cardColors.amountPaid.icon}
-						/>
-						<AnalyticCard
-							title="Total Payable"
-							value={internalSummary.totalPayable}
-							Icon={RiWalletLine}
-							bgColor={cardColors.discount.bg}
-							iconColor={cardColors.discount.icon}
-						/>
-						<AnalyticCard
-							title="Total Outstanding"
-							value={internalSummary.totalOutstanding}
-							Icon={RiAlarmWarningLine}
-							bgColor={cardColors.outstanding.bg}
-							iconColor={cardColors.outstanding.icon}
-						/>
-						<AnalyticCard
-							title="Total Refunded"
-							value={internalSummary.totalRefunded}
-							Icon={RiRefund2Line}
-							bgColor={cardColors.expenses.bg}
-							iconColor={cardColors.expenses.icon}
-						/>
-						<AnalyticCard
-							title="Tran. Count"
-							value={internalSummary.transactionCount}
-							Icon={RiAccountCircleLine}
-							bgColor={cardColors.billedClients.bg}
-							iconColor={cardColors.billedClients.icon}
-							formatAsCurrency={false}
-						/>
+					<div className="d-none d-md-flex flex-column gap-3">
+						{/* First Row - 5 Cards */}
+						<div className="row g-3">
+							<div className="col-md-6 col-lg-3">
+								<AnalyticCard
+									title="Total Cost"
+									value={internalSummary.totalCost}
+									Icon={RiFileList3Line}
+									bgColor={cardColors.totalCost.bg}
+									iconColor={cardColors.totalCost.icon}
+								/>
+							</div>
+							<div className="col-md-6 col-lg-3">
+								<AnalyticCard
+									title="Tran. Count"
+									value={internalSummary.transactionCount}
+									Icon={RiAccountCircleLine}
+									bgColor={cardColors.transactionCount.bg}
+									iconColor={cardColors.transactionCount.icon}
+									formatAsCurrency={false}
+								/>
+							</div>
+							<div className="col-md-6 col-lg-3">
+								<AnalyticCard
+									title="Total Outstanding"
+									value={internalSummary.totalOutstanding}
+									Icon={RiAlarmWarningLine}
+									bgColor={cardColors.outstanding.bg}
+									iconColor={cardColors.outstanding.icon}
+								/>
+							</div>
+							<div className="col-md-6 col-lg-3">
+								<AnalyticCard
+									title="Total Refunded"
+									value={internalSummary.totalRefunded}
+									Icon={RiRefund2Line}
+									bgColor={cardColors.refunded.bg}
+									iconColor={cardColors.refunded.icon}
+								/>
+							</div>
+
+						</div>
+
+						{/* Second Row - Revenue Cards (Accrued → Actual → Net) */}
+						<div className="row g-3">
+							{internalSummary.totalExpensePayments !== undefined && (
+								<div className="col-md-6 col-lg-3">
+									<AnalyticCard
+										title="Total Expenses"
+										value={internalSummary.totalExpensePayments}
+										Icon={RiMoneyDollarCircleLine}
+										bgColor={cardColors.expenses.bg}
+										iconColor={cardColors.expenses.icon}
+									/>
+								</div>
+							)}
+
+							<div className="col-md-6 col-lg-3">
+								<AnalyticCard
+									title="Accrued Revenue"
+									value={internalSummary.accruedRevenue}
+									Icon={RiWalletLine}
+									bgColor={cardColors.accrued.bg}
+									iconColor={cardColors.accrued.icon}
+								/>
+							</div>
+
+							<div className="col-md-6 col-lg-3">
+								<AnalyticCard
+									title="Actual Revenue"
+									value={internalSummary.actualRevenue}
+									Icon={RiCheckboxCircleLine}
+									bgColor={cardColors.actual.bg}
+									iconColor={cardColors.actual.icon}
+								/>
+							</div>
+							{internalSummary.netRevenue !== undefined && (
+								<div className="col-md-6 col-lg-3">
+									<AnalyticCard
+										title="Net Revenue"
+										value={internalSummary.netRevenue}
+										Icon={RiBarChartLine}
+										bgColor={cardColors.net.bg}
+										iconColor={cardColors.net.icon}
+									/>
+								</div>
+							)}
+
+						</div>
 					</div>
 
 					{/* Mobile List View */}
@@ -225,7 +283,7 @@ export default function BilledSummary({ branchid, from, to }: PropsQuery) {
 										<div
 											className="d-flex align-items-center justify-content-center"
 											style={{
-												background: cardColors.totalSales.icon,
+												background: cardColors.totalCost.bg,
 												padding: "4px",
 												borderRadius: "4px",
 												width: "24px",
@@ -248,7 +306,7 @@ export default function BilledSummary({ branchid, from, to }: PropsQuery) {
 										<div
 											className="d-flex align-items-center justify-content-center"
 											style={{
-												background: cardColors.amountPaid.icon,
+												background: cardColors.actual.bg,
 												padding: "4px",
 												borderRadius: "4px",
 												width: "24px",
@@ -257,10 +315,10 @@ export default function BilledSummary({ branchid, from, to }: PropsQuery) {
 										>
 											<RiCheckboxCircleLine style={{ fontSize: "0.8rem", color: "white" }} />
 										</div>
-										<span className="small fw-medium text-muted">Total Paid</span>
+										<span className="small fw-medium text-muted">Actual Revenue</span>
 									</div>
 									<span className="fw-semibold text-dark small">
-										{currencyFormatter.format(Number(internalSummary.totalPaid) || 0)}
+										{currencyFormatter.format(Number(internalSummary.actualRevenue) || 0)}
 									</span>
 								</div>
 							</div>
@@ -271,7 +329,7 @@ export default function BilledSummary({ branchid, from, to }: PropsQuery) {
 										<div
 											className="d-flex align-items-center justify-content-center"
 											style={{
-												background: cardColors.discount.icon,
+												background: cardColors.accrued.bg,
 												padding: "4px",
 												borderRadius: "4px",
 												width: "24px",
@@ -280,10 +338,10 @@ export default function BilledSummary({ branchid, from, to }: PropsQuery) {
 										>
 											<RiWalletLine style={{ fontSize: "0.8rem", color: "white" }} />
 										</div>
-										<span className="small fw-medium text-muted">Total Payable</span>
+										<span className="small fw-medium text-muted">Accrued Revenue</span>
 									</div>
 									<span className="fw-semibold text-dark small">
-										{currencyFormatter.format(Number(internalSummary.totalPayable) || 0)}
+										{currencyFormatter.format(Number(internalSummary.accruedRevenue) || 0)}
 									</span>
 								</div>
 							</div>
@@ -294,7 +352,7 @@ export default function BilledSummary({ branchid, from, to }: PropsQuery) {
 										<div
 											className="d-flex align-items-center justify-content-center"
 											style={{
-												background: cardColors.outstanding.icon,
+												background: cardColors.outstanding.bg,
 												padding: "4px",
 												borderRadius: "4px",
 												width: "24px",
@@ -317,7 +375,7 @@ export default function BilledSummary({ branchid, from, to }: PropsQuery) {
 										<div
 											className="d-flex align-items-center justify-content-center"
 											style={{
-												background: cardColors.expenses.icon,
+												background: cardColors.refunded.bg,
 												padding: "4px",
 												borderRadius: "4px",
 												width: "24px",
@@ -334,13 +392,63 @@ export default function BilledSummary({ branchid, from, to }: PropsQuery) {
 								</div>
 							</div>
 
+							{internalSummary.totalExpensePayments !== undefined && (
+								<div className="list-group-item px-3 py-2 border-0">
+									<div className="d-flex justify-content-between align-items-center">
+										<div className="d-flex align-items-center gap-2">
+											<div
+												className="d-flex align-items-center justify-content-center"
+												style={{
+													background: cardColors.expenses.bg,
+													padding: "4px",
+													borderRadius: "4px",
+													width: "24px",
+													height: "24px",
+												}}
+											>
+												<RiMoneyDollarCircleLine style={{ fontSize: "0.8rem", color: "white" }} />
+											</div>
+											<span className="small fw-medium text-muted">Total Expenses</span>
+										</div>
+										<span className="fw-semibold text-dark small">
+											{currencyFormatter.format(Number(internalSummary.totalExpensePayments) || 0)}
+										</span>
+									</div>
+								</div>
+							)}
+
+							{internalSummary.netRevenue !== undefined && (
+								<div className="list-group-item px-3 py-2 border-0">
+									<div className="d-flex justify-content-between align-items-center">
+										<div className="d-flex align-items-center gap-2">
+											<div
+												className="d-flex align-items-center justify-content-center"
+												style={{
+													background: cardColors.net.bg,
+													padding: "4px",
+													borderRadius: "4px",
+													width: "24px",
+													height: "24px",
+												}}
+											>
+												<RiBarChartLine style={{ fontSize: "0.8rem", color: "white" }} />
+											</div>
+											<span className="small fw-medium text-muted">Net Revenue</span>
+										</div>
+										<span className={`fw-semibold small ${internalSummary.netRevenue >= 0 ? 'text-success' : 'text-danger'}`}>
+											{currencyFormatter.format(Number(internalSummary.netRevenue) || 0)}
+										</span>
+									</div>
+								</div>
+							)}
+
 							<div className="list-group-item px-3 py-2 border-0">
 								<div className="d-flex justify-content-between align-items-center">
 									<div className="d-flex align-items-center gap-2">
 										<div
 											className="d-flex align-items-center justify-content-center"
 											style={{
-												background: cardColors.billedClients.icon,
+												background: cardColors.transactionCount.bg,
 												padding: "4px",
 												borderRadius: "4px",
 												width: "24px",

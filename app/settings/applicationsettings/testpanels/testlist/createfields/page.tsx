@@ -56,17 +56,13 @@ export default function CreateSingleFieldPage() {
 
 	return (
 		<div>
-			<div className="d-flex justify-content-end mb-3">
-				<Button variant="outline-secondary" size="sm" onClick={fetchData}>
-					Refresh Data
-				</Button>
-			</div>
 			<CreateTestFields
 				fieldConstraintsCategorization={fieldConstraintsCategorization}
 				testRules={testRules}
 				testdata={testdata}
 				testname={testname}
 				testid={testid}
+				onRefresh={fetchData}
 			/>
 		</div>
 	);

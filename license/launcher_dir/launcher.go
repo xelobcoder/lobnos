@@ -35,8 +35,48 @@ type HealthResponse struct {
 	Message string `json:"message"`
 }
 
-func getWmicValue(command string) string {
-	cmd := exec.Command("wmic", strings.Split(command, " ")...)
+func getMachineGuid() string {
+	cmd := exec.Command("reg", "query", "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Cryptography", "/v", "MachineGuid")
+	output, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+	lines := strings.Split(string(output), "\n")
+	for _, line := range lines {
+		if strings.Contains(line, "MachineGuid") {
+			parts := strings.Fields(line)
+			if len(parts) >= 3 {
+				return strings.TrimSpace(parts[2])
+			}
+		}
+	}
+	return ""
+}
+
+func getVolumeSerial() string {
+	cmd := exec.Command("cmd", "/c", "vol C:")
+	output, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+	lines := strings.Split(string(output), "\n")
+	if len(lines) >= 1 {
+		// Extract serial from "Volume in drive C is OS Volume Serial Number is XXXX-XXXX"
+		line := lines[0]
+		if strings.Contains(line, "Serial Number is") {
+			parts := strings.Split(line, "Serial Number is")
+			if len(parts) >= 2 {
+				serial := strings.TrimSpace(parts[1])
+				// Remove hyphens
+				return strings.ReplaceAll(serial, "-", "")
+			}
+		}
+	}
+	return ""
+}
+
+func getBiosUuid() string {
+	cmd := exec.Command("wmic", "csproduct", "get", "uuid", "/value")
 	output, err := cmd.Output()
 	if err != nil {
 		return ""
@@ -45,7 +85,7 @@ func getWmicValue(command string) string {
 	for _, line := range lines {
 		if strings.Contains(line, "=") {
 			parts := strings.Split(line, "=")
-			if len(parts) == 2 {
+			if len(parts) == 2 && strings.TrimSpace(parts[0]) == "UUID" {
 				return strings.TrimSpace(parts[1])
 			}
 		}
@@ -283,16 +323,28 @@ func main() {
 		return
 	}
 
-	// Compute current hardware fingerprint
-	cpuId := getWmicValue("cpu get ProcessorId /value")
-	diskSerial := getWmicValue("diskdrive get SerialNumber /value")
-	motherboardSerial := getWmicValue("baseboard get SerialNumber /value")
+	// Compute current hardware fingerprint (DISABLED FOR NOW)
+	// cpuId := getWmicValue("cpu get ProcessorId /value")
+	// diskSerial := getWmicValue("diskdrive get SerialNumber /value")
+	// motherboardSerial := getWmicValue("baseboard get SerialNumber /value")
+	// currentHardware := cpuId + diskSerial + motherboardSerial
 
-	currentHardware := cpuId + diskSerial + motherboardSerial
+	// Use a static placeholder for now
+	currentHardware := "DISABLED"
+
+	fmt.Printf("Hardware fingerprinting: DISABLED\n")
 
 	fmt.Printf("License verification:\n")
 	fmt.Printf("  Stored hardware: %s\n", storedHardware)
 	fmt.Printf("  Current hardware: %s\n", currentHardware)
+
+	// Hardware fingerprint verification DISABLED FOR NOW
+	// if currentHardware != storedHardware {
+	// 	fmt.Println("❌ Hardware fingerprint mismatch")
+	// 	logError("Hardware fingerprint mismatch")
+	// 	return
+	// }
+	fmt.Println("✅ Hardware fingerprint verification: DISABLED")
 
 	currentHash := sha256.Sum256([]byte(folderPath + storedExpiryDate))
 	currentHashedPath := hex.EncodeToString(currentHash[:])
@@ -306,14 +358,6 @@ func main() {
 
 	fmt.Printf("  Stored app path hash: %s\n", storedHashedAppPath)
 	fmt.Printf("  Current app path hash: %s\n", currentHashedAppPath)
-
-	// Verify
-	if currentHardware != storedHardware {
-		fmt.Println("❌ Hardware fingerprint mismatch")
-		logError("Hardware fingerprint mismatch")
-		return
-	}
-	fmt.Println("✅ Hardware fingerprint verified")
 
 	if currentHashedPath != storedHashedPath {
 		fmt.Println("❌ Installation path hash mismatch")
@@ -369,15 +413,6 @@ func main() {
 	if err != nil {
 		fmt.Println("Error starting server")
 		logError("Error starting server: " + err.Error())
-		return
-	}
-
-	// Wait for server to be ready with retry
-	fmt.Println("Waiting for server to be ready...")
-	serverPort := getPort("SERVER_PORT", 5000)
-	err = waitForServiceWithRetry("Server", "localhost", serverPort, 90*time.Second, 3)
-	if err != nil {
-		logError("Server startup failed: " + err.Error())
 		return
 	}
 

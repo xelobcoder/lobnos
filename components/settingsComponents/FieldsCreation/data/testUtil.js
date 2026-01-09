@@ -85,15 +85,20 @@ export const defaultCreationRule = {
   options: "",
   testid: "",
   category: "",
+  categoryid: "",
   undercategory: 0,
   hasunits: false,
   units: "",
   plan: "",
   plain: "",
+  textReference: "",
   fieldConstraints: [],
   ordering: "",
   isValueTracked: 0,
   textReference: "",
+  isRequired: false,
+  lowerLimit: "",
+  upperLimit: "",
 };
 
 export const parseTextToObject = function (text) {

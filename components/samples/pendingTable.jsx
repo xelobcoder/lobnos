@@ -20,6 +20,7 @@ export default function SampleValidationComponent({ data: initialData, initialSt
 	const [startDate, setStartDate] = useState(initialStartDate);
 	const [endDate, setEndDate] = useState(initialEndDate);
 	const [selectedItems, setSelectedItems] = useState([]);
+	const [searchFilter, setSearchFilter] = useState('');
 
 
 	const removeClientFromList = (id) => {
@@ -52,6 +53,7 @@ export default function SampleValidationComponent({ data: initialData, initialSt
 			let url = 'sample/client/list/unvalidated?count=10&page=1&&sortby=' + sortBy;
 			if (startDate) url += `&startDate=${startDate}`;
 			if (endDate) url += `&endDate=${endDate}`;
+			if (searchFilter) url += `&searchString=${encodeURIComponent(searchFilter)}`;
 			const fetchResponse = await customFetch(url);
 			const { result } = fetchResponse;
 			if (result && Array.isArray(result) && result.length > 0) {
@@ -205,6 +207,17 @@ export default function SampleValidationComponent({ data: initialData, initialSt
 							min={startDate}
 						/>
 					</div>
+					<div className="d-flex align-items-center gap-2">
+						<label className="form-label mb-0 text-muted small">Search:</label>
+						<input
+							type="text"
+							className="form-control form-control-sm"
+							style={{ minWidth: '200px' }}
+							placeholder="Search by name, billing ID..."
+							value={searchFilter}
+							onChange={(e) => setSearchFilter(e.target.value)}
+						/>
+					</div>
 					<div>
 						<select className='form-select form-select-sm' onChange={(e) => {
 							const sortValue = e.target.value;
@@ -219,7 +232,7 @@ export default function SampleValidationComponent({ data: initialData, initialSt
 					<button
 						className="btn btn-primary btn-sm d-flex align-items-center gap-1"
 						onClick={handleLoadData}
-						disabled={loading || (!startDate && !endDate)}
+						disabled={loading || (!startDate && !endDate && !searchFilter)}
 					>
 						{loading ? (
 							<>
@@ -233,14 +246,15 @@ export default function SampleValidationComponent({ data: initialData, initialSt
 							</>
 						)}
 					</button>
-					{(startDate || endDate) && (
+					{(startDate || endDate || searchFilter) && (
 						<button
 							className="btn btn-outline-secondary btn-sm"
 							onClick={() => {
 								setStartDate('');
 								setEndDate('');
+								setSearchFilter('');
 							}}
-							title="Clear date filters"
+							title="Clear all filters"
 						>
 							Clear
 						</button>

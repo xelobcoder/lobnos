@@ -56,7 +56,8 @@ export const ApplicationSettingsLinks: Link[] =
                 { title: "Registration Fields", link: "/settings/applicationsettings/registrationFields", icon: <RiFileListLine /> },
                 { title: "Result Entry Settings", link: "/settings/applicationsettings/resultentrysettings", icon: <RiFileTextLine /> },
                 { title: "Report Settings", link: "/settings/applicationsettings/reportSettings", icon: <RiFileTextLine /> },
-                {title:"sales session management", link:"/settings/applicationsettings/sales-session-manager", icon:<RiMoneyDollarCircleLine/>}
+                {title:"sales session management", link:"/settings/applicationsettings/sales-session-manager", icon:<RiMoneyDollarCircleLine/>},
+                {title:"Update Test Prices Bulk", link:"/settings/applicationsettings/testpanels/pricing", icon:<RiSettings4Line/>}
             ]
         },
         {

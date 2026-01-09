@@ -17,6 +17,8 @@ export default function DailySalesViewCustomerRepresentative({ params, searchPar
 }) {
 	const [transactions, setTransactions] = useState<any[]>([]);
 	const [summary, setSummary] = useState<any>(undefined);
+	const [expensesPaymentMade, setExpensesPaymentMade] = useState<any[]>([]);
+	const [isLoading, setIsLoading] = useState<boolean>(true);
 	const [branchIdState, setBranchIdState] = useState<string>("");
 	const { branchid } = params;
 	const { from, to } = searchParams;
@@ -37,6 +39,7 @@ export default function DailySalesViewCustomerRepresentative({ params, searchPar
 	useEffect(() => {
 		async function fetchData() {
 			if (!branchIdState) return;
+			setIsLoading(true);
 			let endpoint = "billing/payment/info/client";
 			if (from && to) {
 				endpoint += `?from=${from}&to=${to}`;
@@ -51,13 +54,18 @@ export default function DailySalesViewCustomerRepresentative({ params, searchPar
 				if (data.status === "success" && data.statusCode === 200) {
 					setTransactions(data.data);
 					setSummary(data.summary);
+					setExpensesPaymentMade(data.expensesPaymentMade || []);
 				} else {
 					setTransactions([]);
 					setSummary(undefined);
+					setExpensesPaymentMade([]);
 				}
 			} catch (error) {
 				setTransactions([]);
 				setSummary(undefined);
+				setExpensesPaymentMade([]);
+			} finally {
+				setIsLoading(false);
 			}
 		}
 		fetchData();
@@ -72,8 +80,8 @@ export default function DailySalesViewCustomerRepresentative({ params, searchPar
 
 	return (
 		<div>
-			{branchIdState && <BilledSummary branchid={branchIdState} from={from} to={to} />}
-			<BilledClientsView data={transactions? transactions: []} branchid={branchIdState}  />
+			{branchIdState && <BilledSummary branchid={branchIdState} from={from} to={to} summary={summary} />}
+			<BilledClientsView data={transactions ? transactions : []} branchid={branchIdState} expensesPaymentMade={expensesPaymentMade} isLoading={isLoading} />
 		</div>
 	);
 }
