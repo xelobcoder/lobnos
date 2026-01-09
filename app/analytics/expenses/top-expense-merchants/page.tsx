@@ -17,7 +17,7 @@ import {
 } from "recharts";
 import { customFetch, currencyFormatter } from "../../../../components/Auth/customFetch";
 import { useApplication } from "../../../../components/Auth/useApplicationContext";
-import { RiLoader4Line, RiErrorWarningLine, RiInbox2Line, RiShoppingBagLine, RiBarChartBoxLine, RiLineChartLine, RiBubbleChartLine, RiCalendarEventLine, RiRefreshLine, RiPrinterLine } from "@remixicon/react";
+import { RiLoader4Line, RiErrorWarningLine, RiInbox2Line, RiShoppingBagLine, RiBarChartBoxLine, RiLineChartLine, RiBubbleChartLine, RiCalendarEventLine, RiRefreshLine, RiPrinterLine, RiEyeLine } from "@remixicon/react";
 
 // Color variables to match sales chart
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)'; // Primary chart color
@@ -32,10 +32,23 @@ const COLOR_TERTIARY = '#ea580c'; // Orange
 const COLOR_EXPENSES = '#dc2626'; // Red
 
 interface TopExpenseMerchant {
+     merchant_id: number;
      merchant_name: string;
      expense_date: string;
      total_amount: string;
      expense_count: number;
+}
+
+interface MerchantPaymentDetail {
+     payment_id: string;
+     payment_date: string;
+     payment_amount: string;
+     payment_method: string;
+     payment_status: string;
+     expense_date: string;
+     expense_description: string;
+     category_name: string;
+     employee_name: string;
 }
 
 export default function TopExpenseMerchants() {
@@ -53,6 +66,14 @@ export default function TopExpenseMerchants() {
      const [branches, setBranches] = useState<any[]>([]);
      const [branchid, setBranchid] = useState<number | null>(null);
      const [chartType, setChartType] = useState<"bar" | "line" | "area">("bar");
+     const [showDetailsModal, setShowDetailsModal] = useState(false);
+     const [selectedMerchant, setSelectedMerchant] = useState<string>("");
+     const [merchantPayments, setMerchantPayments] = useState<MerchantPaymentDetail[]>([]);
+     const [loadingPayments, setLoadingPayments] = useState(false);
+     const [currentPage, setCurrentPage] = useState(1);
+     const [pageSize, setPageSize] = useState(10);
+     const [totalRecords, setTotalRecords] = useState(0);
+     const [totalPages, setTotalPages] = useState(0);
      const { user } = useApplication();
 
      const fetchData = async () => {
@@ -226,6 +247,67 @@ export default function TopExpenseMerchants() {
           setEndDate(new Date().toISOString().slice(0, 10));
      };
 
+     const openDetailsModal = async (merchant: TopExpenseMerchant, page: number = 1) => {
+          setSelectedMerchant(merchant.merchant_name);
+          setShowDetailsModal(true);
+          setLoadingPayments(true);
+          setCurrentPage(page);
+          try {
+               const merchantParam = encodeURIComponent(merchant.merchant_id);
+               const endpoint = `expenses/analytics/payments-by-merchant/${merchantParam}?count=${pageSize}&page=${page}`;
+               const response = await customFetch(endpoint);
+               if (response?.status === 'success' && response?.statusCode === 200) {
+                    setMerchantPayments(response.data || []);
+                    // Update pagination info
+                    if (response.pagination) {
+                         setTotalRecords(response.pagination.totalRecords || 0);
+                         setTotalPages(response.pagination.totalPages || 0);
+                    }
+               } else {
+                    setMerchantPayments([]);
+                    setTotalRecords(0);
+                    setTotalPages(0);
+               }
+          } catch (error) {
+               setMerchantPayments([]);
+               setTotalRecords(0);
+               setTotalPages(0);
+          } finally {
+               setLoadingPayments(false);
+          }
+     };
+
+     const closeDetailsModal = () => {
+          setShowDetailsModal(false);
+          setSelectedMerchant("");
+          setMerchantPayments([]);
+          setCurrentPage(1);
+          setTotalRecords(0);
+          setTotalPages(0);
+     };
+
+     const handlePageChange = async (page: number) => {
+          if (selectedMerchant && data.find(m => m.merchant_name === selectedMerchant)) {
+               const merchant = data.find(m => m.merchant_name === selectedMerchant);
+               if (merchant) {
+                    await openDetailsModal(merchant, page);
+               }
+          }
+     };
+
+     const handlePageSizeChange = async (newSize: number) => {
+          if (newSize < 1) newSize = 1;
+          if (newSize > 100) newSize = 100;
+          setPageSize(newSize);
+          setCurrentPage(1); // Reset to page 1
+          if (selectedMerchant) {
+               const merchant = data.find(m => m.merchant_name === selectedMerchant);
+               if (merchant) {
+                    await openDetailsModal(merchant, 1);
+               }
+          }
+     };
+
      return (
           <div className="card" style={{ borderRadius: '0.75rem', borderColor: COLOR_BORDER }}>
                <div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
@@ -310,14 +392,15 @@ export default function TopExpenseMerchants() {
                                    <div className="print-date-range" style={{ display: 'none' }}>
                                         Expense Report Period: {new Date(startDate).toLocaleDateString()} - {new Date(endDate).toLocaleDateString()}
                                    </div>
-                                   <div className="table-responsive" style={{ maxHeight: '500px', overflowY: 'auto' }}>
-                                        <table className="table table-sm table-hover table-striped small printable-table-with-borders">
+                                   <div className="table-responsive" style={{ maxHeight: 'none' }}>
+                                        <table className="table table-hover table-striped printable-table-with-borders" style={{ fontSize: '1.1rem' }}>
                                              <thead className="sticky-top bg-body-tertiary">
                                                   <tr>
                                                        <th scope="col" className="py-2 text-start">#</th>
                                                        <th scope="col" className="py-2 text-start">Merchant Name</th>
                                                        <th scope="col" className="py-2 text-start">Total Amount</th>
                                                        <th scope="col" className="py-2 text-start">Expense Count</th>
+                                                       <th scope="col" className="py-2 text-start">Actions</th>
                                                   </tr>
                                              </thead>
                                              <tbody>
@@ -327,6 +410,12 @@ export default function TopExpenseMerchants() {
                                                             <td className="py-2 text-start fw-medium">{merchant.merchant_name}</td>
                                                             <td className="py-2 text-start fw-medium">{currencyFormatter.format(parseFloat(merchant.total_amount))}</td>
                                                             <td className="py-2 text-start">{merchant.expense_count}</td>
+                                                            <td className="py-2 text-start">
+                                                                 <button className="btn btn-sm btn-outline-primary" onClick={() => openDetailsModal(merchant)}>
+                                                                      <RiEyeLine size={14} className="me-1" />
+                                                                      View Details
+                                                                 </button>
+                                                            </td>
                                                        </tr>
                                                   ))}
                                              </tbody>
@@ -335,6 +424,7 @@ export default function TopExpenseMerchants() {
                                                        <td className="py-2 text-start" colSpan={2}>Total</td>
                                                        <td className="py-2 text-start">{currencyFormatter.format(totalAmountSum)}</td>
                                                        <td className="py-2 text-start">{totalExpenseCount}</td>
+                                                       <td className="py-2 text-start"></td>
                                                   </tr>
                                              </tfoot>
                                         </table>
@@ -367,6 +457,155 @@ export default function TopExpenseMerchants() {
                          </div>
                     </div>
                )}
+
+               {showDetailsModal && (
+                    <div className="modal fade show" style={{ display: 'block' }} tabIndex={-1}>
+                         <div className="modal-dialog modal-xl">
+                              <div className="modal-content">
+                                   <div className="modal-header">
+                                        <h5 className="modal-title">
+                                             Payment Details - {selectedMerchant}
+                                             {totalRecords > 0 && <small className="text-muted ms-2">({totalRecords} total payments)</small>}
+                                        </h5>
+                                        <button type="button" className="btn-close" onClick={closeDetailsModal}></button>
+                                   </div>
+                                   <div className="modal-body">
+                                        {loadingPayments ? (
+                                             <div className="d-flex flex-column justify-content-center align-items-center py-4">
+                                                  <RiLoader4Line size={48} className="animate-spin mb-3" style={{ color: COLOR_ACCENT }} />
+                                                  <p className="text-muted">Loading payment details...</p>
+                                             </div>
+                                        ) : merchantPayments.length === 0 ? (
+                                             <div className="text-center py-4">
+                                                  <RiInbox2Line size={48} className="mb-3 text-muted" />
+                                                  <h5 className="fw-medium mb-1">No Payment Data Available</h5>
+                                                  <p className="text-muted">No payment details found for this merchant.</p>
+                                             </div>
+                                        ) : (
+                                             <div>
+                                                  <div className="d-flex justify-content-between align-items-center mb-3">
+                                                       <div>
+                                                            <label htmlFor="pageSizeInput" className="form-label small fw-medium">Items per page:</label>
+                                                            <input
+                                                                 id="pageSizeInput"
+                                                                 type="number"
+                                                                 className="form-control form-control-sm ms-2"
+                                                                 value={pageSize}
+                                                                 onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                                                                 min="1"
+                                                                 max="100"
+                                                                 style={{ width: '70px', display: 'inline-block' }}
+                                                            />
+                                                       </div>
+                                                       <div className="text-muted small">
+                                                            Total: {totalRecords} payments
+                                                       </div>
+                                                  </div>
+                                                  <div className="table-responsive">
+                                                       <table className="table table-sm table-hover table-striped">
+                                                            <thead className="table-light">
+                                                                 <tr>
+                                                                      <th className="py-2">#</th>
+                                                                      <th className="py-2">Payment Date</th>
+                                                                      <th className="py-2">Amount</th>
+                                                                      <th className="py-2">Method</th>
+                                                                      <th className="py-2">Status</th>
+                                                                      <th className="py-2">Expense Date</th>
+                                                                      <th className="py-2">Description</th>
+                                                                      <th className="py-2">Category</th>
+                                                                      <th className="py-2">Employee</th>
+                                                                 </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                 {merchantPayments.map((payment, idx) => (
+                                                                      <tr key={payment.payment_id}>
+                                                                           <td className="py-2">{idx + 1}</td>
+                                                                           <td className="py-2">{new Date(payment.payment_date).toLocaleDateString()}</td>
+                                                                           <td className="py-2 fw-medium">{currencyFormatter.format(parseFloat(payment.payment_amount))}</td>
+                                                                           <td className="py-2">{payment.payment_method}</td>
+                                                                           <td className="py-2">
+                                                                                <span className={`badge ${payment.payment_status === 'Paid' ? 'bg-success' : 'bg-warning'}`}>
+                                                                                     {payment.payment_status}
+                                                                                </span>
+                                                                           </td>
+                                                                           <td className="py-2">{new Date(payment.expense_date).toLocaleDateString()}</td>
+                                                                           <td className="py-2" style={{ maxWidth: '200px' }}>
+                                                                                <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={payment.expense_description}>
+                                                                                     {payment.expense_description}
+                                                                                </div>
+                                                                           </td>
+                                                                           <td className="py-2">{payment.category_name}</td>
+                                                                           <td className="py-2">{payment.employee_name}</td>
+                                                                      </tr>
+                                                                 ))}
+                                                            </tbody>
+                                                       </table>
+                                                  </div>
+                                             </div>
+                                        )}
+                                        {/* Pagination Controls */}
+                                        {totalPages > 1 && (
+                                             <div className="d-flex justify-content-between align-items-center mt-3">
+                                                  <div className="text-muted small">
+                                                       Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalRecords)} of {totalRecords} payments
+                                                  </div>
+                                                  <nav aria-label="Payment pagination">
+                                                       <ul className="pagination pagination-sm mb-0">
+                                                            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                                                                 <button
+                                                                      className="page-link"
+                                                                      onClick={() => handlePageChange(currentPage - 1)}
+                                                                      disabled={currentPage === 1}
+                                                                 >
+                                                                      Previous
+                                                                 </button>
+                                                            </li>
+                                                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                                                 let pageNum;
+                                                                 if (totalPages <= 5) {
+                                                                      pageNum = i + 1;
+                                                                 } else if (currentPage <= 3) {
+                                                                      pageNum = i + 1;
+                                                                 } else if (currentPage >= totalPages - 2) {
+                                                                      pageNum = totalPages - 4 + i;
+                                                                 } else {
+                                                                      pageNum = currentPage - 2 + i;
+                                                                 }
+                                                                 return (
+                                                                      <li key={pageNum} className={`page-item ${currentPage === pageNum ? 'active' : ''}`}>
+                                                                           <button
+                                                                                className="page-link"
+                                                                                onClick={() => handlePageChange(pageNum)}
+                                                                           >
+                                                                                {pageNum}
+                                                                           </button>
+                                                                      </li>
+                                                                 );
+                                                            })}
+                                                            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                                                                 <button
+                                                                      className="page-link"
+                                                                      onClick={() => handlePageChange(currentPage + 1)}
+                                                                      disabled={currentPage === totalPages}
+                                                                 >
+                                                                      Next
+                                                                 </button>
+                                                            </li>
+                                                       </ul>
+                                                  </nav>
+                                             </div>
+                                        )}
+                                   </div>
+                                   <div className="modal-footer">
+                                        <button type="button" className="btn btn-secondary" onClick={closeDetailsModal}>Close</button>
+                                   </div>
+                              </div>
+                         </div>
+                    </div>
+               )}
+               {showDetailsModal && <div className="modal-backdrop fade show" onClick={closeDetailsModal}></div>}
+
+
                <style jsx global>{`
         .animate-spin {
           animation: spin 1s linear infinite;

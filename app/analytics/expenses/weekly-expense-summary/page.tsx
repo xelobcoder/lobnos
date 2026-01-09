@@ -5,6 +5,7 @@ import { currencyFormatter, customFetch } from "../../../../components/Auth/cust
 import { useApplication } from "../../../../components/Auth/useApplicationContext";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, AreaChart, Area } from "recharts";
 import { RiBarChartBoxLine, RiLoader4Line, RiErrorWarningLine, RiInbox2Line, RiCalendarEventLine, RiRefreshLine, RiPrinterLine, RiLineChartLine, RiBubbleChartLine, RiArrowDownSLine, RiArrowUpSLine, RiEyeLine } from "@remixicon/react";
+import dayjs from 'dayjs';
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
 const COLOR_BORDER = 'var(--bs-border-color)';
 const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
@@ -197,6 +198,29 @@ export default function WeeklyExpenseSummary() {
         setSelectedDate('');
     };
 
+    // Process payment data for chart
+    const getPaymentChartData = () => {
+        if (!Array.isArray(paymentData) || paymentData.length === 0) return [];
+
+        const dailyTotals: { [key: string]: number } = {};
+
+        paymentData.forEach(payment => {
+            const date = payment.expense_date ? new Date(payment.expense_date).toISOString().split('T')[0] : '';
+            if (date) {
+                const amount = parseFloat(payment.payment_amount || '0') || 0;
+                dailyTotals[date] = (dailyTotals[date] || 0) + amount;
+            }
+        });
+
+        return Object.entries(dailyTotals)
+            .map(([date, amount]) => ({
+                date: new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
+                amount: amount,
+                fullDate: date
+            }))
+            .sort((a, b) => new Date(a.fullDate).getTime() - new Date(b.fullDate).getTime());
+    };
+
     useEffect(() => {
         if (branchid) {
             fetchData();
@@ -362,8 +386,8 @@ export default function WeeklyExpenseSummary() {
                                     </span>
                                     <input id="yearWES" type="number" className="form-control shadow-none border-start-0" value={year} onChange={e => setYear(parseInt(e.target.value))} aria-label="Year" style={{ fontSize: '0.875rem', borderColor: COLOR_BORDER, paddingLeft: '0.3rem' }} min="2020" max="2030" />
                                 </div>
-                                <button onClick={fetchData} className="btn btn-sm btn-primary m" type="button" aria-label="Load data">
-                                    Load
+                                <button onClick={fetchData} className="btn btn-sm btn-primary d-flex align-items-center" type="button" aria-label="Load data" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
+                                    Load Data
                                 </button>
                                 <button onClick={handleResetFilters} className="btn btn-sm btn-outline-secondary d-flex align-items-center" type="button" aria-label="Reset year filter" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
                                     <RiRefreshLine size={16} className="me-1" /> Reset
@@ -409,8 +433,8 @@ export default function WeeklyExpenseSummary() {
                         <div className="print-date-range" style={{ display: 'none' }}>
                             Report Period: {year}
                         </div>
-                        <div className="table-responsive">
-                            <table className="table table-hover table-striped printable-table-with-borders">
+                        <div className="table-responsive" style={{ maxHeight: 'none' }}>
+                            <table className="table table-hover table-striped printable-table-with-borders" style={{ fontSize: '0.95rem' }}>
                                 <thead className="sticky-top bg-body-tertiary">
                                     <tr>
                                         <th scope="col" className="py-2 text-start">#</th>
@@ -423,7 +447,7 @@ export default function WeeklyExpenseSummary() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {chartData.map((entry, idx) => (
+                                    {Array.isArray(chartData) && chartData.length > 0 && chartData.map((entry, idx) => (
                                         <React.Fragment key={idx}>
                                             <tr>
                                                 <td className="py-2 text-start fw-medium">{idx + 1}</td>
@@ -458,7 +482,7 @@ export default function WeeklyExpenseSummary() {
                                                             ) : (
                                                                 <RiEyeLine size={14} />
                                                             )}
-                                                            <span className="ms-1">Details</span>
+                                                            <span className="ms-1">View Details</span>
                                                         </button>
                                                     </div>
                                                 </td>
@@ -473,8 +497,8 @@ export default function WeeklyExpenseSummary() {
                                                                     Loading breakdown data...
                                                                 </div>
                                                             ) : dailyData[`${entry.expense_year}-W${entry.expense_week}`] ? (
-                                                                <div className="table-responsive">
-                                                                    <table className="table table-striped table-borderless mb-0">
+                                                                <div className="table-responsive" style={{ maxHeight: 'none' }}>
+                                                                    <table className="table table-striped table-borderless mb-0" style={{ fontSize: '0.9rem' }}>
                                                                         <thead>
                                                                             <tr className="border-bottom">
                                                                                 <th className="py-1 text-start fw-bold">Date</th>
@@ -487,8 +511,7 @@ export default function WeeklyExpenseSummary() {
                                                                         </thead>
                                                                         <tbody>
                                                                             {dailyData[`${entry.expense_year}-W${entry.expense_week}`].map((dayData, dayIdx) => {
-                                                                                const date = new Date(dayData.expense_date);
-                                                                                const formattedDate = `${date.getDate().toString().padStart(2, '0')}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getFullYear()}`;
+                                                                                const formattedDate = dayjs(dayData.expense_date).format('DD-MM-YYYY');
                                                                                 return (
                                                                                     <tr key={dayIdx}>
                                                                                         <td className="py-1 text-start">
@@ -549,6 +572,9 @@ export default function WeeklyExpenseSummary() {
                 .table-responsive thead.sticky-top th {
                     border-bottom: 2px solid var(--bs-border-color);
                 }
+                .table-responsive {
+                    max-height: none !important;
+                }
                 
                 @media print {
                     .card-header {
@@ -608,8 +634,8 @@ export default function WeeklyExpenseSummary() {
                                             Loading expense transactions...
                                         </div>
                                     ) : paymentData.length > 0 ? (
-                                        <div className="table-responsive">
-                                            <table className="table table-striped">
+                                        <div className="table-responsive" style={{ maxHeight: 'none' }}>
+                                            <table className="table table-striped" style={{ fontSize: '0.85rem' }}>
                                                 <thead>
                                                     <tr>
                                                         <th className="py-2 text-start">Expense Date</th>
@@ -671,6 +697,65 @@ export default function WeeklyExpenseSummary() {
                                     ) : (
                                         <div className="text-center py-4 text-muted">
                                             No expense transactions available for this date.
+                                        </div>
+                                    )}
+
+                                    {/* Payment Trend Chart */}
+                                    {Array.isArray(paymentData) && paymentData.length > 0 && (
+                                        <div className="mt-4">
+                                            <h6 className="mb-3">Payment Trend Chart</h6>
+                                            <div style={{ width: '100%', height: 300 }}>
+                                                <ResponsiveContainer>
+                                                    <LineChart data={getPaymentChartData()}>
+                                                        <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
+                                                        <XAxis
+                                                            dataKey="date"
+                                                            tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }}
+                                                            axisLine={{ stroke: COLOR_BORDER }}
+                                                            tickLine={{ stroke: COLOR_BORDER }}
+                                                        />
+                                                        <YAxis
+                                                            tickFormatter={(value: number) => currencyFormatter.format(value)}
+                                                            tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }}
+                                                            axisLine={false}
+                                                            tickLine={false}
+                                                            width={95}
+                                                        />
+                                                        <Tooltip
+                                                            content={({ active, payload, label }) => {
+                                                                if (active && payload && payload.length) {
+                                                                    return (
+                                                                        <div className="rounded-lg border p-2 shadow-sm"
+                                                                            style={{ backgroundColor: 'var(--bs-body-bg)', borderColor: COLOR_BORDER, minWidth: '150px', fontSize: '0.8rem' }}>
+                                                                            <div className="mb-1">
+                                                                                <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Date</span>
+                                                                                <span className="fw-bold d-block" style={{ color: 'var(--bs-body-color)' }}>{label}</span>
+                                                                            </div>
+                                                                            <div>
+                                                                                <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Amount</span>
+                                                                                <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>
+                                                                                    {currencyFormatter.format(payload[0].value as number)}
+                                                                                </span>
+                                                                            </div>
+                                                                        </div>
+                                                                    );
+                                                                }
+                                                                return null;
+                                                            }}
+                                                            cursor={{ fill: 'var(--bs-tertiary-bg)' }}
+                                                        />
+                                                        <Line
+                                                            type="monotone"
+                                                            dataKey="amount"
+                                                            name="Payment Amount"
+                                                            stroke={COLOR_ACCENT}
+                                                            strokeWidth={2}
+                                                            dot={{ r: 4, strokeWidth: 1, fill: COLOR_ACCENT }}
+                                                            activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: 'var(--bs-body-bg)' }}
+                                                        />
+                                                    </LineChart>
+                                                </ResponsiveContainer>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
