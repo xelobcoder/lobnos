@@ -34,13 +34,22 @@ export default function OperationsListTestCollection({ operations }) {
 	};
 
 	const handleLoadAll = () => {
+		setSelectedTests(testList);
 		setLoaded(true);
 	};
 
 	const handleMultiMode = () => {
-		setMultiMode((prev) => !prev);
-		setSelectedTests([]);
-		setLoaded(false);
+		if (!multiMode) {
+			// Entering multi-mode: select all tests and load them
+			setMultiMode(true);
+			setSelectedTests(testList);
+			setLoaded(true);
+		} else {
+			// Exiting multi-mode: reset everything
+			setMultiMode(false);
+			setSelectedTests([]);
+			setLoaded(false);
+		}
 	};
 
 	const handleRequestAccess = (test) => {
@@ -56,7 +65,7 @@ export default function OperationsListTestCollection({ operations }) {
 				{multiMode ? "Cancel Multi-Select" : "Load Multiple"}
 			</button>
 			{multiMode && (
-				<button className="btn btn-sm btn-success ms-2" onClick={handleLoadAll} disabled={selectedTests.length === 0}>
+				<button className="btn btn-sm btn-success ms-2" onClick={handleLoadAll}>
 					Load All
 				</button>
 			)}

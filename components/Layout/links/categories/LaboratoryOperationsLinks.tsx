@@ -10,11 +10,13 @@ import {
     RiTimeLine,
     RiStore2Line,
     RiHome2Line,
-    RiQuestionMark
+    RiQuestionMark,
+    RiSearchLine
 } from '@remixicon/react';
 
 export const LaboratoryOperationsLinks: Link[] = [
     { title: 'Apps Home', link: "/", icon: <RiHome2Line /> },
+    { title: 'Advanced Search', link: '/operations/laboratory/advanced-search', icon: <RiSearchLine /> },
     { title: 'Customers Vital signs', link: "/operations/laboratory/vitals/record-vital-sign", icon: <RiHeartPulseLine /> },
     { title: "Sample Collection", link: "/operations/phelobotomy/pending-samples-collection", icon: <RiTestTubeLine /> },
     { title: "Sample Validation", link: `/operations/laboratory/sample/validation`, icon: <RiTestTubeLine /> },

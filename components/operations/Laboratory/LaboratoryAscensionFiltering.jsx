@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import DatePickerRange from "../../../components/accessories/DatePickerRange";
 import { useLaboratoryContext } from "./LaboratoryStagesContext";
-import { useSearchParams } from "next/navigation";
 
 export default function LaboratoryAscensionFiltering({ ascension_stage, employeeid, branchid }) {
 

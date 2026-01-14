@@ -9,7 +9,7 @@ function handlePrintMultipleResults(row) {
      window.open(`/result/lab-report-multiple?${url}`);
 }
 import { useLaboratoryContext } from "./LaboratoryStagesContext";
-import { ListGroup, Dropdown } from 'react-bootstrap';
+import { ListGroup, Dropdown, Tabs, Tab } from 'react-bootstrap';
 import { useMediaQuery } from 'react-responsive';
 import Loader from '../../accessories/Loader';
 import { customFetch, generateRandomTextAndNumbers } from '../../Auth/customFetch';
@@ -54,11 +54,11 @@ const MobileDataDisplay = ({ data, handleResult }) => {
                               <hr />
                               <span>Validators:</span>
                               <ul className="list-unstyled">
-                                   {item.validators.map((validator, idx) => (
+                                   {item.validators && Array.isArray(item.validators) ? item.validators.map((validator, idx) => (
                                         <li key={idx}>
                                              <strong>{validator.username}</strong> ({validator.role})
                                         </li>
-                                   ))}
+                                   )) : <li className="text-muted">No validators assigned</li>}
                               </ul>
                          </ListGroup.Item>
                     </ListGroup>
@@ -70,6 +70,7 @@ const MobileDataDisplay = ({ data, handleResult }) => {
 export default function ValidatedResultTable({ employeeid }) {
      const { isLoading, collection, queryParams, setQueryParams } = useLaboratoryContext();
      const [isClient, setIsClient] = useState(false);
+     const [groupByPatient, setGroupByPatient] = useState(true);
      const branchid = useApplication().branchid;
 
 
@@ -104,12 +105,10 @@ export default function ValidatedResultTable({ employeeid }) {
 
 
      const downloadSvg = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path fill="none" d="M0 0h24v24H0z"></path><path d="M13 12H16L12 16L8 12H11V8H13V12ZM15 4H5V20H19V8H15V4ZM3 2.9918C3 2.44405 3.44749 2 3.9985 2H16L20.9997 7L21 20.9925C21 21.5489 20.5551 22 20.0066 22H3.9934C3.44476 22 3 21.5447 3 21.0082V2.9918Z"></path></svg>
-
-
-     const EmailSvg = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path fill="none" d="M0 0h24v24H0z"></path><path d="M3 3H21C21.5523 3 22 3.44772 22 4V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V4C2 3.44772 2.44772 3 3 3ZM20 7.23792L12.0718 14.338L4 7.21594V19H20V7.23792ZM4.51146 5L12.0619 11.662L19.501 5H4.51146Z"></path></svg>
+     const EmailSvg = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path fill="none" d="M0 0h24v24H0z"></path><path d="M3 3H21C21.5523 3 22 3.44772 22 4V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V4C2 3.44772 2.44772 3 3 3ZM20 7.23792L12.0718 14.338L4 7.21594V19H20V7.23792ZM4.51146 5L12.0619 11.662L19.501 5H4.51146Z"></path></svg>;
 
      const columns = [
-          {Header: 'Ascension ID', accessor: 'ascensionid'},
+          { Header: 'Ascension ID', accessor: 'ascensionid' },
           {
                Header: 'Ascension Date',
                accessor: 'ascension_date',
@@ -196,12 +195,139 @@ export default function ValidatedResultTable({ employeeid }) {
 
      const updateValue = (value) => setQueryParams({ ...queryParams, page: value });
 
+     // Columns for grouped view
+     const groupedColumns = [
+          {
+               Header: 'Patient ID',
+               accessor: 'fullpatientid',
+               Cell: ({ row }) => (
+                    <button
+                         className="btn btn-link p-0 text-decoration-none"
+                         onClick={() => handleViewPatientDetails(row.original)}
+                    >
+                         <strong>{row.original.fullpatientid || row.original.patientid}</strong>
+                    </button>
+               )
+          },
+          {
+               Header: 'Full Name',
+               accessor: 'fullname',
+               Cell: ({ row }) => (
+                    <button
+                         className="btn btn-link p-0 text-decoration-none text-uppercase"
+                         onClick={() => handleViewPatientDetails(row.original)}
+                    >
+                         {row.original.fullname}
+                    </button>
+               )
+          },
+          {
+               Header: 'Age',
+               accessor: 'age'
+          },
+          {
+               Header: 'Billing ID',
+               accessor: 'billingid'
+          },
+          {
+               Header: 'Tests',
+               accessor: 'tests',
+               Cell: ({ row }) => (
+                    <span className="">{row.original.tests?.length || 0} test{(row.original.tests?.length || 0) !== 1 ? 's' : ''}</span>
+               )
+          },
+          {
+               Header: 'Validators',
+               accessor: 'allValidators',
+               Cell: ({ row }) => (
+                    <div className="list-group list-group-sm">
+                         {row.original.allValidators && row.original.allValidators.map((validator, idx) => (
+                              <span key={idx} className="list-group-item list-group-item-sm py-1 px-2 text-sm">
+                                   {validator.username}
+                              </span>
+                         ))}
+                    </div>
+               )
+          },
+          {
+               Header: 'Action',
+               accessor: '',
+               Cell: ({ row }) => (
+                    <button
+                         className="btn btn-sm btn-primary"
+                         onClick={() => handleViewPatientDetails(row.original)}
+                    >
+                         View Details
+                    </button>
+               )
+          }
+     ];
+
+     // Group data by patient ID and billing ID
+     const groupDataByPatient = (data) => {
+          const grouped = {};
+          data.forEach(item => {
+               const key = `${item.fullpatientid || item.patientid}_${item.billingid}`;
+               if (!grouped[key]) {
+                    grouped[key] = {
+                         patientid: item.patientid,
+                         fullpatientid: item.fullpatientid,
+                         fullname: item.fullname,
+                         age: item.age,
+                         billingid: item.billingid,
+                         clientstatus: item.clientstatus,
+                         tests: [],
+                         allValidators: new Set()
+                    };
+               }
+               grouped[key].tests.push(item);
+               if (item.validators && Array.isArray(item.validators)) {
+                    item.validators.forEach(v => grouped[key].allValidators.add(JSON.stringify(v)));
+               }
+          });
+
+          return Object.values(grouped).map(group => ({
+               ...group,
+               allValidators: Array.from(group.allValidators).map(v => JSON.parse(v))
+          }));
+     };
+
+     // Handle clicking on patient info to view details
+     const handleViewPatientDetails = (groupedItem) => {
+          const patientData = encodeURIComponent(JSON.stringify({
+               patientid: groupedItem.patientid,
+               fullpatientid: groupedItem.fullpatientid,
+               fullname: groupedItem.fullname,
+               age: groupedItem.age,
+               billingid: groupedItem.billingid,
+               clientstatus: groupedItem.clientstatus,
+               tests: groupedItem.tests
+          }));
+          window.open(`/operations/laboratory/grouped-patient-details?data=${patientData}`);
+     };
+
+     const groupedData = groupByPatient ? groupDataByPatient(collection) : collection;
+
 
      if (isLoading) return <Loader />
      return (
           <div>
+               <Tabs
+                    activeKey={groupByPatient ? "grouped" : "ungrouped"}
+                    onSelect={(k) => setGroupByPatient(k === "grouped")}
+                    className="mb-3"
+               >
+                    <Tab eventKey="grouped" title={`Grouped View (${groupByPatient ? groupedData.length : 0})`} />
+                    <Tab eventKey="ungrouped" title={`Individual Records (${!groupByPatient ? collection.length : 0})`} />
+               </Tabs>
+
                {isClient && (isMobile ? (
-                    <MobileDataDisplay data={collection} handleResult={viewResultHandler} />
+                    <MobileDataDisplay data={groupedData} handleResult={groupByPatient ? handleViewPatientDetails : viewResultHandler} />
+               ) : groupByPatient ? (
+                    <PrimeTable
+                         column={groupedColumns}
+                         data={groupedData}
+                    />
                ) : (
                     <PrimeTable column={columns} data={collection}
                          urlparams={{

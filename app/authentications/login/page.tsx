@@ -104,7 +104,10 @@ export default function PrimeLabLoginPage() {
 					router.push("/operations/imaging/ultrasound");
 				} else if (role === "scientist") {
 					router.push("/operations/laboratory");
-				} else {
+				} else if (role === "storekeeper") {
+					router.push("/inventory");
+				} 
+				else {
 					router.push("/");
 				}
 			}, 1000);

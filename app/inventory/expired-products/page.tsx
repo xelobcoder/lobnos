@@ -58,7 +58,7 @@ export default function ExpiredProductsPage() {
                setLoadingDetails(true);
                const response = await customFetch(`inventory/transactions/expired-batches/${itemId}/items`);
                if (response.success) {
-                    setItemDetails(response.data);
+                    setItemDetails(response.data?.expired_batches || []);
                } else {
                     toast.error('Failed to load item details');
                }

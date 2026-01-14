@@ -54,7 +54,10 @@ export async function middleware(request: NextRequest) {
                         return NextResponse.redirect(new URL('/operations/imaging/ultrasound', request.url));
                     } else if (role == "scientist") {
                         return NextResponse.redirect(new URL('/operations/laboratory', request.url));
-                    } else { return NextResponse.redirect(new URL('/unauthorized', request.url)) }
+                    } else if (role == "storekeeper") {
+                        return NextResponse.redirect(new URL('/inventory', request.url));
+                    }
+                    else { return NextResponse.redirect(new URL('/unauthorized', request.url)) }
                 }
             }
 
@@ -73,6 +76,7 @@ export async function middleware(request: NextRequest) {
                 return NextResponse.next();
             }
 
+            // Handle storekeeper access
             if (!["admin", "manager"].includes(role.toString().toLowerCase().trim())) {
                 const restrictedPaths = [
                     '/settings',
@@ -80,12 +84,17 @@ export async function middleware(request: NextRequest) {
                     '/billing/settings/night-adjustments',
                     '/billing/billing-strategy/strategies',
                     '/day-transaction-break-down',
-                    '/inventory',
-                    '/commission-payments'
+                    '/commission-payments',
+                    '/inventory/analytics',
+                    '/expenses/reversed-payments'
                 ];
                 if (restrictedPaths.some(path => currentPath.startsWith(path))) {
                     return NextResponse.redirect(new URL('/unauthorized', request.url));
                 }
+            }
+
+            if (!currentPath.startsWith('/inventory') && !["manager", "admin", "storekeeper"].includes(role)) {
+                return NextResponse.redirect(new URL('/unauthorized', request.url));
             }
 
             // Analytics access restricted to admin and super admin only
@@ -95,7 +104,7 @@ export async function middleware(request: NextRequest) {
 
             // Redirect /billing/expenses to /billing/expenses/expenselist for admin
             if (
-              ['admin','manager'].includes(role.toString().toLowerCase().trim()) &&
+                ['admin', 'manager'].includes(role.toString().toLowerCase().trim()) &&
                 currentPath === '/billing/expenses'
             ) {
                 return NextResponse.redirect(new URL('/billing/expenses/expenselist', request.url));

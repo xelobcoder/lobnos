@@ -8,6 +8,7 @@ import { fnTiming } from "./Lib";
 import ProcessingButtons from "./ProcessingButtons";
 import { handleServerSideProcessingAscensionData } from "../../serverActions/ActionFiltering";
 import dayjs from 'dayjs';
+import { Tabs, Tab, Modal } from 'react-bootstrap';
 
 export default function AscensionProcessingTable() {
     const { isLoading, collection, queryParams, toast, setCollection } = useLaboratoryContext();
@@ -17,6 +18,9 @@ export default function AscensionProcessingTable() {
     const { applicationsettings } = useApplicationSettings();
     const { user } = applicationsettings;
     const employeeid = user?.employeeid;
+    const [groupByPatient, setGroupByPatient] = useState(true);
+    const [showModal, setShowModal] = useState(false);
+    const [selectedGroupPatient, setSelectedGroupPatient] = useState(null);
 
     const toggleRowSelected = (ascensionid) => {
         const isSelected = bulkselection.some(item => item.ascensionid === ascensionid);
@@ -138,10 +142,103 @@ export default function AscensionProcessingTable() {
         },
     ];
 
+    // Group data by patient ID and billing ID
+    const groupDataByPatient = (data) => {
+        const grouped = {};
+        data.forEach(item => {
+            const key = `${item.fullpatientid || item.patientid}_${item.billingid}`;
+            if (!grouped[key]) {
+                grouped[key] = {
+                    patientid: item.patientid,
+                    fullpatientid: item.fullpatientid,
+                    fullname: item.fullname,
+                    age: item.age,
+                    billingid: item.billingid,
+                    tests: []
+                };
+            }
+            grouped[key].tests.push(item);
+        });
+
+        return Object.values(grouped);
+    };
+
+    // Grouped columns
+    const groupedColumns = [
+        {
+            Header: '#',
+            accessor: 'checkbox',
+            Cell: ({ row }) => (
+                <input
+                    type="checkbox"
+                    checked={bulkselection.some(item => item.billingid === row.original.billingid)}
+                    onChange={() => {
+                        const testsInGroup = row.original.tests;
+                        const allSelectedInGroup = testsInGroup.every(test => bulkselection.some(item => item.ascensionid === test.ascensionid));
+
+                        if (allSelectedInGroup) {
+                            setBulkSelection(bulkselection.filter(item => !testsInGroup.some(test => test.ascensionid === item.ascensionid)));
+                        } else {
+                            const newSelections = testsInGroup.filter(test => !bulkselection.some(item => item.ascensionid === test.ascensionid));
+                            setBulkSelection([...bulkselection, ...newSelections]);
+                        }
+                    }}
+                />
+            ),
+            width: '2%',
+        },
+        {
+            Header: 'Patient ID',
+            accessor: 'fullpatientid',
+            Cell: ({ row }) => <strong>{row.original.fullpatientid || row.original.patientid}</strong>
+        },
+        {
+            Header: 'Full Name',
+            accessor: 'fullname',
+            Cell: ({ row }) => <div className='text-uppercase'><strong>{row.original.fullname}</strong><br />{row.original.age}</div>
+        },
+        {
+            Header: 'Billing ID',
+            accessor: 'billingid'
+        },
+        {
+            Header: 'Tests',
+            accessor: 'tests',
+            Cell: ({ row }) => (
+                <span className="">{row.original.tests?.length || 0} test{(row.original.tests?.length || 0) !== 1 ? 's' : ''}</span>
+            )
+        },
+        {
+            Header: 'Action',
+            accessor: 'groupedAction',
+            Cell: ({ row }) => (
+                <button
+                    className="btn btn-sm btn-primary"
+                    onClick={() => {
+                        setSelectedGroupPatient(row.original);
+                        setShowModal(true);
+                    }}
+                >
+                    View Tests
+                </button>
+            )
+        }
+    ];
+
+    const groupedData = groupByPatient ? groupDataByPatient(collection) : collection;
+
     if (isLoading) return <div>Loading .......................</div>;
 
     return (
         <div className="">
+            <Tabs
+                activeKey={groupByPatient ? "grouped" : "ungrouped"}
+                onSelect={(k) => setGroupByPatient(k === "grouped")}
+                className="mb-3"
+            >
+                <Tab eventKey="grouped" title={`Grouped View (${groupByPatient ? groupedData.length : 0})`} />
+                <Tab eventKey="ungrouped" title={`Individual Records (${!groupByPatient ? collection.length : 0})`} />
+            </Tabs>
             <div className="my-1 d-flex justify-content-between">
                 <div>
                     <button onClick={selectAllAscension} className="btn btn-light btn-sm" aria-label={selectstatus ? 'Unselect all' : 'Select all'}>
@@ -155,21 +252,77 @@ export default function AscensionProcessingTable() {
                     </button>
                 </div>
             </div>
-            <PrimeTable
-                column={columns}
-                data={collection}
-                filtering={false}
-                urlparams={{
-                    _dateFrom: queryParams._dateFrom,
-                    searchString: queryParams.searchString,
-                    _dateEnd: queryParams._dateEnd,
-                    isUltrasound: queryParams.isUltrasound,
-                    employeeid, ascension_stage: 'PROCESSING',
-                    branchid: queryParams.branchid,
-                    sortby: queryParams.sortby
-                }}
-                handleSeverSideProcessing={handleServerSideProcessingAscensionData}
-                serverSideFiltering={true} />
+            {groupByPatient ? (
+                <PrimeTable
+                    column={groupedColumns}
+                    data={groupedData}
+                    filtering={false}
+                />
+            ) : (
+                <PrimeTable
+                    column={columns}
+                    data={collection}
+                    filtering={false}
+                    urlparams={{
+                        _dateFrom: queryParams._dateFrom,
+                        searchString: queryParams.searchString,
+                        _dateEnd: queryParams._dateEnd,
+                        isUltrasound: queryParams.isUltrasound,
+                        employeeid, ascension_stage: 'PROCESSING',
+                        branchid: queryParams.branchid,
+                        sortby: queryParams.sortby
+                    }}
+                    handleSeverSideProcessing={handleServerSideProcessingAscensionData}
+                    serverSideFiltering={true} />
+            )}
+
+            {/* Modal for viewing tests */}
+            <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
+                <Modal.Header closeButton>
+                    <Modal.Title>Tests</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    {selectedGroupPatient ? (
+                        <div className="table-responsive">
+                            <table className="table table-sm table-hover">
+                                <thead className="table-light">
+                                    <tr>
+                                        <th>Test Name</th>
+                                        <th>Department</th>
+                                        <th>Ascension Date</th>
+                                        <th>Timing</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {selectedGroupPatient.tests && selectedGroupPatient.tests.map((testAscensionId, idx) => {
+                                        const currentTest = collection.find(t => t.ascensionid === testAscensionId.ascensionid);
+                                        return (
+                                            <tr key={idx}>
+                                                <td className="fw-bold">{currentTest?.name || testAscensionId.name}</td>
+                                                <td>{currentTest?.department || testAscensionId.department}</td>
+                                                <td>{dayjs(currentTest?.ascension_date || testAscensionId.ascension_date).format('DD-MM-YYYY hh:mm:ss')}</td>
+                                                <td>{fnTiming(currentTest || testAscensionId)}</td>
+                                                <td>
+                                                    <ProcessingButtons
+                                                        BulkTargetTo={currentBulkStatus.target}
+                                                        action={currentBulkStatus.action}
+                                                        item={currentTest || testAscensionId}
+                                                        updateTestCollectionAfterUpdate={updateTestCollectionAfterUpdate}
+                                                        employeeid={employeeid}
+                                                    />
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <p className="text-muted">No tests available</p>
+                    )}
+                </Modal.Body>
+            </Modal>
         </div>
     );
 }

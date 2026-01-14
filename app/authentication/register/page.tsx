@@ -272,6 +272,7 @@ export default function AuthenticationIndexPage() {
 												<option value="clinician">Clinician</option>
 												<option value="phlebotomist">Phlebotomist</option>
 												<option value="sonographer">Sonographer</option>
+												<option value="storekeeper">Storekeeper</option>
 											</select>
 										</div>
 										<div className="col-12">

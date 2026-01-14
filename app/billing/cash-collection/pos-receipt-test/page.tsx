@@ -332,7 +332,6 @@ export default function PosReceiptTestPage() {
                pdf.text(displayPhone, pageWidth / 2, yPosition, { align: 'center' });
                yPosition += 6;
 
-               // Patient Information - Two column format
                pdf.setFontSize(9);
                pdf.setFont('times', 'bold');
                pdf.text('PATIENT INFORMATION', pageWidth / 2, yPosition, { align: 'center' });
@@ -354,8 +353,14 @@ export default function PosReceiptTestPage() {
                pdf.text('Receipt #:', leftMargin, yPosition);
                pdf.text(receiptNumber || `RCP-${billingData?.billingid}-${Date.now()}`, rightMargin, yPosition, { align: 'right' });
                yPosition += 3;
+               pdf.text('Bill ID:', leftMargin, yPosition);
+               pdf.text(String(billingData?.billingid || 'N/A'), rightMargin, yPosition, { align: 'right' });
+               yPosition += 3;
                pdf.text('Date:', leftMargin, yPosition);
                pdf.text(billingData ? new Date(billingData.billedon).toLocaleDateString() : 'N/A', rightMargin, yPosition, { align: 'right' });
+               yPosition += 3;
+               pdf.text('Printed:', leftMargin, yPosition);
+               pdf.text(`${dateStr} ${timeStr}`, rightMargin, yPosition, { align: 'right' });
                yPosition += 3;
 
                const isNHIS = services.some(service => service.serviceCategory === 'NHIS');

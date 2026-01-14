@@ -126,6 +126,11 @@ export const CrmLinks: Link[] = [
                 link: "/billing/expenses/create-new-expense",
                 icon: <RiAddCircleLine />
             },
+             {
+                title: "New Merchants",
+                link: "/billing/expenses/merchants/create",
+                icon: <RiAddBoxLine />
+            },
             {
                 title: 'Expense Category',
                 link: '/billing/expenses/category',
@@ -137,11 +142,10 @@ export const CrmLinks: Link[] = [
                 icon: <RiBillFill />
             },
             {
-                title: "New Merchants",
-                link: "/billing/expenses/merchants/create",
-                icon: <RiAddBoxLine />
-            },
-
+                title:"Reversed Payments",
+                link:"/billing/expenses/reversed-payments",
+                icon:<RiMoneyDollarCircleLine />
+            }  
         ]
     },
     {
