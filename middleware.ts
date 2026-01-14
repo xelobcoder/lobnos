@@ -94,12 +94,12 @@ export async function middleware(request: NextRequest) {
             }
 
             // Redirect /billing/expenses to /billing/expenses/expenselist for admin
-            // if (
-            //   ['admin','manager'].includes(role.toString().toLowerCase().trim()) &&
-            //     currentPath === '/billing/expenses'
-            // ) {
-            //     return NextResponse.redirect(new URL('/billing/expenses/expenselist', request.url));
-            // }
+            if (
+              ['admin','manager'].includes(role.toString().toLowerCase().trim()) &&
+                currentPath === '/billing/expenses'
+            ) {
+                return NextResponse.redirect(new URL('/billing/expenses/expenselist', request.url));
+            }
         }
     }
 

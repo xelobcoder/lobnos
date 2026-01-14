@@ -30,6 +30,16 @@ const InvoiceList = ({ branchid, employeeid }) => {
           status: 'Paid'
      });
      const [submittingPayment, setSubmittingPayment] = useState(false);
+     const [showReversePaymentModal, setShowReversePaymentModal] = useState(false);
+     const [selectedPayment, setSelectedPayment] = useState(null);
+     const [reversePaymentData, setReversePaymentData] = useState({
+          paymentId: '',
+          reversalReason: ''
+     });
+     const [submittingReversal, setSubmittingReversal] = useState(false);
+     const [reversalReasonSelect, setReversalReasonSelect] = useState('');
+     const [showReversalInfoModal, setShowReversalInfoModal] = useState(false);
+     const [selectedReversalInfo, setSelectedReversalInfo] = useState(null);
 
      useEffect(() => {
           if (employeeid && branchid) {
@@ -205,6 +215,73 @@ const InvoiceList = ({ branchid, employeeid }) => {
           setPaymentData(prev => ({ ...prev, [name]: value }));
      };
 
+     const handleReversePaymentClick = (payment) => {
+          setSelectedPayment(payment);
+          setReversePaymentData({
+               paymentId: payment.id,
+               reversalReason: ''
+          });
+          setShowReversePaymentModal(true);
+     };
+
+     const handleReversePaymentInputChange = (e) => {
+          const { name, value } = e.target;
+          setReversePaymentData(prev => ({ ...prev, [name]: value }));
+     };
+
+     const handleReversePaymentFromList = async (invoice) => {
+          try {
+               const paymentsResponse = await customFetch(`expenses/payments?employeeid=${employeeid}&branchid=${branchid}&invoice_id=${invoice.id}`);
+               let payments = [];
+               if (paymentsResponse && paymentsResponse.data && Array.isArray(paymentsResponse.data)) {
+                    payments = paymentsResponse.data;
+               } else if (paymentsResponse && Array.isArray(paymentsResponse)) {
+                    payments = paymentsResponse;
+               }
+
+               if (payments.length === 0) {
+                    alert('No payments found for this invoice.');
+               } else if (payments.length === 1) {
+                    handleReversePaymentClick(payments[0]);
+               } else {
+                    alert('This invoice has multiple payments. Please use the "Pay" button to reverse a specific payment.');
+               }
+          } catch (error) {
+               console.error('Error fetching payments:', error);
+               alert('Failed to fetch payment details.');
+          }
+     };
+
+     const handleReversePaymentSubmit = async (e) => {
+          e.preventDefault();
+          if (!reversePaymentData.paymentId) return;
+
+          setSubmittingReversal(true);
+          try {
+               const payload = {
+                    paymentId: parseInt(reversePaymentData.paymentId),
+                    reversalReason: reversePaymentData.reversalReason || undefined
+               };
+
+               const response = await customPost(`expenses/payment/reverse?employeeid=${employeeid}&branchid=${branchid}`, "POST", payload);
+
+               if (response && response.status === 'success' && response.data && response.data.success) {
+                    alert('Payment reversed successfully!');
+                    setShowReversePaymentModal(false);
+                    setReversePaymentData({ paymentId: '', reversalReason: '' });
+                    setSelectedPayment(null);
+                    window.location.reload();
+               } else {
+                    throw new Error(response?.message || 'Payment reversal failed');
+               }
+          } catch (error) {
+               console.error('Error reversing payment:', error);
+               alert(`Failed to reverse payment: ${error.message}`);
+          } finally {
+               setSubmittingReversal(false);
+          }
+     };
+
      const handleServerSideProcessingForInvoices = async (pagination) => {
           const { count, page, sortby = 'DESC', status, from, to } = pagination;
           // Use localFilter values if not provided in pagination
@@ -271,10 +348,14 @@ const InvoiceList = ({ branchid, employeeid }) => {
                )
           },
           {
-               Header: 'Status',
-               accessor: 'status',
+               Header: 'Payment Status',
+               accessor: 'final_payment_status',
                Cell: ({ cell: { value }, row }) => {
-                    const status = statusMap[value] || { label: value, color: 'secondary' };
+                    let status = { label: value, color: 'secondary' };
+                    if (value === 'Paid') status = { label: 'Paid', color: 'success' };
+                    else if (value === 'Reversed') status = { label: 'Reversed', color: 'danger' };
+                    else if (value === 'Pending') status = { label: 'Pending', color: 'warning' };
+
                     return (
                          <span
                               className={`fw-semibold border rounded px-2 py-1 pls-${status.color}-bg pls-${status.color}-color`}
@@ -316,6 +397,30 @@ const InvoiceList = ({ branchid, employeeid }) => {
                )
           },
           {
+               Header: 'Reversal Info',
+               accessor: 'is_reversed',
+               Cell: ({ cell: { value }, row }) => {
+                    if (value === 1) {
+                         return (
+                              <div className="small">
+                                   <Button
+                                        variant="outline-danger"
+                                        size="sm"
+                                        onClick={() => {
+                                             setSelectedReversalInfo(row.original);
+                                             setShowReversalInfoModal(true);
+                                        }}
+                                        className="d-block"
+                                   >
+                                        View Details
+                                   </Button>
+                              </div>
+                         );
+                    }
+                    return <span className="text-muted">-</span>;
+               }
+          },
+          {
                Header: 'Actions',
                accessor: 'actions',
                Cell: ({ row }) => (
@@ -338,6 +443,16 @@ const InvoiceList = ({ branchid, employeeid }) => {
                          >
                               <RiMoneyDollarBoxLine className="me-1" size={14} />
                               Pay
+                         </Button>
+                         <Button
+                              variant="outline-danger"
+                              size="sm"
+                              onClick={() => handleReversePaymentFromList(row.original)}
+                              disabled={row.original.is_reversed === 1 || row.original.final_payment_status !== 'Paid'}
+                              className="d-flex align-items-center"
+                              title={row.original.is_reversed === 1 ? 'Payment already reversed' : 'Reverse this payment'}
+                         >
+                              Reverse
                          </Button>
                     </div>
                )
@@ -534,7 +649,19 @@ const InvoiceList = ({ branchid, employeeid }) => {
                                    </div>
                                    <div className="col-12">
                                         <div className="border rounded p-3 bg-body-tertiary">
-                                             <h6 className="fw-semibold mb-3">Payment History</h6>
+                                             <h6 className="fw-semibold mb-3">Payment & Reversal Details</h6>
+                                             {selectedInvoice.is_reversed === 1 && (
+                                                  <div className="alert alert-danger mb-3" role="alert">
+                                                       <strong>Payment Reversed</strong><br />
+                                                       <div className="small mt-2">
+                                                            <div><strong>Reversal ID:</strong> {selectedInvoice.reversal_id}</div>
+                                                            <div><strong>Amount Reversed:</strong> {currencyFormatter.format(selectedInvoice.reversed_amount)}</div>
+                                                            <div><strong>Reversed By:</strong> {selectedInvoice.reversed_by_name}</div>
+                                                            <div><strong>Reversed On:</strong> {new Date(selectedInvoice.reversed_on).toLocaleString()}</div>
+                                                            {selectedInvoice.reversal_reason && <div><strong>Reason:</strong> {selectedInvoice.reversal_reason}</div>}
+                                                       </div>
+                                                  </div>
+                                             )}
                                              {loadingPayments ? (
                                                   <div className="text-center py-3">
                                                        <div className="spinner-border spinner-border-sm" role="status">
@@ -551,6 +678,7 @@ const InvoiceList = ({ branchid, employeeid }) => {
                                                                       <th>Amount</th>
                                                                       <th>Method</th>
                                                                       <th>Status</th>
+                                                                      {selectedInvoice.is_reversed === 0 && <th>Actions</th>}
                                                                  </tr>
                                                             </thead>
                                                             <tbody>
@@ -564,6 +692,17 @@ const InvoiceList = ({ branchid, employeeid }) => {
                                                                                      {payment.status}
                                                                                 </span>
                                                                            </td>
+                                                                           {selectedInvoice.is_reversed === 0 && (
+                                                                                <td>
+                                                                                     <button
+                                                                                          type="button"
+                                                                                          className="btn btn-sm btn-outline-danger"
+                                                                                          onClick={() => handleReversePaymentClick(payment)}
+                                                                                     >
+                                                                                          Reverse
+                                                                                     </button>
+                                                                                </td>
+                                                                           )}
                                                                       </tr>
                                                                  ))}
                                                             </tbody>
@@ -635,6 +774,7 @@ const InvoiceList = ({ branchid, employeeid }) => {
                                                                  <th>Amount</th>
                                                                  <th>Method</th>
                                                                  <th>Status</th>
+                                                                 <th>Actions</th>
                                                             </tr>
                                                        </thead>
                                                        <tbody>
@@ -647,6 +787,15 @@ const InvoiceList = ({ branchid, employeeid }) => {
                                                                            <span className={`badge ${payment.status === 'Paid' ? 'bg-success' : payment.status === 'Pending' ? 'bg-warning' : 'bg-danger'}`}>
                                                                                 {payment.status}
                                                                            </span>
+                                                                      </td>
+                                                                      <td>
+                                                                           <button
+                                                                                type="button"
+                                                                                className="btn btn-sm btn-outline-danger"
+                                                                                onClick={() => handleReversePaymentClick(payment)}
+                                                                           >
+                                                                                Reverse
+                                                                           </button>
                                                                       </td>
                                                                  </tr>
                                                             ))}
@@ -733,6 +882,128 @@ const InvoiceList = ({ branchid, employeeid }) => {
                     </Modal.Footer>
                </Modal>
 
+               {/* Reverse Payment Modal */}
+               <Modal show={showReversePaymentModal} onHide={() => { setShowReversePaymentModal(false); setSelectedPayment(null); setReversePaymentData({ paymentId: '', reversalReason: '' }); }} size="md">
+                    <Modal.Header closeButton>
+                         <Modal.Title>Reverse Payment</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                         {selectedPayment && (
+                              <form onSubmit={handleReversePaymentSubmit}>
+                                   <div className="alert alert-warning" role="alert">
+                                        <strong>Warning:</strong> This action will reverse the payment. The payment amount will be credited back.
+                                   </div>
+
+                                   <div className="mb-3">
+                                        <label className="form-label">Payment ID</label>
+                                        <input
+                                             type="text"
+                                             className="form-control"
+                                             value={selectedPayment.id}
+                                             readOnly
+                                        />
+                                   </div>
+
+                                   <div className="mb-3">
+                                        <label className="form-label">Payment Amount</label>
+                                        <input
+                                             type="text"
+                                             className="form-control"
+                                             value={currencyFormatter.format(selectedPayment.amount)}
+                                             readOnly
+                                        />
+                                   </div>
+
+                                   <div className="mb-3">
+                                        <label className="form-label">Payment Date</label>
+                                        <input
+                                             type="text"
+                                             className="form-control"
+                                             value={new Date(selectedPayment.payment_date).toLocaleString()}
+                                             readOnly
+                                        />
+                                   </div>
+
+                                   <div className="mb-3">
+                                        <label htmlFor="reversal-reason-select" className="form-label">Reversal Reason <small className="text-muted">(Optional)</small></label>
+                                        <select
+                                             id="reversal-reason-select"
+                                             className="form-select"
+                                             value={reversalReasonSelect}
+                                             onChange={(e) => {
+                                                  setReversalReasonSelect(e.target.value);
+                                                  if (e.target.value !== 'other') {
+                                                       setReversePaymentData({ ...reversePaymentData, reversalReason: e.target.value });
+                                                  } else {
+                                                       setReversePaymentData({ ...reversePaymentData, reversalReason: '' });
+                                                  }
+                                             }}
+                                        >
+                                             <option value="">-- Select a reason --</option>
+                                             <option value="Duplicate Payment">Duplicate Payment</option>
+                                             <option value="Wrong Amount">Wrong Amount</option>
+                                             <option value="Cancelled Invoice">Cancelled Invoice</option>
+                                             <option value="Customer Request">Customer Request</option>
+                                             <option value="System Error">System Error</option>
+                                             <option value="Incorrect Recipient">Incorrect Recipient</option>
+                                             <option value="Overpayment">Overpayment</option>
+                                             <option value="Partial Reversal">Partial Reversal</option>
+                                             <option value="Invoice Not Approved">Invoice Not Approved</option>
+                                             <option value="Payment Dispute">Payment Dispute</option>
+                                             <option value="Fraudulent Transaction">Fraudulent Transaction</option>
+                                             <option value="Service Not Rendered">Service Not Rendered</option>
+                                             <option value="Quality Issues">Quality Issues</option>
+                                             <option value="Pricing Error">Pricing Error</option>
+                                             <option value="Tax Calculation Error">Tax Calculation Error</option>
+                                             <option value="Early Payment Discount Reversal">Early Payment Discount Reversal</option>
+                                             <option value="Account Reconciliation">Account Reconciliation</option>
+                                             <option value="Policy Violation">Policy Violation</option>
+                                             <option value="Unauthorized Payment">Unauthorized Payment</option>
+                                             <option value="Date Entry Error">Date Entry Error</option>
+                                             <option value="Bank Error">Bank Error</option>
+                                             <option value="Vendor Return">Vendor Return</option>
+                                             <option value="Credit Memo Issued">Credit Memo Issued</option>
+                                             <option value="other">Other</option>
+                                        </select>
+                                   </div>
+                                   {reversalReasonSelect === 'other' && (
+                                        <div className="mb-3">
+                                             <label htmlFor="custom-reason" className="form-label">Enter Custom Reason</label>
+                                             <textarea
+                                                  id="custom-reason"
+                                                  name="reversalReason"
+                                                  className="form-control"
+                                                  rows={3}
+                                                  value={reversePaymentData.reversalReason}
+                                                  onChange={handleReversePaymentInputChange}
+                                                  placeholder="Please specify the reason for reversing this payment"
+                                             />
+                                        </div>
+                                   )}
+                              </form>
+                         )}
+                    </Modal.Body>
+                    <Modal.Footer>
+                         <Button variant="secondary" onClick={() => { setShowReversePaymentModal(false); setSelectedPayment(null); setReversePaymentData({ paymentId: '', reversalReason: '' }); }}>
+                              Cancel
+                         </Button>
+                         <Button
+                              variant="danger"
+                              onClick={handleReversePaymentSubmit}
+                              disabled={submittingReversal}
+                         >
+                              {submittingReversal ? (
+                                   <>
+                                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                        Processing...
+                                   </>
+                              ) : (
+                                   'Reverse Payment'
+                              )}
+                         </Button>
+                    </Modal.Footer>
+               </Modal>
+
                {/* Invoice Table */}
                <div>
                     {loading ? (
@@ -755,6 +1026,58 @@ const InvoiceList = ({ branchid, employeeid }) => {
                          />
                     )}
                </div>
+
+               {/* Reversal Info Modal */}
+               <Modal show={showReversalInfoModal} onHide={() => setShowReversalInfoModal(false)} size="lg">
+                    <Modal.Header closeButton>
+                         <Modal.Title className="fw-bold">Reversal Information</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                         {selectedReversalInfo && (
+                              <div>
+                                   <div>
+                                        <div className="row">
+                                             <div className="col-md-6">
+                                                  <div className="mb-3">
+                                                       <strong>Reversal ID:</strong>
+                                                       <p className="text-muted">{selectedReversalInfo.reversal_id}</p>
+                                                  </div>
+                                                  <div className="mb-3">
+                                                       <strong>Reversed Amount:</strong>
+                                                       <p className="text-danger fw-bold">{currencyFormatter.format(selectedReversalInfo.reversed_amount)}</p>
+                                                  </div>
+                                                  <div className="mb-3">
+                                                       <strong>Reversed By:</strong>
+                                                       <p className="text-muted">{selectedReversalInfo.reversed_by_name}</p>
+                                                  </div>
+                                             </div>
+                                             <div className="col-md-6">
+                                                  <div className="mb-3">
+                                                       <strong>Date:</strong>
+                                                       <p className="text-muted">{new Date(selectedReversalInfo.reversed_on).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                                                  </div>
+                                                  <div className="mb-3">
+                                                       <strong>Time:</strong>
+                                                       <p className="text-muted">{new Date(selectedReversalInfo.reversed_on).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</p>
+                                                  </div>
+                                                  {selectedReversalInfo.reversal_reason && (
+                                                       <div className="mb-3">
+                                                            <strong>Reason:</strong>
+                                                            <p className="text-muted">{selectedReversalInfo.reversal_reason}</p>
+                                                       </div>
+                                                  )}
+                                             </div>
+                                        </div>
+                                   </div>
+                              </div>
+                         )}
+                    </Modal.Body>
+                    <Modal.Footer>
+                         <Button variant="secondary" onClick={() => setShowReversalInfoModal(false)}>
+                              Close
+                         </Button>
+                    </Modal.Footer>
+               </Modal>
           </div>
      );
 };
