@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import { customFetch } from '../../../Auth/customFetch';
 import {
 	LineChart,
@@ -30,8 +30,8 @@ const PatientRegistrationOverTime: React.FC = () => {
 	const [data, setData] = useState<RegistrationData[]>([]);
 	const [loading, setLoading] = useState<boolean>(true);
 	const [error, setError] = useState<string | null>(null);
-	const [startDate, setStartDate] = useState<string>(moment().subtract(30, 'days').format('YYYY-MM-DD'));
-	const [endDate, setEndDate] = useState<string>(moment().format('YYYY-MM-DD'));
+	const [startDate, setStartDate] = useState<string>(dayjs().subtract(30, 'days').format('YYYY-MM-DD'));
+	const [endDate, setEndDate] = useState<string>(dayjs().format('YYYY-MM-DD'));
 
 	const calculateTotals = (data: RegistrationData[]) => {
 		const totalPatients = data.reduce((sum, item) => sum + item.patient_count, 0);
@@ -84,7 +84,7 @@ const PatientRegistrationOverTime: React.FC = () => {
 			if (Array.isArray(result)) {
 				const transformedData = result.map((item: RegistrationData) => ({
 					...item,
-					registration_date: moment(item.registration_date).format("MMM DD, YYYY")
+					registration_date: dayjs(item.registration_date).format("DD-MM-YYYY")
 				}));
 				setData(transformedData);
 			} else {

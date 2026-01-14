@@ -93,13 +93,13 @@ export async function middleware(request: NextRequest) {
                 return NextResponse.redirect(new URL('/unauthorized', request.url));
             }
 
-            // Redirect /billing/expenses to /billing/expenses/expenseslist for admin
-            if (
-                role.toString().toLowerCase().trim() === 'admin' &&
-                currentPath === '/billing/expenses'
-            ) {
-                return NextResponse.redirect(new URL('/billing/expenses/expenselist', request.url));
-            }
+            // Redirect /billing/expenses to /billing/expenses/expenselist for admin
+            // if (
+            //   ['admin','manager'].includes(role.toString().toLowerCase().trim()) &&
+            //     currentPath === '/billing/expenses'
+            // ) {
+            //     return NextResponse.redirect(new URL('/billing/expenses/expenselist', request.url));
+            // }
         }
     }
 

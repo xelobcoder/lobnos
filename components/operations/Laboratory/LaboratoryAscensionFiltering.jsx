@@ -1,8 +1,10 @@
 import { useEffect } from "react";
 import DatePickerRange from "../../../components/accessories/DatePickerRange";
 import { useLaboratoryContext } from "./LaboratoryStagesContext";
+import { useSearchParams } from "next/navigation";
 
-export default function LaboratoryAscensionFiltering({ ascension_stage, employeeid ,branchid}) {
+export default function LaboratoryAscensionFiltering({ ascension_stage, employeeid, branchid }) {
+
        const {
               queryParams,
               setQueryParams,
@@ -11,14 +13,16 @@ export default function LaboratoryAscensionFiltering({ ascension_stage, employee
               setLoadCounter,
        } = useLaboratoryContext();
 
+
+
        useEffect(() => {
-              _getAscensionData(ascension_stage, employeeid,branchid);
+              _getAscensionData(ascension_stage, employeeid, branchid);
               setLoadCounter((prev) => prev + 1);
        }, [ascension_stage, employeeid]);
 
        useEffect(() => {
               if (loadCounter > 0) {
-                     _getAscensionData(ascension_stage, employeeid,branchid);
+                     _getAscensionData(ascension_stage, employeeid, branchid);
               }
        }, [queryParams.page, queryParams.count, ascension_stage, employeeid]);
 
@@ -27,12 +31,14 @@ export default function LaboratoryAscensionFiltering({ ascension_stage, employee
               setQueryParams((prev) => ({ ...prev, _dateFrom: start, _dateEnd: end }));
        };
 
+
+
        return (
               <div className="container-fluid py-2">
                      <div className="row g-2 align-items-center">
                             <div className="col-12 col-md-3">
                                    <DatePickerRange
-                                          start={queryParams._dateFrom}
+                                          start={ queryParams._dateFrom}
                                           end={queryParams._dateEnd}
                                           getRange={updateDateValues}
                                    />

@@ -736,29 +736,6 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                                     <div
                                         className="d-flex align-items-center justify-content-center"
                                         style={{
-                                            background: cardColors.totalSales.icon,
-                                            padding: "4px",
-                                            borderRadius: "4px",
-                                            width: "24px",
-                                            height: "24px",
-                                        }}
-                                    >
-                                        <RiMoneyDollarCircleLine style={{ fontSize: "0.8rem", color: "white" }} />
-                                    </div>
-                                    <span className="small fw-medium text-muted">Net Revenue</span>
-                                </div>
-                                <span className="fw-semibold text-dark small">
-                                    {currencyFormatter.format(Number(aggregatedSnapshot.net_revenue || 0))}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div className="list-group-item px-3 py-2 border-0">
-                            <div className="d-flex justify-content-between align-items-center">
-                                <div className="d-flex align-items-center gap-2">
-                                    <div
-                                        className="d-flex align-items-center justify-content-center"
-                                        style={{
                                             background: cardColors.discount.icon,
                                             padding: "4px",
                                             borderRadius: "4px",
@@ -886,53 +863,30 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                                     <span className="small fw-medium text-muted">Total Expenses</span>
                                 </div>
                                 <span className="fw-semibold text-dark small">
-                                    {currencyFormatter.format(Number(ceoExpenseSummarySnapshot[0]?.total_expenses_amount || 0))}
+                                    {currencyFormatter.format(Number(ceoExpenseSummarySnapshot[0]?.total_expense_payments || 0))}
                                 </span>
                             </div>
                         </div>
 
-                        <div className="list-group-item px-3 py-2 border-0">
+                                                <div className="list-group-item px-3 py-2 border-0">
                             <div className="d-flex justify-content-between align-items-center">
                                 <div className="d-flex align-items-center gap-2">
                                     <div
                                         className="d-flex align-items-center justify-content-center"
                                         style={{
-                                            background: cardColors.amountPaid.icon,
+                                            background: cardColors.totalSales.icon,
                                             padding: "4px",
                                             borderRadius: "4px",
                                             width: "24px",
                                             height: "24px",
                                         }}
                                     >
-                                        <RiFileList3Line style={{ fontSize: "0.8rem", color: "white" }} />
+                                        <RiMoneyDollarCircleLine style={{ fontSize: "0.8rem", color: "white" }} />
                                     </div>
-                                    <span className="small fw-medium text-muted">Approved Expenses</span>
+                                    <span className="small fw-medium text-muted">Net Revenue</span>
                                 </div>
                                 <span className="fw-semibold text-dark small">
-                                    {currencyFormatter.format(Number(ceoExpenseSummarySnapshot[0]?.approved_expenses_amount || 0))}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div className="list-group-item px-3 py-2 border-0">
-                            <div className="d-flex justify-content-between align-items-center">
-                                <div className="d-flex align-items-center gap-2">
-                                    <div
-                                        className="d-flex align-items-center justify-content-center"
-                                        style={{
-                                            background: cardColors.pendingDebts.icon,
-                                            padding: "4px",
-                                            borderRadius: "4px",
-                                            width: "24px",
-                                            height: "24px",
-                                        }}
-                                    >
-                                        <RiFileList3Line style={{ fontSize: "0.8rem", color: "white" }} />
-                                    </div>
-                                    <span className="small fw-medium text-muted">Pending Expenses</span>
-                                </div>
-                                <span className="fw-semibold text-dark small">
-                                    {ceoExpenseSummarySnapshot[0]?.pending_expenses_count || 0}
+                                    {currencyFormatter.format(Number(aggregatedSnapshot.net_revenue || 0))}
                                 </span>
                             </div>
                         </div>
@@ -1024,7 +978,7 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                                 </tr>
                             </thead>
                             <tbody>
-                                {OrganizationCommissions.map((commission: OrganizationCommission, index: number) => (
+                                {Array.isArray(OrganizationCommissions) && OrganizationCommissions.map((commission: OrganizationCommission, index: number) => (
                                     <tr key={index}>
                                         <td className="text-start">
                                             {new Date(commission.service_date).toLocaleDateString()}
@@ -1063,40 +1017,6 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
 
             <CeoClinicianSalesChart data={cliniciansalesdailyData} />
 
-            {Array.isArray(mismatchedPaymentHistory) && mismatchedPaymentHistory.length > 0 && (
-                <Card title="Mismatched Payment History" icon={<RiAlertLine />}>
-                    <div className="table-responsive">
-                        <table className="table table-hover table-striped">
-                            <thead className="table-light">
-                                <tr>
-                                    <th className="text-start">Billing ID</th>
-                                    <th className="text-start">Paid in Billing</th>
-                                    <th className="text-start">Total in Billing History</th>
-                                    <th className="text-start">Difference</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {mismatchedPaymentHistory.map((mismatch: any, index: number) => (
-                                    <tr key={index}>
-                                        <td className="text-start">
-                                            {mismatch.billingid}
-                                        </td>
-                                        <td className="text-start">
-                                            {currencyFormatter.format(Number(mismatch.paid_in_billing))}
-                                        </td>
-                                        <td className="text-start">
-                                            {currencyFormatter.format(Number(mismatch.total_in_billinghx))}
-                                        </td>
-                                        <td className="text-start" style={{ color: Number(mismatch.difference) < 0 ? 'var(--bs-danger)' : 'var(--bs-success)' }}>
-                                            {currencyFormatter.format(Number(mismatch.difference))}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </Card>
-            )}
             <div className="tab-pane fade show active" id="expenses" role="tabpanel">
 
 

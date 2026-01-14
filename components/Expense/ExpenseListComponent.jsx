@@ -326,20 +326,18 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 			}
 		},
 		{
-			Header: 'Requested By',
+			Header: 'Requested By / Approved By',
 			accessor: 'username',
-			Cell: ({ cell: { value }, row }) => (
-				<span className="d-flex align-items-center">
-					{value}
-				</span>
-			)
-		},
-		{
-			Header: 'Approved By',
-			accessor: 'approvedby',
-			Cell: ({ cell: { value }, row }) => (
-				<span className="d-flex align-items-center">
-					{value || 'N/A'}
+			Cell: ({ row }) => (
+				<span className="d-flex flex-column">
+					<span className="d-flex align-items-center mb-1">
+						<strong className="text-muted" style={{ fontSize: '0.85rem' }}>Requested:</strong>
+						<span className="ms-2">{row.original.username}</span>
+					</span>
+					<span className="d-flex align-items-center">
+						<strong className="text-muted" style={{ fontSize: '0.85rem' }}>Approved:</strong>
+						<span className="ms-2">{row.original.approvedby || 'N/A'}</span>
+					</span>
 				</span>
 			)
 		},
@@ -375,15 +373,26 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 			Header: 'Actions',
 			accessor: 'actions',
 			Cell: ({ row }) => (
-				<Button
-					variant="outline-primary"
-					size="sm"
-					onClick={() => setSelected(row.original)}
-					className="d-flex align-items-center"
-				>
-					<RiFileList2Line className="me-1" size={14} />
-					View
-				</Button>
+
+				<div className='d-flex justify-content-between'>
+					<Button
+						variant="outline-primary"
+						size="sm"
+						onClick={() => setSelected(row.original)}
+						className="d-flex align-items-center mx-2"
+					>
+						<RiFileList2Line className="me-1" size={14} />
+						View
+					</Button>
+					<Button
+						variant="outline-warning"
+						size="sm"
+						onClick={() => window.open(`/billing/expenses/edit-expense?id=${row.original.id}`, '_blank')}
+						className="d-flex align-items-center"
+					>
+						Edit
+					</Button>
+				</div>
 			)
 		},
 

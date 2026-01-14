@@ -1,4 +1,4 @@
-import { RiMoneyDollarCircleLine, RiFileList3Line, RiMessage2Line, RiStethoscopeLine, RiBarChartBoxLine, RiFileTextLine, RiSyringeLine, RiTestTubeLine, RiMicroscopeLine, RiPulseLine, RiDashboardLine, RiUserLine, RiSettingsLine, RiShieldCheckLine } from "@remixicon/react";
+import { RiMoneyDollarCircleLine, RiFileList3Line, RiMessage2Line, RiStethoscopeLine, RiBarChartBoxLine, RiFileTextLine, RiSyringeLine, RiTestTubeLine, RiMicroscopeLine, RiPulseLine, RiDashboardLine, RiUserLine, RiSettingsLine, RiShieldCheckLine, RiShoppingCartLine } from "@remixicon/react";
 
 export const AdminRoleLinks = [
      {
@@ -241,3 +241,22 @@ export const SonographerRoleLinks = [
 ];
 
 
+
+export const procurementRoleLinks = [
+     {
+          href: '/inventory',
+          icon: <RiShoppingCartLine size={24} />,
+          text: "Manage procurement and inventory",
+          label: 'Inventory',
+          category: 'Procurement & Inventory',
+          description: 'Procurement and inventory management'
+     },
+     {
+          href: '/compliance/incident-reporting',
+          icon: <RiShieldCheckLine size={24} />,
+          text: "Report and manage incidents for quality and compliance tracking",
+          label: 'Incident Reporting',
+          category: 'Quality & Compliance',
+          description: 'Incident reporting and management system'
+     }
+];

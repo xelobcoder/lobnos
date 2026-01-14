@@ -19,7 +19,7 @@ import { useApplicationSettings } from "../../../../components/Auth/useApplicati
 import { RiLineChartLine, RiBarChartBoxLine, RiBubbleChartLine, RiErrorWarningLine, RiCalendarEventLine, RiInbox2Line, RiLoader4Line, RiRefreshLine, RiFileList3Line, RiMoneyDollarCircleLine, RiPercentLine, RiDiscountPercentLine, RiArrowUpSFill, RiArrowDownSFill } from "@remixicon/react";
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
-const COLOR_DISCOUNT = 'oklch(0.769 0.188 70.08)';
+const COLOR_DISCOUNT = '#7c3aed'; // Purple for total_discount
 const COLOR_PAYABLE = 'oklch(0.6 0.118 184.704)';
 const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
 const COLOR_BORDER = 'var(--bs-border-color)';
@@ -421,16 +421,16 @@ export default function WeeklySalesTrend() {
                                 <tr>
                                     <th scope="col" className="py-2">Week</th>
                                     <th scope="col" className="py-2">Total Cost</th>
-                                    <th scope="col" className="py-2">Accrued <span className="d-print-none">Revenue</span></th>
-                                    <th scope="col" className="py-2">Actual <span className="d-print-none">Revenue</span></th>
-                                    <th scope="col" className="py-2">Expenses</th>
                                     <th scope="col" className="py-2">Discount</th>
                                     <th scope="col" className="py-2">Outstanding</th>
                                     <th scope="col" className="py-2">Refunded</th>
-                                    <th scope="col" className="py-2">Net Revenue</th>
+                                    <th scope="col" className="py-2">Accrued <span className="d-print-none">Revenue</span></th>
+                                    <th scope="col" className="py-2">Actual <span className="d-print-none">Revenue</span></th>
+                                    <th scope="col" className="py-2 fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>Expenses</th>
+                                    <th scope="col" className="py-2 fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>Net Revenue</th>
+                                    <th scope="col" className="py-2">Expense Change</th>
                                     <th scope="col" className="py-2">Sales Change</th>
                                     <th scope="col" className="py-2">Net Revenue Change</th>
-                                    <th scope="col" className="py-2">Expense Change</th>
                                     <th scope="col" className="py-2" title="it represent % of net revenue for that period sales">% </th>
                                 </tr>
                             </thead>
@@ -444,13 +444,23 @@ export default function WeeklySalesTrend() {
                                         <tr key={entry.week}>
                                             <td className="py-2 fw-medium">{entry.week}</td>
                                             <td className="py-2 fw-medium">{currencyFormatter.format(entry.totalCost)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.accrued_revenue)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.actual_revenue)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.total_expenses)}</td>
                                             <td className="py-2 fw-medium">{currencyFormatter.format(entry.total_discount)}</td>
                                             <td className="py-2 fw-medium">{currencyFormatter.format(entry.outstanding_debt)}</td>
                                             <td className="py-2 fw-medium">{currencyFormatter.format(entry.totalRefunded)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.net_revenue)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.accrued_revenue)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.actual_revenue)}</td>
+                                            <td className="py-2 fw-medium fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>{currencyFormatter.format(entry.total_expenses)}</td>
+                                            <td className="py-2 fw-medium fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>{currencyFormatter.format(entry.net_revenue)}</td>
+                                            <td className={`py-2 ${expenseChange !== null ? (expenseChange >= 0 ? 'text-danger' : 'text-success') : 'text-muted'}`}>
+                                                {expenseChange !== null ? (
+                                                    <>
+                                                        {expenseChange >= 0 ? <RiArrowUpSFill className="align-text-bottom" /> : <RiArrowDownSFill className="align-text-bottom" />}
+                                                        {expenseChange.toFixed(1)}%
+                                                    </>
+                                                ) : (
+                                                    <span className="text-muted">-</span>
+                                                )}
+                                            </td>
                                             <td className={`py-2 ${salesChange !== null ? (salesChange >= 0 ? 'text-success' : 'text-danger') : 'text-muted'}`}>
                                                 {salesChange !== null ? (
                                                     <>
@@ -471,16 +481,6 @@ export default function WeeklySalesTrend() {
                                                     <span className="text-muted">-</span>
                                                 )}
                                             </td>
-                                            <td className={`py-2 ${expenseChange !== null ? (expenseChange >= 0 ? 'text-danger' : 'text-success') : 'text-muted'}`}>
-                                                {expenseChange !== null ? (
-                                                    <>
-                                                        {expenseChange >= 0 ? <RiArrowUpSFill className="align-text-bottom" /> : <RiArrowDownSFill className="align-text-bottom" />}
-                                                        {expenseChange.toFixed(1)}%
-                                                    </>
-                                                ) : (
-                                                    <span className="text-muted">-</span>
-                                                )}
-                                            </td>
                                             <td className="py-2 text-muted">{percentageOfTotal}%</td>
                                         </tr>
                                     );
@@ -488,17 +488,17 @@ export default function WeeklySalesTrend() {
                                 <tr className="fw-bold border-top">
                                     <td className="py-2">Total</td>
                                     <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalCost, 0))}</td>
-                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.accrued_revenue, 0))}</td>
-                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.actual_revenue, 0))}</td>
-                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.total_expenses, 0))}</td>
                                     <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.total_discount, 0))}</td>
                                     <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.outstanding_debt, 0))}</td>
                                     <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalRefunded, 0))}</td>
-                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.net_revenue, 0))}</td>
-                                    <td className="py-2"></td>
-                                    <td className="py-2"></td>
-                                    <td className="py-2"></td>
-                                    <td className="py-2">100.0%</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.accrued_revenue, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.actual_revenue, 0))}</td>
+                                    <td className="py-2 fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.total_expenses, 0))}</td>
+                                    <td className="py-2 fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.net_revenue, 0))}</td>
+                                    <td className="py-2 text-muted">-</td>
+                                    <td className="py-2 text-muted">-</td>
+                                    <td className="py-2 text-muted">-</td>
+                                    <td className="py-2 text-muted">100.0%</td>
                                 </tr>
                             </tbody>
                         </table>

@@ -3,7 +3,10 @@ import { updatePagination } from "../../Auth/customFetch";
 import { getAscensionData } from "./Lib";
 import { ToastContainer, toast } from "react-toastify";
 import { useApplication } from "../../Auth/useApplicationContext";
+import { useSearchParams } from "next/navigation";
+import dayjs from "dayjs";
 const LaboratoryContext = createContext({ isLoading: true, collection: [] });
+
 
 
 export function LaboratoryStagesProvider({ children }) {
@@ -13,7 +16,12 @@ export function LaboratoryStagesProvider({ children }) {
        const [canloadPage, setLoadPage] = useState(false);
        const branchid = useApplication()?.branchid;
 
-       // Set default date to today in yyyy-mm-dd format
+       const start_date = useSearchParams()?.get('start_date');
+       const end_date = useSearchParams()?.get('end_date');
+
+       const parsedStartDate = start_date ? dayjs(start_date).format('YYYY-MM-DD') : '';
+       const parsedEndDate = end_date ? dayjs(end_date).format('YYYY-MM-DD') : '';
+
        const today = new Date();
        const yyyy = today.getFullYear();
        const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -21,8 +29,8 @@ export function LaboratoryStagesProvider({ children }) {
        const currentDate = `${yyyy}-${mm}-${dd}`;
 
        const [queryParams, setQueryParams] = useState({
-              _dateFrom: currentDate,
-              _dateEnd: currentDate,
+              _dateFrom: parsedStartDate || currentDate,
+              _dateEnd: parsedEndDate || currentDate,
               searchString: '',
               page: 1,
               count: 10,
@@ -36,15 +44,15 @@ export function LaboratoryStagesProvider({ children }) {
               updatePagination(value, setQueryParams, queryParams);
        };
 
-       const _getAscensionData = async function (ascension_stage,employeeid,branchid) {
-              await getAscensionData(ascension_stage, setCollection, queryParams, setLoading,employeeid,branchid);
+       const _getAscensionData = async function (ascension_stage, employeeid, branchid) {
+              await getAscensionData(ascension_stage, setCollection, queryParams, setLoading, employeeid, branchid);
        }
 
        return (
               <LaboratoryContext.Provider value={{
                      collection, setCollection, isLoading, setLoading, queryParams, _getAscensionData, toast,
                      loadCounter, setLoadCounter,
-                            setQueryParams, updatePageValue, canloadPage, setLoadPage
+                     setQueryParams, updatePageValue, canloadPage, setLoadPage
               }}>
                      {children}
 

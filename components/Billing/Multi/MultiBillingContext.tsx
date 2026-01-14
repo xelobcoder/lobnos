@@ -14,9 +14,9 @@ export const MultiBillingProvider: React.FC<{ children: React.ReactNode }> = ({ 
 	const [billingdata, setBillingData] = useState<MultiBillingData>(defaultMultiBillingData);
 	const recalculateTotalBill = (billingdata) => {
 		if (billingdata.cart && billingdata.cart.length > 0) {
-			handleCheckout(billingdata,billingdata.specialCode ?? '', false, setBillingData);
+			handleCheckout(billingdata, billingdata.specialCode ?? '',  setBillingData);
 		}
-		
+
 	};
 
 	return (

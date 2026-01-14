@@ -10,12 +10,7 @@ export default async function ResultEntry({ searchParams, params }) {
 	let test = await customFetch(`result/entry/record/collection?csvid=${csvid}&&ptid=${ptid}&&target=${[70, 50].join(",")}&&branchid=${branchid}`)
 	let patient_data = await customFetch(`register/personalinformation?patientid=${ptid.slice(50)}`);
 
-	// const billingid = csvid ? parseInt(csvid.toString().slice(70)) : csvid
-	// const patientid = ptid ? parseInt(ptid.toString().slice(50)) : ptid
-
-
 	const data = await Promise.all([test, patient_data]);
-	console.log(data)
 	test = data[0];
 	patient_data = data[1];
 

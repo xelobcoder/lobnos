@@ -1,10 +1,9 @@
-import router from "next/router";
 import { toast } from "react-toastify";
 import { plsEncryption } from "../../../lib/encryption";
 import { MultiBillingData } from "../../../lib/Multi/MultiTypes";
 import { customPost } from "../../Auth/customFetch";
 
-export const handleCheckout = async (billingdata: MultiBillingData, specialCode, ispricingcheckout, setBillingData) => {
+export const handleCheckout = async (billingdata: MultiBillingData, specialCode, setBillingData) => {
      try {
           const checkoutPayload = {
                patientId: billingdata.patientid,
@@ -22,7 +21,7 @@ export const handleCheckout = async (billingdata: MultiBillingData, specialCode,
                packageid: billingdata.packageid,
                entityid: billingdata.entityId,
                entitytype: billingdata.entitytype,
-               ispricingcheckout: ispricingcheckout
+               ispricingcheckout: billingdata.ispricingcheckout
           };
 
           const retriveOutsourcedFromCheckoutPayload = (currentCart: any[], previousCart: any[]) => {

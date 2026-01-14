@@ -21,6 +21,7 @@ import dayjs from "dayjs";
 export default function LabReportPrintingMultiple() {
 	const [loader, setLoader] = useState(false);
 	const [resultdata, setResultData] = useState<any>(null);
+	const prefix = useApplication()?.settings?.billingidPrefix || '';
 	const employeeid = useApplication()?.user?.employeeid;
 	const [resultSettings, setResultSettings] = useState<ResultSettings>(defaultResultSettings);
 	const searchParams = useSearchParams();
@@ -623,7 +624,7 @@ export default function LabReportPrintingMultiple() {
 										<MdsPersonalInformation
 											styles={styles}
 											patientInformation={resultdata.patientInformation}
-											labRef={`BILL${resultdata.billingid}`}
+											labRef={`${prefix}${resultdata.billingid}`}
 											isBulk={true}
 											resultsettings={resultSettings}
 										/>

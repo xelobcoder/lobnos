@@ -43,6 +43,7 @@ interface BillingData {
      adjustmentamount: string | null;
      additionalinformation: string | null;
      writeoff: string;
+     billingSource?: string;
 }
 
 interface ServiceData {
@@ -177,6 +178,8 @@ export default function PosReceiptTestPage() {
 
                const response = await customFetch(`billing/client/generate/receipt?tenantId=${tenantId}&billingid=${billingid}&employeeid=${employeeid}`);
                if (response?.status === 'success' && response?.data) {
+                    console.log('Billing Data:', response.data.billing);
+                    console.log('Billing Source:', response.data.billing?.billingSource);
                     setBillingData(response.data.billing);
                     setPatientData(response.data.patient);
                     setServices(response.data.services);
@@ -246,6 +249,8 @@ export default function PosReceiptTestPage() {
                });
 
                const pageWidth = pdf.internal.pageSize.getWidth();
+               const leftMargin = 8;
+               const rightMargin = pageWidth - 8;
                let yPosition = 10;
 
                const now = new Date();
@@ -335,23 +340,35 @@ export default function PosReceiptTestPage() {
                pdf.setFont('times', 'normal');
 
                if (patientData) {
-                    pdf.text('Patient ID:', 5, yPosition);
-                    pdf.text(patientData.fullpatientid, pageWidth - 5, yPosition, { align: 'right' });
+                    pdf.text('Patient ID:', leftMargin, yPosition);
+                    pdf.text(patientData.fullpatientid, rightMargin, yPosition, { align: 'right' });
                     yPosition += 3;
-                    pdf.text('Name:', 5, yPosition);
-                    pdf.text(`${patientData.designation} ${patientData.firstname} ${patientData.lastname}`, pageWidth - 5, yPosition, { align: 'right' });
+                    pdf.text('Name:', leftMargin, yPosition);
+                    pdf.text(`${patientData.designation} ${patientData.firstname} ${patientData.lastname}`, rightMargin, yPosition, { align: 'right' });
                     yPosition += 3;
-                    pdf.text('Phone:', 5, yPosition);
-                    pdf.text(String(patientData.mobile_number), pageWidth - 5, yPosition, { align: 'right' });
+                    pdf.text('Phone:', leftMargin, yPosition);
+                    pdf.text(String(patientData.mobile_number), rightMargin, yPosition, { align: 'right' });
                     yPosition += 3;
                }
 
-               pdf.text('Receipt #:', 5, yPosition);
-               pdf.text(receiptNumber || `RCP-${billingData?.billingid}-${Date.now()}`, pageWidth - 5, yPosition, { align: 'right' });
+               pdf.text('Receipt #:', leftMargin, yPosition);
+               pdf.text(receiptNumber || `RCP-${billingData?.billingid}-${Date.now()}`, rightMargin, yPosition, { align: 'right' });
                yPosition += 3;
-               pdf.text('Date:', 5, yPosition);
-               pdf.text(billingData ? new Date(billingData.billedon).toLocaleDateString() : 'N/A', pageWidth - 5, yPosition, { align: 'right' });
-               yPosition += 6;
+               pdf.text('Date:', leftMargin, yPosition);
+               pdf.text(billingData ? new Date(billingData.billedon).toLocaleDateString() : 'N/A', rightMargin, yPosition, { align: 'right' });
+               yPosition += 3;
+
+               const isNHIS = services.some(service => service.serviceCategory === 'NHIS');
+               if (isNHIS) {
+                    pdf.setFont('times', 'bold');
+                    pdf.setFontSize(8);
+                    pdf.text('Billing Type:', leftMargin, yPosition);
+                    pdf.text('NHIS', rightMargin, yPosition, { align: 'right' });
+                    yPosition += 3;
+                    pdf.setFont('times', 'normal');
+               }
+
+               yPosition += 3;
 
                pdf.text('----------------------------------------------------------------------------------------------------', 0, yPosition, { align: 'left' });
                yPosition += 5;
@@ -366,8 +383,8 @@ export default function PosReceiptTestPage() {
 
                pdf.setFontSize(8);
                pdf.setFont('times', 'bold');
-               pdf.text('SERVICE', 5, yPosition);
-               pdf.text('AMOUNT', pageWidth - 5, yPosition, { align: 'right' });
+               pdf.text('SERVICE', leftMargin, yPosition);
+               pdf.text('AMOUNT', rightMargin, yPosition, { align: 'right' });
                yPosition += 3;
 
                pdf.text('----------------------------------------------------------------------------------------------------', 0, yPosition, { align: 'left' });
@@ -379,8 +396,8 @@ export default function PosReceiptTestPage() {
                     const serviceName = (service.test_report_title || service.service_name);
                     const displayName = serviceName.length > 25 ? serviceName.substring(0, 22) + '...' : serviceName;
 
-                    pdf.text(displayName, 5, yPosition);
-                    pdf.text(formatCurrency(cost), pageWidth - 5, yPosition, { align: 'right' });
+                    pdf.text(displayName, leftMargin, yPosition);
+                    pdf.text(formatCurrency(cost), rightMargin, yPosition, { align: 'right' });
                     yPosition += 4;
                });
 
@@ -389,24 +406,24 @@ export default function PosReceiptTestPage() {
 
                pdf.setFontSize(9);
                pdf.setFont('times', 'bold');
-               pdf.text('SUBTOTAL', 5, yPosition);
-               pdf.text(formatCurrency(subtotal), pageWidth - 5, yPosition, { align: 'right' });
+               pdf.text('SUBTOTAL', leftMargin, yPosition);
+               pdf.text(formatCurrency(subtotal), rightMargin, yPosition, { align: 'right' });
                yPosition += 4;
 
-               pdf.text('TAX', 5, yPosition);
-               pdf.text(formatCurrency(tax), pageWidth - 5, yPosition, { align: 'right' });
+               pdf.text('TAX', leftMargin, yPosition);
+               pdf.text(formatCurrency(tax), rightMargin, yPosition, { align: 'right' });
                yPosition += 4;
 
-               pdf.text('DISCOUNT', 5, yPosition);
-               pdf.text(formatCurrency(discount), pageWidth - 5, yPosition, { align: 'right' });
+               pdf.text('DISCOUNT', leftMargin, yPosition);
+               pdf.text(formatCurrency(discount), rightMargin, yPosition, { align: 'right' });
                yPosition += 4;
 
                pdf.text('----------------------------------------------------------------------------------------------------', 0, yPosition, { align: 'left' });
                yPosition += 3;
 
                pdf.setFontSize(9);
-               pdf.text('TOTAL AMOUNT', 5, yPosition);
-               pdf.text(formatCurrency(total), pageWidth - 5, yPosition, { align: 'right' });
+               pdf.text('TOTAL AMOUNT', leftMargin, yPosition);
+               pdf.text(formatCurrency(total), rightMargin, yPosition, { align: 'right' });
                yPosition += 6;
 
                pdf.text('----------------------------------------------------------------------------------------------------', 0, yPosition, { align: 'left' });
@@ -426,24 +443,33 @@ export default function PosReceiptTestPage() {
                const balance = parseFloat(billingData.balance || '0');
                const outstanding = total - paid;
                const refunded = parseFloat(billingData.totalrefunded || '0');
-               pdf.text(`Total Amount:`, 5, yPosition);
-               pdf.text(formatCurrency(total), pageWidth - 5, yPosition, { align: 'right' });
+               pdf.text(`Total Amount:`, leftMargin, yPosition);
+               pdf.text(formatCurrency(total), rightMargin, yPosition, { align: 'right' });
                yPosition += 4;
-               pdf.text(`Amount Paid:`, 5, yPosition);
-               pdf.text(formatCurrency(paid), pageWidth - 5, yPosition, { align: 'right' });
+               pdf.text(`Amount Paid:`, leftMargin, yPosition);
+               pdf.text(formatCurrency(paid), rightMargin, yPosition, { align: 'right' });
                yPosition += 4;
 
                // Show outstanding amount for partial payments
-               if (paid < total) {
-                    pdf.text(`Outstanding:`, 5, yPosition);
-                    pdf.text(formatCurrency(outstanding), pageWidth - 5, yPosition, { align: 'right' });
+               if (paid < total && !isNHIS) {
+                    pdf.text(`Outstanding:`, leftMargin, yPosition);
+                    pdf.text(formatCurrency(outstanding), rightMargin, yPosition, { align: 'right' });
+                    yPosition += 4;
+               }
+
+               if (isNHIS && outstanding > 0) {
+                    pdf.text(`Insurance Claim:`, leftMargin, yPosition);
+                    pdf.text(formatCurrency(outstanding), rightMargin, yPosition, { align: 'right' });
                     yPosition += 4;
                }
 
                pdf.setFont('times', 'bold');
-               pdf.text(`Payment Status: ${paid >= total ? 'FULLY PAID' : 'PARTIAL PAYMENT'}`, 5, yPosition);
+               const paymentStatus = isNHIS ? 'INSURANCE CLAIM' : (paid >= total ? 'FULLY PAID' : 'PARTIAL PAYMENT');
+               pdf.text(`Payment Status: ${paymentStatus}`, leftMargin, yPosition);
                yPosition += 4;
-               pdf.text('Payment Method: CASH / POS', 5, yPosition);
+
+               const paymentMethodText = isNHIS ? 'NHIS (Insurance Claim)' : 'CASH / POS';
+               pdf.text(`Payment Method: ${paymentMethodText}`, leftMargin, yPosition);
                yPosition += 6;
 
                pdf.text('----------------------------------------------------------------------------------------------------', 0, yPosition, { align: 'left' });
@@ -609,6 +635,9 @@ export default function PosReceiptTestPage() {
                                                   <p className="mb-0"><strong>Patient ID:</strong> {patientData?.fullpatientid || billingData?.patientid}</p>
                                                   <p className="mb-0"><strong>Name:</strong> {patientData ? `${patientData.designation} ${patientData.firstname} ${patientData.lastname}` : 'Loading...'}</p>
                                                   <p className="mb-0"><strong>Receipt #:</strong> {receiptNumber || `RCP-${billingData?.billingid}-${Date.now()}`}</p>
+                                                  {services.some(service => service.serviceCategory === 'NHIS') && (
+                                                       <p className="mb-0"><strong>Billing Type:</strong> <span className="badge bg-info">NHIS</span></p>
+                                                  )}
                                              </div>
                                              <div className="col-6 text-end">
                                                   <p className="mb-0"><strong>Generated:</strong> {new Date().toLocaleDateString()}</p>

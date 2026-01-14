@@ -31,19 +31,18 @@ export default function MAIN_LAYOUT({ children }) {
                }
           );
           const data = await retrieveContext.json();
-          const { user, error, redirect } = data;
+          const { user, error, redirect, settings } = data;
 
           if (error && redirect) {
-               console.error('Error retrieving context:', error);
                window.location.href = redirect;
                return null;
           }
 
           if (!user) return null;
-          setApplicationSettings(user);
+          setApplicationSettings({ user, settings });
           // Cache the data in localStorage
           if (typeof window !== 'undefined') {
-               localStorage.setItem('applicationsettings', JSON.stringify(user));
+               localStorage.setItem('applicationsettings', JSON.stringify({ ...user, settings }));
           }
      }
 

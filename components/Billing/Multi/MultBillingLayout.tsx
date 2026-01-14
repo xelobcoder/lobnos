@@ -291,7 +291,7 @@ function MultiBillingLayoutContent() {
                     servicesList: includeServices ? backendData.servicesList || servicesList : [],
                     payments: prev.payments || [],
                     cart: backendData.isPackageUsed ? backendData.testList : [],
-                    ispricingcheckout: false,
+                    ispricingcheckout
                 };
                 if (backendData.entityType && backendData.entityType !== prev.entitytype) {
                     // Update URL to reflect new entitytype and billingSource
@@ -422,10 +422,6 @@ function MultiBillingLayoutContent() {
                 billingid ? Number(billingid) : undefined
             );
 
-
-            console.log(response, "MY RESPONSE ")
-
-
             const { status, message } = response;
 
             if (status == true || status === 'success') {
@@ -437,7 +433,6 @@ function MultiBillingLayoutContent() {
                         const url = `/billing/sales/branches/${plsEncryption(branchid?.toString())}?from=${today}&to=${today}&patientid=${plsEncryption(patientId?.toString())}`;
                         router.replace(url);
                     } else {
-                        // User wants to stay on the same page - trigger the choice modal
                         setGeneratedBillingid(response.billingid || response.data?.billingid);
                         setShowChoiceModal(true);
                     }

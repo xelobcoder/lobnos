@@ -26,7 +26,7 @@ const ExpenseStatusButtons: React.FC<ExpenseStatusButtonsProps> = ({ status, exp
                 <span className="text-warning fw-semibold">Pending</span>
                 <button
                     className="btn btn-sm btn-outline-primary mx-1"
-                    onClick={() => handleNavigate(`/billing/expenses/create-new-expense?action=edit&id=${expenseId}`)}
+                    onClick={() => handleNavigate(`/billing/expenses/edit-expense?id=${expenseId}`)}
                 >
                     Edit
                 </button>

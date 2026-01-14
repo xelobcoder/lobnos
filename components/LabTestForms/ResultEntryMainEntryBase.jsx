@@ -3,7 +3,7 @@ import CommentSection from "./commentSection";
 import ResultEntryDrugsForm from "./ResultEntryDrugsForm";
 
 
-export default function ResultEntryMainEntryBase({ handlestate, handleCreateFields, rule = [], setPin, pin, handleSubmit, setComments, comments, handleComments, isPinUsed, hasDrugs, setModifiedDrugs, ascensionid, testid, isloading }) {
+export default function ResultEntryMainEntryBase({ handlestate, handleCreateFields, rule = [], setPin, pin, handleSubmit, setComments, comments, handleComments, isPinUsed, hasDrugs, setModifiedDrugs, ascensionid, testid, isloading, isPinShared }) {
 	return (
 		<section>
 			<div className="table-responsive my-2">
@@ -39,9 +39,9 @@ export default function ResultEntryMainEntryBase({ handlestate, handleCreateFiel
 						<input
 							className="custom-input form-control"
 							type="password"
-							placeholder="Enter pin here"
+							placeholder={isPinShared ? "Using shared PIN" : "Enter pin here"}
 							style={{ fontSize: '0.85rem', height: 28, padding: '2px 6px', backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }}
-							value={pin}
+							value={pin} disabled={isPinShared}
 							autoComplete="off"
 							autoCorrect="off"
 							onChange={e => setPin(e.target.value)}

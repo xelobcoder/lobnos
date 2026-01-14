@@ -22,6 +22,8 @@ import DrugsList from '../../../../components/Drugs/DrugsList';
 const MDSLancetTemplate: React.FC = () => {
     const app = useApplication();
     const employeeid = app?.user?.employeeid;
+    const prefixText = app?.settings?.billingidPrefix || '';
+    console.log("Prefix Text:", prefixText);
     const [loader, setLoader] = useState(false);
     const [resultdata, setResultData] = useState<any>(null);
     const [resultSettings, setResultSettings] = useState<ResultSettings>(defaultResultSettings);
@@ -295,7 +297,7 @@ const MDSLancetTemplate: React.FC = () => {
                             <MdsPersonalInformation
                                 styles={styles}
                                 patientInformation={resultdata.patientInformation}
-                                labRef={`BILL${resultdata.samplingInformation?.billingid || billingid}(${resultdata.samplingInformation?.id})`}
+                                labRef={`${prefixText}${resultdata.samplingInformation?.billingid || billingid}(${resultdata.samplingInformation?.id})`}
                                 collectionDate={!isScan ? resultdata.samplingInformation?.collectionEndDate : ''}
                                 finalReportDate={resultdata.samplingInformation?.resultEntryEnd}
                                 resultsettings={resultSettings}

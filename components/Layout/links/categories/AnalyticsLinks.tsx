@@ -111,7 +111,6 @@ export const AnalyticsLinks: Link[] = [
             { title: 'Daily Sales Trend', link: '/analytics/sales/dailySalesTrend', icon: <RiCalendarLine /> },
             { title: 'Monthly Sales Trend', link: '/analytics/sales/monthlySalesTrend', icon: <RiCalendarLine /> },
             { title: 'Sales By Week And Branch', link: '/analytics/sales/salesByWeekAndBranch', icon: <RiBuildingLine /> },
-            { title: 'Total Sales By Branch', link: '/analytics/sales/totalSalesByBranch', icon: <RiBuildingLine /> },
             { title: 'Total Sales By Employee', link: '/analytics/sales/totalSalesByEmployee', icon: <RiUserLine /> },
             { title: 'Total Sales By Organization', link: '/analytics/sales/totalSalesByOrganization', icon: <RiBuildingLine /> },
             { title: 'Total Sales By Outsourced Status', link: '/analytics/sales/totalSalesByOutsourcedStatus', icon: <RiPriceTag3Line /> },

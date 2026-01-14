@@ -5,6 +5,7 @@ import { useApplication } from "../../../../components/Auth/useApplicationContex
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, AreaChart, Area } from "recharts";
 import { RiBarChartBoxLine, RiLineChartLine, RiBubbleChartLine, RiLoader4Line, RiErrorWarningLine, RiInbox2Line, RiCalendarEventLine, RiRefreshLine } from "@remixicon/react";
 import { useState, useEffect } from "react";
+import dayjs from "dayjs";
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
 const COLOR_BORDER = 'var(--bs-border-color)';
@@ -94,7 +95,7 @@ export default function DailyExpenseSummary() {
         ...item,
         total_amount: parseFloat(item.total_expenses),
         average_amount: parseFloat(item.avg_expense_amount),
-        dateLabel: new Date(item.expense_date).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
+        dateLabel: dayjs(item.expense_date).format('DD-MM-YYYY')
     }));
 
     const totalAmountSum = chartData.reduce((sum, entry) => sum + entry.total_amount, 0);

@@ -46,8 +46,9 @@ const COLOR_TOOLTIP_FG = 'var(--bs-body-color)';
 const COLOR_GREEN_TEXT = 'var(--bs-success)';
 const COLOR_RED_TEXT = 'var(--bs-danger)';
 const COLOR_SECONDARY = '#2563eb'; // Blue for actual_revenue
-const COLOR_TERTIARY = '#ea580c'; // Orange for total_discount
+const COLOR_TERTIARY = '#7c3aed'; // Purple for total_discount
 const COLOR_EXPENSES = '#dc2626'; // Red for total_expenses
+const COLOR_NET_REVENUE = '#198754'; // Green for net_revenue
 
 
 export default function DailySalesTrend() {
@@ -55,6 +56,7 @@ export default function DailySalesTrend() {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [view, setView] = useState<"line" | "bar" | "area">("line");
+    const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
 
     const { branchid, user } = useApplicationSettings().applicationsettings || {};
     const employeeid = user?.employeeid;
@@ -148,13 +150,14 @@ export default function DailySalesTrend() {
     }, []);
 
     useEffect(() => {
-        if (branchid && employeeid) {
+        if (branchid && employeeid && isInitialLoad) {
             fetchData(startDate, endDate, branchid, employeeid);
-        } else {
+            setIsInitialLoad(false);
+        } else if (!branchid || !employeeid) {
             setLoading(false);
             setError("Branch and employee information is not loaded yet.");
         }
-    }, [fetchData, startDate, endDate, branchid, employeeid]);
+    }, [fetchData, startDate, endDate, branchid, employeeid, isInitialLoad]);
 
     const handleViewToggle = (newView: "line" | "bar" | "area") => {
         setView(newView);
@@ -178,15 +181,11 @@ export default function DailySalesTrend() {
     const totalPositiveRevenue = useMemo(() => data.reduce((sum, entry) => entry.net_revenue > 0 ? sum + entry.net_revenue : sum, 0), [data]);
 
     const formatDateForDisplay = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        return dayjs(dateString).format('MMM D');
     };
 
     const formatDateForTable = (dateString: string) => {
-        const date = new Date(dateString);
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const year = date.getFullYear();
-        return `${day}-${month}-${year}`;
+        return dayjs(dateString).format('DD-MM-YYYY');
     };
 
 
@@ -279,6 +278,7 @@ export default function DailySalesTrend() {
                     <Bar dataKey="accrued_revenue" name="Accrued Revenue" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={30} />
                     <Bar dataKey="total_discount" name="Total Discount" fill={COLOR_TERTIARY} radius={[4, 4, 0, 0]} maxBarSize={30} />
                     <Bar dataKey="total_expenses" name="Total Expenses" fill={COLOR_EXPENSES} radius={[4, 4, 0, 0]} maxBarSize={30} />
+                    <Bar dataKey="net_revenue" name="Net Revenue" fill={COLOR_NET_REVENUE} radius={[4, 4, 0, 0]} maxBarSize={30} />
                 </BarChart>
             );
         }
@@ -294,6 +294,7 @@ export default function DailySalesTrend() {
                     <Line type="monotone" dataKey="accrued_revenue" name="Accrued Revenue" stroke={COLOR_ACCENT} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
                     <Line type="monotone" dataKey="total_discount" name="Total Discount" stroke={COLOR_TERTIARY} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_TERTIARY }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_TERTIARY, stroke: COLOR_TOOLTIP_BG }} />
                     <Line type="monotone" dataKey="total_expenses" name="Total Expenses" stroke={COLOR_EXPENSES} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_EXPENSES }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_EXPENSES, stroke: COLOR_TOOLTIP_BG }} />
+                    <Line type="monotone" dataKey="net_revenue" name="Net Revenue" stroke={COLOR_NET_REVENUE} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_NET_REVENUE }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_NET_REVENUE, stroke: COLOR_TOOLTIP_BG }} />
                 </LineChart>
             );
         }
@@ -310,12 +311,16 @@ export default function DailySalesTrend() {
                         <stop offset="95%" stopColor={COLOR_ACCENT} stopOpacity={0.05} />
                     </linearGradient>
                     <linearGradient id="colorTotalDiscountFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#ea580c" stopOpacity={0.5} />
-                        <stop offset="95%" stopColor="#ea580c" stopOpacity={0.05} />
+                        <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.5} />
+                        <stop offset="95%" stopColor="#7c3aed" stopOpacity={0.05} />
                     </linearGradient>
                     <linearGradient id="colorTotalExpensesFill" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#dc2626" stopOpacity={0.5} />
                         <stop offset="95%" stopColor="#dc2626" stopOpacity={0.05} />
+                    </linearGradient>
+                    <linearGradient id="colorNetRevenueFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#198754" stopOpacity={0.5} />
+                        <stop offset="95%" stopColor="#198754" stopOpacity={0.05} />
                     </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
@@ -327,6 +332,7 @@ export default function DailySalesTrend() {
                 <Area type="monotone" dataKey="accrued_revenue" name="Accrued Revenue" stroke={COLOR_ACCENT} fill="url(#colorTotalPayableFill)" strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
                 <Area type="monotone" dataKey="total_discount" name="Total Discount" stroke={COLOR_TERTIARY} fill="url(#colorTotalDiscountFill)" strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_TERTIARY }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_TERTIARY, stroke: COLOR_TOOLTIP_BG }} />
                 <Area type="monotone" dataKey="total_expenses" name="Total Expenses" stroke={COLOR_EXPENSES} fill="url(#colorTotalExpensesFill)" strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_EXPENSES }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_EXPENSES, stroke: COLOR_TOOLTIP_BG }} />
+                <Area type="monotone" dataKey="net_revenue" name="Net Revenue" stroke={COLOR_NET_REVENUE} fill="url(#colorNetRevenueFill)" strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_NET_REVENUE }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_NET_REVENUE, stroke: COLOR_TOOLTIP_BG }} />
             </AreaChart>
         );
     };
@@ -452,13 +458,13 @@ export default function DailySalesTrend() {
                                 <tr>
                                     <th scope="col" className="py-2">Date</th>
                                     <th scope="col" className="py-2">Total Cost</th>
-                                    <th scope="col" className="py-2">Expenses</th>
                                     <th scope="col" className="py-2">Discount</th>
-                                    <th scope="col" className="py-2">Net Revenue</th>
-                                    <th scope="col" className="py-2">Accrued <span className="d-print-none">Revenue</span></th>
-                                    <th scope="col" className="py-2">Actual <span className="d-print-none">Revenue</span></th>
                                     <th scope="col" className="py-2">Outstanding</th>
                                     <th scope="col" className="py-2">Refunded</th>
+                                    <th scope="col" className="py-2">Accrued <span className="d-print-none">Revenue</span></th>
+                                    <th scope="col" className="py-2">Actual <span className="d-print-none">Revenue</span></th>
+                                    <th scope="col" className="py-2 fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>Expenses</th>
+                                    <th scope="col" className="py-2 fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>Net Revenue</th>
                                     <th scope="col" className="py-2">Expense Change</th>
                                     <th scope="col" className="py-2">Sales Change</th>
                                     <th scope="col" className="py-2">Net Revenue Change</th>
@@ -467,7 +473,7 @@ export default function DailySalesTrend() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {data.map((entry) => {
+                                {Array.isArray(data) && data.length > 0 && data.map((entry) => {
                                     const expenseChange = entry.expenseChangeFromPrevious;
                                     const salesChange = entry.salesChangeFromPrevious;
                                     const netRevenueChange = entry.netRevenueChangeFromPrevious;
@@ -476,13 +482,13 @@ export default function DailySalesTrend() {
                                         <tr key={entry.date}>
                                             <td className="py-2">{formatDateForTable(entry.date)}</td>
                                             <td className="py-2 fw-medium">{currencyFormatter.format(entry.totalCost)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.total_expenses)}</td>
                                             <td className="py-2 fw-medium">{currencyFormatter.format(entry.total_discount)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.net_revenue)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.accrued_revenue)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.actual_revenue)}</td>
                                             <td className="py-2 fw-medium">{currencyFormatter.format(entry.outstanding_debt)}</td>
                                             <td className="py-2 fw-medium">{currencyFormatter.format(entry.totalRefunded)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.accrued_revenue)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.actual_revenue)}</td>
+                                            <td className="py-2 fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>{currencyFormatter.format(entry.total_expenses)}</td>
+                                            <td className="py-2 fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>{currencyFormatter.format(entry.net_revenue)}</td>
                                             <td className={`py-2 ${expenseChange !== null ? (expenseChange >= 0 ? 'text-danger' : 'text-success') : 'text-muted'}`}>
                                                 {expenseChange !== null ? (
                                                     <>
@@ -530,18 +536,18 @@ export default function DailySalesTrend() {
                                 <tr className="fw-bold border-top">
                                     <td className="py-2">Total</td>
                                     <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalCost, 0))}</td>
-                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.total_expenses, 0))}</td>
                                     <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.total_discount, 0))}</td>
-                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.net_revenue, 0))}</td>
-                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.accrued_revenue, 0))}</td>
-                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.actual_revenue, 0))}</td>
                                     <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.outstanding_debt, 0))}</td>
                                     <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalRefunded, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.accrued_revenue, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.actual_revenue, 0))}</td>
+                                    <td className="py-2 fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.total_expenses, 0))}</td>
+                                    <td className="py-2 fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.net_revenue, 0))}</td>
+                                    <td className="py-2 text-muted">-</td>
+                                    <td className="py-2 text-muted">-</td>
+                                    <td className="py-2 text-muted">-</td>
+                                    <td className="py-2 text-muted">100.0%</td>
                                     <td className="py-2"></td>
-                                    <td className="py-2"></td>
-                                    <td className="py-2"></td>
-                                    <td className="py-2">100.0%</td>
-                                    <td className="py-2 d-print-none"></td>
                                 </tr>
                             </tbody>
                         </table>

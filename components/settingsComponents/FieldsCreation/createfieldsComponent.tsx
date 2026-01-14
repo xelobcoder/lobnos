@@ -279,6 +279,7 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 												<th style={{ width: '12%' }}>Preview</th>
 												<th style={{ width: '10%' }}>Category</th>
 												<th style={{ width: '8%' }}>Req?</th>
+												<th style={{ width: '8%' }}>Order</th>
 												<th style={{ width: '15%' }}>Actions</th>
 											</tr>
 										</thead>
@@ -404,6 +405,16 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 														)}
 													</td>
 													<td>
+														<input
+															type="number"
+															className="form-control form-control-sm"
+															value={field.ordering || ''}
+															onChange={(e) => changeOrdering(field, e)}
+															placeholder="0"
+															style={{ width: '60px' }}
+														/>
+													</td>
+													<td>
 														{editingIndex === index ? (
 															<div className="d-flex gap-1">
 																<Button size="sm" variant="success" onClick={saveField}>
@@ -512,6 +523,16 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 															className="form-check-input"
 															checked={!!newField.isRequired}
 															onChange={(e) => setNewField({ ...newField, isRequired: e.target.checked })}
+														/>
+													</td>
+													<td>
+														<input
+															type="number"
+															className="form-control form-control-sm"
+															value={newField.ordering || ''}
+															onChange={(e) => setNewField({ ...newField, ordering: e.target.value })}
+															placeholder="0"
+															style={{ width: '60px' }}
 														/>
 													</td>
 													<td>

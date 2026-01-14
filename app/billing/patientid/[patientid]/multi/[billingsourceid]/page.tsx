@@ -55,6 +55,7 @@ export default function MultiStepBillingSourcePage({ params, searchParams }: any
 
     const categorytrackid = parseInt(params.billingsourceid, 10);
     const ispricingcheckout = searchParams?.ispricingcheckout === '1';
+
     let patientid: string | null = null;
     if (!ispricingcheckout) {
         const undeCryptedPatientId = params?.patientid;

@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation";
 import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
 import Select, { SingleValue } from "react-select";
 import { RiReceiptLine } from '@remixicon/react';
+import { useRouter } from "next/navigation";
 
 interface ExpenseForm {
 	name: string;
@@ -14,17 +15,10 @@ interface ExpenseForm {
 	merchant: string;
 	amount: number;
 	category: number;
-	mode: string;
 	description: string;
 	receipt: FileList | null;
 	invoiceNumber: string;
-	taxAmount: string;
 	id?: number | null | undefined;
-}
-
-interface PaymentMode {
-	KeyID: string;
-	PaymentMode: string;
 }
 
 interface Category {
@@ -44,11 +38,9 @@ const defaultExpense: ExpenseForm = {
 	merchant: "",
 	amount: 0,
 	category: 0,
-	mode: "",
 	description: "",
 	receipt: null,
 	invoiceNumber: "",
-	taxAmount: "",
 };
 
 interface Merchant {
@@ -77,9 +69,9 @@ export default function AddNewExpense() {
 	const [formData, setFormData] = useState<ExpenseForm>({ ...defaultExpense });
 	const [errors, setErrors] = useState<Partial<Record<keyof ExpenseForm, string>>>({});
 	const [isLoading, setLoading] = useState<boolean>(false);
-	const [paymentModes, setPaymentModes] = useState<PaymentMode[]>([]);
 	const [categories, setCategories] = useState<Category[]>([]);
 	const [merchants, setMerchants] = useState<Merchant[]>([]);
+	const router = useRouter();
 
 	// Validation schema
 	const validateForm = (formData: ExpenseForm): Partial<Record<keyof ExpenseForm, string>> => {
@@ -90,7 +82,6 @@ export default function AddNewExpense() {
 		if (!formData.merchant || isNaN(Number(formData.merchant))) errors.merchant = "Merchant is required";
 		if (!formData.amount || formData.amount <= 0) errors.amount = "Valid amount is required";
 		if (!formData.category) errors.category = "Category is required";
-		if (!formData.mode) errors.mode = "Payment mode is required";
 		if (!formData.description.trim()) errors.description = "Description is required";
 
 		return errors;
@@ -181,21 +172,15 @@ export default function AddNewExpense() {
 			.finally(() => setLoading(false));
 	}, [branchid, employeeid]);
 
-
-	useEffect(() => {
-		setLoading(true);
-		customFetch("paymentmodes")
-			.then((response) => {
-				if (response?.data) {
-					setPaymentModes(response.data);
-				}
-			})
-			.catch(() => toast.error("Failed to load payment modes", { autoClose: 3000 }))
-			.finally(() => setLoading(false));
-	}, []);
-
 	return (
-		<div className="container-fluid py-4">
+		<div className="container-fluid">
+			<div>
+				<button className="btn btn-sm btn-outline-secondary mb-3" onClick={(ev) => {
+					router.push('/billing/expenses/create-multiple-expenses')
+				}}>
+					create bulk expenses
+				</button>
+			</div>
 			<div className="row">
 				<div className="col-12 col-xl-10 col-xxl-8">
 					<div className="card border-1 bg-body-tertiary">
@@ -322,47 +307,6 @@ export default function AddNewExpense() {
 											style={{ fontSize: '0.8rem' }}
 										/>
 										{errors.amount && <div className="invalid-feedback" style={{ fontSize: '0.75rem' }}>{errors.amount}</div>}
-									</div>
-
-									<div className="col-md-4">
-										<label className="form-label mb-1" style={{ fontSize: '0.75rem', fontWeight: '500' }}>
-											Payment Method <span className="text-danger">*</span>
-										</label>
-										<select
-											name="mode"
-											value={formData.mode}
-											onChange={handleInputChange}
-											className={`form-control form-control-sm ${errors.mode ? "is-invalid" : ""}`}
-											disabled={isLoading}
-											style={{ fontSize: '0.8rem' }}
-										>
-											<option value="">Select payment method</option>
-											{paymentModes.map((item) => (
-												<option key={item.KeyID} value={item.KeyID}>
-													{item.PaymentMode}
-												</option>
-											))}
-										</select>
-										{errors.mode && <div className="invalid-feedback" style={{ fontSize: '0.75rem' }}>{errors.mode}</div>}
-									</div>
-
-									<div className="col-md-4">
-										<label className="form-label mb-1" style={{ fontSize: '0.75rem', fontWeight: '500' }}>
-											Tax Amount (GHC)
-										</label>
-										<input
-											name="taxAmount"
-											value={formData.taxAmount}
-											onChange={handleInputChange}
-											className={`form-control form-control-sm ${errors.taxAmount ? "is-invalid" : ""}`}
-											type="number"
-											step="0.01"
-											min="0"
-											placeholder="0.00"
-											disabled={isLoading}
-											style={{ fontSize: '0.8rem' }}
-										/>
-										{errors.taxAmount && <div className="invalid-feedback" style={{ fontSize: '0.75rem' }}>{errors.taxAmount}</div>}
 									</div>
 
 									<div className="col-12">

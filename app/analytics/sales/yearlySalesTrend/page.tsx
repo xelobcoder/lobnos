@@ -23,7 +23,7 @@ import { useApplicationSettings } from "../../../../components/Auth/useApplicati
 import { RiLineChartLine, RiBarChartBoxLine, RiBubbleChartLine, RiPieChartLine, RiErrorWarningLine, RiCalendarEventLine, RiInbox2Line, RiLoader4Line, RiRefreshLine, RiFileList3Line, RiMoneyDollarCircleLine, RiPercentLine, RiDiscountPercentLine } from "@remixicon/react";
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
-const COLOR_DISCOUNT = 'oklch(0.769 0.188 70.08)';
+const COLOR_DISCOUNT = '#7c3aed'; // Purple for total_discount
 const COLOR_PAYABLE = 'oklch(0.6 0.118 184.704)';
 const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
 const COLOR_BORDER = 'var(--bs-border-color)';
@@ -477,16 +477,16 @@ export default function YearlySalesTrend() {
                                 <tr>
                                     <th scope="col" className="py-2">Year</th>
                                     <th scope="col" className="py-2 text-start">Total Cost</th>
+                                    <th scope="col" className="py-2 text-start">Total Discount</th>
+                                    <th scope="col" className="py-2 text-start">Outstanding Debt</th>
+                                    <th scope="col" className="py-2 text-start">Refunded</th>
                                     <th scope="col" className="py-2 text-start">Accrued Revenue</th>
                                     <th scope="col" className="py-2 text-start">Actual Revenue</th>
-                                    <th scope="col" className="py-2 text-start">Outstanding Debt</th>
-                                    <th scope="col" className="py-2 text-start">Total Discount</th>
-                                    <th scope="col" className="py-2 text-start">Refunded</th>
-                                    <th scope="col" className="py-2 text-start">Total Expenses</th>
-                                    <th scope="col" className="py-2 text-start">Net Revenue</th>
+                                    <th scope="col" className="py-2 text-start fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>Total Expenses</th>
+                                    <th scope="col" className="py-2 text-start fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>Net Revenue</th>
+                                    <th scope="col" className="py-2 text-start">Expense Change</th>
                                     <th scope="col" className="py-2 text-start">Sales Change</th>
                                     <th scope="col" className="py-2 text-start">Net Revenue Change</th>
-                                    <th scope="col" className="py-2 text-start">Expense Change</th>
                                     <th scope="col" className="py-2 text-start">% of Total</th>
                                 </tr>
                             </thead>
@@ -531,21 +531,21 @@ export default function YearlySalesTrend() {
                                         <tr key={entry.year}>
                                             <td className="py-2 fw-medium">{entry.year}</td>
                                             <td className="py-2 fw-medium">{currencyFormatter.format(entry.totalCost)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.total_discount)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.outstanding_debt)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.totalRefunded)}</td>
                                             <td className="py-2 fw-medium">{currencyFormatter.format(entry.accrued_revenue)}</td>
                                             <td className="py-2 fw-medium">{currencyFormatter.format(entry.actual_revenue)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.outstanding_debt)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.total_discount)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.totalRefunded)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.total_expenses)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.net_revenue)}</td>
+                                            <td className="py-2 fw-medium fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>{currencyFormatter.format(entry.total_expenses)}</td>
+                                            <td className="py-2 fw-medium fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>{currencyFormatter.format(entry.net_revenue)}</td>
+                                            <td className={`py-2 fw-medium ${expenseChange !== '-' && expenseChange !== 'New' && parseFloat(expenseChange) >= 0 ? 'text-success' : expenseChange !== '-' && expenseChange !== 'New' ? 'text-danger' : ''}`}>
+                                                {expenseChange}
+                                            </td>
                                             <td className={`py-2 fw-medium ${salesChange !== '-' && salesChange !== 'New' && parseFloat(salesChange) >= 0 ? 'text-success' : salesChange !== '-' && salesChange !== 'New' ? 'text-danger' : ''}`}>
                                                 {salesChange}
                                             </td>
                                             <td className={`py-2 fw-medium ${netRevenueChange !== '-' && netRevenueChange !== 'New' && parseFloat(netRevenueChange) >= 0 ? 'text-success' : netRevenueChange !== '-' && netRevenueChange !== 'New' ? 'text-danger' : ''}`}>
                                                 {netRevenueChange}
-                                            </td>
-                                            <td className={`py-2 fw-medium ${expenseChange !== '-' && expenseChange !== 'New' && parseFloat(expenseChange) >= 0 ? 'text-success' : expenseChange !== '-' && expenseChange !== 'New' ? 'text-danger' : ''}`}>
-                                                {expenseChange}
                                             </td>
                                             <td className="py-2 fw-medium">{percentageOfTotal}%</td>
                                         </tr>
@@ -556,17 +556,17 @@ export default function YearlySalesTrend() {
                                 <tr>
                                     <td className="py-2 fw-medium">Total</td>
                                     <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.totalCost)}</td>
+                                    <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.total_discount)}</td>
+                                    <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.outstanding_debt)}</td>
+                                    <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.totalRefunded)}</td>
                                     <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.accrued_revenue)}</td>
                                     <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.actual_revenue)}</td>
-                                    <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.outstanding_debt)}</td>
-                                    <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.total_discount)}</td>
-                                    <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.totalRefunded)}</td>
-                                    <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.total_expenses)}</td>
-                                    <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.net_revenue)}</td>
-                                    <td className="py-2 fw-medium"></td>
-                                    <td className="py-2 fw-medium"></td>
-                                    <td className="py-2 fw-medium"></td>
-                                    <td className="py-2 fw-medium">100.0%</td>
+                                    <td className="py-2 fw-medium fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>{currencyFormatter.format(overallSummary.total_expenses)}</td>
+                                    <td className="py-2 fw-medium fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>{currencyFormatter.format(overallSummary.net_revenue)}</td>
+                                    <td className="py-2 fw-medium text-muted">-</td>
+                                    <td className="py-2 fw-medium text-muted">-</td>
+                                    <td className="py-2 fw-medium text-muted">-</td>
+                                    <td className="py-2 fw-medium text-muted">100.0%</td>
                                 </tr>
                             </tfoot>
                         </table>

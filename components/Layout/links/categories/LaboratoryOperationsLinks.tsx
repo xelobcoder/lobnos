@@ -16,6 +16,7 @@ import {
 export const LaboratoryOperationsLinks: Link[] = [
     { title: 'Apps Home', link: "/", icon: <RiHome2Line /> },
     { title: 'Customers Vital signs', link: "/operations/laboratory/vitals/record-vital-sign", icon: <RiHeartPulseLine /> },
+    { title: "Sample Collection", link: "/operations/phelobotomy/pending-samples-collection", icon: <RiTestTubeLine /> },
     { title: "Sample Validation", link: `/operations/laboratory/sample/validation`, icon: <RiTestTubeLine /> },
     { title: "Processing stage", link: `/operations/laboratory/processing`, icon: <RiLoader4Line /> },
     { title: "Completed stage", link: `/operations/laboratory/completed`, icon: <RiCheckboxCircleLine /> },

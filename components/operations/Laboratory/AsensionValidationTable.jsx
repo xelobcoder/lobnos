@@ -20,6 +20,8 @@ export default function ValidationAscensionTable({ employeeid }) {
 	const [selectedAscension, setSelectedAscension] = useState(null);
 	const [visibleTimelines, setVisibleTimelines] = useState({});
 	const { branchid } = useApplication();
+	const [selectedRows, setSelectedRows] = useState(new Set());
+	const [isBulkValidating, setIsBulkValidating] = useState(false);
 
 	const viewResultHandler = (item) => {
 		printResultNavigator(router, item.billingid, { ...item, testid: item.id }, true);
@@ -37,6 +39,37 @@ export default function ValidationAscensionTable({ employeeid }) {
 			const prev = collection.filter((item, index) => item.ascensionid != ascensionid)
 			setCollection(prev);
 		}
+	};
+
+	const handleRowSelection = (ascensionid) => {
+		setSelectedRows(prev => {
+			const newSet = new Set(prev);
+			if (newSet.has(ascensionid)) {
+				newSet.delete(ascensionid);
+			} else {
+				newSet.add(ascensionid);
+			}
+			return newSet;
+		});
+	};
+
+	const handleSelectAll = () => {
+		if (selectedRows.size === collection.length) {
+			setSelectedRows(new Set());
+		} else {
+			setSelectedRows(new Set(collection.map(item => item.ascensionid)));
+		}
+	};
+
+	const handleBulkValidate = () => {
+		if (selectedRows.size === 0) {
+			alert('Please select at least one test to validate');
+			return;
+		}
+		const selectedAscensions = collection.filter(item => selectedRows.has(item.ascensionid));
+		setSelectedAscension(selectedAscensions);
+		setIsBulkValidating(true);
+		setIsValidationModalOpened(true);
 	};
 
 
@@ -92,11 +125,19 @@ export default function ValidationAscensionTable({ employeeid }) {
 			accessor: "action",
 			width: 50,
 			Cell: ({ row }) => (
-				<ActionDropdown
-					onValidate={() => handleActionClick(row.original)}
-					onViewResult={() => viewResultHandler(row.original)}
-					onNavigate={() => { onNavigate(row.original) }}
-				/>
+				<div className="d-flex align-items-center gap-2">
+					<input
+						type="checkbox"
+						checked={selectedRows.has(row.original.ascensionid)}
+						onChange={() => handleRowSelection(row.original.ascensionid)}
+						style={{ cursor: 'pointer' }}
+					/>
+					<ActionDropdown
+						onValidate={() => handleActionClick(row.original)}
+						onViewResult={() => viewResultHandler(row.original)}
+						onNavigate={() => { onNavigate(row.original) }}
+					/>
+				</div>
 			),
 		}
 	];
@@ -108,17 +149,28 @@ export default function ValidationAscensionTable({ employeeid }) {
 
 	return (
 		<div >
-			<div className="d-flex justify-content-between">
-				<button
-					className="btn btn-light btn-sm"
-					onClick={() => {
-						const allSelected = rows.length === Object.keys(tableInstance.state.selectedRowIds).length;
-						tableInstance.toggleAllRowsSelected(!allSelected);
-					}}
-					disabled={collection.length === 0}
-				>
-					{isMobile ? <RiCheckboxMultipleLine title="select and unselect all ascensions" size={16} /> : "Select All"}
-				</button>
+			<div className="d-flex justify-content-between align-items-center mb-3">
+				<div className="d-flex gap-2">
+					<button
+						className="btn btn-light btn-sm"
+						onClick={handleSelectAll}
+						disabled={collection.length === 0}
+						title={selectedRows.size === collection.length ? "Deselect all" : "Select all"}
+					>
+						{isMobile ? <RiCheckboxMultipleLine title="select and unselect all ascensions" size={16} /> : (selectedRows.size === collection.length ? "Deselect All" : "Select All")}
+					</button>
+					{selectedRows.size > 0 && (
+						<button
+							className="btn btn-primary btn-sm"
+							onClick={handleBulkValidate}
+						>
+							Validate All ({selectedRows.size})
+						</button>
+					)}
+				</div>
+				{selectedRows.size > 0 && (
+					<span className="text-muted small">{selectedRows.size} of {collection.length} selected</span>
+				)}
 			</div>
 			<PrimeTable column={columns} data={collection}
 				urlparams={{
@@ -132,7 +184,7 @@ export default function ValidationAscensionTable({ employeeid }) {
 				handleSeverSideProcessing={handleServerSideProcessingAscensionData}
 			/>
 			{isValidationModalOpened && (
-				<ValidationModal show={isValidationModalOpened} onClose={handleCloseModal} selectedAscension={selectedAscension} />
+				<ValidationModal show={isValidationModalOpened} onClose={handleCloseModal} selectedAscension={selectedAscension} isBulk={isBulkValidating} />
 			)}
 		</div>
 	);

@@ -18,6 +18,7 @@ import {
 import { customFetch, currencyFormatter } from "../../../../components/Auth/customFetch";
 import { useApplication } from "../../../../components/Auth/useApplicationContext";
 import { RiLoader4Line, RiErrorWarningLine, RiInbox2Line, RiShoppingBagLine, RiBarChartBoxLine, RiLineChartLine, RiBubbleChartLine, RiCalendarEventLine, RiRefreshLine, RiPrinterLine, RiEyeLine } from "@remixicon/react";
+import dayjs from 'dayjs';
 
 // Color variables to match sales chart
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)'; // Primary chart color
@@ -127,6 +128,30 @@ export default function TopExpenseMerchants() {
           })), [data]);
 
      const totalChartAmountSum = useMemo(() => chartData.reduce((sum, entry) => sum + entry.total_amount, 0), [chartData]);
+
+     // Prepare chart data for modal payments
+     const modalChartData = useMemo(() => {
+          const grouped = merchantPayments.reduce((acc, payment) => {
+               console.log('Payment date:', payment.payment_date, 'Type:', typeof payment.payment_date);
+               const paymentDate = dayjs(payment.payment_date);
+               if (!paymentDate.isValid()) {
+                    console.log('Invalid date:', payment.payment_date);
+                    return acc; // Skip invalid dates
+               }
+
+               const date = paymentDate.format('DD-MM-YYYY');
+               if (!acc[date]) {
+                    acc[date] = { date, totalAmount: 0, count: 0 };
+               }
+               acc[date].totalAmount += parseFloat(payment.payment_amount) || 0;
+               acc[date].count += 1;
+               return acc;
+          }, {} as Record<string, { date: string; totalAmount: number; count: number }>);
+
+          return Object.values(grouped)
+               .filter(item => dayjs(item.date, 'DD-MM-YYYY').isValid())
+               .sort((a, b) => dayjs(a.date, 'DD-MM-YYYY').valueOf() - dayjs(b.date, 'DD-MM-YYYY').valueOf());
+     }, [merchantPayments]);
 
      const CustomTooltip = ({ active, payload, label }: any) => {
           if (active && payload && payload.length) {
@@ -308,6 +333,20 @@ export default function TopExpenseMerchants() {
           }
      };
 
+     const handleApplyPageSize = async () => {
+          let validSize = pageSize;
+          if (validSize < 1) validSize = 1;
+          if (validSize > 100) validSize = 100;
+          setPageSize(validSize);
+          setCurrentPage(1);
+          if (selectedMerchant) {
+               const merchant = data.find(m => m.merchant_name === selectedMerchant);
+               if (merchant) {
+                    await openDetailsModal(merchant, 1);
+               }
+          }
+     };
+
      return (
           <div className="card" style={{ borderRadius: '0.75rem', borderColor: COLOR_BORDER }}>
                <div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
@@ -346,7 +385,7 @@ export default function TopExpenseMerchants() {
                                    <button onClick={handleResetFilters} className="btn btn-sm btn-outline-secondary d-flex align-items-center" type="button" aria-label="Reset date filters" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
                                         <RiRefreshLine size={16} className="me-1" /> Reset
                                    </button>
-                                   <button onClick={fetchData} className="btn btn-sm btn-primary d-flex align-items-center" type="button" aria-label="Load data" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
+                                   <button onClick={fetchData} className="btn btn-sm btn-primary d-flex align-items-center" type="button" aria-label="Load data" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem', whiteSpace: 'nowrap' }}>
                                         <RiLoader4Line size={16} className="me-1" /> Load Data
                                    </button>
                               </div>
@@ -484,23 +523,90 @@ export default function TopExpenseMerchants() {
                                         ) : (
                                              <div>
                                                   <div className="d-flex justify-content-between align-items-center mb-3">
-                                                       <div>
-                                                            <label htmlFor="pageSizeInput" className="form-label small fw-medium">Items per page:</label>
+                                                       <div className="d-flex align-items-center">
+                                                            <label htmlFor="pageSizeInput" className="form-label small fw-medium mb-0 me-2">Items per page:</label>
                                                             <input
                                                                  id="pageSizeInput"
                                                                  type="number"
-                                                                 className="form-control form-control-sm ms-2"
+                                                                 className="form-control form-control-sm"
                                                                  value={pageSize}
-                                                                 onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                                                                 onChange={(e) => setPageSize(Number(e.target.value))}
                                                                  min="1"
                                                                  max="100"
-                                                                 style={{ width: '70px', display: 'inline-block' }}
+                                                                 style={{ width: '70px' }}
                                                             />
+                                                            <button className="btn btn-sm btn-outline-primary ms-2" onClick={handleApplyPageSize}>Apply</button>
                                                        </div>
                                                        <div className="text-muted small">
                                                             Total: {totalRecords} payments
                                                        </div>
                                                   </div>
+                                                  {modalChartData.length > 0 && (
+                                                       <div style={{ width: "100%", height: 250 }} className="mb-3">
+                                                            <ResponsiveContainer>
+                                                                 <LineChart data={modalChartData} margin={{ top: 5, right: 5, left: 20, bottom: 45 }}>
+                                                                      <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
+                                                                      <XAxis
+                                                                           dataKey="date"
+                                                                           tickFormatter={(value) => {
+                                                                                const date = dayjs(value, 'DD-MM-YYYY');
+                                                                                return date.isValid() ? date.format('DD-MM-YYYY') : value;
+                                                                           }}
+                                                                           angle={-45}
+                                                                           textAnchor="end"
+                                                                           height={60}
+                                                                           interval="preserveStartEnd"
+                                                                           tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }}
+                                                                           axisLine={{ stroke: COLOR_BORDER }}
+                                                                           tickLine={{ stroke: COLOR_BORDER }}
+                                                                      />
+                                                                      <YAxis
+                                                                           tickFormatter={(value: number) => currencyFormatter.format(value)}
+                                                                           tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }}
+                                                                           axisLine={false}
+                                                                           tickLine={false}
+                                                                           width={95}
+                                                                      />
+                                                                      <Tooltip
+                                                                           content={({ active, payload, label }) => {
+                                                                                if (active && payload && payload.length) {
+                                                                                     const data = payload[0].payload;
+                                                                                     return (
+                                                                                          <div
+                                                                                               className="rounded-lg border p-2 shadow-sm"
+                                                                                               style={{
+                                                                                                    backgroundColor: COLOR_TOOLTIP_BG,
+                                                                                                    borderColor: COLOR_BORDER,
+                                                                                                    minWidth: '180px',
+                                                                                                    fontSize: '0.8rem'
+                                                                                               }}
+                                                                                          >
+                                                                                               <div className="mb-1">
+                                                                                                    <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Date</span>
+                                                                                                    <span className="fw-bold d-block" style={{ color: COLOR_TOOLTIP_FG }}>{label}</span>
+                                                                                               </div>
+                                                                                               <div className="mb-1">
+                                                                                                    <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Total Amount</span>
+                                                                                                    <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>
+                                                                                                         {currencyFormatter.format(data.totalAmount)}
+                                                                                                    </span>
+                                                                                               </div>
+                                                                                               <div>
+                                                                                                    <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Payments</span>
+                                                                                                    <span className="fw-bold d-block" style={{ color: COLOR_TOOLTIP_FG }}>{data.count}</span>
+                                                                                               </div>
+                                                                                          </div>
+                                                                                     );
+                                                                                }
+                                                                                return null;
+                                                                           }}
+                                                                           cursor={{ fill: 'var(--bs-tertiary-bg)' }}
+                                                                      />
+                                                                      <Line type="monotone" dataKey="totalAmount" name="Total Amount" stroke={COLOR_ACCENT} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
+                                                                 </LineChart>
+                                                            </ResponsiveContainer>
+                                                       </div>
+                                                  )}
                                                   <div className="table-responsive">
                                                        <table className="table table-sm table-hover table-striped">
                                                             <thead className="table-light">

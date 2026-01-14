@@ -41,6 +41,7 @@ export const ApplicationSettingsLinks: Link[] =
             icon: <RiBuildingLine />,
             children: [
                 { title: "Company Info", link: "/settings/companyprofile", icon: <RiBuildingLine /> },
+                { title: "Application Settings", link: "/settings/applicationsettings", icon: <RiSettings4Line /> },
                 { title: "Branches", link: "/settings/branches", icon: <RiBuilding2Line /> },
                 { title: "Taxes", link: "/settings/tax", icon: <RiMoneyDollarCircleLine /> }
             ]
@@ -56,8 +57,8 @@ export const ApplicationSettingsLinks: Link[] =
                 { title: "Registration Fields", link: "/settings/applicationsettings/registrationFields", icon: <RiFileListLine /> },
                 { title: "Result Entry Settings", link: "/settings/applicationsettings/resultentrysettings", icon: <RiFileTextLine /> },
                 { title: "Report Settings", link: "/settings/applicationsettings/reportSettings", icon: <RiFileTextLine /> },
-                {title:"sales session management", link:"/settings/applicationsettings/sales-session-manager", icon:<RiMoneyDollarCircleLine/>},
-                {title:"Update Test Prices Bulk", link:"/settings/applicationsettings/testpanels/pricing", icon:<RiSettings4Line/>}
+                { title: "sales session management", link: "/settings/applicationsettings/sales-session-manager", icon: <RiMoneyDollarCircleLine /> },
+                { title: "Update Test Prices Bulk", link: "/settings/applicationsettings/testpanels/pricing", icon: <RiSettings4Line /> }
             ]
         },
         {

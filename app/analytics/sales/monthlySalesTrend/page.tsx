@@ -47,7 +47,7 @@ interface ChartDataEntry {
 }
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
-const COLOR_DISCOUNT = 'oklch(0.769 0.188 70.08)';
+const COLOR_DISCOUNT = '#7c3aed'; // Purple for total_discount
 const COLOR_PAYABLE = 'oklch(0.6 0.118 184.704)';
 const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
 const COLOR_BORDER = 'var(--bs-border-color)';
@@ -694,8 +694,8 @@ export default function MonthlySalesTrend() {
 									<th scope="col" className="py-2 text-start">Outstanding Debt</th>
 									<th scope="col" className="py-2 text-start">Total Discount</th>
 									<th scope="col" className="py-2 text-start">Refunded</th>
-									<th scope="col" className="py-2 text-start">Total Expenses</th>
-									<th scope="col" className="py-2 text-start">Net Revenue</th>
+									<th scope="col" className="py-2 text-start fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>Total Expenses</th>
+									<th scope="col" className="py-2 text-start fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>Net Revenue</th>
 									<th scope="col" className="py-2 text-start">Sales Change</th>
 									<th scope="col" className="py-2 text-start">Net Revenue Change</th>
 									<th scope="col" className="py-2 text-start">Expense Change</th>
@@ -754,8 +754,8 @@ export default function MonthlySalesTrend() {
 											<td className="py-2 text-start">{currencyFormatter.format(entry.outstanding_debt)}</td>
 											<td className="py-2 text-start">{currencyFormatter.format(entry.total_discount)}</td>
 											<td className="py-2 text-start">{currencyFormatter.format(entry.totalRefunded)}</td>
-											<td className="py-2 text-start">{currencyFormatter.format(entry.total_expenses)}</td>
-											<td className="py-2 text-start">{currencyFormatter.format(entry.net_revenue)}</td>
+											<td className="py-2 text-start fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>{currencyFormatter.format(entry.total_expenses)}</td>
+											<td className="py-2 text-start fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>{currencyFormatter.format(entry.net_revenue)}</td>
 											<td className="py-2 text-start small" style={{ color: salesChange === 'New' || (salesChange !== '-' && !salesChange.startsWith('-')) ? '#28a745' : '#dc3545' }}>
 												{salesChange}
 											</td>
@@ -779,8 +779,8 @@ export default function MonthlySalesTrend() {
 									<td className="py-2 text-start">{currencyFormatter.format(overallSummary.outstanding_debt)}</td>
 									<td className="py-2 text-start">{currencyFormatter.format(overallSummary.total_discount)}</td>
 									<td className="py-2 text-start">{currencyFormatter.format(overallSummary.totalRefunded)}</td>
-									<td className="py-2 text-start">{currencyFormatter.format(overallSummary.total_expenses)}</td>
-									<td className="py-2 text-start">{currencyFormatter.format(overallSummary.net_revenue)}</td>
+									<td className="py-2 text-start fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>{currencyFormatter.format(overallSummary.total_expenses)}</td>
+									<td className="py-2 text-start fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>{currencyFormatter.format(overallSummary.net_revenue)}</td>
 									<td className="py-2 text-start">-</td>
 									<td className="py-2 text-start">-</td>
 									<td className="py-2 text-start">-</td>

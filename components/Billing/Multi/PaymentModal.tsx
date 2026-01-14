@@ -42,7 +42,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
      setBillingData,
      billingdata
 }) => {
-     // Helper function to validate and constrain payment amounts
      const validatePaymentAmount = (inputValue: string, idx: number, payAllPayments: PaymentEntry[], payable: number) => {
           let val = Number(inputValue);
           const otherPaymentsTotal = payAllPayments.reduce((sum, payment, i) =>
@@ -53,9 +52,16 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           return val;
      };
 
-     // Payment mode: 'all' (Pay All) or 'items' (Pay for Individual Items)
-     const [paymentMode, setPaymentMode] = React.useState<'all' | 'items'>('all');
-     const [paySelected, setPaySelected] = React.useState(false); // legacy, for backward compat
+     const isNHISBilling = Number(billingdata?.source) === 4 || Number(billingdata?.billingsource) === 4 || Number(billingdata?.billingSource) === 4 || String(billingdata?.entityType).toLowerCase() === 'nhis';
+     console.log('Billing Source Check:', {
+          source: billingdata?.source,
+          billingsource: billingdata?.billingsource,
+          billingSource: billingdata?.billingSource,
+          entityType: billingdata?.entityType,
+          isNHISBilling
+     });
+     const [paymentMode, setPaymentMode] = React.useState<'all' | 'items' | 'free' | 'nhis'>(isNHISBilling ? 'nhis' : 'all');
+     const [paySelected, setPaySelected] = React.useState(false);
      const [selectedAmount, setSelectedAmount] = React.useState('');
      const [bulkPerTestMode, setBulkPerTestMode] = React.useState('');
      const [payAllPayments, setPayAllPayments] = React.useState<PaymentEntry[]>(payments.length ? payments : [{ mode: '', amount: 0 }]);
@@ -115,7 +121,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
      const localTotalPaid = selectedPayments.reduce((sum, p, idx) => selectedItems[idx] ? sum + Number(p.amount || 0) : sum, 0);
 
-     // Helper: allocate an amount across items in order, returns array of allocated per item
      function allocateAmount(amount: number, itemMaxes: number[]): number[] {
           let remaining = amount;
           return itemMaxes.map(max => {
@@ -200,6 +205,27 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           }
      }, [selectedAmount, paySelected]);
 
+     React.useEffect(() => {
+          if (paymentMode === 'free' || paymentMode === 'nhis') {
+               setPayAllPayments([{ mode: '', amount: 0 }]);
+               setSelectedAmount('');
+               setBulkPerTestMode('');
+               setSelectedItems(items.map(() => false));
+          }
+     }, [paymentMode]);
+
+     React.useEffect(() => {
+          if (paymentMode === 'all') {
+               setPayAllPayments(prev => {
+                    if (prev.length === 1 && prev[0].amount === 0) {
+                         const outstanding = payable - (billingdata?.paid || 0);
+                         return [{ mode: prev[0].mode, amount: outstanding }];
+                    }
+                    return prev;
+               });
+          }
+     }, [paymentMode, payable, billingdata?.paid]);
+
 
      const handleBulkPaymentMode = (mode) => {
           setSelectedPayments(payments => payments.map((p, i) => selectedItems[i] ? { ...p, mode } : p));
@@ -210,7 +236,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
 
 
-     // Show remaining as (payable - billingdata.paid) to always reflect actual paid amount
      const paymentSummaryHtml = (() => {
           const paid = billingdata?.paid || 0;
           const remaining = payable - paid;
@@ -226,26 +251,142 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
 
 
+     const isSkipPaymentDisabled = (() => {
+          if (paymentMode === 'free' || paymentMode === 'nhis') return true;
+          if (paymentMode === 'all') {
+               return payAllPayments.some(p => p.mode !== '' || Number(p.amount) > 0);
+          }
+          if (paymentMode === 'items') {
+               return selectedAmount !== '' || selectedItems.some(Boolean) || bulkPerTestMode !== '';
+          }
+          return false;
+     })();
+
      const handlePaymentSyncing = async () => {
           setIsSyncing(true);
+
+          if (paymentMode === 'free') {
+               const updatedCart = tests.map((test) => {
+                    const originalPrice = test.price || test.actualPrice || test.originalPrice || 0;
+                    return {
+                         ...test,
+                         discount: originalPrice,
+                         discountedValue: originalPrice,
+                         totalpayable: 0,
+                         paidamount: 0,
+                         paymentstatus: 'Paid',
+                    };
+               });
+
+               const updatedServices = services.map((service) => {
+                    const originalPrice = service.servicePrice || 0;
+                    return {
+                         ...service,
+                         discount: originalPrice,
+                         discountedValue: originalPrice,
+                         totalpayable: 0,
+                         paidamount: 0,
+                         paymentstatus: 'Paid',
+                    };
+               });
+
+               const newCurrentData = {
+                    ...billingdata,
+                    finalCart: updatedCart,
+                    finalServicesList: updatedServices,
+                    paid: 0,
+                    amountPayable: 0,
+                    payments: [{ mode: 'free', amount: 0 }],
+                    balance: 0,
+                    openPaymentModal: 0,
+               };
+
+               setBillingData(newCurrentData);
+               if (handlesubmit) {
+                    const result = await handlesubmit(newCurrentData);
+                    if (result?.status === true) {
+                         setIsValueSynchronized(true);
+                         setIsSyncing(false);
+                    } else {
+                         setIsSyncing(false);
+                    }
+               } else {
+                    setIsValueSynchronized(true);
+                    setIsSyncing(false);
+               }
+               return;
+          }
+
+          if (paymentMode === 'nhis') {
+               const nhisPaymentMode = availableModes.find(mode =>
+                    String(mode.label).toLowerCase() === 'nhis' ||
+                    String(mode.label).toLowerCase().includes('nhis')
+               );
+               const nhisModeValue = nhisPaymentMode ? nhisPaymentMode.value : 'nhis';
+
+               const updatedCart = tests.map((test) => {
+                    return {
+                         ...test,
+                         paidamount: 0,
+                         paymentstatus: 'pending',
+                    };
+               });
+
+               const updatedServices = services.map((service) => {
+                    return {
+                         ...service,
+                         paidamount: 0,
+                         paymentstatus: 'pending',
+                    };
+               });
+
+               const newCurrentData = {
+                    ...billingdata,
+                    finalCart: updatedCart,
+                    finalServicesList: updatedServices,
+                    paid: 0,
+                    amountPayable: payable,
+                    payments: [{ mode: nhisModeValue, amount: 0 }],
+                    balance: payable,
+                    outstanding: payable,
+                    openPaymentModal: 0,
+               };
+
+               setBillingData(newCurrentData);
+               if (handlesubmit) {
+                    const result = await handlesubmit(newCurrentData);
+                    if (result?.status === true) {
+                         setIsValueSynchronized(true);
+                         setIsSyncing(false);
+                    } else {
+                         setIsSyncing(false);
+                    }
+               } else {
+                    setIsValueSynchronized(true);
+                    setIsSyncing(false);
+               }
+               return;
+          }
+
           if (paymentMode === 'all') {
-               // Validate that total payment equals the full payable amount
+               const hasFreePayment = payAllPayments.some(p => String(p.mode).toLowerCase() === 'free');
+
                const total = payAllPayments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
-               if (total !== payable) {
+               if (!hasFreePayment && total !== payable) {
                     setPayAllError(`Total payment must equal exactly ${payable.toLocaleString(undefined, { minimumFractionDigits: 2 })}`);
                     setIsSyncing(false);
                     return;
                }
-               // Validate that all payment modes are selected
                if (payAllPayments.some(p => !p.mode)) {
                     setPayAllError('Please select payment mode for all entries.');
                     setIsSyncing(false);
                     return;
                }
                setPayAllError('');
-               // Allocate payment to items in order, up to their max
+
                const itemMaxes = items.map(i => i.maxAmount);
-               let paidPerItem: number[] = allocateAmount(total, itemMaxes);
+               let paidPerItem: number[] = hasFreePayment ? items.map(() => 0) : allocateAmount(total, itemMaxes);
+
                const updatedCart = tests.map((test) => {
                     const itemIdx = items.findIndex(i => i.type === 'test' && i.id === test.id);
                     if (itemIdx === -1) return {
@@ -253,6 +394,20 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                          paidamount: test.amountPaid ?? 0,
                          paymentstatus: test.status ?? 'pending',
                     };
+
+                    // For free payments, apply 100% discount
+                    if (hasFreePayment) {
+                         const originalPrice = test.price || test.actualPrice || test.originalPrice || 0;
+                         return {
+                              ...test,
+                              discount: originalPrice,
+                              discountedValue: originalPrice,
+                              totalpayable: 0,
+                              paidamount: 0,
+                              paymentstatus: 'Paid',
+                         };
+                    }
+
                     let paid = paidPerItem[itemIdx];
                     let paymentstatus = 'pending';
                     if ((test.totalpayable ?? 0) === 0) {
@@ -277,6 +432,19 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                          paidamount: service.amountPaid ?? 0,
                          paymentstatus: service.status ?? 'pending',
                     };
+
+                    if (hasFreePayment) {
+                         const originalPrice = service.servicePrice || 0;
+                         return {
+                              ...service,
+                              discount: originalPrice,
+                              discountedValue: originalPrice,
+                              totalpayable: 0,
+                              paidamount: 0,
+                              paymentstatus: 'Paid',
+                         };
+                    }
+
                     let paid = paidPerItem[itemIdx];
                     let paymentstatus = 'pending';
                     if ((service.totalpayable ?? 0) === 0) {
@@ -294,18 +462,21 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                          paymentstatus,
                     };
                });
-               // Calculate actual total paid from the updated items
                const actualTotalPaid = updatedCart.reduce((sum, test) => sum + (test.paidamount || 0), 0) +
                     updatedServices.reduce((sum, service) => sum + (service.paidamount || 0), 0);
 
+               const actualTotalPayable = hasFreePayment ? 0 :
+                    (updatedCart.reduce((sum, test) => sum + (test.totalpayable || 0), 0) +
+                         updatedServices.reduce((sum, service) => service + (service.totalpayable || 0), 0));
 
                const newCurrentData = {
                     ...billingdata,
                     finalCart: updatedCart,
                     finalServicesList: updatedServices,
                     paid: actualTotalPaid,
+                    amountPayable: hasFreePayment ? 0 : billingdata.amountPayable,
                     payments: [...(billingdata.payments || []), ...payAllPayments],
-                    balance: Math.max(0, payable - actualTotalPaid),
+                    balance: hasFreePayment ? 0 : Math.max(0, payable - actualTotalPaid),
                     openPaymentModal: 0,
                }
                setBillingData(newCurrentData);
@@ -320,7 +491,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     setIsSyncing(false)
                }
           } else {
-               // Pay Some mode validation
                if (!selectedItems.some(Boolean)) {
                     alert('Please select at least one item to pay.');
                     return;
@@ -333,7 +503,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     alert('Please select a payment mode.');
                     return;
                }
-               // Allocate the payment amount across selected items sequentially
                const selectedItemsRemainingAmounts = items.map((item, idx) => {
                     if (!selectedItems[idx]) return 0;
                     const actualPaid = item.amountPaid;
@@ -342,14 +511,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                });
                const selectedRemainingFiltered = selectedItemsRemainingAmounts.filter(amt => amt > 0);
                const paymentAmount = Number(selectedAmount);
-               // Calculate sequential allocation based on remaining amounts
                const allocatedSelected = allocateAmount(paymentAmount, selectedRemainingFiltered);
                let allocIdx = 0;
                const allocatedAmounts = selectedItemsRemainingAmounts.map(remaining => {
                     if (remaining === 0) return 0;
                     return allocatedSelected[allocIdx++] || 0;
                });
-               // Update cart and services with allocated amounts
                const updatedCart = tests.map((test) => {
                     const itemIdx = items.findIndex(i => i.type === 'test' && i.id === test.id);
                     if (itemIdx === -1 || !selectedItems[itemIdx]) return {
@@ -388,7 +555,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                          paymentstatus,
                     };
                });
-               // Calculate total paid including previous payments and current payments
                const currentTotalPaid = updatedCart.reduce((sum, test) => sum + (test.paidamount || 0), 0) +
                     updatedServices.reduce((sum, service) => sum + (service.paidamount || 0), 0);
 
@@ -419,11 +585,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
      return (
           <>
-               <Modal show={show} onHide={onHide} size="xl" backdrop="static" keyboard={false}>
+               <Modal show={show} onHide={onHide} size={isNHISBilling ? "sm" : "lg"} backdrop="static" keyboard={false}>
                     <Modal.Header closeButton>
-                         <Modal.Title>
-                              <span style={{ fontSize: 20, marginRight: 8 }}>💳</span>
-                              Payment List (Valid for current Transaction)
+                         <Modal.Title className="d-flex align-items-center gap-2">
+                              <span>💳</span>
+                              <span>Payment</span>
                          </Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
@@ -432,76 +598,68 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                                    No outstanding amount to pay.
                               </div>
                          )}
-                         {billingdata.outstanding > 0 && (<div>
-                              {/* Payment Summary and Mode Selector in Same Row */}
-                              <div className="row my-3 g-3">
-                                   <div className="col-md-6">
-                                        <div className="card h-100">
-                                             <div className="card-header bg-secondary-subtle p-3" style={{ fontWeight: 600, fontSize: '1em' }}>
-                                                  <span>Payment Summary</span>
-                                             </div>
-                                             <div className="card-body p-2">
-                                                  <div>
-                                                       <h4>
-                                                            {(billingdata?.paid || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })} / {payable.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                                                       </h4>
-                                                  </div>
-                                                  {paymentSummaryHtml}
-                                             </div>
+                         {billingdata.outstanding > 0 && (
+                              <div>
+                                   <div className="mb-3 p-3 bg-light rounded">
+                                        <div className="d-flex justify-content-between align-items-center mb-2">
+                                             <span className="fw-semibold">Amount Due:</span>
+                                             <span className="fs-4 fw-bold text-primary">
+                                                  {(paymentMode === 'free' || paymentMode === 'nhis' ? 0 : payable).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                             </span>
                                         </div>
-                                   </div>
-                                   <div className="col-md-6">
-                                        <div className="card h-100">
-                                             <div className="card-header bg-secondary-subtle p-3" style={{ fontWeight: 600, fontSize: '1em' }}>
-                                                  <h5 className="mb-0">💳 Select Payment Mode</h5>
+                                        {paymentMode !== 'free' && paymentMode !== 'nhis' && paymentSummaryHtml}
+                                        {paymentMode === 'free' && (
+                                             <div className="text-success fw-semibold small">
+                                                  ✓ Free Service
                                              </div>
-                                             <div className="card-body">
-                                                  <div style={{ display: 'flex', gap: 24, alignItems: 'center', marginBottom: 12 }}>
-                                                       <label style={{ fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-                                                            <input
-                                                                 type="radio"
-                                                                 name="paymentMode"
-                                                                 checked={paymentMode === 'all'}
-                                                                 onChange={() => setPaymentMode('all')}
-                                                                 style={{ marginRight: 6 }}
-                                                            />
-                                                            💰 Pay All
-                                                       </label>
-                                                       <label style={{ fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-                                                            <input
-                                                                 type="radio"
-                                                                 name="paymentMode"
-                                                                 checked={paymentMode === 'items'}
-                                                                 onChange={() => setPaymentMode('items')}
-                                                                 style={{ marginRight: 6 }}
-                                                            />
-                                                            🛒 Pay Some
-                                                       </label>
-                                                  </div>
-                                                  <div className="text-muted small">
-                                                       {paymentMode === 'all' ? '✓ Pay the full outstanding amount across all items' : '✓ Select specific items and enter a custom payment amount'}
-                                                  </div>
+                                        )}
+                                        {paymentMode === 'nhis' && (
+                                             <div className="text-info fw-semibold small">
+                                                  ✓ Insurance Claim (NHIS)
                                              </div>
-                                        </div>
+                                        )}
                                    </div>
-                              </div>
 
-                              {/* Pay All Mode UI */}
-                              {paymentMode === 'all' && (
-                                   <div className="card my-3">
-                                        <div className="card-header bg-secondary-subtle">
-                                             <h5 className="mb-0">💰 Payment Entries</h5>
+                                   <div className="btn-group btn-group-sm w-100 mb-3" role="group">
+                                        {isNHISBilling ? (
+                                             <>
+                                                  <input type="radio" className="btn-check" name="paymentMode" id="payNHIS" checked={paymentMode === 'nhis'} onChange={() => setPaymentMode('nhis')} />
+                                                  <label className="btn btn-outline-info" htmlFor="payNHIS">NHIS Insurance Claim</label>
+                                             </>
+                                        ) : (
+                                             <>
+                                                  <input type="radio" className="btn-check" name="paymentMode" id="payAll" checked={paymentMode === 'all'} onChange={() => setPaymentMode('all')} />
+                                                  <label className="btn btn-outline-primary" htmlFor="payAll">Pay All</label>
+
+                                                  <input type="radio" className="btn-check" name="paymentMode" id="paySome" checked={paymentMode === 'items'} onChange={() => setPaymentMode('items')} />
+                                                  <label className="btn btn-outline-primary" htmlFor="paySome">Partial Payment</label>
+
+                                                  <input type="radio" className="btn-check" name="paymentMode" id="payFree" checked={paymentMode === 'free'} onChange={() => setPaymentMode('free')} />
+                                                  <label className="btn btn-outline-success" htmlFor="payFree">Free Service</label>
+                                             </>
+                                        )}
+                                   </div>
+
+                                   {paymentMode === 'free' && (
+                                        <div className="alert alert-success mb-3">
+                                             <strong>✓ Free Service</strong> - All items marked as 100% discounted
                                         </div>
-                                        <div className="card-body">
-                                             <div style={{ marginBottom: 8, fontWeight: 500 }}>
-                                                  Add Payment(s):
-                                             </div>
-                                             <table className="table table-sm align-middle" style={{ border: '1px solid #e0e0e0', borderRadius: 8, background: '#fff', marginBottom: 8 }}>
-                                                  <thead style={{ background: '#f5f5f5', fontWeight: 600 }}>
+                                   )}
+
+                                   {paymentMode === 'nhis' && (
+                                        <div className="alert alert-info mb-3">
+                                             <strong>✓ NHIS Insurance Claim</strong> - Items will be marked as insurance claims with outstanding balance to be paid by NHIS
+                                        </div>
+                                   )}
+
+                                   {!isNHISBilling && paymentMode === 'all' && (
+                                        <div>
+                                             <table className="table table-sm align-middle">
+                                                  <thead>
                                                        <tr>
                                                             <th style={{ width: 40 }}>#</th>
-                                                            <th>Payment Mode</th>
-                                                            <th style={{ width: 120 }}>Amount</th>
+                                                            <th>Mode</th>
+                                                            <th style={{ width: 140 }}>Amount</th>
                                                             <th style={{ width: 60 }}></th>
                                                        </tr>
                                                   </thead>
@@ -521,7 +679,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                                                                            disabled={availableModes.length === 0}
                                                                       >
                                                                            <option value="">Select mode</option>
-                                                                           {availableModes.map(opt => (
+                                                                           {availableModes.filter(opt => String(opt.label).toLowerCase() !== 'free').map(opt => (
                                                                                 <option key={opt.value} value={opt.value}>{opt.label}</option>
                                                                            ))}
                                                                       </select>
@@ -568,46 +726,35 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                                                        ))}
                                                   </tbody>
                                              </table>
-                                             <Button variant="outline-primary" size="sm" onClick={() => setPayAllPayments(arr => [...arr, { mode: '', amount: 0 }])}>
-                                                  + Add Payment
-                                             </Button>
-                                             <div style={{ fontSize: 13, color: 'gray', marginTop: 8 }}>
-                                                  Total Entered: {payAllPayments.reduce((sum, p) => sum + Number(p.amount || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })} / {payable.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                                                  <br />
-                                                  <span style={{ fontWeight: 600, color: payAllPayments.reduce((sum, p) => sum + Number(p.amount || 0), 0) === payable ? '#28a745' : '#dc3545' }}>
-                                                       {payAllPayments.reduce((sum, p) => sum + Number(p.amount || 0), 0) === payable ? '✓ Full amount entered' : '⚠ Must pay full amount'}
-                                                  </span>
-                                             </div>
-                                             {payAllError && <div className="alert alert-danger mt-3 mb-0" role="alert">{payAllError}</div>}
-                                        </div>
-                                   </div>
-                              )}
-
-                              {/* Pay for Individual Items UI */}
-                              {paymentMode === 'items' && (
-                                   <div className="card my-3">
-                                        <div className="card-header bg-secondary-subtle">
-                                             <h5 className="mb-0">🛒 Custom Payment Allocation</h5>
-                                        </div>
-                                        <div className="card-body">
-                                             <div className="mb-3">
-                                                  <small className="text-muted">Progress: Step 1 → 2 → 3 → 4</small>
-                                                  <div className="progress" style={{ height: '6px', marginTop: 8 }}>
-                                                       <div className="progress-bar bg-success" style={{ width: `${(selectedItems.some(Boolean) ? (selectedAmount ? (bulkPerTestMode ? 100 : 75) : 50) : 25)}%` }}></div>
+                                             <div className="d-flex justify-content-between align-items-center mb-2">
+                                                  <Button
+                                                       variant="outline-secondary"
+                                                       size="sm"
+                                                       disabled={payAllPayments.length === 1 && Number(payAllPayments[0].amount) >= (payable - (billingdata?.paid || 0))}
+                                                       onClick={() => setPayAllPayments(arr => [...arr, { mode: '', amount: 0 }])}
+                                                  >
+                                                       Add Another Payment Method
+                                                  </Button>
+                                                  <div className="small">
+                                                       <span className="text-muted">Total: </span>
+                                                       <span className="fw-bold">{payAllPayments.reduce((sum, p) => sum + Number(p.amount || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                                       <span className="text-muted"> / {payable.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                                                   </div>
                                              </div>
-                                             <div style={{ marginBottom: 12, fontWeight: 500 }}>
-                                                  Step 1: Select Items to Pay
-                                             </div>
-                                             <div className="table-responsive">
-                                                  <table className="table table-sm table-hover align-middle" style={{ border: '1px solid #e0e0e0', borderRadius: 8, background: '#fff' }}>
-                                                       <thead style={{ background: '#f5f5f5', fontWeight: 600 }}>
+                                             {payAllError && <div className="alert alert-danger alert-sm py-2 mb-2">{payAllError}</div>}
+                                        </div>
+                                   )}
+
+                                   {paymentMode === 'items' && (
+                                        <div>
+                                             <div className="table-responsive mb-3">
+                                                  <table className="table table-sm table-hover align-middle">
+                                                       <thead>
                                                             <tr>
-                                                                 <th style={{ width: 60, textAlign: 'center' }}>Select</th>
+                                                                 <th style={{ width: 50 }}>Select</th>
                                                                  <th>Item</th>
-                                                                 <th style={{ width: 120 }}>Max Amount</th>
-                                                                 <th style={{ width: 110 }}>Still Needed</th>
-                                                                 <th style={{ width: 110, textAlign: 'center' }}>Status</th>
+                                                                 <th style={{ width: 100 }}>Amount</th>
+                                                                 <th style={{ width: 90 }}>Status</th>
                                                             </tr>
                                                        </thead>
                                                        <tbody>
@@ -661,127 +808,105 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                                                        </tbody>
                                                   </table>
                                              </div>
-                                             {/* Step 2: Show total of selected items */}
+                                             {/* Payment input section */}
                                              {selectedItems.some(Boolean) && (
-                                                  <div style={{ marginTop: 16, marginBottom: 16 }}>
-                                                       <div style={{ marginBottom: 8, fontWeight: 500 }}>
-                                                            Step 2: Selected Items Total - {items.reduce((sum, item, idx) => {
-                                                                 if (!selectedItems[idx]) return sum;
-                                                                 const actualPaid = item.amountPaid;
-                                                                 const effectivePaid = actualPaid > 0 ? actualPaid : 0;
-                                                                 const stillNeeded = Math.max(0, item.maxAmount - effectivePaid);
-                                                                 return sum + stillNeeded;
-                                                            }, 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                                                       </div>
-                                                       <div style={{ marginBottom: 8, fontWeight: 500 }}>Step 3: Enter Payment Amount</div>
-                                                       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                                                            <input
-                                                                 type="number"
-                                                                 className="form-control form-control-sm"
-                                                                 style={{ width: 140 }}
-                                                                 value={selectedAmount}
-                                                                 min={0}
-                                                                 step="0.01"
-                                                                 max={items.reduce((sum, item, idx) => {
+                                                  <div className="bg-light p-3 rounded mt-3">
+                                                       <div className="row g-3">
+                                                            <div className="col-md-6">
+                                                                 <label className="form-label small mb-1">Amount <span className="text-muted">(Max: {items.reduce((sum, item, idx) => {
                                                                       if (!selectedItems[idx]) return sum;
                                                                       const actualPaid = item.amountPaid;
                                                                       const effectivePaid = actualPaid > 0 ? actualPaid : 0;
                                                                       const stillNeeded = Math.max(0, item.maxAmount - effectivePaid);
                                                                       return sum + stillNeeded;
-                                                                 }, 0)}
-                                                                 onChange={e => {
-                                                                      setIsValueSynchronized(false);
-                                                                      let val = e.target.value;
-                                                                      let maxTarget = items.reduce((sum, item, idx) => {
+                                                                 }, 0).toFixed(2)})</span></label>
+                                                                 <input
+                                                                      type="number"
+                                                                      className="form-control form-control-sm"
+                                                                      value={selectedAmount}
+                                                                      min={0}
+                                                                      step="0.01"
+                                                                      max={items.reduce((sum, item, idx) => {
                                                                            if (!selectedItems[idx]) return sum;
                                                                            const actualPaid = item.amountPaid;
                                                                            const effectivePaid = actualPaid > 0 ? actualPaid : 0;
                                                                            const stillNeeded = Math.max(0, item.maxAmount - effectivePaid);
                                                                            return sum + stillNeeded;
-                                                                      }, 0);
-                                                                      if (Number(val) > payable) {
-                                                                           val = payable.toFixed(2);
-                                                                      }
-                                                                      if (Number(val) > maxTarget) {
-                                                                           val = maxTarget.toFixed(2);
-                                                                      }
-                                                                      setSelectedAmount(val);
-                                                                 }}
-                                                                 placeholder="Enter amount"
-                                                            />
-                                                            <span style={{ color: '#888', fontSize: 13 }}>
-                                                                 (Max: {items.reduce((sum, item, idx) => {
-                                                                      if (!selectedItems[idx]) return sum;
-                                                                      const actualPaid = item.amountPaid;
-                                                                      const effectivePaid = actualPaid > 0 ? actualPaid : 0;
-                                                                      const stillNeeded = Math.max(0, item.maxAmount - effectivePaid);
-                                                                      return sum + stillNeeded;
-                                                                 }, 0).toFixed(2)})
-                                                            </span>
-                                                       </div>
-                                                       {/* Step 4: Select Payment Mode for all selected items */}
-                                                       <div style={{ marginBottom: 8, fontWeight: 500 }}>Step 4: Select Payment Mode (applies to all selected items)</div>
-                                                       <div style={{ width: 250 }}>
-                                                            <select
-                                                                 className="form-select form-select-sm"
-                                                                 value={bulkPerTestMode}
-                                                                 onChange={e => {
-                                                                      const mode = e.target.value;
-                                                                      setBulkPerTestMode(mode);
-                                                                      setSelectedPayments(payments => payments.map((p, i) => selectedItems[i] ? { ...p, mode } : p));
-                                                                 }}
-                                                                 disabled={availableModes.length === 0}
-                                                            >
-                                                                 <option value="">Select payment mode</option>
-                                                                 {availableModes.map(opt => (
-                                                                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                                                 ))}
-                                                            </select>
+                                                                      }, 0)}
+                                                                      onChange={e => {
+                                                                           setIsValueSynchronized(false);
+                                                                           let val = e.target.value;
+                                                                           let maxTarget = items.reduce((sum, item, idx) => {
+                                                                                if (!selectedItems[idx]) return sum;
+                                                                                const actualPaid = item.amountPaid;
+                                                                                const effectivePaid = actualPaid > 0 ? actualPaid : 0;
+                                                                                const stillNeeded = Math.max(0, item.maxAmount - effectivePaid);
+                                                                                return sum + stillNeeded;
+                                                                           }, 0);
+                                                                           if (Number(val) > payable) {
+                                                                                val = payable.toFixed(2);
+                                                                           }
+                                                                           if (Number(val) > maxTarget) {
+                                                                                val = maxTarget.toFixed(2);
+                                                                           }
+                                                                           setSelectedAmount(val);
+                                                                      }}
+                                                                      placeholder="Enter amount"
+                                                                 />
+                                                            </div>
+                                                            <div className="col-md-6">
+                                                                 <label className="form-label small mb-1">Payment Mode</label>
+                                                                 <select
+                                                                      className="form-select form-select-sm"
+                                                                      value={bulkPerTestMode}
+                                                                      onChange={e => {
+                                                                           const mode = e.target.value;
+                                                                           setBulkPerTestMode(mode);
+                                                                           setSelectedPayments(payments => payments.map((p, i) => selectedItems[i] ? { ...p, mode } : p));
+                                                                      }}
+                                                                      disabled={availableModes.length === 0}
+                                                                 >
+                                                                      <option value="">Select mode</option>
+                                                                      {availableModes.filter(opt => String(opt.label).toLowerCase() !== 'free').map(opt => (
+                                                                           <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                                                      ))}
+                                                                 </select>
+                                                            </div>
                                                        </div>
                                                   </div>
                                              )}
-                                             <div style={{ fontSize: 13, color: 'gray', marginTop: 8 }}>
-                                                  Payment Summary: {selectedAmount ? Number(selectedAmount).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00'} will be applied to selected items
-                                             </div>
-                                             {/* Validation messages */}
-                                             {selectedItems.some(Boolean) && !selectedAmount && (
-                                                  <div className="text-warning small">Please enter a payment amount for selected items.</div>
-                                             )}
-                                             {selectedItems.some(Boolean) && !bulkPerTestMode && (
-                                                  <div className="text-warning small">Please select a payment mode for selected items.</div>
-                                             )}
-                                             {Number(selectedAmount) > items.reduce((sum, item, idx) => {
+                                             {/* Validation */}
+                                             {selectedItems.some(Boolean) && (!selectedAmount || !bulkPerTestMode || Number(selectedAmount) > items.reduce((sum, item, idx) => {
                                                   if (!selectedItems[idx]) return sum;
                                                   const actualPaid = item.amountPaid;
                                                   const effectivePaid = actualPaid > 0 ? actualPaid : 0;
                                                   const stillNeeded = Math.max(0, item.maxAmount - effectivePaid);
                                                   return sum + stillNeeded;
-                                             }, 0) && (
-                                                       <div className="text-danger small">
-                                                            Payment amount exceeds total remaining amount for selected items.
+                                             }, 0)) && (
+                                                       <div className="alert alert-warning small mb-0 mt-2">
+                                                            {!selectedAmount ? 'Enter payment amount' : !bulkPerTestMode ? 'Select payment mode' : 'Amount exceeds total'}
                                                        </div>
                                                   )}
                                         </div>
-                                   </div>
-                              )}
-                         </div>)}
+                                   )}
+                              </div>
+                         )}
                     </Modal.Body>
-                    <Modal.Footer>
-                         <Button variant="outline-secondary" size="sm"
-                              onClick={() => { handlePaymentModalReset(); }}
+                    <Modal.Footer className="d-flex justify-content-end gap-2">
+                         <Button variant="outline-secondary" size="sm" onClick={() => { handlePaymentModalReset(); }}>
+                              Reset
+                         </Button>
+                         <Button
+                              onClick={() => { handlesubmit ? handlesubmit(billingdata) : null }}
+                              variant="outline-primary"
+                              size="sm"
+                              disabled={isSkipPaymentDisabled}
                          >
-                              Reset All
+                              Skip Payment
                          </Button>
-                         <Button onClick={() => { handlesubmit ? handlesubmit(billingdata) : null }} variant="outline-primary" className="mx-2 " size="sm" >
-                              Bill Without Payment
+                         <Button variant="primary" size="sm" disabled={isValueSynchronized || isSyncing} onClick={handlePaymentSyncing}>
+                              {isSyncing ? 'Processing...' : 'Submit Payment'}
                          </Button>
-                         <Button variant="primary" size="sm"
-                              disabled={isValueSynchronized || isSyncing}
-                              onClick={handlePaymentSyncing}
-                         >
-                              {isSyncing ? 'Billing Client Please Wait ...' : 'Bill Client With After Payment'}
-                         </Button>
-
                     </Modal.Footer>
                </Modal >
           </>

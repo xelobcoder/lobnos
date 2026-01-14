@@ -1,8 +1,6 @@
 "use client";
-import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Pagination } from "react-bootstrap";
-import { currencyFormatter, customFetch, updatePagination } from "../../../components/Auth/customFetch";
+import { currencyFormatter, customFetch } from "../../../components/Auth/customFetch";
 import { useApplicationSettings } from "../../../components/Auth/useApplicationContext";
 import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
 import ExpenseStatusButtons from "../../../components/Layout/ExpenseStatusButtons";
@@ -35,7 +33,7 @@ export default function ExpenseList() {
 
 	const columns = [
 		{ Header: 'Expense', accessor: 'name' },
-		{ Header: 'Merchant', accessor: 'merchant' },
+		{ Header: 'Merchant', accessor: 'merchant_name' },
 		{ Header: "Submitter", accessor: 'username' },
 		{
 			Header: 'Expense Date',
@@ -86,6 +84,25 @@ export default function ExpenseList() {
 	}
 
 
+	const handleServerProcessing = async (pagination: { page: number, count: number }) => {
+		setFiltering(pagination);
+		const { count, page } = pagination;
+		try {
+			const response = await customFetch(`expenses/records?branchid=${branchid}&employeeid=${employeeid}&page=${page}&count=${count}&&from=${filtering.from}&&to=${filtering.to}&&status=${filtering.status}`)
+			if (response && Array.isArray(response)) {
+				setExpenses(response);
+				return { result: response, error: false };
+			} else {
+				setExpenses([]);
+				return { result: [], error: true };
+			}
+		} catch (err) {
+			toast.error('Error Occured Loading Information')
+			return {
+				result: [], error: true
+			}
+		}
+	}
 
 	return (
 		<div className="container-fluid p-3">
@@ -121,7 +138,7 @@ export default function ExpenseList() {
 			</div>
 
 			<PrimeTable
-				handleSeverSideProcessing={null}
+				handleSeverSideProcessing={handleServerProcessing}
 				column={columns}
 				data={expenses || []}
 				serverSideFiltering={true}

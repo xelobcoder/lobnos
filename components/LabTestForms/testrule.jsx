@@ -12,7 +12,7 @@ import Link from "next/link";
 
 
 export default function CreateTestRule({ clientdata }) {
-	const { testid, test, patientid, billingid, employeeid, ascensionid, resultEntryStart, resultEntryEnd } = clientdata;
+	const { testid, test, patientid, billingid, employeeid, ascensionid, resultEntryStart, resultEntryEnd, globalPin } = clientdata;
 	const { result } = useApplicationSettings().applicationsettings;
 	const [comments, setComments] = useState({ comments: '' });
 	const [testname, setTestname] = useState("");
@@ -25,6 +25,8 @@ export default function CreateTestRule({ clientdata }) {
 	const dropdownRef = useRef(null);
 	const [isSaving, setIsSaving] = useState(false);
 	const [pin, setPin] = useState("");
+	const isPinShared = Boolean(globalPin);
+	const effectivePin = isPinShared ? globalPin : pin;
 
 
 	const getAscensionEditCount = async () => {
@@ -94,8 +96,8 @@ export default function CreateTestRule({ clientdata }) {
 
 	const handleSubmit = async () => {
 		try {
-			if (!pin) return toast.warn("PIN is required");
-			const response = await validatePin(employeeid, pin);
+			if (!effectivePin) return toast.warn("PIN is required");
+			const response = await validatePin(employeeid, effectivePin);
 			const { status, message } = response;
 			console.log(status, typeof status)
 			if (!status) return toast.error(message || "Invalid PIN");
@@ -239,11 +241,12 @@ export default function CreateTestRule({ clientdata }) {
 							setComments={setComments}
 							hasDrugs={hasDrugs}
 							testid={testid}
-							pin={pin}
-							setPin={setPin}
+							pin={effectivePin}
+							setPin={isPinShared ? () => { } : setPin}
 							ascensionid={ascensionid}
 							setModifiedDrugs={setModifiedDrugs}
 							isPinUsed={result.isPinOnResultEntry}
+							isPinShared={isPinShared}
 							handleSubmit={handleSubmit}
 							handleCreateFields={handleCreateFields}
 							handlestate={handlestate}

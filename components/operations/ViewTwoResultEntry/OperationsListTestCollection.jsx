@@ -6,7 +6,7 @@ import { RiArrowRightLine } from '@remixicon/react';
 import { useApplication } from "../../Auth/useApplicationContext";
 
 export default function OperationsListTestCollection({ operations }) {
-	const { testList, ascensionid, patientid ,patientInfo} = operations;
+	const { testList, ascensionid, patientid, patientInfo } = operations;
 	const appCtx = useApplication();
 	const employeeid = appCtx?.user?.employeeid;
 	const [selectedTests, setSelectedTests] = useState([]);
@@ -14,6 +14,8 @@ export default function OperationsListTestCollection({ operations }) {
 	const [loaded, setLoaded] = useState(false);
 	const [showAccessRequest, setShowAccessRequest] = useState(false);
 	const [selectedTestForAccess, setSelectedTestForAccess] = useState(null);
+	const [globalPin, setGlobalPin] = useState("");
+
 
 	const handleCheckboxChange = (item) => {
 		setSelectedTests((prev) => {
@@ -111,12 +113,19 @@ export default function OperationsListTestCollection({ operations }) {
 				})}
 			</div>
 			{multiMode && loaded && selectedTests.length > 0 && (
-				<div className={`mt-2 ${selectedTests.length > 1 ? "responsive-grid" : ""}`}>
-					{Array.isArray(selectedTests) && selectedTests.length > 0 && selectedTests.map((test, idx) => (
-						<div key={test.testid} style={{ minWidth: 0 }}>
-							<ResultEntryComponent operations={{ ...operations, testid: test.testid, uiLayout: 3, ascensionid: test.ascensionid }} />
-						</div>
-					))}
+				<div>
+					<div className="d-flex gap-2 mb-2 align-items-center">
+						<input type="password" className="form-control form-control-sm" placeholder="Enter PIN for all tests" value={globalPin} onChange={e => setGlobalPin(e.target.value)} style={{ maxWidth: 220 }} />
+						<button className="btn btn-sm btn-outline-primary" onClick={() => { if (!globalPin) return alert('PIN is required'); /* pin set in state */ }}>Apply PIN to all</button>
+						<button className="btn btn-sm btn-outline-secondary" onClick={() => setGlobalPin('')}>Clear</button>
+					</div>
+					<div className={`mt-2 ${selectedTests.length > 1 ? "responsive-grid" : ""}`}>
+						{Array.isArray(selectedTests) && selectedTests.length > 0 && selectedTests.map((test, idx) => (
+							<div key={test.testid} style={{ minWidth: 0 }}>
+								<ResultEntryComponent operations={{ ...operations, testid: test.testid, uiLayout: 3, ascensionid: test.ascensionid, globalPin: globalPin }} />
+							</div>
+						))}
+					</div>
 				</div>
 			)}
 
