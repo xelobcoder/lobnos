@@ -12,7 +12,7 @@ export interface Service {
   cost: string;
   employeeid: number;
   serviceCategory: string;
-  paymentstatus: "pending" |"partial" | "paid"
+  paymentstatus: "pending" | "partial" | "paid"
   categoryTrackId: number;
   clinicianId: number;
   organizationId: number;
@@ -28,6 +28,8 @@ export interface Service {
   discount: string;
   totalcost: string;
   totalpayable: string;
+  paidamount: string;
+  outstanding: string | number;
   isNHIS: number;
   isPHIS: number;
   insuranceid: number | null;

@@ -12,6 +12,11 @@ export const PhlebotomyLinks: Link[] = [
         link: "/operations/phelobotomy/pending-samples-collection",
         icon: <RiSyringeLine />
     },
+    {
+        title: "All Pending Requests",
+        link: "/operations/phelobotomy/all-pending-requests",
+        icon: <RiHome2Line />
+    },
     { 
         title: "Rejected Samples", 
         link: "/operations/phelobotomy/rejectedsamples",

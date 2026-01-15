@@ -86,7 +86,7 @@ export default function ServicesProvidedToPatientBilling() {
                         </tr>
                     </thead>
                     <tbody>
-                        {servicesProvided.map((service, index) => (
+                        {Array.isArray(servicesProvided) && servicesProvided.length > 0 && servicesProvided.map((service, index) => (
                             <tr key={index}>
                                 <td>{service.serviceName}</td>
                                 <td>{currencyFormatter.format(service.discountedValue)}</td>

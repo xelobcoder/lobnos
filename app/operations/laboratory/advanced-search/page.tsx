@@ -172,12 +172,13 @@ export default function AdvancedSearchPage() {
 
      const handleNavigateToTest = (service: Service) => {
           const stageMap: Record<string, string> = {
+               "billing done": '/operations/phelobotomy/pending-samples-collection',
                'processing': '/operations/laboratory/processing',
                'validation': '/operations/laboratory/validation',
                'validated': '/operations/laboratory/validated',
                'result entry concluded': '/operations/laboratory/validation',
-               'collection of sample Initiated': '/operations/laboratory/phelobotomy',
-               'collection of sample concluded': '/operations/laboratory/phelobotomy',
+               'collection of sample Initiated': '/operations/phelobotomy/pending-samples-collection',
+               'collection of sample concluded': '/operations/laboratory/sample/validation',
                'sample validation in progress': '/operations/laboratory/sample-validation'
           };
 

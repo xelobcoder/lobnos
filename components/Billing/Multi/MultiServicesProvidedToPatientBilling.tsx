@@ -11,7 +11,6 @@ export default function MultiServicesProvidedToPatientBilling() {
     const { previousRecords, servicesProvided } = billingdata;
 
     const updateServicesProvided = (services: any[]) => {
-        // No frontend-side calculations; just update the list and let backend handle totals/discounts
         const data = {
             ...billingdata,
             servicesProvided: services
@@ -56,7 +55,7 @@ export default function MultiServicesProvidedToPatientBilling() {
                         </tr>
                     </thead>
                     <tbody>
-                        {servicesProvided.map((service: any, index: number) => (
+                        {Array.isArray(servicesProvided) && servicesProvided.length > 0 && servicesProvided.map((service: any, index: number) => (
                             <tr key={index}>
                                 <td>{service.serviceName}</td>
                                 <td>{currencyFormatter.format(service.discountedValue ?? service.servicePrice)}</td>

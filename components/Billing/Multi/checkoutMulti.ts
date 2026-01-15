@@ -55,8 +55,10 @@ export const handleCheckout = async (billingdata: MultiBillingData, specialCode,
                     promoCodeId: response.data?.promoDetails?.id,
                     promoMethod: response.data?.promoDetails?.method,
                     showsummary: true,
-                    servicesProvided: response.data?.servicesList || checkoutPayload.servicesList || [],
+                    servicesProvided: response.data?.servicesList || [],
+                    servicesList: prev.servicesList || []
                }));
+              
           } else {
                toast.error(response?.message || "Checkout failed. Please try again.");
                if (response.message == 'Outstanding debt found') {

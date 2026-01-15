@@ -292,7 +292,6 @@ export default function ValidatedResultTable({ employeeid }) {
           }));
      };
 
-     // Handle clicking on patient info to view details
      const handleViewPatientDetails = (groupedItem) => {
           const patientData = encodeURIComponent(JSON.stringify({
                patientid: groupedItem.patientid,

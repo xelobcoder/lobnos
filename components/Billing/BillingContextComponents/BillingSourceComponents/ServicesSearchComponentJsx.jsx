@@ -28,6 +28,8 @@ export default function ServicesSearchComponent({ updatefunction }) {
         fetchServicesList();
     }, []);
 
+
+
     return (
         <tr>
             <td colSpan={2}>

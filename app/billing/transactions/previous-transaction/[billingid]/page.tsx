@@ -5,15 +5,66 @@ import { Button, Spinner, Modal } from 'react-bootstrap';
 import RefundServiceShowDetailModal from '../../../../../components/Billing/BillingContextComponents/BillingSourceComponents/RefundServiceShowDetailModal';
 import { currencyFormatter, customFetch, customPost } from '../../../../../components/Auth/customFetch';
 import { DollarSignIcon, CreditCardIcon, CheckCircleIcon, RotateCcwIcon, AlertCircleIcon, RefreshCwIcon, EditIcon, SettingsIcon } from '../../../../../components/Billing/BillingContextComponents/Lib/Icons';
-import { RiCalculatorLine, RiMoneyDollarCircleLine, RiArrowGoBackLine, RiScalesLine } from '@remixicon/react';
+import { RiCalculatorLine, RiMoneyDollarCircleLine, RiArrowGoBackLine, RiScalesLine, RiRefreshFill, RiFileList3Line, RiWalletLine, RiAlarmWarningLine, RiRefund2Line, RiCheckboxCircleLine } from '@remixicon/react';
 import WriteOffModal from '../../../../../components/Billing/BillingContextComponents/BillingSourceComponents/WriteOffModal';
 import { useParams } from 'next/navigation';
-import PrimeTable from '../../../../../components/accessories/Datatables/PrimeTable';
 import styles from '../../../../../styles/SmsTemplateList.module.css'
 import { Service, Witness } from '../../../../../types/serviceTypes';
 import { useApplication } from '../../../../../components/Auth/useApplicationContext';
-import { RiRefreshFill } from '@remixicon/react';
 
+
+const cardColors = {
+	transactionCost: { bg: "#4f46e5", icon: "#6366f1" }, // Indigo
+	totalCost: { bg: "#0891b2", icon: "#06b6d4" }, // Cyan
+	payable: { bg: "#2563eb", icon: "#3b82f6" }, // Blue
+	paid: { bg: "#059669", icon: "#10b981" }, // Emerald
+	refunded: { bg: "#7c3aed", icon: "#8b5cf6" }, // Violet
+	outstanding: { bg: "#ea580c", icon: "#f97316" }, // Orange
+	writeoff: { bg: "#dc2626", icon: "#ef4444" }, // Red
+	balance: { bg: "#16a34a", icon: "#22c55e" }, // Green
+};
+
+
+interface AnalyticCardProps {
+	title: string;
+	value: number;
+	Icon: React.ElementType;
+	bgColor: string;
+	iconColor: string;
+}
+
+const AnalyticCard = ({ title, value, Icon, bgColor, iconColor }: AnalyticCardProps) => (
+	<div
+		className="border-0 rounded shadow-sm p-3 h-100"
+		style={{
+			backgroundColor: bgColor,
+			transition: 'all 0.2s',
+			cursor: 'pointer',
+			minHeight: '110px',
+			color: 'white'
+		}}
+		onMouseEnter={(e) => {
+			e.currentTarget.style.transform = "translateY(-2px)";
+			e.currentTarget.style.boxShadow = "0 6px 16px rgba(0,0,0,0.15)";
+		}}
+		onMouseLeave={(e) => {
+			e.currentTarget.style.transform = "translateY(0)";
+			e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+		}}
+	>
+		<div className="d-flex align-items-center mb-2">
+			<div style={{ color: 'white' }} className="me-2">
+				<Icon size={28} />
+			</div>
+			<h6 className="mb-0 fw-semibold" style={{ fontSize: "0.85rem", color: 'rgba(255,255,255,0.95)' }}>
+				{title}
+			</h6>
+		</div>
+		<div className="fw-bold" style={{ fontSize: "1.4rem", color: 'white' }}>
+			{currencyFormatter.format(Number(value) || 0)}
+		</div>
+	</div>
+);
 
 export default function PreviousTransactionSummaryPage() {
 	const user = useApplication().user;
@@ -43,7 +94,6 @@ export default function PreviousTransactionSummaryPage() {
 	const [PaymentMode, setPaymentMode] = useState('');
 	const [loading, setLoading] = useState(true);
 	const [previousServices, setPreviousServices] = useState<Service[]>([]);
-	const emploeyeeid = user?.employeeid || 0;
 	const [showTaxModal, setShowTaxModal] = useState(false);
 	const [modalTaxes, setModalTaxes] = useState<any[]>([]);
 	const [modalService, setModalService] = useState<Service | null>(null);
@@ -257,7 +307,6 @@ export default function PreviousTransactionSummaryPage() {
 			};
 
 			setCashIssuedOut(true);
-
 			const response = await customPost(
 				`billing/previous/refund/update/cashout`,
 				'POST',
@@ -335,108 +384,6 @@ export default function PreviousTransactionSummaryPage() {
 		}
 		return taxes;
 	};
-
-	const columns = [
-		{ Header: 'Service Name', accessor: 'name' },
-		{
-			Header: 'Service Added On',
-			accessor: 'serviceAddedOn',
-			Cell: ({ cell: { value } }) => (value ? new Date(value).toLocaleString() : '')
-		},
-		{
-			Header: 'Cost',
-			accessor: 'cost',
-			Cell: ({ cell: { value } }) => currencyFormatter.format(Number(value) || 0)
-		},
-		{
-			Header: 'Total Cost',
-			accessor: 'totalcost',
-			Cell: ({ cell: { value } }) => currencyFormatter.format(Number(value) || 0)
-		},
-		{
-			Header: 'Total Payable',
-			accessor: 'totalpayable',
-			Cell: ({ cell: { value } }) => currencyFormatter.format(Number(value) || 0)
-		},
-
-		{
-			Header: 'Tax',
-			accessor: 'amountIncurredDueTax',
-			Cell: ({ cell: { value } }) => currencyFormatter.format(Number(value) || 0)
-		},
-		{
-			Header: 'Discount',
-			accessor: 'discount',
-			Cell: ({ cell: { value } }) => currencyFormatter.format(Number(value) || 0)
-		},
-
-		{ Header: 'Status', accessor: 'status' },
-		{
-			Header: 'Amount Refunded',
-			accessor: 'amountRefunded',
-			Cell: ({ cell: { value } }) => currencyFormatter.format(Number(value) || 0)
-		},
-		{
-			Header: 'Outstanding',
-			accessor: 'outstanding',
-			Cell: ({ cell: { value } }) => currencyFormatter.format(Number(value) || 0)
-		},
-		{
-			Header: 'Tax/Details',
-			id: 'taxDetails',
-			Cell: ({ row }) => {
-				const svc = row.original;
-				const taxes = getServiceTaxes(svc);
-				return (
-					<Button size="sm" variant="info" onClick={() => {
-						setModalTaxes(taxes);
-						setModalService(svc);
-						setShowTaxModal(true);
-					}}>
-						View Details
-					</Button>
-				);
-			}
-		},
-		{
-			Header: 'Actions/Witnesses',
-			accessor: 'actions',
-			Cell: ({ row }) => {
-				const svc = row.original;
-				const { isRefundInitiated, isRefundApproved, isRefundCompleted, witnesses } = svc;
-				const hasWitnessed = isRefundInitiated && Array.isArray(witnesses) && witnesses.length > 0 && witnesses.some((w) => w.employeeid === employeeid);
-				const canRefundAllOrWriteOff = role === 'admin' || role === 'manager';
-				const hasAnyWitnesses = Array.isArray(witnesses) && witnesses.length > 0;
-				return (
-					<div className="d-flex gap-2 align-items-center">
-						{!isRefundInitiated && svc.paymentstatus !== 'pending' && (
-							<Button
-								size="sm"
-								variant="danger"
-								onClick={() => handleRefundService(svc)}
-								disabled={billingdata.islocked === 1 || billingdata.writeOff === 1}
-							>
-								Refund Service
-							</Button>
-						)}
-						{isRefundInitiated === 1 && isRefundApproved === 1 && (isRefundCompleted !== 1) && (
-							<Button size="sm" variant="success" onClick={() => handleCashOutRefund(svc)}>
-								Issue Out Cash
-							</Button>
-						)}
-						{hasAnyWitnesses && (
-							<Button size="sm" variant="secondary" onClick={() => {
-								setWitnesses(svc.witnesses);
-								setShowWitnessModal(true);
-							}}>
-								View Witnesses
-							</Button>
-						)}
-					</div>
-				);
-			}
-		}
-	];
 
 	const renderRefundModal = () => (
 		<Modal show={showRefundModal} onHide={() => setShowRefundModal(false)} backdrop="static">
@@ -693,152 +640,280 @@ export default function PreviousTransactionSummaryPage() {
 					/>
 					{renderTaxModal()}
 					{renderWitnessModal()}
-					<div className="card border-0 mb-4">
-						<div className="card-body p-3 p-md-4">
-							<div className="d-flex justify-content-between align-items-center mb-3">
-								<h5 className="mb-0 fw-semibold text-body-emphasis">Billing Summary</h5>
-								<button className='d-flex align-items-center btn btn-secondary btn-sm' onClick={() => fetchRecords(Number(params?.billingid))}>
-									<RiRefreshFill /> Refresh
-								</button>
+					<div className="mb-4">
+						<div className="d-flex justify-content-between align-items-center mb-3">
+							<h5 className="mb-0 fw-semibold text-body-emphasis">Billing Summary</h5>
+							<button className='d-flex align-items-center btn btn-secondary btn-sm' onClick={() => fetchRecords(Number(params?.billingid))}>
+								<RiRefreshFill /> Refresh
+							</button>
+						</div>
+						<div className="row g-3">
+							<div className="col-md-6 col-lg-3">
+								<AnalyticCard
+									title="Trans. Cost"
+									value={Number(billingdata.totalTransactionCost) || 0}
+									Icon={RiCalculatorLine}
+									bgColor={cardColors.transactionCost.bg}
+									iconColor={cardColors.transactionCost.icon}
+								/>
 							</div>
-							<div className="row g-3 g-md-4">
-								{[
-									{ label: 'Trans. Cost', value: billingdata.totalTransactionCost, color: 'dark', icon: <RiCalculatorLine />, desc: 'Transaction cost' },
-									{ label: 'Total Cost', value: billingdata.totalcost, color: 'secondary', icon: <RiMoneyDollarCircleLine />, desc: 'Total billed amount' },
-									{ label: 'Payable', value: billingdata.payable, color: 'primary', icon: <CreditCardIcon />, desc: 'Amount to be paid' },
-									{ label: 'Refunded', value: billingdata.totalrefunded, color: 'warning', icon: <RiArrowGoBackLine />, desc: 'Total refunds issued' },
-									{ label: 'Paid', value: billingdata.paid, color: 'info', icon: <CheckCircleIcon />, desc: 'Amount received' },
-									{ label: 'Outstanding', value: billingdata.outstanding, color: 'danger', icon: <AlertCircleIcon />, desc: 'Amount due' },
-									{ label: 'Balance', value: (Number(billingdata.payable) || 0) - (Number(billingdata.paid) || 0), color: 'success', icon: <RiScalesLine />, desc: 'Remaining balance' },
-								].map((item, index) => (
-									<div key={index} className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-										<div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-											<div className="d-flex align-items-center mb-2">
-												<div className={`me-2 text-${item.color}`}>
-													{React.cloneElement(item.icon, { size: 20 })}
-												</div>
-												<span className="fw-medium text-muted small">{item.label}</span>
-											</div>
-											<div className={`fs-4 fw-bold text-${item.color}`}>{currencyFormatter.format(Number(item.value) || 0)}</div>
-											<div className="small text-muted">{item.desc}</div>
-										</div>
-									</div>
-								))}
+							<div className="col-md-6 col-lg-3">
+								<AnalyticCard
+									title="Total Cost"
+									value={Number(billingdata.totalcost) || 0}
+									Icon={RiFileList3Line}
+									bgColor={cardColors.totalCost.bg}
+									iconColor={cardColors.totalCost.icon}
+								/>
+							</div>
+							<div className="col-md-6 col-lg-3">
+								<AnalyticCard
+									title="Payable"
+									value={Number(billingdata.payable) || 0}
+									Icon={CreditCardIcon}
+									bgColor={cardColors.payable.bg}
+									iconColor={cardColors.payable.icon}
+								/>
+							</div>
+							<div className="col-md-6 col-lg-3">
+								<AnalyticCard
+									title="Paid"
+									value={Number(billingdata.paid) || 0}
+									Icon={CheckCircleIcon}
+									bgColor={cardColors.paid.bg}
+									iconColor={cardColors.paid.icon}
+								/>
+							</div>
+							<div className="col-md-6 col-lg-3">
+								<AnalyticCard
+									title="Refunded"
+									value={Number(billingdata.totalrefunded) || 0}
+									Icon={RiRefund2Line}
+									bgColor={cardColors.refunded.bg}
+									iconColor={cardColors.refunded.icon}
+								/>
+							</div>
+							<div className="col-md-6 col-lg-3">
+								<AnalyticCard
+									title="Outstanding"
+									value={Number(billingdata.outstanding) || 0}
+									Icon={RiAlarmWarningLine}
+									bgColor={cardColors.outstanding.bg}
+									iconColor={cardColors.outstanding.icon}
+								/>
+							</div>
+							<div className="col-md-6 col-lg-3">
+								<AnalyticCard
+									title="Written Off"
+									value={Number(billingdata.writeoff) || 0}
+									Icon={EditIcon}
+									bgColor={cardColors.writeoff.bg}
+									iconColor={cardColors.writeoff.icon}
+								/>
+							</div>
+							<div className="col-md-6 col-lg-3">
+								<AnalyticCard
+									title="Balance"
+									value={(Number(billingdata.payable) || 0) - (Number(billingdata.paid) || 0)}
+									Icon={RiScalesLine}
+									bgColor={cardColors.balance.bg}
+									iconColor={cardColors.balance.icon}
+								/>
 							</div>
 						</div>
 					</div>
-					<div className="mx-2 mt-5">
-						<div style={{ overflowX: 'auto' }}>
-							<PrimeTable
-								column={columns}
-								data={previousServices}
-								serverSideFiltering={false}
-								handleSeverSideProcessing={false} />
+					<div className="card border-0 mt-5">
+						<div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: 'var(--bs-border-color)' }}>
+							<h5 className="mb-0 fw-semibold text-body-emphasis">Services Details</h5>
 						</div>
-					</div>
-					<div className="d-flex justify-content-end gap-2 mt-4">
-						{(() => {
-							const isLocked = billingdata.islocked === 1;
-							const isWrittenOff = billingdata.writeOff === 1;
-							const totalRefunded = Number(billingdata.totalrefunded) || 0;
-							const totalPayable = Number(billingdata.payable) || 0;
-							const allRefunded = totalRefunded >= totalPayable && totalPayable > 0;
-							const nothingToRefund = totalPayable <= 0;
-							const disableActions = isLocked || isWrittenOff || allRefunded || nothingToRefund;
-							const getDisabledReason = () => {
-								if (isLocked) return 'Transaction is locked.';
-								if (isWrittenOff) return 'Transaction is written off.';
-								if (allRefunded) return 'All services have already been refunded.';
-								if (nothingToRefund) return 'No payable amount left for action.';
-								return '';
-							};
-							// Only allow refund all or write off if role is admin or manager
-							const canRefundAllOrWriteOff = role === 'admin' || role === 'manager';
-							return <>
-								<Button
-									size='sm'
-									variant="danger"
-									onClick={() => {
-										if (!canRefundAllOrWriteOff) return toast.error('Not allowed. Only admin or manager can refund all.');
-										if (disableActions) toast.error(getDisabledReason());
-										else handleRefundAll();
-									}}
-									disabled={disableActions || !canRefundAllOrWriteOff}
-								>
-									{submitting && <Spinner size='sm' />}  <RefreshCwIcon /> {" "}
-									{submitting ? "refunding" : " Refund All"}
-								</Button>
-								<Button
-									size='sm'
-									variant="warning"
-									onClick={() => {
-										if (!canRefundAllOrWriteOff) return toast.error('Not allowed. Only admin or manager can write off.');
-										if (disableActions) toast.error(getDisabledReason());
-										else handleWriteOff();
-									}}
-									disabled={disableActions || !canRefundAllOrWriteOff}
-								>
-									<EditIcon />  {" "}
-									Write Off
-								</Button>
+						<div className="card-body p-0">
+							<div style={{ overflowX: 'auto' }}>
+								<table className="table table-striped table-hover text-nowrap mb-0">
+									<thead className="table-light">
+										<tr>
+											<th className="fw-semibold text-start">Service Name</th>
+											<th className="fw-semibold text-start">Service Added On</th>
+											<th className="fw-semibold text-start">Cost</th>
+											<th className="fw-semibold text-start">Total Cost</th>
+											<th className="fw-semibold text-start">Total Payable</th>
+											<th className="fw-semibold text-start">Paid Amount</th>
+											<th className="fw-semibold text-start">Outstanding</th>
+											<th className="fw-semibold text-start">Tax</th>
+											<th className="fw-semibold text-start">Discount</th>
+											<th className="fw-semibold text-start">Status</th>
+											<th className="fw-semibold text-start">Amount Refunded</th>
+											<th className="fw-semibold text-start">Tax/Details</th>
+											<th className="fw-semibold text-start">Actions/Witnesses</th>
+										</tr>
+									</thead>
+									<tbody>
+										{Array.isArray(previousServices) && previousServices.map((row, idx) => {
+											const outstanding = Number(row.outstanding) || 0;
+											const isOutstanding = outstanding > 0;
+											const taxes = getServiceTaxes(row);
+											return (
+												<tr
+													key={idx}
+													style={isOutstanding ? { backgroundColor: '#ffe6e6' } : {}}
+												>
+													<td className="text-start">{row.name}</td>
+													<td className="text-start">{row.serviceAddedOn ? new Date(row.serviceAddedOn).toLocaleString() : ''}</td>
+													<td className="text-start">{currencyFormatter.format(Number(row.cost) || 0)}</td>
+													<td className="text-start">{currencyFormatter.format(Number(row.totalcost) || 0)}</td>
+													<td className="text-start">{currencyFormatter.format(Number(row.totalpayable) || 0)}</td>
+													<td className="text-start">{row.paidamount}</td>
+													<td className="text-start">{currencyFormatter.format(Number(row.outstanding) || 0)}</td>
+													<td className="text-start">{currencyFormatter.format(Number(row.amountIncurredDueTax) || 0)}</td>
+													<td className="text-start">{currencyFormatter.format(Number(row.discount) || 0)}</td>
+													<td className="text-start">{row.status}</td>
+													<td className="text-start">{currencyFormatter.format(Number(row.amountRefunded) || 0)}</td>
+													<td className="text-start">
+														<Button size="sm" variant="info" onClick={() => {
+															setModalTaxes(taxes);
+															setModalService(row);
+															setShowTaxModal(true);
+														}}>
+															View Details
+														</Button>
+													</td>
+													<td className="text-start">
+														<div className="d-flex gap-2 align-items-center flex-wrap">
+															{!row.isRefundInitiated && row.paymentstatus !== 'pending' && (
+																<Button
+																	size="sm"
+																	variant="danger"
+																	onClick={() => handleRefundService(row)}
+																	disabled={billingdata.islocked === 1 || billingdata.writeOff === 1}
+																>
+																	Refund
+																</Button>
+															)}
+															{row.isRefundInitiated === 1 && row.isRefundApproved === 1 && (row.isRefundCompleted !== 1) && (
+																<Button size="sm" variant="success" onClick={() => handleCashOutRefund(row)}>
+																	Cash Out
+																</Button>
+															)}
+															{Array.isArray(row.witnesses) && row.witnesses.length > 0 && (
+																<Button size="sm" variant="secondary" onClick={() => {
+																	setWitnesses(row.witnesses);
+																	setShowWitnessModal(true);
+																}}>
+																	View Witnesses
+																</Button>
+															)}
+														</div>
+													</td>
+												</tr>
+											);
+										})}
+									</tbody>
+								</table>
+							</div>
+						</div>
+						<div className="d-flex justify-content-end gap-2 mt-4">
+							{(() => {
+								const isLocked = billingdata.islocked === 1;
+								const isWrittenOff = billingdata.writeOff === 1;
+								const totalRefunded = Number(billingdata.totalrefunded) || 0;
+								const totalPayable = Number(billingdata.payable) || 0;
+								const allRefunded = totalRefunded >= totalPayable && totalPayable > 0;
+								const nothingToRefund = totalPayable <= 0;
+								const disableActions = isLocked || isWrittenOff || allRefunded || nothingToRefund;
+								const getDisabledReason = () => {
+									if (isLocked) return 'Transaction is locked.';
+									if (isWrittenOff) return 'Transaction is written off.';
+									if (allRefunded) return 'All services have already been refunded.';
+									if (nothingToRefund) return 'No payable amount left for action.';
+									return '';
+								};
+								// Only allow refund all or write off if role is admin or manager
+								const canRefundAllOrWriteOff = role === 'admin' || role === 'manager';
+								return <>
+									<Button
+										size='sm'
+										variant="danger"
+										onClick={() => {
+											if (!canRefundAllOrWriteOff) return toast.error('Not allowed. Only admin or manager can refund all.');
+											if (disableActions) toast.error(getDisabledReason());
+											else handleRefundAll();
+										}}
+										disabled={disableActions || !canRefundAllOrWriteOff}
+									>
+										{submitting && <Spinner size='sm' />}  <RefreshCwIcon /> {" "}
+										{submitting ? "refunding" : " Refund All"}
+									</Button>
+									<Button
+										size='sm'
+										variant="warning"
+										onClick={() => {
+											if (!canRefundAllOrWriteOff) return toast.error('Not allowed. Only admin or manager can write off.');
+											if (disableActions) toast.error(getDisabledReason());
+											else handleWriteOff();
+										}}
+										disabled={disableActions || !canRefundAllOrWriteOff}
+									>
+										<EditIcon />  {" "}
+										Write Off
+									</Button>
 
-							</>;
-						})()}
-					</div>
+								</>;
+							})()}
+						</div>
 
-					<Modal show={showRefundAllModal} onHide={() => setShowRefundAllModal(false)} backdrop="static">
-						<Modal.Header closeButton>
-							<Modal.Title>Refund All</Modal.Title>
-						</Modal.Header>
-						<Modal.Body>
-							<div className="mb-3">
-								<label htmlFor="refundAllReason" className="form-label">Reason for Refunding All</label>
-								<textarea
-									id="refundAllReason"
-									className="form-control"
-									value={refundAllReason}
-									onChange={e => setRefundAllReason(e.target.value)}
-									rows={3}
-									placeholder="Enter reason for refunding all..."
-								/>
-							</div>
-							<div className="mb-3">
-								<label htmlFor="refundAllAcknowledge" className="form-label">Type <b>I acknowledge</b> to confirm you understand this action</label>
-								<input
-									id="refundAllAcknowledge"
-									className="form-control"
-									value={refundAllAcknowledge}
-									onChange={e => setRefundAllAcknowledge(e.target.value)}
-									placeholder="Type 'I acknowledge' to proceed"
-								/>
-							</div>
-							<div className="mb-3">
-								<label htmlFor="refundAllPaymentMode" className="form-label">Select Payment Mode</label>
-								<select
-									id="refundAllPaymentMode"
-									className="form-control"
-									value={PaymentMode}
-									onChange={e => setPaymentMode(e.target.value)}
-								>
-									<option value="">Select Refund Mode Here</option>
-									{paymentModes.map((mode) => (
-										<option key={mode.KeyID} value={mode.KeyID}>
-											{mode.PaymentMode}
-										</option>
-									))}
-								</select>
-							</div>
-							{refundAllError && <div className="alert alert-danger text-sm">{refundAllError}</div>}
-						</Modal.Body>
-						<Modal.Footer>
-							<Button variant="secondary" onClick={() => setShowRefundAllModal(false)} disabled={submitting}>
-								Cancel
-							</Button>
-							<Button variant="primary" onClick={handleRefundAllSubmit} disabled={submitting}>
-								{submitting ? <Spinner size="sm" /> : null} Refund All
-							</Button>
-						</Modal.Footer>
-					</Modal>
+						<Modal show={showRefundAllModal} onHide={() => setShowRefundAllModal(false)} backdrop="static">
+							<Modal.Header closeButton>
+								<Modal.Title>Refund All</Modal.Title>
+							</Modal.Header>
+							<Modal.Body>
+								<div className="mb-3">
+									<label htmlFor="refundAllReason" className="form-label">Reason for Refunding All</label>
+									<textarea
+										id="refundAllReason"
+										className="form-control"
+										value={refundAllReason}
+										onChange={e => setRefundAllReason(e.target.value)}
+										rows={3}
+										placeholder="Enter reason for refunding all..."
+									/>
+								</div>
+								<div className="mb-3">
+									<label htmlFor="refundAllAcknowledge" className="form-label">Type <b>I acknowledge</b> to confirm you understand this action</label>
+									<input
+										id="refundAllAcknowledge"
+										className="form-control"
+										value={refundAllAcknowledge}
+										onChange={e => setRefundAllAcknowledge(e.target.value)}
+										placeholder="Type 'I acknowledge' to proceed"
+									/>
+								</div>
+								<div className="mb-3">
+									<label htmlFor="refundAllPaymentMode" className="form-label">Select Payment Mode</label>
+									<select
+										id="refundAllPaymentMode"
+										className="form-control"
+										value={PaymentMode}
+										onChange={e => setPaymentMode(e.target.value)}
+									>
+										<option value="">Select Refund Mode Here</option>
+										{paymentModes.map((mode) => (
+											<option key={mode.KeyID} value={mode.KeyID}>
+												{mode.PaymentMode}
+											</option>
+										))}
+									</select>
+								</div>
+								{refundAllError && <div className="alert alert-danger text-sm">{refundAllError}</div>}
+							</Modal.Body>
+							<Modal.Footer>
+								<Button variant="secondary" onClick={() => setShowRefundAllModal(false)} disabled={submitting}>
+									Cancel
+								</Button>
+								<Button variant="primary" onClick={handleRefundAllSubmit} disabled={submitting}>
+									{submitting ? <Spinner size="sm" /> : null} Refund All
+								</Button>
+							</Modal.Footer>
+						</Modal>
+					</div>
 				</div>
 			</div>
 		);

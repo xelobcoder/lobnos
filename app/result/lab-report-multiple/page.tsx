@@ -116,6 +116,7 @@ export default function LabReportPrintingMultiple() {
 	const headerRef = useRef<HTMLDivElement | null>(null);
 	const footerRef = useRef<HTMLDivElement | null>(null);
 	const verifiedRef = useRef<HTMLDivElement | null>(null);
+	const labRef = `${prefix}${billingid}`;
 
 	useEffect(() => {
 		setPdfError(null);
@@ -616,9 +617,10 @@ export default function LabReportPrintingMultiple() {
 										/>
 										<div className={styles.reportTitleBar}
 											style={{
-												backgroundColor: resultSettings?.mainReportHeaderBgColor,
+												backgroundColor: resultSettings?.mainReportHeaderBgColor ,
 												color: resultSettings?.mainReportHeaderColor
-											}}>
+											}}
+											>
 											MEDICAL LABORATORY REPORT
 										</div>
 										<MdsPersonalInformation
@@ -671,16 +673,17 @@ export default function LabReportPrintingMultiple() {
 																/>
 																<div className={styles.reportTitleBar}
 																	style={{
-																		backgroundColor: `${resultSettings.mainReportHeaderBgColor} !important`,
-																		color: `${resultSettings.mainReportHeaderColor} !important`
+																		backgroundColor: resultSettings?.mainReportHeaderBgColor,
+																		color: resultSettings?.mainReportHeaderColor
 																	}}>
 																	MEDICAL LABORATORY REPORT
 																</div>
+
 																<MdsPersonalInformation
 																	isBulk={true}
 																	styles={styles}
 																	patientInformation={resultdata.patientInformation}
-																	labRef={`BILL${resultdata.billingid}`}
+																	labRef={`${prefix} ${resultdata.billingid}`}
 																	resultsettings={resultSettings}
 																/>
 															</div>
@@ -787,6 +790,13 @@ export default function LabReportPrintingMultiple() {
 					@page { margin: 10mm; }
 					body { -webkit-print-color-adjust: exact; print-color-adjust: exact;
 					
+					}
+
+					.reportTitleBar {
+						-webkit-print-color-adjust: exact;
+						print-color-adjust: exact;
+						background-color: ${resultSettings?.mainReportHeaderBgColor};
+						color: ${resultSettings?.mainReportHeaderColor}
 					}
 
 					.no-print { display: none !important; }

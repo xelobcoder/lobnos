@@ -13,7 +13,7 @@ export const MultiBillingContext = createContext<MultiBillingContextType | undef
 export const MultiBillingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	const [billingdata, setBillingData] = useState<MultiBillingData>(defaultMultiBillingData);
 	const recalculateTotalBill = (billingdata) => {
-		if (billingdata.cart && billingdata.cart.length > 0) {
+		if ((billingdata.cart && billingdata.cart.length > 0 ) || (billingdata.servicesProvided && billingdata.servicesProvided.length > 0)) {
 			handleCheckout(billingdata, billingdata.specialCode ?? '',  setBillingData);
 		}
 

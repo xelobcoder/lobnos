@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import dayjs from "dayjs";
 import PrimeTable from "../accessories/Datatables/PrimeTable";
 import { handleSeverSideProcessingPhelobotomy } from "../serverActions/ActionFiltering";
 import { RiInboxLine, RiTestTubeLine } from '@remixicon/react';
@@ -29,17 +30,17 @@ export default function ListTable({ data, handleCollectSample, filter, selectedI
 		try {
 			const dates = selectedItems.map(item => new Date(item.date));
 			const earliestDate = new Date(Math.min(...dates)).toISOString().split('T')[0];
-			
+
 
 			const billingIds = selectedItems.map(item => item.billingid);
-			
+
 			const result = await customPost(`operations/ascension/bypass/mutiple/completeflow/bypass-multiple`, 'POST', {
 				billingIds,
 				employeeid
 			});
 
 			const { status, message } = result;
-			
+
 			if (status === 'success') {
 				// For multiple bypass, we'll open the first patient's record
 				// but use the earliest date from all selected items
@@ -48,7 +49,7 @@ export default function ListTable({ data, handleCollectSample, filter, selectedI
 					`/operations/laboratory/completed?patientid=${firstItem.patientid}&billingid=${firstItem.billingid}&start_date=${earliestDate}&end_date=${earliestDate}`,
 					'_blank'
 				);
-				
+
 				// Clear selections after successful bypass
 				selectedItems.forEach(item => onToggleSelection(item));
 			} else {
@@ -71,7 +72,7 @@ export default function ListTable({ data, handleCollectSample, filter, selectedI
 			billingid,
 			employeeid
 		});
-		
+
 		const { status, message } = result;
 		if (status === 'success') {
 			const { date, billingid, patientid } = row;
@@ -99,7 +100,7 @@ export default function ListTable({ data, handleCollectSample, filter, selectedI
 		{
 			Header: "Date",
 			accessor: "date",
-			Cell: ({ value }) => new Date(value).toLocaleDateString(),
+			Cell: ({ value }) => dayjs(value).format('DD-MM-YYYY HH:mm:ss'),
 		},
 		{ Header: "Fullname", accessor: "fullname" },
 		{ Header: "Age", accessor: "age" },
@@ -121,8 +122,8 @@ export default function ListTable({ data, handleCollectSample, filter, selectedI
 			Cell: ({ row }) => (
 				<div className="d-flex gap-1">
 					{isCompleteFlowDisabled && (
-						<button 
-							onClick={() => handleSingleByPass(row.original)} 
+						<button
+							onClick={() => handleSingleByPass(row.original)}
 							className="btn btn-primary btn-sm btn"
 						>
 							<RiInboxLine size={16} />
@@ -169,7 +170,7 @@ export default function ListTable({ data, handleCollectSample, filter, selectedI
 					</button>
 				</div>
 			)}
-			
+
 			<PrimeTable
 				column={columns}
 				handleSeverSideProcessing={handleSeverSideProcessingPhelobotomy}

@@ -40,12 +40,10 @@ export default function OperationsListTestCollection({ operations }) {
 
 	const handleMultiMode = () => {
 		if (!multiMode) {
-			// Entering multi-mode: select all tests and load them
 			setMultiMode(true);
 			setSelectedTests(testList);
 			setLoaded(true);
 		} else {
-			// Exiting multi-mode: reset everything
 			setMultiMode(false);
 			setSelectedTests([]);
 			setLoaded(false);

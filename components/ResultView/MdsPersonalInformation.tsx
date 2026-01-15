@@ -37,6 +37,7 @@ const MdsPersonalInformation: React.FC<MdsPersonalInformationProps> = ({
     styles = {},
     resultsettings
 }) => {
+    const mySavedLabRef = labRef || 'N/A';
     return (
         <section className={styles.patientInfoSection} style={{ fontFamily: resultsettings?.patientInfo?.fontFamily || 'inherit' }}>
             <div className={styles.infoBlock}>
@@ -53,7 +54,7 @@ const MdsPersonalInformation: React.FC<MdsPersonalInformationProps> = ({
             </div>
             <div className={styles.infoBlock}>
                 <div className={styles.infoPair}>
-                    <span className={styles.infoLabel}>Lab Ref.</span>: <span className={styles.infoValue}>{labRef}</span>
+                    <span >Lab Ref.</span>: <span className='fw-bold mx-2'>{mySavedLabRef}</span>
                 </div>
                 {!isBulk ? (<div className={styles.infoBlock}>
                     <div className={styles.infoPair}>

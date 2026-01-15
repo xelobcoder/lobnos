@@ -7,13 +7,16 @@ import { useApplication } from '../../../Auth/useApplicationContext';
 export default function MultiServicesSearchComponent({ updatefunction }) {
     const context = useContext(MultiBillingContext);
     const billingdata = context?.billingdata;
-    const role = useApplication().user?.role 
-    const servicesList = billingdata?.servicesList || [];
+    const applicatonsettings = useApplication();
+    const isAllowCrmToGiveDisocunt = parseInt(applicatonsettings?.settings?.AllowCrmToGiveDisocunt || "0") == 1;
+    const role = applicatonsettings?.user?.role;
+    const servicesList = billingdata?.servicesList || []
     const includeServices = billingdata?.includeServices;
     const [selectedServices, setSelectedServices] = useState<any>(null);
 
     if (!includeServices) return null;
 
+    console.log(applicatonsettings);
 
     if (!servicesList || servicesList.length === 0) {
         return (
@@ -43,13 +46,13 @@ export default function MultiServicesSearchComponent({ updatefunction }) {
             </td>
             <td>
                 <input
-                    disabled={role !== "admin"}
+                    disabled={!isAllowCrmToGiveDisocunt || ['manager', 'admin'].includes(role || '') ? false : true}
                     value={selectedServices?.discount ?? ''}
                     onChange={(ev) => {
                         setSelectedServices({ ...selectedServices, discount: ev.target.value });
                     }}
                     className='custom-input col-8' type='number'
-                    placeholder={role !== "admin" ? "Admin only" : "Discount"}
+                    placeholder={(role !== "admin" || role === null || !isAllowCrmToGiveDisocunt) ? 'N/A' : 'Enter discount'}
                     style={{ display: role === "admin" ? 'block' : 'none' }}
                 />
                 {role !== "admin" && (

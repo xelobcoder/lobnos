@@ -4,6 +4,7 @@ import { customFetch } from '../../../../components/Auth/customFetch';
 import PhelobotomyMainPageClientModule from '../../../../components/phelobotomy/ReceiveLabSampleModal/PhelobotomyMainPageClientModule';
 import { Container, Alert, Button, Spinner, Card, Offcanvas } from 'react-bootstrap';
 import { RiTestTubeLine, RiCalendarEventLine, RiSearchLine, RiRefreshLine, RiFilterOffLine, RiFilterLine } from '@remixicon/react';
+import { useSearchParams } from 'next/navigation';
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
 const COLOR_BORDER = 'var(--bs-border-color)';
@@ -14,11 +15,16 @@ export default function PagePhelobotomy() {
     const [filter, setFilter] = useState<string>('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const url_start_date = useSearchParams()?.get('start_date') || '';
+    const url_end_date = useSearchParams()?.get('end_date') || '';
+
     const [selectedDate, setSelectedDate] = useState({
-        start_date: new Date().toISOString().split('T')[0],
-        end_date: new Date().toISOString().split('T')[0]
+        start_date: url_start_date || new Date().toISOString().split('T')[0],
+        end_date: url_end_date || new Date().toISOString().split('T')[0]
     });
     const [showFilters, setShowFilters] = useState(false);
+
+
 
 
     const handleLoad = async () => {

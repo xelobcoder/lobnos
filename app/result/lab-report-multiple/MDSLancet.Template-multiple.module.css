@@ -319,11 +319,11 @@
         background: white !important;
     }
 
-    .reportTitleBar {
+    /* .reportTitleBar {
         margin: 10px 0;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-    }
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    } */
 
     .header,
     .patientInfoSection,

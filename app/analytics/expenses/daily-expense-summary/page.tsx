@@ -95,7 +95,7 @@ export default function DailyExpenseSummary() {
         ...item,
         total_amount: parseFloat(item.total_expenses),
         average_amount: parseFloat(item.avg_expense_amount),
-        dateLabel: dayjs(item.expense_date).format('DD-MM-YYYY')
+        dateLabel: dayjs(item.expense_date).format('DD-MM-YYYY HH:mm:ss')
     }));
 
     const totalAmountSum = chartData.reduce((sum, entry) => sum + entry.total_amount, 0);
@@ -293,7 +293,7 @@ export default function DailyExpenseSummary() {
             {chartData.length > 0 && (
                 <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{ borderTop: `1px solid ${COLOR_BORDER}` }}>
                     <div className="print-date-range" style={{ display: 'none' }}>
-                        Daily Expenses Report Period: {new Date(startDate).toLocaleDateString()} - {new Date(endDate).toLocaleDateString()}
+                        Daily Expenses Report Period: {dayjs(startDate).format('DD-MM-YYYY HH:mm:ss')} - {dayjs(endDate).format('DD-MM-YYYY HH:mm:ss')}
                     </div>
                     <div className="d-flex justify-content-between mb-2">
                         <h4 className="fs-6 fw-medium mb-3">
@@ -397,13 +397,13 @@ export default function DailyExpenseSummary() {
                                                         <td>{expense.employee_name}</td>
                                                         <td>{expense.merchant_name}</td>
                                                         <td>{expense.branch_name}</td>
-                                                        <td>{new Date(expense.expense_date).toLocaleDateString()}</td>
+                                                        <td>{dayjs(expense.expense_date).format('DD-MM-YYYY HH:mm:ss')}</td>
                                                         <td>
                                                             <span className={`badge ${expense.is_approved === 1 ? 'bg-success' : expense.is_approved === 2 ? 'bg-warning' : 'bg-secondary'}`}>
                                                                 {expense.is_approved === 1 ? 'Approved' : expense.is_approved === 2 ? 'Pending' : 'Rejected'}
                                                             </span>
                                                         </td>
-                                                        <td>{expense.approved_date ? new Date(expense.approved_date).toLocaleDateString() : 'N/A'}</td>
+                                                        <td>{expense.approved_date ? dayjs(expense.approved_date).format('DD-MM-YYYY HH:mm:ss') : 'N/A'}</td>
                                                         <td>{expense.approved_by_username || 'N/A'}</td>
                                                         <td>
                                                             <span className={`badge ${expense.payment_status === 'Paid' ? 'bg-success' : expense.payment_status === 'Pending' ? 'bg-warning' : 'bg-secondary'}`}>
@@ -411,7 +411,7 @@ export default function DailyExpenseSummary() {
                                                             </span>
                                                         </td>
                                                         <td>{expense.payment_method || 'N/A'}</td>
-                                                        <td>{expense.payment_date ? new Date(expense.payment_date).toLocaleDateString() : 'N/A'}</td>
+                                                        <td>{expense.payment_date ? dayjs(expense.payment_date).format('DD-MM-YYYY HH:mm:ss') : 'N/A'}</td>
                                                         <td>{expense.payment_amount ? currencyFormatter.format(expense.payment_amount) : 'N/A'}</td>
                                                         <td>{expense.payment_created_by_username || 'N/A'}</td>
                                                         <td>
@@ -420,7 +420,7 @@ export default function DailyExpenseSummary() {
                                                             </span>
                                                         </td>
                                                         <td>{expense.invoice_number || 'N/A'}</td>
-                                                        <td>{expense.invoice_date ? new Date(expense.invoice_date).toLocaleDateString() : 'N/A'}</td>
+                                                        <td>{expense.invoice_date ? dayjs(expense.invoice_date).format('DD-MM-YYYY HH:mm:ss') : 'N/A'}</td>
                                                         <td>{expense.invoice_total ? currencyFormatter.format(expense.invoice_total) : 'N/A'}</td>
                                                         <td>{expense.invoice_tax ? currencyFormatter.format(expense.invoice_tax) : 'N/A'}</td>
                                                     </tr>

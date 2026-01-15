@@ -58,6 +58,12 @@ export default function PhelobotomySummaryAnalytics() {
             value: data.completed || 0,
             icon: <RiRefreshLine size={28} />,
             style: iconStyles[3]
+        },
+        {
+            label:"All Time Pending",
+            value: data.allTimePending || 0,
+            icon: <RiTimeLine size={28} />,
+            style: iconStyles[0]
         }
     ];
 

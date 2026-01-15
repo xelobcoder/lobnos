@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import SampleAssessmentModal from '../accessories/SampleAssessmentModal/SampleAssessmentModal';
 import PrimeTable from '../accessories/Datatables/PrimeTable';
 import { handleServerSideProcessingSampleValidation } from '../serverActions/ActionFiltering';
@@ -10,18 +11,48 @@ import dayjs from 'dayjs';
 
 
 
-export default function SampleValidationComponent({ data: initialData, initialStartDate = '', initialEndDate = '', removeClient }) {
-	const [data, setData] = useState(initialData);
+export default function SampleValidationComponent() {
+	const searchParams = useSearchParams();
+	const today = new Date().toISOString().split('T')[0];
+	const urlStartDate = searchParams.get('start_date') || today;
+	const urlEndDate = searchParams.get('end_date') || today;
+
+	const [data, setData] = useState([]);
 	const [loading, setLoading] = useState(false);
 	const [sortBy, setSortBy] = useState('DESC');
 	const [showAssesModal, setShowAssesModal] = useState(false);
 	const [target, setTarget] = useState(null);
 	const [multiMode, setMultiMode] = useState(false);
-	const [startDate, setStartDate] = useState(initialStartDate);
-	const [endDate, setEndDate] = useState(initialEndDate);
+	const [startDate, setStartDate] = useState('');
+	const [endDate, setEndDate] = useState('');
 	const [selectedItems, setSelectedItems] = useState([]);
 	const [searchFilter, setSearchFilter] = useState('');
 
+	useEffect(() => {
+		setStartDate(urlStartDate);
+		setEndDate(urlEndDate);
+	}, [urlStartDate, urlEndDate]);
+
+	useEffect(() => {
+		const loadInitialData = async () => {
+			setLoading(true);
+			try {
+				let url = `sample/client/list/unvalidated?count=10&page=1&sortby=DESC`;
+				if (urlStartDate) url += `&startDate=${urlStartDate}`;
+				if (urlEndDate) url += `&endDate=${urlEndDate}`;
+				const fetchResponse = await customFetch(url);
+				const { result } = fetchResponse;
+				if (result && Array.isArray(result)) {
+					setData(result);
+				}
+			} catch (error) {
+				console.error('Error loading initial data:', error);
+			} finally {
+				setLoading(false);
+			}
+		};
+		loadInitialData();
+	}, []);
 
 	const removeClientFromList = (id) => {
 		if (!id) return;
@@ -297,7 +328,7 @@ export default function SampleValidationComponent({ data: initialData, initialSt
 				show={showAssesModal}
 				hide={closeModal}
 				billingid={target}
-				removeClient={removeClientFromList}
+
 				multiMode={multiMode}
 				selectedItems={selectedItems}
 				onMultiProcessComplete={handleMultiProcessComplete}

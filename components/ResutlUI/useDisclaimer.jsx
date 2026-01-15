@@ -1,8 +1,10 @@
 export default function UseDisclaimer({ disclaimer }) {
 	return (
 		<>
-			<div style={{ fontSize: "13px" }}>
-				PLEASE NOTE:
+			<div style={{ fontSize: "13px", }}>
+				<span className="text-danger">
+					PLEASE NOTE:
+				</span>
 				<br />
 				{disclaimer ? (
 					<span>

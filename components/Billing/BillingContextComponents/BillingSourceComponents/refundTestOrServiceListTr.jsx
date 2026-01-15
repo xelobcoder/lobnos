@@ -155,7 +155,7 @@ export default function RefundTestOrServiceListTr({ handleRefundList, item, inde
                     {item.isRefundApproved === 1 && item.isRefundInitiated === 1 ? 'Approved' : 'No'}
                 </td>
                 <td>
-                    {item.isRefundInitiated === 1 && item.isRefundApproved === 1 && item.isRefundCompleted === 0 && (
+                    {item.isRefundInitiated === 1 && item.isRefundApproved === 1 && (item.isRefundCompleted === 0) && (
                         <button
                             onClick={(ev) => { handleCashOutRefund(item); }}
                             className="btn btn-sm btn-success"
