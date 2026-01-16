@@ -505,6 +505,8 @@ export default function PreviousTransactionSummaryPage() {
 		const isOutsourced = modalService && typeof modalService.isoutsourced !== 'undefined' ? (modalService.isoutsourced ? 'Yes' : 'No') : '';
 		const serviceCategory = modalService && modalService.serviceCategory ? modalService.serviceCategory : '';
 		const registrationType = modalService && modalService.registrationType ? modalService.registrationType : '';
+		const clinicianName = modalService && modalService.clinicianName ? modalService.clinicianName : '';
+		const organizationName = modalService && modalService.organizationName ? modalService.organizationName : '';
 		// Night adjustment details
 		const hasNightAdjustment = modalService && modalService.hasNightAdjustment === 1;
 		const nightAdjustmentValue = modalService && modalService.nightAdjustmentValue ? modalService.nightAdjustmentValue : '';
@@ -512,6 +514,8 @@ export default function PreviousTransactionSummaryPage() {
 		// Insurance
 		const isNHIS = modalService && modalService.isNHIS === 1 ? 'Yes' : 'No';
 		const isPHIS = modalService && modalService.isPHIS === 1 ? 'Yes' : 'No';
+		const nhismembershipid = modalService && modalService.nhismembershipid ? modalService.nhismembershipid : '';
+		const claimscheckcode = modalService && modalService.claimscheckcode ? modalService.claimscheckcode : '';
 		return (
 			<Modal backdrop='static' show={showTaxModal} onHide={() => { setShowTaxModal(false); setModalService(null); }}>
 				<Modal.Header closeButton className='bg-secondary-subtle text-sm'>
@@ -522,6 +526,12 @@ export default function PreviousTransactionSummaryPage() {
 						<div className="alert alert-info mb-3 text-sm" role="alert">
 							<strong>Amount Incurred Due To Taxes:</strong> {currencyFormatter.format(Number(amountIncurredDueTax) || 0)}
 						</div>
+					)}
+					{clinicianName && (
+						<div className="mb-2 bg-body-tertiary border border-bottom br-5 p-2 text-sm"><strong>Clinician:</strong> {clinicianName}</div>
+					)}
+					{organizationName && (
+						<div className="mb-2 bg-body-tertiary border border-bottom br-5 p-2 text-sm"><strong>Organization:</strong> {organizationName}</div>
 					)}
 					{isOutsourced && (
 						<div className="mb-2 bg-body-tertiary border border-bottom br-5 p-2 text-sm"><strong>Is Outsourced:</strong> {isOutsourced}</div>
@@ -545,6 +555,8 @@ export default function PreviousTransactionSummaryPage() {
 						<div className="mb-2 bg-body-tertiary border border-bottom br-5 p-2 text-sm">
 							<strong>NHIS:</strong> {isNHIS}<br />
 							<strong>PHIS:</strong> {isPHIS}
+							{nhismembershipid && (<><br /><strong>NHIS Membership ID:</strong> {nhismembershipid}</>)}
+							{claimscheckcode && (<><br /><strong>Claims Check Code:</strong> {claimscheckcode}</>)}
 						</div>
 					)}
 					{modalTaxes.length > 0 ? (
@@ -732,6 +744,8 @@ export default function PreviousTransactionSummaryPage() {
 									<thead className="table-light">
 										<tr>
 											<th className="fw-semibold text-start">Service Name</th>
+											<th className="fw-semibold text-start">Organization</th>
+											<th className="fw-semibold text-start">Clinician</th>
 											<th className="fw-semibold text-start">Service Added On</th>
 											<th className="fw-semibold text-start">Cost</th>
 											<th className="fw-semibold text-start">Total Cost</th>
@@ -757,11 +771,13 @@ export default function PreviousTransactionSummaryPage() {
 													style={isOutstanding ? { backgroundColor: '#ffe6e6' } : {}}
 												>
 													<td className="text-start">{row.name}</td>
+													<td className="text-start">{row.organizationName || '-'}</td>
+													<td className="text-start">{row.clinicianName || '-'}</td>
 													<td className="text-start">{row.serviceAddedOn ? new Date(row.serviceAddedOn).toLocaleString() : ''}</td>
 													<td className="text-start">{currencyFormatter.format(Number(row.cost) || 0)}</td>
 													<td className="text-start">{currencyFormatter.format(Number(row.totalcost) || 0)}</td>
 													<td className="text-start">{currencyFormatter.format(Number(row.totalpayable) || 0)}</td>
-													<td className="text-start">{row.paidamount}</td>
+													<td className="text-start">{currencyFormatter.format(Number(row.paidamount) || 0)}</td>
 													<td className="text-start">{currencyFormatter.format(Number(row.outstanding) || 0)}</td>
 													<td className="text-start">{currencyFormatter.format(Number(row.amountIncurredDueTax) || 0)}</td>
 													<td className="text-start">{currencyFormatter.format(Number(row.discount) || 0)}</td>

@@ -78,6 +78,8 @@ export const MultiValidateAndSubmitBillingInformation = async function (
             previousPaymentHistory = [],
             promoCode,
             refundList = [],
+            clinicianId,
+            organizationId,
             finalCart = [],
             finalServicesList = [],
         } = billingdata as any;
@@ -158,6 +160,8 @@ export const MultiValidateAndSubmitBillingInformation = async function (
             paymentStatus,
             paymentReceived,
             additionalinformation,
+            organizationId: organizationId ? parseInt(organizationId.toString()) : null,
+            clinicianId: clinicianId ? parseInt(clinicianId.toString()) : null,
             packageid,
             excessAction,
             isPromoValid,

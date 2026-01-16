@@ -99,11 +99,9 @@ export default function CreateTestRule({ clientdata }) {
 			if (!effectivePin) return toast.warn("PIN is required");
 			const response = await validatePin(employeeid, effectivePin);
 			const { status, message } = response;
-			console.log(status, typeof status)
 			if (!status) return toast.error(message || "Invalid PIN");
 
 			setIsSaving(true);
-
 			const transformed = rule.map((item) => {
 				return { field: item?.name, value: item?.value, fieldid: item.fieldid, originalvalue: item?.value };
 			});

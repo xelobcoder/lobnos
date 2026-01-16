@@ -86,6 +86,8 @@ export async function middleware(request: NextRequest) {
                     '/day-transaction-break-down',
                     '/commission-payments',
                     '/inventory/analytics',
+                    '/operations/laboratory/auditlogs',
+                    '/operations/laboratory/turnaroundtime',
                     '/expenses/reversed-payments'
                 ];
                 if (restrictedPaths.some(path => currentPath.startsWith(path))) {

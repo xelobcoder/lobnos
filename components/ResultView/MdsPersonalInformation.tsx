@@ -14,10 +14,20 @@ interface PatientInformation {
     organization: string;
 }
 
-
+interface ReferrerFacility {
+    clinicianId?: number;
+    organizationId?: number;
+    facility_name?: string;
+    facility_email?: string;
+    facility_phone?: string;
+    clinician_name?: string;
+    clinician_email?: string;
+    clinician_phone?: string;
+}
 
 interface MdsPersonalInformationProps {
     patientInformation: PatientInformation;
+    referrerFacility?: ReferrerFacility | null;
     labRef?: string;
     collectionDate?: string;
     receivedDate?: string;
@@ -29,6 +39,7 @@ interface MdsPersonalInformationProps {
 
 const MdsPersonalInformation: React.FC<MdsPersonalInformationProps> = ({
     patientInformation,
+    referrerFacility,
     labRef,
     collectionDate,
     receivedDate,
@@ -38,6 +49,7 @@ const MdsPersonalInformation: React.FC<MdsPersonalInformationProps> = ({
     resultsettings
 }) => {
     const mySavedLabRef = labRef || 'N/A';
+
     return (
         <section className={styles.patientInfoSection} style={{ fontFamily: resultsettings?.patientInfo?.fontFamily || 'inherit' }}>
             <div className={styles.infoBlock}>
@@ -74,9 +86,21 @@ const MdsPersonalInformation: React.FC<MdsPersonalInformationProps> = ({
                             <span className={styles.infoValue}>{dayjs().format('YYYY-MM-DD')}</span>
                             <span style={{ marginLeft: '5px' }}>{dayjs().format('hh:mm A')}</span>
                         </div>
+                        {referrerFacility && referrerFacility.facility_name && (
+                            <div className={styles.infoPair}>
+                                <span className={styles.infoLabel}>Facility</span>: <span className={styles.infoValue}>{referrerFacility.facility_name}</span>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
+            
+             { !isBulk && referrerFacility && referrerFacility.facility_name && (
+                            <div className={styles.infoPair}>
+                                <span className={styles.infoLabel}>Referring Facility Name</span>: <span className={styles.infoValue}>{referrerFacility.facility_name}</span>
+                            </div>
+                        )}
+            
         </section>
     );
 };

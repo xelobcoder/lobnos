@@ -118,6 +118,10 @@ export interface MultiBillingData {
     paymentModes: Array<{ KeyID: number; PaymentMode: string }>;
     cart: TestCartItem[];
     ispricingcheckout?: boolean;
+    organizationId?: number | null;
+    organizationname?: string | null;
+    clinicianId?: number | null;
+    clinicianname?: string | null;
     servicesList: ServicesListItem[];
     isPromo?: boolean;
     promoId: number | null;
@@ -175,6 +179,10 @@ export const defaultMultiBillingData: MultiBillingData = {
     testList: [],
     promoDiscount: 0,
     patientid: null,
+    clinicianId: null,
+    clinicianname: null,
+    organizationId: null,
+    organizationname: null,
     isPromo: false,
     promoCode: null,
     paymentStatus: '',

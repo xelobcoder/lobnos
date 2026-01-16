@@ -1,4 +1,8 @@
-import { RiNotificationLine, RiStopCircleLine, RiSwap2Line } from "@remixicon/react";
+import {
+  RiNotificationLine,
+  RiStopCircleLine,
+  RiSwap2Line,
+} from "@remixicon/react";
 import { customPost } from "../../../Auth/customFetch";
 export const handleCreationMasterRUle = function (ev, field) {
   const { value } = ev.target;
@@ -13,9 +17,18 @@ export const updateFieldsRules = async (data, toast, testid) => {
     }
   }
   let orderedData = data.sort((a, b) => a.ordering - b.ordering);
+
+  // Ensure plan is never stripped out before sending to backend
+  const dataWithPlan = orderedData.map((item) => ({
+    ...item,
+    plan: item.plan || item.type || "", // Ensure plan is included
+  }));
+
+  console.log("Sending fields to backend:", dataWithPlan); // Debug log
+
   const response = await customPost("testpanel/list/customtestrule", "PUT", {
     testid,
-    data: orderedData,
+    data: dataWithPlan,
   });
   if (response.status === true) {
     toast.success("Test fields updated successfully", { autoClose: 500 });
@@ -153,44 +166,44 @@ export const ALERT_OPTIONS = [
     value: 0,
     label: "Select Alert Type",
     description: "Choose how to handle the value",
-    action: "none"
+    action: "none",
   },
   {
     value: 1,
     label: "Alert Value",
     description: "Notify when condition is met",
-    action: "alert"
+    action: "alert",
   },
   {
     value: 2,
     label: "Ignore Value",
     description: "Skip notification for this value",
-    action: "ignore"
+    action: "ignore",
   },
   {
     value: 3,
     label: "Replace Value",
     description: "Replace with custom text",
-    action: "replace"
+    action: "replace",
   },
   {
     value: 4,
     label: "prefix",
     description: "Add prefix to the value",
-    action: 'prefix'
+    action: "prefix",
   },
   {
     value: 5,
-    label: 'suffix',
-    description: 'Add suffix to the value',
-    action: 'suffix'
+    label: "suffix",
+    description: "Add suffix to the value",
+    action: "suffix",
   },
   {
     value: 6,
-    label: 'prefix-suffix',
-    description: 'Add prefix and suffix to the value',
-    action: 'prefix-suffix'
-  }
+    label: "prefix-suffix",
+    description: "Add prefix and suffix to the value",
+    action: "prefix-suffix",
+  },
 ];
 
 export const constraintsFormatting = (fieldConstraints) => {

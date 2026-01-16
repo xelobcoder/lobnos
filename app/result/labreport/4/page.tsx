@@ -77,6 +77,8 @@ const MDSLancetTemplate: React.FC = () => {
             });
         }
 
+      
+
 
         async function ensureImagesLoaded() {
             const resultElement = document.querySelector('.result');
@@ -297,6 +299,7 @@ const MDSLancetTemplate: React.FC = () => {
                             <MdsPersonalInformation
                                 styles={styles}
                                 patientInformation={resultdata.patientInformation}
+                                referrerFacility={resultdata.referrerFacility}
                                 labRef={`${prefixText}${resultdata.samplingInformation?.billingid || billingid}(${resultdata.samplingInformation?.id})`}
                                 collectionDate={!isScan ? resultdata.samplingInformation?.collectionEndDate : ''}
                                 finalReportDate={resultdata.samplingInformation?.resultEntryEnd}

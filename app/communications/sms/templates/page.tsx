@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
+import { RiAddCircleLine, RiEditLine, RiDeleteBinLine } from '@remixicon/react';
 import TemplateFormModal from './TemplateFormModal';
 import { toast } from 'react-toastify';
 import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
@@ -145,14 +146,13 @@ const SmsTemplatesPage: React.FC = () => {
           try {
                if (!status) return;
                setFormLoading(true);
-               fetchTemplates()
+               await loadTemplates();
           } catch (e: any) {
                toast.error(e.message || 'Failed to submit form');
           } finally {
                setFormLoading(false);
                setModalVisible(false);
                setEditingTemplate(null);
-               loadTemplates();
           }
      }
 
@@ -168,17 +168,22 @@ const SmsTemplatesPage: React.FC = () => {
                Header: 'Actions',
                accessor: 'actions',
                Cell: ({ row }: any) => (
-                    <>
-                         <button className="btn  p-0 me-2" onClick={() => handleEdit(row.original.id)}>
-                              Edit
+                    <div className="d-flex gap-2">
+                         <button
+                              className="btn btn-sm btn-outline-primary"
+                              onClick={() => handleEdit(row.original.id)}
+                              title="Edit template"
+                         >
+                              <RiEditLine size={16} className="me-1" style={{ verticalAlign: 'middle' }} />Edit
                          </button>
                          <button
-                              className="btn  text-danger p-0"
+                              className="btn btn-sm btn-outline-danger"
                               onClick={() => showDeleteConfirmation(row.original.id, row.original.name)}
+                              title="Delete template"
                          >
-                              Delete
+                              <RiDeleteBinLine size={16} className="me-1" style={{ verticalAlign: 'middle' }} />Delete
                          </button>
-                    </>
+                    </div>
                ),
                disableSortBy: true,
           },
@@ -186,34 +191,72 @@ const SmsTemplatesPage: React.FC = () => {
 
      if (loading && templates.length === 0) return <Loader />
 
-     if (templates.length === 0 && !loading) {
-          return (
-               <div>
-                    <Card >
-                         <Card.Header>
-                              <h5 className="mb-0">SMS Templates</h5>
-                         </Card.Header>
-                         <Card.Body className="text-center">
-                              <h3 className="mb-3">No SMS Templates Found</h3>
-                              <Button variant="primary" onClick={handleCreate}>Create Template</Button>
-                         </Card.Body>
-                    </Card>
-               </div>
-          );
-     }
+     // if (templates.length === 0 && !loading) {
+     //      return (
+     //           <div>
+     //                <Card >
+     //                     <Card.Header>
+     //                          <h5 className="mb-0">SMS Templates</h5>
+     //                     </Card.Header>
+     //                     <Card.Body className="text-center">
+     //                          <h3 className="mb-3">No SMS Templates Found</h3>
+     //                          <Button variant="primary" onClick={handleCreate}>Create Template</Button>
+     //                     </Card.Body>
+     //                </Card>
+     //           </div>
+     //      );
+     // }
 
      return (
-          <div>
-               <h2>SMS Template Management</h2>
-               <button className="btn btn-primary mb-3" onClick={handleCreate}>
-                    Create Template
-               </button>
-               <PrimeTable
-                    data={templates}
-                    column={columns}
-                    serverSideFiltering={true}
-                    handleSeverSideProcessing={handleServerProcessingSmsTemplates}
-               />
+          <div className="container-fluid px-4 py-3">
+               <div className="row mb-4">
+                    <div className="col-12">
+                         <div className="d-flex justify-content-between align-items-center">
+                              <div>
+                                   <h2 className="mb-1 fw-bold">SMS Template Management</h2>
+                                   <p className="text-muted mb-0">Create and manage SMS templates for patient, clinician, and organization communications</p>
+                              </div>
+                              <button className="btn btn-primary btn-lg" onClick={handleCreate}>
+                                   <RiAddCircleLine size={20} className="me-2" style={{ display: 'inline-block', verticalAlign: 'middle' }} />
+                                   Create Template
+                              </button>
+                         </div>
+                    </div>
+               </div>
+
+               <div className="row g-3">
+                    <div className="col-12">
+                         <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              {templates.length === 0 && !loading ? (
+                                   <div className="text-center py-5">
+                                        <div style={{ fontSize: '48px', marginBottom: '16px', color: 'var(--bs-tertiary-color)' }}>
+                                             📋
+                                        </div>
+                                        <h5 className="fw-semibold mb-2">No SMS Templates Yet</h5>
+                                        <p className="text-muted mb-4">Start by creating your first SMS template to send messages to patients, clinicians, or organizations</p>
+                                        <button className="btn btn-primary" onClick={handleCreate}>
+                                             Create First Template
+                                        </button>
+                                   </div>
+                              ) : (
+                                   <>
+                                        <div className="mb-3">
+                                             <p className="text-muted small mb-0">
+                                                  Showing <strong>{templates.length}</strong> template{templates.length !== 1 ? 's' : ''}
+                                             </p>
+                                        </div>
+                                        <PrimeTable
+                                             data={templates}
+                                             column={columns}
+                                             serverSideFiltering={true}
+                                             handleSeverSideProcessing={handleServerProcessingSmsTemplates}
+                                        />
+                                   </>
+                              )}
+                         </div>
+                    </div>
+               </div>
+
                <TemplateFormModal
                     visible={modalVisible}
                     onCancel={() => setModalVisible(false)}

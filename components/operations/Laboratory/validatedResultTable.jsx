@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PrepareResultEntryHeader } from '../../Auth/customFetch';
-// Handler for Print Multiple Results
+
 function handlePrintMultipleResults(row) {
      const { testid, name, patientid, ascensionid, billingid } = row.original;
      const csvid = `${generateRandomTextAndNumbers(70)}${billingid}`;
@@ -255,9 +255,13 @@ export default function ValidatedResultTable({ employeeid }) {
                Cell: ({ row }) => (
                     <button
                          className="btn btn-sm btn-primary"
-                         onClick={() => handleViewPatientDetails(row.original)}
+                         onClick={() => {
+                              if (row.original.tests && row.original.tests.length > 0) {
+                                   handlePrintMultipleResults({ original: row.original.tests[0] });
+                              }
+                         }}
                     >
-                         View Details
+                         Print Results
                     </button>
                )
           }

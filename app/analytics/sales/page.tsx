@@ -149,14 +149,6 @@ export default function AnalyticsSales() {
 			stats: "View Trends"
 		},
 		{
-			title: "Branch Analysis",
-			description: "Compare branch performance",
-			link: "/analytics/sales/totalSalesByBranch",
-			icon: <RiStoreLine size={32} />,
-			color: "#ea580c",
-			stats: "Branch Data"
-		},
-		{
 			title: "Employee Performance",
 			description: "Track employee sales metrics",
 			link: "/analytics/sales/totalSalesByEmployee",

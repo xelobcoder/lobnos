@@ -25,8 +25,27 @@ interface UseCustomResultTemplatingPreviewProps {
 	};
 }
 
+const getUltrasoundRecords = (records: any[]): any[] => {
+	if (!Array.isArray(records)) return [];
+	return records.filter(record => {
+		if (!record.value) return false;
+		const valueStr = String(record.value);
+		return valueStr.includes('<') && valueStr.includes('>');
+	});
+};
+
 export default function UseCustomResultTemplatingPreview({ test, records, isResultView = true, isScan = false, resultsettings, testInfo, testdetailcategory }: UseCustomResultTemplatingPreviewProps) {
 	if (!Array.isArray(records) || records.length === 0) return null;
+
+	const ultrasoundRecords = getUltrasoundRecords(records);
+	const isUltrasound = ultrasoundRecords.length > 0;
+
+	const decodeHtml = (html: string = '') => {
+		if (typeof window === 'undefined') return html;
+		const txt = document.createElement('textarea');
+		txt.innerHTML = html;
+		return txt.value;
+	};
 
 	let reorganized: { [category: string]: any[] } = {};
 	let uncategorized: any[] = [];
@@ -53,7 +72,46 @@ export default function UseCustomResultTemplatingPreview({ test, records, isResu
 		}, {} as { [category: string]: any[] });
 	}
 
-	const tableHeaderFontSize =  resultsettings?.testTableHeaderFontSize + 'px' || '13px';
+	const tableHeaderFontSize = resultsettings?.testTableHeaderFontSize + 'px' || '13px';
+
+	if (isUltrasound) {
+		return (
+			<div>
+				<h5 className="text-uppercase ui text-center border-bottom border-2 border-light"
+					style={{ backgroundColor: resultsettings?.testnameBackgroundColor || 'royalblue', color: resultsettings?.testnameColor || 'black' }}>
+					<span className="text-uppercase" style={{ fontSize: resultsettings?.testnameFontSize || '14px' }}>
+						{testInfo && testInfo?.reportitle ? testInfo?.reportitle : test}
+					</span>
+				</h5>
+				<div className="ultrasound-content mt-3" style={{
+					fontFamily: resultsettings?.fontfamily || 'Times New Roman',
+					fontSize: resultsettings?.testBody?.fontSize || '14px',
+					color: resultsettings?.testBody?.color || 'black',
+					lineHeight: '1.5',
+					padding: '12px',
+				}}>
+					{ultrasoundRecords.length === 1 ? (
+						<div dangerouslySetInnerHTML={{ __html: decodeHtml(ultrasoundRecords[0].value) }} />
+					) : (
+						<div>
+							{ultrasoundRecords.map((record, index) => (
+								<div key={index} style={{ marginBottom: '12px' }}>
+									{record.field && (
+										<div style={{ fontWeight: 'bold', marginBottom: '4px' }}>
+											{record.field}:
+										</div>
+									)}
+									<div style={{ marginLeft: record.field ? '8px' : '0' }}>
+										<div dangerouslySetInnerHTML={{ __html: decodeHtml(record.value) }} />
+									</div>
+								</div>
+							))}
+						</div>
+					)}
+				</div>
+			</div>
+		);
+	}
 
 
 	return (

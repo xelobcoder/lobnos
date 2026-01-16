@@ -24,6 +24,22 @@ export default function MultiRenderingBillingSourceFields({
     const [returnedType, setReturnedType] = useState("");
 
 
+    const handleNormalRefererWithoutUpdatingBilling = (data: any, target: "Clinician" | "organization") => {
+        const expected = target === "Clinician" ? "clinician" : "organization";
+        const returned = data.entitytype?.toLowerCase() || "unknown";
+        const { id, name } = data;
+
+        setBillingData((prev: any) => ({
+            ...prev,
+            organizationId: target === "organization" ? id : prev.organizationId,
+            organizationname: target === "organization" ? name : prev.organizationname,
+            clinicianId: target === "Clinician" ? id : prev.clinicianId,
+            clinicianname: target === "Clinician" ? name : prev.clinicianname,
+        }))
+    }
+
+    console.log("DEBUG", billingdata)
+
     return (
         <div style={{ fontSize: '0.95em', fontFamily: 'Segoe UI, Arial, sans-serif' }}>
             <Modal show={showTypeAlert} onHide={() => setShowTypeAlert(false)} centered>
@@ -104,17 +120,65 @@ export default function MultiRenderingBillingSourceFields({
                                     size="sm"
                                 />
                             </Form.Group>
+                            <hr style={{ borderBottom: "2px dotted lightgray" }} />
+                            {
+                                billingdata.claimscheckcode && billingdata.nhismembershipid && billingdata.cart && (
+                                    <div>
+
+                                        {
+                                            billingdata.organizationId ?
+                                                (
+                                                    <div className="mt-2 bg-secondary-subtle p-2 rounded d-flex justify-content-between">
+                                                        Organization: <span className="fw-bold">{billingdata.organizationname}</span>
+                                                        <button className="btn btn-danger btn-sm">reset</button>
+                                                    </div>
+                                                ) :
+                                                (
+                                                    <Form.Group className="mb-3">
+                                                        <Form.Label className="small text-muted">Select Organization</Form.Label>
+                                                        {isClient && (
+                                                            <div className="position-relative">
+                                                                <OrganizationalBillingSourceSearch updatefunction={(value) => {
+                                                                    handleNormalRefererWithoutUpdatingBilling(value, "organization");
+                                                                }} />
+                                                            </div>
+                                                        )}
+                                                    </Form.Group>
+                                                )
+                                        }
+                                        {
+                                            billingdata.clinicianId ? (
+                                                <div className="mt-2 bg-secondary-subtle p-2 rounded d-flex justify-content-between">
+                                                    Clinician: <span className="fw-bold">{billingdata.clinicianname}</span>
+                                                    <button className="btn btn-danger btn-sm">reset</button>
+                                                </div>
+                                            ) :
+                                                (
+                                                    <Form.Group className="mb-3">
+                                                        <Form.Label className="small text-muted">Select Clinician</Form.Label>
+                                                        <div className="position-relative">
+                                                            <ClinicianFiltering isAutoLoadAll={true} isBulk={true} onSelect={(value) => {
+                                                                handleNormalRefererWithoutUpdatingBilling(value, "Clinician");
+                                                            }} />
+                                                        </div>
+                                                    </Form.Group>
+                                                )
+                                        }
+                                    </div>
+                                )
+                            }
+
                         </div>
                     )}
-                    {billingdata.billingSource === 6 && (
-                        <Form.Group>
-                            <Form.Label className="small text-muted">Search Clinician</Form.Label>
-                            <div className="position-relative">
-                                <ClinicianFiltering isAutoLoadAll={true} isBulk={true} onSelect={handleSelectedEntityClinician} />
-                            </div>
-                        </Form.Group>
-                    )}
                 </div>
+            )}
+            {billingdata.billingSource === 6 && (
+                <Form.Group>
+                    <Form.Label className="small text-muted">Search Clinician</Form.Label>
+                    <div className="position-relative">
+                        <ClinicianFiltering isAutoLoadAll={true} isBulk={true} onSelect={handleSelectedEntityClinician} />
+                    </div>
+                </Form.Group>
             )}
             {billingdata.billingSource === 1 && (
                 <>

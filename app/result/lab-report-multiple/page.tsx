@@ -617,15 +617,16 @@ export default function LabReportPrintingMultiple() {
 										/>
 										<div className={styles.reportTitleBar}
 											style={{
-												backgroundColor: resultSettings?.mainReportHeaderBgColor ,
+												backgroundColor: resultSettings?.mainReportHeaderBgColor,
 												color: resultSettings?.mainReportHeaderColor
 											}}
-											>
+										>
 											MEDICAL LABORATORY REPORT
 										</div>
 										<MdsPersonalInformation
 											styles={styles}
 											patientInformation={resultdata.patientInformation}
+											referrerFacility={resultdata.test && resultdata.test.length > 0 ? resultdata.test[0].referrerFacility : null}
 											labRef={`${prefix}${resultdata.billingid}`}
 											isBulk={true}
 											resultsettings={resultSettings}
@@ -683,6 +684,7 @@ export default function LabReportPrintingMultiple() {
 																	isBulk={true}
 																	styles={styles}
 																	patientInformation={resultdata.patientInformation}
+																	referrerFacility={resultdata.test && resultdata.test[idx] ? resultdata.test[idx].referrerFacility : null}
 																	labRef={`${prefix} ${resultdata.billingid}`}
 																	resultsettings={resultSettings}
 																/>

@@ -386,7 +386,6 @@ function MultiBillingLayoutContent() {
             return toast.error('Adjustment reason is required for correction adjustments');
         }
 
-
         const totalPayments = billingdata.paid;
         const amountPayable = Number(billingdata.amountPayable) || 0;
 
@@ -414,6 +413,8 @@ function MultiBillingLayoutContent() {
                 excessAction: billingdata.excessAction || null,
                 isNHIS: billingdata.billingSource == 4 ? true : false,
                 claimscheckcode: billingdata.claimscheckcode || null,
+                clinicianId: billingdata.clinicianId || null,
+                organizationId: billingdata.organizationId || null,
                 nhismembershipid: billingdata.nhismembershipid || null,
             } as any;
 

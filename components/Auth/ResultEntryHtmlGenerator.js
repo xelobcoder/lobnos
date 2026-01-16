@@ -3,6 +3,7 @@ import OptionsViewHtmlGenerator from "./ResultEntryOptions/OptionsView";
 import PlainViewHtmlGenerator from "./ResultEntryOptions/Plain";
 import TextReferenceViewHtmlGenerator from "./ResultEntryOptions/textReferenceOption";
 import GreaterLessViewHtmlGenerator from './ResultEntryOptions/GreaterLessViewHtmlGenerator'
+import MARKDOWN_EDITOR from "../accessories/markdownEditor";
 
 export default function ResultEntryHtmlGenerator({ item, statehandler, index, isDisabled }) {
     const { plan } = item;

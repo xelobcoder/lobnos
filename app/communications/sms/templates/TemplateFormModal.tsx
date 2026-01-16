@@ -3,8 +3,9 @@ import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Badge from 'react-bootstrap/Badge';
+import { RiMailSendLine, RiLoader4Line } from '@remixicon/react';
 import { toast } from 'react-toastify';
-import { customPost ,customFetch} from '../../../../components/Auth/customFetch';
+import { customPost, customFetch } from '../../../../components/Auth/customFetch';
 import { useApplication } from '../../../../components/Auth/useApplicationContext';
 
 interface TemplateFormProps {
@@ -25,9 +26,10 @@ const TemplateFormModal: React.FC<TemplateFormProps> = ({ visible, onCancel, onS
 	const [selectedPlaceholder, setSelectedPlaceholder] = useState('');
 	const [usedPlaceholders, setUsedPlaceholders] = useState<string[]>([]);
 	const [saving, setSaving] = useState(false);
-	const employeeid = useApplication().user?.employeeid 
+	const employeeid = useApplication().user?.employeeid
 
 	useEffect(() => {
+		console.log('TemplateFormModal visible:', visible);
 		if (visible) {
 			setForm({
 				name: initialValues?.name || '',
@@ -53,9 +55,9 @@ const TemplateFormModal: React.FC<TemplateFormProps> = ({ visible, onCancel, onS
 
 	const handlePlaceholderClick = (placeholder: string) => {
 		if (placeholder && canEditBody) {
-			setForm((prev) => ({ 
-				...prev, 
-				body: prev.body + (prev.body && !prev.body.endsWith(' ') ? ' ' : '') + placeholder 
+			setForm((prev) => ({
+				...prev,
+				body: prev.body + (prev.body && !prev.body.endsWith(' ') ? ' ' : '') + placeholder
 			}));
 			setUsedPlaceholders((prev) => prev.includes(placeholder) ? prev : [...prev, placeholder]);
 		}
@@ -63,11 +65,11 @@ const TemplateFormModal: React.FC<TemplateFormProps> = ({ visible, onCancel, onS
 
 	const handleRemovePlaceholder = (placeholderToRemove: string) => {
 		if (placeholderToRemove && canEditBody) {
-			setForm((prev) => ({ 
-				...prev, 
+			setForm((prev) => ({
+				...prev,
 				body: prev.body.replace(placeholderToRemove, '').replace(/\s+/g, ' ').trim()
 			}));
-			
+
 			setUsedPlaceholders((prev) => {
 				const updatedBody = form.body.replace(placeholderToRemove, '').replace(/\s+/g, ' ').trim();
 				const stillExists = updatedBody.includes(placeholderToRemove);
@@ -81,7 +83,7 @@ const TemplateFormModal: React.FC<TemplateFormProps> = ({ visible, onCancel, onS
 		setSelectedPlaceholder(ph);
 		if (ph) {
 			handlePlaceholderClick(ph);
-			setSelectedPlaceholder(''); 
+			setSelectedPlaceholder('');
 		}
 	};
 
@@ -91,37 +93,37 @@ const TemplateFormModal: React.FC<TemplateFormProps> = ({ visible, onCancel, onS
 		setSelectedPlaceholder('');
 	};
 
-const handleSubmit = async (e: React.FormEvent) => {
-	e.preventDefault();
-	if (!employeeid || !form.name || !form.body || !form.category) {
-		console.error('Missing required fields');
-		toast.error('Please fill in all required fields');
-		return;
-	}
-	setSaving(true);
-	const payload = {
-		name: form.name,
-		body: form.body,
-		category: form.category,
-		createdBy: employeeid,
-	};
-	try {
-		const response = await customPost('prime/sms-templates','POST', payload);
-		if (response && response.id) {
-			toast.success('SMS template saved successfully!');
-			onSubmit(true);
-		} else {
-			toast.error('Failed to save SMS template - Invalid response');
-			onSubmit(false);
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+		if (!employeeid || !form.name || !form.body || !form.category) {
+			console.error('Missing required fields');
+			toast.error('Please fill in all required fields');
+			return;
 		}
-	} catch (err) {
-		console.error('Failed to create template', err);
-		toast.error('Failed to save SMS template');
-		onSubmit(false);
-	} finally {
-		setSaving(false);
-	}
-};
+		setSaving(true);
+		const payload = {
+			name: form.name,
+			body: form.body,
+			category: form.category,
+			createdBy: employeeid,
+		};
+		try {
+			const response = await customPost('prime/sms-templates', 'POST', payload);
+			if (response && response.id) {
+				toast.success('SMS template saved successfully!');
+				onSubmit(true);
+			} else {
+				toast.error('Failed to save SMS template - Invalid response');
+				onSubmit(false);
+			}
+		} catch (err) {
+			console.error('Failed to create template', err);
+			toast.error('Failed to save SMS template');
+			onSubmit(false);
+		} finally {
+			setSaving(false);
+		}
+	};
 
 	const currentPlaceholders = placeholders[form.category] || [];
 	const canEditBody = !!form.category;
@@ -136,137 +138,158 @@ const handleSubmit = async (e: React.FormEvent) => {
 	});
 
 	return (
-		<Modal show={visible} onHide={onCancel} size="lg" backdrop="static" keyboard={false}>
-			<Form onSubmit={handleSubmit}>
-				<Modal.Header closeButton>
-					<Modal.Title>{initialValues?.id ? 'Edit SMS Template' : 'Create SMS Template'}</Modal.Title>
-				</Modal.Header>
-				<Modal.Body>
-					<div className="row">
-						<div className="col-md-6 border-end">
-							<Form.Group className="mb-3">
-								<Form.Label>Name</Form.Label>
-								<Form.Control
-									name="name"
-									value={form.name}
-									onChange={handleChange}
-									required
-									disabled={loading}
-								/>
-							</Form.Group>
-							<Form.Group className="mb-3">
-								<Form.Label>Category</Form.Label>
-								<Form.Select
-									name="category"
-									value={form.category}
-									onChange={handleCategoryChange}
-									required
-									disabled={loading}
-								>
-									<option value="">Select category</option>
-									<option value="patient">Patient</option>
-									<option value="clinician">Clinician</option>
-									<option value="organization">Organization</option>
-								</Form.Select>
-							</Form.Group>
-							
-							<Form.Group className="mb-3">
-								<Form.Label>Body</Form.Label>
-								<Form.Control
-									as="textarea"
-									name="body"
-									value={form.body}
-									onChange={handleChange}
-									rows={6}
-									required
-									disabled={!canEditBody || loading}
-									placeholder={canEditBody ? 'Enter message body. Use placeholders as needed.' : 'Select a category first'}
-								/>
-							</Form.Group>
-						</div>
-						<div className="col-md-6">
-							<Form.Group className="mb-3">
-								<Form.Label>Insert Placeholder (Dropdown)</Form.Label>
-								<Form.Select
-									value={selectedPlaceholder}
-									onChange={handlePlaceholderSelect}
-									disabled={loading || !canEditBody}
-								>
-									<option value="">{!form.category ? 'Select a category first' : 'Select placeholder to insert'}</option>
-									{currentPlaceholders.map((ph) => (
-										<option key={ph} value={ph}>{ph}</option>
-									))}
-								</Form.Select>
-							</Form.Group>
-							
-							<Form.Group className="mb-3">
-								<Form.Label>Available Placeholders (Click to Add)</Form.Label>
-								<div className="border rounded p-2 bg-light" style={{ maxHeight: '120px', overflowY: 'auto' }}>
-									{!form.category ? (
-										<span className="text-muted">Select a category to see available placeholders</span>
-									) : currentPlaceholders.length > 0 ? (
-										<div className="d-flex flex-wrap gap-1">
-											{currentPlaceholders.map((ph) => (
-												<Badge 
-													key={ph} 
-													bg="primary" 
-													className="cursor-pointer user-select-none"
-													style={{ cursor: 'pointer' }}
-													onClick={() => handlePlaceholderClick(ph)}
-													title={`Click to add ${ph} to your message`}
+		<>
+			<Modal show={visible} onHide={onCancel} size="lg" backdrop="static" keyboard={false} centered style={{ zIndex: 9999 }}>
+				<Form onSubmit={handleSubmit}>
+					<Modal.Header closeButton className="border-bottom">
+						<Modal.Title className="fw-bold">
+							<RiMailSendLine size={20} className="me-2" style={{ verticalAlign: 'middle' }} />
+							{initialValues?.id ? 'Edit SMS Template' : 'Create New SMS Template'}
+						</Modal.Title>
+					</Modal.Header>
+					<Modal.Body className="p-4">
+						<div className="row">
+							<div className="col-md-6 border-end pe-4">
+								<h6 className="fw-semibold mb-3 text-primary">Template Details</h6>
+								<Form.Group className="mb-3">
+									<Form.Label className="fw-semibold">Template Name <span className="text-danger">*</span></Form.Label>
+									<Form.Control
+										name="name"
+										value={form.name}
+										onChange={handleChange}
+										required
+										disabled={loading}
+										placeholder="e.g., Appointment Reminder"
+										className="form-control-sm"
+									/>
+									<small className="text-muted">Give your template a descriptive name</small>
+								</Form.Group>
+								<Form.Group className="mb-4">
+									<Form.Label className="fw-semibold">Category <span className="text-danger">*</span></Form.Label>
+									<Form.Select
+										name="category"
+										value={form.category}
+										onChange={handleCategoryChange}
+										required
+										disabled={loading}
+										className="form-select-sm"
+									>
+										<option value="">Select a category</option>
+										<option value="patient">👥 Patient</option>
+										<option value="clinician">👨‍⚕️ Clinician</option>
+										<option value="organization">🏢 Organization</option>
+									</Form.Select>
+									<small className="text-muted">Select who will receive this message</small>
+								</Form.Group>
+
+								<Form.Group className="mb-3">
+									<Form.Label className="fw-semibold">Message Body <span className="text-danger">*</span></Form.Label>
+									<Form.Control
+										as="textarea"
+										name="body"
+										value={form.body}
+										onChange={handleChange}
+										rows={6}
+										required
+										disabled={!canEditBody || loading}
+										placeholder={canEditBody ? 'Enter your message here. Click placeholders on the right to add them.' : 'Select a category first'}
+										className="form-control-sm"
+										style={{ fontSize: '0.9rem', minHeight: '120px' }}
+									/>
+									<small className="text-muted">
+										{!canEditBody ? 'Select a category to enable message editing' : `${form.body.length} / 160 characters`}
+									</small>
+								</Form.Group>
+							</div>
+							<div className="col-md-6 ps-4">
+								<h6 className="fw-semibold mb-3 text-primary">Placeholders & Preview</h6>
+								<Form.Group className="mb-3">
+									<Form.Label className="fw-semibold">Insert Placeholder</Form.Label>
+									<Form.Select
+										value={selectedPlaceholder}
+										onChange={handlePlaceholderSelect}
+										disabled={loading || !canEditBody}
+										className="form-select-sm"
+									>
+										<option value="">{!form.category ? 'Select category first' : 'Choose placeholder'}</option>
+										{currentPlaceholders.map((ph) => (
+											<option key={ph} value={ph}>{ph}</option>
+										))}
+									</Form.Select>
+									<small className="text-muted">Or click badges below to add</small>
+								</Form.Group>
+
+								<Form.Group className="mb-3">
+									<Form.Label className="fw-semibold">Available Placeholders</Form.Label>
+									<div className="border rounded p-3 bg-light" style={{ maxHeight: '140px', overflowY: 'auto', minHeight: '80px' }}>
+										{!form.category ? (
+											<span className="text-muted small">Select a category to see available placeholders</span>
+										) : currentPlaceholders.length > 0 ? (
+											<div className="d-flex flex-wrap gap-2">
+												{currentPlaceholders.map((ph) => (
+													<Badge
+														key={ph}
+														bg="primary"
+														className="cursor-pointer user-select-none"
+														style={{ cursor: 'pointer', fontSize: '0.8rem' }}
+														onClick={() => handlePlaceholderClick(ph)}
+														title={`Click to add ${ph} to your message`}
+													>
+														{ph}
+													</Badge>
+												))}
+											</div>
+										) : (
+											<span className="text-muted small">No placeholders available for this category</span>
+										)}
+									</div>
+								</Form.Group>
+
+								<div className="mb-3">
+									<Form.Label className="fw-semibold">Message Preview</Form.Label>
+									<div className="border rounded p-3 bg-light" style={{ minHeight: '80px', fontSize: '0.9rem', lineHeight: '1.5', color: '#333' }}>
+										{form.body ? preview : <span className="text-muted">Your message preview will appear here</span>}
+									</div>
+								</div>
+
+								{usedPlaceholders.length > 0 && (
+									<div className="mb-3">
+										<Form.Label className="fw-semibold">Used Placeholders</Form.Label>
+										<div>
+											{usedPlaceholders.map((ph) => (
+												<Badge
+													bg="info"
+													key={ph}
+													className="me-1 mb-1 cursor-pointer user-select-none"
+													style={{ cursor: 'pointer', fontSize: '0.8rem' }}
+													onClick={() => handleRemovePlaceholder(ph)}
+													title={`Click to remove ${ph}`}
 												>
-													{ph}
+													{ph} ×
 												</Badge>
 											))}
 										</div>
-									) : (
-										<span className="text-muted">No placeholders available for this category</span>
-									)}
-								</div>
-								<small className="text-muted">
-									{form.category ? 'Click any placeholder above to add it to your message body' : 'Select a category first to see clickable placeholders'}
-								</small>
-							</Form.Group>
-							
-							<div className="mb-3">
-								<Form.Label>Example Preview</Form.Label>
-								<div className="border rounded p-2 bg-light text-secondary" style={{ minHeight: 40 }}>{form.body ? preview : <span className="text-muted">Message preview will appear here</span>}</div>
-							</div>
-							<div className="mb-3">
-								<Form.Label>Used Placeholders (Click to Remove)</Form.Label>
-								<div>
-									{usedPlaceholders.length > 0 ? (
-										usedPlaceholders.map((ph) => (
-											<Badge 
-												bg="info" 
-												key={ph} 
-												className="me-1 mb-1 cursor-pointer user-select-none"
-												style={{ cursor: 'pointer' }}
-												onClick={() => handleRemovePlaceholder(ph)}
-												title={`Click to remove ${ph} from your message`}
-											>
-												{ph} ×
-											</Badge>
-										))
-									) : (
-										<span className="text-muted">No placeholders used yet</span>
-									)}
-								</div>
-								<small className="text-muted">
-									{usedPlaceholders.length > 0 ? 'Click any placeholder above to remove it from your message' : ''}
-								</small>
+									</div>
+								)}
 							</div>
 						</div>
-					</div>
-				</Modal.Body>
-				<Modal.Footer>
-				   <Button variant="secondary" onClick={onCancel} disabled={loading || saving}>Cancel</Button>
-				   <Button variant="primary" type="submit" disabled={loading || !canEditBody || saving}>
-					   {saving ? 'Saving...' : (loading ? 'Saving...' : 'Save')}
-				   </Button>
-				</Modal.Footer>
-			</Form>
-		</Modal>
+					</Modal.Body>
+					<Modal.Footer className="border-top">
+						<Button variant="secondary" onClick={onCancel} disabled={loading || saving} className="btn-sm">
+							Cancel
+						</Button>
+						<Button variant="primary" type="submit" disabled={loading || !canEditBody || saving} className="btn-sm">
+							{saving ? (
+								<>
+									<RiLoader4Line size={16} className="me-2 animate-spin" style={{ display: 'inline-block', verticalAlign: 'middle' }} />
+									Saving...
+								</>
+							) : (loading ? 'Saving...' : '✓ Save Template')}
+						</Button>
+					</Modal.Footer>
+				</Form>
+			</Modal>
+		</>
 	);
 };
 

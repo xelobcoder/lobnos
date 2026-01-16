@@ -48,6 +48,29 @@ export interface Service {
   outsourcingOrganization: string | null;
   name: string | boolean;
   witnesses: Witness[];
+  clinicianName?: string;
+  organizationName?: string;
+  nhismembershipid?: number | string;
+  claimscheckcode?: number | string;
+  isLocked?: number;
+  isCorrected?: number | null;
+  relatedbillingid?: number | null;
+  refundid?: number;
+  refundedBy?: number;
+  firstWitness?: number;
+  secondWitness?: number;
+  thirdWitness?: number;
+  firstWitnessPurpose?: string | null;
+  firstWitnessDate?: string | null;
+  secondWitnessDate?: string | null;
+  thirdWitnessDate?: string | null;
+  initiatedBy?: string | null;
+  secondWitnessPurpose?: string | null;
+  thirdWitnessPurpose?: string | null;
+  approvalDate?: number;
+  approvedby?: string | null;
+  isRefundMatterClosed?: number;
+  isAdjustment?: number;
 }
 
 export interface AccessWindow {
