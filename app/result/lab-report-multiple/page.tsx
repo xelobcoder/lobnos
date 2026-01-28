@@ -646,7 +646,7 @@ export default function LabReportPrintingMultiple() {
 											}
 
 											const useGeneralValidation = selected.length > 1 && resultdata.generalValidation;
-											const getValidators = (idx: number) => useGeneralValidation ? [resultdata.generalValidation] : resultdata.test[idx].validators;
+											const getValidators = (idx: number) => resultdata.test[idx].validators;
 
 											const nodes = selected.map((idx, i) => {
 												const literature = resultdata.test[idx]?.literatureReview ?? resultdata?.literatureReview;

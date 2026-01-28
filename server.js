@@ -21,15 +21,14 @@ const killPort = (port) => {
 		exec(`netstat -ano | findstr :${port}`, (err, stdout) => {
 			if (err || !stdout) return resolve();
 			const lines = stdout.split('\n');
+			console.log('WAITING FOR PORT TO BE FREE...');
 			lines.forEach(line => {
 				const parts = line.trim().split(/\s+/);
 				if (parts.length >= 5) {
 					const pid = parts[4];
 					if (pid && pid !== '0') {
 						exec(`taskkill /PID ${pid} /F`, (killErr) => {
-							if (!killErr) {
-								console.log(`Killed process ${pid} using port ${port}`);
-							}
+							if (!killErr) console.log('ACTION COMPLETED. PORT IS NOW FREE.');
 						});
 					}
 				}
@@ -39,13 +38,36 @@ const killPort = (port) => {
 	});
 };
 
+
+
+const verifyBackendServiceIsRunning = async = () =>  {
+	 const url = process.env.NODE_ENV == "production" ? process.env.PRODUCTION_BASEURL : process.env.DEVELOPMENT_BASEURL;
+	 return new Promise((resolve) => {
+		 const httpModule = url.startsWith('https') ? require('https') : require('http');
+		 const req = httpModule.get(url, (res) => {
+			 resolve(true);
+		 });
+		 req.on('error', (err) => {
+			 resolve(false);
+		 });
+		 req.setTimeout(2000, () => {
+			 req.abort();
+			 resolve(false);
+		 });
+	 });
+}
+
 app.prepare().then(async () => {
 	await killPort(port);
+	verifyBackendServiceIsRunning().then((isRunning) => {
+		if (!isRunning) {
+			console.log('ENSURE ALL SERVICES ARE RUNNING')
+		}
+	});
 	createServer(async (req, res) => {
 		try {
 			const baseUrl = req.headers.host ? `http://${req.headers.host}` : `http://${hostname}:${port}`
 			const url = new URL(req.url, baseUrl)
-			console.log(process.env.PRODUCTION_BASEURL, process.env.DEVELOPMENT_BASEURL);
 			const pathname = url.pathname
 			const query = {}
 			for (let [key, value] of url.searchParams) {
@@ -73,7 +95,6 @@ app.prepare().then(async () => {
 				await handle(req, res, parsedUrl)
 			}
 		} catch (err) {
-			console.error('Error occurred handling', req.url, err)
 			res.statusCode = 500
 			res.end('internal server error')
 		}

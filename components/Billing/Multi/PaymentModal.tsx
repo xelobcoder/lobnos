@@ -1,6 +1,8 @@
 import React from "react";
 import { Modal, Button } from "react-bootstrap";
 import { MultiBillingData } from "../../../lib/Multi/MultiTypes";
+import { customPost, customFetch } from '../../../components/Auth/customFetch';
+import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
 
 interface PaymentModeOption {
      value: string | number;
@@ -68,6 +70,18 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
      const [payAllError, setPayAllError] = React.useState('');
      const [isSyncing, setIsSyncing] = React.useState(false);
      const [isValueSynchronized, setIsValueSynchronized] = React.useState(false);
+
+     // Free service request states
+     const [freeServiceRequestId, setFreeServiceRequestId] = React.useState<number | null>(null);
+     const [freeServiceRequestStatus, setFreeServiceRequestStatus] = React.useState<'idle' | 'requesting' | 'approved' | 'rejected'>('idle');
+     const [freeServiceRequestError, setFreeServiceRequestError] = React.useState('');
+     const [requesterReason, setRequesterReason] = React.useState('');
+     const [pollInterval, setPollInterval] = React.useState<NodeJS.Timeout | null>(null);
+
+     // Get employee details from application context
+     const { applicationsettings } = useApplicationSettings();
+     const employeeid = applicationsettings?.user?.employeeid;
+
      const tests = isValueSynchronized ? (billingdata?.finalCart || []) : (billingdata?.cart || []);
      const services = isValueSynchronized ? (billingdata?.finalServicesList || []) : (billingdata?.servicesProvided || []);
 
@@ -583,6 +597,91 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           setIsSyncing(false);
      }
 
+     // Request free services authorization
+     const handleRequestFreeServiceAuth = async () => {
+          if (!requesterReason.trim()) {
+               setFreeServiceRequestError('Please provide a reason for the request');
+               return;
+          }
+          if (!employeeid) {
+               setFreeServiceRequestError('Employee information not available');
+               return;
+          }
+
+          setFreeServiceRequestStatus('requesting');
+          setFreeServiceRequestError('');
+
+          try {
+               // Prepare items data
+               const requestItems = items.map(item => ({
+                    service_id: item.id,
+                    service_name: item.name,
+                    original_price: item.maxAmount
+               }));
+
+               const response = await customPost('billing/free-services/request', 'POST', {
+                    requester_id: employeeid,
+                    reason: requesterReason,
+                    items: requestItems,
+                    requester_name: applicationsettings?.user?.username || 'Unknown',
+                    billing_id: billingdata?.id,
+               });
+
+               if (response?.status === 'success' || response?.statusCode === 201 || response?.statusCode === 200) {
+                    const backendRequestId = response?.data?.requestId;
+                    if (backendRequestId) {
+                         setFreeServiceRequestId(backendRequestId);
+                         setFreeServiceRequestStatus('requesting');
+                         startPollingForApproval(backendRequestId);
+                    } else {
+                         setFreeServiceRequestStatus('rejected');
+                         setFreeServiceRequestError('No request ID returned from server');
+                    }
+               } else {
+                    setFreeServiceRequestStatus('rejected');
+                    setFreeServiceRequestError(response?.message || 'Failed to submit request');
+               }
+          } catch (error) {
+               console.error('Request submission error:', error);
+               setFreeServiceRequestStatus('rejected');
+               setFreeServiceRequestError('Error submitting request');
+          }
+     }
+
+     // Poll for request approval
+     const startPollingForApproval = (requestId: number) => {
+          const interval = setInterval(async () => {
+               try {
+                    const response = await customFetch(`billing/free-services/status/${requestId}`);
+
+                    const requestStatus = response?.data?.status;
+
+                    if (requestStatus === 'APPROVED') {
+                         setFreeServiceRequestStatus('approved');
+                         if (interval) clearInterval(interval);
+                    } else if (requestStatus === 'REJECTED') {
+                         setFreeServiceRequestStatus('rejected');
+                         setFreeServiceRequestError(response?.message || 'Request was rejected');
+                         if (interval) clearInterval(interval);
+                    } else if (requestStatus === 'PENDING') {
+                         // Still waiting, continue polling
+                    }
+               } catch (error) {
+                    console.error('Poll error:', error);
+               }
+          }, 2000); // Poll every 2 seconds
+
+          setPollInterval(interval);
+     }
+
+     // Cleanup polling on unmount
+     React.useEffect(() => {
+          return () => {
+               if (pollInterval) clearInterval(pollInterval);
+          };
+     }, [pollInterval]);
+
+
      return (
           <>
                <Modal show={show} onHide={onHide} size={isNHISBilling ? "sm" : "lg"} backdrop="static" keyboard={false}>
@@ -641,8 +740,85 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                                    </div>
 
                                    {paymentMode === 'free' && (
-                                        <div className="alert alert-success mb-3">
-                                             <strong>✓ Free Service</strong> - All items marked as 100% discounted
+                                        <div>
+                                             <div className="alert alert-success mb-3">
+                                                  <strong>✓ Free Service</strong> - All items marked as 100% discounted
+                                             </div>
+
+                                             {freeServiceRequestStatus === 'idle' && (
+                                                  <div className="bg-light p-3 rounded mb-3">
+                                                       <h6 className="mb-3 fw-semibold">Request Free Service Authorization</h6>
+                                                       <div className="mb-3">
+                                                            <label className="form-label small mb-1">Reason for Request <span className="text-danger">*</span></label>
+                                                            <textarea
+                                                                 className="form-control form-control-sm"
+                                                                 rows={3}
+                                                                 value={requesterReason}
+                                                                 onChange={e => setRequesterReason(e.target.value)}
+                                                                 placeholder="e.g., Patient financial hardship, community outreach program, etc."
+                                                            />
+                                                       </div>
+                                                       {freeServiceRequestError && (
+                                                            <div className="alert alert-danger alert-sm py-2 mb-2">{freeServiceRequestError}</div>
+                                                       )}
+                                                       <button
+                                                            className="btn btn-sm btn-primary w-100"
+                                                            onClick={handleRequestFreeServiceAuth}
+                                                            disabled={!requesterReason.trim()}
+                                                       >
+                                                            <span className="me-2">📋</span>
+                                                            Submit Request
+                                                       </button>
+                                                  </div>
+                                             )}
+
+                                             {freeServiceRequestStatus === 'requesting' && (
+                                                  <div className="alert alert-info mb-3">
+                                                       <div className="d-flex align-items-center gap-2 mb-2">
+                                                            <span className="spinner-border spinner-border-sm" role="status"></span>
+                                                            <strong>Request Pending</strong>
+                                                       </div>
+                                                       <div className="small">
+                                                            <p className="mb-1">Request ID: <code>{freeServiceRequestId}</code></p>
+                                                            <p className="mb-0">Waiting for authorization approval...</p>
+                                                       </div>
+                                                  </div>
+                                             )}
+
+                                             {freeServiceRequestStatus === 'approved' && (
+                                                  <div className="alert alert-success mb-3">
+                                                       <div className="d-flex align-items-center gap-2 mb-2">
+                                                            <strong>✓ Request Approved</strong>
+                                                       </div>
+                                                       <div className="small">
+                                                            <p className="mb-1">Request ID: <code>{freeServiceRequestId}</code></p>
+                                                            <p className="mb-0">Your free service request has been approved. You can now proceed.</p>
+                                                       </div>
+                                                  </div>
+                                             )}
+
+                                             {freeServiceRequestStatus === 'rejected' && (
+                                                  <div className="alert alert-danger mb-3">
+                                                       <div className="d-flex align-items-center gap-2 mb-2">
+                                                            <strong>✗ Request Rejected</strong>
+                                                       </div>
+                                                       <div className="small mb-2">
+                                                            <p className="mb-1">{freeServiceRequestError}</p>
+                                                            <p className="mb-0">Request ID: <code>{freeServiceRequestId}</code></p>
+                                                       </div>
+                                                       <button
+                                                            className="btn btn-sm btn-outline-danger"
+                                                            onClick={() => {
+                                                                 setFreeServiceRequestStatus('idle');
+                                                                 setFreeServiceRequestId(null);
+                                                                 setRequesterReason('');
+                                                                 setFreeServiceRequestError('');
+                                                            }}
+                                                       >
+                                                            Try Again
+                                                       </button>
+                                                  </div>
+                                             )}
                                         </div>
                                    )}
 
@@ -904,7 +1080,16 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                          >
                               Skip Payment
                          </Button>
-                         <Button variant="primary" size="sm" disabled={isValueSynchronized || isSyncing} onClick={handlePaymentSyncing}>
+                         <Button
+                              variant="primary"
+                              size="sm"
+                              disabled={
+                                   isValueSynchronized ||
+                                   isSyncing ||
+                                   (paymentMode === 'free' && freeServiceRequestStatus !== 'approved')
+                              }
+                              onClick={handlePaymentSyncing}
+                         >
                               {isSyncing ? 'Processing...' : 'Submit Payment'}
                          </Button>
                     </Modal.Footer>

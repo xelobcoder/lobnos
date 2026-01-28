@@ -27,6 +27,8 @@ export default function ParamCreationGForm({ field, setField, fieldConstraintsCa
         { value: 'greaterLess', label: 'Greater Than / Less Than Value' },
         { value: 'plain', label: 'Text Area' },
         { value: 'ultrasoundFields', label: 'Ultrasound Fields' },
+        { value: "greaterLessEqualTo", label: "Greater Than / Less Than or Equal To Value" },
+        { value: "time", label: "Time" }
     ];
 
     const handleTypeSelect = (value: string | null) => {
@@ -138,6 +140,39 @@ export default function ParamCreationGForm({ field, setField, fieldConstraintsCa
                     />
                 </div>
             )}
+
+
+            {field?.plan === 'greaterLessEqualTo' && (
+                <div className="mb-3">
+                    <label htmlFor="referenceValue">Enter &gt;value or &lt;value</label>
+                    <input
+                        id="referenceValue"
+                        type="text"
+                        value={field?.textReference || ''}
+                        onChange={e => setField({ ...field, textReference: e.target.value })}
+                        placeholder="e.g. >=5 or <=10"
+                        className="form-control"
+                    />
+                </div>
+            )}
+
+        {/* time */}
+
+        {
+            field?.plan == "time" && (
+                <div className="mb-3">
+                    <label htmlFor="timeFormat">Time Format</label>
+                    <input
+                        id="timeFormat"
+                        type="text"
+                        value={field?.textReference || ''}
+                        onChange={e => setField({ ...field, textReference: e.target.value })}
+                        placeholder="e.g. HH:mm:ss" 
+                        className="form-control"
+                    />
+                </div>
+            )
+        }
         </div>
     );
 }

@@ -1,23 +1,33 @@
 import Cookies from "js-cookie"
 import moment from "moment"
 import { toast } from "react-toastify";
+import { getRequestContext } from "../serverActions/requestHeaders";
 
 export async function customFile(endpoint, formbody) {
 	if (process.env.NODE_ENV == "production" && !process.env.NEXT_PUBLIC_ACCESS_TOKEN) {
 		throw new Error("NEXT_PUBLIC_ACCESS_TOKEN MISSING")
 	}
+
 	const url = new URL(`${endpoint}`, process.env.NODE_ENV == "production" ? process.env.PRODUCTION_BASEURL : process.env.DEVELOPMENT_BASEURL);
 	url.searchParams.append("tenantId", process.env.TENANTID);
 
+		const context = await getRequestContext();
+	if (!context || !context['PLS_PRIME_TENANT_SESSION'] || !context['PLS_SESSION']) {
+			return { error: "Session not found" };
+	}
+		const { PLS_PRIME_TENANT_SESSION, PLS_SESSION} = context;
 	const response = await fetch(url.toString(), {
 		method: "POST",
 		headers: {
 			Authorization: `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
-			"cache": "no-cache,must-revalidate,no-store,max-age=60,s-maxage=0"
+			"cache": "no-cache,must-revalidate,no-store,max-age=60,s-maxage=0",
+			"pls-prime-tenant-session": PLS_PRIME_TENANT_SESSION,
+			"pls-session": PLS_SESSION
 		},
 		cache: "no-cache",
 		credentials: "include",
-		body: formbody
+		body: formbody,
+
 	})
 
 	const source = await response.json();
@@ -30,15 +40,25 @@ export async function customFile(endpoint, formbody) {
  * @param {string} endpoint - The endpoint URL to send the request to.
  * @returns {Promise<object>} - The response from the server as JSON.
  */
-export async function customFetch(endpoint) {
+export async function  customFetch(endpoint,isLogin=false) {
 	try {
 		const url = new URL(`/api/v1/${endpoint}`, process.env.NODE_ENV == "production" ? process.env.PRODUCTION_BASEURL : process.env.DEVELOPMENT_BASEURL);
 		url.searchParams.append("tenantId", process.env.TENANTID);
+
+			const context = await getRequestContext();
+		if (!isLogin && (!context || !context['PLS_PRIME_TENANT_SESSION'] || !context['PLS_SESSION'])) {
+			return { error: "Session not found" };
+		}
+
+		const { PLS_PRIME_TENANT_SESSION, PLS_SESSION} = context;
+		
 		const response = await fetch(url.toString(), {
 			headers: {
 				Authorization: `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
 				"Content-Type": "application/json",
-				"cache": "no-cache,must-revalidate,no-store,max-age=60,s-maxage=0"
+				"cache": "no-cache,must-revalidate,no-store,max-age=60,s-maxage=0",
+				"pls-prime-tenant-session": PLS_PRIME_TENANT_SESSION ? PLS_PRIME_TENANT_SESSION : null,
+				"pls-session": PLS_SESSION ? PLS_SESSION : null
 			},
 			cache: "no-cache",
 			credentials: "include",
@@ -48,7 +68,6 @@ export async function customFetch(endpoint) {
 		const { status, message, statusCode } = source;
 		if ((status == 401 || statusCode == 401 || statusCode == 500) && (message.toLowerCase() == "Unauthorized".toLowerCase() || message.toLowerCase() == "Token not Provided".toLowerCase() || message.toLowerCase() == "Token Expired".toLowerCase())) {
 			handleLogout();
-			window.location.href = "/authentications/login";
 		} else {
 			return source;
 		}
@@ -174,7 +193,7 @@ export const Glucoseoptions = ["mg/dl", "mmol/L"]
  * @param {object} data - The data to send in the request body.
  * @returns {Promise<object>} - The parsed response from the POST request.
  */
-export async function customPost(endpoint, method, data, hash = false) {
+export async function customPost(endpoint, method, data, hash = false,login=false) {
 	try {
 		if (process.env.NODE_ENV == "production" && !process.env.NEXT_PUBLIC_ACCESS_TOKEN) {
 			throw new Error("NEXT_PUBLIC_ACCESS_TOKEN MISSING")
@@ -190,12 +209,20 @@ export async function customPost(endpoint, method, data, hash = false) {
 
 		const url = new URL(`${endpoint}`, process.env.NODE_ENV == "production" ? process.env.PRODUCTION_BASEURL : process.env.DEVELOPMENT_BASEURL);
 		url.searchParams.append("tenantId", "3");
+
+		const context = await getRequestContext();
+		if (!login && (!context || !context['PLS_PRIME_TENANT_SESSION'] || !context['PLS_SESSION'])) {
+			return { error: "Session not found" };
+		}
+		const { PLS_PRIME_TENANT_SESSION, PLS_SESSION} = context;
 		let response = await fetch(url.href, {
 			method: method,
 			headers: {
 				"content-type": "application/json",
 				Authorization: `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
 				mode: "no-cors",
+				"pls-prime-tenant-session": PLS_PRIME_TENANT_SESSION ? PLS_PRIME_TENANT_SESSION:'',
+				"pls-session": PLS_SESSION ? PLS_SESSION : ''
 			},
 			cache: "no-cache",
 			body: JSON.stringify(requestBody),

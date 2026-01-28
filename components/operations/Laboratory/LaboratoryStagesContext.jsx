@@ -18,7 +18,7 @@ export function LaboratoryStagesProvider({ children }) {
 
        const start_date = useSearchParams()?.get('start_date');
        const end_date = useSearchParams()?.get('end_date');
-
+       const category = useSearchParams()?.get('category');
        const parsedStartDate = start_date ? dayjs(start_date).format('YYYY-MM-DD') : '';
        const parsedEndDate = end_date ? dayjs(end_date).format('YYYY-MM-DD') : '';
 
@@ -35,6 +35,7 @@ export function LaboratoryStagesProvider({ children }) {
               page: 1,
               count: 10,
               isUltrasound: false,
+              category: category || 'grouped',
               branchid: branchid,
               sortby: 'DESC',
        });
@@ -45,14 +46,14 @@ export function LaboratoryStagesProvider({ children }) {
        };
 
        const _getAscensionData = async function (ascension_stage, employeeid, branchid) {
-              await getAscensionData(ascension_stage, setCollection, queryParams, setLoading, employeeid, branchid);
+              await getAscensionData(ascension_stage, setCollection, queryParams, setLoading, employeeid, branchid,category);
        }
 
        return (
               <LaboratoryContext.Provider value={{
                      collection, setCollection, isLoading, setLoading, queryParams, _getAscensionData, toast,
                      loadCounter, setLoadCounter,
-                     setQueryParams, updatePageValue, canloadPage, setLoadPage
+                     setQueryParams, updatePageValue, canloadPage, setLoadPage,category
               }}>
                      {children}
 

@@ -95,6 +95,7 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
                     if (allSuccess) {
                          toast.success(`All ${ascensions.length} tests validated successfully`);
                          setSuccessfulValidation(true);
+                         onClose();
                     } else {
                          const failedCount = results.filter(r => r.status !== true).length;
                          toast.error(`${failedCount} test(s) failed validation`);

@@ -3,7 +3,7 @@ import OptionsViewHtmlGenerator from "./ResultEntryOptions/OptionsView";
 import PlainViewHtmlGenerator from "./ResultEntryOptions/Plain";
 import TextReferenceViewHtmlGenerator from "./ResultEntryOptions/textReferenceOption";
 import GreaterLessViewHtmlGenerator from './ResultEntryOptions/GreaterLessViewHtmlGenerator'
-import MARKDOWN_EDITOR from "../accessories/markdownEditor";
+import TimeOptionHtmlGenerator from "./ResultEntryOptions/TimeOptionHtmlGenerator";
 
 export default function ResultEntryHtmlGenerator({ item, statehandler, index, isDisabled }) {
     const { plan } = item;
@@ -13,5 +13,6 @@ export default function ResultEntryHtmlGenerator({ item, statehandler, index, is
         statehandler={statehandler} fieldItem={item} />
     else if (plan === "options") return <OptionsViewHtmlGenerator index={index} statehandler={statehandler} fieldItem={item} />
     else if (plan === "textReference") return <TextReferenceViewHtmlGenerator index={index} statehandler={statehandler} fieldItem={item} />
+    else if (plan === "time" || plan === "date" || plan === "datetime") return <TimeOptionHtmlGenerator index={index} statehandler={statehandler} fieldItem={item} isDisabled={isDisabled} />
     return <PlainViewHtmlGenerator index={index} statehandler={statehandler} fieldItem={item} />
 }

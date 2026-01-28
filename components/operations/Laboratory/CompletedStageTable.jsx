@@ -1,4 +1,4 @@
-import { PrepareResultEntryHeader } from "../../Auth/customFetch";
+import { generateRandomTextAndNumbers, PrepareResultEntryHeader, validatePin } from "../../Auth/customFetch";
 import { useLaboratoryContext } from "./LaboratoryStagesContext";
 import { fnTiming } from "./Lib";
 import { Button, Modal } from 'react-bootstrap';
@@ -8,6 +8,8 @@ import { handleServerSideProcessingAscensionData } from "../../serverActions/Act
 import dayjs from "dayjs";
 import { Tabs, Tab } from 'react-bootstrap';
 import { useState } from 'react';
+import ResultEntryComponent from "../ViewTwoResultEntry/ResultEntryComponent";
+
 
 export default function AscentionCompletedTable({ employeeid, branchid }) {
 	const {
@@ -18,6 +20,9 @@ export default function AscentionCompletedTable({ employeeid, branchid }) {
 	const [groupByPatient, setGroupByPatient] = useState(true);
 	const [showModal, setShowModal] = useState(false);
 	const [selectedGroupTests, setSelectedGroupTests] = useState(null);
+	const [operations, setOperations] = useState({});
+	const [pin, setPin] = useState("");
+	const [isPinValid, setIsPinValid] = useState(false);
 
 	const columns = [
 		{
@@ -73,9 +78,6 @@ export default function AscentionCompletedTable({ employeeid, branchid }) {
 		},
 	]
 
-
-
-	// Group data by patient ID and billing ID
 	const groupDataByPatient = (data) => {
 		const grouped = {};
 		data.forEach(item => {
@@ -123,20 +125,66 @@ export default function AscentionCompletedTable({ employeeid, branchid }) {
 			Header: 'Action',
 			accessor: '',
 			Cell: ({ row }) => (
-				<Button
-					variant="outline-success"
-					size="sm"
-					className="p-1"
-					onClick={() => {
-						setSelectedGroupTests(row.original.tests);
-						setShowModal(true);
-					}}
-				>
-					<RiCheckLine size={16} className="me-2" /> View Tests
-				</Button>
+				<div>
+					<Button
+						variant="outline-success"
+						size="sm"
+						className="p-1"
+						onClick={() => {
+							setSelectedGroupTests(row.original.tests);
+							setShowModal(true);
+						}}
+					>
+						<RiCheckLine size={16} className="me-2" /> View Tests
+					</Button>
+					<Button
+						variant="outline-primary"
+						size="sm"
+						className="mx-2"
+						onClick={() => {
+							if (Array.isArray(row.original.tests) && row.original.tests.length > 0) {
+								PrepareResultEntryHeader(row.original.tests[0], false, branchid);
+							}
+						}}
+					>
+						Bulk Result Entry
+					</Button>
+				</div>
 			)
 		}
 	];
+
+
+
+	const validatePinUser = async () => {
+		const { status, message } = await validatePin(employeeid, pin);
+		setIsPinValid(status);
+		if (!status) {
+			alert(message || "Invalid PIN. Please try again.");
+		}
+	}
+
+
+	const showResultEntry = () => {
+		if (!isPinValid && operations?.testid) {
+			return <div className="px-0 py-3" >
+				<label className="fw-bold m-0">Enter PIN to proceed:</label>
+				<div className="d-flex  align-items-center row m-0 p-0">
+					<div className="col-3">
+						<input autocomplete="one-time-code" onPaste={(ev) => { setPin("") }} type="password" className="form-control  form-control-sm" placeholder="Enter PIN to proceed" value={pin} onChange={(ev) => { setPin(ev.target.value); }}
+						/>
+					</div>
+					<div className="col-2">
+						<button className="btn btn-primary btn-sm" onClick={validatePinUser} >validate Pin</button>
+					</div>
+				</div>
+			</div>
+		} else if (isPinValid && operations?.testid) {
+			return <ResultEntryComponent operations={{ ...operations, testid: operations.testid, uiLayout: 3, ascensionid: operations.ascensionid, globalPin: pin }} />
+		} else {
+			return <div>Please select a test to enter results.</div>
+		}
+	}
 
 	const groupedData = groupByPatient ? groupDataByPatient(collection) : collection;
 
@@ -171,51 +219,123 @@ export default function AscentionCompletedTable({ employeeid, branchid }) {
 			)}
 
 			{/* Modal for viewing tests */}
-			<Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
+			<Modal show={showModal} onHide={() => {
+				setShowModal(false)
+				setOperations({})
+				setPin("")
+				setIsPinValid(false)
+			}
+			} size="xl">
 				<Modal.Header closeButton>
 					<Modal.Title>Tests</Modal.Title>
 				</Modal.Header>
 				<Modal.Body>
 					{selectedGroupTests && selectedGroupTests.length > 0 ? (
-						<div className="table-responsive">
-							<table className="table table-sm table-hover">
-								<thead className="table-light">
-									<tr>
-										<th>Test Name</th>
-										<th>Ascension Date</th>
-										<th>Timing</th>
-										<th>Action</th>
-									</tr>
-								</thead>
-								<tbody>
-									{selectedGroupTests.map((test, idx) => (
-										<tr key={idx}>
-											<td className="fw-bold">{test.name}</td>
-											<td>{dayjs(test.ascension_date).format('DD-MM-YYYY hh:mm:ss')}</td>
-											<td>{fnTiming(test)}</td>
-											<td>
-												<Button
-													variant="outline-success"
-													size="sm"
-													className="p-1"
-													onClick={() => {
-														PrepareResultEntryHeader(test, false, branchid);
-														setShowModal(false);
-													}}
-												>
-													<RiCheckLine size={16} className="me-2" /> Enter result
-												</Button>
-											</td>
+						<div>
+							<div className="table-responsive">
+								<table className="table table-sm table-hover">
+									<thead className="table-light">
+										<tr>
+											<th>TEST NAME</th>
+											<th>ASCENSION ID</th>
+											<th>ASCENSION DATE</th>
+											<th>TIMING</th>
+											<th>ACTION</th>
 										</tr>
-									))}
-								</tbody>
-							</table>
+									</thead>
+									<tbody>
+										{Array.isArray(selectedGroupTests) && selectedGroupTests.map((test, idx) => (
+											<tr key={idx}>
+												<td className="fw-bold">{test.name}</td>
+												<td>{test.ascensionid}</td>
+												<td >{dayjs(test.ascension_date).format('DD-MM-YYYY hh:mm:ss')}</td>
+												<td className="p-3 text-sm">{fnTiming(test)}</td>
+												<td>
+													<span className="d-flex">
+														<Button
+															variant="outline-success"
+															size="sm"
+															className="p-1"
+															onClick={() => {
+
+																const { resultEntryStart, resultEntryEnd, patientid, billingid, ascensionid, name, id, fullname, fullpatientid } = test;
+																const generated_billing_id = `${generateRandomTextAndNumbers(70)}${billingid}`;
+																const generated_patient_id = `${generateRandomTextAndNumbers(50)}${patientid}`;
+
+																setOperations({
+																	testid: id,
+																	test: name,
+																	patientid: generated_patient_id,
+																	billingid: generated_billing_id,
+																	employeeid,
+																	ascensionid,
+																	resultEntryStart,
+																	testList: [],
+																	resultEntryEnd,
+																	globalPin: '',
+																	loadtest: true,
+
+																	isInitLoading: true,
+																	showPatientData
+																		:
+																		true,
+																	showPrevTcount
+																		:
+																		false,
+																	showPreviousRecords
+																		:
+																		false,
+																	showSlideLeftIcon
+																		:
+																		true,
+																	showSlideRightIcon
+																		:
+																		true,
+																	showTestCollection
+																		:
+																		true,
+
+																	uiLayout
+																		:
+																		3,
+																	minifyClientInfo: true,
+																	viewDetails: true,
+																	patientInfo: {
+																		patientid, fullpatientid, firstname: fullname.toString().split('')[0],
+																		lastname: fullname.toString().split('')[1]
+																	}
+																});
+															}}
+														>
+															<RiCheckLine size={16} className="me-2" /> Enter result
+														</Button>
+														<Button
+															variant="primary"
+															size="sm"
+															className="mx-2"
+															onClick={(ev) => {
+																PrepareResultEntryHeader(test, false, branchid);
+																setShowModal(false);
+															}}
+														>
+															Bulk Entry
+														</Button>
+													</span>
+												</td>
+											</tr>
+										))}
+									</tbody>
+								</table>
+
+								{operations?.testid && showResultEntry()}
+							</div>
+
 						</div>
 					) : (
 						<p className="text-muted">No tests available</p>
 					)}
 				</Modal.Body>
 			</Modal>
-		</div>
+		</div >
 	);
 }

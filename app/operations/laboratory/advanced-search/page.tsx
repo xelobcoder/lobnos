@@ -200,14 +200,10 @@ export default function AdvancedSearchPage() {
      const totalPages = Math.ceil(totalRecords / pageSize);
 
      return (
-          <div className="container-fluid px-4 py-3">
+          <div className="container-fluid ">
                {/* Header */}
                <div className="mb-4">
-                    <h2 className="mb-1 d-flex align-items-center">
-                         <RiSearchLine size={28} className="me-2" />
-                         Advanced Search
-                    </h2>
-                    <p className="text-muted mb-0">Search and filter patient samples and test results</p>
+                    <h5 className=" mb-0 fw-bold text-underline">Search and filter patient samples and test results</h5>
                </div>
 
                {/* Search Bar */}
@@ -219,7 +215,7 @@ export default function AdvancedSearchPage() {
                                    <label className="form-label fw-medium small text-uppercase text-muted">Accession ID</label>
                                    <input
                                         type="text"
-                                        className="form-control form-control-sm shadow-none"
+                                        className="form-control"
                                         placeholder="Accession ID..."
                                         value={accessionId}
                                         onChange={(e) => setAccessionId(e.target.value)}
@@ -230,7 +226,7 @@ export default function AdvancedSearchPage() {
                                    <label className="form-label fw-medium small text-uppercase text-muted">Patient ID</label>
                                    <input
                                         type="text"
-                                        className="form-control form-control-sm shadow-none"
+                                        className="form-control"
                                         placeholder="Patient ID..."
                                         value={patientId}
                                         onChange={(e) => setPatientId(e.target.value)}
@@ -241,7 +237,7 @@ export default function AdvancedSearchPage() {
                                    <label className="form-label fw-medium small text-uppercase text-muted">Billing ID</label>
                                    <input
                                         type="text"
-                                        className="form-control form-control-sm shadow-none"
+                                        className="form-control"
                                         placeholder="Billing ID..."
                                         value={billingId}
                                         onChange={(e) => setBillingId(e.target.value)}
@@ -252,7 +248,7 @@ export default function AdvancedSearchPage() {
                                    <label className="form-label fw-medium small text-uppercase text-muted">Start Date</label>
                                    <input
                                         type="date"
-                                        className="form-control form-control-sm shadow-none"
+                                        className="form-control"
                                         value={startDate}
                                         onChange={(e) => setStartDate(e.target.value)}
                                    />
@@ -261,7 +257,7 @@ export default function AdvancedSearchPage() {
                                    <label className="form-label fw-medium small text-uppercase text-muted">End Date</label>
                                    <input
                                         type="date"
-                                        className="form-control form-control-sm shadow-none"
+                                        className="form-control"
                                         value={endDate}
                                         onChange={(e) => setEndDate(e.target.value)}
                                    />
@@ -298,7 +294,7 @@ export default function AdvancedSearchPage() {
                </div>
 
                {/* Results Section */}
-               {searchResults.length > 0 ? (
+               {Array.isArray(searchResults) && searchResults.length > 0 ? (
                     <div className='border rounded p-3'>
                          <h3 className="mb-4 fw-bold">
                               Search Results ({totalRecords})
@@ -325,7 +321,7 @@ export default function AdvancedSearchPage() {
                                                   <td>{result.patient.phone}</td>
                                                   <td className="text-center fw-semibold">{result.summary.totalTests}</td>
                                                   <td>
-                                                       {dayjs(result.billedOn).format('DD-MM-YYYY')}
+                                                       {dayjs(result.billedOn).format('DD-MM-YYYY HH:mm:ss')}
                                                   </td>
                                                   <td className="text-center">
                                                        <button

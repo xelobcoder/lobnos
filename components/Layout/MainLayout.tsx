@@ -46,6 +46,7 @@ export default function MAIN_LAYOUT({ children }) {
           }
      }
 
+
      useEffect(() => {
           if (!applicationsettings) {
                getRetrieval();

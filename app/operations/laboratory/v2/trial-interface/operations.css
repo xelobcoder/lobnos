@@ -1,0 +1,57 @@
+.worklist-grid {
+  display: grid;
+  grid-template-columns: 50% 50%;
+  gap: 10px;
+}
+
+.worklist-card {
+  height: 350px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.worklist-header {
+  background: #aecaf0;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.header-icons svg {
+  margin-left: 8px;
+  cursor: pointer;
+}
+
+.worklist-table {
+  font-size: 12px;
+  margin-bottom: 0;
+}
+
+.worklist-table thead th {
+  background: #d7e6f8;
+  font-weight: 600;
+  text-align: left;
+}
+
+.filter-row th {
+  background: #eef5ff;
+}
+
+.filter-row input {
+  height: 22px;
+}
+
+.worklist-table tbody tr {
+  cursor: pointer;
+}
+
+.worklist-table tbody tr:hover {
+  background: #ffe2a3;
+}
+
+.active-row {
+  background: #ffd37a !important;
+}
+
+.worklist-table td svg {
+  cursor: pointer;
+}

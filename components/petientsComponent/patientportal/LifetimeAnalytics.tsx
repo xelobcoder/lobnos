@@ -64,7 +64,7 @@ export default function LifetimeAnalytics({ patientid }: LifetimeAnalyticsProps)
     <Card className="mt-4">
       <Card.Body>
         <div className="mb-4">
-          <h6 className="mb-1">Lifetime Statistics</h6>
+          <h6 className="mb-1 fw-bold">Lifetime Statistics</h6>
           <small className="text-muted">Overall transaction history</small>
         </div>
 

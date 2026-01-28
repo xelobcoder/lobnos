@@ -184,11 +184,6 @@ export const CrmLinks: Link[] = [
                 title: "Refund Management",
                 link: "/billing/refund",
                 icon: <RiRefundLine />
-            },
-            {
-                title: "Night Adjustments",
-                link: "/billing/settings/night-adjustments",
-                icon: <RiMoonLine />
             }
         ]
     }

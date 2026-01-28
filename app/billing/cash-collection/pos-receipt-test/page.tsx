@@ -8,6 +8,7 @@ import { useTheme } from "../../../../components/ThemeProvider";
 import { useApplication } from "../../../../components/Auth/useApplicationContext";
 import { useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
+import dayjs from "dayjs";
 
 interface BillingData {
      billingid: number;
@@ -254,7 +255,7 @@ export default function PosReceiptTestPage() {
                let yPosition = 10;
 
                const now = new Date();
-               const dateStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+               const dateStr = dayjs(now).format('DD-MM-YYYY');
                const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
 
                const total = parseFloat(billingData.totalcost || '0');
@@ -357,7 +358,7 @@ export default function PosReceiptTestPage() {
                pdf.text(String(billingData?.billingid || 'N/A'), rightMargin, yPosition, { align: 'right' });
                yPosition += 3;
                pdf.text('Date:', leftMargin, yPosition);
-               pdf.text(billingData ? new Date(billingData.billedon).toLocaleDateString() : 'N/A', rightMargin, yPosition, { align: 'right' });
+               pdf.text(billingData ? dayjs(billingData.billedon).format("DD-MM-YYYY HH:MM"): 'N/A', rightMargin, yPosition, { align: 'right' });
                yPosition += 3;
                pdf.text('Printed:', leftMargin, yPosition);
                pdf.text(`${dateStr} ${timeStr}`, rightMargin, yPosition, { align: 'right' });
@@ -645,8 +646,8 @@ export default function PosReceiptTestPage() {
                                                   )}
                                              </div>
                                              <div className="col-6 text-end">
-                                                  <p className="mb-0"><strong>Generated:</strong> {new Date().toLocaleDateString()}</p>
-                                                  <p className="mb-1"><strong>Billing Date:</strong> {billingData?.billedon ? new Date(billingData.billedon).toLocaleDateString() : 'N/A'}</p>
+                                                  <p className="mb-0"><strong>Generated:</strong> {dayjs().format('DD-MM-YYYY HH:mm:ss')}</p>
+                                                  <p className="mb-1"><strong>Billing Date:</strong> {billingData?.billedon ? dayjs(billingData.billedon).format("DD-MM-YYYY HH:mm:ss") : 'N/A'}</p>
                                              </div>
                                         </div>
                                    </div>

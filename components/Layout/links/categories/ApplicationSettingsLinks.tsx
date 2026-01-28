@@ -21,7 +21,8 @@ import {
     RiSteamLine,
     RiEyeLine,
     RiShieldCheckLine,
-    RiShieldLine
+    RiShieldLine,
+    RiMoonClearLine
 } from '@remixicon/react';
 
 export const ApplicationSettingsLinks: Link[] =
@@ -59,6 +60,7 @@ export const ApplicationSettingsLinks: Link[] =
                 { title: "Report Settings", link: "/settings/applicationsettings/reportSettings", icon: <RiFileTextLine /> },
                 { title: "sales session management", link: "/settings/applicationsettings/sales-session-manager", icon: <RiMoneyDollarCircleLine /> },
                 { title: "Update Test Prices Bulk", link: "/settings/applicationsettings/testpanels/pricing", icon: <RiSettings4Line /> }
+
             ]
         },
         {
@@ -77,7 +79,9 @@ export const ApplicationSettingsLinks: Link[] =
             children: [
                 { title: "Services", link: "/settings/additionalservices", icon: <RiCustomerService2Line /> },
                 { title: 'Billing Strategy', link: '/billing/billing-strategy/strategies', icon: <RiStarHalfLine /> },
-                { title: 'Insurance Companies', link: '/billing/insurance', icon: <RiGitRepositoryFill /> }
+                { title: 'Insurance Companies', link: '/billing/insurance', icon: <RiGitRepositoryFill /> },
+                { title: 'Free Service Authorization', link: '/billing/admin/free-service-authorization-approval', icon: <RiShieldCheckLine /> },
+                { title: "Night Adjustments", link: "/settings/applicationsettings/night-adjustments", icon: <RiMoonClearLine /> }
             ]
         },
         {

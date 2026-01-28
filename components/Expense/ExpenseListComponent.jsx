@@ -67,7 +67,7 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 			alert('Please select expenses first');
 			return;
 		}
-		// Initialize decisions with default 'pending' status
+
 		const initialDecisions = {};
 		const initialRejectReasons = {};
 		const initialSelectedReasons = {};
@@ -87,10 +87,7 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 			...prev,
 			[expenseId]: status
 		}));
-
-		// Handle rejection reasons
 		if (status === 'rejected') {
-			// Initialize rejection reason if not already set
 			if (!individualSelectedReasons[expenseId]) {
 				setIndividualSelectedReasons(prev => ({
 					...prev,

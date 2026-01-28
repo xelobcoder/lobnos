@@ -100,14 +100,7 @@ export const AdminRoleLinks = [
           category: 'Support',
           description: 'Inventory management'
      },
-     {
-          href: '/doctor',
-          icon: <RiStethoscopeLine size={24} />,
-          text: "Access doctor portal",
-          label: 'Doctor',
-          category: 'Healthcare',
-          description: 'Doctor portal'
-     },
+   
      {
           href: "/human-resource/payroll",
           icon: <RiMoneyDollarCircleLine size={24} />,

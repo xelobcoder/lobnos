@@ -92,6 +92,26 @@ export const BillingSettingsTab: React.FC<BillingSettingsTabProps> = ({ settings
                          label: 'Allow CRM to Give Discount',
                          description: 'Enable CRM staff to apply discounts to customer bills',
                          icon: <RiMoneyDollarCircleLine size={20} />
+                    },
+                    {
+                         name: "allowValidationUpaid",
+                         label: 'Allow Validation of Unpaid service or report',
+                         description: 'Permit validation processes even if bills are unpaid',
+                         icon: <RiRefundLine size={20} />
+
+                    },
+                    {
+                         name: "allowPrintingUnpaid",
+                         label: 'Allow Printing of unpaid result',
+                         description: 'Enable printing of bills even if they are unpaid',
+                         icon: <RiFileListLine size={20} />
+
+                    },
+                    {
+                         name: "allowResultEnteringUpaid",
+                         label: 'Allow Result Entering of unpaid service results',
+                         description: 'Permit entering results for services that are unpaid',
+                         icon: <RiCheckboxCircleLine size={20} />
                     }
                ]
           }
@@ -169,97 +189,97 @@ export const BillingSettingsTab: React.FC<BillingSettingsTabProps> = ({ settings
                     </div>
                </div>
 
-                    {/* Patient ID Generation */}
-                    <div className="border rounded p-4 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                         <div className="d-flex align-items-center justify-content-between mb-3">
-                              <div>
-                                   <h5 className="mb-1 fw-bold">Patient ID Generation</h5>
-                                   <p className="text-muted small mb-0">Choose how patient IDs are generated</p>
+               {/* Patient ID Generation */}
+               <div className="border rounded p-4 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                    <div className="d-flex align-items-center justify-content-between mb-3">
+                         <div>
+                              <h5 className="mb-1 fw-bold">Patient ID Generation</h5>
+                              <p className="text-muted small mb-0">Choose how patient IDs are generated</p>
+                         </div>
+                    </div>
+
+                    <div className="row g-3">
+                         <div className="col-md-6">
+                              <Form.Check
+                                   type="radio"
+                                   id="pid-method-region"
+                                   name="patientIdGenerationMethod"
+                                   value="region"
+                                   label="Region + Auto-increment"
+                                   checked={settings.patientIdGenerationMethod === 'region'}
+                                   onChange={handleChange}
+                              />
+                              <div className="mt-2 ms-3">
+                                   <Form.Label className="small text-muted">Region</Form.Label>
+                                   <Form.Select
+                                        name="regioncode"
+                                        value={settings.regioncode || ''}
+                                        onChange={handleChange}
+                                   >
+                                        <option value="">Select region</option>
+                                        {regions.map(region => (
+                                             <option key={region.regioncode} value={region.regioncode}>{region.name}</option>
+                                        ))}
+                                   </Form.Select>
+                                   <Form.Label className="small text-muted mt-2">Start Value</Form.Label>
+                                   <Form.Control
+                                        type="number"
+                                        name="patientIdAutoIncrementStart"
+                                        value={settings.patientIdAutoIncrementStart || 1}
+                                        onChange={handleChange}
+                                        min={1}
+                                   />
+                                   <Form.Label className="small text-muted mt-2">District</Form.Label>
+                                   <Form.Select
+                                        name="districtcode"
+                                        value={settings.districtcode || ''}
+                                        onChange={handleChange}
+                                        disabled={!settings.regioncode}
+                                   >
+                                        <option value="">Select district</option>
+                                        {districts.map(d => (
+                                             <option key={d.code} value={d.code}>{d.name}</option>
+                                        ))}
+                                   </Form.Select>
                               </div>
                          </div>
 
-                         <div className="row g-3">
-                              <div className="col-md-6">
-                                   <Form.Check
-                                        type="radio"
-                                        id="pid-method-region"
-                                        name="patientIdGenerationMethod"
-                                        value="region"
-                                        label="Region + Auto-increment"
-                                        checked={settings.patientIdGenerationMethod === 'region'}
-                                        onChange={handleChange}
-                                   />
-                                   <div className="mt-2 ms-3">
-                                        <Form.Label className="small text-muted">Region</Form.Label>
-                                        <Form.Select
-                                            name="regioncode"
-                                            value={settings.regioncode || ''}
-                                            onChange={handleChange}
-                                        >
-                                            <option value="">Select region</option>
-                                            {regions.map(region => (
-                                                <option key={region.regioncode} value={region.regioncode}>{region.name}</option>
-                                            ))}
-                                        </Form.Select>
-                                        <Form.Label className="small text-muted mt-2">Start Value</Form.Label>
-                                        <Form.Control
-                                             type="number"
-                                             name="patientIdAutoIncrementStart"
-                                             value={settings.patientIdAutoIncrementStart || 1}
-                                             onChange={handleChange}
-                                             min={1}
-                                        />
-                                        <Form.Label className="small text-muted mt-2">District</Form.Label>
-                                        <Form.Select
-                                            name="districtcode"
-                                            value={settings.districtcode || ''}
-                                            onChange={handleChange}
-                                            disabled={!settings.regioncode}
-                                        >
-                                            <option value="">Select district</option>
-                                            {districts.map(d => (
-                                                <option key={d.code} value={d.code}>{d.name}</option>
-                                            ))}
-                                        </Form.Select>
-                                   </div>
-                              </div>
-
-                              <div className="col-md-6">
-                                   <Form.Check
-                                        type="radio"
-                                        id="pid-method-billing"
-                                        name="patientIdGenerationMethod"
-                                        value="billingPrefix"
-                                        label="Billing ID Prefix + Date (YY-MM-DD)"
-                                        checked={settings.patientIdGenerationMethod === 'billingPrefix'}
-                                        onChange={handleChange}
-                                   />
-                                   <div className="mt-2 ms-3">
-                                        <Form.Text className="text-muted small">
-                                             Uses the Billing ID prefix followed by the date (YY-MM-DD) as the patient ID.
-                                        </Form.Text>
-                                   </div>
-                              </div>
-                         </div>
-
-                         {/* Patient ID Preview */}
-                         <div className="mt-4">
-                              <Form.Label className="text-muted small">Patient ID Preview</Form.Label>
-                              <div
-                                   className="border rounded p-3"
-                                   style={{
-                                        backgroundColor: 'var(--bs-body-bg)',
-                                        minHeight: '56px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        fontSize: '1.25rem',
-                                        fontFamily: 'monospace'
-                                   }}
-                              >
-                                   {getPatientIdPreview(settings)}
+                         <div className="col-md-6">
+                              <Form.Check
+                                   type="radio"
+                                   id="pid-method-billing"
+                                   name="patientIdGenerationMethod"
+                                   value="billingPrefix"
+                                   label="Billing ID Prefix + Date (YY-MM-DD)"
+                                   checked={settings.patientIdGenerationMethod === 'billingPrefix'}
+                                   onChange={handleChange}
+                              />
+                              <div className="mt-2 ms-3">
+                                   <Form.Text className="text-muted small">
+                                        Uses the Billing ID prefix followed by the date (YY-MM-DD) as the patient ID.
+                                   </Form.Text>
                               </div>
                          </div>
                     </div>
+
+                    {/* Patient ID Preview */}
+                    <div className="mt-4">
+                         <Form.Label className="text-muted small">Patient ID Preview</Form.Label>
+                         <div
+                              className="border rounded p-3"
+                              style={{
+                                   backgroundColor: 'var(--bs-body-bg)',
+                                   minHeight: '56px',
+                                   display: 'flex',
+                                   alignItems: 'center',
+                                   fontSize: '1.25rem',
+                                   fontFamily: 'monospace'
+                              }}
+                         >
+                              {getPatientIdPreview(settings)}
+                         </div>
+                    </div>
+               </div>
 
                {/* Settings Groups */}
                <div className="row g-4">

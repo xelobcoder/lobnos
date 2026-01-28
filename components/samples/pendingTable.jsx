@@ -186,7 +186,6 @@ export default function SampleValidationComponent() {
 
 	return (
 		<div className="pls-color text-sm">
-			{/* Open All Checked Button */}
 			<div className="mb-2">
 				{selectedItems.length > 0 && (
 					<div className="d-flex gap-2 align-items-center">
@@ -328,7 +327,7 @@ export default function SampleValidationComponent() {
 				show={showAssesModal}
 				hide={closeModal}
 				billingid={target}
-
+				removeClient={removeClientFromList}
 				multiMode={multiMode}
 				selectedItems={selectedItems}
 				onMultiProcessComplete={handleMultiProcessComplete}

@@ -21,8 +21,7 @@ export default function PrimeLabLoginPage() {
 
 			const email = formData.get("email");
 			const password = formData.get("password");
-
-
+			
 			let browserInfo = {};
 			if (typeof window !== 'undefined') {
 				const nav = window.navigator;
@@ -45,7 +44,7 @@ export default function PrimeLabLoginPage() {
 				};
 			}
 
-			const backendResponse = await customPost('prime/login', 'POST', { email, password, browserInfo });
+			const backendResponse = await customPost('prime/login', 'POST', { email, password, browserInfo },false, true);
 
 			if (backendResponse.status === "error" &&
 				(backendResponse.message === "License expired or invalid" || backendResponse.message === "License vaalidation failed" ||
@@ -90,7 +89,6 @@ export default function PrimeLabLoginPage() {
 
 			setLoginStatus('success');
 			setMessage('Login successful. Redirecting...');
-			// Keep submitting true to show loading state during redirect
 
 			if (typeof window !== 'undefined') {
 				localStorage.removeItem('applicationsettings');

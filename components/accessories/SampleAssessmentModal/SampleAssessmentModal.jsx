@@ -264,7 +264,7 @@ export default function SampleAssessmentModal({
 
 			const { status, message } = pushResponse;
 
-			if (status === true) {
+			if (status == true) {
 				toast.success(message);
 
 				if (multiMode) {

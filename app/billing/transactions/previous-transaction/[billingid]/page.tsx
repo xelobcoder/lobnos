@@ -104,6 +104,8 @@ export default function PreviousTransactionSummaryPage() {
 	const [writeOffReason, setWriteOffReason] = useState('');
 	const [isWritingOff, setIsWritingOff] = useState(false);
 	const [showRefundAllModal, setShowRefundAllModal] = useState(false);
+	const [isRemovingService, setIsRemovingService] = useState(false);
+	const [removingServiceId, setRemovingServiceId] = useState<number | null>(null);
 
 	const refundReasons = [
 		'Patient Request',
@@ -792,6 +794,7 @@ export default function PreviousTransactionSummaryPage() {
 															View Details
 														</Button>
 													</td>
+
 													<td className="text-start">
 														<div className="d-flex gap-2 align-items-center flex-wrap">
 															{!row.isRefundInitiated && row.paymentstatus !== 'pending' && (
@@ -818,6 +821,12 @@ export default function PreviousTransactionSummaryPage() {
 																</Button>
 															)}
 														</div>
+
+														{row.paymentstatus === 'pending' &&
+															<Button variant='danger' size='sm'>
+																Remove Item {isRemovingService && <Spinner  size='sm' />}
+															</Button>
+														}
 													</td>
 												</tr>
 											);

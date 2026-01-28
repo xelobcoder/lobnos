@@ -6,9 +6,9 @@ export const formatDate = (date) => {
        return new Date(date).toISOString().split('T')[0]
 };
 
-export async function getAscensionData(ascension_stage, setCollection, queryParams, setLoading, employeeid, branchid) {
+export async function getAscensionData(ascension_stage, setCollection, queryParams, setLoading, employeeid, branchid,category) {
        try {
-              const { _dateFrom, _dateEnd, isUltrasound, sortby } = queryParams;
+              const { _dateFrom, _dateEnd, isUltrasound, sortby,category } = queryParams;
 
               const parsedFrom = _dateFrom ? formatDate(_dateFrom) : _dateFrom;
               const parsedEnd = _dateEnd ? formatDate(_dateEnd) : _dateEnd;
@@ -25,7 +25,8 @@ export async function getAscensionData(ascension_stage, setCollection, queryPara
                             `&&isUltrasound=${isUltrasound}` +
                             `&&employeeid=${employeeid}` +
                             `&&branchid=${branchid}` +
-                            `&&sortby=${sortby}`
+                            `&&sortby=${sortby}` +
+                            `&&grouped=${category}`
                      );
                      if (Array.isArray(result)) {
                             setLoading(false)

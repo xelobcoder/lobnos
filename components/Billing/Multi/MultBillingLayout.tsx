@@ -426,7 +426,6 @@ function MultiBillingLayoutContent() {
             const { status, message } = response;
 
             if (status == true || status === 'success') {
-                toast.success(message || "Billing data submitted successfully");
                 if (typeof window !== 'undefined') {
                     const viewTransactions = window.confirm("Billing data submitted successfully. Do you want to view transactions?");
                     if (viewTransactions && patientId && branchid) {
@@ -444,7 +443,6 @@ function MultiBillingLayoutContent() {
             }
 
         } catch (error) {
-            console.log("Error submitting billing data:", error);
             setIsSaving(false);
         } finally {
             setIsSaving(false);

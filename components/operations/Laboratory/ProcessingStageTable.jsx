@@ -197,10 +197,11 @@ export default function AscensionProcessingTable() {
             accessor: 'fullname',
             Cell: ({ row }) => <div className='text-uppercase'><strong>{row.original.fullname}</strong><br />{row.original.age}</div>
         },
-        {
+            {
             Header: 'Billing ID',
             accessor: 'billingid'
         },
+    
         {
             Header: 'Tests',
             accessor: 'tests',
@@ -226,7 +227,6 @@ export default function AscensionProcessingTable() {
     ];
 
     const groupedData = groupByPatient ? groupDataByPatient(collection) : collection;
-
     if (isLoading) return <div>Loading .......................</div>;
 
     return (
@@ -277,7 +277,7 @@ export default function AscensionProcessingTable() {
             )}
 
             {/* Modal for viewing tests */}
-            <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
+            <Modal show={showModal} onHide={() => setShowModal(false)} size="xl">
                 <Modal.Header closeButton>
                     <Modal.Title>Tests</Modal.Title>
                 </Modal.Header>
@@ -289,6 +289,7 @@ export default function AscensionProcessingTable() {
                                     <tr>
                                         <th>Test Name</th>
                                         <th>Department</th>
+                                        <th>Ascension ID</th>
                                         <th>Ascension Date</th>
                                         <th>Timing</th>
                                         <th>Action</th>
@@ -301,6 +302,7 @@ export default function AscensionProcessingTable() {
                                             <tr key={idx}>
                                                 <td className="fw-bold">{currentTest?.name || testAscensionId.name}</td>
                                                 <td>{currentTest?.department || testAscensionId.department}</td>
+                                                <td>{currentTest?.ascensionid || testAscensionId.ascensionid}</td>
                                                 <td>{dayjs(currentTest?.ascension_date || testAscensionId.ascension_date).format('DD-MM-YYYY hh:mm:ss')}</td>
                                                 <td>{fnTiming(currentTest || testAscensionId)}</td>
                                                 <td>

@@ -23,6 +23,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
     const router = useRouter();
 
 
+
     const roleViews = {
         "customer service representative": FrontdeskRoleLinks,
         admin: AdminRoleLinks,
@@ -136,6 +137,8 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
             );
         }
     };
+
+
 
 
     return (

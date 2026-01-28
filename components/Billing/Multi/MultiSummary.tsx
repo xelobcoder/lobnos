@@ -17,14 +17,13 @@ import { MultiBillingData } from "../../../lib/Multi/MultiTypes";
 
 interface MultiSummaryProps {
     summaryData?: any;
-    handlesubmit?: (data:MultiBillingData) => void;
+    handlesubmit?: (data: MultiBillingData) => void;
 }
 
 export default function MultiSummary({ summaryData, handlesubmit }: MultiSummaryProps) {
     const context = useContext(MultiBillingContext);
     if (!context) throw new Error("MultiBillingContext not found");
     const { billingdata, setBillingData } = context;
-    // Use summaryData if provided, else fall back to billingdata
     const data = summaryData || billingdata;
 
     if (data.outstandingDebt > 0 || !data.billingSource) return null;
@@ -38,13 +37,6 @@ export default function MultiSummary({ summaryData, handlesubmit }: MultiSummary
                 <div className="list-group-item d-flex justify-content-between bg-secondary-subtle">
                     <span className="mt-2 fw-bold">Current Billing Details</span>
                 </div>
-                {/* <div className="list-group-item d-flex justify-content-between bg-primary-subtle">
-                    <span className="d-flex align-items-center">
-                        <RiTestTubeLine className="me-2" />
-                        Total Test Cost
-                    </span>
-                    <span className="fw-bold">{currencyFormatter.format(data.subtotal ?? data.testcost)}</span>
-                </div> */}
                 <div className="list-group-item d-flex justify-content-between">
                     <span className="d-flex align-items-center">
                         <RiPercentLine className="me-2" />
@@ -52,13 +44,7 @@ export default function MultiSummary({ summaryData, handlesubmit }: MultiSummary
                     </span>
                     <span className="fw-bold">{currencyFormatter.format(data.totalAmountIncurredDueTax ?? data.amountIncurredDueTax)}</span>
                 </div>
-                {/* <div className="list-group-item d-flex justify-content-between bg-primary-subtle">
-                    <span className="d-flex align-items-center">
-                        <RiServiceLine className="me-2" />
-                        Total Service Amount
-                    </span>
-                    <span className="fw-bold">{currencyFormatter.format(data.totalCostOfServices ?? 0)}</span>
-                </div> */}
+
                 <div className="list-group-item d-flex justify-content-between">
                     <span className="d-flex align-items-center">
                         <RiMoneyDollarCircleLine className="me-2" />
@@ -96,7 +82,7 @@ export default function MultiSummary({ summaryData, handlesubmit }: MultiSummary
                     <span className="fw-bold">{currencyFormatter.format(data.balance ?? data.outstanding)}</span>
                 </div>
             </div>
-        
+
             <MultiBillingPageAdditionalInformation handlesubmit={handlesubmit} />
         </div>
     );

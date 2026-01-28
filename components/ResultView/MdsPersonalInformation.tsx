@@ -94,13 +94,13 @@ const MdsPersonalInformation: React.FC<MdsPersonalInformationProps> = ({
                     </div>
                 )}
             </div>
-            
-             { !isBulk && referrerFacility && referrerFacility.facility_name && (
-                            <div className={styles.infoPair}>
-                                <span className={styles.infoLabel}>Referring Facility Name</span>: <span className={styles.infoValue}>{referrerFacility.facility_name}</span>
-                            </div>
-                        )}
-            
+
+            {!isBulk && referrerFacility && referrerFacility.facility_name && (
+                <div className={styles.infoPair}>
+                    <span className={styles.infoLabel}>Referring Facility Name</span>: <span className={styles.infoValue}>{referrerFacility.facility_name}</span>
+                </div>
+            )}
+
         </section>
     );
 };

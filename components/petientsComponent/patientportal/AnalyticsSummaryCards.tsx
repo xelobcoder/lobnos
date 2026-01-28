@@ -73,7 +73,7 @@ export default function AnalyticsSummaryCards({ patientid }: AnalyticsSummaryCar
         <Card>
             <Card.Body>
                 <div className="mb-4">
-                    <h6 className="mb-1">Monthly Analytics</h6>
+                    <h6 className="mb-1 fw-bold">Monthly Analytics</h6>
                     <small className="text-muted">
                         Daily transactions for {selectedMonth.label} {selectedYear.value}
                     </small>

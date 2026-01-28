@@ -15,8 +15,113 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 	const [editingIndex, setEditingIndex] = useState<number | null>(null);
 	const [newField, setNewField] = useState(defaultCreationRule);
 	const [showCustomUnit, setShowCustomUnit] = useState(false);
+	const STANDARD_UNITS = [
+		"mg/dL", "g/dL", "µg/dL", "ng/dL",
+		"mg/L", "g/L", "µg/L", "ng/mL", "pg/mL",
+		"mmol/L", "µmol/L", "nmol/L",
+		"mEq/L",
 
-	const STANDARD_UNITS = ["mg/dL", "mmol/L", "g/L", "%", "IU/mL", "ng/mL", "µg/dL", "U/L", "mL", "L", "kg", "cm", "mm", "°C"];
+		"U/L", "IU/L", "IU/mL", "mIU/mL",
+		"µIU/mL", "ng/mL", "pg/mL",
+
+		"×10⁹/L", "×10¹²/L",
+		"cells/µL", "cells/mm³",
+		"/µL", "/mm³",
+		"%",
+
+		"seconds", "sec",
+		"INR",
+		"g/L",
+		"mg/dL",
+
+		"mmHg",
+		"kPa",
+		"pH",
+		"mEq/L",
+		"mmol/L",
+		"%",
+
+		"µL",
+		"mL",
+		"L",
+		"dL",
+
+		"pg",
+		"ng",
+		"µg",
+		"mg",
+		"g",
+		"kg",
+
+		"µm",
+		"mm",
+		"cm",
+		"m",
+
+		"°C",
+		"°F",
+
+		"seconds",
+		"minutes",
+		"hours",
+		"days",
+
+		"mOsm/kg",
+		"mOsm/L",
+
+		"mmHg",
+		"kPa",
+
+		"mL/min",
+		"L/min",
+		"mL/hr",
+
+		"titer",
+		"ratio",
+
+		"OD",
+		"AU",
+
+		"CFU/mL",
+		"CFU/g",
+		"log CFU/mL",
+
+		"mg/24h",
+		"mL/24h",
+		"µg/24h",
+		"mmol/24h",
+		"g/24h",
+
+		"index",
+		"S/CO",
+		"AU/mL",
+		"RU/mL",
+
+		"ng/dL",
+		"µg/dL",
+		"pmol/L",
+		"nmol/L",
+		"pg/mL",
+
+		"ppm",
+		"ppb",
+		"mg/L",
+		"µg/L",
+
+		"HPF",
+		"LPF",
+		"cells/HPF",
+		"cells/LPF",
+
+		"beats/min",
+		"breaths/min",
+		"m²",
+		"kg/m²",
+
+		"N/A",
+		"unitless"
+	];
+
 
 	const typeOptions = [
 		{ value: 'options', label: 'Dropdown' },
@@ -24,8 +129,12 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 		{ value: 'textReference', label: 'Reference' },
 		{ value: 'limits', label: 'Range' },
 		{ value: 'greaterLess', label: 'Compare' },
+		{ value: 'greaterLessEqualTo', label: 'Compare (<=/>=)' },
 		{ value: 'plain', label: 'Text Area' },
-		{ value: 'ultrasoundFields', label: 'Ultrasound' }
+		{ value: 'time', label: 'Time' },
+		{ value: 'ultrasoundFields', label: 'Ultrasound' },
+		{ value: 'datetime', label: 'Date & Time' },
+		{ value: 'date', label: 'Date' }
 	];
 
 	const renderFieldPreview = (field: any) => {
@@ -52,6 +161,7 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 					</div>
 				);
 			case 'greaterLess':
+			case 'greaterLessEqualTo':
 				return <input type="text" className="form-control form-control-sm" value={`${textReference || '> 50'} ${units || ''}`} disabled style={{ width: '120px', fontSize: '0.75rem' }} />;
 			case 'textReference':
 				return (
@@ -114,13 +224,15 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 						style={{ fontSize: '0.8rem' }}
 					/>
 				);
+
 			case 'greaterLess':
+			case 'greaterLessEqualTo':
 				return (
 					<input
 						type="text"
 						className="form-control form-control-sm"
-						value={fieldState.reference || ''}
-						onChange={(e) => setFieldState({ ...fieldState, reference: e.target.value })}
+						value={fieldState.textReference || ''}
+						onChange={(e) => setFieldState({ ...fieldState, textReference: e.target.value })}
 						placeholder="e.g. > 10"
 					/>
 				);
@@ -285,7 +397,7 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 										</thead>
 										<tbody>
 											{/* Existing Fields */}
-											{data.map((field, index) => (
+											{Array.isArray(data) && data.length > 0 && data.map((field, index) => (
 												<tr key={field.name || index}>
 													<td>
 														{editingIndex === index ? (
@@ -363,7 +475,8 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 																{field.plan === 'limits' && ((field.lowerlimit || field.lowerLimit) || (field.upperlimit || field.upperLimit)) ? `${field.lowerlimit || field.lowerLimit || 0} - ${field.upperlimit || field.upperLimit || 0}` :
 																	field.plan === 'options' ? (Array.isArray(field.options) ? field.options.join(', ') : field.options || '-') :
 																		field.plan === 'textReference' ? (field.textReference || '-') :
-																			field.plan === 'greaterLess' ? (field.textReference || '-') : '-'}
+																			(field.plan === 'greaterLess' || field.plan === 'greaterLessEqualTo' || field.plan === 'time') ? (field.textReference || '-') : '-'}
+
 															</div>
 														)}
 													</td>

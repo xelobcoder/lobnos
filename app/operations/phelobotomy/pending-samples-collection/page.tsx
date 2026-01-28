@@ -5,6 +5,7 @@ import PhelobotomyMainPageClientModule from '../../../../components/phelobotomy/
 import { Container, Alert, Button, Spinner, Card, Offcanvas } from 'react-bootstrap';
 import { RiTestTubeLine, RiCalendarEventLine, RiSearchLine, RiRefreshLine, RiFilterOffLine, RiFilterLine } from '@remixicon/react';
 import { useSearchParams } from 'next/navigation';
+import dayjs from 'dayjs';
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
 const COLOR_BORDER = 'var(--bs-border-color)';
@@ -19,13 +20,10 @@ export default function PagePhelobotomy() {
     const url_end_date = useSearchParams()?.get('end_date') || '';
 
     const [selectedDate, setSelectedDate] = useState({
-        start_date: url_start_date || new Date().toISOString().split('T')[0],
-        end_date: url_end_date || new Date().toISOString().split('T')[0]
+        start_date: url_start_date || dayjs(new Date().toISOString()).format("YYYY-MM-DD"),
+        end_date: url_end_date || dayjs(new Date().toISOString()).format("YYYY-MM-DD")
     });
     const [showFilters, setShowFilters] = useState(false);
-
-
-
 
     const handleLoad = async () => {
         setLoading(true);

@@ -34,6 +34,7 @@ export async function middleware(request: NextRequest) {
         if (!isValid && !isLoginPage) {
             const response = NextResponse.redirect(new URL('/authentications/login', request.url));
             response.cookies.delete('PLS-SESSION');
+            response.cookies.delete('pls-prime-tenant-session');
             return response;
         }
 
@@ -49,15 +50,18 @@ export async function middleware(request: NextRequest) {
             // Check CRM access first
             if (currentPath.startsWith("/crm")) {
                 if (!["admin", "manager", "customer service representative"].includes(role.toString().toLowerCase().trim())) {
-                    console.log("Redirecting from CRM due to role:", role);
                     if (role == "sonographer") {
                         return NextResponse.redirect(new URL('/operations/imaging/ultrasound', request.url));
                     } else if (role == "scientist") {
                         return NextResponse.redirect(new URL('/operations/laboratory', request.url));
                     } else if (role == "storekeeper") {
                         return NextResponse.redirect(new URL('/inventory', request.url));
+                    } else {
+                        return NextResponse.next();
                     }
-                    else { return NextResponse.redirect(new URL('/unauthorized', request.url)) }
+
+                } else {
+                    return NextResponse.next();
                 }
             }
 
@@ -70,7 +74,8 @@ export async function middleware(request: NextRequest) {
 
             // Handle lab scientist access
             if (role === "scientist") {
-                if (!currentPath.startsWith('/operations/laboratory') && !currentPath.startsWith('/operations/phelobotomy') && !currentPath.startsWith('/phelobotomy') && !currentPath.startsWith('/operations/phlebotomy') && !currentPath.startsWith('/phlebotomy')) {
+                if (!currentPath.startsWith('/operations/laboratory') && !currentPath.startsWith('/operations/phelobotomy') &&
+                    !currentPath.startsWith('/phelobotomy') && !currentPath.startsWith('/operations/phlebotomy') && !currentPath.startsWith('/phlebotomy')) {
                     return NextResponse.redirect(new URL('/unauthorized', request.url));
                 }
                 return NextResponse.next();
@@ -86,16 +91,23 @@ export async function middleware(request: NextRequest) {
                     '/day-transaction-break-down',
                     '/commission-payments',
                     '/inventory/analytics',
+                    '/billing/expenses/invoices',
+                    '/billing/expenses/reversed-payments',
+                    '/billing/settings/night-adjustments',
                     '/operations/laboratory/auditlogs',
                     '/operations/laboratory/turnaroundtime',
-                    '/expenses/reversed-payments'
+                    '/expenses/reversed-payments',
+                    '/clinicians/commision-information',
+                    '/clinicians/commissions-payments-made',
+                    '/operations/laboratory/auditlogs'
                 ];
                 if (restrictedPaths.some(path => currentPath.startsWith(path))) {
                     return NextResponse.redirect(new URL('/unauthorized', request.url));
                 }
             }
 
-            if (!currentPath.startsWith('/inventory') && !["manager", "admin", "storekeeper"].includes(role)) {
+            // Only admin, manager, and storekeeper can access inventory
+            if (currentPath.startsWith('/inventory') && !["manager", "admin", "storekeeper"].includes(role)) {
                 return NextResponse.redirect(new URL('/unauthorized', request.url));
             }
 
@@ -105,12 +117,18 @@ export async function middleware(request: NextRequest) {
             }
 
             // Redirect /billing/expenses to /billing/expenses/expenselist for admin
-            if (
-                ['admin', 'manager'].includes(role.toString().toLowerCase().trim()) &&
+            if (['admin', 'manager'].includes(role.toString().toLowerCase().trim()) &&
                 currentPath === '/billing/expenses'
             ) {
                 return NextResponse.redirect(new URL('/billing/expenses/expenselist', request.url));
             }
+
+            // Add response headers to prevent caching of authenticated pages
+            const response = NextResponse.next();
+            response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate, private');
+            response.headers.set('Pragma', 'no-cache');
+            response.headers.set('Expires', '0');
+            return response;
         }
     }
 
@@ -129,10 +147,11 @@ export const config = {
         '/phlebotomy/:path*',
         '/crm/:path*',
         '/sales/:path*',
-        '/billing/billing-sessions/:path*',
         '/inventory/:path*',
         '/day-transaction-break-down',
-        '/commission-payments/:path*'
+        '/commission-payments/:path*',
+        '/clinicians/commision-information',
+        '/clinicians/commissions-payments-made'
     ]
 };
 

@@ -10,6 +10,7 @@ import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 import { toast } from 'react-toastify';
 import { plsEncryption } from '../../../lib/encryption';
 import { RiResetLeftFill } from '@remixicon/react';
+import dayjs from 'dayjs';
 
 interface Customer {
     patientid: string | number;
@@ -100,8 +101,8 @@ export default function Activator() {
 
 
     const columns = [
-                { Header: 'PatientID', accessor: 'fullpatientid' },
-        { Header: 'registered on', accessor: 'date', Cell: ({ value }) => { return <span>{parseDate(value)}</span> } },
+        { Header: 'PatientID', accessor: 'fullpatientid' },
+        { Header: 'registered on', accessor: 'date', Cell: ({ value }) => { return <span>{dayjs(value).format('YYYY-MM-DD HH:mm:ss')}</span> } },
         {
             Header: 'fullname', accessor: 'fullname', Cell: ({ value }) => <div className='text-capitalize'>{value}</div>,
             filteringMode: 'text'
@@ -119,6 +120,7 @@ export default function Activator() {
             Header: 'contact', accessor: 'contact',
             filteringMode: 'number'
         },
+        { Header: "registered By", accessor: "registeredbyusername" },
         // { Header: 'WhatsApp Contact', accessor: 'whatAppcontact' },
         // {
         //     Header: 'email', accessor: 'email',
@@ -158,6 +160,8 @@ export default function Activator() {
     const filteredPatient = (options) => {
         const hasPatientid = typeof options === "object" && options.hasOwnProperty('patientid');
         if (!hasPatientid) return;
+        const fullname = [options.firstname, options.middlename, options.lastname].filter(Boolean).join(' ');
+        options = { ...options, fullname };
         setStore([options])
     };
 

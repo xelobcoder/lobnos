@@ -42,6 +42,9 @@ interface ApplicationSettingsData {
 	withnessRefund: number;
 	AllowCrmToGiveDisocunt: number;
 	patientIdGenerationMethod: string;
+	allowResultEnteringUpaid: number,
+	allowValidationUpaid: number,
+	allowPrintingUnpaid: number
 }
 
 export default function ApplicationSettings() {
@@ -128,69 +131,47 @@ export default function ApplicationSettings() {
 			setLoading(true);
 			const response = await customFetch('applicationsettings');
 			if (response?.status === 'success' && response?.statusCode === 200) {
-			if (response.result) {
-				setSettings({
-					...response.result,
-					regioncode: response.result.regioncode ? response.result.regioncode.toString() : '',
-					districtcode: response.result.districtcode ? response.result.districtcode.toString() : '',
-				});
+				if (response.result) {
+					setSettings({
+						...response.result,
+						regioncode: response.result.regioncode ? response.result.regioncode.toString() : '',
+						districtcode: response.result.districtcode ? response.result.districtcode.toString() : '',
+					});
 				} else {
-				setSettings({
-					keyid: 1,
-					bulkregistration: 1,
-					fontsize: '14',
-					textcolor: 'black',
-					BackgroundColor: 'wheat',
-					DeactivateBilling24hrs: 0,
-					PaidBillsBeforeTransaction: 0,
-					completeFlow: 1,
-					approvalbeforeprinting: 1,
-					smsActivated: 0,
-					smsSettings: '{"result":"No","registration":"Yes","sample":"No","birthday":"No"}',
-					emailNotification: 0,
-					includeTax: 0,
-					patientIdPrefix: '',
-					fontFamily: '',
-					billingidPrefix: '',
-					services: '',
-					billingsettings: '{"hasNightAdjustment":true,"nightAdjustmentValue":"100","nightAdjustmentMode":"percentage","startTime":"01:00","endTime":"23:00"}',
-					regioncode: '1',
-					districtcode: '2',
-					withnessRefund: 0,
-					AllowCrmToGiveDisocunt: 0,
-					patientIdGenerationMethod: 'region'
-				});
+					setSettings({
+						keyid: 1,
+						bulkregistration: 1,
+						fontsize: '14',
+						textcolor: 'black',
+						BackgroundColor: 'wheat',
+						DeactivateBilling24hrs: 0,
+						PaidBillsBeforeTransaction: 0,
+						completeFlow: 1,
+						approvalbeforeprinting: 1,
+						smsActivated: 0,
+						smsSettings: '{"result":"No","registration":"Yes","sample":"No","birthday":"No"}',
+						emailNotification: 0,
+						includeTax: 0,
+						patientIdPrefix: '',
+						fontFamily: '',
+						billingidPrefix: '',
+						services: '',
+						billingsettings: '{"hasNightAdjustment":true,"nightAdjustmentValue":"100","nightAdjustmentMode":"percentage","startTime":"01:00","endTime":"23:00"}',
+						regioncode: '1',
+						districtcode: '2',
+						withnessRefund: 0,
+						AllowCrmToGiveDisocunt: 0,
+						patientIdGenerationMethod: 'region',
+						allowValidationUpaid: 0,
+						allowPrintingUnpaid: 0,
+						allowResultEnteringUpaid: 0
+					});
 				}
 			} else {
 				setError('Failed to fetch application settings');
 			}
 		} catch (err) {
-			// Use mock data if API fails
-			setSettings({
-				keyid: 1,
-				bulkregistration: 1,
-				fontsize: '14',
-				textcolor: 'black',
-				BackgroundColor: 'wheat',
-				DeactivateBilling24hrs: 0,
-				PaidBillsBeforeTransaction: 0,
-				completeFlow: 1,
-				approvalbeforeprinting: 1,
-				smsActivated: 0,
-				smsSettings: '{"result":"No","registration":"Yes","sample":"No","birthday":"No"}',
-				emailNotification: 0,
-				includeTax: 0,
-				patientIdPrefix: '',
-				fontFamily: '',
-				billingidPrefix: '',
-				services: '',
-				billingsettings: '{"hasNightAdjustment":true,"nightAdjustmentValue":"100","nightAdjustmentMode":"percentage","startTime":"01:00","endTime":"23:00"}',
-				regioncode: '',
-				districtcode: '',
-				withnessRefund: 0,
-				AllowCrmToGiveDisocunt: 0,
-				patientIdGenerationMethod: 'region'
-			});
+			console.log(err)
 		} finally {
 			setLoading(false);
 		}
@@ -246,85 +227,85 @@ export default function ApplicationSettings() {
 			districtcode: district ? district.id : null,
 		};
 
-	try {
-		setSaving(true);
-		setError(null);
-		const response = await customPost('applicationsettings', 'POST', payload);
-		if (response?.status === 'success' && response?.statusCode === 200) {
-			setSuccess(true);
-			setTimeout(() => setSuccess(false), 3000);
-		} else {
-			setError('Failed to update application settings');
+		try {
+			setSaving(true);
+			setError(null);
+			const response = await customPost('applicationsettings', 'POST', payload);
+			if (response?.status === 'success' && response?.statusCode === 200) {
+				setSuccess(true);
+				setTimeout(() => setSuccess(false), 3000);
+			} else {
+				setError('Failed to update application settings');
+			}
+		} catch (err) {
+			setError('Error updating application settings');
+		} finally {
+			setSaving(false);
 		}
-	} catch (err) {
-		setError('Error updating application settings');
-	} finally {
-		setSaving(false);
-	}
 	};
 
 	if (loading) return <Loader />;
 	if (!settings) return <div>No settings available. Error: {error}</div>;
 
-	 return (
-		 <div className="container-fluid p-4">
-			 <div className="d-flex justify-content-between align-items-center mb-4">
-				 <div>
-					 <h2 className="mb-1">
-						 <RiSettings4Line className="me-2" size={28} />
-						 Application Settings
-					 </h2>
-					 <p className="text-muted mb-0">Configure system-wide settings and preferences</p>
-				 </div>
-				 <Button
-					 type="submit"
-					 disabled={saving}
-					 variant="primary"
-					 className="d-flex align-items-center"
-					 onClick={handleSubmit}
-				 >
-					 <RiSaveLine size={18} className="me-2" />
-					 {saving ? "Saving Changes..." : "Save Changes"}
-				 </Button>
-			 </div>
+	return (
+		<div className="container-fluid p-4">
+			<div className="d-flex justify-content-between align-items-center mb-4">
+				<div>
+					<h2 className="mb-1">
+						<RiSettings4Line className="me-2" size={28} />
+						Application Settings
+					</h2>
+					<p className="text-muted mb-0">Configure system-wide settings and preferences</p>
+				</div>
+				<Button
+					type="submit"
+					disabled={saving}
+					variant="primary"
+					className="d-flex align-items-center"
+					onClick={handleSubmit}
+				>
+					<RiSaveLine size={18} className="me-2" />
+					{saving ? "Saving Changes..." : "Save Changes"}
+				</Button>
+			</div>
 
-			 {error && <Alert variant="danger" className="mb-4">{error}</Alert>}
-			 {success && <Alert variant="success" className="mb-4">Settings updated successfully!</Alert>}
+			{error && <Alert variant="danger" className="mb-4">{error}</Alert>}
+			{success && <Alert variant="success" className="mb-4">Settings updated successfully!</Alert>}
 
-			 <Form onSubmit={handleSubmit}>
-				 <div className="row mb-4">
-					 <div className="col-md-4">
-						 <Form.Group controlId="fontFamily">
-							 <Form.Label>Font Family</Form.Label>
-							 <Form.Select
-								 name="fontFamily"
-								 value={settings.fontFamily || ''}
-								 onChange={handleChange}
-							 >
-								 <option value="">Select font</option>
-								 {availableFonts.map(font => (
-									 <option key={font.value} value={font.value}>{font.name}</option>
-								 ))}
-							 </Form.Select>
-						 </Form.Group>
-					 </div>
-					 <div className="col-md-2">
-						 <Form.Group controlId="fontsize">
-							 <Form.Label>Font Size</Form.Label>
-							 <Form.Control
-								 type="number"
-								 name="fontsize"
-								 min={10}
-								 max={32}
-								 value={settings.fontsize || ''}
-								 onChange={handleChange}
-								 placeholder="Font size (px)"
-							 />
-						 </Form.Group>
-					 </div>
-				 </div>
-				 <BillingSettingsTab settings={settings} handleChange={handleChange} />
-			 </Form>
-		 </div>
-	 );
+			<Form onSubmit={handleSubmit}>
+				<div className="row mb-4">
+					<div className="col-md-4">
+						<Form.Group controlId="fontFamily">
+							<Form.Label>Font Family</Form.Label>
+							<Form.Select
+								name="fontFamily"
+								value={settings.fontFamily || ''}
+								onChange={handleChange}
+							>
+								<option value="">Select font</option>
+								{availableFonts.map(font => (
+									<option key={font.value} value={font.value}>{font.name}</option>
+								))}
+							</Form.Select>
+						</Form.Group>
+					</div>
+					<div className="col-md-2">
+						<Form.Group controlId="fontsize">
+							<Form.Label>Font Size</Form.Label>
+							<Form.Control
+								type="number"
+								name="fontsize"
+								min={10}
+								max={32}
+								value={settings.fontsize || ''}
+								onChange={handleChange}
+								placeholder="Font size (px)"
+							/>
+						</Form.Group>
+					</div>
+				</div>
+				<BillingSettingsTab settings={settings} handleChange={handleChange} />
+			</Form>
+		</div>
+	);
 }

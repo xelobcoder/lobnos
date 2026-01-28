@@ -3,6 +3,7 @@ import Barcode from 'react-barcode';
 export default function UseResultEntryScientist({ validators, resultentry, useIndividualValidation, enteredOn, resultsettings, lastupdatedon, patientid, billingid, ascensionid, showBarcode = true }) {
 	const barcodeValue = billingid && ascensionid && patientid ? `${billingid}-${ascensionid}-${patientid}` : patientid || billingid || ascensionid;
 	const includeBarcode = resultsettings?.includeBarcode;
+	console.log({validators,useIndividualValidation})
 
 	return (
 		<div className="report-container">

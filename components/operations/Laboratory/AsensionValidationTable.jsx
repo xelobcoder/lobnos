@@ -23,6 +23,7 @@ export default function ValidationAscensionTable({ employeeid }) {
 	const { branchid } = useApplication();
 	const [selectedRows, setSelectedRows] = useState(new Set());
 	const [isBulkValidating, setIsBulkValidating] = useState(false);
+	const { settings } = useApplication();
 	const [groupByPatient, setGroupByPatient] = useState(true);
 
 	const viewResultHandler = (item) => {
@@ -30,13 +31,23 @@ export default function ValidationAscensionTable({ employeeid }) {
 	};
 
 	const handleActionClick = (doc) => {
-		setSelectedAscension(doc);
-		setIsValidationModalOpened(true);
+		if (Array.isArray(doc) && doc.length > 0) {
+			const filterPaidCollection = doc.filter(item => settings?.allowValidationUpaid === 1 || item.paymentstatus === 'paid');
+			if (filterPaidCollection.length === 0) {
+				alert('No tests available for validation. Please ensure at least one test is paid or unpaid test validation is allowed in settings.');
+				return;
+			}
+			setSelectedAscension(filterPaidCollection[0]);
+			setIsBulkValidating(true);
+			setIsValidationModalOpened(true);
+			return;
+		}
 	};
 
 	const handleCloseModal = (ascensionid) => {
 		setIsValidationModalOpened(false);
 		setSelectedAscension(null);
+		setIsBulkValidating(false);
 		if (ascensionid) {
 			const prev = collection.filter((item, index) => item.ascensionid != ascensionid)
 			setCollection(prev);
@@ -56,10 +67,11 @@ export default function ValidationAscensionTable({ employeeid }) {
 	};
 
 	const handleSelectAll = () => {
-		if (selectedRows.size === collection.length) {
+		const filterPaidCollection = collection.filter(item => settings?.allowValidationUpaid === 1 || item.paymentstatus === 'paid');
+		if (selectedRows.size === filterPaidCollection.length) {
 			setSelectedRows(new Set());
 		} else {
-			setSelectedRows(new Set(collection.map(item => item.ascensionid)));
+			setSelectedRows(new Set(filterPaidCollection.map(item => item.ascensionid)));
 		}
 	};
 
@@ -79,7 +91,6 @@ export default function ValidationAscensionTable({ employeeid }) {
 		PrepareResultEntryHeader(row, false, branchid);
 	}
 
-	// Group data by patient ID and billing ID
 	const groupDataByPatient = (data) => {
 		const grouped = {};
 		data.forEach(item => {
@@ -109,7 +120,7 @@ export default function ValidationAscensionTable({ employeeid }) {
 
 	const columns = [
 		{ Header: "Fullname", accessor: "fullname", width: 150, Cell: ({ value, row }) => <div className="text-uppercase">{value}<br />{row.original.age}</div> },
-		{ Header: "Patient ID", accessor: "fullpatientid", width: 60 },
+		{ Header: "Patient ID(Bill Id)", accessor: "fullpatientid", width: 60 , Cell: ({ row }) => <div><strong>{row.original.fullpatientid || row.original.patientid}</strong><br />{row.original.billingid}</div>},
 		{ Header: "Test Name", accessor: "name", width: 150 },
 		{
 			Header: "Processing", accessor: "processing", width: 150,
@@ -158,11 +169,14 @@ export default function ValidationAscensionTable({ employeeid }) {
 				<div className="d-flex align-items-center gap-2">
 					<input
 						type="checkbox"
+						disabled={settings?.allowValidationUpaid !== 1 && row.original.paymentstatus !== 'paid'}
 						checked={selectedRows.has(row.original.ascensionid)}
 						onChange={() => handleRowSelection(row.original.ascensionid)}
 						style={{ cursor: 'pointer' }}
 					/>
 					<ActionDropdown
+						allowValidationUpaid={settings?.allowValidationUpaid}
+						paymentstatus={row.original.paymentstatus}
 						onValidate={() => handleActionClick(row.original)}
 						onViewResult={() => viewResultHandler(row.original)}
 						onNavigate={() => { onNavigate(row.original) }}
@@ -214,13 +228,37 @@ export default function ValidationAscensionTable({ employeeid }) {
 			Cell: ({ row }) => (
 				<button
 					className="btn btn-sm btn-primary"
-					onClick={() => handleActionClick(row.original.tests[0])}
+					onClick={() => handleActionClick(row.original.tests)}
 				>
 					View Details
 				</button>
 			)
 		}
 	];
+
+
+	const urlparams = {
+		_dateFrom: queryParams._dateFrom,
+		searchString: queryParams.searchString,
+		_dateEnd: queryParams._dateEnd,
+		isUltrasound: queryParams.isUltrasound,
+		employeeid, ascension_stage: 'VALIDATION',
+		category: groupByPatient ? 'grouped' : 'ungrouped'
+	}
+
+
+	const handleServerSide = async (pagination) => {
+		const response = await handleServerSideProcessingAscensionData(pagination);
+		const { result, error } = response;
+		if (Array.isArray(result) && !error && result.length > 0) {
+			return { result: groupDataByPatient(result), error };
+		} else if (Array.isArray(result) && !error) {
+			return { result: [], error };
+		} else {
+			return { result, error };
+		}
+	}
+
 
 	const groupedData = groupByPatient ? groupDataByPatient(collection) : collection;
 
@@ -230,7 +268,11 @@ export default function ValidationAscensionTable({ employeeid }) {
 		<div >
 			<Tabs
 				activeKey={groupByPatient ? "grouped" : "ungrouped"}
-				onSelect={(k) => setGroupByPatient(k === "grouped")}
+				onSelect={(k) => {
+					setGroupByPatient(k === "grouped")
+					const currenturl = `/operations/laboratory/validation?category=${k === "grouped" ? "grouped" : "ungrouped"}&employeeid=${employeeid}`;
+					window.history.replaceState(null, '', currenturl);
+				}}
 				className="mb-3"
 			>
 				<Tab eventKey="grouped" title={`Grouped View (${groupByPatient ? groupedData.length : 0})`} />
@@ -260,16 +302,13 @@ export default function ValidationAscensionTable({ employeeid }) {
 				)}
 			</div>
 			{groupByPatient ? (
-				<PrimeTable column={groupedColumns} data={groupedData} />
+				<PrimeTable column={groupedColumns} data={groupedData} urlparams={urlparams}
+					serverSideFiltering={true}
+					handleSeverSideProcessing={handleServerSide}
+				/>
 			) : (
 				<PrimeTable column={columns} data={collection}
-					urlparams={{
-						_dateFrom: queryParams._dateFrom,
-						searchString: queryParams.searchString,
-						_dateEnd: queryParams._dateEnd,
-						isUltrasound: queryParams.isUltrasound,
-						employeeid, ascension_stage: 'VALIDATION'
-					}}
+					urlparams={urlparams}
 					serverSideFiltering={true}
 					handleSeverSideProcessing={handleServerSideProcessingAscensionData}
 				/>
