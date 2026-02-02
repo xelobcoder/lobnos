@@ -17,7 +17,7 @@ const ActionDropdown = ({
         Validate <RiCheckLine size="16" className="ms-2" />
       </Button>
       <Button variant="outline-primary" onClick={onNavigate}>
-        Update Result <RiEyeLine size="16" className="ms-2" />
+        Update  <RiEyeLine size="16" className="ms-2" />
       </Button>
     </ButtonGroup>
   );

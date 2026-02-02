@@ -92,14 +92,19 @@ export default function PayrollOverviewPage() {
      };
 
      const {
+          financial_kpis,
           compensation_distribution: compensation,
           attendance_summary: attendance,
           payment_methods: paymentMethods,
           overtime_metrics: overtimeMetrics,
+          payroll_trend: trend,
+          top_earners: topEarners,
+          attendance_compliance: attendanceCompliance,
      } = analyticsData || {};
 
-     const totalBasicSalary = compensation?.reduce((sum: number, c: any) => sum + parseFloat(c.total_basic_salary || 0), 0) || 0;
-     const totalEmployees = compensation?.reduce((sum: number, c: any) => sum + parseInt(c.employee_count || 0), 0) || 0;
+     const totalBasicSalary = financial_kpis?.total_gross_payroll || 0;
+     const totalNetPayroll = financial_kpis?.total_net_payroll || 0;
+     const totalEmployees = financial_kpis?.total_employees || 0;
      const totalOvertimeHours = overtimeMetrics?.reduce((sum: number, o: any) => sum + parseFloat(o.total_overtime_hours || 0), 0) || 0;
      const totalAttendanceRecords = attendance?.reduce((sum: number, a: any) => sum + parseInt(a.record_count || 0), 0) || 0;
 
@@ -122,7 +127,7 @@ export default function PayrollOverviewPage() {
                          <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex align-items-center mb-2">
                                    <RiMoneyDollarCircleLine size={20} className="me-2 text-primary" />
-                                   <span className="fw-medium text-muted small">Total Basic Salary</span>
+                                   <span className="fw-medium text-muted small">Gross Payroll</span>
                               </div>
                               <div className="fs-5 fw-bold">
                                    {loading ? '...' : currencyFormatter.format(totalBasicSalary)}
@@ -133,30 +138,30 @@ export default function PayrollOverviewPage() {
                     <div className="col-md-3">
                          <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex align-items-center mb-2">
-                                   <RiUserLine size={20} className="me-2 text-success" />
+                                   <RiCheckboxCircleLine size={20} className="me-2 text-success" />
+                                   <span className="fw-medium text-muted small">Net Payroll</span>
+                              </div>
+                              <div className="fs-5 fw-bold">{loading ? '...' : currencyFormatter.format(totalNetPayroll)}</div>
+                              <div className="small text-muted">After deductions</div>
+                         </div>
+                    </div>
+                    <div className="col-md-3">
+                         <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <div className="d-flex align-items-center mb-2">
+                                   <RiUserLine size={20} className="me-2 text-warning" />
                                    <span className="fw-medium text-muted small">Total Employees</span>
                               </div>
                               <div className="fs-5 fw-bold">{loading ? '...' : totalEmployees}</div>
-                              <div className="small text-muted">With compensation</div>
+                              <div className="small text-muted">Active in period</div>
                          </div>
                     </div>
                     <div className="col-md-3">
                          <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex align-items-center mb-2">
-                                   <RiTimeLine size={20} className="me-2 text-warning" />
-                                   <span className="fw-medium text-muted small">Total Overtime Hours</span>
+                                   <RiTimeLine size={20} className="me-2 text-info" />
+                                   <span className="fw-medium text-muted small">Overtime Hours</span>
                               </div>
                               <div className="fs-5 fw-bold">{loading ? '...' : totalOvertimeHours.toFixed(1)}</div>
-                              <div className="small text-muted">Last 3 months</div>
-                         </div>
-                    </div>
-                    <div className="col-md-3">
-                         <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                              <div className="d-flex align-items-center mb-2">
-                                   <RiCheckboxCircleLine size={20} className="me-2 text-info" />
-                                   <span className="fw-medium text-muted small">Attendance Records</span>
-                              </div>
-                              <div className="fs-5 fw-bold">{loading ? '...' : totalAttendanceRecords}</div>
                               <div className="small text-muted">Last 3 months</div>
                          </div>
                     </div>
@@ -165,6 +170,76 @@ export default function PayrollOverviewPage() {
                {/* Analytics Summary */}
                {!loading && analyticsData && (
                     <div className="row g-3 mb-4">
+                         {/* Attendance Summary */}
+                         {attendance && attendance.length > 0 && (
+                              <div className="col-md-6">
+                                   <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                        <h6 className="fw-bold mb-3">Attendance Summary</h6>
+                                        <div className="table-responsive">
+                                             <table className="table table-sm table-hover text-start mb-0">
+                                                  <thead>
+                                                       <tr>
+                                                            <th className="text-start">Status</th>
+                                                            <th className="text-end">Records</th>
+                                                            <th className="text-end">Employees</th>
+                                                       </tr>
+                                                  </thead>
+                                                  <tbody>
+                                                       {attendance.map((att: any, idx: number) => (
+                                                            <tr key={idx}>
+                                                                 <td className="text-start text-capitalize">{att.status}</td>
+                                                                 <td className="text-end">{att.record_count}</td>
+                                                                 <td className="text-end">{att.unique_employees}</td>
+                                                            </tr>
+                                                       ))}
+                                                  </tbody>
+                                             </table>
+                                        </div>
+                                        {attendanceCompliance && (
+                                             <div className="mt-3 pt-3 border-top small">
+                                                  <div className="d-flex justify-content-between mb-2">
+                                                       <span className="text-muted">Attendance Rate:</span>
+                                                       <span className="fw-bold text-success">{attendanceCompliance.attendance_rate?.toFixed(1)}%</span>
+                                                  </div>
+                                                  <div className="d-flex justify-content-between">
+                                                       <span className="text-muted">Lateness Rate:</span>
+                                                       <span className="fw-bold text-warning">{attendanceCompliance.lateness_rate?.toFixed(1)}%</span>
+                                                  </div>
+                                             </div>
+                                        )}
+                                   </div>
+                              </div>
+                         )}
+
+                         {/* Payroll Trend */}
+                         {trend && trend.length > 0 && (
+                              <div className="col-md-6">
+                                   <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                        <h6 className="fw-bold mb-3">Payroll Trend</h6>
+                                        <div className="table-responsive">
+                                             <table className="table table-sm table-hover text-start mb-0">
+                                                  <thead>
+                                                       <tr>
+                                                            <th className="text-start">Period</th>
+                                                            <th className="text-end">Gross</th>
+                                                            <th className="text-end">Net</th>
+                                                       </tr>
+                                                  </thead>
+                                                  <tbody>
+                                                       {trend.map((t: any, idx: number) => (
+                                                            <tr key={idx}>
+                                                                 <td className="text-start small">{t.period_name}</td>
+                                                                 <td className="text-end small">{currencyFormatter.format(t.gross_salary)}</td>
+                                                                 <td className="text-end small">{currencyFormatter.format(t.net_salary)}</td>
+                                                            </tr>
+                                                       ))}
+                                                  </tbody>
+                                             </table>
+                                        </div>
+                                   </div>
+                              </div>
+                         )}
+
                          {/* Payment Methods */}
                          {paymentMethods && paymentMethods.length > 0 && (
                               <div className="col-md-6">
@@ -214,6 +289,35 @@ export default function PayrollOverviewPage() {
                                                                  <td className="text-start text-capitalize">{comp.compensation_type}</td>
                                                                  <td className="text-end">{comp.employee_count}</td>
                                                                  <td className="text-end">{currencyFormatter.format(comp.total_basic_salary)}</td>
+                                                            </tr>
+                                                       ))}
+                                                  </tbody>
+                                             </table>
+                                        </div>
+                                   </div>
+                              </div>
+                         )}
+
+                         {/* Top Earners */}
+                         {topEarners && topEarners.length > 0 && (
+                              <div className="col-md-6">
+                                   <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                        <h6 className="fw-bold mb-3">Top Earners</h6>
+                                        <div className="table-responsive">
+                                             <table className="table table-sm table-hover text-start mb-0">
+                                                  <thead>
+                                                       <tr>
+                                                            <th className="text-start">Employee</th>
+                                                            <th className="text-end">Gross Salary</th>
+                                                            <th className="text-end">Net Salary</th>
+                                                       </tr>
+                                                  </thead>
+                                                  <tbody>
+                                                       {topEarners.map((earner: any, idx: number) => (
+                                                            <tr key={idx}>
+                                                                 <td className="text-start small">{earner.username}</td>
+                                                                 <td className="text-end small">{currencyFormatter.format(earner.total_gross_salary)}</td>
+                                                                 <td className="text-end small">{currencyFormatter.format(earner.total_net_salary)}</td>
                                                             </tr>
                                                        ))}
                                                   </tbody>

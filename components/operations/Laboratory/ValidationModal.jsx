@@ -8,18 +8,20 @@ import { customFetch, customPost, getResultEntrySettings, ResultEntrydefaultData
 import { useApplicationSettings } from "../../Auth/useApplicationContext";
 import { getAscensionStaffApproved } from "./Lib";
 
+
 const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
      const { employeeid, role } = useApplicationSettings().applicationsettings.user;
      const [resultSettings, setResultSettings] = useState(ResultEntrydefaultData);
      const [staff, setStaff] = useState([]);
      const [pinValue, setPin] = useState('');
-     const [sucessfulValidation, setSuccessfulValidation] = useState(null);
+     const [successfulValidation, setSuccessfulValidation] = useState(null);
      const [isApproved, setIsApproved] = useState(false);
      const [isMobile, setIsMobile] = useState(window.innerWidth > 768);
      const [isPinValidated, setIsPinValidated] = useState(false);
      const [validatingSpinner, setValidatingSpinner] = useState(false);
      const ascensions = Array.isArray(selectedAscension) ? selectedAscension : [selectedAscension];
-     // Remove Bootstrap Toast state, use react-toastify
+
+
 
      useEffect(() => {
           const handleResize = () => setIsMobile(window.innerWidth > 768);
@@ -94,14 +96,14 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
 
                     if (allSuccess) {
                          toast.success(`All ${ascensions.length} tests validated successfully`);
-                         setSuccessfulValidation(true);
-                         onClose();
+                         const successfulValidation = selectedAscension.map(a => a.ascensionid);
+                         onClose(successfulValidation);
+                         setSuccessfulValidation(successfulValidation);
                     } else {
                          const failedCount = results.filter(r => r.status !== true).length;
                          toast.error(`${failedCount} test(s) failed validation`);
                     }
                } catch (error) {
-                    console.error("Error in bulk validation:", error);
                     toast.error("Error during bulk validation");
                } finally {
                     setValidatingSpinner(false);
@@ -128,7 +130,7 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
      };
 
      return (
-          <Modal show={show} onHide={onClose} size='xl' backdrop={false}>
+          <Modal show={show} onHide={() => onClose(successfulValidation)} size='xl' backdrop={false}>
                <Modal.Header closeButton className="fw-bold bg-secondary-subtle">
                     <Modal.Title>{isBulk ? `Bulk Validation (${ascensions.length} tests)` : 'Result Validation'}</Modal.Title>
                </Modal.Header>
@@ -160,13 +162,33 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
                     ) : (
                          <div>
                               <h6 className="mb-3">Validating {ascensions.length} tests with a single PIN:</h6>
-                              <ListGroup className="mb-3">
-                                   {ascensions.map((asc, idx) => (
-                                        <ListGroup.Item key={idx} className="text-capitalize">
-                                             <small><strong>{idx + 1}.</strong> {asc.fullname} - {asc.name}</small>
-                                        </ListGroup.Item>
-                                   ))}
-                              </ListGroup>
+                              {Array.isArray(ascensions) && ascensions.length > 0 && ascensions.map((asc, idx) => (
+                                   <div key={idx} className="mb-4 p-3 border rounded">
+                                        <h6 className="mb-3 fw-bold"><strong>{idx + 1}.</strong> {asc.fullname} - {asc.name}</h6>
+                                        <PreviewPatientInformation patientid={asc.patientid} />
+                                        <h5 className="mt-3"></h5>
+                                        <div style={{ overflowX: 'auto' }} className="my-3">
+                                             <UseCustomResultTemplating
+                                                  isResultView={false}
+                                                  testid={asc.id}
+                                                  patientid={asc.patientid}
+                                                  test={asc.test || ""}
+                                                  billingid={asc.billingid}
+                                             />
+                                        </div>
+                                        <ListGroup>
+                                             <ListGroup.Item className="bg-secondary-subtle fw-bold">Comments</ListGroup.Item>
+                                             <ListGroup.Item>
+                                                  <UseResultCommentSingle
+                                                       patientid={asc.patientid}
+                                                       testid={asc.id}
+                                                       billingid={asc.billingid}
+                                                  />
+                                             </ListGroup.Item>
+                                        </ListGroup>
+                                        {idx < ascensions.length - 1 && <hr className="my-3" />}
+                                   </div>
+                              ))}
                          </div>
                     )}
                     <ListGroup>
@@ -210,7 +232,7 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
                     )}
                </Modal.Body>
                <Modal.Footer>
-                    <Button variant="secondary" onClick={(ev) => { onClose(sucessfulValidation) }}>Close</Button>
+                    <Button variant="secondary" onClick={(ev) => { onClose(successfulValidation) }}>Close</Button>
                     <Button variant="primary" onClick={handleSaveValue} disabled={isBulk ? !isApproved || !pinValue : !isPinValidated}>{isBulk ? 'Validate All' : 'Validate'}</Button>
                </Modal.Footer>
           </Modal>

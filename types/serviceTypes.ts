@@ -17,6 +17,9 @@ export interface Service {
   clinicianId: number;
   organizationId: number;
   registrationType: string;
+  isDeleted: number;
+  deletedAt: string | null;
+  deletedBy: number | null;
   branchid: number;
   isoutsourced: number;
   outsourceid: number | null;

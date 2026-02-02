@@ -46,7 +46,7 @@ function MultiBillingLayoutContent() {
     const role = useApplication().user?.role
     const context = useContext(MultiBillingContext);
     if (!context) throw new Error("MultiBillingContext not found");
-    const { billingdata, setBillingData } = context;
+    const { billingdata, setBillingData, recalculateTotalBill } = context;
     const router = useRouter();
     const patientId = useParams()?.patientid;
     const [specialCodeError, setSpecialCodeError] = useState("");
@@ -194,7 +194,6 @@ function MultiBillingLayoutContent() {
 
 
 
-
     // Backend-driven billing: load all info from backend
     const loadBackendBilling = async () => {
         const includeServices = useServices;
@@ -277,24 +276,23 @@ function MultiBillingLayoutContent() {
                 return;
             }
 
-            setBillingData(prev => {
-                // If backend entitytype is different from current, update URL and billingSource
-                let updated = {
-                    ...prev,
+
+             let updated = {
+                    ...billingdata,
                     ...backendData,
-                    previousRecordsSummary: prev.previousRecordsSummary,
-                    entityId: backendData.entityId ?? prev.entityId,
-                    entitytype: backendData.entityType ?? prev.entitytype,
-                    patientid: backendData.patientId ?? prev.patientid,
-                    billingSource: backendData.billingSource ?? prev.billingSource,
+                    previousRecordsSummary: billingdata.previousRecordsSummary,
+                    entityId: backendData.entityId ?? billingdata.entityId,
+                    entitytype: backendData.entityType ?? billingdata.entitytype,
+                    patientid: backendData.patientId ?? billingdata.patientid,
+                    billingSource: backendData.billingSource ?? billingdata.billingSource,
                     includeServices: backendData.includeServices ?? includeServices,
                     servicesList: includeServices ? backendData.servicesList || servicesList : [],
-                    payments: prev.payments || [],
+                    payments: billingdata.payments || [],
                     cart: backendData.isPackageUsed ? backendData.testList : [],
                     ispricingcheckout
                 };
-                if (backendData.entityType && backendData.entityType !== prev.entitytype) {
-                    // Update URL to reflect new entitytype and billingSource
+
+                  if (backendData.entityType && backendData.entityType !== billingdata.entitytype) {
                     const entityTypeToBillingSource = {
                         general: 1,
                         organization: 2,
@@ -302,13 +300,13 @@ function MultiBillingLayoutContent() {
                         nhis: 4,
                         clinician: 6,
                     };
+
                     const newSource = entityTypeToBillingSource[backendData.entityType.toLowerCase()];
                     const path = window.location.pathname.split('/');
 
                     if (!isNaN(Number(path[path.length - 1]))) {
                         path[path.length - 1] = String(newSource);
                         const queryParams = new URLSearchParams(window.location.search);
-                        // Only update these three, keep all others
                         queryParams.set('entitytype', backendData.entityType);
                         if (backendData.entityname) {
                             queryParams.set('entityname', backendData.entityname);
@@ -325,8 +323,60 @@ function MultiBillingLayoutContent() {
                     updated.billingSource = newSource;
                     updated.entitytype = backendData.entityType;
                 }
-                return updated;
-            });
+                setBillingData(updated);
+            // setBillingData(prev => {
+            //     let updated = {
+            //         ...prev,
+            //         ...backendData,
+            //         previousRecordsSummary: prev.previousRecordsSummary,
+            //         entityId: backendData.entityId ?? prev.entityId,
+            //         entitytype: backendData.entityType ?? prev.entitytype,
+            //         patientid: backendData.patientId ?? prev.patientid,
+            //         billingSource: backendData.billingSource ?? prev.billingSource,
+            //         includeServices: backendData.includeServices ?? includeServices,
+            //         servicesList: includeServices ? backendData.servicesList || servicesList : [],
+            //         payments: prev.payments || [],
+            //         cart: backendData.isPackageUsed ? backendData.testList : [],
+            //         ispricingcheckout
+            //     };
+            //     if (backendData.entityType && backendData.entityType !== prev.entitytype) {
+            //         const entityTypeToBillingSource = {
+            //             general: 1,
+            //             organization: 2,
+            //             insurance: 3,
+            //             nhis: 4,
+            //             clinician: 6,
+            //         };
+
+            //         const newSource = entityTypeToBillingSource[backendData.entityType.toLowerCase()];
+            //         const path = window.location.pathname.split('/');
+
+            //         if (!isNaN(Number(path[path.length - 1]))) {
+            //             path[path.length - 1] = String(newSource);
+            //             const queryParams = new URLSearchParams(window.location.search);
+            //             queryParams.set('entitytype', backendData.entityType);
+            //             if (backendData.entityname) {
+            //                 queryParams.set('entityname', backendData.entityname);
+            //             } else {
+            //                 queryParams.delete('entityname');
+            //             }
+            //             if (backendData.entityId) {
+            //                 queryParams.set('entityid', backendData.entityId);
+            //             } else {
+            //                 queryParams.delete('entityid');
+            //             }
+            //             window.history.replaceState({}, '', `${path.join('/')}?${queryParams.toString()}`);
+            //         }
+            //         updated.billingSource = newSource;
+            //         updated.entitytype = backendData.entityType;
+            //     }
+            //     return updated;
+            // });
+
+
+               if (billingdata.cart && billingdata.cart.length > 0 && billingdata.isPackageUsed) {
+            recalculateTotalBill(updated);
+        }
         } catch (err) {
             setBackendError('Failed to load billing data from backend.');
         } finally {

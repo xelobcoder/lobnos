@@ -9,20 +9,21 @@ import dayjs from "dayjs";
 import { Tabs, Tab } from 'react-bootstrap';
 import { useState } from 'react';
 import ResultEntryComponent from "../ViewTwoResultEntry/ResultEntryComponent";
+import { useApplication } from "../../Auth/useApplicationContext";
+
 
 
 export default function AscentionCompletedTable({ employeeid, branchid }) {
-	const {
-		isLoading,
-		collection,
-		queryParams
-	} = useLaboratoryContext();
+	const { isLoading, collection, queryParams ,setCollection} = useLaboratoryContext();
 	const [groupByPatient, setGroupByPatient] = useState(true);
 	const [showModal, setShowModal] = useState(false);
 	const [selectedGroupTests, setSelectedGroupTests] = useState(null);
 	const [operations, setOperations] = useState({});
 	const [pin, setPin] = useState("");
 	const [isPinValid, setIsPinValid] = useState(false);
+	const applicationSettings = useApplication();
+	const appsettings = applicationSettings?.settings || {};
+	const allowResultEnteringUpaid = appsettings?.allowResultEnteringUnpaid && allowResultEnteringUpaid == 1 ? true : false;
 
 	const columns = [
 		{
@@ -62,12 +63,22 @@ export default function AscentionCompletedTable({ employeeid, branchid }) {
 			Cell: ({ row }) => fnTiming(row.original),
 		},
 		{
+			Header: 'Payment status',
+			accessor: 'paymentstatus',
+			Cell: ({ row }) => (
+				<span className={`text-capitalize ${row.original.paymentstatus === 'paid' ? 'bg-success text-white' : 'bg-danger text-white'} p-4`}>
+					{row.original.paymentstatus || 'N/A'}
+				</span>
+			)
+		},
+		{
 			Header: 'Action',
 			accessor: 'action',
 			Cell: ({ row }) => (
 				<Button
 					variant="outline-success"
 					size="sm"
+					disabled={!allowResultEnteringUpaid && row.original.paymentstatus !== 'paid'}
 					className="p-1"
 					onClick={() => PrepareResultEntryHeader(row.original, false, branchid)}
 				>
@@ -186,11 +197,13 @@ export default function AscentionCompletedTable({ employeeid, branchid }) {
 		}
 	}
 
+
+
 	const groupedData = groupByPatient ? groupDataByPatient(collection) : collection;
 
-	if (isLoading) {
-		return <div className="text-center heightedBorder p-2 bg-secondary-subtle">Loading .......................</div>;
-	}
+	if (isLoading) return <div className="text-center heightedBorder p-2 bg-secondary-subtle">Loading .......................</div>;
+
+
 
 	return (
 		<div className="container-fluid p-2">
@@ -203,7 +216,35 @@ export default function AscentionCompletedTable({ employeeid, branchid }) {
 				<Tab eventKey="ungrouped" title={`Individual Records (${!groupByPatient ? collection.length : 0})`} />
 			</Tabs>
 			{groupByPatient ? (
-				<PrimeTable column={groupedColumns} data={groupedData} />
+				<PrimeTable
+					column={groupedColumns}
+					urlparams={{
+						_dateFrom: queryParams._dateFrom,
+						searchString: queryParams.searchString,
+						_dateEnd: queryParams._dateEnd,
+						isUltrasound: queryParams.isUltrasound,
+						employeeid, ascension_stage: 'COMPLETED',
+						grouped: "grouped"
+					}}
+					data={groupedData}
+					handleSeverSideProcessing={async (pagination) => {
+						try {
+							const { result } = await handleServerSideProcessingAscensionData(pagination)
+							if (result && Array.isArray(result)) {
+setCollection(result);
+								return {
+									result: groupDataByPatient(result),
+									error: false
+								};
+								
+							}
+							return { result: [], error: false };
+						} catch (error) {
+							return { result: [], error: true };
+						}
+					}}
+					serverSideFiltering={true}
+				/>
 			) : (
 				<PrimeTable column={columns}
 					data={collection}
@@ -240,6 +281,7 @@ export default function AscentionCompletedTable({ employeeid, branchid }) {
 											<th>ASCENSION ID</th>
 											<th>ASCENSION DATE</th>
 											<th>TIMING</th>
+											<th>PAYMENT STATUS</th>
 											<th>ACTION</th>
 										</tr>
 									</thead>
@@ -250,11 +292,15 @@ export default function AscentionCompletedTable({ employeeid, branchid }) {
 												<td>{test.ascensionid}</td>
 												<td >{dayjs(test.ascension_date).format('DD-MM-YYYY hh:mm:ss')}</td>
 												<td className="p-3 text-sm">{fnTiming(test)}</td>
+												<td className={` text-capitalize ${test.paymentstatus === 'paid' ? 'text-success' : 'text-danger'} `}>
+													{test.paymentstatus}
+												</td>
 												<td>
 													<span className="d-flex">
 														<Button
 															variant="outline-success"
 															size="sm"
+															disabled={!allowResultEnteringUpaid && test.paymentstatus !== 'paid'}
 															className="p-1"
 															onClick={() => {
 
@@ -312,6 +358,7 @@ export default function AscentionCompletedTable({ employeeid, branchid }) {
 														<Button
 															variant="primary"
 															size="sm"
+															disabled={!allowResultEnteringUpaid && test.paymentstatus !== 'paid'}
 															className="mx-2"
 															onClick={(ev) => {
 																PrepareResultEntryHeader(test, false, branchid);

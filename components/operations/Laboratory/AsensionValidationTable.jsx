@@ -37,22 +37,39 @@ export default function ValidationAscensionTable({ employeeid }) {
 				alert('No tests available for validation. Please ensure at least one test is paid or unpaid test validation is allowed in settings.');
 				return;
 			}
-			setSelectedAscension(filterPaidCollection[0]);
+			setSelectedAscension(filterPaidCollection);
 			setIsBulkValidating(true);
 			setIsValidationModalOpened(true);
 			return;
 		}
+
+
+		if (!Array.isArray(doc) && doc) {
+			setSelectedAscension(doc);
+			setIsBulkValidating(false);
+			setIsValidationModalOpened(true);
+		}
 	};
+
 
 	const handleCloseModal = (ascensionid) => {
 		setIsValidationModalOpened(false);
 		setSelectedAscension(null);
 		setIsBulkValidating(false);
-		if (ascensionid) {
-			const prev = collection.filter((item, index) => item.ascensionid != ascensionid)
-			setCollection(prev);
+		if (Array.isArray(ascensionid)) {
+			const updatedCollection = collection.filter(item => {
+				return !ascensionid.includes(item.ascensionid);
+			});
+			setCollection(updatedCollection);
+		} else if (ascensionid) {
+			const updatedCollection = collection.filter(item => item.ascensionid !== ascensionid);
+			setCollection(updatedCollection);
+		} else {
+			// No action needed if null
 		}
 	};
+
+
 
 	const handleRowSelection = (ascensionid) => {
 		setSelectedRows(prev => {
@@ -120,7 +137,7 @@ export default function ValidationAscensionTable({ employeeid }) {
 
 	const columns = [
 		{ Header: "Fullname", accessor: "fullname", width: 150, Cell: ({ value, row }) => <div className="text-uppercase">{value}<br />{row.original.age}</div> },
-		{ Header: "Patient ID(Bill Id)", accessor: "fullpatientid", width: 60 , Cell: ({ row }) => <div><strong>{row.original.fullpatientid || row.original.patientid}</strong><br />{row.original.billingid}</div>},
+		{ Header: "Patient ID(Bill Id)", accessor: "fullpatientid", width: 60, Cell: ({ row }) => <div><strong>{row.original.fullpatientid || row.original.patientid}</strong><br />{row.original.billingid}</div> },
 		{ Header: "Test Name", accessor: "name", width: 150 },
 		{
 			Header: "Processing", accessor: "processing", width: 150,
@@ -138,12 +155,12 @@ export default function ValidationAscensionTable({ employeeid }) {
 		{ Header: "Department", accessor: "department", width: 120 },
 		{ Header: "Clinician", accessor: "clinicianName", width: 120, Cell: ({ value }) => value ? value : <span className="text-muted">N/A</span> },
 		{
-			Header: "Status", accessor: "paymentstatus", width: 80, Cell: ({ value }) => {
-				let badgeClass = "badge bg-secondary";
-				if (value === "paid") badgeClass = "badge bg-success";
-				else if (value === "pending") badgeClass = "badge bg-warning text-dark";
-				else if (value === "partial") badgeClass = "badge bg-info text-dark";
-				return <span className={badgeClass}>{value}</span>;
+			Header: "Payment Status", accessor: "paymentstatus", width: 80, Cell: ({ value }) => {
+				let badgeClass = "bg-secondary";
+				if (value === "paid") badgeClass = "text-success"
+				else if (value === "pending") badgeClass = "text-dark";
+				else if (value === "partial") badgeClass = "text-dark";
+				return <span className={`${badgeClass} text-capitalize`}>{value}</span>;
 			}
 		},
 		{
@@ -302,9 +319,11 @@ export default function ValidationAscensionTable({ employeeid }) {
 				)}
 			</div>
 			{groupByPatient ? (
-				<PrimeTable column={groupedColumns} data={groupedData} urlparams={urlparams}
+				<PrimeTable column={groupedColumns} data={groupedData}
 					serverSideFiltering={true}
-					handleSeverSideProcessing={handleServerSide}
+					handleSeverSideProcessing={handleServerSideProcessingAscensionData}
+					urlparams={{ ...urlparams, grouped: "grouped" }}
+
 				/>
 			) : (
 				<PrimeTable column={columns} data={collection}

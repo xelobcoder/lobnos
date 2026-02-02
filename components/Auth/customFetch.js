@@ -54,7 +54,7 @@ export async function  customFetch(endpoint,isLogin=false) {
 		
 		const response = await fetch(url.toString(), {
 			headers: {
-				Authorization: `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
+				Authorization: `Bearer ${PLS_SESSION ? PLS_SESSION : ''}`,
 				"Content-Type": "application/json",
 				"cache": "no-cache,must-revalidate,no-store,max-age=60,s-maxage=0",
 				"pls-prime-tenant-session": PLS_PRIME_TENANT_SESSION ? PLS_PRIME_TENANT_SESSION : null,
@@ -195,18 +195,7 @@ export const Glucoseoptions = ["mg/dl", "mmol/L"]
  */
 export async function customPost(endpoint, method, data, hash = false,login=false) {
 	try {
-		if (process.env.NODE_ENV == "production" && !process.env.NEXT_PUBLIC_ACCESS_TOKEN) {
-			throw new Error("NEXT_PUBLIC_ACCESS_TOKEN MISSING")
-		}
 		var requestBody = data
-		if (hash && hash === true) {
-			if (process.env.HASH_KEY != undefined) {
-				requestBody = {}
-			} else {
-				throw new Error("HASH_KEY not set in NODE_ENV")
-			}
-		}
-
 		const url = new URL(`${endpoint}`, process.env.NODE_ENV == "production" ? process.env.PRODUCTION_BASEURL : process.env.DEVELOPMENT_BASEURL);
 		url.searchParams.append("tenantId", "3");
 
@@ -214,12 +203,13 @@ export async function customPost(endpoint, method, data, hash = false,login=fals
 		if (!login && (!context || !context['PLS_PRIME_TENANT_SESSION'] || !context['PLS_SESSION'])) {
 			return { error: "Session not found" };
 		}
+		
 		const { PLS_PRIME_TENANT_SESSION, PLS_SESSION} = context;
 		let response = await fetch(url.href, {
 			method: method,
 			headers: {
 				"content-type": "application/json",
-				Authorization: `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
+				Authorization: PLS_SESSION ? `Bearer ${PLS_SESSION} `: '',
 				mode: "no-cors",
 				"pls-prime-tenant-session": PLS_PRIME_TENANT_SESSION ? PLS_PRIME_TENANT_SESSION:'',
 				"pls-session": PLS_SESSION ? PLS_SESSION : ''

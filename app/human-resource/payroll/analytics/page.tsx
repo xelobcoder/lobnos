@@ -136,10 +136,13 @@ export default function PayrollAnalyticsPage() {
      }
 
      const {
+          financial_kpis,
           payroll_period_metrics: payrollPeriods,
           compensation_distribution: compensation,
           attendance_summary: attendance,
+          attendance_compliance: attendanceCompliance,
           leave_statistics: leave,
+          leave_utilization: leaveUtilization,
           allowance_breakdown: allowanceBonus,
           bonus_statistics: bonuses,
           statutory_deductions: statutoryDeductions,
@@ -150,7 +153,9 @@ export default function PayrollAnalyticsPage() {
           top_earners: topEarners,
           cost_centers: costCenters,
           compliance,
-          earnings_distribution: earningsDistribution
+          earnings_distribution: earningsDistribution,
+          period_comparison: periodComparison,
+          payroll_processing: payrollProcessing
      } = analyticsData;
 
      return (
@@ -213,12 +218,10 @@ export default function PayrollAnalyticsPage() {
                          <div className="border rounded p-3">
                               <div className="d-flex align-items-center mb-2">
                                    <RiMoneyDollarCircleLine size={20} style={{ color: COLOR_ACCENT }} className="me-2" />
-                                   <span className="text-muted small">Total Basic Salary</span>
+                                   <span className="text-muted small">Gross Payroll</span>
                               </div>
                               <h4 className="h5 fw-bold mb-0">
-                                   {currencyFormatter.format(
-                                        compensation?.reduce((sum: number, c: any) => sum + parseFloat(c.total_basic_salary || 0), 0) || 0
-                                   )}
+                                   {currencyFormatter.format(financial_kpis?.total_gross_payroll || 0)}
                               </h4>
                          </div>
                     </div>
@@ -226,10 +229,10 @@ export default function PayrollAnalyticsPage() {
                          <div className="border rounded p-3">
                               <div className="d-flex align-items-center mb-2">
                                    <RiMoneyDollarCircleLine size={20} style={{ color: COLOR_SECONDARY }} className="me-2" />
-                                   <span className="text-muted small">Total Overtime Hours</span>
+                                   <span className="text-muted small">Net Payroll</span>
                               </div>
                               <h4 className="h5 fw-bold mb-0">
-                                   {overtimeMetrics?.reduce((sum: number, o: any) => sum + parseFloat(o.total_overtime_hours || 0), 0) || 0}
+                                   {currencyFormatter.format(financial_kpis?.total_net_payroll || 0)}
                               </h4>
                          </div>
                     </div>
@@ -240,17 +243,19 @@ export default function PayrollAnalyticsPage() {
                                    <span className="text-muted small">Total Employees</span>
                               </div>
                               <h4 className="h5 fw-bold mb-0">
-                                   {compensation?.reduce((sum: number, c: any) => sum + parseInt(c.employee_count || 0), 0) || 0}
+                                   {financial_kpis?.total_employees || 0}
                               </h4>
                          </div>
                     </div>
                     <div className="col-md-3">
                          <div className="border rounded p-3">
                               <div className="d-flex align-items-center mb-2">
-                                   {/* <RiTrendingUpLine size={20} style={{ color: 'var(--bs-success)' }} className="me-2" /> */}
-                                   <span className="text-muted small">Attendance Records</span>
+                                   <RiBarChartBoxLine size={20} style={{ color: 'var(--bs-success)' }} className="me-2" />
+                                   <span className="text-muted small">Employer Cost</span>
                               </div>
-                              <h4 className="h5 fw-bold mb-0">{attendance?.reduce((sum: number, a: any) => sum + parseInt(a.record_count || 0), 0) || 0}</h4>
+                              <h4 className="h5 fw-bold mb-0">
+                                   {currencyFormatter.format(financial_kpis?.total_employer_cost || 0)}
+                              </h4>
                          </div>
                     </div>
                </div>

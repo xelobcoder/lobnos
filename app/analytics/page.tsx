@@ -53,6 +53,14 @@ const analyticsSections = [
           path: '/analytics/leads',
           color: 'dark',
           badge: null
+     },
+     {
+          title: "Outstanding Analytics",
+          description: "Breakdown of all outstanding records",
+          path: "/analytics/sales/outstanding-payments-breakdown",
+          icon: RiTeamLine,
+          color: 'dark',
+          badge: null
      }
 ];
 

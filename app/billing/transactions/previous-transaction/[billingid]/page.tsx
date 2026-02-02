@@ -11,6 +11,8 @@ import { useParams } from 'next/navigation';
 import styles from '../../../../../styles/SmsTemplateList.module.css'
 import { Service, Witness } from '../../../../../types/serviceTypes';
 import { useApplication } from '../../../../../components/Auth/useApplicationContext';
+import { set } from 'react-hook-form';
+import dayjs, { Dayjs } from 'dayjs';
 
 
 const cardColors = {
@@ -251,6 +253,39 @@ export default function PreviousTransactionSummaryPage() {
 			toast.error("Something wrong occurred");
 		}
 	};
+
+
+
+	const handleServiceItemRemoval = async (billingdata: BillingData) => {
+		try {
+			console.log("Removing service item:", billingdata);
+			const { serviceid } = billingdata;
+			setIsRemovingService(true);
+			setRemovingServiceId(serviceid || null);
+			const backendData = { employeeid, billingid: billingdata.billingid, serviceid };
+			const response = await customPost(
+				`billing/pending/remove/service`,
+				'PUT',
+				backendData
+			);
+
+			const { status, message } = response;
+
+			if (status === true) {
+				toast.success(message || 'Service removed successfully');
+				if (billingdata.billingid) {
+					await fetchRecords(billingdata.billingid);
+				}
+			} else {
+				toast.error(message || 'Failed to remove service');
+			}
+		} catch (err) {
+			toast.error('An error occurred while removing the service');
+		} finally {
+			setIsRemovingService(false);
+			setRemovingServiceId(null);
+		}
+	}
 
 
 
@@ -775,7 +810,7 @@ export default function PreviousTransactionSummaryPage() {
 													<td className="text-start">{row.name}</td>
 													<td className="text-start">{row.organizationName || '-'}</td>
 													<td className="text-start">{row.clinicianName || '-'}</td>
-													<td className="text-start">{row.serviceAddedOn ? new Date(row.serviceAddedOn).toLocaleString() : ''}</td>
+													<td className="text-start">{row.serviceAddedOn ? dayjs(row.serviceAddedOn).format("DD-MM-YYYY HH:mm:ss"):""}</td>
 													<td className="text-start">{currencyFormatter.format(Number(row.cost) || 0)}</td>
 													<td className="text-start">{currencyFormatter.format(Number(row.totalcost) || 0)}</td>
 													<td className="text-start">{currencyFormatter.format(Number(row.totalpayable) || 0)}</td>
@@ -822,12 +857,15 @@ export default function PreviousTransactionSummaryPage() {
 															)}
 														</div>
 
-														{row.paymentstatus === 'pending' &&
-															<Button variant='danger' size='sm'>
-																Remove Item {isRemovingService && <Spinner  size='sm' />}
+														{(row.paymentstatus === 'pending' && row.isDeleted == 0) &&
+															<Button variant='danger' size='sm' onClick={(ev) => { handleServiceItemRemoval(row) }}>
+																Remove Item {isRemovingService && removingServiceId === row.serviceid && <Spinner size='sm' />}
 															</Button>
 														}
+
+														{row.isDeleted == 1 && 'Item Deleted'}
 													</td>
+												
 												</tr>
 											);
 										})}

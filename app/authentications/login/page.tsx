@@ -21,7 +21,7 @@ export default function PrimeLabLoginPage() {
 
 			const email = formData.get("email");
 			const password = formData.get("password");
-			
+
 			let browserInfo = {};
 			if (typeof window !== 'undefined') {
 				const nav = window.navigator;
@@ -45,7 +45,7 @@ export default function PrimeLabLoginPage() {
 			}
 
 			const backendResponse = await customPost('prime/login', 'POST', { email, password, browserInfo },false, true);
-
+console.log("Backend Response:", backendResponse);
 			if (backendResponse.status === "error" &&
 				(backendResponse.message === "License expired or invalid" || backendResponse.message === "License vaalidation failed" ||
 					backendResponse.message === "License not found"

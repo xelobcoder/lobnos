@@ -17,6 +17,7 @@ import { trackReportView, trackReportPrint } from "../../../lib/printingTracker"
 import DrugsList from "../../../components/Drugs/DrugsList";
 import UseResultEntryScientist from '../../../components/ResutlUI/UseResultEntryFormat';
 import dayjs from "dayjs";
+import { toast } from "react-toastify";
 
 export default function LabReportPrintingMultiple() {
 	const [loader, setLoader] = useState(false);
@@ -33,6 +34,7 @@ export default function LabReportPrintingMultiple() {
 	const testid = searchParams?.get('testid');
 	const csvid = searchParams?.get('csvid');
 
+
 	const url = `result/printout/ascension/multiple/getResult?csvid=${csvid}&&employeeid=${employeeid}&&testid=${testid}&&testname=${test}&tenantId=3&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&target=${target}&password=&&isBrowserPrintout=1&&employeeid=${employeeid}`;
 
 	useEffect(() => {
@@ -46,17 +48,24 @@ export default function LabReportPrintingMultiple() {
 						return;
 					}
 
+
+					const {status, message} = data;
+					if (status === 'error') {
+						toast.error(message || 'An error occurred while fetching the report data.', { position: "top-right", autoClose: 5000 });
+						setLoader(false);
+						return;
+					}
+
 					if (data && data.resultsettings) {
 						setResultSettings(data.resultsettings);
 					}
 
 					if (data && data.test && Array.isArray(data.test)) {
 
-						// Sort each test's records array from lowest to largest
 						for (const test of data.test) {
 							if (Array.isArray(test.records)) {
 								test.records.sort((a, b) => {
-									// Give numeric ordering highest priority (appear last), null/undefined/zero lowest (appear first)
+								
 									const isNumeric = (val) => {
 										if (val === null || val === undefined) return false;
 										if (typeof val === 'number') return val !== 0;

@@ -47,6 +47,7 @@ export default function EnterResultUltrasound() {
 	const ascensionid = useSearchParams()?.get("ascensionid") ?? null;
 	const [isLoading, setLoading] = useState(true);
 	const [submitting, setSubmitting] = useState(false);
+	const [viewAllTemplates, setViewAllTemplates] = useState(false);
 	const [entered, setEnteredResult] = useState(false);
 	const [activeTab, setActiveTab] = useState('result');
 
@@ -59,9 +60,12 @@ export default function EnterResultUltrasound() {
 
 	const fetchTemplates = async () => {
 		try {
-			const response = await customFetch(
-				`result/entry/ultrasound/templates/list?page=1&count=10&employeeid=${employeeid}&testid=${testid}`
-			);
+
+			const url = viewAllTemplates ?
+				`result/entry/ultrasound/templates/list?page=1&count=1000&employeeid=${employeeid}`
+				:
+				`result/entry/ultrasound/templates/list?page=1&count=100&employeeid=${employeeid}&&testid=${testid}`;
+			const response = await customFetch(url);
 			const options = response.map((item) => ({
 				value: item.keyid,
 				label: item.name,
@@ -280,17 +284,29 @@ export default function EnterResultUltrasound() {
 								<div>
 									<h5 className="d-flex my-2 mx-4 text-uppercase">{testname} </h5>
 								</div>
-								<div>
+								<div className='col-9 d-flex justify-content-end align-items-center'>
 									<div className="d-flex align-items-center">
-										<Select
-											options={templateOptions}
-											onChange={handleTemplateChange}
-											styles={reactSelectCustomStyles}
-											placeholder="Select a Template"
-											className='pls-color'
-											isClearable
-											isDisabled={isTemplateLoading}
-										/>
+										<div>
+											<input type='checkbox' checked={viewAllTemplates} onChange={(ev) => { setViewAllTemplates(ev.target.checked) }} />
+										</div>
+										<div style={{width:'80%'}}>
+											<Select
+												options={templateOptions}
+												onChange={handleTemplateChange}
+												styles={reactSelectCustomStyles}
+												placeholder="Select a Template"
+												defaultInputValue=''
+												autoFocus={false}
+												className='pls-color'
+value={selectedTemplate || ''}
+												isClearable
+												isDisabled={isTemplateLoading}
+											/>
+										</div>
+										<div>
+											<button className="btn btn-link btn-sm ms-2" onClick={fetchTemplates}> Refresh Templates </button>
+
+										</div>
 										{isTemplateLoading && (
 											<div className="ms-2">
 												<div className="spinner-border spinner-border-sm" role="status">

@@ -41,15 +41,13 @@ interface AttendanceRecord {
 }
 
 interface AttendanceSummary {
-     month: number;
-     year: number;
-     total_employees: number;
+     total_days: number;
      present_days: number;
      absent_days: number;
-     late_days: number;
      half_days: number;
-     total_overtime_hours: number;
-     average_attendance: number;
+     late_days: number;
+     total_hours: number;
+     overtime_hours: number;
 }
 
 interface Employee {
@@ -113,9 +111,12 @@ export default function AttendancePage() {
                     endDate: endDate
                });
 
-               if (employeeFilter) params.append('employeeId', employeeFilter);
+               // Use employee-specific endpoint if employeeFilter is present
+               const endpoint = employeeFilter
+                    ? `payroll/attendance/employee/${employeeFilter}?${params}`
+                    : `payroll/attendance?${params}`;
 
-               const response = await customFetch(`payroll/attendance?${params}`);
+               const response = await customFetch(endpoint);
 
                if (response?.status === 'success' && response?.statusCode === 200) {
                     setAttendanceRecords(response.result || []);
@@ -146,6 +147,25 @@ export default function AttendancePage() {
           }
      };
 
+
+
+     const fetchEmployeeAttendanceSummary = async () => {
+          try {
+               const startDateObj = new Date(startDate);
+               const month = startDateObj.getMonth() + 1;
+               const year = startDateObj.getFullYear();
+               const response = await customFetch(`payroll/attendance/employee/${employeeFilter}/summary?startDate=${startDate}&endDate=${endDate}&month=${month}&year=${year}`);
+
+               if (response?.status === 'success' && response?.statusCode === 200) {
+                    setSummary(response.result);
+               }
+          } catch (err) {
+               console.error('Error fetching attendance summary:', err);
+          }
+     };
+
+
+
      const fetchEmployees = async () => {
           setEmployeesLoading(true);
           try {
@@ -163,14 +183,16 @@ export default function AttendancePage() {
 
      useEffect(() => {
           fetchAttendanceRecords();
-          fetchAttendanceSummary();
+          // fetchAttendanceSummary();
           fetchEmployees();
      }, []);
 
-     useEffect(() => {
-          fetchAttendanceRecords();
-          fetchAttendanceSummary();
-     }, [startDate, endDate, employeeFilter]);
+     const handleLoadData = () => {
+          if (employeeFilter) {
+               fetchAttendanceRecords();
+               fetchEmployeeAttendanceSummary();
+          }
+     };
 
      const filteredRecords = attendanceRecords.filter(record => {
           const matchesSearch = !searchTerm ||
@@ -225,10 +247,10 @@ export default function AttendancePage() {
                          <div className="col-md-3">
                               <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                    <div className="d-flex align-items-center">
-                                        <RiUserLine size={24} style={{ color: COLOR_ACCENT }} className="me-3" />
+                                        <RiCalendarEventLine size={24} style={{ color: COLOR_ACCENT }} className="me-3" />
                                         <div>
-                                             <div className="fw-semibold">{summary.total_employees}</div>
-                                             <div className="small text-muted">Total Employees</div>
+                                             <div className="fw-semibold">{summary.total_days}</div>
+                                             <div className="small text-muted">Total Days</div>
                                         </div>
                                    </div>
                               </div>
@@ -260,8 +282,8 @@ export default function AttendancePage() {
                                    <div className="d-flex align-items-center">
                                         <RiTimeLine size={24} className="text-info me-3" />
                                         <div>
-                                             <div className="fw-semibold">{summary.average_attendance.toFixed(1)}%</div>
-                                             <div className="small text-muted">Avg Attendance</div>
+                                             <div className="fw-semibold">{summary.overtime_hours.toFixed(1)}h</div>
+                                             <div className="small text-muted">Overtime Hours</div>
                                         </div>
                                    </div>
                               </div>
@@ -339,6 +361,14 @@ export default function AttendancePage() {
                                              </option>
                                         ))}
                                    </select>
+                                   <button
+                                        type="button"
+                                        className="btn btn-primary"
+                                        onClick={handleLoadData}
+                                        disabled={!employeeFilter || loading}
+                                   >
+                                        <RiLoader4Line size={16} />
+                                   </button>
                                    <button
                                         type="button"
                                         className="btn btn-outline-secondary"

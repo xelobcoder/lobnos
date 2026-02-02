@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { PrepareResultEntryHeader } from '../../Auth/customFetch';
 
 function handlePrintMultipleResults(row) {
+
      const { testid, name, patientid, ascensionid, billingid } = row.original;
      const csvid = `${generateRandomTextAndNumbers(70)}${billingid}`;
      const ptid = `${generateRandomTextAndNumbers(50)}${patientid}`;
@@ -18,6 +19,7 @@ import { RiMoreLine } from '@remixicon/react';
 import { useApplication } from '../../Auth/useApplicationContext';
 import PrimeTable from '../../accessories/Datatables/PrimeTable';
 import dayjs from 'dayjs';
+import { Cell } from 'recharts';
 
 
 const Print = (
@@ -71,8 +73,10 @@ export default function ValidatedResultTable({ employeeid }) {
      const { isLoading, collection, queryParams, setQueryParams } = useLaboratoryContext();
      const [isClient, setIsClient] = useState(false);
      const [groupByPatient, setGroupByPatient] = useState(true);
-     const branchid = useApplication().branchid;
-
+     const appSettings = useApplication();
+     const branchid = appSettings?.branchid;
+     const settings = appSettings?.settings || {};
+     const allowPrintingUnpaid = settings?.allowPrintingUnpaid;
 
      const viewResultHandler = (item, multiple = false) => {
           const { testid, name, patientid, ascensionid, billingid } = item;
@@ -92,6 +96,10 @@ export default function ValidatedResultTable({ employeeid }) {
 
 
      const handleBrowserView = (data) => {
+          if (allowPrintingUnpaid !== 1 && data.paymentstatus !== 'paid') {
+               alert('Printing of results is not allowed for unpaid tests.');
+               return;
+          }
           const { testid, name, patientid, ascensionid, billingid } = data
           const csvid = `${generateRandomTextAndNumbers(70)}${billingid}`;
           const ptid = `${generateRandomTextAndNumbers(50)}${patientid}`;
@@ -108,7 +116,7 @@ export default function ValidatedResultTable({ employeeid }) {
      const EmailSvg = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path fill="none" d="M0 0h24v24H0z"></path><path d="M3 3H21C21.5523 3 22 3.44772 22 4V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V4C2 3.44772 2.44772 3 3 3ZM20 7.23792L12.0718 14.338L4 7.21594V19H20V7.23792ZM4.51146 5L12.0619 11.662L19.501 5H4.51146Z"></path></svg>;
 
      const columns = [
-          { Header: 'Ascension ID', accessor: 'ascensionid' },
+          { Header: 'BillingId/Ascension ID', accessor: 'ascensionid', Cell: ({ row }) => <div><div>Bill:{row.original.billingid}</div><br/><div>Ascension:{row.original.ascensionid}</div></div> },
           {
                Header: 'Ascension Date',
                accessor: 'ascension_date',
@@ -125,7 +133,8 @@ export default function ValidatedResultTable({ employeeid }) {
           },
           {
                Header: 'Age',
-               accessor: 'age'
+               accessor: 'age',
+               Cell: ({ row }) => <div>{row.original.age}</div>
           },
           {
                Header: 'Test',
@@ -166,10 +175,12 @@ export default function ValidatedResultTable({ employeeid }) {
                          </Dropdown.Toggle>
 
                          <Dropdown.Menu>
-                              <Dropdown.Item className='pls-label' onClick={() => handleBrowserView(row.original)}>
+                              <Dropdown.Item
+                                   className='pls-label' onClick={() => handleBrowserView(row.original)}>
                                    {downloadSvg}  Print Result
                               </Dropdown.Item>
-                              <Dropdown.Item className='pls-label' onClick={() => handlePrintMultipleResults(row)}>
+                              <Dropdown.Item
+                                   className='pls-label' onClick={() => handlePrintMultipleResults(row)}>
                                    {downloadSvg}  Print Multiple Results
                               </Dropdown.Item>
                               <Dropdown.Item className='pls-label' onClick={() => {
@@ -330,6 +341,16 @@ export default function ValidatedResultTable({ employeeid }) {
                     <PrimeTable
                          column={groupedColumns}
                          data={groupedData}
+                          urlparams={{
+                              _dateFrom: queryParams._dateFrom,
+                              searchString: queryParams.searchString,
+                              _dateEnd: queryParams._dateEnd,
+                              isUltrasound: queryParams.isUltrasound,
+                              grouped:"grouped",
+                              employeeid, ascension_stage: 'VALIDATED'
+                         }}
+                         serverSideFiltering={true}
+                         handleSeverSideProcessing={ handleServerSideProcessingAscensionData}
                     />
                ) : (
                     <PrimeTable column={columns} data={collection}
