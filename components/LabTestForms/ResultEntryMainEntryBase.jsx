@@ -19,7 +19,6 @@ export default function ResultEntryMainEntryBase({ handlestate, handleCreateFiel
 			const itemIndex = rule.findIndex((a) => {
 				return a.name === name && a.plan === 'ultrasoundFields';
 			})
-			console.log(itemIndex, 'itemIndex');
 			handlestate(event,itemIndex);
 		};
 

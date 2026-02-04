@@ -116,7 +116,7 @@ export default function ValidatedResultTable({ employeeid }) {
      const EmailSvg = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path fill="none" d="M0 0h24v24H0z"></path><path d="M3 3H21C21.5523 3 22 3.44772 22 4V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V4C2 3.44772 2.44772 3 3 3ZM20 7.23792L12.0718 14.338L4 7.21594V19H20V7.23792ZM4.51146 5L12.0619 11.662L19.501 5H4.51146Z"></path></svg>;
 
      const columns = [
-          { Header: 'BillingId/Ascension ID', accessor: 'ascensionid', Cell: ({ row }) => <div><div>Bill:{row.original.billingid}</div><br/><div>Ascension:{row.original.ascensionid}</div></div> },
+          { Header: 'BillingId/Ascension ID', accessor: 'ascensionid', Cell: ({ row }) => <div><div>Bill:{row.original.billingid}</div><br /><div>Ascension:{row.original.ascensionid}</div></div> },
           {
                Header: 'Ascension Date',
                accessor: 'ascension_date',
@@ -212,25 +212,13 @@ export default function ValidatedResultTable({ employeeid }) {
                Header: 'Patient ID',
                accessor: 'fullpatientid',
                Cell: ({ row }) => (
-                    <button
-                         className="btn btn-link p-0 text-decoration-none"
-                         onClick={() => handleViewPatientDetails(row.original)}
-                    >
-                         <strong>{row.original.fullpatientid || row.original.patientid}</strong>
-                    </button>
+                    <strong>{row.original.fullpatientid || row.original.patientid}</strong>
                )
           },
           {
                Header: 'Full Name',
                accessor: 'fullname',
-               Cell: ({ row }) => (
-                    <button
-                         className="btn btn-link p-0 text-decoration-none text-uppercase"
-                         onClick={() => handleViewPatientDetails(row.original)}
-                    >
-                         {row.original.fullname}
-                    </button>
-               )
+               Cell: ({ row }) => <div className='text-uppercase'>{row.original.fullname}</div>
           },
           {
                Header: 'Age',
@@ -307,18 +295,7 @@ export default function ValidatedResultTable({ employeeid }) {
           }));
      };
 
-     const handleViewPatientDetails = (groupedItem) => {
-          const patientData = encodeURIComponent(JSON.stringify({
-               patientid: groupedItem.patientid,
-               fullpatientid: groupedItem.fullpatientid,
-               fullname: groupedItem.fullname,
-               age: groupedItem.age,
-               billingid: groupedItem.billingid,
-               clientstatus: groupedItem.clientstatus,
-               tests: groupedItem.tests
-          }));
-          window.open(`/operations/laboratory/grouped-patient-details?data=${patientData}`);
-     };
+
 
      const groupedData = groupByPatient ? groupDataByPatient(collection) : collection;
 
@@ -336,21 +313,26 @@ export default function ValidatedResultTable({ employeeid }) {
                </Tabs>
 
                {isClient && (isMobile ? (
-                    <MobileDataDisplay data={groupedData} handleResult={groupByPatient ? handleViewPatientDetails : viewResultHandler} />
+                    <MobileDataDisplay data={groupedData} handleResult={viewResultHandler} />
                ) : groupByPatient ? (
                     <PrimeTable
                          column={groupedColumns}
                          data={groupedData}
-                          urlparams={{
+                         urlparams={{
                               _dateFrom: queryParams._dateFrom,
                               searchString: queryParams.searchString,
                               _dateEnd: queryParams._dateEnd,
                               isUltrasound: queryParams.isUltrasound,
-                              grouped:"grouped",
-                              employeeid, ascension_stage: 'VALIDATED'
+                              grouped: "grouped",
+                              employeeid, ascension_stage: 'VALIDATED',
+                              billingid: queryParams.billingid,
+                              patientname: queryParams.patientname,
+                              patientid: queryParams.patientid,
+                              billingid: queryParams.billingid,
+                              ascensionid: queryParams.ascensionid
                          }}
                          serverSideFiltering={true}
-                         handleSeverSideProcessing={ handleServerSideProcessingAscensionData}
+                         handleSeverSideProcessing={handleServerSideProcessingAscensionData}
                     />
                ) : (
                     <PrimeTable column={columns} data={collection}
@@ -359,6 +341,11 @@ export default function ValidatedResultTable({ employeeid }) {
                               searchString: queryParams.searchString,
                               _dateEnd: queryParams._dateEnd,
                               isUltrasound: queryParams.isUltrasound,
+                              billingid: queryParams.billingid,
+                              patientname: queryParams.patientname,
+                              patientid: queryParams.patientid,
+                              billingid: queryParams.billingid,
+                              ascensionid: queryParams.ascensionid,
                               employeeid, ascension_stage: 'VALIDATED'
                          }}
                          serverSideFiltering={true}

@@ -19,7 +19,7 @@ export interface Service {
   registrationType: string;
   isDeleted: number;
   deletedAt: string | null;
-  deletedBy: number | null;
+  isDeletedBy: number | null;
   branchid: number;
   isoutsourced: number;
   outsourceid: number | null;
@@ -63,15 +63,21 @@ export interface Service {
   firstWitness?: number;
   secondWitness?: number;
   thirdWitness?: number;
+  firstWitnessName?: string | null;
+  secondWitnessName?: string | null;
+  thirdWitnessName?: string | null;
   firstWitnessPurpose?: string | null;
   firstWitnessDate?: string | null;
   secondWitnessDate?: string | null;
   thirdWitnessDate?: string | null;
   initiatedBy?: string | null;
+  initiatedByName?: string | null;
+  approvedby?: string | null;
+  approvedByName?: string | null;
   secondWitnessPurpose?: string | null;
   thirdWitnessPurpose?: string | null;
   approvalDate?: number;
-  approvedby?: string | null;
+  deletedByName?: string | null;
   isRefundMatterClosed?: number;
   isAdjustment?: number;
 }

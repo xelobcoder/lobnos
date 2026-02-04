@@ -14,7 +14,7 @@ import { useApplication } from "../../Auth/useApplicationContext";
 
 
 export default function AscentionCompletedTable({ employeeid, branchid }) {
-	const { isLoading, collection, queryParams ,setCollection} = useLaboratoryContext();
+	const { isLoading, collection, queryParams, setCollection } = useLaboratoryContext();
 	const [groupByPatient, setGroupByPatient] = useState(true);
 	const [showModal, setShowModal] = useState(false);
 	const [selectedGroupTests, setSelectedGroupTests] = useState(null);
@@ -224,19 +224,24 @@ export default function AscentionCompletedTable({ employeeid, branchid }) {
 						_dateEnd: queryParams._dateEnd,
 						isUltrasound: queryParams.isUltrasound,
 						employeeid, ascension_stage: 'COMPLETED',
-						grouped: "grouped"
+						grouped: "grouped",
+						billingid: queryParams.billingid,
+						patientname: queryParams.patientname,
+						patientid: queryParams.patientid,
+						billingid: queryParams.billingid,
+						ascensionid: queryParams.ascensionid
 					}}
 					data={groupedData}
 					handleSeverSideProcessing={async (pagination) => {
 						try {
 							const { result } = await handleServerSideProcessingAscensionData(pagination)
 							if (result && Array.isArray(result)) {
-setCollection(result);
+								setCollection(result);
 								return {
 									result: groupDataByPatient(result),
 									error: false
 								};
-								
+
 							}
 							return { result: [], error: false };
 						} catch (error) {
@@ -253,7 +258,12 @@ setCollection(result);
 						searchString: queryParams.searchString,
 						_dateEnd: queryParams._dateEnd,
 						isUltrasound: queryParams.isUltrasound,
-						employeeid, ascension_stage: 'COMPLETED'
+						employeeid, ascension_stage: 'COMPLETED',
+						billingid: queryParams.billingid,
+						patientname: queryParams.patientname,
+						patientid: queryParams.patientid,
+						billingid: queryParams.billingid,
+						ascensionid: queryParams.ascensionid
 					}}
 					handleSeverSideProcessing={handleServerSideProcessingAscensionData}
 					serverSideFiltering={true} />

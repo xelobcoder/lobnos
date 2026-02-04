@@ -1,4 +1,4 @@
-import { RiPlayCircleLine, RiStopCircleLine } from '@remixicon/react';
+import { RiPlayCircleLine, RiStopCircleLine, RiCheckLine } from '@remixicon/react';
 import { useState } from "react";
 import { Spinner } from "react-bootstrap";
 import { customPost } from "../../Auth/customFetch";
@@ -32,6 +32,12 @@ export default function ProcessingButtons({ item, employeeid, updateTestCollecti
 
        }
 
+       const isProcessingComplete = item.processingStartDate && item.processingEndDate;
+
+       const handleProceedToResultEntry = () => {
+              window.open(`/operations/laboratory/completed?ascensionid=${item.ascensionid}`, '_blank');
+       }
+
        return (
               <div>
                      <button
@@ -48,6 +54,15 @@ export default function ProcessingButtons({ item, employeeid, updateTestCollecti
                             {(subStop || (BulkTargetTo == item.ascensionid && action === "stop")) && <Spinner size="sm" />}
                             <RiStopCircleLine size={16} className="me-1" /> Stop
                      </button>
+                     {isProcessingComplete && (
+                            <button
+                                   onClick={handleProceedToResultEntry}
+                                
+                                   className="ms-2 btn btn-outline-primary btn-sm"
+                            >
+                                   <RiCheckLine size={16} className="me-1" /> Proceed to Result Entry
+                            </button>
+                     )}
               </div>
        )
 }

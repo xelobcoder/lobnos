@@ -19,6 +19,10 @@ export function LaboratoryStagesProvider({ children }) {
        const start_date = useSearchParams()?.get('start_date');
        const end_date = useSearchParams()?.get('end_date');
        const category = useSearchParams()?.get('category');
+       const ascensionid = useSearchParams()?.get('ascensionid');
+       const patientid = useSearchParams()?.get("patientid");
+       const billingid = useSearchParams()?.get("billingid");
+       const patientname = useSearchParams()?.get("patientname");
        const parsedStartDate = start_date ? dayjs(start_date).format('YYYY-MM-DD') : '';
        const parsedEndDate = end_date ? dayjs(end_date).format('YYYY-MM-DD') : '';
 
@@ -37,6 +41,10 @@ export function LaboratoryStagesProvider({ children }) {
               isUltrasound: false,
               category: category || 'grouped',
               branchid: branchid,
+              ascensionid: ascensionid || '',
+              patientid: patientid || '',
+              patientname: patientname || '',
+              billingid: billingid || '',
               sortby: 'DESC',
        });
 
@@ -45,15 +53,31 @@ export function LaboratoryStagesProvider({ children }) {
               updatePagination(value, setQueryParams, queryParams);
        };
 
-       const _getAscensionData = async function (ascension_stage, employeeid, branchid) {
-              await getAscensionData(ascension_stage, setCollection, queryParams, setLoading, employeeid, branchid,category);
+       const _getAscensionData = async function (ascension_stage, employeeid, branchid, userprovidedCategory) {
+              const ascensionid = userprovidedCategory?.ascensionid || queryParams.ascensionid;
+              const patientid = userprovidedCategory?.patientid || queryParams.patientid;
+              const billingid = userprovidedCategory?.billingid || queryParams.billingid;
+              const patientname = userprovidedCategory?.patientname || queryParams.patientname;
+              
+              const  newQueryParams =  {...queryParams};
+
+
+              if (billingid || ascensionid) {
+                     newQueryParams['_dateEnd']= '';
+                     newQueryParams['_dateFrom']= '';
+              }
+           
+              await getAscensionData(ascension_stage, setCollection, newQueryParams, setLoading, employeeid, branchid, category, {
+                     ascensionid, patientid, billingid, patientname
+              });
        }
 
        return (
               <LaboratoryContext.Provider value={{
                      collection, setCollection, isLoading, setLoading, queryParams, _getAscensionData, toast,
                      loadCounter, setLoadCounter,
-                     setQueryParams, updatePageValue, canloadPage, setLoadPage,category
+                     setQueryParams, updatePageValue, canloadPage, setLoadPage, category,
+                     ascensionid, patientid, billingid,patientname
               }}>
                      {children}
 

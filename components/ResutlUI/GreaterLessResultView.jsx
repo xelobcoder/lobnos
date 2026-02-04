@@ -5,26 +5,83 @@ export default function GreaterLessResultView({ fieldItem, index, resultsettings
      const { name, units, value, plan, textReference } = fieldItem;
      const settings = resultsettings?.testBody || {};
 
+     const parseOperatorAndValue = (textRef) => {
+          if (!textRef) return { operator: null, value: NaN };
+
+          const str = textRef.trim();
+          let operatorPart = '';
+          let textBeforeNum = '';
+          let numericStr = '';
+
+          for (let i = 0; i < str.length; i++) {
+               const char = str[i];
+               if (char === '<' || char === '>' || char === '=') {
+                    operatorPart += char;
+               } else if (/\d/.test(char) || (char === '.' && numericStr)) {
+                    numericStr += char;
+               } else if (!operatorPart && !numericStr) {
+                    textBeforeNum += char;
+               }
+          }
+
+          if (!operatorPart || !numericStr) {
+               return { operator: null, value: NaN };
+          }
+
+          let operator = null;
+
+          if (operatorPart.includes('=')) {
+               if (operatorPart.includes('<') && operatorPart.includes('=')) {
+                    operator = '<=';
+               } else if (operatorPart.includes('>') && operatorPart.includes('=')) {
+                    operator = '>=';
+               } else {
+                    return { operator: null, value: NaN };
+               }
+          } else {
+               const hasLess = operatorPart.includes('<');
+               const hasGreater = operatorPart.includes('>');
+
+               if (hasLess && hasGreater) {
+                    return { operator: null, value: NaN };
+               }
+
+               if (hasLess) {
+                    operator = '<';
+               } else if (hasGreater) {
+                    operator = '>';
+               } else {
+                    return { operator: null, value: NaN };
+               }
+          }
+
+          const numValue = parseFloat(numericStr);
+          return { operator, value: numValue };
+     };
+
      const determineFlag = (value, textReference) => {
           if (value == null || value === "" || !textReference) return '';
-          const trimedTextReference = textReference.trim();
-          const isGreaterComparer = trimedTextReference.startsWith('>');
-          const isLessComparer = trimedTextReference.startsWith('<');
 
-          if (!isGreaterComparer && !isLessComparer) return '';
-
-          const textReferenceValue = parseFloat(trimedTextReference.slice(1));
+          const { operator, value: refValue } = parseOperatorAndValue(textReference);
           const numValue = parseFloat(value);
-          if (isNaN(numValue)) return '';
-          if (isGreaterComparer) {
-               if (numValue >= textReferenceValue) return 'N';
-               if (numValue < textReferenceValue) return 'L';
-               return '';
+
+          if (!operator || isNaN(refValue) || isNaN(numValue)) return '';
+
+          if (operator === '>') {
+               if (numValue > refValue) return 'N';
+               if (numValue <= refValue) return 'L';
           }
-          if (isLessComparer) {
-               if (numValue < textReferenceValue) return 'N';
-               if (numValue >= textReferenceValue) return 'H';
-               return '';
+          if (operator === '>=') {
+               if (numValue >= refValue) return 'N';
+               if (numValue < refValue) return 'L';
+          }
+          if (operator === '<') {
+               if (numValue < refValue) return 'N';
+               if (numValue >= refValue) return 'H';
+          }
+          if (operator === '<=') {
+               if (numValue <= refValue) return 'N';
+               if (numValue > refValue) return 'H';
           }
           return '';
      };

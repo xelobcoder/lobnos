@@ -197,11 +197,11 @@ export default function AscensionProcessingTable() {
             accessor: 'fullname',
             Cell: ({ row }) => <div className='text-uppercase'><strong>{row.original.fullname}</strong><br />{row.original.age}</div>
         },
-            {
+        {
             Header: 'Billing ID',
             accessor: 'billingid'
         },
-    
+
         {
             Header: 'Tests',
             accessor: 'tests',
@@ -257,6 +257,22 @@ export default function AscensionProcessingTable() {
                     column={groupedColumns}
                     data={groupedData}
                     filtering={false}
+                    urlparams={{
+                        _dateFrom: queryParams._dateFrom,
+                        searchString: queryParams.searchString,
+                        _dateEnd: queryParams._dateEnd,
+                        isUltrasound: queryParams.isUltrasound,
+                        employeeid, ascension_stage: 'PROCESSING',
+                        branchid: queryParams.branchid,
+                        sortby: queryParams.sortby,
+                        billingid: queryParams.billingid,
+                        patientname: queryParams.patientname,
+                        patientid: queryParams.patientid,
+                        billingid: queryParams.billingid,
+                        ascensionid: queryParams.ascensionid
+                    }}
+                    handleSeverSideProcessing={handleServerSideProcessingAscensionData}
+                    serverSideFiltering={true}
                 />
             ) : (
                 <PrimeTable
@@ -270,7 +286,12 @@ export default function AscensionProcessingTable() {
                         isUltrasound: queryParams.isUltrasound,
                         employeeid, ascension_stage: 'PROCESSING',
                         branchid: queryParams.branchid,
-                        sortby: queryParams.sortby
+                        sortby: queryParams.sortby,
+                        billingid: queryParams.billingid,
+                        patientname: queryParams.patientname,
+                        patientid: queryParams.patientid,
+                        billingid: queryParams.billingid,
+                        ascensionid: queryParams.ascensionid
                     }}
                     handleSeverSideProcessing={handleServerSideProcessingAscensionData}
                     serverSideFiltering={true} />

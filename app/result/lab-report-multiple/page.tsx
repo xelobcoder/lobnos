@@ -125,7 +125,7 @@ export default function LabReportPrintingMultiple() {
 	const headerRef = useRef<HTMLDivElement | null>(null);
 	const footerRef = useRef<HTMLDivElement | null>(null);
 	const verifiedRef = useRef<HTMLDivElement | null>(null);
-	const labRef = `${prefix}${billingid}`;
+
 
 	useEffect(() => {
 		setPdfError(null);

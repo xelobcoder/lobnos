@@ -102,10 +102,24 @@ export default function PreviousTransactionSummaryPage() {
 	const [showWitnessModal, setShowWitnessModal] = useState(false);
 	const [witnesses, setWitnesses] = useState<Witness[]>([]);
 	const [requesting, setRequesting] = useState(false);
+	const [showRefundDetailsModal, setShowRefundDetailsModal] = useState(false);
+	const [refundDetailsService, setRefundDetailsService] = useState<Service | null>(null);
 	const [showWriteOffModal, setShowWriteOffModal] = useState(false);
 	const [writeOffReason, setWriteOffReason] = useState('');
 	const [isWritingOff, setIsWritingOff] = useState(false);
 	const [showRefundAllModal, setShowRefundAllModal] = useState(false);
+	const [showDeleteDetailsModal, setShowDeleteDetailsModal] = useState(false);
+	const [deletedItemDetails, setDeletedItemDetails] = useState<Service | null>(null);
+
+	const handleViewRefundDetails = (service: Service) => {
+		setRefundDetailsService(service);
+		setShowRefundDetailsModal(true);
+	};
+
+	const handleViewDeleteDetails = (service: Service) => {
+		setDeletedItemDetails(service);
+		setShowDeleteDetailsModal(true);
+	};
 	const [isRemovingService, setIsRemovingService] = useState(false);
 	const [removingServiceId, setRemovingServiceId] = useState<number | null>(null);
 
@@ -444,7 +458,7 @@ export default function PreviousTransactionSummaryPage() {
 						/>
 					</div>
 					{refundTarget && (
-						<small className="text-muted">
+						<small className="fw-bold text-uppercase">
 							Service cost: ₵{currencyFormatter.format(Number(refundTarget.totalcost) || 0)}
 						</small>
 					)}
@@ -632,6 +646,227 @@ export default function PreviousTransactionSummaryPage() {
 		);
 	};
 
+	const renderRefundDetailsModal = () => {
+		if (!refundDetailsService) return null;
+
+		const refundInitiatedDate = refundDetailsService?.firstWitnessDate ? new Date(refundDetailsService.firstWitnessDate).toLocaleString() : 'N/A';
+		const secondWitnessDateFormatted = refundDetailsService?.secondWitnessDate ? new Date(refundDetailsService.secondWitnessDate).toLocaleString() : 'N/A';
+		const thirdWitnessDateFormatted = refundDetailsService?.thirdWitnessDate ? new Date(refundDetailsService.thirdWitnessDate).toLocaleString() : 'N/A';
+
+		return (
+			<Modal backdrop='static' show={showRefundDetailsModal} onHide={() => { setShowRefundDetailsModal(false); setRefundDetailsService(null); }} size="lg">
+				<Modal.Header closeButton>
+					<Modal.Title>Refund Details - {refundDetailsService?.name || 'Service'}</Modal.Title>
+				</Modal.Header>
+				<Modal.Body>
+					<div className="d-flex flex-column gap-2">
+						{/* Refund Amount */}
+						<div className="p-2 border-bottom">
+							<div className="d-flex justify-content-between align-items-center">
+								<small className="fw-bold text-uppercase d-block">Refund Amount</small>
+								<h6 className="fw-bold text-success mb-0">{currencyFormatter.format(Number(refundDetailsService?.amountRefunded) || 0)}</h6>
+							</div>
+						</div>
+
+						{/* Refund Status */}
+						<div className="p-2 border-bottom">
+							<div className="d-flex justify-content-between align-items-center">
+								<small className="fw-bold text-uppercase d-block">Refund Status</small>
+								<span className={`badge ${refundDetailsService?.isRefundCompleted === 1 ? 'bg-success' : 'bg-warning'}`}>
+									{refundDetailsService?.isRefundCompleted === 1 ? 'Completed' : 'Pending'}
+								</span>
+							</div>
+						</div>
+
+						{/* Refund Initiated */}
+						<div className="p-2 border-bottom">
+							<div className="d-flex justify-content-between align-items-center">
+								<small className="fw-bold text-uppercase d-block">Refund Initiated</small>
+								<span className={`badge ${refundDetailsService?.isRefundInitiated === 1 ? 'bg-success' : 'bg-secondary'}`}>
+									{refundDetailsService?.isRefundInitiated === 1 ? 'Yes' : 'No'}
+								</span>
+							</div>
+						</div>
+
+						{/* Approval Status */}
+						<div className="p-2 border-bottom">
+							<div className="d-flex justify-content-between align-items-center">
+								<small className="fw-bold text-uppercase d-block">Approval Status</small>
+								<span className={`badge ${refundDetailsService?.isRefundApproved === 1 ? 'bg-success' : 'bg-secondary'}`}>
+									{refundDetailsService?.isRefundApproved === 1 ? 'Approved' : 'Pending'}
+								</span>
+							</div>
+						</div>
+
+						{/* Initiated By */}
+						<div className="p-2 border-bottom">
+							<div className="d-flex justify-content-between align-items-center">
+								<small className="fw-bold text-uppercase d-block">Initiated By</small>
+								<div className="d-flex flex-column align-items-end text-sm">
+									<span className="fw-semibold">{refundDetailsService?.initiatedByName || 'N/A'}</span>
+									<small className="text-muted">(ID: {refundDetailsService?.initiatedBy || 'N/A'})</small>
+								</div>
+							</div>
+						</div>
+
+						{/* Initiated Date */}
+						<div className="p-2 border-bottom">
+							<div className="d-flex justify-content-between align-items-center">
+								<small className="fw-bold text-uppercase d-block">Initiated Date</small>
+								<small className="fw-semibold">{refundInitiatedDate}</small>
+							</div>
+						</div>
+
+						{/* Approved By */}
+						<div className="p-2 border-bottom">
+							<div className="d-flex justify-content-between align-items-center">
+								<small className="fw-bold text-uppercase d-block">Approved By</small>
+								<div className="d-flex flex-column align-items-end text-sm">
+									<span className="fw-semibold">{refundDetailsService?.approvedByName || 'N/A'}</span>
+									<small className="text-muted">(ID: {refundDetailsService?.approvedby || 'N/A'})</small>
+								</div>
+							</div>
+						</div>
+
+						{/* Refunded By */}
+						<div className="p-2 border-bottom">
+							<div className="d-flex justify-content-between align-items-center">
+								<small className="fw-bold text-uppercase d-block">Refunded By (Employee ID)</small>
+								<span className="fw-semibold">{refundDetailsService?.refundedBy || 'N/A'}</span>
+							</div>
+						</div>
+
+						{/* Refund Matter Closed */}
+						<div className="p-2 border-bottom">
+							<div className="d-flex justify-content-between align-items-center">
+								<small className="fw-bold text-uppercase d-block">Refund Matter Closed</small>
+								<span className={`badge ${refundDetailsService?.isRefundMatterClosed === 1 ? 'bg-success' : 'bg-secondary'}`}>
+									{refundDetailsService?.isRefundMatterClosed === 1 ? 'Yes' : 'No'}
+								</span>
+							</div>
+						</div>
+
+						{/* First Witness */}
+						{(refundDetailsService?.firstWitness || 0) > 0 && (
+							<div className="p-2 border-bottom">
+								<small className="fw-bold text-uppercase d-block mb-1">First Witness</small>
+								<div className="d-flex flex-column gap-1 text-sm">
+									<div><span className="text-muted">Name:</span> <span className="fw-semibold">{refundDetailsService?.firstWitnessName || 'N/A'}</span></div>
+									<div><span className="text-muted">Purpose:</span> <span className="fw-semibold">{refundDetailsService?.firstWitnessPurpose || 'N/A'}</span></div>
+									<div><span className="text-muted">Date:</span> <span className="fw-semibold">{refundInitiatedDate}</span></div>
+								</div>
+							</div>
+						)}
+
+						{/* Second Witness */}
+						{(refundDetailsService?.secondWitness || 0) > 0 && (
+							<div className="p-2 border-bottom">
+								<small className="fw-bold text-uppercase d-block mb-1">Second Witness</small>
+								<div className="d-flex flex-column gap-1 text-sm">
+									<div><span className="text-muted">Name:</span> <span className="fw-semibold">{refundDetailsService?.secondWitnessName || 'N/A'}</span></div>
+									<div><span className="text-muted">Purpose:</span> <span className="fw-semibold">{refundDetailsService?.secondWitnessPurpose || 'N/A'}</span></div>
+									<div><span className="text-muted">Date:</span> <span className="fw-semibold">{secondWitnessDateFormatted}</span></div>
+								</div>
+							</div>
+						)}
+
+						{/* Third Witness */}
+						{(refundDetailsService?.thirdWitness || 0) > 0 && (
+							<div className="p-2 border-bottom">
+								<small className="fw-bold text-uppercase d-block mb-1">Third Witness</small>
+								<div className="d-flex flex-column gap-1 text-sm">
+									<div><span className="text-muted">Name:</span> <span className="fw-semibold">{refundDetailsService?.thirdWitnessName || 'N/A'}</span></div>
+									<div><span className="text-muted">Purpose:</span> <span className="fw-semibold">{refundDetailsService?.thirdWitnessPurpose || 'N/A'}</span></div>
+									<div><span className="text-muted">Date:</span> <span className="fw-semibold">{thirdWitnessDateFormatted}</span></div>
+								</div>
+							</div>
+						)}
+
+						{/* Witness Information List */}
+						{Array.isArray(refundDetailsService?.witnesses) && refundDetailsService.witnesses.length > 0 && (
+							<div className="p-2 border-bottom">
+								<small className="fw-bold text-uppercase d-block mb-1">Witness Information</small>
+								{refundDetailsService.witnesses.map((w, idx) => (
+									<div key={idx} className="d-flex justify-content-between align-items-center text-sm">
+										<span className="fw-semibold">{w.username || 'Unknown'}</span>
+										<span className="text-muted text-uppercase" style={{ fontSize: '0.75rem' }}>{w.witnessType || 'Witness'}</span>
+									</div>
+								))}
+							</div>
+						)}
+					</div>
+				</Modal.Body>
+				<Modal.Footer>
+					<Button variant="secondary" onClick={() => { setShowRefundDetailsModal(false); setRefundDetailsService(null); }}>
+						Close
+					</Button>
+				</Modal.Footer>
+			</Modal>
+		);
+	};
+
+	const renderDeleteDetailsModal = () => {
+		if (!deletedItemDetails) return null;
+
+		const deletedAtDate = deletedItemDetails?.deletedAt ? new Date(deletedItemDetails.deletedAt).toLocaleString() : 'N/A';
+
+		return (
+			<Modal backdrop='static' show={showDeleteDetailsModal} onHide={() => { setShowDeleteDetailsModal(false); setDeletedItemDetails(null); }} size="lg">
+				<Modal.Header closeButton>
+					<Modal.Title>Deletion Details - {deletedItemDetails?.name || 'Service'}</Modal.Title>
+				</Modal.Header>
+				<Modal.Body>
+					<div className="d-flex flex-column gap-2">
+						{/* Service Name */}
+						<div className="p-2 border-bottom">
+							<div className="d-flex justify-content-between align-items-center">
+								<small className="fw-bold text-uppercase d-block">Service Name</small>
+								<span className="fw-semibold">{deletedItemDetails?.name || 'N/A'}</span>
+							</div>
+						</div>
+
+						{/* Service Cost */}
+						<div className="p-2 border-bottom">
+							<div className="d-flex justify-content-between align-items-center">
+								<small className="fw-bold text-uppercase d-block">Service Cost</small>
+								<span className="fw-semibold">{currencyFormatter.format(Number(deletedItemDetails?.totalcost) || 0)}</span>
+							</div>
+						</div>
+
+						{/* Deleted By */}
+						<div className="p-2 border-bottom">
+							<div className="d-flex justify-content-between align-items-center">
+								<small className="fw-bold text-uppercase d-block">Deleted By (Employee Name)</small>
+								<span title={String(deletedItemDetails?.isDeletedBy || 'N/A')} className="fw-semibold">{deletedItemDetails?.deletedByName || 'N/A'}</span>
+							</div>
+						</div>
+
+						{/* Deletion Date */}
+						<div className="p-2 border-bottom">
+							<div className="d-flex justify-content-between align-items-center">
+								<small className="fw-bold text-uppercase d-block">Deletion Date</small>
+								<small className="fw-semibold">{deletedAtDate}</small>
+							</div>
+						</div>
+
+						{/* Status */}
+						<div className="p-2 border-bottom">
+							<div className="d-flex justify-content-between align-items-center">
+								<small className="fw-bold text-uppercase d-block">Status</small>
+								<span className="badge bg-danger">Deleted</span>
+							</div>
+						</div>
+					</div>
+				</Modal.Body>
+				<Modal.Footer>
+					<Button variant="secondary" onClick={() => { setShowDeleteDetailsModal(false); setDeletedItemDetails(null); }}>
+						Close
+					</Button>
+				</Modal.Footer>
+			</Modal>
+		);
+	};
+
 	const [paymentModes, setPaymentModes] = useState<any[]>([]);
 	useEffect(() => {
 		customFetch('paymentmodes').then((res) => {
@@ -689,6 +924,8 @@ export default function PreviousTransactionSummaryPage() {
 					/>
 					{renderTaxModal()}
 					{renderWitnessModal()}
+					{renderRefundDetailsModal()}
+					{renderDeleteDetailsModal()}
 					<div className="mb-4">
 						<div className="d-flex justify-content-between align-items-center mb-3">
 							<h5 className="mb-0 fw-semibold text-body-emphasis">Billing Summary</h5>
@@ -810,7 +1047,7 @@ export default function PreviousTransactionSummaryPage() {
 													<td className="text-start">{row.name}</td>
 													<td className="text-start">{row.organizationName || '-'}</td>
 													<td className="text-start">{row.clinicianName || '-'}</td>
-													<td className="text-start">{row.serviceAddedOn ? dayjs(row.serviceAddedOn).format("DD-MM-YYYY HH:mm:ss"):""}</td>
+													<td className="text-start">{row.serviceAddedOn ? dayjs(row.serviceAddedOn).format("DD-MM-YYYY HH:mm:ss") : ""}</td>
 													<td className="text-start">{currencyFormatter.format(Number(row.cost) || 0)}</td>
 													<td className="text-start">{currencyFormatter.format(Number(row.totalcost) || 0)}</td>
 													<td className="text-start">{currencyFormatter.format(Number(row.totalpayable) || 0)}</td>
@@ -847,12 +1084,9 @@ export default function PreviousTransactionSummaryPage() {
 																	Cash Out
 																</Button>
 															)}
-															{Array.isArray(row.witnesses) && row.witnesses.length > 0 && (
-																<Button size="sm" variant="secondary" onClick={() => {
-																	setWitnesses(row.witnesses);
-																	setShowWitnessModal(true);
-																}}>
-																	View Witnesses
+															{row.isRefundInitiated === 1 && (
+																<Button size="sm" variant="info" onClick={() => handleViewRefundDetails(row)}>
+																	View Refund Details
 																</Button>
 															)}
 														</div>
@@ -863,9 +1097,17 @@ export default function PreviousTransactionSummaryPage() {
 															</Button>
 														}
 
-														{row.isDeleted == 1 && 'Item Deleted'}
+														{row.isDeleted == 1 && (
+															<Button 
+																variant='warning' 
+																size='sm' 
+																onClick={() => handleViewDeleteDetails(row)}
+															>
+																View Deletion Details
+															</Button>
+														)}
 													</td>
-												
+
 												</tr>
 											);
 										})}

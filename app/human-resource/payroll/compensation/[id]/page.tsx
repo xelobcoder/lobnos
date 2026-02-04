@@ -283,7 +283,7 @@ export default function CompensationDetailPage() {
                                    {compensation.commission_percentage && (
                                         <div className="col-md-6">
                                              <div className="small text-muted mb-1">Commission Rate</div>
-                                             <div className="fw-medium">{compensation.commission_percentage.toFixed(1)}%</div>
+                                             <div className="fw-medium">{compensation.commission_percentage}%</div>
                                         </div>
                                    )}
                                    {compensation.commission_target && (

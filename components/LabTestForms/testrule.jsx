@@ -128,6 +128,14 @@ export default function CreateTestRule({ clientdata }) {
 				const { message, statusCode, status } = response;
 				if (status === "success" && statusCode === 200) {
 					toast.success(message, { autoClose: 500 });
+
+					const confirmation
+					 = window.confirm("Do you want to continue to result validation");
+
+					if (confirmation) {
+						window.location.href = `/operations/laboratory/validation?ascensionid=${ascensionid}`;
+					}
+
 				} else {
 					toast.error(message, { autoClose: 2000 });
 				}

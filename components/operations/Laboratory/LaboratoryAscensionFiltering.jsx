@@ -1,7 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import DatePickerRange from "../../../components/accessories/DatePickerRange";
 import { useLaboratoryContext } from "./LaboratoryStagesContext";
 import { handleDateRangeSelection } from "./AscensionFilteringComponent";
+import { date } from "zod";
 
 export default function LaboratoryAscensionFiltering({ ascension_stage, employeeid, branchid }) {
 
@@ -32,22 +33,66 @@ export default function LaboratoryAscensionFiltering({ ascension_stage, employee
        };
 
 
+       const [category, setCategory] = useState({
+              section: '', value: ''
+       });
 
-      
+
+       const handleSettingCategory = (section, value) => {
+              setCategory({ section, value });
+              setQueryParams((prev) => ({
+                     ...prev,
+                     ascensionid: '',
+                     patientid: '',
+                     billingid: '',
+                     patientname: "",
+                     [section]: value,
+                     _dateFrom: "",
+                     _dateEnd: ""
+              }));
+       }
+
+
+
 
 
        return (
               <div className="container-fluid py-2">
                      <div className="row g-2 align-items-center">
-                            <div className="col-12 col-md-2">
+                            <div className="col-12 col-lg-2">
+                                   <select onChange={(ev) => {
+                                          if (ev.target.value == "none") {
+                                                 handleSettingCategory("none", "");
+                                          } else {
+                                                 setCategory({ section: ev.target.value, value: '' });
+                                          }
+
+                                   }} className="form-select ">
+                                          <option value="none">Filter By</option>
+                                          <option value="ascensionid">Ascension ID</option>
+                                          <option value="patientname">Patient Name</option>
+                                          <option value="patientid">Patient ID</option>
+                                          <option value="billingid">Billing ID</option>
+                                   </select>
+                            </div>
+                            <div className="col-12 col-lg-2">
+                                   <input className="form-control "
+                                          value={category.value}
+                                          onChange={(ev) => {
+                                                 handleSettingCategory(category.section, ev.target.value);
+
+                                          }}
+                                          placeholder="Enter Value to Filter" />
+                            </div>
+                            <div className="col-12 col-lg-2">
                                    <select
                                           className="form-select"
                                           value={queryParams.status}
                                           onChange={(ev) => {
-                                                 handleDateRangeSelection(ev.target.value,setQueryParams);
+                                                 handleDateRangeSelection(ev.target.value, setQueryParams);
                                           }}
                                    >
-                                          <option value="">Filter by  </option>
+                                          <option value="">Filter by</option>
                                           <option value='Today'>Today</option>
                                           <option value='Yesterday'>Yesterday</option>
                                           <option value='This Week'>This Week</option>
@@ -62,29 +107,16 @@ export default function LaboratoryAscensionFiltering({ ascension_stage, employee
                                           <option value='All'>All</option>
                                    </select>
                             </div>
-                            <div className="col-12 col-md-2">
+                            <div className="col-12 col-lg-2">
                                    <DatePickerRange
                                           start={queryParams._dateFrom}
                                           end={queryParams._dateEnd}
                                           getRange={updateDateValues}
                                    />
                             </div>
-                            <div className="col-12 col-md-4">
-                                   <input
-                                          className="form-control"
-                                          value={queryParams.searchString}
-                                          onChange={(ev) =>
-                                                 setQueryParams((prev) => ({
-                                                        ...prev,
-                                                        searchString: ev.target.value,
-                                                 }))
-                                          }
-                                          placeholder="Type in your search here"
-                                   />
-                            </div>
-                            <div className="col-12 col-md-2">
+                            <div className="col-12 col-lg-2">
                                    <select
-                                          className="form-select form-select-sm"
+                                          className="form-select "
                                           value={queryParams.sortby}
                                           onChange={(ev) =>
                                                  setQueryParams((prev) => ({
@@ -97,12 +129,17 @@ export default function LaboratoryAscensionFiltering({ ascension_stage, employee
                                           <option value="ASC">Sort by Date (Oldest First)</option>
                                    </select>
                             </div>
-                            <div className="col-12 col-md-2 d-flex justify-content-md-start justify-content-center">
+                            <div className="col-12 col-lg-2">
                                    <button
-                                          onClick={() => _getAscensionData(ascension_stage, employeeid, branchid)}
+                                          onClick={() => _getAscensionData(ascension_stage, employeeid, branchid, {
+                                                 ascensionid: queryParams.ascensionid,
+                                                 patientid: queryParams.patientid,
+                                                 billingid: queryParams.billingid,
+                                                 [category.section]: category.value
+                                          })}
                                           className="btn btn-primary btn-sm w-100 text-uppercase"
                                    >
-                                          {"<"} Load Data {"/>"}
+                                          Load Data
                                    </button>
                             </div>
                      </div>

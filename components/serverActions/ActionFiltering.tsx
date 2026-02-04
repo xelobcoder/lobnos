@@ -114,7 +114,7 @@ export const handleRefundServerSideProcessing = async (values: { count: number; 
 
 export const handleServerSideProcessingAscensionData = async (pagination) => {
 	try {
-		const { page, count, employeeid, ascension_stage, _dateFrom, _dateEnd, isUltrasound, searchString, category, sortby = 'DESC' } = pagination;
+		const { page, count, employeeid, ascension_stage, _dateFrom,billingid,patientid,ascensionid, patientname, _dateEnd, isUltrasound, searchString, category, sortby = 'DESC' } = pagination;
 
 		const parsedFrom = _dateFrom ? formatDate(_dateFrom) : _dateFrom;
 		const parsedEnd = _dateEnd ? formatDate(_dateEnd) : _dateEnd;
@@ -129,7 +129,11 @@ export const handleServerSideProcessingAscensionData = async (pagination) => {
 				`&&isUltrasound=${isUltrasound}` +
 				`&&employeeid=${employeeid}` +
 				`&&sortby=${sortby}` +
-				`&&grouped=${category}`
+				`&&grouped=${category}`+
+				`&&billingid=${billingid}`+
+				`&&patientid=${patientid}`+
+				`&&ascensionid=${ascensionid}`+
+				`&&patientname=${patientname}`
 			);
 			if (Array.isArray(result)) {
 				return { result, error: false }

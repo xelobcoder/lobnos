@@ -260,7 +260,12 @@ export default function ValidationAscensionTable({ employeeid }) {
 		_dateEnd: queryParams._dateEnd,
 		isUltrasound: queryParams.isUltrasound,
 		employeeid, ascension_stage: 'VALIDATION',
-		category: groupByPatient ? 'grouped' : 'ungrouped'
+		category: groupByPatient ? 'grouped' : 'ungrouped',
+		billingid: queryParams.billingid,
+		patientname: queryParams.patientname,
+		patientid: queryParams.patientid,
+		billingid: queryParams.billingid,
+		ascensionid: queryParams.ascensionid
 	}
 
 

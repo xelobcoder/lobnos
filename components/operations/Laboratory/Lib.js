@@ -6,7 +6,7 @@ export const formatDate = (date) => {
        return new Date(date).toISOString().split('T')[0]
 };
 
-export async function getAscensionData(ascension_stage, setCollection, queryParams, setLoading, employeeid, branchid,category) {
+export async function getAscensionData(ascension_stage, setCollection, queryParams, setLoading, employeeid, branchid,category,{ascensionid,patientid,billingid,patientname}) {
        try {
               const { _dateFrom, _dateEnd, isUltrasound, sortby,category } = queryParams;
 
@@ -19,14 +19,17 @@ export async function getAscensionData(ascension_stage, setCollection, queryPara
                             `operations/ascension/staging?operationsStaging=${ascension_stage}` +
                             `&&dateFrom=${parsedFrom}` +
                             `&&dateEnd=${parsedEnd}` +
-                            `&&searchString=${queryParams.searchString ? decodeURIComponent(queryParams.searchString) : ''}` +
                             `&&page=${queryParams.page}` +
                             `&&count=${queryParams.count}` +
                             `&&isUltrasound=${isUltrasound}` +
                             `&&employeeid=${employeeid}` +
                             `&&branchid=${branchid}` +
                             `&&sortby=${sortby}` +
-                            `&&grouped=${category}`
+                            `&&grouped=${category}`+
+                            `&&ascensionid=${ascensionid}`+
+                            `&&patientid=${patientid}`+
+                            `&&billingid=${billingid}`+
+                            `&&patientname=${patientname}`
                      );
                      if (Array.isArray(result)) {
                             setLoading(false)

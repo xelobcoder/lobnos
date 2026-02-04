@@ -9,7 +9,7 @@ export default function ResultEntryHtmlGenerator({ item, statehandler, index, is
     const { plan } = item;
     if (plan === 'limits') return <LimitViewHtmlGenerator index={index}
         statehandler={statehandler} fieldItem={item} />
-    else if (plan === "greaterLess") return <GreaterLessViewHtmlGenerator index={index}
+    else if (plan === "greaterLess" || plan === "greaterLessEqualTo") return <GreaterLessViewHtmlGenerator index={index}
         statehandler={statehandler} fieldItem={item} />
     else if (plan === "options") return <OptionsViewHtmlGenerator index={index} statehandler={statehandler} fieldItem={item} />
     else if (plan === "textReference") return <TextReferenceViewHtmlGenerator index={index} statehandler={statehandler} fieldItem={item} />
