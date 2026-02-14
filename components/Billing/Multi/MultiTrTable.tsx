@@ -10,17 +10,20 @@ import { customFetch, reactSelectCustomStyles } from "../../Auth/customFetch";
 
 
 
+
 export default function MultiTrTable() {
     const context = useContext(MultiBillingContext);
     if (!context) throw new Error("MultiBillingContext not found");
     const { billingdata, setBillingData, recalculateTotalBill } = context;
-
     const [loadingOutsource, setLoadingOutsource] = useState(false);
     const [selected, setSelected] = useState<any>(null);
     const { role } = useApplication()?.user;
     const [selectedOutsource, setSelectedOutsource] = useState<any>(null);
     const [OutsourcingCompaniesList, setOutSourcedCompanies] = useState<any[]>([]);
     const { cart } = billingdata;
+    const applicationsettings = useApplication()?.settings;
+    const allowCrmDiscount = ['manager', 'admin'].includes(role) ? true :
+        applicationsettings?.AllowCrmToGiveDisocunt == 1 ? true : false;
 
     const options = OutsourcingCompaniesList.map(org => ({
         value: org.outsourceid,
@@ -80,7 +83,7 @@ export default function MultiTrTable() {
 
     const handleDiscount = (ev: any) => {
         const { value } = ev.target;
-        setSelected({ ...selected, discount: parseFloat(value) })
+        setSelected({ ...selected, discount: parseFloat(value), userAdjustedValue: parseFloat(value) });
     }
 
     const handleTestSelectedChangeVariable = (newValue: any) => {
@@ -115,7 +118,9 @@ export default function MultiTrTable() {
             return (<div>
                 {role && ['manager', 'admin'].includes(role) ?
                     <div>
-                        organization not added for test <br /><Link href={`/settings/applicationsettings/testpanels/testlist/${selected?.testid}/outsourcingList?testname=R${selected?.name}`}>
+                        organization not added for test
+                        <br />
+                        <Link href={`/settings/applicationsettings/testpanels/testlist/${selected?.testid}/outsourcingList?testname=R${selected?.name}`}>
                             <RiLinkUnlinkM size={16} /> Add Outsourcing organization
                         </Link>
                         <button
@@ -156,10 +161,22 @@ export default function MultiTrTable() {
                 {displayOutsourcingChoicingOptions()}
             </td>
             <td></td>
+            <td >
+                <select
+                 value={selected?.userAdjustmentType || ''} 
+                style={{ border: "1px solid lightgray", padding: "10px", borderRadius: '5px' }} 
+                onChange={(ev) => { setSelected({ ...selected, userAdjustmentType: ev.target.value }) }}>
+                    <option value="">Select Adjustment Type</option>
+                    <option value='surcharge'>surcharge</option>
+                    <option value='discount'>discount</option>
+                </select>
+            </td>
+
             <td>
                 <input
                     onChange={(ev) => { handleDiscount(ev) }}
-                    disabled={!['manager', 'admin'].includes(role)}
+                    disabled={!allowCrmDiscount}
+                    value ={selected?.discount ?? ''}
                     className="custom-input" type="number" step={0.1} max={selected != null ? selected.discountedValue : ''} />
             </td>
             <td>

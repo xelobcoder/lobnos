@@ -192,54 +192,55 @@ export default function SmsDashboard() {
 		setTrendEnd(end);
 	}, []);
 
-	useEffect(() => {
-		const fetchAnalytics = async () => {
-			setLoading(true);
-			try {
-				// Main status pie
-				const res = await customFetch('prime/sms-analytics/job-status-counts');
-				// Recipient delivery breakdown pie
-				const recRes = await customFetch('prime/sms-analytics/recipient-delivery-counts');
-				// Job trends by day (with date range)
-				let trendsRes;
-				if (trendStart && trendEnd) {
-					trendsRes = await customFetch(`prime/sms-analytics/job-trends-by-day?startDate=${trendStart}&endDate=${trendEnd}`);
-				} else {
-					trendsRes = await customFetch('prime/sms-analytics/job-trends-by-day');
-				}
-
-				if (res && res.success && res.data) {
-					setPieData([
-						{ name: "Sent", value: res.data.sent || 0 },
-						{ name: "Pending", value: res.data.pending || 0 },
-						{ name: "Failed", value: res.data.failed || 0 },
-					]);
-				} else {
-					setError("No analytics data could be retrieved.");
-				}
-				if (recRes && recRes.success && recRes.data) {
-					setRecipientPieData([
-						{ name: "Queued", value: recRes.data.queued || 0 },
-						{ name: "Sent", value: recRes.data.sent || 0 },
-					]);
-				}
-				if (trendsRes && trendsRes.success && trendsRes.data) {
-					const arr = Object.entries(trendsRes.data).map(([date, obj]: [string, any]) => ({
-						date,
-						Pending: obj.pending || 0,
-						Sent: obj.sent || 0,
-						Failed: obj.failed || 0,
-					}));
-					setJobTrends(arr);
-				}
-			} catch (err) {
-				setError("Failed to connect to the analytics service.");
-			} finally {
-				setLoading(false);
+	const fetchAnalytics = async () => {
+		setLoading(true);
+		try {
+			// Main status pie
+			const res = await customFetch('prime/sms-analytics/job-status-counts');
+			// Recipient delivery breakdown pie
+			const recRes = await customFetch('prime/sms-analytics/recipient-delivery-counts');
+			// Job trends by day (with date range)
+			let trendsRes;
+			if (trendStart && trendEnd) {
+				trendsRes = await customFetch(`prime/sms-analytics/job-trends-by-day?startDate=${trendStart}&endDate=${trendEnd}`);
+			} else {
+				trendsRes = await customFetch('prime/sms-analytics/job-trends-by-day');
 			}
-		};
+
+			if (res && res.success && res.data) {
+				setPieData([
+					{ name: "Sent", value: res.data.sent || 0 },
+					{ name: "Pending", value: res.data.pending || 0 },
+					{ name: "Failed", value: res.data.failed || 0 },
+				]);
+			} else {
+				setError("No analytics data could be retrieved.");
+			}
+			if (recRes && recRes.success && recRes.data) {
+				setRecipientPieData([
+					{ name: "Queued", value: recRes.data.queued || 0 },
+					{ name: "Sent", value: recRes.data.sent || 0 },
+				]);
+			}
+			if (trendsRes && trendsRes.success && trendsRes.data) {
+				const arr = Object.entries(trendsRes.data).map(([date, obj]: [string, any]) => ({
+					date,
+					Pending: obj.pending || 0,
+					Sent: obj.sent || 0,
+					Failed: obj.failed || 0,
+				}));
+				setJobTrends(arr);
+			}
+		} catch (err) {
+			setError("Failed to connect to the analytics service.");
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	useEffect(() => {
 		fetchAnalytics();
-	}, [trendStart, trendEnd]);
+	}, []);
 
 	const totalPieData = pieData.reduce((sum, entry) => sum + entry.value, 0);
 	const totalRecipientPie = recipientPieData.reduce((sum, entry) => sum + entry.value, 0);
@@ -509,7 +510,7 @@ export default function SmsDashboard() {
 				<div className="card-header">
 					<div className="row align-items-center g-2">
 						<div className="col-12 col-md-4 mb-2 mb-md-0">
-							<h3 className="h5 fw-semibold text-dark mb-0">Job Trends by Day</h3>
+							<h3 className="h5 fw-semibold text-dark mb-0">	</h3>
 						</div>
 						<div className="col-12 col-md-8">
 							<div className="row g-2 flex-nowrap align-items-center">
@@ -521,6 +522,11 @@ export default function SmsDashboard() {
 								</div>
 								<div className="col-auto">
 									<button className="btn btn-sm btn-outline-secondary" type="button" onClick={handleTrendReset}>Reset</button>
+								</div>
+								<div className="col-auto">
+									<button className="btn btn-sm btn-primary" type="button" onClick={fetchAnalytics} disabled={loading}>
+										{loading ? 'Loading...' : 'Load'}
+									</button>
 								</div>
 								<div className="col-auto">
 									<div className="btn-group btn-group-sm" role="group" aria-label="Chart type">

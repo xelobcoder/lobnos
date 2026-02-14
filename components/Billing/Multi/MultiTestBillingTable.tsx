@@ -20,8 +20,13 @@ export default function MultiTestBillingTable({ canload }: { canload: boolean })
     const { amountPayable, paid } = billingdata;
 
     const removeFromCart = (testId: any) => {
-        const filteredCart = cart.filter((item: any) => item.id !== testId);
-        recalculateTotalBill({ ...billingdata, cart: filteredCart });
+        if (cart.length === 0) return;
+        if (cart.length === 1) {
+           setBillingData({ ...billingdata, cart: [], totaldiscount: 0, totalTestAmountPayable: 0 });
+        } else {
+            const filteredCart = cart.filter((item: any) => item.id !== testId);
+            recalculateTotalBill({ ...billingdata, cart: filteredCart });
+        }
     };
 
     const handleEditTest = async (item: any) => {
@@ -75,12 +80,9 @@ export default function MultiTestBillingTable({ canload }: { canload: boolean })
             variant="primary"
             size="sm"
             className="me-2"
-            // onClick={onLoadBackendBilling}
-            // disabled={loadingBackendBilling || !canLoadData}
             aria-label="Load Billing Data"
             style={{ height: 38, marginLeft: '-20px !important' }}
         >
-            {/* {loadingBackendBilling ? <Spinner as="span" animation="border" size="sm" className="me-1" /> : null} */}
             Start Transaction
         </Button>
     }
@@ -93,7 +95,8 @@ export default function MultiTestBillingTable({ canload }: { canload: boolean })
                         <th>Test</th>
                         <th>Outsourcing To</th>
                         <th style={{ width: '10%' }}>Price</th>
-                        <th style={{ width: '10%' }}>Discount</th>
+                        <th style={{ width: '10%' }}>Type</th>
+                        <th style={{ width: '10%' }}>Adj. value</th>
                         <th style={{ width: '10%' }}>Action</th>
                     </tr>
                 </thead>
@@ -118,7 +121,8 @@ export default function MultiTestBillingTable({ canload }: { canload: boolean })
                                 )}
                             </td>
                             <td>{currencyFormatter.format(item.discountedValue ?? 0)}</td>
-                            <td>{currencyFormatter.format(item.discount ?? 0)}</td>
+                            <td>{item.userAdjustmentType || 'Normal Pricing'}</td>
+                            <td>{currencyFormatter.format(item.userAdjustedValue ?? 0)}</td>
                             <td>
                                 {item.isoutsourced === 1 && (
                                     <RiPencilLine
@@ -146,7 +150,10 @@ export default function MultiTestBillingTable({ canload }: { canload: boolean })
                         <td>{currencyFormatter.format(billingdata.totalTestAmountPayable ?? 0)}</td>
                         <td>{currencyFormatter.format(billingdata.totaldiscount ?? 0)}</td>
                         <td>
-                            <button className="btn btn-danger btn-sm" onClick={() => recalculateTotalBill({ ...billingdata, cart: [] })}>
+                            <button className="btn btn-danger btn-sm" onClick={() => {
+                                // recalculateTotalBill({ ...billingdata, cart: [] })
+                                setBillingData({ ...billingdata, cart: [], totaldiscount: 0, totalTestAmountPayable: 0 });
+                            }}>
                                 <RiDeleteBinLine size={16} />
                             </button>
                         </td>

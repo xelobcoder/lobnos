@@ -123,7 +123,6 @@ export const handleServerSideProcessingAscensionData = async (pagination) => {
 				`operations/ascension/staging?operationsStaging=${ascension_stage}` +
 				`&&dateFrom=${parsedFrom}` +
 				`&&dateEnd=${parsedEnd}` +
-				`&&searchString=${searchString}` +
 				`&&page=${page}` +
 				`&&count=${count}` +
 				`&&isUltrasound=${isUltrasound}` +

@@ -6,7 +6,7 @@ import { RiInboxLine, RiTestTubeLine } from '@remixicon/react';
 import { useApplication } from "../Auth/useApplicationContext";
 import { customPost } from "../Auth/customFetch";
 
-export default function ListTable({ data, handleCollectSample, filter, selectedItems = [], onToggleSelection }) {
+export default function ListTable({ data, handleCollectSample, filter, selectedItems = [], setSelectedItems, onToggleSelection }) {
 	const isCompleteFlowDisabled = !(useApplication()?.settings?.completeFlow);
 	const employeeid = useApplication()?.user?.employeeid;
 	const branchid = useApplication()?.branchid;
@@ -33,6 +33,7 @@ export default function ListTable({ data, handleCollectSample, filter, selectedI
 
 
 			const billingIds = selectedItems.map(item => item.billingid);
+			const ascensionIds = selectedItems.map(item => item.ascensionid);
 
 			const result = await customPost(`operations/ascension/bypass/mutiple/completeflow/bypass-multiple`, 'POST', {
 				billingIds,
@@ -42,16 +43,14 @@ export default function ListTable({ data, handleCollectSample, filter, selectedI
 			const { status, message } = result;
 
 			if (status === 'success') {
-				// For multiple bypass, we'll open the first patient's record
-				// but use the earliest date from all selected items
 				const firstItem = selectedItems[0];
 				window.open(
-					`/operations/laboratory/completed?patientid=${firstItem.patientid}&billingid=${firstItem.billingid}&start_date=${earliestDate}&end_date=${earliestDate}`,
-					'_blank'
+					`/operations/laboratory/completed?patientid=${firstItem.patientid}&billingid=${firstItem.billingid}&ascensionid=${ascensionIds.join(',')}`,
+					'_blank',
+					"width=1200,height=800,resizable,scrollbars"
 				);
 
-				// Clear selections after successful bypass
-				selectedItems.forEach(item => onToggleSelection(item));
+				setSelectedItems([]);
 			} else {
 				alert(message || "Failed to bypass the complete flow.");
 			}
@@ -78,7 +77,8 @@ export default function ListTable({ data, handleCollectSample, filter, selectedI
 			const { date, billingid, patientid } = row;
 			window.open(
 				`/operations/laboratory/completed?patientid=${patientid}&billingid=${billingid}&start_date=${date}&end_date=${date}`,
-				'_blank'
+				'_blank',
+				"width=1200,height=800,resizable,scrollbars"
 			);
 		} else {
 			alert(message || "Failed to bypass the complete flow.");

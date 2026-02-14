@@ -22,6 +22,7 @@ import { useSearchParams } from "next/navigation";
 import AppointmentSlots from "./DisplayAppointmentSlot";
 import { ToastContainer, toast } from "react-toastify";
 import { Container } from "react-bootstrap";
+import { useApplication } from "../Auth/useApplicationContext";
 
 export default function NewAppointment() {
 	const [appointment, setAppointment] = useState(APPOINTMENT_DEFAULT_DATA);
@@ -34,6 +35,7 @@ export default function NewAppointment() {
 	const [isloadingEmployees, setLoadingEmployes] = useState(true);
 	const searchedPatientid = useSearchParams().get("patientid");
 	const [disableFilter, setDisableFilter] = useState(false);
+	const employeeid = useApplication()?.user?.employeeid;
 
 	const getSelectedPatient = (value) => {
 		if (typeof value == "object" && "patientid" in value) {
@@ -42,9 +44,12 @@ export default function NewAppointment() {
 		}
 	};
 
+	console.log(employeeid, "employeeid");
+	
 	const handleFormSubmit = (e) => {
 		e.preventDefault();
-		handleSubmitForm({ ...appointment, patientid: patient.patientid }, toast);
+		if (!employeeid) return toast.error("Employee ID is required to schedule an appointment", { position: "top-center" });
+		handleSubmitForm({ ...appointment, patientid: patient.patientid, employeeid }, toast);
 	};
 
 	useEffect(() => {

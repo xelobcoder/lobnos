@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { handleActivation } from '../../../components/Auth/registerclient';
-import { customFetch, formatDateOrNA, parseDate } from '../../../components/Auth/customFetch';
+import { customFetch, customPost, formatDateOrNA, parseDate } from '../../../components/Auth/customFetch';
 import Loader from '../../../components/accessories/Loader';
 import PatientFiltered from '../../../components/accessories/SectorFileringComponents/CustomerFiltering';
 import CustomersActions from '../../../components/customer/CustomersActionDropDown';
@@ -38,7 +38,21 @@ interface Customer {
 
 export default function Activator() {
     const [loading, setLoading] = useState(false);
+    const [filterLoading, setFilterLoading] = useState(false);
     const [tempStore, setStore] = useState<Customer[]>([]);
+    const [showAdvancedFilter, setShowAdvancedFilter] = useState(false);
+    const [advancedFilteringState, setAdvancedFilteringState] = useState({
+        firstname: '',
+        lastname: '',
+        middlename: '',
+        patientid: '',
+        email: '',
+        mobile_number: '',
+        gender: '',
+        marital_Status: '',
+        organization: '',
+        occupation: ''
+    })
     const router = useRouter();
 
 
@@ -100,6 +114,29 @@ export default function Activator() {
     }
 
 
+    const handleFilterApplication = async () => {
+        const [key, value] = Object.entries(advancedFilteringState).find(([_, val]) => val.trim() !== '') || [];
+        if (!key || !value) return toast.error("Please fill at least one field for filtering");
+        try {
+            setFilterLoading(true);
+            let url = `customer/advanced/filter`;
+            const response = await customPost(url, 'POST', advancedFilteringState);
+            const { data, count, success } = response;
+            if (success && Array.isArray(data)) {
+                if (data.length === 0) {
+                    toast.info("No records found matching the criteria");
+                }
+
+                setStore(data);
+            }
+        } catch (err) {
+            console.log(err);
+        } finally {
+            setFilterLoading(false);
+        }
+    }
+
+
     const columns = [
         { Header: 'PatientID', accessor: 'fullpatientid' },
         { Header: 'registered on', accessor: 'date', Cell: ({ value }) => { return <span>{dayjs(value).format('YYYY-MM-DD HH:mm:ss')}</span> } },
@@ -121,19 +158,6 @@ export default function Activator() {
             filteringMode: 'number'
         },
         { Header: "registered By", accessor: "registeredbyusername" },
-        // { Header: 'WhatsApp Contact', accessor: 'whatAppcontact' },
-        // {
-        //     Header: 'email', accessor: 'email',
-        //     filteringMode: 'text'
-        // },
-        // {
-        //     Header: 'occupation', accessor: 'occupation',
-        //     filteringMode: 'text'
-        // },
-        // {
-        //     Header: 'organization', accessor: 'organization',
-        //     filteringMode: 'text'
-        // },
         {
             Header: 'more', accessor: '', Cell: ({ value, row }) => {
                 const item = row.original;
@@ -192,14 +216,152 @@ export default function Activator() {
 
     return (
         <div className='p-2'>
-            <div className="col-md-8 col-sm-12 col-lg-6 my-2 d-lg-flex ">
-                <div style={{ minWidth: '80%' }}>
-                    <PatientFiltered isDisabled={false} getSelectedPatient={filteredPatient} />
+            <div className='d-flex col-12 justify-content-between'>
+                <div className="col-md-8 col-sm-12 col-lg-6 my-2 d-lg-flex ">
+                    <div style={{ minWidth: '80%' }}>
+                        <PatientFiltered isDisabled={false} getSelectedPatient={filteredPatient} />
+                    </div>
+                    <div className='mx-3' style={{ marginTop: '3px' }}>
+                        <button className='btn btn-outline-danger btn-sm' onClick={() => { resetFiltering() }}> <RiResetLeftFill /> Reset </button>
+                    </div>
                 </div>
-                <div className='mx-3' style={{ marginTop: '3px' }}>
-                    <button className='btn btn-outline-danger btn-sm' onClick={() => { resetFiltering() }}> <RiResetLeftFill /> Reset </button>
+                <div className='col-md-4 col-sm-12 col-lg-6 my-2 d-lg-flex col-xl-4 justify-content-end'>
+                    <button className='btn btn-primary' onClick={() => setShowAdvancedFilter(!showAdvancedFilter)}>Advanced Filtering</button>
                 </div>
             </div>
+            {/* advanced Filter */}
+            {showAdvancedFilter &&
+                <div style={{ padding: '12px', marginTop: '12px', border: '1px solid #ddd', borderRadius: '4px', backgroundColor: '#f9f9f9' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '12px', alignItems: 'end' }}>
+
+                        <div>
+                            <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>First Name:</label>
+                            <input
+                                type="text"
+                                placeholder="Enter first name"
+                                style={{ width: '100%', padding: '6px 8px', border: '1px solid #ddd', borderRadius: '3px', fontSize: '13px', boxSizing: 'border-box' }}
+                                value={advancedFilteringState.firstname}
+                                onChange={(ev) => { setAdvancedFilteringState({ ...advancedFilteringState, firstname: ev.target.value }) }}
+                            />
+                        </div>
+
+                        <div>
+                            <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Middle Name:</label>
+                            <input
+                                type="text"
+                                placeholder="Enter middle name"
+                                style={{ width: '100%', padding: '6px 8px', border: '1px solid #ddd', borderRadius: '3px', fontSize: '13px', boxSizing: 'border-box' }}
+                                value={advancedFilteringState.middlename}
+                                onChange={(ev) => { setAdvancedFilteringState({ ...advancedFilteringState, middlename: ev.target.value }) }}
+                            />
+                        </div>
+
+                        <div>
+                            <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Last Name:</label>
+                            <input
+                                type="text"
+                                placeholder="Enter last name"
+                                style={{ width: '100%', padding: '6px 8px', border: '1px solid #ddd', borderRadius: '3px', fontSize: '13px', boxSizing: 'border-box' }}
+                                value={advancedFilteringState.lastname}
+                                onChange={(ev) => { setAdvancedFilteringState({ ...advancedFilteringState, lastname: ev.target.value }) }}
+                            />
+                        </div>
+
+                        <div>
+                            <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Patient ID:</label>
+                            <input
+                                type="text"
+                                placeholder="Full Patient ID"
+                                style={{ width: '100%', padding: '6px 8px', border: '1px solid #ddd', borderRadius: '3px', fontSize: '13px', boxSizing: 'border-box' }}
+                                value={advancedFilteringState.patientid}
+                                onChange={(ev) => { setAdvancedFilteringState({ ...advancedFilteringState, patientid: ev.target.value }) }}
+                            />
+                        </div>
+
+                        <div>
+                            <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Email:</label>
+                            <input
+                                type="email"
+                                placeholder="Email address"
+                                style={{ width: '100%', padding: '6px 8px', border: '1px solid #ddd', borderRadius: '3px', fontSize: '13px', boxSizing: 'border-box' }}
+                                value={advancedFilteringState.email}
+                                onChange={(ev) => { setAdvancedFilteringState({ ...advancedFilteringState, email: ev.target.value }) }}
+                            />
+                        </div>
+
+                        <div>
+                            <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Mobile:</label>
+                            <input
+                                type="text"
+                                placeholder="Mobile number"
+                                style={{ width: '100%', padding: '6px 8px', border: '1px solid #ddd', borderRadius: '3px', fontSize: '13px', boxSizing: 'border-box' }}
+                                value={advancedFilteringState.mobile_number}
+                                onChange={(ev) => { setAdvancedFilteringState({ ...advancedFilteringState, mobile_number: ev.target.value }) }}
+                            />
+                        </div>
+
+                        <div>
+                            <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Gender:</label>
+                            <select
+                                style={{ width: '100%', padding: '6px 8px', border: '1px solid #ddd', borderRadius: '3px', fontSize: '13px', boxSizing: 'border-box' }}
+                                value={advancedFilteringState.gender}
+                                onChange={(ev) => { setAdvancedFilteringState({ ...advancedFilteringState, gender: ev.target.value }) }}
+                            >
+                                <option value="">Select</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Marital Status:</label>
+                            <select
+                                style={{ width: '100%', padding: '6px 8px', border: '1px solid #ddd', borderRadius: '3px', fontSize: '13px', boxSizing: 'border-box' }}
+                                value={advancedFilteringState.gender}
+                                onChange={(ev) => { setAdvancedFilteringState({ ...advancedFilteringState, marital_Status: ev.target.value }) }}
+                            >
+                                <option value="">Select</option>
+                                <option value="Single">Single</option>
+                                <option value="Married">Married</option>
+                                <option value="Divorced">Divorced</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Organization:</label>
+                            <input
+                                type="text"
+                                placeholder="Organization"
+                                style={{ width: '100%', padding: '6px 8px', border: '1px solid #ddd', borderRadius: '3px', fontSize: '13px', boxSizing: 'border-box' }}
+                                value={advancedFilteringState.organization}
+                                onChange={(ev) => { setAdvancedFilteringState({ ...advancedFilteringState, organization: ev.target.value }) }}
+                            />
+                        </div>
+
+                        <div>
+                            <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>Occupation:</label>
+                            <input
+                                type="text"
+                                placeholder="Occupation"
+                                style={{ width: '100%', padding: '6px 8px', border: '1px solid #ddd', borderRadius: '3px', fontSize: '13px', boxSizing: 'border-box' }}
+                                value={advancedFilteringState.occupation}
+                                onChange={(ev) => { setAdvancedFilteringState({ ...advancedFilteringState, occupation: ev.target.value }) }}
+                            />
+                        </div>
+
+                        <div>
+                            <button
+                                style={{ padding: '6px 16px', backgroundColor: filterLoading ? '#6c757d' : '#007bff', color: 'white', border: 'none', borderRadius: '3px', fontSize: '13px', fontWeight: '500', cursor: filterLoading ? 'not-allowed' : 'pointer', opacity: filterLoading ? 0.7 : 1 }}
+                                onClick={handleFilterApplication}
+                                disabled={filterLoading}
+                            >
+                                {filterLoading ? 'Loading...' : 'Apply Filter'}
+                            </button>
+                        </div>
+
+                    </div>
+                </div>}
+
             <div >
                 {Array.isArray(tempStore)
                     && tempStore.length > 0

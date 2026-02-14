@@ -2,13 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { PrepareResultEntryHeader } from '../../Auth/customFetch';
 
 function handlePrintMultipleResults(row) {
+  const { testid, name, patientid, ascensionid, billingid } = row.original
 
-     const { testid, name, patientid, ascensionid, billingid } = row.original;
-     const csvid = `${generateRandomTextAndNumbers(70)}${billingid}`;
-     const ptid = `${generateRandomTextAndNumbers(50)}${patientid}`;
-     const url = `csvid=${csvid}&&testid=${testid}&&testname=${name}&&ptid=${ptid}&&target=70,50&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&&password=false&&multiple`;
-     window.open(`/result/lab-report-multiple?${url}`);
+  const csvid = `${generateRandomTextAndNumbers(70)}${billingid}`
+  const ptid = `${generateRandomTextAndNumbers(50)}${patientid}`
+
+  const url = `csvid=${csvid}&&testid=${testid}&&testname=${name}&&ptid=${ptid}&&target=70,50&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&&password=false&&multiple`
+
+  const popup = window.open(
+    `/result/lab-report-multiple?${url}`,
+    "LabReportMultiple",
+    "width=1000,height=700,resizable=yes,scrollbars=yes"
+  )
+
+  if (popup) popup.focus()
 }
+
 import { useLaboratoryContext } from "./LaboratoryStagesContext";
 import { ListGroup, Dropdown, Tabs, Tab } from 'react-bootstrap';
 import { useMediaQuery } from 'react-responsive';
@@ -96,17 +105,26 @@ export default function ValidatedResultTable({ employeeid }) {
 
 
      const handleBrowserView = (data) => {
-          if (allowPrintingUnpaid !== 1 && data.paymentstatus !== 'paid') {
-               alert('Printing of results is not allowed for unpaid tests.');
-               return;
+          if (allowPrintingUnpaid !== 1 && data.paymentstatus !== "paid") {
+               alert("Printing of results is not allowed for unpaid tests.")
+               return
           }
-          const { testid, name, patientid, ascensionid, billingid } = data
-          const csvid = `${generateRandomTextAndNumbers(70)}${billingid}`;
-          const ptid = `${generateRandomTextAndNumbers(50)}${patientid}`;
-          const url = `csvid=${csvid}&&testid=${testid}&&testname=${name}&&ptid=${ptid}&&target=70,50&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&&password=`
-          window.open(`/result/labreport/4?${url}`)
-     }
 
+          const { testid, name, patientid, ascensionid, billingid } = data
+
+          const csvid = `${generateRandomTextAndNumbers(70)}${billingid}`
+          const ptid = `${generateRandomTextAndNumbers(50)}${patientid}`
+
+          const url = `csvid=${csvid}&&testid=${testid}&&testname=${name}&&ptid=${ptid}&&target=70,50&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&&password=`
+
+          const popup = window.open(
+               `/result/labreport/4?${url}`,
+               "LabReportView",
+               "width=1000,height=700,resizable=yes,scrollbars=yes"
+          )
+
+          if (popup) popup.focus()
+     }
 
 
 
@@ -320,7 +338,6 @@ export default function ValidatedResultTable({ employeeid }) {
                          data={groupedData}
                          urlparams={{
                               _dateFrom: queryParams._dateFrom,
-                              searchString: queryParams.searchString,
                               _dateEnd: queryParams._dateEnd,
                               isUltrasound: queryParams.isUltrasound,
                               grouped: "grouped",
@@ -338,7 +355,6 @@ export default function ValidatedResultTable({ employeeid }) {
                     <PrimeTable column={columns} data={collection}
                          urlparams={{
                               _dateFrom: queryParams._dateFrom,
-                              searchString: queryParams.searchString,
                               _dateEnd: queryParams._dateEnd,
                               isUltrasound: queryParams.isUltrasound,
                               billingid: queryParams.billingid,

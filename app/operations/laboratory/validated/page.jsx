@@ -6,12 +6,12 @@ import ValidatedResultTable from "../../../../components/operations/Laboratory/v
 
 export default function ValidatedResult() {
      const { applicationsettings } = useApplicationSettings();
-     const { user } = applicationsettings
+     const { user, branchid } = applicationsettings
      return (
           <div className="p-2 container-fluid">
                <LaboratoryStagesProvider>
-                    <LaboratoryAscensionStages employeeid={user?.employeeid} ascension_stage={'VALIDATED'} />
-                    <ValidatedResultTable  employeeid={user?.employeeid}/>
+                    <LaboratoryAscensionStages employeeid={user?.employeeid} branchid={branchid} ascension_stage={'VALIDATED'} />
+                    <ValidatedResultTable employeeid={user?.employeeid} />
                </LaboratoryStagesProvider>
           </div>
      )

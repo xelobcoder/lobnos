@@ -273,6 +273,7 @@ export default function RESULT_FOR_PRINTING() {
                                 enteredOn={resultdata?.enteredOn}
                                 patientid={resultdata.patientInformation.patientid}
                                 resultsettings={resultSettings}
+                                useIndividualValidation={resultdata.resultsettings.useIndividualValidations}
                             />
                             <span className="text-muted d-flex justify-content-center text-sm">******End of Report ******</span>
                             {resultSettings.includeLimitations && <UseDisclaimer disclaimer={resultSettings.limitations} />}

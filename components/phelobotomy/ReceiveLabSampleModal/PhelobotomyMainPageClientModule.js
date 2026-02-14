@@ -150,6 +150,7 @@ export default function PhelobotomyMainPageClientModule({ data ,filter}) {
 				receive={receiveSample}
 				filter={filter}
 				handleCollectSample={handleCollectSample}
+				setSelectedItems={setSelectedItems}
 				selectedItems={selectedItems}
 				onToggleSelection={handleToggleSelection}
 			/>	

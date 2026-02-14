@@ -38,7 +38,7 @@ const handleBrowserView = (data) => {
 	const csvid = `${generateRandomTextAndNumbers(70)}${billingid}`;
 	const ptid = `${generateRandomTextAndNumbers(50)}${patientid}`;
 	const url = `csvid=${csvid}&&testid=${testid}&&testname=${testname}&&ptid=${ptid}&&target=70,50&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&&password=&&isScan=false&&testname=${testname}&&ptid=TKUGSzyQHfg7e9rkp39sXF8Q96cRWYLMVi4NztxwpIgM8JVJWU3380&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&&target=70%2C50&&password=&&isBrowserPrintout=1&&tenantId=`;
-	window.open(`/result/labreport/4?${url}`, '_blank');
+	window.open(`/result/labreport/4?${url}`, '_blank', 'resizable=no,scrollbars=no,width=1200,height=800');
 };
 
 const PatientArchivesPage = () => {
@@ -300,21 +300,13 @@ const PatientArchivesPage = () => {
 				</div>
 			</div>
 
-			{/* Results Section */}
-			<div className="card">
-				<div className="card-header">
-					<h5 className="mb-0">Patient Archives Results</h5>
-				</div>
-				<div className="card-body p-0">
-					<PrimeTable
-						column={columns}
-						data={collection}
-						filtering={false}
-						serverSideFiltering={true}
-						handleSeverSideProcessing={handleServerSidePatientArchives}
-					/>
-				</div>
-			</div>
+			<PrimeTable
+				column={columns}
+				data={collection}
+				filtering={false}
+				serverSideFiltering={true}
+				handleSeverSideProcessing={handleServerSidePatientArchives}
+			/>
 		</div>
 	);
 };

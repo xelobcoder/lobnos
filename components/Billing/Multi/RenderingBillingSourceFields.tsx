@@ -38,8 +38,6 @@ export default function MultiRenderingBillingSourceFields({
         }))
     }
 
-    console.log("DEBUG", billingdata)
-
     return (
         <div style={{ fontSize: '0.95em', fontFamily: 'Segoe UI, Arial, sans-serif' }}>
             <Modal show={showTypeAlert} onHide={() => setShowTypeAlert(false)} centered>

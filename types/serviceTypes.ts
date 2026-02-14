@@ -15,6 +15,8 @@ export interface Service {
   paymentstatus: "pending" | "partial" | "paid"
   categoryTrackId: number;
   clinicianId: number;
+  userAdjustmentType?: 'surcharge' | 'discount'|null;
+  userAdjustedValue?:number;
   organizationId: number;
   registrationType: string;
   isDeleted: number;

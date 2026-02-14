@@ -136,7 +136,7 @@ export const MultiValidateAndSubmitBillingInformation = async function (
         const backendData: any = {
             amountPayable,
             cart: finalCart.length > 0 ? finalCart : cart,
-            servicesProvided: finalServicesList.length > 0 ? finalServicesList : servicesProvided,
+            servicesProvided: finalServicesList.length > 0 ? finalServicesList : [],
             billingSource,
             outstanding,
             paid,

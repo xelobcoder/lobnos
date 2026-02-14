@@ -83,6 +83,7 @@ export async function middleware(request: NextRequest) {
 
             // Handle storekeeper access
             if (!["admin", "manager"].includes(role.toString().toLowerCase().trim())) {
+
                 const restrictedPaths = [
                     '/settings',
                     '/billing/billing-sessions',
@@ -99,8 +100,10 @@ export async function middleware(request: NextRequest) {
                     '/expenses/reversed-payments',
                     '/clinicians/commision-information',
                     '/clinicians/commissions-payments-made',
-                    '/operations/laboratory/auditlogs'
+                    '/operations/laboratory/auditlogs',
+                    '/communications'
                 ];
+
                 if (restrictedPaths.some(path => currentPath.startsWith(path))) {
                     return NextResponse.redirect(new URL('/unauthorized', request.url));
                 }
@@ -119,9 +122,7 @@ export async function middleware(request: NextRequest) {
             // Redirect /billing/expenses to /billing/expenses/expenselist for admin
             if (['admin', 'manager'].includes(role.toString().toLowerCase().trim()) &&
                 currentPath === '/billing/expenses'
-            ) {
-                return NextResponse.redirect(new URL('/billing/expenses/expenselist', request.url));
-            }
+            ) { return NextResponse.redirect(new URL('/billing/expenses/expenselist', request.url)); }
 
             // Add response headers to prevent caching of authenticated pages
             const response = NextResponse.next();
@@ -151,7 +152,8 @@ export const config = {
         '/day-transaction-break-down',
         '/commission-payments/:path*',
         '/clinicians/commision-information',
-        '/clinicians/commissions-payments-made'
+        '/clinicians/commissions-payments-made',
+        '/communications'
     ]
 };
 

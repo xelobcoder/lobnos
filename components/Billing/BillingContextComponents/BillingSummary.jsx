@@ -57,7 +57,14 @@ export default function BillingPageSummary({ patientid }) {
 				<div className="list-group-item d-flex justify-content-between bg-primary-subtle">
 					<span className="d-flex align-items-center">
 						<DiscountIcon className="me-2" />
-						Discount
+						Total Surcharge
+					</span>
+					<span className="fw-bold">{currencyFormatter.format(billingdata.totalsurcharge)}</span>
+				</div>
+				<div className="list-group-item d-flex justify-content-between bg-primary-subtle">
+					<span className="d-flex align-items-center">
+						<DiscountIcon className="me-2" />
+						Total Discount
 					</span>
 					<span className="fw-bold">{currencyFormatter.format(billingdata.discount)}</span>
 				</div>

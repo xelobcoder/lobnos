@@ -193,6 +193,7 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 		{ Header: "Discount", accessor: "discount", Cell: ({ value }) => <div>{currencyFormatter.format(Number(value) || 0)}</div> },
 		{ Header: "Amt Refunded", accessor: "totalrefunded", Cell: ({ value }) => <div>{currencyFormatter.format(Number(value) || 0)}</div> },
 		{ Header: "Balance", accessor: "balance", Cell: ({ value }) => <div>{currencyFormatter.format(Number(value) || 0)}</div> },
+		{Header:"surcharge", accessor: "surcharges", Cell:({value})=><div>{currencyFormatter.format(Number(value)||0)}</div>},
 		{ Header: "Status", accessor: "status", Cell: ({ value }) => value ? <span className={value === 'pending' ? 'text-warning' : 'text-success'}>{value}</span> : <span className="text-muted">-</span> },
 		{Header:"write off",accessor:"writeoff",Cell:({value})=><div>{currencyFormatter.format(Number(value)||0)}</div>},
 		{

@@ -50,15 +50,28 @@ export default function MultiSummary({ summaryData, handlesubmit }: MultiSummary
                         <RiMoneyDollarCircleLine className="me-2" />
                         Total Cost
                     </span>
-                    <span className="fw-bold">{currencyFormatter.format(data?.subtotal || data?.totalcost)}</span>
+                    <span className="fw-bold">{currencyFormatter.format(data?.totalcost || data?.subtotal)}</span>
                 </div>
-                <div className="border-top my-2"></div>
                 <div className="list-group-item d-flex justify-content-between bg-primary-subtle">
                     <span className="d-flex align-items-center">
                         <RiDiscountPercentLine className="me-2" />
-                        Discount
+                        Total Surcharge
+                    </span>
+                    <span className="fw-bold">{currencyFormatter.format(data.totalsurcharge)}</span>
+                </div>
+                <div className="list-group-item d-flex justify-content-between bg-primary-subtle">
+                    <span className="d-flex align-items-center">
+                        <RiDiscountPercentLine className="me-2" />
+                        Total  Discount
                     </span>
                     <span className="fw-bold">{currencyFormatter.format(data.totaldiscount ?? data.discount)}</span>
+                </div>
+                 <div className="list-group-item d-flex justify-content-between  border-5 border-primary">
+                    <span className="d-flex align-items-center">
+                        <RiWallet3Line className="me-2" />
+                        Actual Amount 
+                    </span>
+                    <span className="fw-bold">{currencyFormatter.format(data.actualAmount ? data.actualAmount : 0)}</span>
                 </div>
                 <div className="list-group-item d-flex justify-content-between  border-5 border-primary">
                     <span className="d-flex align-items-center">

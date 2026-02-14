@@ -171,10 +171,15 @@ export default function AscentionUltrasoundUnCompletedTable({ stage }) {
 				urlparams={{
 					_dateFrom: queryParams._dateFrom,
 					_dateEnd: queryParams._dateEnd,
-					searchString: queryParams.searchString ? decodeURIComponent(queryParams.searchString) : '',
 					isUltrasound: true,
 					employeeid: queryParams.employeeid,
-					ascension_stage: stage
+					ascension_stage: stage,
+					billingid: queryParams.billingid,
+					patientid: queryParams.patientid,
+					patientname: queryParams.patientname,
+					branchid: queryParams.branchid,
+					ascensionid : queryParams.ascensionid,
+					category: queryParams.category
 				}}
 				serverSideFiltering={true}
 				handleSeverSideProcessing={handleServerSideProcessingAscensionData} />

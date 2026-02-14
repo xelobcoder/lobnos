@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { customPost, handleComments, validatePin } from "../Auth/customFetch";
 import Indicator from "../accessories/Reports/indicator";
 import { toast } from 'react-toastify';
+import { Modal, Button } from 'react-bootstrap';
 import Loader from "../accessories/Loader";
 import ResultEntryMainEntryBase from "./ResultEntryMainEntryBase";
 import moment from "moment";
@@ -27,6 +28,8 @@ export default function CreateTestRule({ clientdata }) {
 	const [pin, setPin] = useState("");
 	const isPinShared = Boolean(globalPin);
 	const effectivePin = isPinShared ? globalPin : pin;
+	const [showValidationModal, setShowValidationModal] = useState(false);
+
 
 
 	const getAscensionEditCount = async () => {
@@ -128,14 +131,7 @@ export default function CreateTestRule({ clientdata }) {
 				const { message, statusCode, status } = response;
 				if (status === "success" && statusCode === 200) {
 					toast.success(message, { autoClose: 500 });
-
-					const confirmation
-					 = window.confirm("Do you want to continue to result validation");
-
-					if (confirmation) {
-						window.location.href = `/operations/laboratory/validation?ascensionid=${ascensionid}`;
-					}
-
+					setShowValidationModal(true);
 				} else {
 					toast.error(message, { autoClose: 2000 });
 				}
@@ -150,7 +146,7 @@ export default function CreateTestRule({ clientdata }) {
 
 	const handleCreateFields = () => {
 		if (testid && testname) {
-			window.open(`/settings/applicationsettings/testpanels/testlist/createfields?testid=${testid}&&testname=${testname}`);
+			window.open(`/settings/applicationsettings/testpanels/testlist/createfields?testid=${testid}&testname=${testname}`);
 		}
 	};
 
@@ -260,6 +256,29 @@ export default function CreateTestRule({ clientdata }) {
 					</div>
 				</div>
 			</section>
+			<Modal show={showValidationModal} onHide={() => setShowValidationModal(false)} centered>
+				<Modal.Header closeButton>
+					<Modal.Title>Result Validation</Modal.Title>
+				</Modal.Header>
+				<Modal.Body>
+					Do you want to continue to result validation?
+				</Modal.Body>
+				<Modal.Footer className="gap-2">
+					<Button variant="secondary" onClick={() => setShowValidationModal(false)}>
+						Cancel
+					</Button>
+					<Button variant="primary" onClick={() => {
+						window.location.href = `/operations/laboratory/validation?ascensionid=${ascensionid}`;
+					}}>
+						Continue
+					</Button>
+					<Button variant="success" onClick={() => {
+						window.location.href = `/operations/laboratory/validation?billingid=${billingid.slice(70)}`;
+					}}>
+						Validate All
+					</Button>
+				</Modal.Footer>
+			</Modal>
 			<style jsx>{`
 				.hover-bg:hover {
 					background: var(--bs-tertiary-bg);

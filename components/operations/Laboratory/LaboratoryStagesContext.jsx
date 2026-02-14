@@ -25,6 +25,7 @@ export function LaboratoryStagesProvider({ children }) {
        const patientname = useSearchParams()?.get("patientname");
        const parsedStartDate = start_date ? dayjs(start_date).format('YYYY-MM-DD') : '';
        const parsedEndDate = end_date ? dayjs(end_date).format('YYYY-MM-DD') : '';
+       const testid = useSearchParams()?.get("testid");
 
        const today = new Date();
        const yyyy = today.getFullYear();
@@ -45,6 +46,7 @@ export function LaboratoryStagesProvider({ children }) {
               patientid: patientid || '',
               patientname: patientname || '',
               billingid: billingid || '',
+              testid: '',
               sortby: 'DESC',
        });
 
@@ -58,17 +60,18 @@ export function LaboratoryStagesProvider({ children }) {
               const patientid = userprovidedCategory?.patientid || queryParams.patientid;
               const billingid = userprovidedCategory?.billingid || queryParams.billingid;
               const patientname = userprovidedCategory?.patientname || queryParams.patientname;
+              const testid = userprovidedCategory?.testid || queryParams.testid;
               
               const  newQueryParams =  {...queryParams};
 
 
-              if (billingid || ascensionid) {
+              if (billingid || ascensionid || testid) {
                      newQueryParams['_dateEnd']= '';
                      newQueryParams['_dateFrom']= '';
               }
            
               await getAscensionData(ascension_stage, setCollection, newQueryParams, setLoading, employeeid, branchid, category, {
-                     ascensionid, patientid, billingid, patientname
+                     ascensionid, patientid, billingid, patientname,testid
               });
        }
 
@@ -77,7 +80,7 @@ export function LaboratoryStagesProvider({ children }) {
                      collection, setCollection, isLoading, setLoading, queryParams, _getAscensionData, toast,
                      loadCounter, setLoadCounter,
                      setQueryParams, updatePageValue, canloadPage, setLoadPage, category,
-                     ascensionid, patientid, billingid,patientname
+                     ascensionid, patientid, billingid,patientname,testid
               }}>
                      {children}
 

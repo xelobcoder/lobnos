@@ -54,6 +54,7 @@ export interface AppointmentData {
 	purpose: string;
 	appointment_time: string;
 	location: string;
+	employeeid?: string | number;
 	title: string;
 	preference: string | OptionType;
 	inviteMethod: string | OptionType;
@@ -69,8 +70,9 @@ export interface OptionType {
 
 export const loadOptions = async (input: string = ''): Promise<any[]> => {
 	if (input.length >= 3 && (typeof input === 'string' || typeof input == "number")) {
-		const response = await customFetch(`application/filtering/table/new_patients?value=${input}&&original=&&limit=10`);
-		return Array.isArray(response) ? response : [];
+		const response = await customPost(`customer/advanced/filter?patientid=${input}`, 'POST', { patientid: input });
+		const { data, success } = response || {};
+		if (success && Array.isArray(data)) return data;
 	}
 	return [];
 }
@@ -135,7 +137,7 @@ export const inviteMethod: OptionType[] = [
 	{ value: "sms", label: "sms" },
 	{ value: "email", label: "email" },
 	{ value: "whatapp", label: "whatapp" },
-	{value:'phonecall', label: 'phone call'}
+	{ value: 'phonecall', label: 'phone call' }
 ];
 export const preferenceOptions: OptionType[] = [
 	{ value: "in person", label: "In Person" },
@@ -148,7 +150,7 @@ export const handleSubmitForm = async (
 	toast: { success: (msg: string, opts?: any) => void; error: (msg: string, opts?: any) => void }
 ): Promise<boolean | void> => {
 	try {
-		if (typeof data == "object") {
+		if (typeof data == "object" || typeof data == "string" || typeof data == "number") {
 			// Transform data to match required API payload
 			const request_data = {
 				appointment_date: data.appointment_date,
@@ -168,7 +170,7 @@ export const handleSubmitForm = async (
 				toast.error(`Missing or empty fields: ${missingFields.join(", ")}`, { position: "top-center" });
 				return false;
 			}
-			const pushData = await customPost(`appointments/create`, 'POST', request_data);
+			const pushData = await customPost(`appointments/create?employeeid=${data.employeeid}`, 'POST', request_data);
 			if (pushData?.success == true) {
 				toast.success("Appointment scheduled successfully", { position: "top-center" });
 				setTimeout(() => {

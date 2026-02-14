@@ -56,7 +56,6 @@ export default function OperationsListTestCollection({ operations }) {
 	};
 
 
-	console.log(operations)
 	return (
 		<div className="mb-3">
 			<button className={`btn btn-sm btn-${multiMode ? "secondary" : "primary"}`} onClick={handleMultiMode}>
@@ -129,7 +128,7 @@ export default function OperationsListTestCollection({ operations }) {
 					<div className={`mt-2 ${selectedTests.length > 1 ? "responsive-grid" : ""}`}>
 						{Array.isArray(selectedTests) && selectedTests.length > 0 && selectedTests.map((test, idx) => (
 							<div key={test.testid} style={{ minWidth: 0 }}>
-								<ResultEntryComponent operations={{ ...operations, testid: test.testid, uiLayout: 3, ascensionid: test.ascensionid, globalPin: globalPin }} />
+								<ResultEntryComponent operations={{ ...operations,  testid: test.testid, uiLayout: 3, ascensionid: test.ascensionid, globalPin: globalPin }} />
 							</div>
 						))}
 					</div>

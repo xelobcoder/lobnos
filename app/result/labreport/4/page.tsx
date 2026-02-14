@@ -42,7 +42,6 @@ const MDSLancetTemplate: React.FC = () => {
     const isScan = searchParams?.get('isScan') === 'true';
     const [isReplaceUltrasoundTestname, setIsReplaceUltrasoundTestname] = useState(false);
     const [ultrasoundTestname, setUltrasoundTestname] = useState(test);
-
     const url = `result/printout/ascension/getResult?csvid=${csvid}&&employeeid=${employeeid}&&testid=${testid}&&isScan=${isScan}&&testname=${test}&tenantId=3&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&target=${target}&password=&&isBrowserPrintout=1`;
 
     useEffect(() => {

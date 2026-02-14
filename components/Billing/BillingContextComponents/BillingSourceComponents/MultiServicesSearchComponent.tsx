@@ -8,15 +8,15 @@ export default function MultiServicesSearchComponent({ updatefunction }) {
     const context = useContext(MultiBillingContext);
     const billingdata = context?.billingdata;
     const applicatonsettings = useApplication();
-    const isAllowCrmToGiveDisocunt = parseInt(applicatonsettings?.settings?.AllowCrmToGiveDisocunt || "0") == 1;
     const role = applicatonsettings?.user?.role;
+    const isAllowCrmToGiveDisocunt = ['manager', 'admin'].includes(role || '') ?
+        true : parseInt(applicatonsettings?.settings?.AllowCrmToGiveDisocunt || "0") == 1 ? true : false;
     const servicesList = billingdata?.servicesList || []
     const includeServices = billingdata?.includeServices;
     const [selectedServices, setSelectedServices] = useState<any>(null);
 
     if (!includeServices) return null;
 
-    console.log(applicatonsettings);
 
     if (!servicesList || servicesList.length === 0) {
         return (
@@ -44,26 +44,35 @@ export default function MultiServicesSearchComponent({ updatefunction }) {
                     isClearable
                 />
             </td>
+            <td></td>
+            <td>
+                <select className='form-select' onChange={(ev) => {
+                    setSelectedServices({ ...selectedServices, userAdjustmentType: ev.target.value })
+                }}>
+                    <option value="">Select Adjustment Type</option>
+                    <option value='surcharge'>surcharge</option>
+                    <option value='discount'>discount</option>
+                </select>
+            </td>
             <td>
                 <input
-                    disabled={!isAllowCrmToGiveDisocunt || ['manager', 'admin'].includes(role || '') ? false : true}
+                    disabled={!isAllowCrmToGiveDisocunt}
                     value={selectedServices?.discount ?? ''}
                     onChange={(ev) => {
-                        setSelectedServices({ ...selectedServices, discount: ev.target.value });
+                        setSelectedServices({ ...selectedServices, discount: ev.target.value,userAdjustedValue: ev.target.value });
                     }}
                     className='custom-input col-8' type='number'
-                    placeholder={(role !== "admin" || role === null || !isAllowCrmToGiveDisocunt) ? 'N/A' : 'Enter discount'}
-                    style={{ display: role === "admin" ? 'block' : 'none' }}
+                    placeholder="Discount"
                 />
-                {role !== "admin" && (
-                    <span className="text-muted small">Discount input only available for admin</span>
+                {!isAllowCrmToGiveDisocunt && (
+                    <span className="text-muted small">Discount input only available after authorization given</span>
                 )}
             </td>
             <td>
                 <button
                     onClick={() => {
                         if (selectedServices) {
-                            updatefunction(selectedServices?.discount ? selectedServices : {
+                            updatefunction(selectedServices?.userAdjustedValue ? selectedServices : {
                                 ...selectedServices,
                                 discount: 0
                             });

@@ -43,12 +43,13 @@ const SmsReminderModal: React.FC<SmsReminderModalProps> = ({
 			appointmentDetails: appointment,
 		};
 		try {
-			const resp = await customPost('/appointment/reminder', 'POST', payload);
-			if (resp && resp.success) {
-				toast.success('SMS reminder sent successfully.');
+			const resp = await customPost('appointment/reminder', 'POST', payload);
+			const { status, message } = resp;
+			if (status === 'success') {
+				toast.success(message || 'SMS reminder sent successfully.');
 				onSend(payload);
 			} else {
-				toast.error('Failed to send SMS reminder.');
+				toast.error(message || 'Failed to send SMS reminder.');
 			}
 		} catch (e) {
 			toast.error('Failed to send SMS reminder.');

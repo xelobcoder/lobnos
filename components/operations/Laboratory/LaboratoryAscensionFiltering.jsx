@@ -44,12 +44,46 @@ export default function LaboratoryAscensionFiltering({ ascension_stage, employee
                      ...prev,
                      ascensionid: '',
                      patientid: '',
+                     testid: '',
                      billingid: '',
                      patientname: "",
                      [section]: value,
                      _dateFrom: "",
-                     _dateEnd: ""
+                     _dateEnd: "",
               }));
+       }
+
+       useEffect(() => {
+              const listener = (event) => {
+                     if (event.data?.type === "TEST_PANEL_SELECTED") {
+                            if (event.data.payload && event.data.payload.id) {
+                                   // handleSettingCategory("testid", event.data.payload.id);
+                                   _getAscensionData(ascension_stage, employeeid, branchid, {
+                                          ascensionid: queryParams.ascensionid,
+                                          patientid: queryParams.patientid,
+                                          billingid: queryParams.billingid,
+                                          [category.section]: category.value,
+                                          testid: event.data.payload.id
+                                   })
+                                   handleSettingCategory("none", "");
+                            }
+                     }
+              }
+
+              window.addEventListener("message", listener)
+              return () => window.removeEventListener("message", listener)
+       }, [])
+
+       const handleFilterByLabTest = () => {
+              const popup = window.open(
+                     `/labtestfilter?employeeid=${employeeid}&&branchid=${branchid}`,
+                     "LabTestFilter",
+                     "width=600,height=450,resizable=no,scrollbars=yes"
+              )
+
+              if (popup) {
+                     popup.focus()
+              }
        }
 
 
@@ -57,7 +91,7 @@ export default function LaboratoryAscensionFiltering({ ascension_stage, employee
 
 
        return (
-              <div className="container-fluid py-2">
+              <div className="mb-2">
                      <div className="row g-2 align-items-center">
                             <div className="col-12 col-lg-2">
                                    <select onChange={(ev) => {
@@ -65,6 +99,9 @@ export default function LaboratoryAscensionFiltering({ ascension_stage, employee
                                                  handleSettingCategory("none", "");
                                           } else {
                                                  setCategory({ section: ev.target.value, value: '' });
+                                                 if (ev.target.value == "testname") {
+                                                        handleFilterByLabTest(ev.target.value);
+                                                 }
                                           }
 
                                    }} className="form-select ">
@@ -73,6 +110,7 @@ export default function LaboratoryAscensionFiltering({ ascension_stage, employee
                                           <option value="patientname">Patient Name</option>
                                           <option value="patientid">Patient ID</option>
                                           <option value="billingid">Billing ID</option>
+                                          <option value="testname">Laboratory Test</option>
                                    </select>
                             </div>
                             <div className="col-12 col-lg-2">
@@ -135,7 +173,8 @@ export default function LaboratoryAscensionFiltering({ ascension_stage, employee
                                                  ascensionid: queryParams.ascensionid,
                                                  patientid: queryParams.patientid,
                                                  billingid: queryParams.billingid,
-                                                 [category.section]: category.value
+                                                 [category.section]: category.value,
+                                                 testid: queryParams.testid
                                           })}
                                           className="btn btn-primary btn-sm w-100 text-uppercase"
                                    >

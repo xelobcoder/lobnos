@@ -6,6 +6,7 @@ import { Container, Alert, Button, Spinner, Card, Offcanvas } from 'react-bootst
 import { RiTestTubeLine, RiCalendarEventLine, RiSearchLine, RiRefreshLine, RiFilterOffLine, RiFilterLine } from '@remixicon/react';
 import { useSearchParams } from 'next/navigation';
 import dayjs from 'dayjs';
+import { handleDateRangeSelection } from '../../../../components/operations/Laboratory/AscensionFilteringComponent';
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
 const COLOR_BORDER = 'var(--bs-border-color)';
@@ -20,8 +21,8 @@ export default function PagePhelobotomy() {
     const url_end_date = useSearchParams()?.get('end_date') || '';
 
     const [selectedDate, setSelectedDate] = useState({
-        start_date: url_start_date || dayjs(new Date().toISOString()).format("YYYY-MM-DD"),
-        end_date: url_end_date || dayjs(new Date().toISOString()).format("YYYY-MM-DD")
+        _dateFrom: url_start_date || dayjs(new Date().toISOString()).format("YYYY-MM-DD"),
+        _dateEnd: url_end_date || dayjs(new Date().toISOString()).format("YYYY-MM-DD")
     });
     const [showFilters, setShowFilters] = useState(false);
 
@@ -29,7 +30,7 @@ export default function PagePhelobotomy() {
         setLoading(true);
         setError(null);
         try {
-            let url = `test/ascension/pendingCases?filter=${filter}&&count=10&&page=1&&start_date=${selectedDate.start_date}&end_date=${selectedDate.end_date}`;
+            let url = `test/ascension/pendingCases?filter=${filter}&&count=10&&page=1&&start_date=${selectedDate._dateFrom}&end_date=${selectedDate._dateEnd}`;
             const { result } = await customFetch(url);
             setData(Array.isArray(result) && result.length > 0 ? result : []);
         } catch (err) {
@@ -46,110 +47,111 @@ export default function PagePhelobotomy() {
     const handleClearFilters = () => {
         setFilter('');
         setSelectedDate({
-            start_date: '',
-            end_date: ''
+            _dateFrom: '',
+            _dateEnd: ''
         });
     };
 
     return (
         <div className="container-fluid px-4 py-3">
-            <div className="d-flex justify-content-end align-items-center mb-4">
-                <Button
-                    variant="outline-primary"
-                    size='sm'
-                    onClick={() => setShowFilters(true)}
-                    className="d-flex align-items-center"
-                >
-                    <RiFilterLine size={16} className="me-2" />
-                    Filters
-                </Button>
+            <div className="row g-3 align-items-end mb-4">
+                <div className="col-12 col-md-auto">
+                    <label htmlFor="filter-select" className="form-label fw-medium" style={{ color: COLOR_TEXT_MUTED }}>
+                        Filter by
+                    </label>
+                    <select
+                        id="filter-select"
+                        className="form-select"
+                        value={selectedDate._dateFrom}
+                        onChange={(ev) => { handleDateRangeSelection(ev.target.value, setSelectedDate); }}
+                    >
+                        <option value="">Filter by</option>
+                        <option value='Today'>Today</option>
+                        <option value='Yesterday'>Yesterday</option>
+                        <option value='This Week'>This Week</option>
+                        <option value='last week'>Last Week</option>
+                        <option value='This Month'>This Month</option>
+                        <option value='This Year'>This Year</option>
+                        <option value='last Year'>Last Year</option>
+                        <option value='last 30 Days'>Last 30 Days</option>
+                        <option value='this quarter'>This Quarter</option>
+                        <option value='last 7 days from now'>Last 7 Days</option>
+                        <option value='last month'>Last Month</option>
+                        <option value='All'>All</option>
+                    </select>
+                </div>
+                <div className="col-12 col-md-auto">
+                    <label htmlFor="start-date" className="form-label fw-medium" style={{ color: COLOR_TEXT_MUTED }}>
+                        <RiCalendarEventLine size={16} className="me-1" />
+                        Start Date
+                    </label>
+                    <input
+                        type="date"
+                        id="start-date"
+                        className="form-control shadow-none"
+                        style={{ borderColor: COLOR_BORDER }}
+                        value={selectedDate._dateFrom}
+                        onChange={e => setSelectedDate({ ...selectedDate, _dateFrom: e.target.value })}
+                    />
+                </div>
+                <div className="col-12 col-md-auto">
+                    <label htmlFor="end-date" className="form-label fw-medium" style={{ color: COLOR_TEXT_MUTED }}>
+                        <RiCalendarEventLine size={16} className="me-1" />
+                        End Date
+                    </label>
+                    <input
+                        type="date"
+                        id="end-date"
+                        className="form-control shadow-none"
+                        style={{ borderColor: COLOR_BORDER }}
+                        value={selectedDate._dateEnd}
+                        onChange={e => setSelectedDate({ ...selectedDate, _dateEnd: e.target.value })}
+                    />
+                </div>
+                <div className="col-12 col-md">
+                    <label htmlFor="search-filter" className="form-label fw-medium" style={{ color: COLOR_TEXT_MUTED }}>
+                        <RiSearchLine size={16} className="me-1" />
+                        Search Filter
+                    </label>
+                    <input
+                        id="search-filter"
+                        className="form-control shadow-none"
+                        style={{ borderColor: COLOR_BORDER }}
+                        onChange={(e) => setFilter(e.target.value)}
+                        value={filter}
+                        type="text"
+                        placeholder="Search by Patient Name, Case ID, or Billing ID"
+                    />
+                </div>
+                <div className="col-12 col-md-auto d-flex gap-2">
+                    <Button
+                        onClick={() => {
+                            handleLoad();
+                            setShowFilters(false);
+                        }}
+                        disabled={loading}
+                        className="d-flex align-items-center justify-content-center"
+                        style={{ backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT }}
+                    >
+                        {loading ? (
+                            <Spinner size="sm" animation="border" className="me-1" />
+                        ) : (
+                            <RiRefreshLine size={16} className="me-1" />
+                        )}
+                        Load Samples
+                    </Button>
+                    <Button
+                        onClick={handleClearFilters}
+                        variant="outline-secondary"
+                        disabled={loading}
+                        className="d-flex align-items-center justify-content-center"
+                        title="Clear all filters"
+                    >
+                        <RiFilterOffLine size={16} />
+                    </Button>
+                </div>
             </div>
 
-            {/* Filter Offcanvas */}
-            <Offcanvas show={showFilters} onHide={() => setShowFilters(false)} placement="end">
-                <Offcanvas.Header closeButton style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
-                    <Offcanvas.Title className="d-flex align-items-center">
-                        <RiFilterLine size={20} className="me-2" />
-                        Filter Options
-                    </Offcanvas.Title>
-                </Offcanvas.Header>
-                <Offcanvas.Body>
-                    <div className="row g-3">
-                        <div className="col-12">
-                            <label htmlFor="start-date" className="form-label fw-medium" style={{ color: COLOR_TEXT_MUTED }}>
-                                <RiCalendarEventLine size={16} className="me-1" />
-                                Start Date
-                            </label>
-                            <input
-                                type="date"
-                                id="start-date"
-                                className="form-control shadow-none"
-                                style={{ borderColor: COLOR_BORDER }}
-                                value={selectedDate.start_date}
-                                onChange={e => setSelectedDate({ ...selectedDate, start_date: e.target.value })}
-                            />
-                        </div>
-                        <div className="col-12">
-                            <label htmlFor="end-date" className="form-label fw-medium" style={{ color: COLOR_TEXT_MUTED }}>
-                                <RiCalendarEventLine size={16} className="me-1" />
-                                End Date
-                            </label>
-                            <input
-                                type="date"
-                                id="end-date"
-                                className="form-control shadow-none"
-                                style={{ borderColor: COLOR_BORDER }}
-                                value={selectedDate.end_date}
-                                onChange={e => setSelectedDate({ ...selectedDate, end_date: e.target.value })}
-                            />
-                        </div>
-                        <div className="col-12">
-                            <label htmlFor="search-filter" className="form-label fw-medium" style={{ color: COLOR_TEXT_MUTED }}>
-                                <RiSearchLine size={16} className="me-1" />
-                                Search Filter
-                            </label>
-                            <input
-                                id="search-filter"
-                                className="form-control shadow-none"
-                                style={{ borderColor: COLOR_BORDER }}
-                                onChange={(e) => setFilter(e.target.value)}
-                                value={filter}
-                                type="text"
-                                placeholder="Search by Patient Name, Case ID, or Billing ID"
-                            />
-                        </div>
-                        <div className="col-12">
-                            <div className="d-flex gap-2 mt-3">
-                                <Button
-                                    onClick={() => {
-                                        handleLoad();
-                                        setShowFilters(false);
-                                    }}
-                                    disabled={loading}
-                                    className="d-flex align-items-center justify-content-center flex-fill"
-                                    style={{ backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT }}
-                                >
-                                    {loading ? (
-                                        <Spinner size="sm" animation="border" className="me-1" />
-                                    ) : (
-                                        <RiRefreshLine size={16} className="me-1" />
-                                    )}
-                                    Load Samples
-                                </Button>
-                                <Button
-                                    onClick={handleClearFilters}
-                                    variant="outline-secondary"
-                                    disabled={loading}
-                                    className="d-flex align-items-center justify-content-center"
-                                    title="Clear all filters"
-                                >
-                                    <RiFilterOffLine size={16} />
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                </Offcanvas.Body>
-            </Offcanvas>
 
             {/* Error Alert */}
             {error && (

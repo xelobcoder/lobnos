@@ -1025,9 +1025,10 @@ export default function PreviousTransactionSummaryPage() {
 											<th className="fw-semibold text-start">Total Cost</th>
 											<th className="fw-semibold text-start">Total Payable</th>
 											<th className="fw-semibold text-start">Paid Amount</th>
+											<th className='fw-semibold text-start'>User AdjustmentType</th>
+											<th className='fw-semibold text-start'>User Adjusted Value</th>
 											<th className="fw-semibold text-start">Outstanding</th>
 											<th className="fw-semibold text-start">Tax</th>
-											<th className="fw-semibold text-start">Discount</th>
 											<th className="fw-semibold text-start">Status</th>
 											<th className="fw-semibold text-start">Amount Refunded</th>
 											<th className="fw-semibold text-start">Tax/Details</th>
@@ -1040,10 +1041,7 @@ export default function PreviousTransactionSummaryPage() {
 											const isOutstanding = outstanding > 0;
 											const taxes = getServiceTaxes(row);
 											return (
-												<tr
-													key={idx}
-													style={isOutstanding ? { backgroundColor: '#ffe6e6' } : {}}
-												>
+												<tr key={idx} style={isOutstanding ? { backgroundColor: '#ffe6e6' } : {}}>
 													<td className="text-start">{row.name}</td>
 													<td className="text-start">{row.organizationName || '-'}</td>
 													<td className="text-start">{row.clinicianName || '-'}</td>
@@ -1052,9 +1050,10 @@ export default function PreviousTransactionSummaryPage() {
 													<td className="text-start">{currencyFormatter.format(Number(row.totalcost) || 0)}</td>
 													<td className="text-start">{currencyFormatter.format(Number(row.totalpayable) || 0)}</td>
 													<td className="text-start">{currencyFormatter.format(Number(row.paidamount) || 0)}</td>
+													<td className="text-start">{row.userAdjustmentType || '-'}</td>
+													<td className="text-start">{row.userAdjustedValue !== undefined ? currencyFormatter.format(Number(row.userAdjustedValue) || 0) : '-'}</td>
 													<td className="text-start">{currencyFormatter.format(Number(row.outstanding) || 0)}</td>
 													<td className="text-start">{currencyFormatter.format(Number(row.amountIncurredDueTax) || 0)}</td>
-													<td className="text-start">{currencyFormatter.format(Number(row.discount) || 0)}</td>
 													<td className="text-start">{row.status}</td>
 													<td className="text-start">{currencyFormatter.format(Number(row.amountRefunded) || 0)}</td>
 													<td className="text-start">
@@ -1098,9 +1097,9 @@ export default function PreviousTransactionSummaryPage() {
 														}
 
 														{row.isDeleted == 1 && (
-															<Button 
-																variant='warning' 
-																size='sm' 
+															<Button
+																variant='warning'
+																size='sm'
 																onClick={() => handleViewDeleteDetails(row)}
 															>
 																View Deletion Details

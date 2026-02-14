@@ -4,6 +4,7 @@ import { ToastContainer, toast } from "react-toastify";
 import { getAscensionData } from "../Laboratory/Lib";
 import { updatePagination } from "../../Auth/customFetch";
 import { useApplication } from "../../Auth/useApplicationContext";
+import { useSearchParams } from "next/navigation";
 const UltrasoundContext = createContext({ isLoading: true, collection: [] });
 
 
@@ -14,8 +15,12 @@ export function UltrasoundStagesProvider({ children }) {
        const [canloadPage, setLoadPage] = useState(false);
        const branchid = useApplication().branchid;
        const employeeid = useApplication()?.user?.employeeid;
+       const ascensionid = useSearchParams()?.get('ascensionid') || "";
+       const patientid = useSearchParams()?.get('patientid') || "";
+       const billingid = useSearchParams()?.get('billingid') || "";
+       const patientname = useSearchParams()?.get('patientname') || "";
+       const category = useSearchParams()?.get('category') || 'ungrouped';
 
-       // Set default date to today in yyyy-mm-dd format
        const today = new Date();
        const yyyy = today.getFullYear();
        const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -25,12 +30,16 @@ export function UltrasoundStagesProvider({ children }) {
        const [queryParams, setQueryParams] = useState({
               _dateFrom: currentDate,
               _dateEnd: currentDate,
-              searchString: '',
               page: 1,
               count: 10,
-              branchid: branchid,
+            branchid,
               employeeid,
-              isUltrasound: true
+                category: category || 'ungrouped',
+              isUltrasound: true,
+              patientid,
+              billingid,
+              patientname,
+              ascensionid
        });
 
        const updatePageValue = (value) => {
@@ -38,15 +47,27 @@ export function UltrasoundStagesProvider({ children }) {
               updatePagination(value, setQueryParams, queryParams);
        };
 
-       const _getAscensionData = async function (ascension_stage,employeeid) {
-              await getAscensionData(ascension_stage, setCollection, queryParams, setLoading,employeeid,branchid);
+       const _getAscensionData = async function (ascension_stage,employeeid,userprovidedCategory) {
+              const ascensionid = userprovidedCategory?.ascensionid || queryParams.ascensionid;
+              const patientid = userprovidedCategory?.patientid || queryParams.patientid;
+              const billingid = userprovidedCategory?.billingid || queryParams.billingid;
+              const patientname = userprovidedCategory?.patientname || queryParams.patientname;
+              const  newQueryParams =  {...queryParams};
+
+              if (billingid || ascensionid) {
+                     newQueryParams['_dateEnd']= '';
+                     newQueryParams['_dateFrom']= '';
+              }
+              await getAscensionData(ascension_stage, setCollection, newQueryParams, setLoading,employeeid,branchid,category,{
+                     ascensionid, patientid, billingid, patientname
+              });
        }
 
        return (
               <UltrasoundContext.Provider value={{
                      collection, setCollection, isLoading, setLoading, queryParams, _getAscensionData, toast,
                      loadCounter, setLoadCounter,
-                     setQueryParams, updatePageValue, canloadPage, setLoadPage
+                     setQueryParams, updatePageValue, canloadPage, setLoadPage,category,ascensionid, patientid, billingid,patientname
               }}>
                      <ToastContainer theme="colored" position="top-right" className={'text-sm'} />
                      {children}

@@ -8,6 +8,7 @@ import { handleServerSideProcessingSampleValidation } from '../serverActions/Act
 import { RiInformationLine, RiCheckboxCircleLine, RiCalendarLine, RiRefreshLine } from '@remixicon/react';
 import { customFetch } from '../Auth/customFetch';
 import dayjs from 'dayjs';
+import { handleDateRangeSelection } from '../operations/Laboratory/AscensionFilteringComponent';
 
 
 
@@ -23,14 +24,15 @@ export default function SampleValidationComponent() {
 	const [showAssesModal, setShowAssesModal] = useState(false);
 	const [target, setTarget] = useState(null);
 	const [multiMode, setMultiMode] = useState(false);
-	const [startDate, setStartDate] = useState('');
-	const [endDate, setEndDate] = useState('');
+	const [queryParams, setQueryParams] = useState({
+		_dateFrom: urlStartDate,
+		_dateEnd: urlEndDate
+	});
 	const [selectedItems, setSelectedItems] = useState([]);
 	const [searchFilter, setSearchFilter] = useState('');
 
 	useEffect(() => {
-		setStartDate(urlStartDate);
-		setEndDate(urlEndDate);
+		setQueryParams(prev => ({ ...prev, _dateFrom: urlStartDate, _dateEnd: urlEndDate }));
 	}, [urlStartDate, urlEndDate]);
 
 	useEffect(() => {
@@ -82,14 +84,13 @@ export default function SampleValidationComponent() {
 		setLoading(true);
 		try {
 			let url = 'sample/client/list/unvalidated?count=10&page=1&&sortby=' + sortBy;
-			if (startDate) url += `&startDate=${startDate}`;
-			if (endDate) url += `&endDate=${endDate}`;
+			if (queryParams._dateFrom) url += `&startDate=${queryParams._dateFrom}`;
+			if (queryParams._dateEnd) url += `&endDate=${queryParams._dateEnd}`;
 			if (searchFilter) url += `&searchString=${encodeURIComponent(searchFilter)}`;
 			const fetchResponse = await customFetch(url);
 			const { result } = fetchResponse;
 			if (result && Array.isArray(result) && result.length > 0) {
 				setData(result);
-				console.log('Successfully loaded data:', result.length, 'records');
 			} else {
 				console.log('No results returned from API');
 			}
@@ -212,7 +213,29 @@ export default function SampleValidationComponent() {
 						Sample Validation
 					</h6>
 				</div>
-
+				<div className="col-12 col-lg-2">
+					<select
+						className="form-select"
+						value={queryParams.status}
+						onChange={(ev) => {
+							handleDateRangeSelection(ev.target.value, setQueryParams);
+						}}
+					>
+						<option value="">Filter by</option>
+						<option value='Today'>Today</option>
+						<option value='Yesterday'>Yesterday</option>
+						<option value='This Week'>This Week</option>
+						<option value='last week'>Last Week</option>
+						<option value='This Month'>This Month</option>
+						<option value='This Year'>This Year</option>
+						<option value='last Year'>Last Year</option>
+						<option value='last 30 Days'>Last 30 Days</option>
+						<option value='this quarter'>This Quarter</option>
+						<option value='last 7 days from now'>Last 7 Days</option>
+						<option value='last month'>Last Month</option>
+						<option value='All'>All</option>
+					</select>
+				</div>
 				{/* Date Range Filter */}
 				<div className="d-flex align-items-center gap-3">
 					<RiCalendarLine className="text-muted" />
@@ -222,8 +245,8 @@ export default function SampleValidationComponent() {
 							type="date"
 							className="form-control form-control-sm"
 							style={{ maxWidth: '150px' }}
-							value={startDate}
-							onChange={(e) => setStartDate(e.target.value)}
+							value={queryParams._dateFrom || ''}
+							onChange={(e) => { setQueryParams(prev => ({ ...prev, _dateFrom: e.target.value })); }}
 						/>
 					</div>
 					<div className="d-flex align-items-center gap-2">
@@ -232,9 +255,9 @@ export default function SampleValidationComponent() {
 							type="date"
 							className="form-control form-control-sm"
 							style={{ maxWidth: '150px' }}
-							value={endDate}
-							onChange={(e) => setEndDate(e.target.value)}
-							min={startDate}
+							value={queryParams._dateEnd || ''}
+							onChange={(e) => { setQueryParams(prev => ({ ...prev, _dateEnd: e.target.value })); }}
+					
 						/>
 					</div>
 					<div className="d-flex align-items-center gap-2">
@@ -262,7 +285,7 @@ export default function SampleValidationComponent() {
 					<button
 						className="btn btn-primary btn-sm d-flex align-items-center gap-1"
 						onClick={handleLoadData}
-						disabled={loading || (!startDate && !endDate && !searchFilter)}
+						disabled={loading || ( !queryParams._dateFrom && !queryParams._dateEnd && !searchFilter)}
 					>
 						{loading ? (
 							<>
@@ -276,13 +299,11 @@ export default function SampleValidationComponent() {
 							</>
 						)}
 					</button>
-					{(startDate || endDate || searchFilter) && (
+					{(queryParams._dateFrom || queryParams._dateEnd || searchFilter) && (
 						<button
 							className="btn btn-outline-secondary btn-sm"
 							onClick={() => {
-								setStartDate('');
-								setEndDate('');
-								setSearchFilter('');
+								setQueryParams(prev => ({ ...prev, _dateFrom: '', _dateEnd: '', searchFilter: '' }));
 							}}
 							title="Clear all filters"
 						>
@@ -315,7 +336,7 @@ export default function SampleValidationComponent() {
 							handleSeverSideProcessing={handleServerSideProcessingSampleValidation}
 							data={data}
 							filtering={false}
-							urlparams={{ startDate, endDate, sortBy }}
+							urlparams={{ ...queryParams, sortBy }}
 							serverSideFiltering={true}
 							className="table-striped table-hover"
 						/>
