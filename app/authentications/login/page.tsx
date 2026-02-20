@@ -10,6 +10,7 @@ export default function PrimeLabLoginPage() {
 	const [isSubmitting, setSubmitting] = useState(false);
 	const [loginStatus, setLoginStatus] = useState<'idle' | 'error' | 'success'>('idle');
 	const [message, setMessage] = useState<string>('');
+	const [userInformation, setUserInformation] = useState({email: '', password: ''});
 	const [showPassword, setShowPassword] = useState(false);
 	const router = useRouter();
 
@@ -19,8 +20,8 @@ export default function PrimeLabLoginPage() {
 			setLoginStatus('idle');
 			setMessage('');
 
-			const email = formData.get("email");
-			const password = formData.get("password");
+			const email = userInformation.email;
+			const password = userInformation.password;
 
 			let browserInfo = {};
 			if (typeof window !== 'undefined') {
@@ -45,7 +46,7 @@ export default function PrimeLabLoginPage() {
 			}
 
 			const backendResponse = await customPost('prime/login', 'POST', { email, password, browserInfo },false, true);
-console.log("Backend Response:", backendResponse);
+
 			if (backendResponse.status === "error" &&
 				(backendResponse.message === "License expired or invalid" || backendResponse.message === "License vaalidation failed" ||
 					backendResponse.message === "License not found"
@@ -153,7 +154,7 @@ console.log("Backend Response:", backendResponse);
 						</Alert>
 					)}
 
-					<form action={handleLoginBind} className={styles.loginForm}>
+					<form className={styles.loginForm}>
 						<div className={styles.formGroup}>
 							<label htmlFor="email" className={styles.formLabel}>
 								Email Address
@@ -164,6 +165,8 @@ console.log("Backend Response:", backendResponse);
 									id="email"
 									name="email"
 									type="email"
+									value={userInformation.email}
+									onChange={(e) => setUserInformation({...userInformation, email: e.target.value})}
 									className={styles.formInput}
 									placeholder="name@company.com"
 									required
@@ -189,6 +192,8 @@ console.log("Backend Response:", backendResponse);
 									type={showPassword ? "text" : "password"}
 									className={styles.formInput}
 									placeholder="Enter your password"
+									value={userInformation.password}
+									onChange={(e) => setUserInformation({...userInformation, password: e.target.value})}
 									required
 									autoComplete="current-password"
 								/>
@@ -203,7 +208,7 @@ console.log("Backend Response:", backendResponse);
 							</div>
 						</div>
 
-						<button type="submit" className={styles.signInButton} disabled={isSubmitting}>
+						<button type="button" className={styles.signInButton} disabled={isSubmitting} onClick={handleLoginBind}>
 							{isSubmitting && <Spinner size='sm' animation="border" role="status" aria-hidden="true" className="me-2" />}
 							<span>
 								{isSubmitting

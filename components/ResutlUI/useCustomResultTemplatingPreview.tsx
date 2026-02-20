@@ -74,6 +74,9 @@ export default function UseCustomResultTemplatingPreview({ test, records, isResu
 
 	const tableHeaderFontSize = resultsettings?.testTableHeaderFontSize + 'px' || '13px';
 
+
+
+
 	if (isUltrasound) {
 		return (
 			<div>
@@ -122,8 +125,7 @@ export default function UseCustomResultTemplatingPreview({ test, records, isResu
 					{testInfo && testInfo?.reportitle ? testInfo?.reportitle : test}
 				</span>
 			</h5>
-			<table style={{ width: '100% !important', marginLeft: '0mm !important', marginRight: '0mm !important' }}
-				className={isResultView ? `${styles.resulttable} table-borderless table-sm` : `table billing-cart-table`} >
+			<table className={isResultView ? `${styles.resulttable} table-borderless table-sm` : `table billing-cart-table`} >
 				<thead style={{
 					backgroundColor: resultsettings?.testTableHeaderBackgroundColor || 'orange',
 					color: resultsettings?.testTableHeaderTextColor || 'black',
@@ -139,7 +141,7 @@ export default function UseCustomResultTemplatingPreview({ test, records, isResu
 						<th style={{ width: '5%' }}>{resultsettings.testBody.trFifthColumnName || 'Flags'}</th>
 					</tr>
 				</thead>
-				<tbody>
+				<tbody style={{lineHeight: `0.9 !important`}}>
 					{testdetailcategory && testdetailcategory.length > 0 && Object.keys(reorganized).length > 0 ? (
 						<>
 							{Object.entries(reorganized).map(([catName, recs]) => [

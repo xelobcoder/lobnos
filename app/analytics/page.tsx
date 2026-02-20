@@ -42,7 +42,7 @@ const analyticsSections = [
           title: 'Result Analysis',
           description: 'Test results analytics and laboratory performance metrics',
           icon: RiBarChartLine,
-          path: '/analytics/resultanalysis',
+          path: '/analytics/resultanalysis/alltest',
           color: 'secondary',
           badge: null
      },

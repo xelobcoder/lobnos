@@ -19,7 +19,8 @@ const DEFAULTVALUES = {
 	patientid: "",
 	fullname: "",
 	page: 1,
-	count: 10,
+	ascensionid: "",
+	count: 2,
 	from: "",
 	to: "",
 };
@@ -55,7 +56,7 @@ const PatientArchivesPage = () => {
 		!query.patientid &&
 		!query.fullname &&
 		!query.from &&
-		!query.to;
+		!query.to && !query.ascensionid;
 
 	const getRange = (value) => {
 		const [start, end] = value;
@@ -63,10 +64,10 @@ const PatientArchivesPage = () => {
 	};
 
 	const getDataArchives = async () => {
-		const { from, to, billingid, patientid, fullname, page, count } = query;
+		const { from, to, billingid, patientid, fullname, ascensionid, page, count } = query;
 		const response = await customFetch(
 			`operations/collection/result?from=${from == null ? "" : from}&&to=${to == null ? "" : to
-			}&&billingid=${billingid}&&ascensionid=${patientid}&&fullname=${fullname}&&page=${page}&&count=${count}`
+			}&&billingid=${billingid}&&ascensionid=${ascensionid}&&patientid=${patientid}&&fullname=${fullname}&&page=${page}&&count=${count}`
 		);
 		const { statusCode, result } = response;
 		if (Array.isArray(result) && statusCode === 200) {
@@ -208,10 +209,6 @@ const PatientArchivesPage = () => {
 		},
 	];
 
-	const updatePage = (value) => {
-		updatePagination(value, setQuery, query);
-	};
-
 	useEffect(() => {
 		getDataArchives();
 	}, []);
@@ -227,6 +224,17 @@ const PatientArchivesPage = () => {
 				</div>
 				<div className="card-body">
 					<div className="row g-3 align-items-end">
+						{/* patientid */}
+						<div className="col-lg-2 col-md-6">
+							<label htmlFor="patientid" className="form-label fw-semibold">Patient ID</label>
+							<input
+								placeholder="Enter Patient ID"
+								className="form-control"
+								id="patientid"
+								value={query.patientid}
+								onChange={(e) => handleComments(e, query, "patientid", setQuery)}
+							/>
+						</div>
 						{/* ID Filters Row */}
 						<div className="col-lg-2 col-md-6">
 							<label htmlFor="billingid" className="form-label fw-semibold">Billing ID</label>
@@ -243,9 +251,9 @@ const PatientArchivesPage = () => {
 							<input
 								placeholder="Enter Ascension ID"
 								className="form-control"
-								value={query.patientid}
-								id="patientid"
-								onChange={(e) => handleComments(e, query, "patientid", setQuery)}
+								value={query.ascensionid}
+								id="ascensionid"
+								onChange={(e) => handleComments(e, query, "ascensionid", setQuery)}
 							/>
 						</div>
 

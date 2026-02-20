@@ -2,20 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { PrepareResultEntryHeader } from '../../Auth/customFetch';
 
 function handlePrintMultipleResults(row) {
-  const { testid, name, patientid, ascensionid, billingid } = row.original
+     const { testid, name, patientid, ascensionid, billingid } = row.original
 
-  const csvid = `${generateRandomTextAndNumbers(70)}${billingid}`
-  const ptid = `${generateRandomTextAndNumbers(50)}${patientid}`
+     const csvid = `${generateRandomTextAndNumbers(70)}${billingid}`
+     const ptid = `${generateRandomTextAndNumbers(50)}${patientid}`
 
-  const url = `csvid=${csvid}&&testid=${testid}&&testname=${name}&&ptid=${ptid}&&target=70,50&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&&password=false&&multiple`
+     const url = `csvid=${csvid}&&testid=${testid}&&testname=${name}&&ptid=${ptid}&&target=70,50&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&&password=false&&multiple`
 
-  const popup = window.open(
-    `/result/lab-report-multiple?${url}`,
-    "LabReportMultiple",
-    "width=1000,height=700,resizable=yes,scrollbars=yes"
-  )
+     const popup = window.open(
+          `/result/lab-report-multiple?${url}`,
+          "LabReportMultiple",
+          "width=1000,height=700,resizable=yes,scrollbars=yes"
+     )
 
-  if (popup) popup.focus()
+     if (popup) popup.focus()
 }
 
 import { useLaboratoryContext } from "./LaboratoryStagesContext";
@@ -79,7 +79,7 @@ const MobileDataDisplay = ({ data, handleResult }) => {
 };
 
 export default function ValidatedResultTable({ employeeid }) {
-     const { isLoading, collection, queryParams, setQueryParams } = useLaboratoryContext();
+     const { isLoading, collection, queryParams, setQueryParams, setCollection } = useLaboratoryContext();
      const [isClient, setIsClient] = useState(false);
      const [groupByPatient, setGroupByPatient] = useState(true);
      const appSettings = useApplication();
@@ -349,7 +349,22 @@ export default function ValidatedResultTable({ employeeid }) {
                               ascensionid: queryParams.ascensionid
                          }}
                          serverSideFiltering={true}
-                         handleSeverSideProcessing={handleServerSideProcessingAscensionData}
+                         handleSeverSideProcessing={async (pagination) => {
+                              try {
+                                   const { result } = await handleServerSideProcessingAscensionData(pagination)
+                                   if (result && Array.isArray(result)) {
+                                        setCollection(result);
+                                        return {
+                                             result: groupDataByPatient(result),
+                                             error: false
+                                        };
+
+                                   }
+                                   return { result: [], error: false };
+                              } catch (error) {
+                                   return { result: [], error: true };
+                              }
+                         }}
                     />
                ) : (
                     <PrimeTable column={columns} data={collection}

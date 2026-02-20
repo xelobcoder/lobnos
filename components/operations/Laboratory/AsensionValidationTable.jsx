@@ -226,19 +226,19 @@ export default function ValidationAscensionTable({ employeeid }) {
 				<span className="">{row.original.tests?.length || 0} test{(row.original.tests?.length || 0) !== 1 ? 's' : ''}</span>
 			)
 		},
-		{
-			Header: 'Validators',
-			accessor: 'allValidators',
-			Cell: ({ row }) => (
-				<div className="list-group list-group-sm">
-					{row.original.allValidators && row.original.allValidators.map((validator, idx) => (
-						<span key={idx} className="list-group-item list-group-item-sm py-1 px-2 text-sm">
-							{validator.username}
-						</span>
-					))}
-				</div>
-			)
-		},
+		// {
+		// 	Header: 'Validators',
+		// 	accessor: 'allValidators',
+		// 	Cell: ({ row }) => (
+		// 		<div className="list-group list-group-sm">
+		// 			{row.original.allValidators && row.original.allValidators.map((validator, idx) => (
+		// 				<span key={idx} className="list-group-item list-group-item-sm py-1 px-2 text-sm">
+		// 					{validator.username}
+		// 				</span>
+		// 			))}
+		// 		</div>
+		// 	)
+		// },
 		{
 			Header: 'Action',
 			accessor: '',
@@ -324,14 +324,33 @@ export default function ValidationAscensionTable({ employeeid }) {
 				)}
 			</div>
 			{groupByPatient ? (
-				<PrimeTable column={groupedColumns} data={groupedData}
+				<PrimeTable
+					column={groupedColumns}
+					data={groupedData}
 					serverSideFiltering={true}
-					handleSeverSideProcessing={handleServerSideProcessingAscensionData}
+					handleSeverSideProcessing={async (pagination) => {
+						try {
+							const { result } = await handleServerSideProcessingAscensionData(pagination)
+							if (result && Array.isArray(result)) {
+								setCollection(result);
+								return {
+									result: groupDataByPatient(result),
+									error: false
+								};
+
+							}
+							return { result: [], error: false };
+						} catch (error) {
+							return { result: [], error: true };
+						}
+					}}
 					urlparams={{ ...urlparams, grouped: "grouped" }}
 
 				/>
 			) : (
-				<PrimeTable column={columns} data={collection}
+				<PrimeTable
+					column={columns}
+					data={collection}
 					urlparams={urlparams}
 					serverSideFiltering={true}
 					handleSeverSideProcessing={handleServerSideProcessingAscensionData}
