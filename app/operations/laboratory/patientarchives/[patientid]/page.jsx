@@ -17,12 +17,11 @@ import { plsDecryption } from "../../../../../lib/encryption";
 import { handleServerSidePatientArchives } from "../../../../../components/serverActions/ActionFiltering";
 import BillingPagePatientInformation from "../../../../../components/Billing/BillingContextComponents/PersonalInfoView";
 import { RiUserFill } from "@remixicon/react";
+import Loader from "../../../../../components/isLoading";
 
 
 const DEFAULTVALUES = {
-	billingid: "",
 	patientid: "",
-	fullname: "",
 	page: 1,
 	count: 10,
 	from: null,
@@ -43,27 +42,23 @@ const PatientSpecificArchivesCases = () => {
 	const { user } = useApplicationSettings().applicationsettings;
 	const employeeid = user?.employeeid;
 	const hasNotFiltered =
-		!query.billingid &&
-		!query.fullname &&
 		!query.from &&
-		!query.to;
+		!query.to && !decryptedPatientId;
 
 	const getRange = (value) => {
 		const [start, end] = value;
 		setQuery({ ...query, from: start || null, to: end || null });
 	};
 
+
 	const getDataArchives = async () => {
 		if (decryptedPatientId) {
 			try {
-				const { from, to, billingid, patientid, fullname, page, count } = query;
-				const trimmedFullname = fullname ? fullname.trim() : "";
+				const { from, to, patientid, page, count } = query;
 				const params = [
 					`from=${encodeURIComponent(from == null ? "" : from)}`,
 					`to=${encodeURIComponent(to == null ? "" : to)}`,
-					`billingid=${encodeURIComponent(billingid)}`,
 					`patientid=${encodeURIComponent(decryptedPatientId)}`,
-					`fullname=${encodeURIComponent(trimmedFullname)}`,
 					`page=${encodeURIComponent(page)}`,
 					`count=${encodeURIComponent(count)}`
 				];
@@ -94,13 +89,22 @@ const PatientSpecificArchivesCases = () => {
 		}
 	};
 
+	useEffect(() => {
+		if (decryptedPatientId) {
+			setIsLoading(true);
+			getDataArchives()
+				.finally(() => setIsLoading(false));
+		}
+	}, [decryptedPatientId]);
+
 
 	const handleBrowserView = (data) => {
 		const { testid, test_name, patientid, ascensionid, billingid } = data;
 		const csvid = `${generateRandomTextAndNumbers(70)}${billingid}`;
 		const ptid = `${generateRandomTextAndNumbers(50)}${patientid}`;
 		const url = `csvid=${csvid}&&testid=${testid}&&testname=${test_name}&&ptid=${ptid}&&target=70,50&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&&password=`;
-		window.open(`/result/labreport/4?${url}`);
+		const newWindow = window.open(`/result/labreport/4?${url}&&isOpenSideBarShow=false`, "_blank", "width=1000,height=700,resizable=no,scrollbars=yes");
+		window.close();
 	};
 
 
@@ -125,7 +129,6 @@ const PatientSpecificArchivesCases = () => {
 			accessor: "caseinfo",
 			Cell: ({ row }) => (
 				<div>
-					<div><b>Billing ID:</b> {row.original.billingid}</div>
 					<div><b>Ascension ID:</b> {row.original.ascensionid}</div>
 					<div><b>Test ID:</b> {row.original.testid}</div>
 					<div><b>Test Name:</b> {row.original.test_name || '-'} </div>
@@ -191,15 +194,6 @@ const PatientSpecificArchivesCases = () => {
 			</div>
 			<div className="row g-3 align-items-end">
 				<div className="col">
-					<input
-						placeholder="Billing Id"
-						className="custom-input"
-						id="billingid"
-						value={query.billingid}
-						onChange={(e) => handleComments(e, query, "billingid", setQuery)}
-					/>
-				</div>
-				<div className="col">
 					<DatePickerRange
 						getRange={getRange}
 						start={query.from}
@@ -226,23 +220,25 @@ const PatientSpecificArchivesCases = () => {
 				</div>
 			</div>
 			<h5 className="mx-1 text-capitalize">Patient Specific Archives Cases</h5>
-			<div>
-				<PrimeTable
-					column={columns}
-					data={collection}
-					filtering={false}
-					serverSideFiltering={true}
-					urlparams={{
-						from: query.from,
-						to: query.to,
-						patientid: decryptedPatientId,
-						billingid: query.billingid,
-						fullname: query.fullname,
-						isPatientSpecific: true,
+			{isLoading ? (
+				<Loader />
+			) : (
+				<div>
+					<PrimeTable
+						column={columns}
+						data={collection}
+						filtering={false}
+						serverSideFiltering={true}
+						urlparams={{
+							from: query.from,
+							to: query.to,
+							patientid: decryptedPatientId,
+							isPatientSpecific: true,
 
-					}}
-					handleSeverSideProcessing={handleServerSidePatientArchives} />
-			</div>
+						}}
+						handleSeverSideProcessing={handleServerSidePatientArchives} />
+				</div>
+			)}
 		</div>
 	);
 };

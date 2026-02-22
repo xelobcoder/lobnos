@@ -9,7 +9,7 @@ import { AdminRoleLinks, FrontdeskRoleLinks, LaboratoryScientistRoleLinks, Phelo
 import { FontSelector } from "./FontSelector";
 import { getFontPreference, applyFontToDocument } from "../../lib/themes";
 import { useTheme } from "../ThemeProvider";
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 
 interface PrimeLayoutProps {
@@ -42,6 +42,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
     const roleLinks = roleViews[user.role] || [];
     const employeeid = user?.employeeid || 0;
     const [currentPath, setCurrentPath] = useState<string>("");
+    const isOpenSideBarShow = useSearchParams().get("isOpenSideBarShow") !== "false"; // Default to true
 
     useEffect(() => {
         setCurrentPath(window.location.pathname);
@@ -246,93 +247,95 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
             </header>
 
             {/* Two Column Layout: Sidebar + Main Content */}
-            <div className={styles.twoColumnLayout}>
+            <div className={styles.twoColumnLayout} style={!isOpenSideBarShow ? { width: '100%' } : {}}>
                 {/* Mobile Overlay */}
                 {isMobileSidebarOpen && <div className={styles.mobileOverlay} onClick={() => setIsMobileSidebarOpen(false)}></div>}
 
-                {/* First Column: Quick Links Sidebar */}
-                <aside className={`${styles.quickLinksSidebar} ${isMobileSidebarOpen ? styles.mobileSidebarVisible : ''}`}>
-                    <div className={styles.sidebarHeader}>
-                        <h3 className={styles.sidebarTitle}>Quick Links</h3>
-                        <button
-                            className={styles.sidebarActionButton}
-                            onClick={() => setIsQuickLinksCollapsed(!isQuickLinksCollapsed)}
-                            title={isQuickLinksCollapsed ? "Expand Quick Links" : "Collapse Quick Links"}
-                        >
-                            {isQuickLinksCollapsed ? <RiArrowRightLine size={16} /> : <RiArrowLeftLine size={16} />}
-                        </button>
-                    </div>
+                {/* First Column: Quick Links Sidebar - Only show if isOpenSideBarShow is true */}
+                {isOpenSideBarShow && (
+                    <aside className={`${styles.quickLinksSidebar} ${isMobileSidebarOpen ? styles.mobileSidebarVisible : ''}`}>
+                        <div className={styles.sidebarHeader}>
+                            <h3 className={styles.sidebarTitle}>Quick Links</h3>
+                            <button
+                                className={styles.sidebarActionButton}
+                                onClick={() => setIsQuickLinksCollapsed(!isQuickLinksCollapsed)}
+                                title={isQuickLinksCollapsed ? "Expand Quick Links" : "Collapse Quick Links"}
+                            >
+                                {isQuickLinksCollapsed ? <RiArrowRightLine size={16} /> : <RiArrowLeftLine size={16} />}
+                            </button>
+                        </div>
 
-                    <nav className={styles.sidebarNav} aria-label="Quick Links Navigation">
-                        {Array.isArray(links) && links.map(item => renderNavItem(item))}
+                        <nav className={styles.sidebarNav} aria-label="Quick Links Navigation">
+                            {Array.isArray(links) && links.map(item => renderNavItem(item))}
 
-                        {/* Apps Section - Only show on mobile */}
-                        {isMobile && (
-                            <div className={styles.navSection}>
-                                <button
-                                    className={styles.navGroupButton}
-                                    onClick={() => setIsAppsExpanded(!isAppsExpanded)}
-                                    aria-expanded={isAppsExpanded}
-                                >
-                                    <span className={styles.navIcon}>📱</span>
-                                    <span className={styles.navLabel}>Apps</span>
-                                    <span className={styles.navExpandIcon}>
-                                        {isAppsExpanded ? <RiSubtractLine size={12} /> : <RiAddLine size={12} />}
-                                    </span>
-                                </button>
-                                {isAppsExpanded && (
-                                    <div className={styles.navSubmenu}>
-                                        {roleLinks.map((link, index) => (
+                            {/* Apps Section - Only show on mobile */}
+                            {isMobile && (
+                                <div className={styles.navSection}>
+                                    <button
+                                        className={styles.navGroupButton}
+                                        onClick={() => setIsAppsExpanded(!isAppsExpanded)}
+                                        aria-expanded={isAppsExpanded}
+                                    >
+                                        <span className={styles.navIcon}>📱</span>
+                                        <span className={styles.navLabel}>Apps</span>
+                                        <span className={styles.navExpandIcon}>
+                                            {isAppsExpanded ? <RiSubtractLine size={12} /> : <RiAddLine size={12} />}
+                                        </span>
+                                    </button>
+                                    {isAppsExpanded && (
+                                        <div className={styles.navSubmenu}>
+                                            {roleLinks.map((link, index) => (
+                                                <button
+                                                    key={`app-${index}`}
+                                                    className={`${styles.navItem} ${styles.navItemChild}`}
+                                                    onClick={() => {
+                                                        window.location.href = link.href;
+                                                        setIsMobileSidebarOpen(false);
+                                                    }}
+                                                >
+                                                    <span className={styles.navIcon}>{link.icon}</span>
+                                                    <span className={styles.navLabel}>{link.label}</span>
+                                                </button>
+                                            ))}
                                             <button
-                                                key={`app-${index}`}
                                                 className={`${styles.navItem} ${styles.navItemChild}`}
                                                 onClick={() => {
-                                                    window.location.href = link.href;
+                                                    window.location.href = `/human-resource/profile?employeeid=${employeeid}`;
                                                     setIsMobileSidebarOpen(false);
                                                 }}
                                             >
-                                                <span className={styles.navIcon}>{link.icon}</span>
-                                                <span className={styles.navLabel}>{link.label}</span>
+                                                <span className={styles.navIcon}>👤</span>
+                                                <span className={styles.navLabel}>Profile</span>
                                             </button>
-                                        ))}
-                                        <button
-                                            className={`${styles.navItem} ${styles.navItemChild}`}
-                                            onClick={() => {
-                                                window.location.href = `/human-resource/profile?employeeid=${employeeid}`;
-                                                setIsMobileSidebarOpen(false);
-                                            }}
-                                        >
-                                            <span className={styles.navIcon}>👤</span>
-                                            <span className={styles.navLabel}>Profile</span>
-                                        </button>
-                                        <button
-                                            className={`${styles.navItem} ${styles.navItemChild}`}
-                                            onClick={() => {
-                                                window.location.href = "/settings";
-                                                setIsMobileSidebarOpen(false);
-                                            }}
-                                        >
-                                            <span className={styles.navIcon}>⚙️</span>
-                                            <span className={styles.navLabel}>Settings</span>
-                                        </button>
-                                        <button
-                                            className={`${styles.navItem} ${styles.navItemChild}`}
-                                            onClick={() => {
-                                                window.location.href = "/authentication/logout";
-                                                setIsMobileSidebarOpen(false);
-                                            }}
-                                        >
-                                            <span className={styles.navIcon}>🚪</span>
-                                            <span className={styles.navLabel}>Logout</span>
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </nav>
-                </aside>
-                <main className={styles.mainContent}>
-                    <div className={styles.contentWrapper}>
+                                            <button
+                                                className={`${styles.navItem} ${styles.navItemChild}`}
+                                                onClick={() => {
+                                                    window.location.href = "/settings";
+                                                    setIsMobileSidebarOpen(false);
+                                                }}
+                                            >
+                                                <span className={styles.navIcon}>⚙️</span>
+                                                <span className={styles.navLabel}>Settings</span>
+                                            </button>
+                                            <button
+                                                className={`${styles.navItem} ${styles.navItemChild}`}
+                                                onClick={() => {
+                                                    window.location.href = "/authentication/logout";
+                                                    setIsMobileSidebarOpen(false);
+                                                }}
+                                            >
+                                                <span className={styles.navIcon}>🚪</span>
+                                                <span className={styles.navLabel}>Logout</span>
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </nav>
+                    </aside>
+                )}
+                <main className={styles.mainContent} style={!isOpenSideBarShow ? { margin: 0, padding: 0 } : {}}>
+                    <div className={styles.contentWrapper} style={!isOpenSideBarShow ? { padding: 0, margin: '10px', maxWidth: '100%' } : {}}>
                         {children}
                     </div>
                 </main>

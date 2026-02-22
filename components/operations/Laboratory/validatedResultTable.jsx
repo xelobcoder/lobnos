@@ -212,7 +212,7 @@ export default function ValidatedResultTable({ employeeid }) {
                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style={{ marginRight: '6px', verticalAlign: 'middle' }}><path fill="none" d="M0 0h24v24H0z"></path><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 14.93V19h-2v-2.07A8.001 8.001 0 0 1 4.07 13H2v-2h2.07A8.001 8.001 0 0 1 11 4.07V2h2v2.07A8.001 8.001 0 0 1 19.93 11H22v2h-2.07A8.001 8.001 0 0 1 13 19.93zM12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"></path></svg>
                                    View Result Tracking
                               </Dropdown.Item>
-                              <Dropdown.Item className='pls-label' onClick={() => PrepareResultEntryHeader({ id: row.original.testid, ...row.original }, false, branchid,)}>
+                              <Dropdown.Item className='pls-label' onClick={() => PrepareResultEntryHeader({ id: row.original.testid, ...row.original }, false, branchid,false)}>
                                    {downloadSvg} Edit Patient Result
                               </Dropdown.Item>
                          </Dropdown.Menu>
@@ -222,7 +222,6 @@ export default function ValidatedResultTable({ employeeid }) {
           },
      ];
 
-     const updateValue = (value) => setQueryParams({ ...queryParams, page: value });
 
      // Columns for grouped view
      const groupedColumns = [

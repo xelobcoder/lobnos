@@ -195,10 +195,11 @@ const PatientArchivesPage = () => {
 							title="View Patient Archive"
 							className="btn btn-info btn-sm mx-1"
 							onClick={() => {
-								const encryptedId = encodeURIComponent(billingid);
 								const encodedPatientId = encodeURIComponent(patientid || "");
-								const encodedFullname = encodeURIComponent(fullname || "");
-								window.open(`/operations/laboratory/patientarchives/${plsEncryption(encryptedId)}?patientid=${encodedPatientId}&fullname=${encodedFullname}`);
+								window.open(`/operations/laboratory/patientarchives/${plsEncryption(encodedPatientId)}?isOpenSideBarShow=false`,
+									'_blank',
+									'resizable=no,scrollbars=yes,width=1000,height=700'
+							);
 							}}
 						>
 							<RiCodeView />

@@ -7,8 +7,8 @@ import { plsEncryption } from '../../../lib/encryption';
 export default function ConsultationgloFieldSettingsPage() {
      const router = useRouter();
      const handleSelectedPatient = (selected: any) => {
-          const { patientid } = selected;
-          if (patientid) {
+          if (selected && selected?.patientid) {
+               const patientid = selected.patientid;
                router.push(`/doctor/consultation/${plsEncryption(patientid.toString())}`);
           }
      }

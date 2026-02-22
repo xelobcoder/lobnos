@@ -44,6 +44,8 @@ export default function MAIN_LAYOUT({ children }) {
           if (typeof window !== 'undefined') {
                localStorage.setItem('applicationsettings', JSON.stringify({ ...user, settings }));
           }
+
+          window.location.reload();
      }
 
 

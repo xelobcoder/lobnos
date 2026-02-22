@@ -983,7 +983,7 @@ export const getDateRange = (range) => {
 
 
 
-export function PrepareResultEntryHeader(data, isUltrasound = false, branchid) {
+export function PrepareResultEntryHeader(data, isUltrasound = false, branchid, isOpenSideBarShow = true) {
   if (typeof data !== "object") return
 
   const { id, name, billingid, patientid, ascensionid } = data
@@ -994,8 +994,8 @@ export function PrepareResultEntryHeader(data, isUltrasound = false, branchid) {
 
   const popup = window.open(
     !isUltrasound
-      ? `/operations/laboratory/resultentry/${branchid}?csvid=${csvid}&&ptid=${ptid}`
-      : `/operations/imaging/ultrasound/result/${branchid}?csvid=${csvid}&&ptid=${ptid}&&testid=${id}&&ascensionid=${ascensionid}`,
+      ? `/operations/laboratory/resultentry/${branchid}?csvid=${csvid}&&ptid=${ptid}&&isOpenSideBarShow=${isOpenSideBarShow}`
+      : `/operations/imaging/ultrasound/result/${branchid}?csvid=${csvid}&&ptid=${ptid}&&testid=${id}&&ascensionid=${ascensionid}&&isOpenSideBarShow=${isOpenSideBarShow}`,
     "ResultEntry",
     "width=1100,height=750,resizable=yes,scrollbars=yes"
   )

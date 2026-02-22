@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { Container, Row, Col, Form, ListGroup, ListGroupItem, Button, Modal } from "react-bootstrap";
+import { Container, Row, Col, Form, Button, Modal } from "react-bootstrap";
 import PreviewPatientInformation from "../../../../components/petientsComponent/PreviewPatientInformation";
 import { customFetch, customPost } from "../../../../components/Auth/customFetch";
 import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
@@ -11,21 +11,26 @@ import { useSearchParams, useRouter } from "next/navigation";
 import VitalSignCustomerListInformation from '../../../../components/customer/vitalSignCustomerList'
 import styles from './ConsultationPanel.module.css'
 import { plsDecryption } from "../../../../lib/encryption";
+
 type RecordType = 'Old Record' | 'In-Process (Today)' | 'IPD Review' | 'OPD New Cases';
 
 interface FormData {
-	complaints: string;
-	hpc: string;
-	pmh: string;
-	sh: string;
-	odq: string;
-	dhx: string;
-	se: string;
-	fh: string;
-	obsGynecHistory: string;
-	oe: string;
+	consultation_notes: string;
 	record_type: RecordType;
 }
+
+const CATEGORIES = [
+	{ label: "Patient Complaints", key: "Complaints" },
+	{ label: "History of Presenting Complaint (HPC)", key: "HPC" },
+	{ label: "Past Medical History (PMH)", key: "PMH" },
+	{ label: "Social History (SH)", key: "SH" },
+	{ label: "On Direct Questions (ODQ)", key: "ODQ" },
+	{ label: "Drug History (DHx)", key: "DHx" },
+	{ label: "Systemic Enquiries (SE)", key: "SE" },
+	{ label: "Family History (FH)", key: "FH" },
+	{ label: "Obs./Gynecological History", key: "Obs./Gynec History" },
+	{ label: "On Examination (OE)", key: "OE" },
+];
 
 const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 	const router = useRouter();
@@ -33,28 +38,34 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 	const patientid = plsDecryption(clientid.toString());
 	const employeeid = useApplicationSettings().applicationsettings.user.employeeid;
 	const [formData, setFormData] = useState<FormData>({
-		complaints: "",
-		hpc: "",
-		pmh: "",
-		sh: "",
-		odq: "",
-		dhx: "",
-		se: "",
-		fh: "",
-		obsGynecHistory: "",
-		oe: "",
+		consultation_notes: "",
 		record_type: "OPD New Cases",
 	});
-	const searchParams = useSearchParams();
-	const consultationid = searchParams?.get("consultationid");
+	const [selectedCategory, setSelectedCategory] = useState<string>("Complaints");
+	const [currentInput, setCurrentInput] = useState<string>("");
+	const [editingMode, setEditingMode] = useState<boolean>(false);
 	const [errors, setErrors] = useState<Record<string, string>>({});
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [showModal, setShowModal] = useState(false);
-	const [loadingPreviousConsultation, setPrevConsultation] = useState<boolean>(false);
-	const [modalContent, setModalContent] = useState<string>("");
-	const [modalTitle, setModalTitle] = useState<string>("");
-	const [openVitalSign, setCloseVital] = useState<boolean>(false);
 	const [showPostSubmitModal, setShowPostSubmitModal] = useState(false);
+	const [openVitalSign, setCloseVital] = useState<boolean>(false);
+
+	const searchParams = useSearchParams();
+	const consultationid = searchParams?.get("consultationid");
+
+	const handleAddEntry = () => {
+		if (currentInput.trim()) {
+			const entry = `${selectedCategory}: ${currentInput}\n`;
+			setFormData((prevFormData) => ({
+				...prevFormData,
+				consultation_notes: prevFormData.consultation_notes + entry,
+			}));
+			setCurrentInput("");
+		}
+	};
+
+	const handleClearNotes = () => {
+		setFormData({ ...formData, consultation_notes: "" });
+	};
 
 	const handleInputChange = (field: keyof FormData, value: string) => {
 		setFormData((prevFormData) => ({ ...prevFormData, [field]: value }));
@@ -62,20 +73,11 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 
 	const validateForm = (): boolean => {
 		const newErrors: Record<string, string> = {};
-		let isFieldFilled = false;
-
-		Object.keys(formData).forEach((field) => {
-			if (formData[field as keyof FormData] && !isFieldFilled) {
-				isFieldFilled = true;
-			}
-		});
-
-		if (!isFieldFilled) {
-			newErrors["complaints"] = "At least one field must be filled.";
+		if (!formData.consultation_notes.trim()) {
+			newErrors["consultation_notes"] = "At least one entry must be added.";
 		}
-
 		setErrors(newErrors);
-		return isFieldFilled;
+		return Object.keys(newErrors).length === 0;
 	};
 
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -84,30 +86,23 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 			setIsSubmitting(true);
 			const method = consultationid ? 'PUT' : 'POST';
 			const requestUrl = consultationid ? `records/consulation/update?consultationid=${consultationid}` : 'records/consulation';
-			const response = await customPost(requestUrl, method, {
+			const payload = {
 				...formData,
 				patientid,
 				consulationby: employeeid,
-			});
+			};
+			console.log("Submitting payload:", payload);
+			const response = await customPost(requestUrl, method, payload);
 			if (response?.message) {
 				toast.success(response.message);
 			}
-			// Show modal for both new and updated records if response is successful
 			if ((response?.recordId && !consultationid) || (method === 'PUT' && response?.status)) {
 				if (!consultationid) {
 					setFormData({
-						complaints: "",
-						hpc: "",
-						pmh: "",
-						sh: "",
-						odq: "",
-						dhx: "",
-						se: "",
-						fh: "",
-						obsGynecHistory: "",
-						oe: "",
+						consultation_notes: "",
 						record_type: "OPD New Cases",
 					});
+					setCurrentInput("");
 				}
 				setShowPostSubmitModal(true);
 			}
@@ -117,20 +112,8 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 		}
 	};
 
-	const handleOpenModal = (label: string, field: keyof FormData) => {
-		setModalContent(formData[field]);
-		setModalTitle(label);
-		setShowModal(true);
-	};
-
 	const handleCloseVitalsingModal = () => {
 		setCloseVital(false);
-	}
-
-
-
-	const handleCloseModal = () => {
-		setShowModal(false);
 	};
 
 
@@ -141,19 +124,20 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 		if (consultationid) {
 			const fetchConsultationData = async () => {
 				if (!consultationid) return;
-				setPrevConsultation(true);
+				setEditingMode(true);
 				try {
 					const data = await customFetch(`records/consultation/get/consultation?consultationid=${consultationid}`);
 					if (data) {
 						setFormData((prevFormData) => ({
 							...prevFormData,
-							...data,
+							consultation_notes: data.consultation_notes || "",
+							record_type: data.record_type || "OPD New Cases",
 						}));
 					}
-					setPrevConsultation(false);
+					setEditingMode(false);
 				} catch (error) {
 					console.error("Error fetching consultation data:", error);
-
+					setEditingMode(false);
 				}
 			};
 
@@ -164,6 +148,7 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 	return (
 		<>
 			<Container fluid className={styles.consultationPage} >
+
 				<div className="d-flex justify-content-between align-items-center mb-2">
 					<div className="d-flex align-items-center">
 						<Button variant="outline-secondary" size="sm" onClick={() => router.push('/doctor/consultation')} className="me-2">
@@ -181,18 +166,11 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 						<Button
 							onClick={() => {
 								setFormData({
-									complaints: "",
-									hpc: "",
-									pmh: "",
-									sh: "",
-									odq: "",
-									dhx: "",
-									se: "",
-									fh: "",
-									obsGynecHistory: "",
-									oe: "",
+									consultation_notes: "",
 									record_type: "OPD New Cases",
 								});
+								setCurrentInput("");
+								setEditingMode(false);
 								router.replace(`/doctor/consultation/${clientid}`);
 							}}
 							variant="primary"
@@ -208,7 +186,9 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 						</button>
 					</div>
 				</div>
-
+				<div>
+					<PreviewPatientInformation patientid={patientid} />
+				</div>
 				{/* Post-submit modal */}
 				<Modal show={showPostSubmitModal} onHide={() => setShowPostSubmitModal(false)} centered>
 					<Modal.Header closeButton>
@@ -228,124 +208,109 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 				</Modal>
 				<hr />
 				<Row className="mt-3">
-					<Col md={9}>
+					<Col>
 						<Form onSubmit={handleSubmit}>
-							<Row xs={1} md={2} lg={2} className="g-3">
-								{[
-									["Complaints", "complaints"],
-									["History of Presenting Complaint (HPC)", "hpc"],
-									["Past Medical History (PMH)", "pmh"],
-									["Social History (SH)", "sh"],
-									["On Direct Questions (ODQ)", "odq"],
-									["Drug History (DHx)", "dhx"],
-									["Systemic Enquiries (SE)", "se"],
-									["Family History (FH)", "fh"],
-									["Obs./Gynecological History", "obsGynecHistory"],
-									["On Examination (OE)", "oe"],
-								].map(([label, field]) => {
-									return (
-										<Col key={field} >
-											<ListGroup >
-												<ListGroupItem className="fw-bold pls-color list-group-item bg-secondary-subtle d-flex justify-content-between align-items-center">
-													<span>{label}</span>
-													<svg
-														xmlns="http://www.w3.org/2000/svg"
-														viewBox="0 0 24 24"
-														width="24"
-														height="24"
-														fill="currentColor"
-														onClick={() => handleOpenModal(label, field as keyof FormData)}
-														style={{ cursor: "pointer" }}
-													>
-														<path fill="none" d="M0 0h24v24H0z"></path>
-														<path d="M12.0003 3C17.3924 3 21.8784 6.87976 22.8189 12C21.8784 17.1202 17.3924 21 12.0003 21C6.60812 21 2.12215 17.1202 1.18164 12C2.12215 6.87976 6.60812 3 12.0003 3ZM12.0003 19C16.2359 19 19.8603 16.052 20.7777 12C19.8603 7.94803 16.2359 5 12.0003 5C7.7646 5 4.14022 7.94803 3.22278 12C4.14022 16.052 7.7646 19 12.0003 19ZM12.0003 16.5C9.51498 16.5 7.50026 14.4853 7.50026 12C7.50026 9.51472 9.51498 7.5 12.0003 7.5C14.4855 7.5 16.5003 9.51472 16.5003 12C16.5003 14.4853 14.4855 16.5 12.0003 16.5ZM12.0003 14.5C13.381 14.5 14.5003 13.3807 14.5003 12C14.5003 10.6193 13.381 9.5 12.0003 9.5C10.6196 9.5 9.50026 10.6193 9.50026 12C9.50026 13.3807 10.6196 14.5 12.0003 14.5Z"></path>
-													</svg>
-												</ListGroupItem>
-												<ListGroupItem className="p-2">
-													<Form.Group controlId={field}>
-														{loadingPreviousConsultation ? <div className="p-4 bg-secondary-subtle br-5">loading..............</div> :
-															<Form.Control
-																as="textarea"
-																rows={5}
-																className={`${styles.mainContentCol}border-0 border-none form`}
-																value={formData[field as keyof FormData]}
-																onChange={(e) => handleInputChange(field as keyof FormData, e.target.value)}
-																style={{ resize: "none" }}
-															/>}
-														{errors[field] && (
-															<div className="text-danger mt-2">{errors[field]}</div>
-														)}
-													</Form.Group>
-												</ListGroupItem>
-											</ListGroup>
-										</Col>
+							<div style={{ marginBottom: "16px" }}>
+								<label style={{ display: "block", marginBottom: "8px", fontWeight: "bold", fontSize: "0.9rem" }}>Category</label>
+								<select
+									value={selectedCategory}
+									onChange={(e) => setSelectedCategory(e.target.value)}
+									style={{ width: "100%", padding: "8px", fontSize: "0.9rem", border: "1px solid #ccc", borderRadius: "4px" }}
+									disabled={editingMode}
+								>
+									{CATEGORIES.map((cat) => (
+										<option key={cat.key} value={cat.key}>{cat.label}</option>
+									))}
+								</select>
+							</div>
 
-									)
-								})}
-							</Row>
-							<div className="d-flex justify-content-end mt-3">
-								<Button disabled={isSubmitting} type="submit" className="btn btn-sm" variant="primary">
+							<div style={{ marginBottom: "16px" }}>
+								<label style={{ display: "block", marginBottom: "8px", fontWeight: "bold", fontSize: "0.9rem" }}>Add Entry</label>
+								<textarea
+									value={currentInput}
+									onChange={(e) => setCurrentInput(e.target.value)}
+									placeholder="Enter consultation notes..."
+									rows={4}
+									style={{ width: "100%", padding: "8px", fontSize: "0.9rem", border: "1px solid #ccc", borderRadius: "4px", resize: "none" }}
+									disabled={editingMode}
+								/>
+								<button
+									type="button"
+									onClick={handleAddEntry}
+									disabled={editingMode || !currentInput.trim()}
+									style={{
+										marginTop: "8px",
+										padding: "6px 12px",
+										backgroundColor: "#28a745",
+										color: "white",
+										border: "none",
+										borderRadius: "4px",
+										cursor: editingMode || !currentInput.trim() ? "not-allowed" : "pointer",
+										fontSize: "0.9rem",
+										opacity: editingMode || !currentInput.trim() ? 0.5 : 1,
+									}}
+								>
+									+ Add Entry
+								</button>
+							</div>
+
+							<div style={{ marginBottom: "16px" }}>
+								<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+									<label style={{ fontWeight: "bold", fontSize: "0.9rem" }}>Consultation Notes</label>
+									{!editingMode && formData.consultation_notes && (
+										<button
+											type="button"
+											onClick={handleClearNotes}
+											style={{
+												padding: "4px 8px",
+												backgroundColor: "#dc3545",
+												color: "white",
+												border: "none",
+												borderRadius: "4px",
+												cursor: "pointer",
+												fontSize: "0.85rem",
+											}}
+										>
+											Clear
+										</button>
+									)}
+								</div>
+								<textarea
+									value={formData.consultation_notes}
+									onChange={(e) => setFormData({ ...formData, consultation_notes: e.target.value })}
+									placeholder="Your consultation notes will appear here..."
+									rows={6}
+									style={{
+										width: "100%",
+										padding: "8px",
+										fontSize: "0.9rem",
+										border: "1px solid #ccc",
+										borderRadius: "4px",
+										resize: "none",
+										fontFamily: "monospace",
+									}}
+									readOnly={editingMode}
+								/>
+								{errors["consultation_notes"] && (
+									<div style={{ color: "#dc3545", marginTop: "4px", fontSize: "0.85rem" }}>{errors["consultation_notes"]}</div>
+								)}
+							</div>
+
+							<div style={{ marginTop: "16px", textAlign: "right" }}>
+								<button disabled={isSubmitting} type="submit" style={{ padding: "6px 16px", backgroundColor: "#007bff", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontSize: "0.9rem" }}>
 									{isSubmitting ? "submitting...." : "submit"}
-								</Button>
+								</button>
 							</div>
 						</Form>
 					</Col>
 
-					<Col md={3}>
-						<div>
-							<PreviewPatientInformation patientid={patientid} />
-						</div>
-						<ListGroup className="my-2">
-							<ListGroupItem className="fw-bold pls-color list-group-item bg-secondary-subtle d-flex justify-content-between pointer">
-								<span>Record Type</span>
-							</ListGroupItem>
-							<ListGroupItem>
-								{[
-									{ id: "oldRecord", label: "Old Record", value: "Old Record" },
-									{ id: "inProcess", label: "In-Process (Today)", value: "In-Process (Today)" },
-									{ id: "ipdReview", label: "IPD Review", value: "IPD Review" },
-									{ id: "newCase", label: "New Case", value: "OPD New Cases" },
-								].map(({ id, label, value }) => (
-									<Form.Check
-										key={id}
-										type="radio"
-										id={id}
-										label={label}
-										name="recordType"
-										className="mt-2"
-										checked={formData.record_type === value}
-										onChange={() => handleInputChange("record_type", value)}
-									/>
-								))}
-							</ListGroupItem>
-						</ListGroup>
-
-						<div>
-							<ListGroup>
-								<ListGroupItem className=" bg-secondary-subtle pls-color fw-bold">
-									Previous Consulation
-								</ListGroupItem>
-								<ListGroupItem>
-									<PreviousConsulation patientid={clientid} />
-								</ListGroupItem>
-							</ListGroup>
+					<Col>
+						<div className="bg-white p-3 border rounded mt-3">
+							<h6 className="mb-3 fw-bold">Previous Consultations</h6>
+							<PreviousConsulation patientid={clientid} />
 						</div>
 					</Col>
 				</Row>
-
-				<Modal fullscreen show={showModal} onHide={handleCloseModal}>
-					<Modal.Header className="bg-secondary-subtle" closeButton>
-						<Modal.Title>{modalTitle}</Modal.Title>
-					</Modal.Header>
-					<Modal.Body>
-						<pre>{modalContent}</pre>
-					</Modal.Body>
-					<Modal.Footer>
-						<Button variant="secondary" className="btn btn-sm" onClick={handleCloseModal}>
-							Close
-						</Button>
-					</Modal.Footer>
-				</Modal>
 
 				{
 					openVitalSign && <Modal show={openVitalSign} onHide={handleCloseVitalsingModal} size="xl" backdrop='static'>
