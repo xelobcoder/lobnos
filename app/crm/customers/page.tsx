@@ -97,6 +97,14 @@ export default function Activator() {
         window.open(`/operations/laboratory/patientarchives/${encryptedId}?patientid=${encodeURIComponent(patientid)}${nameParam}`);
     }
 
+    const handleRegisterNewClient = () => {
+        const windowWidth = 800;
+        const windowHeight = 600;
+        const left = (window.innerWidth - windowWidth) / 2 + window.screenX;
+        const top = (window.innerHeight - windowHeight) / 2 + window.screenY;
+        window.open(`/crm/registration?isOpenSideBarShow=false&isOnlyRegistration=true`, '_blank', `width=${windowWidth},height=${windowHeight},left=${Math.round(left)},top=${Math.round(top)},resizable=yes,scrollbars=yes`);
+    }
+
 
 
     const resetFiltering = async () => {
@@ -225,7 +233,8 @@ export default function Activator() {
                         <button className='btn btn-outline-danger btn-sm' onClick={() => { resetFiltering() }}> <RiResetLeftFill /> Reset </button>
                     </div>
                 </div>
-                <div className='col-md-4 col-sm-12 col-lg-6 my-2 d-lg-flex col-xl-4 justify-content-end'>
+                <div className='col-md-4 col-sm-12 col-lg-6 my-2 d-lg-flex col-xl-4 justify-content-center gap-2'>
+                    <button className='btn btn-success btn-sm' onClick={handleRegisterNewClient}>+ Register New Client</button>
                     <button className='btn btn-primary' onClick={() => setShowAdvancedFilter(!showAdvancedFilter)}>Advanced Filtering</button>
                 </div>
             </div>

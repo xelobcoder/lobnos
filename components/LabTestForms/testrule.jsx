@@ -268,12 +268,12 @@ export default function CreateTestRule({ clientdata }) {
 						Cancel
 					</Button>
 					<Button variant="primary" onClick={() => {
-						window.location.href = `/operations/laboratory/validation?ascensionid=${ascensionid}`;
+						window.location.href = `/operations/laboratory/validation?ascensionid=${ascensionid}&isOpenSideBarShow=false`;
 					}}>
 						Continue
 					</Button>
 					<Button variant="success" onClick={() => {
-						window.location.href = `/operations/laboratory/validation?billingid=${billingid.slice(70)}`;
+						window.location.href = `/operations/laboratory/validation?billingid=${billingid.slice(70)}&&isOpenSideBarShow=false`;
 					}}>
 						Validate All
 					</Button>

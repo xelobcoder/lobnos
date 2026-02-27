@@ -133,9 +133,11 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
 
      const handleProceedToValidatedResult = () => {
           const ascensionIds = Array.isArray(successfulValidation) ? successfulValidation.join(',') : successfulValidation;
-          window.open(`/operations/laboratory/validated?ascensionid=${ascensionIds}`, '_blank');
+        const newWindow=  window.open(`/operations/laboratory/validated?ascensionid=${ascensionIds}&&isOpenSideBarShow=false`,
+           '_blank','width=1000,height=auto');
           setShowProceedModal(false);
           onClose(successfulValidation);
+          window.close()
      };
 
      return (

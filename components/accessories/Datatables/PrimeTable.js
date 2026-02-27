@@ -64,11 +64,10 @@ export default function PrimeTable({
     }
   }, [data]);
 
-
   console.log({
-	 len:data.length,
-	 ...queryParams
-  })
+    len: data.length,
+    ...queryParams,
+  });
 
   let debounceTimeout;
   const debounce = (func, delay) => {

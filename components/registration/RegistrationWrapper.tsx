@@ -3,9 +3,10 @@ import React, { useState } from 'react';
 import styles from './RegistrationWrapper.module.css';
 import { RiArrowLeftSLine, RiArrowRightSLine } from '@remixicon/react';
 
-export const RegistrationWrapper = ({ children }) => {
+export const RegistrationWrapper = ({ children, isOnlyRegistration = false }) => {
+    const allSteps = ['Photo', 'Personal Info', 'Address', 'Emergency Contact', 'Credentials', 'Settings'];
+    const steps = isOnlyRegistration ? ['Personal Info'] : allSteps;
     const [currentStep, setCurrentStep] = useState(0);
-    const steps = ['Photo', 'Personal Info', 'Address', 'Emergency Contact', 'Credentials', 'Settings'];
     const maxSteps = React.Children.count(children) - 1;
 
     const nextStep = () => {
@@ -33,7 +34,7 @@ export const RegistrationWrapper = ({ children }) => {
                     <div className="d-flex flex-wrap justify-content-center gap-2 mb-3 mb-md-0">
                         {steps.map((step, index) => (
                             <React.Fragment key={index}>
-                                <div 
+                                <div
                                     className={`${styles.step} ${currentStep === index ? styles.active : ''} ${styles.clickable}`}
                                     onClick={() => handleStepClick(index)}
                                     role="button"
@@ -48,14 +49,14 @@ export const RegistrationWrapper = ({ children }) => {
                         ))}
                     </div>
                     <div className="d-flex gap-2">
-                        <button 
+                        <button
                             className={`btn btn-light ${styles.navButton}`}
                             onClick={prevStep}
                             disabled={currentStep === 0}
                         >
                             <RiArrowLeftSLine size={24} />
                         </button>
-                        <button 
+                        <button
                             className={`btn btn-light ${styles.navButton}`}
                             onClick={nextStep}
                             disabled={currentStep === maxSteps}

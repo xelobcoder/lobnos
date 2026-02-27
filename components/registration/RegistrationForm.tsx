@@ -1,5 +1,6 @@
 'use client';
 import { FormProvider, useForm } from 'react-hook-form';
+import { useSearchParams } from 'next/navigation';
 import { RegistrationWrapper } from './RegistrationWrapper';
 import PatientImageUpload from './PersonalRegistrationForms/PatientImageUpload';
 import PersonalInfomationRegistration from './PersonalInfomationRegistration';
@@ -12,6 +13,9 @@ import { toast } from 'react-toastify';
 
 
 export default function RegistrationForm({ fields, personalInformation, addressingInformation, emmergencyInformation, patientid }) {
+    const searchParams = useSearchParams();
+    const isOnlyRegistration = searchParams.get('isOnlyRegistration') === 'true';
+
     const methods = useForm({
         defaultValues: {
             ...personalInformation,
@@ -23,8 +27,8 @@ export default function RegistrationForm({ fields, personalInformation, addressi
     return (
         <FormProvider {...methods}>
             <div>
-                <RegistrationWrapper>
-                    <PatientImageUpload  patientid={patientid}/>
+                <RegistrationWrapper isOnlyRegistration={isOnlyRegistration}>
+                    {!isOnlyRegistration && <PatientImageUpload patientid={patientid} />}
                     <PersonalInfomationRegistration
                         fields={fields.personalInformation}
                         toast={toast}
@@ -32,20 +36,24 @@ export default function RegistrationForm({ fields, personalInformation, addressi
                         patientid={patientid}
                         defaultData={personalInformation}
                     />
-                    <Addressing
-                        fields={fields.addressingInformation}
-                        toast={toast}
-                        patientid={patientid}
-                        defaultData={addressingInformation}
-                    />
-                    <EmmergencyContactInformation
-                        fields={fields.emmergencyInformation}
-                        toast={toast}
-                        patientid={patientid}
-                        defaultData={emmergencyInformation}
-                    />
-                    <PatientCredentials />
-                    <PatientSettings />
+                    {!isOnlyRegistration && (
+                        <>
+                            <Addressing
+                                fields={fields.addressingInformation}
+                                toast={toast}
+                                patientid={patientid}
+                                defaultData={addressingInformation}
+                            />
+                            <EmmergencyContactInformation
+                                fields={fields.emmergencyInformation}
+                                toast={toast}
+                                patientid={patientid}
+                                defaultData={emmergencyInformation}
+                            />
+                            <PatientCredentials />
+                            <PatientSettings />
+                        </>
+                    )}
                 </RegistrationWrapper>
                 <PrimeToast />
             </div>

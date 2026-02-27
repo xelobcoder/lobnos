@@ -44,13 +44,14 @@ export default function ListTable({ data, handleCollectSample, filter, selectedI
 
 			if (status === 'success') {
 				const firstItem = selectedItems[0];
-				window.open(
-					`/operations/laboratory/completed?patientid=${firstItem.patientid}&billingid=${firstItem.billingid}&ascensionid=${ascensionIds.join(',')}`,
+				const newWindow = window.open(
+					`/operations/laboratory/completed?patientid=${firstItem.patientid}&billingid=${firstItem.billingid}&isOpenSideBarShow=false&ascensionid=${ascensionIds.join(',')}`,
 					'_blank',
 					"width=1200,height=800,resizable,scrollbars"
 				);
 
 				setSelectedItems([]);
+				window.close()
 			} else {
 				alert(message || "Failed to bypass the complete flow.");
 			}
@@ -75,11 +76,12 @@ export default function ListTable({ data, handleCollectSample, filter, selectedI
 		const { status, message } = result;
 		if (status === 'success') {
 			const { date, billingid, patientid } = row;
-			window.open(
-				`/operations/laboratory/completed?patientid=${patientid}&billingid=${billingid}&start_date=${date}&end_date=${date}`,
+			let newWindow = window.open(
+				`/operations/laboratory/completed?patientid=${patientid}&billingid=${billingid}&start_date=${date}&end_date=${date}&isOpenSideBarShow=false`,
 				'_blank',
 				"width=1200,height=800,resizable,scrollbars"
 			);
+			window.close()
 		} else {
 			alert(message || "Failed to bypass the complete flow.");
 		}

@@ -12,7 +12,7 @@ const PersonalRegistrationForms = ({ fields, designation, setFormData, handleAge
 
     return (
         <div className="registration-form-container">
-            {fields.designation.visible && (
+            {fields?.designation?.visible && (
                 <div className="form-group mb-1 d-flex align-items-center mt-3">
                     <label className='pls-label required fs-6 me-3' style={{ minWidth: '120px', color: 'var(--bs-body-color)' }}>Designation</label>
                     <div className="flex-grow-1">
@@ -31,7 +31,7 @@ const PersonalRegistrationForms = ({ fields, designation, setFormData, handleAge
                 </div>
             )}
 
-            {fields.firstname.visible && (
+            {fields?.firstname?.visible && (
                 <div className="form-group mb-1 d-flex align-items-center mt-3">
                     <label className='pls-label required fs-6 me-3' style={{ minWidth: '120px', color: 'var(--bs-body-color)' }}>First Name</label>
                     <div className="flex-grow-1">
@@ -40,7 +40,7 @@ const PersonalRegistrationForms = ({ fields, designation, setFormData, handleAge
                 </div>
             )}
 
-            {fields.lastname.visible && (
+            {fields?.lastname?.visible && (
                 <div className="form-group mb-1 d-flex align-items-center mt-3">
                     <label className='pls-label required fs-6 me-3' style={{ minWidth: '120px', color: 'var(--bs-body-color)' }}>Last Name</label>
                     <div className="flex-grow-1">
@@ -49,7 +49,7 @@ const PersonalRegistrationForms = ({ fields, designation, setFormData, handleAge
                 </div>
             )}
 
-            {fields.middlename.visible && (
+            {fields?.middlename?.visible && (
                 <div className="form-group mb-1 d-flex align-items-center mt-3">
                     <label className='pls-label fs-6 me-3' style={{ minWidth: '120px', color: 'var(--bs-body-color)' }}>Middle Name</label>
                     <div className="flex-grow-1">
@@ -58,9 +58,9 @@ const PersonalRegistrationForms = ({ fields, designation, setFormData, handleAge
                 </div>
             )}
 
-            {fields.days.visible && fields.months.visible && fields.years.visible && (
+            {fields?.days?.visible && fields?.months?.visible && fields?.years?.visible && (
                 <div className="form-group mb-1 d-flex align-items-center mt-3">
-                    <label className={`pls-label ${fields.days.compulsory || fields.months.compulsory || fields.years.compulsory ? 'required' : ''} fs-6 me-3`} style={{ minWidth: '120px', color: 'var(--bs-body-color)' }}>Date Of Birth</label>
+                    <label className={`pls-label ${fields?.days?.compulsory || fields?.months?.compulsory || fields?.years?.compulsory ? 'required' : ''} fs-6 me-3`} style={{ minWidth: '120px', color: 'var(--bs-body-color)' }}>Date Of Birth</label>
                     <div className="flex-grow-1">
                         <div className='row '>
                             <div className="col-lg-2 col-md-4 col-sm-12">
@@ -84,12 +84,12 @@ const PersonalRegistrationForms = ({ fields, designation, setFormData, handleAge
                                     }}
                                 />
                             </div>
-                            {fields.age.visible && (
+                            {fields?.age?.visible && (
                                 <div className="col-lg-2 col-md-4 col-sm-12">
                                     <input type="number" className="form-control form-control-sm" style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }} min={0} max={150} placeholder="Age" value={data.age || ''} onChange={(ev) => { setFormData('age', ev.target.value) }} />
                                 </div>
                             )}
-                            {fields.ageType.visible && (
+                            {fields?.ageType?.visible && (
                                 <div className="col-lg-3 col-md-4 col-sm-12">
                                     <select
                                         className="form-control form-control-sm"
@@ -111,7 +111,7 @@ const PersonalRegistrationForms = ({ fields, designation, setFormData, handleAge
 
 
 
-            {fields.gender.visible && (
+            {fields?.gender?.visible && (
                 <div className="form-group mb-1 d-flex align-items-center mt-3" >
                     <label className='pls-label required fs-6 me-3' style={{ minWidth: '120px', color: 'var(--bs-body-color)' }}>Gender</label>
                     <div className="flex-grow-1 d-flex gap-4">

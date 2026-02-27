@@ -25,7 +25,14 @@ const CustomersActions = ({ item, callActivation, gotoPrevTrans, toast, router, 
                               <path d="M14 14.252V16.3414C13.3744 16.1203 12.7013 16 12 16C8.68629 16 6 18.6863 6 22H4C4 17.5817 7.58172 14 12 14C12.6906 14 13.3608 14.0875 14 14.252ZM12 13C8.685 13 6 10.315 6 7C6 3.685 8.685 1 12 1C15.315 1 18 3.685 18 7C18 10.315 15.315 13 12 13ZM12 11C14.21 11 16 9.21 16 7C16 4.79 14.21 3 12 3C9.79 3 8 4.79 8 7C8 9.21 9.79 11 12 11ZM18.5858 17L16.7574 15.1716L18.1716 13.7574L22.4142 18L18.1716 22.2426L16.7574 20.8284L18.5858 19H15V17H18.5858Z"></path>
                          </svg> Update Records
                     </Dropdown.Item>
-                    <Dropdown.Item className='text-capitalize' onClick={() => handleBilling(item)}>
+                    <Dropdown.Item className='text-capitalize' onClick={() => {
+                         if (item.patientid) {
+                              const encryptedPatientId = plsEncryption(item.patientid.toString());
+                              window.open(`/billing/patientid/${encryptedPatientId}/multi?isOpenSideBarShow=false`, '_blank', 'width=800,height=600,resizable=yes,scrollbars=yes');
+                         } else {
+                              toast.error('Patientid not included')
+                         }
+                    }}>
                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
                               <path d="M3.00488 3.00275H21.0049C21.5572 3.00275 22.0049 3.45046 22.0049 4.00275V20.0027C22.0049 20.555 21.5572 21.0027 21.0049 21.0027H3.00488C2.4526 21.0027 2.00488 20.555 2.00488 20.0027V4.00275C2.00488 3.45046 2.4526 3.00275 3.00488 3.00275ZM4.00488 5.00275V19.0027H20.0049V5.00275H4.00488ZM8.50488 14.0027H14.0049C14.281 14.0027 14.5049 13.7789 14.5049 13.5027C14.5049 13.2266 14.281 13.0027 14.0049 13.0027H10.0049C8.62417 13.0027 7.50488 11.8835 7.50488 10.5027C7.50488 9.12203 8.62417 8.00275 10.0049 8.00275H11.0049V6.00275H13.0049V8.00275H15.5049V10.0027H10.0049C9.72874 10.0027 9.50488 10.2266 9.50488 10.5027C9.50488 10.7789 9.72874 11.0027 10.0049 11.0027H14.0049C15.3856 11.0027 16.5049 12.122 16.5049 13.5027C16.5049 14.8835 15.3856 16.0027 14.0049 16.0027H13.0049V18.0027H11.0049V16.0027H8.50488V14.0027Z"></path>
                          </svg> Bill Client
@@ -55,7 +62,7 @@ const CustomersActions = ({ item, callActivation, gotoPrevTrans, toast, router, 
                               <path d="M20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4ZM20 18H4V8L12 13L20 8V18ZM12 11L4 6H20L12 11Z" />
                          </svg> Send Email
                     </Dropdown.Item>
-                      <Dropdown.Item className='text-capitalize' onClick={() => router.push(`/crm/customers/transactions/${plsEncryption(item.patientid.toString())}`)}>
+                    <Dropdown.Item className='text-capitalize' onClick={() => router.push(`/crm/customers/transactions/${plsEncryption(item.patientid.toString())}`)}>
                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
                               <path d="M20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4ZM20 18H4V8L12 13L20 8V18ZM12 11L4 6H20L12 11Z" />
                          </svg> Transactions

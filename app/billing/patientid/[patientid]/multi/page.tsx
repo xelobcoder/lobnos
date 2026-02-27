@@ -66,6 +66,7 @@ export default function BillingTypeSelection() {
 					if (paramsArr.length > 0) {
 						url += `?${paramsArr.join('&')}`;
 					}
+					url += url.includes('?') ? '&isOpenSideBarShow=false' : '?isOpenSideBarShow=false';
 					router.push(url);
 				}
 			} else {
