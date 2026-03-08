@@ -134,6 +134,11 @@ export default function ValidatedResultTable({ employeeid }) {
      const EmailSvg = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path fill="none" d="M0 0h24v24H0z"></path><path d="M3 3H21C21.5523 3 22 3.44772 22 4V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V4C2 3.44772 2.44772 3 3 3ZM20 7.23792L12.0718 14.338L4 7.21594V19H20V7.23792ZM4.51146 5L12.0619 11.662L19.501 5H4.51146Z"></path></svg>;
 
      const columns = [
+          {
+               Header: 'Full Name',
+               accessor: 'fullname',
+               Cell: ({ row }) => <div className='text-uppercase fw-bold'>{row.original.fullname}</div>
+          },
           { Header: 'BillingId/Ascension ID', accessor: 'ascensionid', Cell: ({ row }) => <div><div>Bill:{row.original.billingid}</div><br /><div>Ascension:{row.original.ascensionid}</div></div> },
           {
                Header: 'Ascension Date',
@@ -144,11 +149,7 @@ export default function ValidatedResultTable({ employeeid }) {
                Header: 'Patient ID',
                accessor: 'fullpatientid'
           },
-          {
-               Header: 'Full Name',
-               accessor: 'fullname',
-               Cell: ({ row }) => <div className='text-uppercase'>{row.original.fullname}</div>
-          },
+
           {
                Header: 'Age',
                accessor: 'age',
@@ -212,7 +213,7 @@ export default function ValidatedResultTable({ employeeid }) {
                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style={{ marginRight: '6px', verticalAlign: 'middle' }}><path fill="none" d="M0 0h24v24H0z"></path><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 14.93V19h-2v-2.07A8.001 8.001 0 0 1 4.07 13H2v-2h2.07A8.001 8.001 0 0 1 11 4.07V2h2v2.07A8.001 8.001 0 0 1 19.93 11H22v2h-2.07A8.001 8.001 0 0 1 13 19.93zM12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"></path></svg>
                                    View Result Tracking
                               </Dropdown.Item>
-                              <Dropdown.Item className='pls-label' onClick={() => PrepareResultEntryHeader({ id: row.original.testid, ...row.original }, false, branchid,false)}>
+                              <Dropdown.Item className='pls-label' onClick={() => PrepareResultEntryHeader({ id: row.original.testid, ...row.original }, false, branchid, false)}>
                                    {downloadSvg} Edit Patient Result
                               </Dropdown.Item>
                          </Dropdown.Menu>
@@ -226,16 +227,16 @@ export default function ValidatedResultTable({ employeeid }) {
      // Columns for grouped view
      const groupedColumns = [
           {
+               Header: 'Full Name',
+               accessor: 'fullname',
+               Cell: ({ row }) => <div className='text-uppercase fw-bold'>{row.original.fullname}</div>
+          },
+          {
                Header: 'Patient ID',
                accessor: 'fullpatientid',
                Cell: ({ row }) => (
                     <strong>{row.original.fullpatientid || row.original.patientid}</strong>
                )
-          },
-          {
-               Header: 'Full Name',
-               accessor: 'fullname',
-               Cell: ({ row }) => <div className='text-uppercase'>{row.original.fullname}</div>
           },
           {
                Header: 'Age',
@@ -345,7 +346,8 @@ export default function ValidatedResultTable({ employeeid }) {
                               patientname: queryParams.patientname,
                               patientid: queryParams.patientid,
                               billingid: queryParams.billingid,
-                              ascensionid: queryParams.ascensionid
+                              ascensionid: queryParams.ascensionid,
+                              testid: queryParams.testid,
                          }}
                          serverSideFiltering={true}
                          handleSeverSideProcessing={async (pagination) => {
@@ -364,6 +366,18 @@ export default function ValidatedResultTable({ employeeid }) {
                                    return { result: [], error: true };
                               }
                          }}
+                         rowStyling={{
+                              type: "custom",
+                              getRowStyle: (rowData) => {
+                                   const status = rowData?.paymentstatus?.toLowerCase();
+                                   if (status === "pending") {
+                                        return { backgroundColor: "#f8d7da", color: "#842029" };
+                                   } else if (status === "partial") {
+                                        return { backgroundColor: "#fff3cd", color: "#664d03" };
+                                   }
+                                   return {};
+                              }
+                         }}
                     />
                ) : (
                     <PrimeTable column={columns} data={collection}
@@ -376,10 +390,23 @@ export default function ValidatedResultTable({ employeeid }) {
                               patientid: queryParams.patientid,
                               billingid: queryParams.billingid,
                               ascensionid: queryParams.ascensionid,
-                              employeeid, ascension_stage: 'VALIDATED'
+                              employeeid, ascension_stage: 'VALIDATED',
+                              testid: queryParams.testid,
                          }}
                          serverSideFiltering={true}
                          handleSeverSideProcessing={handleServerSideProcessingAscensionData}
+                         rowStyling={{
+                              type: "custom",
+                              getRowStyle: (rowData) => {
+                                   const status = rowData?.paymentstatus?.toLowerCase();
+                                   if (status === "pending") {
+                                        return { backgroundColor: "#f8d7da", color: "#842029" };
+                                   } else if (status === "partial") {
+                                        return { backgroundColor: "#fff3cd", color: "#664d03" };
+                                   }
+                                   return {};
+                              }
+                         }}
                     />
                ))}
           </div>

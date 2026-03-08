@@ -9,6 +9,7 @@ import { RiInformationLine, RiCheckboxCircleLine, RiCalendarLine, RiRefreshLine 
 import { customFetch } from '../Auth/customFetch';
 import dayjs from 'dayjs';
 import { handleDateRangeSelection } from '../operations/Laboratory/AscensionFilteringComponent';
+import DateFilterReusable from '../operations/Laboratory/ResuableFilter/DateFilterReusable';
 
 
 
@@ -30,6 +31,7 @@ export default function SampleValidationComponent() {
 	});
 	const [selectedItems, setSelectedItems] = useState([]);
 	const [searchFilter, setSearchFilter] = useState('');
+	const [dateFilter, setDateFilter] = useState('');
 
 	useEffect(() => {
 		setQueryParams(prev => ({ ...prev, _dateFrom: urlStartDate, _dateEnd: urlEndDate }));
@@ -214,27 +216,19 @@ export default function SampleValidationComponent() {
 					</h6>
 				</div>
 				<div className="col-12 col-lg-2">
-					<select
-						className="form-select"
-						value={queryParams.status}
-						onChange={(ev) => {
-							handleDateRangeSelection(ev.target.value, setQueryParams);
+					<DateFilterReusable
+						value={dateFilter}
+						onChange={setDateFilter}
+						onDateRangeChange={(startDate, endDate) => {
+							setQueryParams(prev => ({
+								...prev,
+								_dateFrom: startDate,
+								_dateEnd: endDate
+							}));
 						}}
-					>
-						<option value="">Filter by</option>
-						<option value='Today'>Today</option>
-						<option value='Yesterday'>Yesterday</option>
-						<option value='This Week'>This Week</option>
-						<option value='last week'>Last Week</option>
-						<option value='This Month'>This Month</option>
-						<option value='This Year'>This Year</option>
-						<option value='last Year'>Last Year</option>
-						<option value='last 30 Days'>Last 30 Days</option>
-						<option value='this quarter'>This Quarter</option>
-						<option value='last 7 days from now'>Last 7 Days</option>
-						<option value='last month'>Last Month</option>
-						<option value='All'>All</option>
-					</select>
+						label="Filter by"
+						className="w-100"
+					/>
 				</div>
 				{/* Date Range Filter */}
 				<div className="d-flex align-items-center gap-3">
@@ -257,7 +251,7 @@ export default function SampleValidationComponent() {
 							style={{ maxWidth: '150px' }}
 							value={queryParams._dateEnd || ''}
 							onChange={(e) => { setQueryParams(prev => ({ ...prev, _dateEnd: e.target.value })); }}
-					
+
 						/>
 					</div>
 					<div className="d-flex align-items-center gap-2">
@@ -285,7 +279,7 @@ export default function SampleValidationComponent() {
 					<button
 						className="btn btn-primary btn-sm d-flex align-items-center gap-1"
 						onClick={handleLoadData}
-						disabled={loading || ( !queryParams._dateFrom && !queryParams._dateEnd && !searchFilter)}
+						disabled={loading || (!queryParams._dateFrom && !queryParams._dateEnd && !searchFilter)}
 					>
 						{loading ? (
 							<>

@@ -17,6 +17,7 @@ import {
 } from "recharts";
 import { currencyFormatter, customFetch } from "../../../../components/Auth/customFetch";
 import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
+import DateFilterReusable from "../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 
 const IconChart = () => <span style={{ fontSize: '1.2rem', color: COLOR_ACCENT, marginRight: '0.5rem' }}>📈</span>;
 const IconPie = () => <span style={{ fontSize: '1rem', verticalAlign: 'middle' }}>🥧</span>;
@@ -94,6 +95,8 @@ export default function TotalSalesByEmployee() {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [view, setView] = useState<"bar" | "pie">("bar");
+    const [dateFilter, setDateFilter] = useState<string>("");
+    const [queryParams, setQueryParams] = useState<{ _dateFrom: string; _dateEnd: string }>({ _dateFrom: "", _dateEnd: "" });
     const router = useRouter();
 
     const { user } = useApplicationSettings().applicationsettings || {};
@@ -359,14 +362,14 @@ export default function TotalSalesByEmployee() {
     };
 
     return (
-        <div className="card shadow-sm" style={{ borderRadius: '0.75rem', borderColor: COLOR_BORDER, backgroundColor: COLOR_TOOLTIP_BG }}>
+        <div className="card" style={{ borderRadius: '0.75rem', borderColor: COLOR_BORDER, backgroundColor: COLOR_TOOLTIP_BG }}>
             <div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderBottom: `1px solid ${COLOR_BORDER}` }}>
-                <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
-                    <h2 className="fs-6 fw-semibold text-body-emphasis mb-3 mb-lg-0 d-flex align-items-center">
+                <div className="d-flex flex-column flex-md-row align-items-md-center gap-2 d-flex justify-content-between">
+                    <h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
                         <IconChart /> Total Sales by Employee
                     </h2>
-                    <div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
-                        <div className="btn-group btn-group-sm" role="group">
+                    <div className="d-flex flex-row align-items-center gap-2 flex-nowrap" style={{ overflowX: 'auto', minWidth: 0 }}>
+                        <div className="btn-group btn-group-sm d-flex flex-nowrap" role="group">
                             <button
                                 type="button"
                                 className={`btn ${view === 'bar' ? 'btn-primary active' : 'btn-outline-secondary'}`}
@@ -384,18 +387,32 @@ export default function TotalSalesByEmployee() {
                                 <IconPie /> Pie
                             </button>
                         </div>
-                        <div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
-                            <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: COLOR_BORDER, paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
+                        <div className="input-group input-group-sm" style={{ flex: '0 1 auto', minWidth: '90px', maxWidth: '100px' }}>
+                            <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: COLOR_BORDER, paddingLeft: '0.25rem', paddingRight: '0.2rem' }}>
                                 <IconCalendar />
                             </span>
-                            <input id="startDateTSE" type="date" className="form-control shadow-none border-start-0" value={startDate} onChange={handleStartDateChange} aria-label="Start Date" style={{ fontSize: '0.875rem', borderColor: COLOR_BORDER, paddingLeft: '0.3rem' }} />
+                            <input id="startDateTSE" type="date" className="form-control shadow-none border-start-0" value={startDate} onChange={handleStartDateChange} aria-label="Start Date" style={{ fontSize: '0.75rem', borderColor: COLOR_BORDER, paddingLeft: '0.2rem', padding: '0.2rem 0.3rem' }} />
                         </div>
-                        <div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
-                            <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: COLOR_BORDER, paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
+                        <div className="input-group input-group-sm" style={{ flex: '0 1 auto', minWidth: '90px', maxWidth: '100px', marginLeft: 'auto' }}>
+                            <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: COLOR_BORDER, paddingLeft: '0.25rem', paddingRight: '0.2rem' }}>
                                 <IconCalendar />
                             </span>
-                            <input id="endDateTSE" type="date" className="form-control shadow-none border-start-0" value={endDate} onChange={handleEndDateChange} min={startDate} aria-label="End Date" style={{ fontSize: '0.875rem', borderColor: COLOR_BORDER, paddingLeft: '0.3rem' }} />
+                            <input id="endDateTSE" type="date" className="form-control shadow-none border-start-0" value={endDate} onChange={handleEndDateChange} min={startDate} aria-label="End Date" style={{ fontSize: '0.75rem', borderColor: COLOR_BORDER, paddingLeft: '0.2rem', padding: '0.2rem 0.3rem' }} />
                         </div>
+                        <DateFilterReusable
+                            value={dateFilter}
+                            onChange={setDateFilter}
+                            onDateRangeChange={(startDate, endDate) => {
+                                setQueryParams((prev) => ({
+                                    ...prev,
+                                    _dateFrom: startDate,
+                                    _dateEnd: endDate
+                                }));
+                                fetchData(startDate, endDate, employeeid);
+                            }}
+                            label="Filter by"
+                            className="w-auto"
+                        />
                         <button onClick={handleLoadData} className="btn btn-sm btn-primary d-flex align-items-center" type="button" aria-label="Load data" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem', backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT }}>
                             <IconRefresh /> Load
                         </button>

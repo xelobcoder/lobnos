@@ -76,7 +76,7 @@ const MDSLancetTemplate: React.FC = () => {
             });
         }
 
-      
+
 
 
         async function ensureImagesLoaded() {
@@ -189,6 +189,42 @@ const MDSLancetTemplate: React.FC = () => {
         }
     }, [loader, resultdata]);
 
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            // Ctrl+S: Download PDF
+            if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+                event.preventDefault();
+                if (pdfUrl) {
+                    const link = document.createElement('a');
+                    link.href = pdfUrl.url;
+                    link.download = pdfUrl.filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            }
+            // Ctrl+P: Print PDF
+            if ((event.ctrlKey || event.metaKey) && event.key === 'p') {
+                event.preventDefault();
+                if (pdfUrl) {
+                    if (ascensionid && employeeid) {
+                        trackReportPrint(ascensionid, employeeid);
+                    }
+                    window.print();
+                }
+            }
+            // Escape: Close PDF controls
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                setShowPdfControls(false);
+                setShowPdf(false);
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [pdfUrl, showPdfControls, showPdf, ascensionid, employeeid]);
+
     if (loader) return <h4>Loading .....</h4>;
     if (!resultdata?.records) return <h4></h4>;
 
@@ -255,8 +291,19 @@ const MDSLancetTemplate: React.FC = () => {
                         Back to Report
                     </button>
                 </div>
-                {showPdf && (
-                    <iframe src={pdfUrl.url} title="Lab Report PDF" style={{ width: '100vw', height: '100vh', border: 'none' }} />
+                {showPdf && pdfUrl && (
+                    <div style={{ width: '100vw', height: 'calc(100vh - 60px)', display: 'flex', flexDirection: 'column', backgroundColor: '#f0f0f0' }}>
+                        <iframe
+                            src={`${pdfUrl.url}#toolbar=1&navpanes=1&scrollbar=1`}
+                            title="PDF Viewer"
+                            style={{
+                                flex: 1,
+                                border: 'none',
+                                width: '100%',
+                                height: '100%'
+                            }}
+                        />
+                    </div>
                 )}
             </div>
         );

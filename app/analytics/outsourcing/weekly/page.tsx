@@ -55,6 +55,8 @@ export default function WeeklyOutsourcingAnalytics() {
      const [branches, setBranches] = useState<any[]>([]);
      const [branchesLoading, setBranchesLoading] = useState<boolean>(false);
      const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
+     const employeeid = useApplication()?.user?.employeeid;
+
 
      const years = Array.from({ length: 5 }, (_, i) => (new Date().getFullYear() - i).toString());
 
@@ -87,7 +89,7 @@ export default function WeeklyOutsourcingAnalytics() {
           setError(null);
           try {
                const branchParam = selectedBranch ? `&branchid=${selectedBranch}` : '';
-               const url = `financials/billing/summary?key=weeklyOutsourcedTrend${branchParam}&year=${selectedYear}`;
+               const url = `financials/billing/summary?key=weeklyOutsourcedTrend${branchParam}&year=${selectedYear}&&employeeid=${employeeid}`;
 
                const response = await customFetch(url);
                if (response && Array.isArray(response)) {

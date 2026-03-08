@@ -91,7 +91,7 @@ export default function SRootLayout({
 }) {
 
      return (
-          <html lang="en" className={`${inter.variable} ${roboto.variable} ${barlow.variable} ${rajdhani.variable} ${raleway.variable} ${robotoCondensed.variable} ${poppins.variable} ${montserrat.variable} ${openSans.variable} ${lato.variable} ${lexend.variable}`}>
+          <html lang="en" className={`${inter.variable} ${roboto.variable} ${barlow.variable} ${rajdhani.variable} ${raleway.variable} ${robotoCondensed.variable} ${poppins.variable} ${montserrat.variable} ${openSans.variable} ${lato.variable} ${lexend.variable}`} style={{ '--font-candara': 'Candara, sans-serif' } as React.CSSProperties}>
                <head></head>
                <body className={inter.className}>
                     <ThemeProvider>

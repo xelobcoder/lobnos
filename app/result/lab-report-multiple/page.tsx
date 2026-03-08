@@ -49,7 +49,7 @@ export default function LabReportPrintingMultiple() {
 					}
 
 
-					const {status, message} = data;
+					const { status, message } = data;
 					if (status === 'error') {
 						toast.error(message || 'An error occurred while fetching the report data.', { position: "top-right", autoClose: 5000 });
 						setLoader(false);
@@ -65,7 +65,7 @@ export default function LabReportPrintingMultiple() {
 						for (const test of data.test) {
 							if (Array.isArray(test.records)) {
 								test.records.sort((a, b) => {
-								
+
 									const isNumeric = (val) => {
 										if (val === null || val === undefined) return false;
 										if (typeof val === 'number') return val !== 0;
@@ -125,6 +125,7 @@ export default function LabReportPrintingMultiple() {
 	const headerRef = useRef<HTMLDivElement | null>(null);
 	const footerRef = useRef<HTMLDivElement | null>(null);
 	const verifiedRef = useRef<HTMLDivElement | null>(null);
+	const printedByRef = useRef<HTMLDivElement | null>(null);
 
 
 	useEffect(() => {
@@ -302,29 +303,59 @@ export default function LabReportPrintingMultiple() {
 					}
 
 
-					// Add Verified By and Disclaimer blocks before finishing PDF
+					// Add Printed By, Verified By and Disclaimer blocks before finishing PDF
 					const verifiedEl = verifiedRef.current;
 					const footerEl = footerRef.current;
-					if (verifiedEl && footerEl) {
+					const printedByEl = printedByRef.current;
+					if ((verifiedEl || printedByEl) && footerEl) {
 						pdf.setPage(pdf.getNumberOfPages());
 						try {
 							// Capture footer first to get its height
 							const footerCanvas = await html2canvas(footerEl as HTMLElement, { scale: 1.5, useCORS: true });
 							const footerImgData = footerCanvas.toDataURL('image/png');
 							const footerHeightMm = (footerCanvas.height * usableWidth) / footerCanvas.width;
-							// Capture Verified By block
-							const verifiedCanvas = await html2canvas(verifiedEl as HTMLElement, { scale: 1.5, useCORS: true });
-							const verifiedImgData = verifiedCanvas.toDataURL('image/png');
-							const verifiedHeightMm = (verifiedCanvas.height * usableWidth) / verifiedCanvas.width;
-							// Add Verified By block first
-							let yVerified = pdf.internal.pageSize.getHeight() - margin - verifiedHeightMm - footerHeightMm - 5;
-							pdf.addImage(verifiedImgData, 'PNG', margin, yVerified, usableWidth, verifiedHeightMm);
+
+							let totalBlockHeightMm = footerHeightMm;
+							let verifiedImgData: string | null = null;
+							let verifiedHeightMm = 0;
+							let printedByImgData: string | null = null;
+							let printedByHeightMm = 0;
+
+							// Capture Verified By block if it exists
+							if (verifiedEl) {
+								const verifiedCanvas = await html2canvas(verifiedEl as HTMLElement, { scale: 1.5, useCORS: true });
+								verifiedImgData = verifiedCanvas.toDataURL('image/png');
+								verifiedHeightMm = (verifiedCanvas.height * usableWidth) / verifiedCanvas.width;
+								totalBlockHeightMm += verifiedHeightMm;
+							}
+
+							// Capture Printed By block if it exists
+							if (printedByEl) {
+								const printedByCanvas = await html2canvas(printedByEl as HTMLElement, { scale: 1.5, useCORS: true });
+								printedByImgData = printedByCanvas.toDataURL('image/png');
+								printedByHeightMm = (printedByCanvas.height * usableWidth) / printedByCanvas.width;
+								totalBlockHeightMm += printedByHeightMm;
+							}
+
+							// Add blocks to PDF
+							let yPos = pdf.internal.pageSize.getHeight() - margin - totalBlockHeightMm;
+
+							if (printedByImgData) {
+								pdf.addImage(printedByImgData, 'PNG', margin, yPos, usableWidth, printedByHeightMm);
+								yPos += printedByHeightMm;
+							}
+
+							if (verifiedImgData) {
+								pdf.addImage(verifiedImgData, 'PNG', margin, yPos, usableWidth, verifiedHeightMm);
+								yPos += verifiedHeightMm;
+							}
+
 							// Then End of Report (footer)
 							let yFooter = pdf.internal.pageSize.getHeight() - margin - footerHeightMm;
 							pdf.addImage(footerImgData, 'PNG', margin, yFooter, usableWidth, footerHeightMm);
 						} catch (error) {
-							console.error('Error creating footer/verified canvases:', error);
-							// Continue without footer/verified blocks
+							console.error('Error creating footer/verified/printed by canvases:', error);
+							// Continue without blocks
 						}
 					}
 
@@ -451,6 +482,43 @@ export default function LabReportPrintingMultiple() {
 		return () => window.removeEventListener('beforeprint', handler);
 	}, [resultdata, selectedTests]);
 
+	// Add keyboard shortcut for PDF download (Ctrl+P)
+	useEffect(() => {
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if ((event.ctrlKey || event.metaKey) && event.key === 'p') {
+				event.preventDefault();
+				if (pdfUrl) {
+					// Create a temporary anchor element and trigger download
+					const link = document.createElement('a');
+					link.href = pdfUrl.url;
+					link.download = pdfUrl.filename;
+					document.body.appendChild(link);
+					link.click();
+					document.body.removeChild(link);
+
+					// Track report print
+					if (employeeid) {
+						const ids = getSelectedAscensionIds();
+						ids.forEach((id) => {
+							try {
+								trackReportPrint(String(id), employeeid);
+							} catch (err) {
+								console.error('Failed to track report print:', err);
+							}
+						});
+					}
+
+					toast.success('PDF downloaded successfully!', { position: "top-right", autoClose: 3000 });
+				} else {
+					toast.info('PDF is still being generated. Please wait...', { position: "top-right", autoClose: 3000 });
+				}
+			}
+		};
+
+		window.addEventListener('keydown', handleKeyDown);
+		return () => window.removeEventListener('keydown', handleKeyDown);
+	}, [pdfUrl, employeeid, selectedTests, resultdata]);
+
 	let pdfControls;
 	if (pdfUrl && showPdfControls) {
 		pdfControls = (
@@ -465,6 +533,7 @@ export default function LabReportPrintingMultiple() {
 				}}>
 					<a href={pdfUrl.url}
 						download={pdfUrl.filename}
+						title="Or press Ctrl+P to download PDF directly"
 						style={{
 							background: '#fff',
 							border: '1px solid #ccc',
@@ -586,6 +655,7 @@ export default function LabReportPrintingMultiple() {
 									className="no-print"
 									disabled={!pdfUrl || pdfLoading || !!pdfError}
 									onClick={() => setShowPdfControls(true)}
+									title="Press Ctrl+P to download PDF"
 									style={{
 										marginTop: 12,
 										padding: '6px 16px',
@@ -603,6 +673,12 @@ export default function LabReportPrintingMultiple() {
 								{pdfError && (
 									<span style={{ color: 'red', fontSize: 12, marginTop: 4 }}>{pdfError}</span>
 								)}
+								<div style={{ marginTop: 16, padding: 12, backgroundColor: '#1e3a5f', borderLeft: '4px solid #4169e1', borderRadius: 4 }}>
+									<p style={{ margin: '0 0 8px 0', fontSize: 12, fontWeight: 700, color: '#ffffff' }}>💡 Keyboard Shortcut:</p>
+									<ul style={{ margin: 0, paddingLeft: 20, fontSize: 11, color: '#e8eef5' }}>
+										<li style={{ marginBottom: 6 }}><kbd style={{ padding: '3px 7px', backgroundColor: '#ffffff', border: '1px solid #4169e1', borderRadius: 3, fontSize: 10, fontWeight: 600, color: '#000' }}>Ctrl+P</kbd> <span style={{ color: '#ffffff', marginLeft: 6 }}>Download PDF</span></li>
+									</ul>
+								</div>
 							</div>
 						</aside>
 						<div style={{ flex: 1, position: 'relative', minHeight: '100vh', backgroundColor: 'white !important' }}>
@@ -769,7 +845,7 @@ export default function LabReportPrintingMultiple() {
 									)}
 								</div>
 								{(resultSettings?.useGeneraralValidation == false && resultdata.generalValidation) && (
-									<div style={{ display: 'grid', gridTemplateColumns: "25% 50% 25%" }}>
+									<div ref={printedByRef} style={{ display: 'grid', gridTemplateColumns: "25% 50% 25%" }}>
 										<div className="text-uppercase">Printed By:</div>
 										<div className="mx-2">{resultdata.generalValidation.username}</div>
 										<div>{dayjs().format('YYYY-MM-DD HH:mm:ss')}</div>

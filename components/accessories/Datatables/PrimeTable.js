@@ -17,6 +17,7 @@ export default function PrimeTable({
   handleSeverSideProcessing,
   urlparams = {},
   theme = null,
+  rowStyling = null,
 }) {
   const [filteredData, setFilteredData] = useState(data);
   const [isLoading, setIsLoading] = useState(false);
@@ -63,11 +64,6 @@ export default function PrimeTable({
       setFilteredData(data);
     }
   }, [data]);
-
-  console.log({
-    len: data.length,
-    ...queryParams,
-  });
 
   let debounceTimeout;
   const debounce = (func, delay) => {
@@ -239,6 +235,57 @@ export default function PrimeTable({
     </tbody>
   );
 
+  const getRowStyling = (row, index) => {
+    let className = style.tableRow;
+    let inlineStyles = { transition: "background 0.2s" };
+
+    if (!rowStyling) {
+      // Default zebra striping
+      const zebraClass = index % 2 === 0 ? style.evenRow : style.oddRow;
+      className += ` ${zebraClass}`;
+    } else if (rowStyling.type === "zebra") {
+      // Explicit zebra striping
+      const zebraClass = index % 2 === 0 ? style.evenRow : style.oddRow;
+      className += ` ${zebraClass}`;
+    } else if (rowStyling.type === "status") {
+      // Status-based styling with inline styles
+      const statusField = rowStyling.statusField;
+      const statusValue = row.original?.[statusField];
+
+      // Color mapping with inline styles
+      const colorMap = {
+        paid: { backgroundColor: "#d1e7dd", color: "#0f5132" },
+        unpaid: { backgroundColor: "#f8d7da", color: "#842029" },
+      };
+
+      if (statusValue && colorMap[statusValue]) {
+        inlineStyles = { ...inlineStyles, ...colorMap[statusValue] };
+      }
+    } else if (rowStyling.type === "custom") {
+      // Custom function-based styling
+      if (typeof rowStyling.getRowClassName === "function") {
+        const customClass = rowStyling.getRowClassName(row.original, index);
+        if (customClass) className += ` ${customClass}`;
+      }
+      if (typeof rowStyling.getRowStyle === "function") {
+        const customStyle = rowStyling.getRowStyle(row.original, index);
+        if (customStyle) {
+          inlineStyles = { ...inlineStyles, ...customStyle };
+          // Add CSS class based on background color for CSS module styling
+          if (customStyle.backgroundColor === "#d1e7dd") {
+            className += ` ${style.rowPaid}`;
+          } else if (customStyle.backgroundColor === "#f8d7da") {
+            className += ` ${style.rowUnpaid}`;
+          }
+        }
+      }
+    } else if (rowStyling.type === "none") {
+      // No styling
+    }
+
+    return { className, inlineStyles };
+  };
+
   const RenderingTable = ({ getTableBodyProps }) => {
     if (isLoading) return <TableLoading span={column.length} />;
     else if (filteredData.length == 0) return <NoDataAvailable />;
@@ -247,19 +294,21 @@ export default function PrimeTable({
         <tbody {...getTableBodyProps()}>
           {rows.map((row, index) => {
             prepareRow(row);
-            const zebraClass = index % 2 === 0 ? style.evenRow : style.oddRow;
+            const { className, inlineStyles } = getRowStyling(row, index);
+
             return (
               <tr
                 {...row.getRowProps()}
                 key={index}
-                className={`${style.tableRow} ${zebraClass}`}
-                style={{ transition: "background 0.2s" }}
+                className={className}
+                style={inlineStyles}
               >
                 {row.cells.map((cell) => (
                   <td
                     {...cell.getCellProps()}
                     key={cell.column.id}
                     className={style.td}
+                    style={inlineStyles}
                   >
                     {cell.render("Cell")}
                   </td>

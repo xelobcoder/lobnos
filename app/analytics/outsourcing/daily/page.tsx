@@ -55,6 +55,7 @@ export default function DailyOutsourcingAnalytics() {
      const [branches, setBranches] = useState<any[]>([]);
      const [branchesLoading, setBranchesLoading] = useState<boolean>(false);
      const [useCustomDateRange, setUseCustomDateRange] = useState<boolean>(false);
+     const employeeid = useApplication()?.user?.employeeid;
      const [startDate, setStartDate] = useState<string>(() => {
           const date = new Date();
           date.setDate(date.getDate() - 30);
@@ -91,7 +92,7 @@ export default function DailyOutsourcingAnalytics() {
           setError(null);
           try {
                const branchParam = selectedBranch ? `&branchid=${selectedBranch}` : '';
-               const url = `financials/billing/summary?key=dailyOutsourcedAmountLast30Days${branchParam}`;
+               const url = `financials/billing/summary?key=dailyOutsourcedAmountLast30Days${branchParam}&&employeeid=${employeeid}`;
 
                const response = await customFetch(url);
                if (response && Array.isArray(response)) {

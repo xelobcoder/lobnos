@@ -757,7 +757,8 @@ export default function PurchaseOrdersPage() {
      };
 
      const handleReceiveOrder = (order: PurchaseOrder) => {
-          router.push(`/inventory/orders/receive-ordered-items/${order.id}`);
+          const url = `/inventory/orders/receive-ordered-items/${order.id}?isOpenSideBarShow=false`;
+          window.open(url, '_blank', 'resizeable=yes,scrollbars=yes,width=800,height=600');
      };
 
      const handleViewOrderDetails = async (order: PurchaseOrder) => {

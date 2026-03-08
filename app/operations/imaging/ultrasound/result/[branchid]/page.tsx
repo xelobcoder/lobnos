@@ -251,9 +251,11 @@ export default function EnterResultUltrasound() {
 	if (isLoading) return <Loader />;
 
 	return (
+		<div>
+		<PreviewPatientInformation patientid={patientid} />
 		<div className="d-flex justify-content-between">
+			
 			<div className="mt-2 col-2 px-2">
-				<PreviewPatientInformation patientid={patientid} />
 				<div className="list-group pls-color br-5 mt-3">
 					<div className="list-group-item fw-bold text-uppercase bg-body-secondary pls-color">Clinical History</div>
 					<div className="list-group-item">
@@ -376,6 +378,7 @@ value={selectedTemplate || ''}
 					</Tab>
 				</Tabs>
 			</div>
+		</div>
 		</div>
 	);
 }

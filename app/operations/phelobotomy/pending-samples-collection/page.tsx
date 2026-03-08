@@ -7,6 +7,7 @@ import { RiTestTubeLine, RiCalendarEventLine, RiSearchLine, RiRefreshLine, RiFil
 import { useSearchParams } from 'next/navigation';
 import dayjs from 'dayjs';
 import { handleDateRangeSelection } from '../../../../components/operations/Laboratory/AscensionFilteringComponent';
+import DateFilterReusable from '../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable';
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
 const COLOR_BORDER = 'var(--bs-border-color)';
@@ -25,6 +26,7 @@ export default function PagePhelobotomy() {
         _dateEnd: url_end_date || dayjs(new Date().toISOString()).format("YYYY-MM-DD")
     });
     const [showFilters, setShowFilters] = useState(false);
+    const [dateFilter, setDateFilter] = useState('');
 
     const handleLoad = async () => {
         setLoading(true);
@@ -55,30 +57,19 @@ export default function PagePhelobotomy() {
     return (
         <div className="container-fluid px-4 py-3">
             <div className="row g-3 align-items-end mb-4">
-                <div className="col-12 col-md-auto">
-                    <label htmlFor="filter-select" className="form-label fw-medium" style={{ color: COLOR_TEXT_MUTED }}>
-                        Filter by
-                    </label>
-                    <select
-                        id="filter-select"
-                        className="form-select"
-                        value={selectedDate._dateFrom}
-                        onChange={(ev) => { handleDateRangeSelection(ev.target.value, setSelectedDate); }}
-                    >
-                        <option value="">Filter by</option>
-                        <option value='Today'>Today</option>
-                        <option value='Yesterday'>Yesterday</option>
-                        <option value='This Week'>This Week</option>
-                        <option value='last week'>Last Week</option>
-                        <option value='This Month'>This Month</option>
-                        <option value='This Year'>This Year</option>
-                        <option value='last Year'>Last Year</option>
-                        <option value='last 30 Days'>Last 30 Days</option>
-                        <option value='this quarter'>This Quarter</option>
-                        <option value='last 7 days from now'>Last 7 Days</option>
-                        <option value='last month'>Last Month</option>
-                        <option value='All'>All</option>
-                    </select>
+                <div className="col-12 col-md-auto" style={{ minWidth: '200px' }}>
+                    <DateFilterReusable
+                        value={dateFilter}
+                        onChange={setDateFilter}
+                        onDateRangeChange={(startDate, endDate) => {
+                            setSelectedDate({
+                                _dateFrom: startDate,
+                                _dateEnd: endDate
+                            });
+                        }}
+                        label="Filter by"
+                        className="w-100"
+                    />
                 </div>
                 <div className="col-12 col-md-auto">
                     <label htmlFor="start-date" className="form-label fw-medium" style={{ color: COLOR_TEXT_MUTED }}>

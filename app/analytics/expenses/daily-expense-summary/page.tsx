@@ -6,6 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { RiBarChartBoxLine, RiLineChartLine, RiBubbleChartLine, RiLoader4Line, RiErrorWarningLine, RiInbox2Line, RiCalendarEventLine, RiRefreshLine } from "@remixicon/react";
 import { useState, useEffect } from "react";
 import dayjs from "dayjs";
+import DateFilterReusable from "../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
 const COLOR_BORDER = 'var(--bs-border-color)';
@@ -39,6 +40,7 @@ export default function DailyExpenseSummary() {
     const [selectedEntry, setSelectedEntry] = useState<any>(null);
     const [breakdownData, setBreakdownData] = useState<any[]>([]);
     const [breakdownLoading, setBreakdownLoading] = useState(false);
+    const [dateFilter, setDateFilter] = useState<string>('This Year');
 
     const { branchid, user } = useApplication();
 
@@ -46,6 +48,12 @@ export default function DailyExpenseSummary() {
         const currentYear = new Date().getFullYear();
         setStartDate(`${currentYear}-01-01`);
         setEndDate(`${currentYear}-12-31`);
+        setDateFilter('This Year');
+    };
+
+    const handleDateRangeChange = (newStartDate: string, newEndDate: string) => {
+        setStartDate(newStartDate);
+        setEndDate(newEndDate);
     };
 
     const fetchBreakdown = async (date: string) => {
@@ -228,6 +236,15 @@ export default function DailyExpenseSummary() {
                         Daily Expense Summary
                     </h2>
                     <div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
+                        <div style={{ minWidth: '240px', minHeight: '38px' }}>
+                            <DateFilterReusable
+                                value={dateFilter}
+                                onChange={setDateFilter}
+                                onDateRangeChange={handleDateRangeChange}
+                                label="Period"
+                                className="w-100"
+                            />
+                        </div>
                         <div className="btn-group btn-group-sm" role="group" aria-label="Chart type">
                             {viewButtons.map(btn => (
                                 <button

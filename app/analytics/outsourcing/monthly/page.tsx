@@ -55,7 +55,7 @@ export default function MonthlyOutsourcingAnalytics() {
      const [branches, setBranches] = useState<any[]>([]);
      const [branchesLoading, setBranchesLoading] = useState<boolean>(false);
      const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
-
+const employeeid = useApplication()?.user?.employeeid;
      const years = Array.from({ length: 5 }, (_, i) => (new Date().getFullYear() - i).toString());
 
      const fetchBranches = useCallback(async () => {
@@ -87,7 +87,7 @@ export default function MonthlyOutsourcingAnalytics() {
           setError(null);
           try {
                const branchParam = selectedBranch ? `&branchid=${selectedBranch}` : '';
-               const url = `financials/billing/summary?key=monthlyOutsourcedAmountLast12Months${branchParam}&startDate=${selectedYear}`;
+               const url = `financials/billing/summary?key=monthlyOutsourcedAmountLast12Months${branchParam}&startDate=${selectedYear}&&employeeid=${employeeid}`;
 
                const response = await customFetch(url);
                if (response && Array.isArray(response)) {

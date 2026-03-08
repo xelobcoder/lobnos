@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import dayjs from 'dayjs';
 import { customFetch } from '../../../Auth/customFetch';
+import DateFilterReusable from '../../../operations/Laboratory/ResuableFilter/DateFilterReusable';
 import {
 	LineChart,
 	Line,
@@ -32,6 +33,13 @@ const PatientRegistrationOverTime: React.FC = () => {
 	const [error, setError] = useState<string | null>(null);
 	const [startDate, setStartDate] = useState<string>(dayjs().subtract(30, 'days').format('YYYY-MM-DD'));
 	const [endDate, setEndDate] = useState<string>(dayjs().format('YYYY-MM-DD'));
+	const [dateFilter, setDateFilter] = useState<string>('last 30 Days');
+
+	const handleDateRangeChange = (newStartDate: string, newEndDate: string) => {
+		setStartDate(newStartDate);
+		setEndDate(newEndDate);
+		fetchRegistrationData(newStartDate, newEndDate);
+	};
 
 	const calculateTotals = (data: RegistrationData[]) => {
 		const totalPatients = data.reduce((sum, item) => sum + item.patient_count, 0);
@@ -112,101 +120,133 @@ const PatientRegistrationOverTime: React.FC = () => {
 
 	return (
 		<div className="container-fluid p-4">
-			<div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-4">
-				<h2 className="fs-6 fw-semibold text-body-emphasis mb-3 mb-lg-0 d-flex align-items-center">
-					<RiLineChartLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" />
-					Patient Registration Over Time
-				</h2>
-				<div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
-					<div className="d-flex align-items-center gap-2 mt-2 mt-sm-0 mx-4">
-						<div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
-							<span className="input-group-text bg-transparent border-end-0" style={{ borderColor: COLOR_BORDER }}>
-								<RiCalendarLine size={16} className="text-muted" />
-							</span>
-							<input
-								id="start-date-input"
-								type="date"
-								className="form-control shadow-none border-start-0"
-								value={startDate}
-								max={endDate}
-								onChange={e => setStartDate(e.target.value)}
-							/>
+			<div className="card" style={{ borderRadius: '0.75rem', borderColor: COLOR_BORDER }}>
+				<div className="card-header" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
+					<div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+						<h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
+							<RiLineChartLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" />
+							Patient Registration Over Time
+						</h2>
+						<div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
+							<div style={{ minWidth: '280px' }}>
+								<DateFilterReusable
+									value={dateFilter}
+									onChange={setDateFilter}
+									onDateRangeChange={handleDateRangeChange}
+									label="Period"
+									className="w-100"
+								/>
+							</div>						<div className="d-flex align-items-center gap-2">
+								<div
+									className="input-group input-group-sm"
+									style={{ flexBasis: '160px', minWidth: '150px' }}
+								>
+									<span
+										className="input-group-text bg-transparent border-end-0"
+										style={{ borderColor: COLOR_BORDER }}
+									>
+										<RiCalendarLine size={16} className="text-muted" />
+									</span>
+									<input
+										type="date"
+										className="form-control shadow-none border-start-0"
+										value={startDate}
+										onChange={(e) => handleDateRangeChange(e.target.value, endDate)}
+									/>
+								</div>
+								<div
+									className="input-group input-group-sm"
+									style={{ flexBasis: '160px', minWidth: '150px' }}
+								>
+									<span
+										className="input-group-text bg-transparent border-end-0"
+										style={{ borderColor: COLOR_BORDER }}
+									>
+										<RiCalendarLine size={16} className="text-muted" />
+									</span>
+									<input
+										type="date"
+										className="form-control shadow-none border-start-0"
+										value={endDate}
+										onChange={(e) => handleDateRangeChange(startDate, e.target.value)}
+										min={startDate}
+									/>
+								</div>
+								<button
+									onClick={() => {
+										setStartDate(dayjs().subtract(30, 'days').format('YYYY-MM-DD'));
+										setEndDate(dayjs().format('YYYY-MM-DD'));
+										setDateFilter('last 30 Days');
+										fetchRegistrationData(dayjs().subtract(30, 'days').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD'));
+									}}
+									className="btn btn-sm btn-outline-secondary d-flex align-items-center"
+								>
+									<RiLineChartLine size={16} className="me-1" /> Reset
+								</button>
+							</div>							<button
+								className="btn btn-sm btn-primary d-flex align-items-center justify-content-center"
+								style={{ backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT, fontSize: '0.875rem', padding: '0.375rem 0.875rem', minWidth: '90px' }}
+								onClick={() => window.print()}
+								title="Print this report"
+							>
+								<RiPrinterLine size={16} className="me-1" />
+								Print
+							</button>
 						</div>
-						<div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
-							<span className="input-group-text bg-transparent border-end-0" style={{ borderColor: COLOR_BORDER }}>
-								<RiCalendarLine size={16} className="text-muted" />
-							</span>
-							<input
-								id="end-date-input"
-								type="date"
-								className="form-control shadow-none border-start-0"
-								value={endDate}
-								min={startDate}
-								onChange={e => setEndDate(e.target.value)}
-							/>
-						</div>
-						<button
-							className="btn btn-sm btn-primary d-flex align-items-center"
-							style={{ backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT, fontSize: '0.875rem', padding: '0.25rem 0.75rem' }}
-							onClick={() => fetchRegistrationData(startDate, endDate)}
-							disabled={loading}
-						>
-							{loading ? <RiLoader4Line size={14} className="animate-spin me-1" /> : null}
-							{loading ? 'Loading...' : 'Apply'}
-						</button>
 					</div>
 				</div>
 			</div>
 
-			{/* Summary Cards */}
-			{!loading && !error && data.length > 0 && (
-				<div className="px-4 py-3 d-print-none">
-					<div className="row g-3 mb-4">
-						<div className="col-md-3">
-							<div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-								<div className="d-flex align-items-center mb-2">
-									<RiUserLine size={20} className="me-2 text-primary" />
-									<span className="fw-medium text-muted small">Total Patients</span>
+			<div className="container-fluid p-0 mt-4">
+				{!loading && !error && data.length > 0 && (
+					<div className="px-0 py-3 d-print-none">
+						<div className="row g-3 mb-4">
+							<div className="col-md-3">
+								<div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+									<div className="d-flex align-items-center mb-2">
+										<RiUserLine size={20} className="me-2 text-primary" />
+										<span className="fw-medium text-muted small">Total Patients</span>
+									</div>
+									<div className="fs-4 fw-bold text-primary">{totals.totalPatients.toLocaleString()}</div>
+									<div className="small text-muted">Registered patients</div>
 								</div>
-								<div className="fs-4 fw-bold text-primary">{totals.totalPatients.toLocaleString()}</div>
-								<div className="small text-muted">Registered patients</div>
 							</div>
-						</div>
-						<div className="col-md-3">
-							<div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-								<div className="d-flex align-items-center mb-2">
-									<RiCalendarLine size={20} className="me-2 text-info" />
-									<span className="fw-medium text-muted small">Total Days</span>
+							<div className="col-md-3">
+								<div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+									<div className="d-flex align-items-center mb-2">
+										<RiCalendarLine size={20} className="me-2 text-info" />
+										<span className="fw-medium text-muted small">Total Days</span>
+									</div>
+									<div className="fs-4 fw-bold text-info">{totals.totalDays}</div>
+									<div className="small text-muted">Period covered</div>
 								</div>
-								<div className="fs-4 fw-bold text-info">{totals.totalDays}</div>
-								<div className="small text-muted">Period covered</div>
 							</div>
-						</div>
-						<div className="col-md-3">
-							<div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-								<div className="d-flex align-items-center mb-2">
-									<RiBarChartLine size={20} className="me-2 text-success" />
-									<span className="fw-medium text-muted small">Avg per Day</span>
+							<div className="col-md-3">
+								<div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+									<div className="d-flex align-items-center mb-2">
+										<RiBarChartLine size={20} className="me-2 text-success" />
+										<span className="fw-medium text-muted small">Avg per Day</span>
+									</div>
+									<div className="fs-4 fw-bold text-success">{totals.avgPatientsPerDay}</div>
+									<div className="small text-muted">Daily average</div>
 								</div>
-								<div className="fs-4 fw-bold text-success">{totals.avgPatientsPerDay}</div>
-								<div className="small text-muted">Daily average</div>
 							</div>
-						</div>
-						<div className="col-md-3">
-							<div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-								<div className="d-flex align-items-center mb-2">
-									<RiTimeLine size={20} className="me-2 text-warning" />
-									<span className="fw-medium text-muted small">Max per Day</span>
+							<div className="col-md-3">
+								<div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+									<div className="d-flex align-items-center mb-2">
+										<RiTimeLine size={20} className="me-2 text-warning" />
+										<span className="fw-medium text-muted small">Max per Day</span>
+									</div>
+									<div className="fs-4 fw-bold text-warning">{totals.maxPatientsInDay}</div>
+									<div className="small text-muted">Peak registration</div>
 								</div>
-								<div className="fs-4 fw-bold text-warning">{totals.maxPatientsInDay}</div>
-								<div className="small text-muted">Peak registration</div>
 							</div>
 						</div>
 					</div>
-				</div>
-			)}
+				)}
+			</div>
 
-			<div className="px-4 py-3">
+			<div className="px-0 py-3">
 				{loading ? (
 					<div className="d-flex flex-column justify-content-center align-items-center" style={{ minHeight: '350px' }}>
 						<RiLoader4Line size={48} className="animate-spin mb-3" style={{ color: COLOR_ACCENT }} />
@@ -356,6 +396,7 @@ const PatientRegistrationOverTime: React.FC = () => {
 				}
 			`}</style>
 		</div>
+
 	);
 };
 

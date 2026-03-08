@@ -350,24 +350,9 @@ const InvoiceList = ({ branchid, employeeid }) => {
           {
                Header: 'Payment Status',
                accessor: 'final_payment_status',
-               Cell: ({ cell: { value }, row }) => {
-                    let status = { label: value, color: 'secondary' };
-                    if (value === 'Paid') status = { label: 'Paid', color: 'success' };
-                    else if (value === 'Reversed') status = { label: 'Reversed', color: 'danger' };
-                    else if (value === 'Pending') status = { label: 'Pending', color: 'warning' };
-
-                    return (
-                         <span
-                              className={`fw-semibold border rounded px-2 py-1 pls-${status.color}-bg pls-${status.color}-color`}
-                              style={{
-                                   fontSize: '0.75rem',
-                                   borderColor: '#dee2e6'
-                              }}
-                         >
-                              {status.label}
-                         </span>
-                    );
-               }
+               Cell: ({ cell: { value }, row }) => (
+                    <span className="text-capitalize">{value}</span>
+               )
           },
           {
                Header: 'Invoice Date',
@@ -1023,6 +1008,16 @@ const InvoiceList = ({ branchid, employeeid }) => {
                               filtering={true}
                               serverSideFiltering={true}
                               handleSeverSideProcessing={handleServerSideProcessingForInvoices}
+                              rowStyling={{
+                                   type: "custom",
+                                   getRowStyle: (rowData) => {
+                                        const status = rowData?.final_payment_status?.toLowerCase();
+                                        if (status === "reversed") {
+                                             return { backgroundColor: "#f8d7da", color: "#842029", padding: '20px' };
+                                        }
+                                        return {};
+                                   }
+                              }}
                          />
                     )}
                </div>

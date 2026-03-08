@@ -345,6 +345,16 @@ export default function ValidationAscensionTable({ employeeid }) {
 						}
 					}}
 					urlparams={{ ...urlparams, grouped: "grouped" }}
+					rowStyling={{
+						type: "custom",
+						getRowStyle: (rowData) => {
+							const status = rowData?.paymentstatus?.toLowerCase();
+							if (status === "pending") {
+								return { backgroundColor: "#f8d7da", color: "#842029" };
+							}
+							return {};
+						}
+					}}
 
 				/>
 			) : (
@@ -354,6 +364,16 @@ export default function ValidationAscensionTable({ employeeid }) {
 					urlparams={urlparams}
 					serverSideFiltering={true}
 					handleSeverSideProcessing={handleServerSideProcessingAscensionData}
+					rowStyling={{
+						type: "custom",
+						getRowStyle: (rowData) => {
+							const status = rowData?.paymentstatus?.toLowerCase();
+							if (status === "pending") {
+								return { backgroundColor: "#f8d7da", color: "#842029" };
+							}
+							return {};
+						}
+					}}
 				/>
 			)}
 			{isValidationModalOpened && (

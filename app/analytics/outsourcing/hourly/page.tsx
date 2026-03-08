@@ -22,6 +22,7 @@ import {
 } from "recharts";
 import { currencyFormatter, customFetch } from "../../../../components/Auth/customFetch";
 import { formatDate } from "../../../../components/operations/Laboratory/Lib";
+import { useApplication } from "../../../../components/Auth/useApplicationContext";
 
 const IconChart = () => <span style={{ fontSize: '1.2rem', color: "#3B82F6", marginRight: '0.5rem' }}>🚀</span>;
 const IconPie = () => <span style={{ fontSize: '1rem', verticalAlign: 'middle' }}>🥧</span>;
@@ -56,7 +57,7 @@ export default function HourlyOutsourcingAnalytics() {
      const [branchesLoading, setBranchesLoading] = useState<boolean>(false);
      const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
      const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
-
+     const employeeid = useApplication()?.user?.employeeid;
      const years = Array.from({ length: 5 }, (_, i) => (new Date().getFullYear() - i).toString());
 
      const fetchBranches = useCallback(async () => {
@@ -88,7 +89,7 @@ export default function HourlyOutsourcingAnalytics() {
           setError(null);
           try {
                const branchParam = selectedBranch ? `&branchid=${selectedBranch}` : '';
-               const url = `financials/billing/summary?key=hourlyOutsourcingPattern${branchParam}&targetDate=${selectedDate}`;
+               const url = `financials/billing/summary?key=hourlyOutsourcingPattern${branchParam}&targetDate=${selectedDate}&&employeeid=${employeeid}`;
 
                const response = await customFetch(url);
                if (response && Array.isArray(response)) {

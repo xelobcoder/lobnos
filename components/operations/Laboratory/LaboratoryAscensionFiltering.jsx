@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import DatePickerRange from "../../../components/accessories/DatePickerRange";
 import { useLaboratoryContext } from "./LaboratoryStagesContext";
 import { handleDateRangeSelection } from "./AscensionFilteringComponent";
+import DateFilterReusable from "../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 import { date } from "zod";
 
 export default function LaboratoryAscensionFiltering({ ascension_stage, employeeid, branchid }) {
@@ -37,6 +38,8 @@ export default function LaboratoryAscensionFiltering({ ascension_stage, employee
               section: '', value: ''
        });
 
+       const [dateFilter, setDateFilter] = useState('');
+
 
        const handleSettingCategory = (section, value) => {
               setCategory({ section, value });
@@ -65,6 +68,7 @@ export default function LaboratoryAscensionFiltering({ ascension_stage, employee
                                           [category.section]: category.value,
                                           testid: event.data.payload.id
                                    })
+                                   setQueryParams((prev) => ({ ...prev, testid: event.data.payload.id }));
                                    handleSettingCategory("none", "");
                             }
                      }
@@ -73,6 +77,24 @@ export default function LaboratoryAscensionFiltering({ ascension_stage, employee
               window.addEventListener("message", listener)
               return () => window.removeEventListener("message", listener)
        }, [])
+
+       useEffect(() => {
+              const handleKeyDown = (event) => {
+                     if (event.key === 'Enter') {
+                            event.preventDefault();
+                            _getAscensionData(ascension_stage, employeeid, branchid, {
+                                   ascensionid: queryParams.ascensionid,
+                                   patientid: queryParams.patientid,
+                                   billingid: queryParams.billingid,
+                                   [category.section]: category.value,
+                                   testid: queryParams.testid
+                            });
+                     }
+              };
+
+              window.addEventListener("keydown", handleKeyDown);
+              return () => window.removeEventListener("keydown", handleKeyDown);
+       }, [ascension_stage, employeeid, branchid, queryParams, category]);
 
        const handleFilterByLabTest = () => {
               const popup = window.open(
@@ -123,27 +145,19 @@ export default function LaboratoryAscensionFiltering({ ascension_stage, employee
                                           placeholder="Enter Value to Filter" />
                             </div>
                             <div className="col-12 col-lg-2">
-                                   <select
-                                          className="form-select"
-                                          value={queryParams.status}
-                                          onChange={(ev) => {
-                                                 handleDateRangeSelection(ev.target.value, setQueryParams);
+                                   <DateFilterReusable
+                                          value={dateFilter}
+                                          onChange={setDateFilter}
+                                          onDateRangeChange={(startDate, endDate) => {
+                                                 setQueryParams((prev) => ({
+                                                        ...prev,
+                                                        _dateFrom: startDate,
+                                                        _dateEnd: endDate
+                                                 }));
                                           }}
-                                   >
-                                          <option value="">Filter by</option>
-                                          <option value='Today'>Today</option>
-                                          <option value='Yesterday'>Yesterday</option>
-                                          <option value='This Week'>This Week</option>
-                                          <option value='last week'>Last Week</option>
-                                          <option value='This Month'>This Month</option>
-                                          <option value='This Year'>This Year</option>
-                                          <option value='last Year'>Last Year</option>
-                                          <option value='last 30 Days'>Last 30 Days</option>
-                                          <option value='this quarter'>This Quarter</option>
-                                          <option value='last 7 days from now'>Last 7 Days</option>
-                                          <option value='last month'>Last Month</option>
-                                          <option value='All'>All</option>
-                                   </select>
+                                          label="Filter by"
+                                          className="w-100"
+                                   />
                             </div>
                             <div className="col-12 col-lg-2">
                                    <DatePickerRange
@@ -177,10 +191,16 @@ export default function LaboratoryAscensionFiltering({ ascension_stage, employee
                                                  testid: queryParams.testid
                                           })}
                                           className="btn btn-primary btn-sm w-100 text-uppercase"
+                                          title="Press Enter key anywhere on the page to load data"
                                    >
                                           Load Data
                                    </button>
                             </div>
+                     </div>
+                     <div className="mt-2">
+                            <small className="text-muted">
+                                   <span className="badge badge-info">💡 Tip:</span> Press <kbd>Enter</kbd> key anywhere on this page to load data with your filters
+                            </small>
                      </div>
               </div>
        );

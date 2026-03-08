@@ -1,13 +1,18 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, ReactElement } from 'react';
 import styles from './RegistrationWrapper.module.css';
 import { RiArrowLeftSLine, RiArrowRightSLine } from '@remixicon/react';
 
-export const RegistrationWrapper = ({ children, isOnlyRegistration = false }) => {
+interface RegistrationWrapperProps {
+    isOnlyRegistration?: boolean;
+    formSteps?: ReactElement[];
+}
+
+export const RegistrationWrapper = ({ isOnlyRegistration = false, formSteps = [] }: RegistrationWrapperProps) => {
     const allSteps = ['Photo', 'Personal Info', 'Address', 'Emergency Contact', 'Credentials', 'Settings'];
     const steps = isOnlyRegistration ? ['Personal Info'] : allSteps;
     const [currentStep, setCurrentStep] = useState(0);
-    const maxSteps = React.Children.count(children) - 1;
+    const maxSteps = formSteps.length - 1;
 
     const nextStep = () => {
         if (currentStep < maxSteps) {
@@ -68,7 +73,7 @@ export const RegistrationWrapper = ({ children, isOnlyRegistration = false }) =>
             </div>
 
             <div className={`${styles.registrationContent} px-3 px-md-5`}>
-                {React.Children.toArray(children)[currentStep]}
+                {formSteps[currentStep]}
             </div>
         </>
     );

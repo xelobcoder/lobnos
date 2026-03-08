@@ -25,30 +25,49 @@ export default function AscentionCompletedTable({ employeeid, branchid }) {
 	const appsettings = applicationSettings?.settings || {};
 	const allowResultEnteringUpaid = appsettings?.allowResultEnteringUnpaid && allowResultEnteringUpaid == 1 ? true : false;
 
+	const calculateProcessingTime = (startDate, endDate) => {
+		if (!startDate || !endDate) return 'N/A';
+		const start = new Date(startDate);
+		const end = new Date(endDate);
+		const diffMs = end - start;
+
+		if (diffMs < 0) return 'N/A';
+
+		const diffSeconds = Math.floor(diffMs / 1000);
+		const diffMinutes = Math.floor(diffSeconds / 60);
+		const diffHours = Math.floor(diffMinutes / 60);
+		const diffDays = Math.floor(diffHours / 24);
+
+		if (diffDays > 0) {
+			return `${diffDays}d ${diffHours % 24}h`;
+		} else if (diffHours > 0) {
+			return `${diffHours}h ${diffMinutes % 60}m`;
+		} else if (diffMinutes > 0) {
+			return `${diffMinutes}m ${diffSeconds % 60}s`;
+		} else {
+			return `${diffSeconds}s`;
+		}
+	};
+
 	const columns = [
-		{
-			Header: 'Ascension Date(ID)',
-			accessor: 'ascension_date',
-			Cell: ({ value, row }) => <>{dayjs(value).format('DD-MM-YYYY hh:mm:ss')} ({row.original.ascensionid})</>,
-			width: 70
-		},
 		{
 			Header: 'Name',
 			accessor: 'fullname',
 			Cell: ({ row }) => (
 				<div className="text-uppercase fw-bold">
-					{row.original.fullname} <br />
+					{row.original.fullname}
+					<br />
+					<span className="text-muted small">{row.original.age}</span>
 				</div>
 			),
 		},
-		{ Header: 'Age', accessor: 'age', width: 50 },
 		{
-			Header: 'Patient ID & Bill ID',
-			accessor: 'patientid',
+			Header: 'Patient ID / Billing ID',
+			accessor: 'fullpatientid',
 			Cell: ({ row }) => (
 				<div>
-					{row.original.fullpatientid} <br />
-					{row.original.billingid}
+					<div>{row.original.fullpatientid || row.original.patientid}</div>
+					<div>{row.original.billingid}</div>
 				</div>
 			),
 			width: 100
@@ -56,6 +75,7 @@ export default function AscentionCompletedTable({ employeeid, branchid }) {
 		{
 			Header: 'Test Name',
 			accessor: 'name',
+			Cell: ({ row }) => <span>{row.original.name}</span>,
 		},
 		{
 			Header: 'Timing',
@@ -63,10 +83,16 @@ export default function AscentionCompletedTable({ employeeid, branchid }) {
 			Cell: ({ row }) => fnTiming(row.original),
 		},
 		{
-			Header: 'Payment status',
+			Header: 'Processing Time',
+			accessor: 'processingTime',
+			Cell: ({ row }) => calculateProcessingTime(row.original.processingStartDate, row.original.processingEndDate),
+			width: 100
+		},
+		{
+			Header: 'Payment Status',
 			accessor: 'paymentstatus',
 			Cell: ({ row }) => (
-				<span className={`text-capitalize ${row.original.paymentstatus === 'paid' ? 'bg-success text-white' : 'bg-danger text-white'} p-4`}>
+				<span className="text-capitalize">
 					{row.original.paymentstatus || 'N/A'}
 				</span>
 			)
@@ -80,7 +106,7 @@ export default function AscentionCompletedTable({ employeeid, branchid }) {
 					size="sm"
 					disabled={!allowResultEnteringUpaid && row.original.paymentstatus !== 'paid'}
 					className="p-1"
-					onClick={() => PrepareResultEntryHeader(row.original, false, branchid)}
+					onClick={() => PrepareResultEntryHeader(row.original, false, branchid,false)}
 				>
 					<RiCheckLine size={16} className="me-2" /> Enter result
 				</Button>
@@ -100,6 +126,7 @@ export default function AscentionCompletedTable({ employeeid, branchid }) {
 					fullname: item.fullname,
 					age: item.age,
 					billingid: item.billingid,
+					paymentstatus: item.paymentstatus, // Include payment status for row styling
 					tests: []
 				};
 			}
@@ -112,18 +139,19 @@ export default function AscentionCompletedTable({ employeeid, branchid }) {
 	// Grouped columns
 	const groupedColumns = [
 		{
-			Header: 'Patient ID',
-			accessor: 'fullpatientid',
-			Cell: ({ row }) => <strong>{row.original.fullpatientid || row.original.patientid}</strong>
-		},
-		{
 			Header: 'Full Name',
 			accessor: 'fullname',
 			Cell: ({ row }) => <div className='text-uppercase'><strong>{row.original.fullname}</strong><br />{row.original.age}</div>
 		},
 		{
-			Header: 'Billing ID',
-			accessor: 'billingid'
+			Header: 'Patient ID / Billing ID',
+			accessor: 'fullpatientid',
+			Cell: ({ row }) => (
+				<div>
+					<div><strong>{row.original.fullpatientid || row.original.patientid}</strong></div>
+					<div>{row.original.billingid}</div>
+				</div>
+			)
 		},
 		{
 			Header: 'Tests',
@@ -248,6 +276,18 @@ export default function AscentionCompletedTable({ employeeid, branchid }) {
 							return { result: [], error: true };
 						}
 					}}
+					rowStyling={{
+						type: "custom",
+						getRowStyle: (rowData) => {
+							const status = rowData?.paymentstatus?.toLowerCase();
+							if (status === "pending") {
+								return { backgroundColor: "#f8d7da", color: "#842029" };
+							} else if (status === "partial") {
+								return { backgroundColor: "#fff3cd", color: "#664d03" };
+							}
+							return {};
+						}
+					}}
 					serverSideFiltering={true}
 				/>
 			) : (
@@ -266,6 +306,18 @@ export default function AscentionCompletedTable({ employeeid, branchid }) {
 						ascensionid: queryParams.ascensionid
 					}}
 					handleSeverSideProcessing={handleServerSideProcessingAscensionData}
+					rowStyling={{
+						type: "custom",
+						getRowStyle: (rowData) => {
+							const status = rowData?.paymentstatus?.toLowerCase();
+							if (status === "pending") {
+								return { backgroundColor: "#f8d7da", color: "#842029" };
+							} else if (status === "partial") {
+								return { backgroundColor: "#fff3cd", color: "#664d03" };
+							}
+							return {};
+						}
+					}}
 					serverSideFiltering={true} />
 			)}
 

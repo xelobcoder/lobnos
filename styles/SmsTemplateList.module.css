@@ -15,7 +15,7 @@
     width: 100%;
     min-width: min-content;
     position: relative;
-   min-height: 70vh;
+    min-height: 70vh;
     border-radius: 2px;
     background-color: #fff;
     margin-top: 20px;
@@ -354,4 +354,17 @@
 :global([data-bs-theme="dark"]) .noDataIcon circle[fill="#F3F7FA"] {
     fill: #2c3034;
     stroke: #495057;
+}
+
+/* Row styling overrides */
+.rowPaid,
+.rowPaid td {
+    background-color: #d1e7dd !important;
+    color: #0f5132 !important;
+}
+
+.rowUnpaid,
+.rowUnpaid td {
+    background-color: #f8d7da !important;
+    color: #842029 !important;
 }

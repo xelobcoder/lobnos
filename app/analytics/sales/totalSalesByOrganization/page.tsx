@@ -17,6 +17,7 @@ import {
     Legend,
 } from "recharts";
 import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
+import DateFilterReusable from "../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 
 const IconChart = () => <span style={{ fontSize: '1.2rem', color: COLOR_ACCENT, marginRight: '0.5rem' }}>🏢</span>;
 const IconLoader = () => <div className="spinner-border" style={{ width: '2.5rem', height: '2.5rem', color: COLOR_ACCENT }} role="status"><span className="visually-hidden">Loading...</span></div>;
@@ -71,6 +72,8 @@ export default function TotalSalesByOrganization() {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [view, setView] = useState<"bar" | "line" | "area">("bar");
+    const [dateFilter, setDateFilter] = useState<string>("");
+    const [queryParams, setQueryParams] = useState<{ _dateFrom: string; _dateEnd: string }>({ _dateFrom: "", _dateEnd: "" });
 
     const { user } = useApplicationSettings().applicationsettings || {};
     const employeeid = user?.employeeid;
@@ -443,18 +446,18 @@ export default function TotalSalesByOrganization() {
 
     return (
         <div className="card shadow-sm" style={{ borderRadius: '0.75rem', borderColor: COLOR_BORDER, backgroundColor: COLOR_TOOLTIP_BG }}>
-            <div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderBottom: `1px solid ${COLOR_BORDER}` }}>
-                <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
-                    <h2 className="fs-6 fw-semibold text-body-emphasis mb-3 mb-lg-0 d-flex align-items-center">
+            <div className="card-header  px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderBottom: `1px solid ${COLOR_BORDER}` }}>
+                <div className=" d-flex justify-content-between  flex-md-row align-items-md-center gap-2">
+                    <h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
                         <IconChart /> Total Sales by Organization
                     </h2>
-                    <div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
-                        <div className="btn-group btn-group-sm" role="group" aria-label="Chart type">
+                    <div className="d-flex flex-row align-items-center gap-2 flex-nowrap" style={{ overflowX: 'auto', minWidth: 0 }}>
+                        <div className="btn-group btn-group-sm d-flex flex-nowrap" role="group" aria-label="Chart type">
                             <button
                                 type="button"
                                 className={`btn ${view === 'bar' ? 'btn-primary active' : 'btn-outline-secondary'}`}
                                 onClick={() => handleViewToggle('bar')}
-                                style={view === 'bar' ? { backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT } : {}}
+                                style={view === 'bar' ? { backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT, whiteSpace: 'nowrap' } : { whiteSpace: 'nowrap' }}
                             >
                                 <IconBar /> Bar
                             </button>
@@ -462,7 +465,7 @@ export default function TotalSalesByOrganization() {
                                 type="button"
                                 className={`btn ${view === 'line' ? 'btn-primary active' : 'btn-outline-secondary'}`}
                                 onClick={() => handleViewToggle('line')}
-                                style={view === 'line' ? { backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT } : {}}
+                                style={view === 'line' ? { backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT, whiteSpace: 'nowrap' } : { whiteSpace: 'nowrap' }}
                             >
                                 <IconLine /> Line
                             </button>
@@ -470,7 +473,7 @@ export default function TotalSalesByOrganization() {
                                 type="button"
                                 className={`btn ${view === 'area' ? 'btn-primary active' : 'btn-outline-secondary'}`}
                                 onClick={() => handleViewToggle('area')}
-                                style={view === 'area' ? { backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT } : {}}
+                                style={view === 'area' ? { backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT, whiteSpace: 'nowrap' } : { whiteSpace: 'nowrap' }}
                             >
                                 <IconArea /> Area
                             </button>
@@ -487,6 +490,20 @@ export default function TotalSalesByOrganization() {
                             </span>
                             <input id="endDateTSO" type="date" className="form-control shadow-none border-start-0" value={endDate} onChange={handleEndDateChange} min={startDate} aria-label="End Date" style={{ fontSize: '0.875rem', borderColor: COLOR_BORDER, paddingLeft: '0.3rem' }} />
                         </div>
+                        <DateFilterReusable
+                            value={dateFilter}
+                            onChange={setDateFilter}
+                            onDateRangeChange={(startDate, endDate) => {
+                                setQueryParams((prev) => ({
+                                    ...prev,
+                                    _dateFrom: startDate,
+                                    _dateEnd: endDate
+                                }));
+                                fetchData(startDate, endDate, employeeid);
+                            }}
+                            label="Filter by"
+                            className="w-auto"
+                        />
                         <button onClick={handleLoadData} className="btn btn-sm btn-primary d-flex align-items-center" type="button" aria-label="Load data" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem', backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT }}>
                             <IconRefresh /> Load
                         </button>

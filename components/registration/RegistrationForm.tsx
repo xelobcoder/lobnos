@@ -24,38 +24,48 @@ export default function RegistrationForm({ fields, personalInformation, addressi
         }
     });
 
+    // Define all form steps
+    const formSteps = isOnlyRegistration ? [
+        <PersonalInfomationRegistration
+            key="personal"
+            fields={fields.personalInformation}
+            toast={toast}
+            redirect={patientid ? false : true}
+            patientid={patientid}
+            defaultData={personalInformation}
+        />
+    ] : [
+        <PatientImageUpload key="photo" patientid={patientid} />,
+        <PersonalInfomationRegistration
+            key="personal"
+            fields={fields.personalInformation}
+            toast={toast}
+            redirect={patientid ? false : true}
+            patientid={patientid}
+            defaultData={personalInformation}
+        />,
+        <Addressing
+            key="address"
+            fields={fields.addressingInformation}
+            toast={toast}
+            patientid={patientid}
+            defaultData={addressingInformation}
+        />,
+        <EmmergencyContactInformation
+            key="emergency"
+            fields={fields.emmergencyInformation}
+            toast={toast}
+            patientid={patientid}
+            defaultData={emmergencyInformation}
+        />,
+        <PatientCredentials key="credentials" />,
+        <PatientSettings key="settings" />
+    ];
+
     return (
         <FormProvider {...methods}>
             <div>
-                <RegistrationWrapper isOnlyRegistration={isOnlyRegistration}>
-                    {!isOnlyRegistration && <PatientImageUpload patientid={patientid} />}
-                    <PersonalInfomationRegistration
-                        fields={fields.personalInformation}
-                        toast={toast}
-                        redirect={patientid ? false : true}
-                        patientid={patientid}
-                        defaultData={personalInformation}
-                    />
-                    {!isOnlyRegistration && (
-                        <>
-                            <Addressing
-                                fields={fields.addressingInformation}
-                                toast={toast}
-                                patientid={patientid}
-                                defaultData={addressingInformation}
-                            />
-                            <EmmergencyContactInformation
-                                fields={fields.emmergencyInformation}
-                                toast={toast}
-                                patientid={patientid}
-                                defaultData={emmergencyInformation}
-                            />
-                            <PatientCredentials />
-                            <PatientSettings />
-                        </>
-                    )}
-                </RegistrationWrapper>
-                <PrimeToast />
+                <RegistrationWrapper isOnlyRegistration={isOnlyRegistration} formSteps={formSteps} />
             </div>
         </FormProvider>
     );

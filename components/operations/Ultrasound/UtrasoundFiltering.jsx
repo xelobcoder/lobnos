@@ -1,5 +1,6 @@
-import { useEffect ,useState} from "react";
+import { useEffect, useState } from "react";
 import DatePickerRange from "../../../components/accessories/DatePickerRange";
+import DateFilterReusable from "../Laboratory/ResuableFilter/DateFilterReusable";
 import { useUltrasoundContext } from "./UltrasoundContext";
 import { handleDateRangeSelection } from "../Laboratory/AscensionFilteringComponent";
 
@@ -26,7 +27,7 @@ export default function UltrasoundAscensionFiltering({ ascension_stage, employee
 
 
        const handleLoadData = () => {
-              _getAscensionData(ascension_stage, employeeid,{
+              _getAscensionData(ascension_stage, employeeid, {
                      ascensionid: queryParams.ascensionid,
                      patientid: queryParams.patientid,
                      billingid: queryParams.billingid,
@@ -35,30 +36,31 @@ export default function UltrasoundAscensionFiltering({ ascension_stage, employee
        };
 
 
-         const [category, setCategory] = useState({
-                     section: '', value: ''
-              });
-       
-       
-              const handleSettingCategory = (section, value) => {
-                     setCategory({ section, value });
-                     setQueryParams((prev) => ({
-                            ...prev,
-                            ascensionid: '',
-                            patientid: '',
-                            billingid: '',
-                            patientname: "",
-                            [section]: value,
-                            _dateFrom: "",
-                            _dateEnd: ""
-                     }));
-              }
-       
+       const [category, setCategory] = useState({
+              section: '', value: ''
+       });
+       const [dateFilter, setDateFilter] = useState("");
+
+
+       const handleSettingCategory = (section, value) => {
+              setCategory({ section, value });
+              setQueryParams((prev) => ({
+                     ...prev,
+                     ascensionid: '',
+                     patientid: '',
+                     billingid: '',
+                     patientname: "",
+                     [section]: value,
+                     _dateFrom: "",
+                     _dateEnd: ""
+              }));
+       }
+
 
        return (
               <div className="mb-2">
-                   <div className="row g-2 align-items-center">
-                     <div className="col-12 col-lg-2">
+                     <div className="row g-2 align-items-center">
+                            <div className="col-12 col-lg-2">
                                    <select onChange={(ev) => {
                                           if (ev.target.value == "none") {
                                                  handleSettingCategory("none", "");
@@ -75,7 +77,7 @@ export default function UltrasoundAscensionFiltering({ ascension_stage, employee
                                    </select>
                             </div>
 
-                              <div className="col-12 col-lg-2">
+                            <div className="col-12 col-lg-2">
                                    <input className="form-control "
                                           value={category.value}
                                           onChange={(ev) => {
@@ -84,37 +86,30 @@ export default function UltrasoundAscensionFiltering({ ascension_stage, employee
                                           }}
                                           placeholder="Enter Value to Filter" />
                             </div>
-                       <div className="col-12 col-lg-2 ">
-                            <select
-                                   className="form-select"
-                                   value={queryParams.status}
-                                   onChange={(ev) => {
-                                          handleDateRangeSelection(ev.target.value, setQueryParams);
-                                   }}
-                            >
-                                   <option value="">Filter by  </option>
-                                   <option value='Today'>Today</option>
-                                   <option value='Yesterday'>Yesterday</option>
-                                   <option value='This Week'>This Week</option>
-                                   <option value='last week'>Last Week</option>
-                                   <option value='This Month'>This Month</option>
-                                   <option value='This Year'>This Year</option>
-                                   <option value='last Year'>Last Year</option>
-                                   <option value='last 30 Days'>Last 30 Days</option>
-                                   <option value='this quarter'>This Quarter</option>
-                                   <option value='last 7 days from now'>Last 7 Days</option>
-                                   <option value='last month'>Last Month</option>
-                                   <option value='All'>All</option>
-                            </select>
-                     </div>
-                     <div className="col-12 col-lg-2">
-                            <DatePickerRange
-                                   start={queryParams._dateFrom}
-                                   end={queryParams._dateEnd}
-                                   getRange={updateDateValues}
-                            />
-                     </div>
-                     <div className="col-12 col-lg-2">
+
+                            <div className="col-12 col-lg-2">
+                                   <DatePickerRange
+                                          start={queryParams._dateFrom}
+                                          end={queryParams._dateEnd}
+                                          getRange={updateDateValues}
+                                   />
+                            </div>
+                            <div className="col-12 col-lg-2">
+                                   <DateFilterReusable
+                                          value={dateFilter}
+                                          onChange={setDateFilter}
+                                          onDateRangeChange={(startDate, endDate) => {
+                                                 setQueryParams((prev) => ({
+                                                        ...prev,
+                                                        _dateFrom: startDate,
+                                                        _dateEnd: endDate
+                                                 }));
+                                          }}
+                                          label="Filter by"
+                                          className="w-100"
+                                   />
+                            </div>
+                            <div className="col-12 col-lg-2">
                                    <select
                                           className="form-select "
                                           value={queryParams.sortby}
@@ -129,15 +124,15 @@ export default function UltrasoundAscensionFiltering({ ascension_stage, employee
                                           <option value="ASC">Sort by Date (Oldest First)</option>
                                    </select>
                             </div>
-                     <div className="col-12  col-lg-2 ">
-                            <button
-                                   onClick={handleLoadData}
-                                   className="btn btn-primary btn-sm p-2 px-5 text-uppercase"
-                            >
-                                   {"<"} Load Data {"/>"}
-                            </button>
+                            <div className="col-12  col-lg-2 ">
+                                   <button
+                                          onClick={handleLoadData}
+                                          className="btn btn-primary btn-sm p-2 px-5 text-uppercase"
+                                   >
+                                          {"<"} Load Data {"/>"}
+                                   </button>
+                            </div>
                      </div>
-                   </div>
               </div>
        );
 }
