@@ -5,7 +5,7 @@
 import { useEffect, useState } from "react";
 import { customFetch, customFile, customPost } from "../../components/Auth/customFetch";
 import { toast } from 'react-toastify';
-import { RiMoreFill, RiAddLine, RiFileExcel2Line } from '@remixicon/react';
+import { RiMoreFill, RiAddLine, RiFileExcel2Line, RiSearchLine } from '@remixicon/react';
 import { useRouter } from "next/navigation";
 import { Button, Dropdown, Modal } from "react-bootstrap";
 import PrimeTable from "../../components/accessories/Datatables/PrimeTable";
@@ -123,6 +123,11 @@ export default function ClinicianList() {
     const [excelPreview, setExcelPreview] = useState<ExcelPreview | null>(null);
     const [selectedRows, setSelectedRows] = useState<number[]>([]);
     const [showAddModal, setShowAddModal] = useState(false);
+    const [showFilterModal, setShowFilterModal] = useState(false);
+    const [selectedField, setSelectedField] = useState<string>("name");
+    const [filterSearchInput, setFilterSearchInput] = useState<string>("");
+    const [filterOptions, setFilterOptions] = useState<any[]>([]);
+    const [filterLoading, setFilterLoading] = useState(false);
 
     const role = useApplication().user.role;
     const isAdmin = role === 'admin' || role === 'superadmin';
@@ -154,6 +159,69 @@ export default function ClinicianList() {
     useEffect(() => {
         role && getClinicianData();
     }, []);
+
+    const fieldMapping: { [key: string]: string } = {
+        name: "Name",
+        location: "Location",
+        address: "Address",
+        occupation: "Occupation",
+        organization: "Organization",
+        phone: "Phone",
+        email: "Email",
+        identifier: "Identifier",
+    };
+
+    const loadClinicianOptions = async (inputValue: string) => {
+        if (!inputValue || inputValue.length < 3) {
+            setFilterOptions([]);
+            return;
+        }
+        setFilterLoading(true);
+        try {
+            const response = await customFetch(
+                `clinicians?${selectedField}=${encodeURIComponent(inputValue)}`
+            );
+
+            const result = response?.result || response || [];
+
+            if (!Array.isArray(result) || result.length === 0) {
+                setFilterOptions([]);
+                return;
+            }
+
+            const options = result.map((clinician: any) => ({
+                value: clinician.id || 0,
+                fullname: clinician.name || "N/A",
+                export: clinician,
+            }));
+
+            setFilterOptions(options);
+        } catch (error) {
+            console.error("Error loading clinicians:", error);
+            setFilterOptions([]);
+        } finally {
+            setFilterLoading(false);
+        }
+    };
+
+    const handleFilterSearch = () => {
+        if (filterSearchInput.length >= 3) {
+            loadClinicianOptions(filterSearchInput);
+        }
+    };
+
+    const applyFilterResults = (selectedClinicans: any[]) => {
+        if (selectedClinicans.length > 0) {
+            setClinician(selectedClinicans.map((c) => c.export));
+            toast.success(`Filtered ${selectedClinicans.length} clinician(s)`, {
+                position: "top-right",
+                autoClose: 2000,
+            });
+        }
+        setShowFilterModal(false);
+        setFilterSearchInput("");
+        setFilterOptions([]);
+    };
 
     const handleEdit = (original) => {
         const { id } = original;
@@ -225,7 +293,7 @@ export default function ClinicianList() {
             const response = await customFile('parse-excel', formData);
             if (response && response.header && response.data) {
                 setExcelPreview(response);
-                setSelectedRows([]); // Reset selected rows when new data is loaded
+                setSelectedRows([]);
             } else {
                 toast.error('Failed to parse Excel file', {
                     position: 'top-right',
@@ -441,6 +509,15 @@ export default function ClinicianList() {
                         <div className="bg-gradient-primary text-white py-3">
                             <div className="d-flex justify-content-between align-items-center">
                                 <div className="d-flex gap-2">
+                                    <Button
+                                        variant="outline-primary"
+                                        size="sm"
+                                        onClick={() => setShowFilterModal(true)}
+                                        className="d-flex align-items-center gap-2 fw-semibold"
+                                    >
+                                        <RiSearchLine size={16} />
+                                        Filter Clinicians
+                                    </Button>
                                     <Button
                                         variant="outline-primary"
                                         size="sm"
@@ -660,6 +737,149 @@ export default function ClinicianList() {
                                             )}
                                         </Button>
                                     )}
+                                </Modal.Footer>
+                            </Modal>
+
+                            <Modal show={showFilterModal} onHide={() => setShowFilterModal(false)} size="lg" backdrop="static" keyboard={false}>
+                                <Modal.Header closeButton>
+                                    <Modal.Title className="d-flex align-items-center gap-2">
+                                        <RiSearchLine size={20} />
+                                        Filter Clinicians
+                                    </Modal.Title>
+                                </Modal.Header>
+                                <Modal.Body>
+                                    <div className="row g-3 mb-4">
+                                        <div className="col-md-4">
+                                            <label className="form-label fw-bold small">Search Field</label>
+                                            <select
+                                                className="form-select form-select-sm"
+                                                value={selectedField}
+                                                onChange={(e) => setSelectedField(e.target.value)}
+                                                disabled={filterLoading}
+                                            >
+                                                {Object.entries(fieldMapping).map(([key, label]) => (
+                                                    <option key={key} value={key}>
+                                                        {label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="col-md-8">
+                                            <label className="form-label fw-bold small">{fieldMapping[selectedField]}</label>
+                                            <div className="input-group input-group-sm">
+                                                <span className="input-group-text bg-transparent border-end-0">
+                                                    <RiSearchLine size={16} className="text-muted" />
+                                                </span>
+                                                <input
+                                                    type="text"
+                                                    className="form-control shadow-none border-start-0"
+                                                    placeholder={`Search by ${fieldMapping[selectedField].toLowerCase()}...`}
+                                                    value={filterSearchInput}
+                                                    onChange={(e) => setFilterSearchInput(e.target.value)}
+                                                    disabled={filterLoading}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-primary btn-sm"
+                                                    onClick={handleFilterSearch}
+                                                    disabled={filterLoading || filterSearchInput.length < 3}
+                                                >
+                                                    {filterLoading ? (
+                                                        <>
+                                                            <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                                                            Loading
+                                                        </>
+                                                    ) : (
+                                                        "Search"
+                                                    )}
+                                                </button>
+                                            </div>
+                                            {filterLoading && (
+                                                <div className="mt-2 text-muted small d-flex align-items-center">
+                                                    <div className="spinner-border spinner-border-sm me-2" role="status"></div>
+                                                    Searching for clinicians...
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {filterOptions.length > 0 && (
+                                        <div className="table-responsive">
+                                            <table className="table table-hover table-sm table-striped">
+                                                <thead className="table-light sticky-top">
+                                                    <tr>
+                                                        <th style={{ width: "30px" }}>
+                                                            <input
+                                                                type="checkbox"
+                                                                className="form-check-input"
+                                                                onChange={(e) => {
+                                                                    if (e.target.checked) {
+                                                                        setFilterOptions(filterOptions.map(opt => ({ ...opt, selected: true })));
+                                                                    } else {
+                                                                        setFilterOptions(filterOptions.map(opt => ({ ...opt, selected: false })));
+                                                                    }
+                                                                }}
+                                                                title="Select All"
+                                                            />
+                                                        </th>
+                                                        <th>Name</th>
+                                                        <th>Location</th>
+                                                        <th>Phone</th>
+                                                        <th>Email</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {filterOptions.map((option) => (
+                                                        <tr key={option.value}>
+                                                            <td style={{ width: "30px" }}>
+                                                                <input
+                                                                    type="checkbox"
+                                                                    className="form-check-input"
+                                                                    checked={option.selected || false}
+                                                                    onChange={(e) => {
+                                                                        const updated = filterOptions.map(opt =>
+                                                                            opt.value === option.value
+                                                                                ? { ...opt, selected: e.target.checked }
+                                                                                : opt
+                                                                        );
+                                                                        setFilterOptions(updated);
+                                                                    }}
+                                                                />
+                                                            </td>
+                                                            <td className="fw-semibold">{option.fullname}</td>
+                                                            <td>{option.export.location || "-"}</td>
+                                                            <td>{option.export.phone || "-"}</td>
+                                                            <td>{option.export.email || "-"}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )}
+                                </Modal.Body>
+                                <Modal.Footer>
+                                    <Button
+                                        variant="outline-secondary"
+                                        onClick={() => {
+                                            setShowFilterModal(false);
+                                            setFilterSearchInput("");
+                                            setFilterOptions([]);
+                                        }}
+                                        size="sm"
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        variant="primary"
+                                        onClick={() => {
+                                            const selected = filterOptions.filter(opt => opt.selected);
+                                            applyFilterResults(selected);
+                                        }}
+                                        disabled={filterOptions.filter(opt => opt.selected).length === 0}
+                                        size="sm"
+                                    >
+                                        Apply Filter ({filterOptions.filter(opt => opt.selected).length})
+                                    </Button>
                                 </Modal.Footer>
                             </Modal>
                         </div>

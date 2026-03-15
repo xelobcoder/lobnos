@@ -188,9 +188,11 @@ export default function AttendancePage() {
      }, []);
 
      const handleLoadData = () => {
+          fetchAttendanceRecords();
           if (employeeFilter) {
-               fetchAttendanceRecords();
                fetchEmployeeAttendanceSummary();
+          } else {
+               fetchAttendanceSummary();
           }
      };
 
@@ -222,6 +224,31 @@ export default function AttendancePage() {
      const formatHours = (hours: number | null) => {
           if (hours === null) return '-';
           return `${hours.toFixed(1)}h`;
+     };
+
+     const calculateTotalHours = (clockIn?: string, clockOut?: string, overtimeHours?: number) => {
+          if (!clockIn || !clockOut) return null;
+
+          try {
+               const [inHours, inMinutes, inSeconds] = clockIn.split(':').map(Number);
+               const [outHours, outMinutes, outSeconds] = clockOut.split(':').map(Number);
+
+               const inTotalMinutes = inHours * 60 + inMinutes + inSeconds / 60;
+               const outTotalMinutes = outHours * 60 + outMinutes + outSeconds / 60;
+
+               const diffMinutes = outTotalMinutes - inTotalMinutes;
+               let totalHours = diffMinutes / 60;
+
+               // Add overtime hours if they exist
+               if (overtimeHours && overtimeHours > 0) {
+                    totalHours += overtimeHours;
+               }
+
+               return totalHours > 0 ? totalHours : 0;
+          } catch (error) {
+               console.error('Error calculating hours:', error);
+               return null;
+          }
      };
 
      return (
@@ -365,7 +392,7 @@ export default function AttendancePage() {
                                         type="button"
                                         className="btn btn-primary"
                                         onClick={handleLoadData}
-                                        disabled={!employeeFilter || loading}
+                                        disabled={loading}
                                    >
                                         <RiLoader4Line size={16} />
                                    </button>
@@ -444,7 +471,7 @@ export default function AttendancePage() {
                                                   <td>{formatDate(record.attendance_date)}</td>
                                                   <td>{formatTime(record.clock_in)}</td>
                                                   <td>{formatTime(record.clock_out)}</td>
-                                                  <td>-</td>
+                                                  <td>{formatHours(calculateTotalHours(record.clock_in, record.clock_out, record.overtime_hours))}</td>
                                                   <td>{getStatusBadge(record.status)}</td>
                                                   <td>{record.late_minutes || '-'}</td>
                                                   <td>

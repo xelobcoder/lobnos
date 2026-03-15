@@ -76,6 +76,31 @@ export default function AttendanceDetailPage() {
           return `${hours.toFixed(1)} hours`;
      };
 
+     const calculateTotalHours = (clockIn: string | null, clockOut: string | null, overtimeHours: number | null = null) => {
+          if (!clockIn || !clockOut) return null;
+
+          try {
+               const [inHours, inMinutes, inSeconds] = clockIn.split(':').map(Number);
+               const [outHours, outMinutes, outSeconds] = clockOut.split(':').map(Number);
+
+               const inTotalMinutes = inHours * 60 + inMinutes + inSeconds / 60;
+               const outTotalMinutes = outHours * 60 + outMinutes + outSeconds / 60;
+
+               const diffMinutes = outTotalMinutes - inTotalMinutes;
+               let totalHours = diffMinutes / 60;
+
+               // Add overtime hours if they exist
+               if (overtimeHours && overtimeHours > 0) {
+                    totalHours += overtimeHours;
+               }
+
+               return totalHours > 0 ? totalHours : 0;
+          } catch (error) {
+               console.error('Error calculating hours:', error);
+               return null;
+          }
+     };
+
      useEffect(() => {
           fetchAttendanceRecord();
      }, [attendanceId]);
@@ -181,7 +206,7 @@ export default function AttendanceDetailPage() {
                                    <div className="col-md-6">
                                         <div className="p-3 border rounded">
                                              <div className="small text-muted mb-1">Total Hours</div>
-                                             <div className="fw-semibold fs-5">{formatHours(attendanceRecord.total_hours)}</div>
+                                             <div className="fw-semibold fs-5">{formatHours(calculateTotalHours(attendanceRecord.clock_in, attendanceRecord.clock_out, attendanceRecord.overtime_hours))}</div>
                                         </div>
                                    </div>
                               </div>

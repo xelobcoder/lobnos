@@ -10,45 +10,36 @@ interface PayrollTransaction {
      id: number;
      payroll_period_id: number;
      employeeid: number;
-     basic_salary: string;
-     hourly_earnings: string;
-     overtime_earnings: string;
-     commission_earnings: string;
-     total_allowances: string;
-     total_bonuses: string;
-     gross_salary: string;
-     income_tax: string;
-     employee_ssnit: string;
-     employer_ssnit: string;
-     employee_tier3: string;
-     employer_tier3: string;
-     nhis: string;
-     total_other_deductions: string;
-     total_deductions: string;
-     net_salary: string;
-     employer_cost: string;
+     basic_salary: number;
+     hourly_earnings: number;
+     overtime_earnings: number;
+     commission_earnings: number;
+     total_allowances: number;
+     total_bonuses: number;
+     gross_salary: number;
+     income_tax: number;
+     employee_ssnit: number;
+     employer_ssnit: number;
+     employee_tier3: number;
+     employer_tier3: number;
+     nhis: number;
+     total_other_deductions: number;
+     total_deductions: number;
+     net_salary: number;
+     employer_cost: number;
      days_worked: number;
-     hours_worked: string;
-     overtime_hours: string;
+     hours_worked: number;
+     overtime_hours: number;
      days_absent: number;
      days_leave: number;
      status: string;
      payment_date: string;
      payment_method: string;
-     payment_reference: string | null;
-     allowances_detail: string;
-     bonuses_detail: string;
-     other_deductions_detail: string;
-     created_at: string;
-     updated_at: string;
-     period_name: string;
-     period_start_date: string;
-     period_end_date: string;
-     period_payment_date: string;
-     employee_name: string;
-     employee_role: string;
-     email: string;
-     branch_name: string;
+     allowances_detail: any[];
+     bonuses_detail: any[];
+     other_deductions_detail: any[];
+     employeename: string;
+     employeerole: string;
 }
 
 export default function EmployeeHistoryPage() {
@@ -103,6 +94,13 @@ export default function EmployeeHistoryPage() {
           setShowModal(false);
           setSelectedTransaction(null);
      };
+
+     const currencyFormatter = new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: 'GHS',
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+     });
 
      const handlePageChange = (page: number) => {
           setCurrentPage(page);
@@ -236,12 +234,12 @@ export default function EmployeeHistoryPage() {
                                    ) : (
                                         Array.isArray(transactions) && transactions.map((transaction) => (
                                              <tr key={transaction.id}>
-                                                  <td className="text-start">{transaction.employee_name}</td>
-                                                  <td className="text-start">{transaction.period_name}</td>
-                                                  <td className="text-start">{transaction.payment_date}</td>
-                                                  <td className="text-start fw-bold">{transaction.gross_salary}</td>
-                                                  <td className="text-start text-danger">{transaction.total_deductions}</td>
-                                                  <td className="text-start fw-bold text-success">{transaction.net_salary}</td>
+                                                  <td className="text-start">{transaction.employeename}</td>
+                                                  <td className="text-start">Period {transaction.payroll_period_id}</td>
+                                                  <td className="text-start">{new Date(transaction.payment_date).toLocaleDateString()}</td>
+                                                  <td className="text-start fw-bold">{currencyFormatter.format(transaction.gross_salary)}</td>
+                                                  <td className="text-start text-danger">{currencyFormatter.format(transaction.total_deductions)}</td>
+                                                  <td className="text-start fw-bold text-success">{currencyFormatter.format(transaction.net_salary)}</td>
                                                   <td className="text-start">{transaction.days_worked}</td>
                                                   <td className="text-start">{transaction.hours_worked}</td>
                                                   <td className="text-start">
@@ -331,30 +329,30 @@ export default function EmployeeHistoryPage() {
                          <div className="modal-dialog modal-lg">
                               <div className="modal-content">
                                    <div className="modal-header">
-                                        <h5 className="modal-title">Payroll Breakdown - {selectedTransaction.employee_name}</h5>
+                                        <h5 className="modal-title">Payroll Breakdown - {selectedTransaction.employeename}</h5>
                                         <button type="button" className="btn-close" onClick={closeModal}></button>
                                    </div>
                                    <div className="modal-body">
                                         <div className="row">
                                              <div className="col-md-6">
                                                   <h6 className="text-primary">Earnings</h6>
-                                                  <div className="mb-2 text-start"><strong>Basic Salary:</strong> {selectedTransaction.basic_salary}</div>
-                                                  <div className="mb-2 text-start"><strong>Hourly Earnings:</strong> {selectedTransaction.hourly_earnings}</div>
-                                                  <div className="mb-2 text-start"><strong>Overtime Earnings:</strong> {selectedTransaction.overtime_earnings}</div>
-                                                  <div className="mb-2 text-start"><strong>Commission:</strong> {selectedTransaction.commission_earnings}</div>
-                                                  <div className="mb-2 text-start"><strong>Total Allowances:</strong> {selectedTransaction.total_allowances}</div>
-                                                  <div className="mb-2 text-start"><strong>Total Bonuses:</strong> {selectedTransaction.total_bonuses}</div>
-                                                  <div className="mb-2 fw-bold text-start"><strong>Gross Salary:</strong> {selectedTransaction.gross_salary}</div>
+                                                  <div className="mb-2 text-start"><strong>Basic Salary:</strong> {currencyFormatter.format(selectedTransaction.basic_salary)}</div>
+                                                  <div className="mb-2 text-start"><strong>Hourly Earnings:</strong> {currencyFormatter.format(selectedTransaction.hourly_earnings)}</div>
+                                                  <div className="mb-2 text-start"><strong>Overtime Earnings:</strong> {currencyFormatter.format(selectedTransaction.overtime_earnings)}</div>
+                                                  <div className="mb-2 text-start"><strong>Commission:</strong> {currencyFormatter.format(selectedTransaction.commission_earnings)}</div>
+                                                  <div className="mb-2 text-start"><strong>Total Allowances:</strong> {currencyFormatter.format(selectedTransaction.total_allowances)}</div>
+                                                  <div className="mb-2 text-start"><strong>Total Bonuses:</strong> {currencyFormatter.format(selectedTransaction.total_bonuses)}</div>
+                                                  <div className="mb-2 fw-bold text-start"><strong>Gross Salary:</strong> {currencyFormatter.format(selectedTransaction.gross_salary)}</div>
                                              </div>
                                              <div className="col-md-6">
                                                   <h6 className="text-danger">Deductions</h6>
-                                                  <div className="mb-2 text-start"><strong>Income Tax:</strong> {selectedTransaction.income_tax}</div>
-                                                  <div className="mb-2 text-start"><strong>Employee SSNIT:</strong> {selectedTransaction.employee_ssnit}</div>
-                                                  <div className="mb-2 text-start"><strong>Employee Tier 3:</strong> {selectedTransaction.employee_tier3}</div>
-                                                  <div className="mb-2 text-start"><strong>NHIS:</strong> {selectedTransaction.nhis}</div>
-                                                  <div className="mb-2 text-start"><strong>Other Deductions:</strong> {selectedTransaction.total_other_deductions}</div>
-                                                  <div className="mb-2 fw-bold text-start"><strong>Total Deductions:</strong> {selectedTransaction.total_deductions}</div>
-                                                  <div className="mb-2 fw-bold text-success text-start"><strong>Net Salary:</strong> {selectedTransaction.net_salary}</div>
+                                                  <div className="mb-2 text-start"><strong>Income Tax:</strong> {currencyFormatter.format(selectedTransaction.income_tax)}</div>
+                                                  <div className="mb-2 text-start"><strong>Employee SSNIT:</strong> {currencyFormatter.format(selectedTransaction.employee_ssnit)}</div>
+                                                  <div className="mb-2 text-start"><strong>Employee Tier 3:</strong> {currencyFormatter.format(selectedTransaction.employee_tier3)}</div>
+                                                  <div className="mb-2 text-start"><strong>NHIS:</strong> {currencyFormatter.format(selectedTransaction.nhis)}</div>
+                                                  <div className="mb-2 text-start"><strong>Other Deductions:</strong> {currencyFormatter.format(selectedTransaction.total_other_deductions)}</div>
+                                                  <div className="mb-2 fw-bold text-start"><strong>Total Deductions:</strong> {currencyFormatter.format(selectedTransaction.total_deductions)}</div>
+                                                  <div className="mb-2 fw-bold text-success text-start"><strong>Net Salary:</strong> {currencyFormatter.format(selectedTransaction.net_salary)}</div>
                                              </div>
                                         </div>
                                         <hr />
@@ -368,13 +366,11 @@ export default function EmployeeHistoryPage() {
                                                   <div className="mb-2 text-start"><strong>Days Leave:</strong> {selectedTransaction.days_leave}</div>
                                              </div>
                                              <div className="col-md-6">
-                                                  <h6 className="text-secondary">Period & Payment</h6>
-                                                  <div className="mb-2 text-start"><strong>Period:</strong> {selectedTransaction.period_name}</div>
-                                                  <div className="mb-2 text-start"><strong>Start Date:</strong> {selectedTransaction.period_start_date}</div>
-                                                  <div className="mb-2 text-start"><strong>End Date:</strong> {selectedTransaction.period_end_date}</div>
-                                                  <div className="mb-2 text-start"><strong>Payment Date:</strong> {selectedTransaction.period_payment_date}</div>
+                                                  <h6 className="text-secondary">Payment Details</h6>
+                                                  <div className="mb-2 text-start"><strong>Payroll Period:</strong> Period {selectedTransaction.payroll_period_id}</div>
+                                                  <div className="mb-2 text-start"><strong>Payment Date:</strong> {new Date(selectedTransaction.payment_date).toLocaleDateString()}</div>
                                                   <div className="mb-2 text-start"><strong>Payment Method:</strong> {selectedTransaction.payment_method}</div>
-                                                  <div className="mb-2 text-start"><strong>Reference:</strong> {selectedTransaction.payment_reference || 'N/A'}</div>
+                                                  <div className="mb-2 text-start"><strong>Status:</strong> <span className={`badge ${selectedTransaction.status === 'paid' ? 'bg-success' : 'bg-warning'}`}>{selectedTransaction.status}</span></div>
                                              </div>
                                         </div>
                                    </div>
