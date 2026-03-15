@@ -371,9 +371,11 @@ export default function PrimeTable({
         </div>
       </div>
 
-      <div style={{ overflowX: "auto !important", maxWidth: "100%" }}>
+      <div style={{ overflowX: "auto !important", maxWidth: "100%", fontFamily:"candara" }}>
         <table
-          className={`${style.table} ${effectiveTheme !== "PrimeLaboratoryTableStyling" ? `prime-table-${effectiveTheme} prime-table-theme` : ""}`}
+        className="table table-striped table-sm"
+
+          // className={`${style.table} ${effectiveTheme !== "PrimeLaboratoryTableStyling" ? `prime-table-${effectiveTheme} prime-table-theme` : ""}`}
           {...getTableProps()}
         >
           <thead>{customHeaderGroup()}</thead>

@@ -153,11 +153,9 @@ const InvoiceList = ({ branchid, employeeid }) => {
                     });
                }
           } catch (error) {
-               console.log("Error fetching invoice payments:", error);
                setInvoicePayments([]);
-               // Still allow payment if there's an error fetching payment history
                setPaymentData({
-                    payment_date: new Date().toISOString().slice(0, 16), // Current date/time
+                    payment_date: new Date().toISOString().slice(0, 16), 
                     amount: invoice.total_amount.toString(),
                     method: '',
                     status: 'Paid'
@@ -197,7 +195,6 @@ const InvoiceList = ({ branchid, employeeid }) => {
                          status: 'Paid'
                     });
                     setSelectedInvoice(null);
-                    // Refresh the invoice list
                     getInvoiceData();
                } else {
                     throw new Error('Payment submission failed');
@@ -314,7 +311,7 @@ const InvoiceList = ({ branchid, employeeid }) => {
                Header: 'Invoice Number',
                accessor: 'invoice_number',
                Cell: ({ cell: { value }, row }) => (
-                    <span className="fw-bold text-primary">
+                    <span className="fw-bold">
                          {value}
                     </span>
                )
@@ -332,7 +329,7 @@ const InvoiceList = ({ branchid, employeeid }) => {
                Header: 'Total Amount',
                accessor: 'total_amount',
                Cell: ({ cell: { value }, row }) => (
-                    <span className="d-flex align-items-center text-secondary fw-semibold">
+                    <span className="d-flex  text-black fw-semibold">
                          <RiMoneyDollarCircleLine className="me-1 text-success" />
                          {currencyFormatter.format(value)}
                     </span>
@@ -387,7 +384,7 @@ const InvoiceList = ({ branchid, employeeid }) => {
                Cell: ({ cell: { value }, row }) => {
                     if (value === 1) {
                          return (
-                              <div className="small">
+                              <div className='text-start'>
                                    <Button
                                         variant="outline-danger"
                                         size="sm"
@@ -395,9 +392,9 @@ const InvoiceList = ({ branchid, employeeid }) => {
                                              setSelectedReversalInfo(row.original);
                                              setShowReversalInfoModal(true);
                                         }}
-                                        className="d-block"
+                                        
                                    >
-                                        View Details
+                                        Details
                                    </Button>
                               </div>
                          );
@@ -1013,7 +1010,7 @@ const InvoiceList = ({ branchid, employeeid }) => {
                                    getRowStyle: (rowData) => {
                                         const status = rowData?.final_payment_status?.toLowerCase();
                                         if (status === "reversed") {
-                                             return { backgroundColor: "#f8d7da", color: "#842029", padding: '20px' };
+                                             return { backgroundColor: "#f8d7da", color: "#842029"};
                                         }
                                         return {};
                                    }

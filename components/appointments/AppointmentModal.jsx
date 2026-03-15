@@ -4,6 +4,7 @@ import { EditIcon } from '../../components/Billing/BillingContextComponents/Lib/
 import dayjs from 'dayjs';
 import { customPost } from '../Auth/customFetch';
 import { toast } from 'react-toastify';
+import PreviewPatientInformation from '../petientsComponent/PreviewPatientInformation';
 
 
 export default function AppointmentModal(props) {
@@ -36,6 +37,12 @@ export default function AppointmentModal(props) {
           }
      };
 
+     const handleListItemEdit = (appointment) => {
+          setSelectedListAppointment(appointment);
+          setEditFields({ ...appointment });
+          setModalMode('edit');
+     };
+
      // Always reset edit form when modal closes
      const handleClose = () => {
           setSelectedListAppointment(null);
@@ -44,10 +51,12 @@ export default function AppointmentModal(props) {
           if (typeof onHide === 'function') onHide();
      };
 
-     const handleListItemEdit = (appointment) => {
-          setSelectedListAppointment(appointment);
-          setEditFields({ ...appointment });
-          setModalMode('edit');
+     const getStatusBackgroundClass = (status) => {
+          const statusLower = status?.toLowerCase() || '';
+          if (statusLower === 'confirmed') return 'bg-success-subtle';
+          if (statusLower === 'pending') return 'bg-warning-subtle';
+          if (statusLower === 'cancelled') return 'bg-danger-subtle';
+          return 'bg-secondary-subtle';
      };
 
      useEffect(() => {
@@ -86,6 +95,11 @@ export default function AppointmentModal(props) {
           }
      };
 
+     const handleLocalCancelEdit = () => {
+          setEditFields(selectedListAppointment ? { ...selectedListAppointment } : null);
+          setModalMode('view');
+     };
+
      return (
           <>
                <Modal show={show} onHide={handleClose} backdrop="static" size='xl'>
@@ -100,11 +114,20 @@ export default function AppointmentModal(props) {
                          <div className="row">
                               <div className="col-md-5 border-end" style={{ maxHeight: 500, overflowY: 'auto' }}>
                                    {Array.isArray(selectedAppointments) && selectedAppointments.length === 0 ? (
-                                        <p>No appointments for this day.</p>
+                                        <div className="d-flex flex-column align-items-center justify-content-center h-100 gap-3" style={{ minHeight: 200 }}>
+                                             <p className="text-muted">No appointments for this day.</p>
+                                             <Button
+                                                  variant="primary"
+                                                  onClick={() => window.open('/appointments/book')}
+                                                  className="d-flex align-items-center"
+                                             >
+                                                  <span className="me-2">+</span> Create Appointment
+                                             </Button>
+                                        </div>
                                    ) : (
                                         <ul className="list-unstyled">
                                              {Array.isArray(selectedAppointments) && selectedAppointments.map(appointment => (
-                                                  <li key={appointment.id} className="mb-2">
+                                                  <li key={appointment.id} className={`mb-2 p-2 rounded ${getStatusBackgroundClass(appointment.status)}`}>
                                                        <div className="d-flex justify-content-between align-items-center">
                                                             <div>
                                                                  <h6 className="mb-1">{appointment.title}</h6>
@@ -120,14 +143,13 @@ export default function AppointmentModal(props) {
                                                                  </Button>
                                                             </div>
                                                        </div>
-                                                       <hr />
                                                   </li>
                                              ))}
                                         </ul>
                                    )}
                               </div>
-                              
-                              <div className="col-md-7">
+
+                              <div className="col-md-7" style={{ maxHeight: 500, overflowY: 'auto' }}>
                                    {selectedListAppointment ? (
                                         modalMode === 'edit' && editFields ? (
                                              <div style={{ background: '#f8f9fa', padding: '16px', borderRadius: '6px', minHeight: 200 }}>
@@ -135,7 +157,7 @@ export default function AppointmentModal(props) {
                                                        <Button variant="success" size="sm" onClick={handleSaveEdit} className="me-2">
                                                             Save
                                                        </Button>
-                                                       <Button variant="outline-secondary" size="sm" onClick={handleCancelEdit}>
+                                                       <Button variant="outline-secondary" size="sm" onClick={handleLocalCancelEdit}>
                                                             Cancel
                                                        </Button>
                                                   </div>
@@ -158,14 +180,22 @@ export default function AppointmentModal(props) {
                                                             />
                                                        </Form.Group>
                                                        <Form.Group className="mb-2">
+                                                            <Form.Label>Duration (minutes)</Form.Label>
+                                                            <Form.Control
+                                                                 type="number"
+                                                                 value={editFields.duration || ''}
+                                                                 onChange={e => handleEditFieldChange('duration', e.target.value)}
+                                                            />
+                                                       </Form.Group>
+                                                       <Form.Group className="mb-2">
                                                             <Form.Label>Status</Form.Label>
                                                             <Form.Select
                                                                  value={editFields.status || ''}
                                                                  onChange={e => handleEditFieldChange('status', e.target.value)}
                                                             >
-                                                                 <option value="Confirmed">Confirmed</option>
-                                                                 <option value="Pending">Pending</option>
-                                                                 <option value="Cancelled">Cancelled</option>
+                                                                 <option value="confirmed">Confirmed</option>
+                                                                 <option value="pending">Pending</option>
+                                                                 <option value="cancelled">Cancelled</option>
                                                             </Form.Select>
                                                        </Form.Group>
                                                        <Form.Group className="mb-2">
@@ -185,14 +215,30 @@ export default function AppointmentModal(props) {
                                                                  onChange={e => handleEditFieldChange('location', e.target.value)}
                                                             />
                                                        </Form.Group>
-                                                       {/* <Form.Group className="mb-2">
+                                                       <Form.Group className="mb-2">
+                                                            <Form.Label>Preference</Form.Label>
+                                                            <Form.Control
+                                                                 type="text"
+                                                                 value={editFields.preference || ''}
+                                                                 onChange={e => handleEditFieldChange('preference', e.target.value)}
+                                                            />
+                                                       </Form.Group>
+                                                       <Form.Group className="mb-2">
                                                             <Form.Label>Practitioner</Form.Label>
                                                             <Form.Control
                                                                  type="text"
                                                                  value={editFields.practioner || ''}
                                                                  onChange={e => handleEditFieldChange('practioner', e.target.value)}
                                                             />
-                                                       </Form.Group> */}
+                                                       </Form.Group>
+                                                       <Form.Group className="mb-2">
+                                                            <Form.Label>Invite Method</Form.Label>
+                                                            <Form.Control
+                                                                 type="text"
+                                                                 value={editFields.inviteMethod || ''}
+                                                                 onChange={e => handleEditFieldChange('inviteMethod', e.target.value)}
+                                                            />
+                                                       </Form.Group>
                                                        <Form.Group className="mb-2">
                                                             <Form.Label>Notes</Form.Label>
                                                             <Form.Control
@@ -205,15 +251,26 @@ export default function AppointmentModal(props) {
                                                   </Form>
                                              </div>
                                         ) : (
-                                             <div style={{ background: '#f8f9fa', padding: '16px', borderRadius: '6px', minHeight: 200 }}>
-                                                  <h5>Appointment Details</h5>
-                                                  <div><b>Title:</b> {selectedListAppointment.title}</div>
-                                                  <div><b>Time:</b> {formatTime(selectedListAppointment.appointment_time)}</div>
-                                                  <div><b>Status:</b> {selectedListAppointment.status}</div>
-                                                  <div><b>Purpose:</b> {selectedListAppointment.purpose || '-'}</div>
-                                                  <div><b>Location:</b> {selectedListAppointment.location || '-'}</div>
-                                                  <div><b>Practitioner:</b> {selectedListAppointment.practioner || '-'}</div>
-                                                  <div><b>Notes:</b> {selectedListAppointment.notes || '-'}</div>
+                                             <div style={{ background: '#f8f9fa', padding: '16px', borderRadius: '6px' }}>
+                                                  <h5 className="mb-3">Patient Information</h5>
+                                                  {selectedListAppointment.patientid && (
+                                                       <PreviewPatientInformation patientid={selectedListAppointment.patientid} />
+                                                  )}
+                                                  <hr />
+                                                  <h5 className="mt-3 mb-3">Appointment Details</h5>
+                                                  <div className="mb-3">
+                                                       <div className="mb-2"><b>Title:</b> {selectedListAppointment.title}</div>
+                                                       <div className="mb-2"><b>Date:</b> {dayjs(selectedListAppointment.appointment_date).format('MMMM D, YYYY')}</div>
+                                                       <div className="mb-2"><b>Time:</b> {formatTime(selectedListAppointment.appointment_time)}</div>
+                                                       <div className="mb-2"><b>Duration:</b> {selectedListAppointment.duration || '-'} minutes</div>
+                                                       <div className="mb-2"><b>Status:</b> <Badge bg={getStatusColor(selectedListAppointment.status)}>{selectedListAppointment.status}</Badge></div>
+                                                       <div className="mb-2"><b>Purpose:</b> {selectedListAppointment.purpose || '-'}</div>
+                                                       <div className="mb-2"><b>Location:</b> {selectedListAppointment.location || '-'}</div>
+                                                       <div className="mb-2"><b>Preference:</b> {selectedListAppointment.preference || '-'}</div>
+                                                       <div className="mb-2"><b>Practitioner:</b> {selectedListAppointment.practioner || '-'}</div>
+                                                       <div className="mb-2"><b>Invite Method:</b> {selectedListAppointment.inviteMethod || '-'}</div>
+                                                       <div className="mb-2"><b>Notes:</b> {selectedListAppointment.notes || '-'}</div>
+                                                  </div>
                                              </div>
                                         )
                                    ) : (

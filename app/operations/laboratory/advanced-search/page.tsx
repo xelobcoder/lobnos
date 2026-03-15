@@ -184,12 +184,11 @@ export default function AdvancedSearchPage() {
 
           const targetPath = stageMap[service.stage] || '/operations/laboratory/processing';
 
-          // Use billed date for all stages
+          // Use ascension ID for all stages
           let queryParams = new URLSearchParams();
 
-          if (selectedBilledOn) {
-               queryParams.append('start_date', selectedBilledOn);
-               queryParams.append('end_date', selectedBilledOn);
+          if (service.ascensionId) {
+               queryParams.append('ascensionid', service.ascensionId as unknown as string);
           }
 
           const fullPath = queryParams.toString() ? `${targetPath}?${queryParams.toString()}` : targetPath;

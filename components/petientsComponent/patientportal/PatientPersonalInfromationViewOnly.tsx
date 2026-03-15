@@ -23,13 +23,17 @@ interface PersonalInformation {
 }
 
 const PatientPersonalInformationViewOnly = ({ patientid }) => {
-    console.log('Patient ID:', patientid);
     const [personalInfo, setPersonalInfo] = useState<PersonalInformation | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        fetchPatientPersonalInfo(patientid);
+        fetchPatientPersonalInfo(patientid)
+            .then(() => {
+                setLoading(false)
+            }).catch((err) => {
+                setLoading(false);
+            })
     }, [patientid]);
 
     if (loading) return <div className={styles.loading}><div className="spinner-border spinner-border-sm text-primary" role="status"></div></div>;
@@ -52,7 +56,8 @@ const PatientPersonalInformationViewOnly = ({ patientid }) => {
         <div className={styles.container}>
             <div className={styles.header}>
                 <div className={styles.headerTitle}>Personal Information</div>
-                <a href={`/registration?patientid=${patientid}`} className={styles.editButton}>
+                <a href={`/registration?patientid=${patientid}`}
+                    className={styles.editButton}>
                     <RiEditLine size={16} />
                 </a>
             </div>

@@ -25,6 +25,7 @@ i {
   cursor: pointer;
   font-size: 13px !important;
 }
+
 .billing-cart-table>thead>tr>th {
   font-weight: bold;
 }
@@ -296,6 +297,11 @@ body[data-bs-theme="dark"] .pls-color {
 
 #checkbo {
   margin-left: 20px;
+}
+
+/* Refresh button animation */
+.animate-spin {
+  animation: spin 500ms linear infinite;
 }
 
 .custom-textarea {

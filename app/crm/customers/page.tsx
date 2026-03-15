@@ -9,7 +9,7 @@ import CustomersActions from '../../../components/customer/CustomersActionDropDo
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 import { toast } from 'react-toastify';
 import { plsEncryption } from '../../../lib/encryption';
-import { RiResetLeftFill } from '@remixicon/react';
+import { RiResetLeftFill, RiRefreshLine } from '@remixicon/react';
 import dayjs from 'dayjs';
 
 interface Customer {
@@ -100,9 +100,7 @@ export default function Activator() {
     const handleRegisterNewClient = () => {
         const windowWidth = 800;
         const windowHeight = 600;
-        const left = (window.innerWidth - windowWidth) / 2 + window.screenX;
-        const top = (window.innerHeight - windowHeight) / 2 + window.screenY;
-        window.open(`/crm/registration?isOpenSideBarShow=false&isOnlyRegistration=true`, '_blank', `width=${windowWidth},height=${windowHeight},left=${Math.round(left)},top=${Math.round(top)},resizable=yes,scrollbars=yes`);
+        window.open(`/crm/registration?isOpenSideBarShow=false&isOnlyRegistration=true`, '_blank');
     }
 
 
@@ -189,12 +187,27 @@ export default function Activator() {
             .catch((err) => { console.log(err) })
     }, [])
 
-    const filteredPatient = (options) => {
+    const filteredPatient = (options: Array<{ patientid: number, [key: string]: unknown }> | { patientid: number, [key: string]: unknown }) => {
+        if (Array.isArray(options)) {
+            if (options.length === 0) {
+                setStore([]);
+                return;
+            }
+            const hasPatientid = options.every(opt => typeof opt === "object" && opt.hasOwnProperty('patientid'));
+            if (!hasPatientid) return;
+            const formattedOptions = options.map(opt => {
+                const fullname = [opt.firstname, opt.middlename, opt.lastname].filter(Boolean).join(' ');
+                return { ...opt, fullname };
+            });
+            setStore(formattedOptions as Customer[]);
+            return;
+        }
+
         const hasPatientid = typeof options === "object" && options.hasOwnProperty('patientid');
         if (!hasPatientid) return;
         const fullname = [options.firstname, options.middlename, options.lastname].filter(Boolean).join(' ');
         options = { ...options, fullname };
-        setStore([options])
+        setStore([options] as unknown as Customer[]);
     };
 
 
@@ -224,18 +237,22 @@ export default function Activator() {
 
     return (
         <div className='p-2'>
-            <div className='d-flex col-12 justify-content-between'>
-                <div className="col-md-8 col-sm-12 col-lg-6 my-2 d-lg-flex ">
-                    <div style={{ minWidth: '80%' }}>
-                        <PatientFiltered isDisabled={false} getSelectedPatient={filteredPatient} />
-                    </div>
-                    <div className='mx-3' style={{ marginTop: '3px' }}>
-                        <button className='btn btn-outline-danger btn-sm' onClick={() => { resetFiltering() }}> <RiResetLeftFill /> Reset </button>
-                    </div>
+            <div className='row g-2 mb-3'>
+                <div className='col-6'>
+                    <PatientFiltered isDisabled={false} getSelectedPatient={filteredPatient} />
                 </div>
-                <div className='col-md-4 col-sm-12 col-lg-6 my-2 d-lg-flex col-xl-4 justify-content-center gap-2'>
-                    <button className='btn btn-success btn-sm' onClick={handleRegisterNewClient}>+ Register New Client</button>
+                <div className='col-6 d-flex justify-content-end align-items-end gap-2'>
+                    <button className='btn btn-success ' onClick={handleRegisterNewClient}>+ Register New Client</button>
                     <button className='btn btn-primary' onClick={() => setShowAdvancedFilter(!showAdvancedFilter)}>Advanced Filtering</button>
+                    <button
+                        className='btn btn-outline-secondary'
+                        onClick={resetFiltering}
+                        disabled={loading}
+                        title="Refresh to get latest data"
+                    >
+                        <RiRefreshLine size={16} className={loading ? 'animate-spin' : ''} style={{ marginRight: '4px' }} />
+                        {loading ? 'Refreshing...' : 'Refresh'}
+                    </button>
                 </div>
             </div>
             {/* advanced Filter */}

@@ -241,7 +241,7 @@ export const ghanaDistricts = {
 };
 
 
-export const designation = ['Mr.', 'Mrs.', 'Miss', 'Ms.', 'Dr.', 'Prof.'];
+export const designation = ['Mr.', 'Mrs.', 'Miss', 'Ms.', 'Dr.', 'Prof.','Alhaji', 'Alhaja', 'Chief', 'Lady', 'Rev.', 'Fr.', 'Pastor', 'Imam', 'Sheikh', 'Sultan', 'Nana', 'Oba', 'Oga', 'Madam', 'Other'];
 
 
 

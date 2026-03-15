@@ -68,12 +68,35 @@ export interface OptionType {
 }
 
 
-export const loadOptions = async (input: string = ''): Promise<any[]> => {
-	if (input.length >= 3 && (typeof input === 'string' || typeof input == "number")) {
-		const response = await customPost(`customer/advanced/filter?patientid=${input}`, 'POST', { patientid: input });
-		const { data, success } = response || {};
-		if (success && Array.isArray(data)) return data;
+export const loadOptions = async (
+	input: string = '',
+	selectedField: string,
+	startDate: string = '',
+	endDate: string = ''
+): Promise<any[]> => {
+	// Check if either input or dates are provided
+	const hasInput = input && input.length >= 3;
+	const hasDates = startDate && endDate;
+
+	if (!hasInput && !hasDates) {
+		return [];
 	}
+
+	const payload: any = {};
+
+	if (hasInput) {
+		payload[selectedField] = input;
+	}
+
+	if (hasDates) {
+		payload.startDate = startDate;
+		payload.endDate = endDate;
+	}
+
+	const response = await customPost(`customer/advanced/filter`, 'POST', payload);
+	const { data, success } = response || {};
+	if (success && Array.isArray(data)) return data;
+
 	return [];
 }
 

@@ -453,7 +453,7 @@ export default function DailySalesTrend() {
                         </button>
                     </div>
                     <div className="table-responsive">
-                        <table className="table table-sm table-hover table-striped small printable-table-with-borders">
+                        <table className="table table-sm table-hover table-striped small printable-table-with-borders" >
                             <thead className="sticky-top bg-body-tertiary">
                                 <tr>
                                     <th scope="col" className="py-2">Date</th>

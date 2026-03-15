@@ -187,12 +187,9 @@ export default function ValidatedResultTable({ employeeid }) {
                accessor: '',
                Cell: ({ row }) => (
                     <Dropdown>
-                         <Dropdown.Toggle
-                              variant='link'
-                              size="sm">
+                         <Dropdown.Toggle variant='link' size="sm">
                               <RiMoreLine fontSize="small" />
                          </Dropdown.Toggle>
-
                          <Dropdown.Menu>
                               <Dropdown.Item
                                    className='pls-label' onClick={() => handleBrowserView(row.original)}>

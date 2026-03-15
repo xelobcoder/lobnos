@@ -1,10 +1,10 @@
 "use client";
 import React, { useState } from 'react';
-import { Container, Card } from 'react-bootstrap';
+import { Container, Card, Modal } from 'react-bootstrap';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { billingSource } from '../../../../../lib/billingLib';
 import Select from 'react-select';
-import { RiHealthBookLine, RiArrowRightLine, RiListCheck, RiUser3Line, RiBuildingLine } from '@remixicon/react';
+import { RiHealthBookLine, RiArrowRightLine, RiListCheck, RiUser3Line, RiBuildingLine, RiAddLine, RiSearchLine } from '@remixicon/react';
 import { useApplication } from '../../../../../components/Auth/useApplicationContext';
 import { customFetch } from '../../../../../components/Auth/customFetch';
 import { toast } from 'react-toastify';
@@ -16,6 +16,15 @@ interface BillingOption {
 
 export default function BillingTypeSelection() {
 	const [selectedBillingSource, setSelectedBillingSource] = useState<BillingOption | null>(null);
+	const [showAddClinicianModal, setShowAddClinicianModal] = useState(false);
+	const [showAddOrgModal, setShowAddOrgModal] = useState(false);
+	const [showCheckClinicianModal, setShowCheckClinicianModal] = useState(false);
+	const [showCheckOrgModal, setShowCheckOrgModal] = useState(false);
+	const [clinicianSearch, setClinicianSearch] = useState('');
+	const [orgSearch, setOrgSearch] = useState('');
+	const [clinicianResults, setClinicianResults] = useState<any[]>([]);
+	const [orgResults, setOrgResults] = useState<any[]>([]);
+	const [searching, setSearching] = useState(false);
 	const router = useRouter();
 	const patientid = useParams()?.patientid;
 	const branchid = useApplication().branchid;
@@ -80,6 +89,72 @@ export default function BillingTypeSelection() {
 		}
 	};
 
+	const searchClinicians = async () => {
+		if (!clinicianSearch.trim()) {
+			toast.warning("Please enter a clinician name or ID");
+			return;
+		}
+		try {
+			setSearching(true);
+			const response = await customFetch(`clinicians?search=${clinicianSearch}&branchid=${branchid}`);
+			if (response?.result) {
+				setClinicianResults(response.result);
+			} else {
+				setClinicianResults([]);
+				toast.info("No clinicians found matching your search");
+			}
+		} catch (error) {
+			toast.error("Error searching for clinicians");
+			console.error(error);
+		} finally {
+			setSearching(false);
+		}
+	};
+
+	const searchOrganizations = async () => {
+		if (!orgSearch.trim()) {
+			toast.warning("Please enter an organization name");
+			return;
+		}
+		try {
+			setSearching(true);
+			const response = await customFetch(`organizations/details?count=10&page=1&organization=${orgSearch}`);
+			if (response?.result) {
+				setOrgResults(response.result);
+			} else {
+				setOrgResults([]);
+				toast.info("No organizations found matching your search");
+			}
+		} catch (error) {
+			toast.error("Error searching for organizations");
+			console.error(error);
+		} finally {
+			setSearching(false);
+		}
+	};
+
+	const handleCheckClinicianNewWindow = () => {
+		setShowCheckClinicianModal(false);
+		const windowUrl = `/billing/clinician-search`;
+		window.open(windowUrl, '_blank');
+	};
+
+	const handleCheckOrgNewWindow = () => {
+		setShowCheckOrgModal(false);
+		const windowUrl = `/billing/organization-search`;
+		window.open(windowUrl, '_blank');
+	};
+
+	const handleAddClinician = () => {
+		window.open('/clinicians?action=new', '_blank');
+		setShowAddClinicianModal(false);
+	};
+
+	const handleAddOrganization = () => {
+		window.open('/organization?action=new', '_blank');
+		setShowAddOrgModal(false);
+	};
+
 	const customStyles = {
 		control: (base: any) => ({
 			...base,
@@ -116,37 +191,154 @@ export default function BillingTypeSelection() {
 	};
 
 	return (
-		<Container className="py-5 d-flex flex-column align-items-center justify-content-center" style={{ maxWidth: 480 }}>
-			<Card className="border border-light border-2 w-100" style={{ maxWidth: 420 }}>
-				<Card.Body className="p-4">
-					<div className="text-center mb-4">
-						<RiHealthBookLine size={32} className="text-primary mb-2" />
-						<h5 className="fw-bold mb-1">Select Billing Source</h5>
-						<div className="text-secondary small">Choose the type of billing you want to initiate for this patient.</div>
+		<>
+			<Container className="py-5 d-flex flex-column align-items-center justify-content-center" style={{ maxWidth: 480 }}>
+				<Card className="border border-light border-2 w-100" style={{ maxWidth: 420 }}>
+					<Card.Body className="p-4">
+						<div className="text-center mb-4">
+							<RiHealthBookLine size={32} className="text-primary mb-2" />
+							<h5 className="fw-bold mb-1">Select Billing Source</h5>
+							<div className="text-secondary small">Choose the type of billing you want to initiate for this patient.</div>
+						</div>
+						<div className="mb-4">
+							<Select
+								options={options}
+								value={selectedBillingSource}
+								onChange={(option) => setSelectedBillingSource(option)}
+								styles={customStyles}
+								placeholder="Choose billing source..."
+								isSearchable={false}
+								className="mb-2"
+								formatOptionLabel={formatOptionLabel}
+							/>
+						</div>
+						<button
+							className="btn btn-primary btn-sm w-100 d-flex align-items-center justify-content-center shadow-sm"
+							onClick={handleGenerateBillingId}
+							disabled={!selectedBillingSource}
+							style={{ fontSize: 15, padding: '0.75rem', borderRadius: 6, fontWeight: 600 }}
+						>
+							Continue
+							<RiArrowRightLine size={18} className="ms-2" />
+						</button>
+					</Card.Body>
+				</Card>
+
+				{/* Quick Links Section */}
+				<div className="mt-4 w-100" style={{ maxWidth: 420 }}>
+					<div className="text-center mb-3">
+						<h6 className="fw-bold text-muted small">Quick Links</h6>
 					</div>
-					<div className="mb-4">
-						<Select
-							options={options}
-							value={selectedBillingSource}
-							onChange={(option) => setSelectedBillingSource(option)}
-							styles={customStyles}
-							placeholder="Choose billing source..."
-							isSearchable={false}
-							className="mb-2"
-							formatOptionLabel={formatOptionLabel}
-						/>
+					<div className="d-grid gap-2">
+						<div className="d-grid grid-cols-2 gap-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+							<button
+								className="btn btn-outline-info btn-sm d-flex align-items-center justify-content-center"
+								onClick={() => setShowAddClinicianModal(true)}
+								style={{ padding: '0.5rem', fontSize: '12px' }}
+							>
+								<RiAddLine size={16} className="me-1" />
+								Add Clinician
+							</button>
+							<button
+								className="btn btn-outline-success btn-sm d-flex align-items-center justify-content-center"
+								onClick={() => setShowAddOrgModal(true)}
+								style={{ padding: '0.5rem', fontSize: '12px' }}
+							>
+								<RiAddLine size={16} className="me-1" />
+								Add Organization
+							</button>
+							<button
+								className="btn btn-outline-warning btn-sm d-flex align-items-center justify-content-center"
+								onClick={() => window.open('/billing/clinician-search', '_blank')}
+								style={{ padding: '0.5rem', fontSize: '12px' }}
+							>
+								<RiSearchLine size={16} className="me-1" />
+								Check Clinician
+							</button>
+							<button
+								className="btn btn-outline-danger btn-sm d-flex align-items-center justify-content-center"
+								onClick={() => window.open('/billing/organization-search', '_blank')}
+								style={{ padding: '0.5rem', fontSize: '12px' }}
+							>
+								<RiSearchLine size={16} className="me-1" />
+								Check Organization
+							</button>
+						</div>
 					</div>
-					<button
-						className="btn btn-primary btn-sm w-100 d-flex align-items-center justify-content-center shadow-sm"
-						onClick={handleGenerateBillingId}
-						disabled={!selectedBillingSource}
-						style={{ fontSize: 15, padding: '0.75rem', borderRadius: 6, fontWeight: 600 }}
-					>
-						Continue
-						<RiArrowRightLine size={18} className="ms-2" />
+				</div>
+			</Container>
+
+			{/* Add Clinician Modal */}
+			<Modal show={showAddClinicianModal} onHide={() => setShowAddClinicianModal(false)} size="sm" centered>
+				<Modal.Header closeButton>
+					<Modal.Title>Add New Clinician</Modal.Title>
+				</Modal.Header>
+				<Modal.Body>
+					<p>You will be redirected to the clinicians page to add a new clinician.</p>
+				</Modal.Body>
+				<Modal.Footer>
+					<button className="btn btn-secondary btn-sm" onClick={() => setShowAddClinicianModal(false)}>
+						Cancel
 					</button>
-				</Card.Body>
-			</Card>
-		</Container>
+					<button className="btn btn-primary btn-sm" onClick={handleAddClinician}>
+						Proceed
+					</button>
+				</Modal.Footer>
+			</Modal>
+
+			{/* Add Organization Modal */}
+			<Modal show={showAddOrgModal} onHide={() => setShowAddOrgModal(false)} size="sm" centered>
+				<Modal.Header closeButton>
+					<Modal.Title>Add New Organization</Modal.Title>
+				</Modal.Header>
+				<Modal.Body>
+					<p>You will be redirected to the organizations page to add a new organization.</p>
+				</Modal.Body>
+				<Modal.Footer>
+					<button className="btn btn-secondary btn-sm" onClick={() => setShowAddOrgModal(false)}>
+						Cancel
+					</button>
+					<button className="btn btn-primary btn-sm" onClick={handleAddOrganization}>
+						Proceed
+					</button>
+				</Modal.Footer>
+			</Modal>
+
+			{/* Check Clinician Modal */}
+			<Modal show={showCheckClinicianModal} onHide={() => setShowCheckClinicianModal(false)} size="lg" centered>
+				<Modal.Header closeButton>
+					<Modal.Title>Check Clinician Details</Modal.Title>
+				</Modal.Header>
+				<Modal.Body>
+					<p>You will be redirected to the clinician search page in a new window.</p>
+				</Modal.Body>
+				<Modal.Footer>
+					<button className="btn btn-secondary btn-sm" onClick={() => setShowCheckClinicianModal(false)}>
+						Close
+					</button>
+					<button className="btn btn-primary btn-sm" onClick={handleCheckClinicianNewWindow}>
+						Open in New Window
+					</button>
+				</Modal.Footer>
+			</Modal>
+
+			{/* Check Organization Modal */}
+			<Modal show={showCheckOrgModal} onHide={() => setShowCheckOrgModal(false)} size="lg" centered>
+				<Modal.Header closeButton>
+					<Modal.Title>Check Organization Details</Modal.Title>
+				</Modal.Header>
+				<Modal.Body>
+					<p>You will be redirected to the organization search page in a new window.</p>
+				</Modal.Body>
+				<Modal.Footer>
+					<button className="btn btn-secondary btn-sm" onClick={() => setShowCheckOrgModal(false)}>
+						Close
+					</button>
+					<button className="btn btn-primary btn-sm" onClick={handleCheckOrgNewWindow}>
+						Open in New Window
+					</button>
+				</Modal.Footer>
+			</Modal>
+		</>
 	);
 }

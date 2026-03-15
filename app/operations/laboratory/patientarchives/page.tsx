@@ -20,7 +20,7 @@ const DEFAULTVALUES = {
 	fullname: "",
 	page: 1,
 	ascensionid: "",
-	count: 2,
+	count: 10,
 	from: "",
 	to: "",
 };
@@ -39,24 +39,24 @@ const handleBrowserView = (data) => {
 	const csvid = `${generateRandomTextAndNumbers(70)}${billingid}`;
 	const ptid = `${generateRandomTextAndNumbers(50)}${patientid}`;
 	const url = `csvid=${csvid}&&testid=${testid}&&testname=${testname}&&ptid=${ptid}&&target=70,50&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&&password=&&isScan=false&&testname=${testname}&&ptid=TKUGSzyQHfg7e9rkp39sXF8Q96cRWYLMVi4NztxwpIgM8JVJWU3380&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&&target=70%2C50&&password=&&isBrowserPrintout=1&&tenantId=`;
-	window.open(`/result/labreport/4?${url}`, '_blank', 'resizable=no,scrollbars=no,width=1200,height=800');
+	window.open(`/result/labreport/4?${url}`, '_blank');
 };
 
 const PatientArchivesPage = () => {
 	const [query, setQuery] = useState(DEFAULTVALUES);
 	const [collection, setCollection] = useState<any[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
-	const [load, setLoad] = useState(false);
+	const [searchFieldType, setSearchFieldType] = useState<"patientid" | "billingid" | "ascensionid" | "fullname" | "date">("patientid");
+	const [searchValue, setSearchValue] = useState("");
+	const [showFilter, setShowFilter] = useState(false);
 	const router = useRouter();
 
 	const { user } = useApplicationSettings().applicationsettings;
 	const employeeid = user?.employeeid;
 	const hasNotFiltered =
-		!query.billingid &&
-		!query.patientid &&
-		!query.fullname &&
+		!searchValue &&
 		!query.from &&
-		!query.to && !query.ascensionid;
+		!query.to;
 
 	const getRange = (value) => {
 		const [start, end] = value;
@@ -118,7 +118,7 @@ const PatientArchivesPage = () => {
 			Header: "Test Info",
 			accessor: "testinfo",
 			Cell: ({ row }) => (
-				<div>
+				<div className="bg-warning p-2 rounded">
 					<div><b>Test Name:</b> {row.original.test_name}</div>
 					<div><b>Test ID:</b> {row.original.testid}</div>
 					<div><b>Ascension ID:</b> {row.original.ascensionid}</div>
@@ -179,31 +179,32 @@ const PatientArchivesPage = () => {
 
 				return (
 					<>
-						<button
-							onClick={() => handleBrowserView({
-								testid,
-								testname: test_name,
-								patientid,
-								ascensionid,
-								billingid
-							})}
-							className="btn btn-primary btn-sm mx-1"
-						>
-							View Result
-						</button>
-						<button
-							title="View Patient Archive"
-							className="btn btn-info btn-sm mx-1"
-							onClick={() => {
-								const encodedPatientId = encodeURIComponent(patientid || "");
-								window.open(`/operations/laboratory/patientarchives/${plsEncryption(encodedPatientId)}?isOpenSideBarShow=false`,
-									'_blank',
-									'resizable=no,scrollbars=yes,width=1000,height=700'
-							);
-							}}
-						>
-							<RiCodeView />
-						</button>
+						<div className="d-flex justify-content-between">
+							<button
+								onClick={() => handleBrowserView({
+									testid,
+									testname: test_name,
+									patientid,
+									ascensionid,
+									billingid
+								})}
+								className="btn btn-primary btn-sm mx-1"
+							>
+								View Result
+							</button>
+							<button
+								title="View Patient Archive"
+								className="btn btn-info btn-sm mx-1"
+								onClick={() => {
+									const encodedPatientId = encodeURIComponent(patientid || "");
+									window.open(`/operations/laboratory/patientarchives/${plsEncryption(encodedPatientId)}?isOpenSideBarShow=false`,
+										'_blank',
+									);
+								}}
+							>
+								<RiCodeView /> View Patient Archive
+							</button>
+						</div>
 					</>
 				);
 			},
@@ -218,72 +219,86 @@ const PatientArchivesPage = () => {
 
 	return (
 		<div>
+			{/* Filter Toggle Button */}
+			<div className="mb-3">
+				<button
+					className="btn btn-outline-primary"
+					onClick={() => setShowFilter(!showFilter)}
+				>
+					{showFilter ? 'Hide Filters' : 'Show Filters'}
+				</button>
+			</div>
+
 			{/* Filter Section */}
-			<div className="card mb-4">
-				<div className="card-header">
-					<h5 className="mb-0">Search Patient Archives</h5>
-				</div>
-				<div className="card-body">
+			{showFilter && (
+				<div className="border rounded p-4 mb-4 bg-white border-light" >
 					<div className="row g-3 align-items-end">
-						{/* patientid */}
+						{/* Search Field Type Selector */}
 						<div className="col-lg-2 col-md-6">
-							<label htmlFor="patientid" className="form-label fw-semibold">Patient ID</label>
-							<input
-								placeholder="Enter Patient ID"
-								className="form-control"
-								id="patientid"
-								value={query.patientid}
-								onChange={(e) => handleComments(e, query, "patientid", setQuery)}
-							/>
+							<label htmlFor="searchFieldType" className="form-label fw-semibold">Search By</label>
+							<select
+								id="searchFieldType"
+								className="form-select"
+								value={searchFieldType}
+								onChange={(e) => {
+									setSearchFieldType(e.target.value as "patientid" | "billingid" | "ascensionid" | "fullname" | "date");
+									setSearchValue("");
+									// Reset query fields
+									setQuery({
+										...query,
+										patientid: "",
+										billingid: "",
+										ascensionid: "",
+										fullname: ""
+									});
+								}}
+							>
+								<option value="patientid">Patient ID</option>
+								<option value="billingid">Billing ID</option>
+								<option value="ascensionid">Ascension ID</option>
+								<option value="fullname">Patient Name</option>
+								<option value="date">Date Range</option>
+							</select>
 						</div>
-						{/* ID Filters Row */}
-						<div className="col-lg-2 col-md-6">
-							<label htmlFor="billingid" className="form-label fw-semibold">Billing ID</label>
+
+						{/* Search Input - Always show */}
+						<div className="col-lg-3 col-md-6">
+							<label htmlFor="searchInput" className="form-label fw-semibold">
+								{searchFieldType === "patientid" && "Enter Patient ID"}
+								{searchFieldType === "billingid" && "Enter Billing ID"}
+								{searchFieldType === "ascensionid" && "Enter Ascension ID"}
+								{searchFieldType === "fullname" && "Enter Patient Name"}
+								{searchFieldType === "date" && "Search"}
+							</label>
 							<input
-								placeholder="Enter Billing ID"
+								id="searchInput"
+								placeholder="Search..."
 								className="form-control"
-								id="billingid"
-								value={query.billingid}
-								onChange={(e) => handleComments(e, query, "billingid", setQuery)}
-							/>
-						</div>
-						<div className="col-lg-2 col-md-6">
-							<label htmlFor="patientid" className="form-label fw-semibold">Ascension ID</label>
-							<input
-								placeholder="Enter Ascension ID"
-								className="form-control"
-								value={query.ascensionid}
-								id="ascensionid"
-								onChange={(e) => handleComments(e, query, "ascensionid", setQuery)}
+								value={searchValue}
+								onChange={(e) => {
+									setSearchValue(e.target.value);
+									setQuery({
+										...query,
+										[searchFieldType]: e.target.value
+									});
+								}}
 							/>
 						</div>
 
-						{/* Name Filter */}
-						<div className="col-lg-3 col-md-6">
-							<label htmlFor="fullname" className="form-label fw-semibold">Patient Name</label>
-							<input
-								placeholder="Enter Full Name"
-								className="form-control"
-								value={query.fullname}
-								id="fullname"
-								onChange={(e) => handleComments(e, query, "fullname", setQuery)}
-							/>
-						</div>
-
-						{/* Date Range Filter */}
-						<div className="col-lg-3 col-md-6">
-							<label className="form-label fw-semibold">Date Range</label>
-							<div>
+						{/* Date Range Filter - Show only if date is selected */}
+						{searchFieldType === "date" && (
+							<div className="col-lg-3 col-md-6">
+								<label className="form-label fw-semibold">Select Date Range</label>
 								<DatePickerRange
 									getRange={getRange}
 									start={query.from}
 									end={query.to}
 								/>
 							</div>
-						</div>
+						)}
 
 						{/* Action Buttons */}
-						<div className="col-lg-2 col-md-12">
+						<div className="col-lg-4 col-md-12">
 							<div className="d-flex gap-2">
 								<button
 									className="btn btn-success flex-fill"
@@ -297,6 +312,8 @@ const PatientArchivesPage = () => {
 								<button
 									onClick={(ev) => {
 										clearFilters();
+										setSearchValue("");
+										setSearchFieldType("patientid");
 									}}
 									className="btn btn-outline-secondary flex-fill"
 									disabled={isLoading}
@@ -307,7 +324,7 @@ const PatientArchivesPage = () => {
 						</div>
 					</div>
 				</div>
-			</div>
+			)}
 
 			<PrimeTable
 				column={columns}

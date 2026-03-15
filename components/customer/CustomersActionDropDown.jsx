@@ -28,7 +28,7 @@ const CustomersActions = ({ item, callActivation, gotoPrevTrans, toast, router, 
                     <Dropdown.Item className='text-capitalize' onClick={() => {
                          if (item.patientid) {
                               const encryptedPatientId = plsEncryption(item.patientid.toString());
-                              window.open(`/billing/patientid/${encryptedPatientId}/multi?isOpenSideBarShow=false`, '_blank', 'width=800,height=600,resizable=yes,scrollbars=yes');
+                              window.open(`/billing/patientid/${encryptedPatientId}/multi?isOpenSideBarShow=false`, '_blank');
                          } else {
                               toast.error('Patientid not included')
                          }
@@ -65,8 +65,14 @@ const CustomersActions = ({ item, callActivation, gotoPrevTrans, toast, router, 
                     <Dropdown.Item className='text-capitalize' onClick={() => router.push(`/crm/customers/transactions/${plsEncryption(item.patientid.toString())}`)}>
                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
                               <path d="M20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4ZM20 18H4V8L12 13L20 8V18ZM12 11L4 6H20L12 11Z" />
-                         </svg> Transactions
+                         </svg> Transactions(Analytics)
                     </Dropdown.Item>
+                       <Dropdown.Item className='text-capitalize' onClick={() => router.push(`/operations/laboratory/patientarchives/${plsEncryption(item.patientid.toString())}?isOpenSideBarShow=false`)}>
+                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                              <path d="M20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4ZM20 18H4V8L12 13L20 8V18ZM12 11L4 6H20L12 11Z" />
+                         </svg>View Previous Transactions(Test)
+                    </Dropdown.Item>
+
                </Dropdown.Menu>
           </Dropdown>
      );

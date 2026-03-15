@@ -4,20 +4,16 @@ import { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import DatePickerRange from "../../../../../components/accessories/DatePickerRange";
 import {
-	handleComments,
 	customFetch,
-	formatTest,
 	generateRandomTextAndNumbers,
-	updatePagination,
 } from "../../../../../components/Auth/customFetch";
 import PrimeTable from "../../../../../components/accessories/Datatables/PrimeTable";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useApplicationSettings } from "../../../../../components/Auth/useApplicationContext";
 import { plsDecryption } from "../../../../../lib/encryption";
 import { handleServerSidePatientArchives } from "../../../../../components/serverActions/ActionFiltering";
-import BillingPagePatientInformation from "../../../../../components/Billing/BillingContextComponents/PersonalInfoView";
-import { RiUserFill } from "@remixicon/react";
 import Loader from "../../../../../components/isLoading";
+import PreviewPatientInformation from "../../../../../components/petientsComponent/PreviewPatientInformation";
 
 
 const DEFAULTVALUES = {
@@ -103,7 +99,7 @@ const PatientSpecificArchivesCases = () => {
 		const csvid = `${generateRandomTextAndNumbers(70)}${billingid}`;
 		const ptid = `${generateRandomTextAndNumbers(50)}${patientid}`;
 		const url = `csvid=${csvid}&&testid=${testid}&&testname=${test_name}&&ptid=${ptid}&&target=70,50&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&&password=`;
-		const newWindow = window.open(`/result/labreport/4?${url}&&isOpenSideBarShow=false`, "_blank", "width=1000,height=700,resizable=no,scrollbars=yes");
+		const newWindow = window.open(`/result/labreport/4?${url}&&isOpenSideBarShow=false`, "_blank");
 		window.close();
 	};
 
@@ -128,7 +124,7 @@ const PatientSpecificArchivesCases = () => {
 			Header: "Case Info",
 			accessor: "caseinfo",
 			Cell: ({ row }) => (
-				<div>
+				<div className="bg-warning p-2 rounded">
 					<div><b>Ascension ID:</b> {row.original.ascensionid}</div>
 					<div><b>Test ID:</b> {row.original.testid}</div>
 					<div><b>Test Name:</b> {row.original.test_name || '-'} </div>
@@ -180,20 +176,13 @@ const PatientSpecificArchivesCases = () => {
 	];
 
 
-
+	const patientid = patientidParam ? plsDecryption(patientidParam) : "";
 
 	return (
-		<div>
-			<div className="bg-secondary-subtle rounded-3 shadow-sm p-3 mb-4">
-				<div className="d-flex align-items-center">
-					<RiUserFill className="me-2 text-capitalize" />
-					<span className="ms-2 text-capitalize ">
-						{fullname}
-					</span>
-				</div>
-			</div>
-			<div className="row g-3 align-items-end">
-				<div className="col">
+		<div className="mx-3">
+			<PreviewPatientInformation patientid={patientid} />
+			<div className="row g-3 align-items-end mt-2 mb-2">
+				<div className="col-3">
 					<DatePickerRange
 						getRange={getRange}
 						start={query.from}

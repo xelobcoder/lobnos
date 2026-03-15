@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import DatePickerRange from "../../../components/accessories/DatePickerRange";
 import { useLaboratoryContext } from "./LaboratoryStagesContext";
 import { handleDateRangeSelection } from "./AscensionFilteringComponent";
@@ -7,6 +8,7 @@ import { date } from "zod";
 
 export default function LaboratoryAscensionFiltering({ ascension_stage, employeeid, branchid }) {
 
+       const router = useRouter();
        const {
               queryParams,
               setQueryParams,
@@ -108,13 +110,38 @@ export default function LaboratoryAscensionFiltering({ ascension_stage, employee
               }
        }
 
+       const handleResetFilters = () => {
+              // Reset all filter states
+              setCategory({ section: '', value: '' });
+              setDateFilter('');
+
+              // Reset query params
+              setQueryParams((prev) => ({
+                     ...prev,
+                     ascensionid: '',
+                     patientid: '',
+                     testid: '',
+                     billingid: '',
+                     patientname: "",
+                     _dateFrom: "",
+                     _dateEnd: "",
+              }));
+
+              // Clean URL by removing query string
+              const pathname = window.location.pathname;
+              if (window.location.search) {
+                     window.history.replaceState({}, '', pathname);
+                     router.replace(pathname);
+              }
+       };
+
 
 
 
 
        return (
               <div className="mb-2">
-                     <div className="row g-2 align-items-center">
+                     <div className="row g-2 align-items-end">
                             <div className="col-12 col-lg-2">
                                    <select onChange={(ev) => {
                                           if (ev.target.value == "none") {
@@ -177,23 +204,32 @@ export default function LaboratoryAscensionFiltering({ ascension_stage, employee
                                                  }))
                                           }
                                    >
-                                          <option value="DESC">Sort by Date (Newest First)</option>
-                                          <option value="ASC">Sort by Date (Oldest First)</option>
+                                          <option value="DESC">Newest data first </option>
+                                          <option value="ASC">Oldest data first</option>
                                    </select>
                             </div>
-                            <div className="col-12 col-lg-2">
+                            <div className="col-12 col-lg-2 d-flex gap-2">
                                    <button
                                           onClick={() => _getAscensionData(ascension_stage, employeeid, branchid, {
                                                  ascensionid: queryParams.ascensionid,
                                                  patientid: queryParams.patientid,
                                                  billingid: queryParams.billingid,
                                                  [category.section]: category.value,
+                                                 grouped: queryParams.grouped ||
+                                                        "grouped",
                                                  testid: queryParams.testid
                                           })}
-                                          className="btn btn-primary btn-sm w-100 text-uppercase"
+                                          className="btn btn-primary flex-grow-1 text-uppercase"
                                           title="Press Enter key anywhere on the page to load data"
                                    >
                                           Load Data
+                                   </button>
+                                   <button
+                                          onClick={handleResetFilters}
+                                          className="btn btn-danger flex-grow-1 text-uppercase fw-bold"
+                                          title="Clear all filters and URL query string"
+                                   >
+                                          🔄 Reset
                                    </button>
                             </div>
                      </div>

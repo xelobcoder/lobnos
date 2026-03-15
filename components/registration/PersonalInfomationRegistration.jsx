@@ -4,7 +4,6 @@ import { Modal, Button } from 'react-bootstrap';
 import { customFetch, customPost } from "../Auth/customFetch";
 import { designation } from "./fields/Util";
 import PersonalRegistrationForms from "./PersonalRegistrationForms/PersonalRegistrationForms";
-import AdditionalPersonalInformation from "./PersonalRegistrationForms/AdditionalPersonalInformation";
 import { handleAgeCalculations } from "../Auth/registerclient";
 import { plsEncryption } from "../../lib/encryption";
 import { useApplication } from "../Auth/useApplicationContext";
@@ -54,10 +53,18 @@ export default function PersonalInformationRegistration({
 				method === "POST"
 					? `register?employeeid=${employeeid}`
 					: `register/personalinformation?patientid=${formData?.patientid}&&employeeid=${employeeid}`;
+
+			// Format phone numbers with country codes
+			const dataToSubmit = {
+				...formData,
+				mobileownership: formData?.contactpointer == true ? "relative" : "self",
+				mobile: formData.mobile && formData.mobileCountryCode ? `${formData.mobileCountryCode}${formData.mobile}` : formData.mobile,
+				whatAppcontact: formData.whatAppcontact && formData.whatsappCountryCode ? `${formData.whatsappCountryCode}${formData.whatAppcontact}` : formData.whatAppcontact,
+				relativecontactnumber: formData.relativecontactnumber && formData.relativeCountryCode ? `${formData.relativeCountryCode}${formData.relativecontactnumber}` : formData.relativecontactnumber,
+			};
+
 			const response = await customPost(endpoint, method, {
-				data: {
-					...formData, mobileownership: formData?.contactpointer == true ? "relative" : "self"
-				}
+				data: dataToSubmit
 			});
 			const { message, patientid: newPatientId } = response;
 			if (response?.status == true || response?.status === "success") {
@@ -102,39 +109,30 @@ export default function PersonalInformationRegistration({
 					noValidate
 					autoCorrect="false"
 				>
-					<div className="row g-4">
-						<div className="col-lg-6 col-md-12 border-end">
-							<PersonalRegistrationForms
-								toast={toast}
-								handleAgeCalculations={handleAgeCalculations}
-								fields={fields}
-								setFormData={(field, value) => setFormData(prev => ({ ...prev, [field]: value }))}
-								data={formData}
-								designation={designation}
-							/>
-						</div>
-						<div className="col-lg-6 col-md-12">
-							<AdditionalPersonalInformation
-								setFormData={(field, value) => setFormData(prev => ({ ...prev, [field]: value }))}
-								data={formData}
-								checkIFNumberisAvailable={checkIFNumberisAvailable}
-								fields={fields}
-								patientid={patientid} />
-						</div>
-					</div>
+					<div className="registration-form-container" style={{ maxWidth: '600px', margin: '0 auto', padding: '0 15px' }}>
+						<PersonalRegistrationForms
+							toast={toast}
+							handleAgeCalculations={handleAgeCalculations}
+							fields={fields}
+							setFormData={(field, value) => setFormData(prev => ({ ...prev, [field]: value }))}
+							data={formData}
+							designation={designation}
+							checkIFNumberisAvailable={checkIFNumberisAvailable}
+						/>
 
-					<div className="mt-4">
-						<button
-							type="button"
-							className="btn btn-success btn-sm"
-							disabled={isSubmitting}
-							onClick={(ev) => { onSubmit(ev) }}
-						>
-							{isSubmitting && (
-								<span className="spinner-border spinner-border-sm me-2" />
-							)}
-							Save current progress
-						</button>
+						<div className="mt-4">
+							<button
+								type="button"
+								className="btn btn-success"
+								disabled={isSubmitting}
+								onClick={(ev) => { onSubmit(ev) }}
+							>
+								{isSubmitting && (
+									<span className="spinner-border spinner-border-sm me-2" />
+								)}
+								Save current progress
+							</button>
+						</div>
 					</div>
 				</form>
 			</section>

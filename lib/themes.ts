@@ -107,7 +107,8 @@ export const availableFonts = [
      { name: 'Montserrat', value: "var(--font-montserrat)" },
      { name: 'Open Sans', value: "var(--font-open-sans)" },
      { name: 'Lato', value: "var(--font-lato)" },
-     { name: 'Lexend', value: "var(--font-lexend)" }
+     { name: 'Lexend', value: "var(--font-lexend)" },
+     { name: 'Candara', value: "var(--font-candara)" }
 ];
 
 export const availableSidebarStyles = [
