@@ -32,7 +32,7 @@ export default function PreviewPatientInformation({ patientid }) {
 
 	const InfoField = ({ label, value }) => (
 		<div className="mb-1" style={{ fontFamily: 'Candara, sans-serif' }}>
-			<p style={{ fontSize: '0.9rem', marginBottom: '0' }} className="text-dark">
+			<p style={{ marginBottom: '0' }} className="text-dark fs-5">
 				<span className="fw-bold">{label}:</span> {value || "N/A"}
 			</p>
 		</div>
@@ -56,7 +56,7 @@ export default function PreviewPatientInformation({ patientid }) {
 					/>
 				</Col>
 				<Col md={4}>
-					<InfoField label="Full Name" value={`${data?.designation || ''} ${data?.firstname} ${data?.middlename} ${data?.lastname}`.trim()} />
+					<InfoField label="Name" value={`${data?.designation || ''} ${data?.firstname} ${data?.middlename} ${data?.lastname}`.trim()} />
 					<InfoField label="Patient ID" value={data?.fullpatientid} />
 					<InfoField label="Gender" value={data?.gender} />
 					<InfoField label="Age" value={`${data?.age} ${data?.ageType || 'years'}`} />
