@@ -277,53 +277,54 @@ function MultiBillingLayoutContent() {
             }
 
 
-             let updated = {
-                    ...billingdata,
-                    ...backendData,
-                    previousRecordsSummary: billingdata.previousRecordsSummary,
-                    entityId: backendData.entityId ?? billingdata.entityId,
-                    entitytype: backendData.entityType ?? billingdata.entitytype,
-                    patientid: backendData.patientId ?? billingdata.patientid,
-                    billingSource: backendData.billingSource ?? billingdata.billingSource,
-                    includeServices: backendData.includeServices ?? includeServices,
-                    servicesList: includeServices ? backendData.servicesList || servicesList : [],
-                    payments: billingdata.payments || [],
-                    cart: backendData.isPackageUsed ? backendData.testList : [],
-                    ispricingcheckout
+            let updated = {
+                ...billingdata,
+                ...backendData,
+                previousRecordsSummary: billingdata.previousRecordsSummary,
+                entityId: backendData.entityId ?? billingdata.entityId,
+                entitytype: backendData.entityType ?? billingdata.entitytype,
+                patientid: backendData.patientId ?? billingdata.patientid,
+                billingSource: backendData.billingSource ?? billingdata.billingSource,
+                includeServices: backendData.includeServices ?? includeServices,
+                servicesList: includeServices ? backendData.servicesList || servicesList : [],
+                payments: billingdata.payments || [],
+                cart: backendData.isPackageUsed ? backendData.testList : [],
+                allowAdvancePayment: backendData.isPackageUsed ? false : backendData.allowAdvancePayment || false,
+                ispricingcheckout
+            };
+
+            if (backendData.entityType && backendData.entityType !== billingdata.entitytype) {
+                const entityTypeToBillingSource = {
+                    general: 1,
+                    organization: 2,
+                    insurance: 3,
+                    nhis: 4,
+                    clinician: 6,
                 };
 
-                  if (backendData.entityType && backendData.entityType !== billingdata.entitytype) {
-                    const entityTypeToBillingSource = {
-                        general: 1,
-                        organization: 2,
-                        insurance: 3,
-                        nhis: 4,
-                        clinician: 6,
-                    };
+                const newSource = entityTypeToBillingSource[backendData.entityType.toLowerCase()];
+                const path = window.location.pathname.split('/');
 
-                    const newSource = entityTypeToBillingSource[backendData.entityType.toLowerCase()];
-                    const path = window.location.pathname.split('/');
-
-                    if (!isNaN(Number(path[path.length - 1]))) {
-                        path[path.length - 1] = String(newSource);
-                        const queryParams = new URLSearchParams(window.location.search);
-                        queryParams.set('entitytype', backendData.entityType);
-                        if (backendData.entityname) {
-                            queryParams.set('entityname', backendData.entityname);
-                        } else {
-                            queryParams.delete('entityname');
-                        }
-                        if (backendData.entityId) {
-                            queryParams.set('entityid', backendData.entityId);
-                        } else {
-                            queryParams.delete('entityid');
-                        }
-                        window.history.replaceState({}, '', `${path.join('/')}?${queryParams.toString()}`);
+                if (!isNaN(Number(path[path.length - 1]))) {
+                    path[path.length - 1] = String(newSource);
+                    const queryParams = new URLSearchParams(window.location.search);
+                    queryParams.set('entitytype', backendData.entityType);
+                    if (backendData.entityname) {
+                        queryParams.set('entityname', backendData.entityname);
+                    } else {
+                        queryParams.delete('entityname');
                     }
-                    updated.billingSource = newSource;
-                    updated.entitytype = backendData.entityType;
+                    if (backendData.entityId) {
+                        queryParams.set('entityid', backendData.entityId);
+                    } else {
+                        queryParams.delete('entityid');
+                    }
+                    window.history.replaceState({}, '', `${path.join('/')}?${queryParams.toString()}`);
                 }
-                setBillingData(updated);
+                updated.billingSource = newSource;
+                updated.entitytype = backendData.entityType;
+            }
+            setBillingData(updated);
             // setBillingData(prev => {
             //     let updated = {
             //         ...prev,
@@ -374,9 +375,9 @@ function MultiBillingLayoutContent() {
             // });
 
 
-               if (billingdata.cart && billingdata.cart.length > 0 && billingdata.isPackageUsed) {
-            recalculateTotalBill(updated);
-        }
+            if (billingdata.cart && billingdata.cart.length > 0 && billingdata.isPackageUsed) {
+                recalculateTotalBill(updated);
+            }
         } catch (err) {
             setBackendError('Failed to load billing data from backend.');
         } finally {

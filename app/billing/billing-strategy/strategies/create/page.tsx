@@ -294,19 +294,19 @@ function BillingStrategyForm() {
                               </Link>
                          </div>
                     </div>
-
+<hr/>
                     <div className="row">
                          <div >
-                              <div className="border border-secondary-subtle rounded p-2" style={{ backgroundColor: 'var(--theme-card-bg)' }}>
+                              <div >
                                    <form className="mx-4" onSubmit={e => { e.preventDefault(); handleBillingStrategyFormSubmission(); }}>
                                         <div className="row mb-3">
-                                             <div className="col-md-4">
-                                                  <Form.Label className='fw-bold'>Strategy Name*</Form.Label>
+                                             <div className="col-md-4 d-flex justify-content-end d-flex justify-content-end">
+                                                  <Form.Label className='fw-bold text-end'>Strategy Name*</Form.Label>
                                              </div>
-                                             <div className="col-md-8">
+                                             <div className="col-md-5">
                                                   <input
                                                        type="text"
-                                                       className="form-control form-control-sm"
+                                                       className="custom-input form-control-sm"
                                                        value={row.strategyName}
                                                        onChange={e => handleRowChange('strategyName', e.target.value)}
                                                        placeholder="Enter strategy name"
@@ -316,12 +316,12 @@ function BillingStrategyForm() {
                                         </div>
 
                                         <div className="row mb-3">
-                                             <div className="col-md-4">
+                                             <div className="col-md-4 d-flex justify-content-end">
                                                   <Form.Label className='fw-bold'>Description</Form.Label>
                                              </div>
-                                             <div className="col-md-8">
+                                             <div className="col-md-5">
                                                   <textarea
-                                                       className="form-control form-control-sm"
+                                                       className="custom-input form-control-sm"
                                                        rows={3}
                                                        value={row.description}
                                                        onChange={e => handleRowChange('description', e.target.value)}
@@ -331,10 +331,10 @@ function BillingStrategyForm() {
                                         </div>
 
                                         <div className="row mb-3">
-                                             <div className="col-md-4">
+                                             <div className="col-md-4 d-flex justify-content-end">
                                                   <Form.Label className='fw-bold'>Apply To</Form.Label>
                                              </div>
-                                             <div className="col-md-8">
+                                             <div className="col-md-5">
                                                   <div>
                                                        <div className="form-check">
                                                             <input
@@ -365,10 +365,10 @@ function BillingStrategyForm() {
                                         </div>
 
                                         <div className="row mb-3">
-                                             <div className="col-md-4">
+                                             <div className="col-md-4 d-flex justify-content-end">
                                                   <Form.Label className='fw-bold'>NHIS</Form.Label>
                                              </div>
-                                             <div className="col-md-8">
+                                             <div className="col-md-5">
                                                   <div className="form-check">
                                                        <input
                                                             className="form-check-input"
@@ -387,12 +387,12 @@ function BillingStrategyForm() {
                                         {row.isAllTestsConcessionVisible && (
                                              <>
                                                   <div className="row mb-3">
-                                                       <div className="col-md-4">
+                                                       <div className="col-md-4 d-flex justify-content-end">
                                                             <Form.Label className='fw-bold'>Pricing Type</Form.Label>
                                                        </div>
-                                                       <div className="col-md-8">
+                                                       <div className="col-md-5">
                                                             <select
-                                                                 className="form-select form-select-sm"
+                                                                 className="custom-select form-select-sm"
                                                                  value={row.price_type}
                                                                  onChange={e => handleRowChange('price_type', e.target.value)}
                                                             >
@@ -403,10 +403,10 @@ function BillingStrategyForm() {
                                                   </div>
 
                                                   <div className="row mb-3">
-                                                       <div className="col-md-4">
+                                                       <div className="col-md-4 d-flex justify-content-end">
                                                             <Form.Label className='fw-bold'>Concession Mode</Form.Label>
                                                        </div>
-                                                       <div className="col-md-8">
+                                                       <div className="col-md-5">
                                                             <select
                                                                  className="form-select form-select-sm"
                                                                  value={row.selectionMode}
@@ -419,13 +419,13 @@ function BillingStrategyForm() {
                                                   </div>
 
                                                   <div className="row mb-3">
-                                                       <div className="col-md-4">
+                                                       <div className="col-md-4 d-flex justify-content-end">
                                                             <Form.Label className='fw-bold'>Concession Value</Form.Label>
                                                        </div>
-                                                       <div className="col-md-8">
+                                                       <div className="col-md-5">
                                                             <input
                                                                  type="number"
-                                                                 className="form-control form-control-sm"
+                                                                 className="custom-input form-control-sm"
                                                                  value={row.concessionValue}
                                                                  onChange={e => handleRowChange('concessionValue', e.target.value)}
                                                                  min="0"
@@ -439,13 +439,13 @@ function BillingStrategyForm() {
                                         )}
 
                                         <div className="row mb-3">
-                                             <div className="col-md-4">
+                                             <div className="col-md-4 d-flex justify-content-end">
                                                   <Form.Label className='fw-bold'>Valid From</Form.Label>
                                              </div>
-                                             <div className="col-md-8">
+                                             <div className="col-md-5">
                                                   <input
                                                        type="date"
-                                                       className="form-control form-control-sm"
+                                                       className="custom-input form-control-sm"
                                                        value={row.valid_from}
                                                        onChange={e => handleRowChange('valid_from', e.target.value)}
                                                   />
@@ -453,13 +453,13 @@ function BillingStrategyForm() {
                                         </div>
 
                                         <div className="row mb-3">
-                                             <div className="col-md-4">
+                                             <div className="col-md-4 d-flex justify-content-end">
                                                   <Form.Label className='fw-bold'>Valid Until</Form.Label>
                                              </div>
-                                             <div className="col-md-8">
+                                             <div className="col-md-5">
                                                   <input
                                                        type="date"
-                                                       className="form-control form-control-sm"
+                                                       className="custom-input form-control-sm"
                                                        value={row.validUntil}
                                                        onChange={e => handleRowChange('validUntil', e.target.value)}
                                                   />
@@ -472,10 +472,10 @@ function BillingStrategyForm() {
                                              row.isAllTestsConcessionVisible && (
                                                   <>
                                                        <hr />
-                                                       <div>
+                                                       <div className="d-flex justify-content-center">
                                                             <button
                                                                  type="submit"
-                                                                 className="btn btn-success btn-sm mt-2"
+                                                                 className="btn btn-success  mt-2"
                                                                  disabled={submitting || loading || !row.strategyName}
                                                             >
                                                                  {submitting || loading ? (

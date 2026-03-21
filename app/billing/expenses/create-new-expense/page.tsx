@@ -182,8 +182,8 @@ export default function AddNewExpense() {
 				</button>
 			</div>
 			<div className="row">
-				<div className="col-12 col-xl-10 col-xxl-8">
-					<div className="card border-1 bg-body-tertiary">
+				<div className="container ">
+					<div >
 						<div className="card-header border-bottom-0 py-3 bg-body-tertiary">
 							<div className="d-flex align-items-center justify-content-between">
 								<div className="d-flex align-items-center">
@@ -198,148 +198,170 @@ export default function AddNewExpense() {
 						<div className="card-body p-4">
 							{isLoading && <Loader />}
 							<form onSubmit={handleSubmit} noValidate>
+
 								<div className="row g-3">
-									<div className="col-12">
-										<label className="form-label mb-1" style={{ fontSize: '0.75rem', fontWeight: '500' }}>
+									{/* Expense Name */}
+									<div className="col-12 d-flex">
+										<label className="form-label mb-1 col-3 text-end align-content-center">
 											Expense Name <span className="text-danger">*</span>
 										</label>
-										<input
-											name="name"
-											value={formData.name}
-											onChange={handleInputChange}
-											className={`form-control form-control-sm ${errors.name ? "is-invalid" : ""}`}
-											type="text"
-											placeholder="Enter expense name"
-											disabled={isLoading}
-											style={{ fontSize: '0.8rem' }}
-										/>
+										<div className="col-6 mx-2">
+											<input
+												name="name"
+												value={formData.name}
+												onChange={handleInputChange}
+												className={`custom-input ${errors.name ? "is-invalid" : ""}`}
+												type="text"
+												placeholder="Enter expense name"
+												disabled={isLoading}
+												style={{ fontSize: '0.8rem' }}
+											/>
+										</div>
 										{errors.name && <div className="invalid-feedback" style={{ fontSize: '0.75rem' }}>{errors.name}</div>}
 									</div>
 
-									<div className="col-12">
-										<label className="form-label mb-1" style={{ fontSize: '0.75rem', fontWeight: '500' }}>
+									{/* Date & Time */}
+									<div className="col-12 d-flex">
+										<label className="form-label mb-1 col-3 text-end align-content-center">
 											Date & Time <span className="text-danger">*</span>
 										</label>
-										<input
-											name="date"
-											value={formatDateForInput(formData.date)}
-											onChange={handleInputChange}
-											type="datetime-local"
-											className={`form-control form-control-sm ${errors.date ? "is-invalid" : ""}`}
-											disabled={isLoading}
-											style={{ fontSize: '0.8rem' }}
-										/>
+										<div className="col-6 mx-2">
+											<input
+												name="date"
+												value={formatDateForInput(formData.date)}
+												onChange={handleInputChange}
+												type="datetime-local"
+												className={`custom-input ${errors.date ? "is-invalid" : ""}`}
+												disabled={isLoading}
+												style={{ fontSize: '0.8rem' }}
+											/>
+										</div>
 										{errors.date && <div className="invalid-feedback" style={{ fontSize: '0.75rem' }}>{errors.date}</div>}
 									</div>
 
-									<div className="col-md-6">
-										<label className="form-label mb-1" style={{ fontSize: '0.75rem', fontWeight: '500' }}>
+									{/* Merchant */}
+									<div className="col-12 d-flex">
+										<label className="form-label mb-1 col-3 text-end align-content-center">
 											Merchant <span className="text-danger">*</span>
 										</label>
-										<Select
-											options={merchants.map((merchant) => ({
-												value: merchant.id,
-												label: merchant.name,
-											}))}
-											styles={reactSelectCustomStyles}
-											placeholder="Select merchant"
-											classNamePrefix="react-select"
-											isClearable
-											onChange={handleSelectChange("merchant")}
-											value={
-												formData.merchant
-													? merchants
-														.map((merchant) => ({
-															value: merchant.id,
-															label: merchant.name,
-														}))
-														.find((option) => option.value === Number(formData.merchant)) || null
-													: null
-											}
-											isDisabled={isLoading}
-										/>
+										<div className="col-6 mx-2">
+											<Select
+												options={merchants.map((merchant) => ({
+													value: merchant.id,
+													label: merchant.name,
+												}))}
+												styles={reactSelectCustomStyles}
+												placeholder="Select merchant"
+												classNamePrefix="react-select"
+												isClearable
+												onChange={handleSelectChange("merchant")}
+												value={
+													formData.merchant
+														? merchants
+															.map((merchant) => ({
+																value: merchant.id,
+																label: merchant.name,
+															}))
+															.find((option) => option.value === Number(formData.merchant)) || null
+														: null
+												}
+												isDisabled={isLoading}
+											/>
+										</div>
 										{errors.merchant && <div className="invalid-feedback d-block" style={{ fontSize: '0.75rem' }}>{errors.merchant}</div>}
 									</div>
 
-									<div className="col-md-6">
-										<label className="form-label mb-1" style={{ fontSize: '0.75rem', fontWeight: '500' }}>
+									{/* Category */}
+									<div className="col-12 d-flex">
+										<label className="form-label mb-1 col-3 text-end align-content-center">
 											Category <span className="text-danger">*</span>
 										</label>
-										<Select
-											options={categories.map((item) => ({
-												value: item.id,
-												label: item.category,
-											}))}
-											styles={reactSelectCustomStyles}
-											placeholder="Select category"
-											classNamePrefix="react-select"
-											isClearable
-											onChange={handleSelectChange("category")}
-											value={
-												formData.category
-													? categories
-														.map((item) => ({
-															value: item.id,
-															label: item.category,
-														}))
-														.find((option) => option.value === formData.category) || null
-													: null
-											}
-											isDisabled={isLoading}
-										/>
+										<div className="col-6 mx-2">
+											<Select
+												options={categories.map((item) => ({
+													value: item.id,
+													label: item.category,
+												}))}
+												styles={reactSelectCustomStyles}
+												placeholder="Select category"
+												classNamePrefix="react-select"
+												isClearable
+												onChange={handleSelectChange("category")}
+												value={
+													formData.category
+														? categories
+															.map((item) => ({
+																value: item.id,
+																label: item.category,
+															}))
+															.find((option) => option.value === formData.category) || null
+														: null
+												}
+												isDisabled={isLoading}
+											/>
+										</div>
 										{errors.category && <div className="invalid-feedback d-block" style={{ fontSize: '0.75rem' }}>{errors.category}</div>}
 									</div>
 
-									<div className="col-md-4">
-										<label className="form-label mb-1" style={{ fontSize: '0.75rem', fontWeight: '500' }}>
+									{/* Amount */}
+									<div className="col-12 d-flex">
+										<label className="form-label mb-1 col-3 text-end align-content-center">
 											Amount (GHC) <span className="text-danger">*</span>
 										</label>
-										<input
-											name="amount"
-											value={formData.amount || ""}
-											onChange={handleInputChange}
-											className={`form-control form-control-sm ${errors.amount ? "is-invalid" : ""}`}
-											type="number"
-											step="0.01"
-											min="0"
-											placeholder="0.00"
-											disabled={isLoading}
-											style={{ fontSize: '0.8rem' }}
-										/>
+										<div className="col-6 mx-2">
+											<input
+												name="amount"
+												value={formData.amount || ""}
+												onChange={handleInputChange}
+												className={`custom-input ${errors.amount ? "is-invalid" : ""}`}
+												type="number"
+												step="0.01"
+												min="0"
+												placeholder="0.00"
+												disabled={isLoading}
+												style={{ fontSize: '0.8rem' }}
+											/>
+										</div>
 										{errors.amount && <div className="invalid-feedback" style={{ fontSize: '0.75rem' }}>{errors.amount}</div>}
 									</div>
 
-									<div className="col-12">
-										<label className="form-label mb-1" style={{ fontSize: '0.75rem', fontWeight: '500' }}>
+									{/* Invoice Number */}
+									<div className="col-12 d-flex">
+										<label className="form-label mb-1 col-3 text-end align-content-center">
 											Invoice Number
 										</label>
-										<input
-											name="invoiceNumber"
-											value={formData.invoiceNumber}
-											onChange={handleInputChange}
-											className={`form-control form-control-sm ${errors.invoiceNumber ? "is-invalid" : ""}`}
-											type="text"
-											placeholder="Enter invoice number"
-											disabled={isLoading}
-											style={{ fontSize: '0.8rem' }}
-										/>
+										<div className="col-6 mx-2">
+											<input
+												name="invoiceNumber"
+												value={formData.invoiceNumber}
+												onChange={handleInputChange}
+												className={`custom-input ${errors.invoiceNumber ? "is-invalid" : ""}`}
+												type="text"
+												placeholder="Enter invoice number"
+												disabled={isLoading}
+												style={{ fontSize: '0.8rem' }}
+											/>
+										</div>
 										{errors.invoiceNumber && <div className="invalid-feedback" style={{ fontSize: '0.75rem' }}>{errors.invoiceNumber}</div>}
 									</div>
 
-									<div className="col-12">
-										<label className="form-label mb-1" style={{ fontSize: '0.75rem', fontWeight: '500' }}>
+									{/* Description */}
+									<div className="col-12 d-flex">
+										<label className="form-label mb-1 col-3 text-end align-content-center">
 											Description <span className="text-danger">*</span>
 										</label>
-										<textarea
-											name="description"
-											value={formData.description}
-											onChange={handleInputChange}
-											className={`form-control form-control-sm ${errors.description ? "is-invalid" : ""}`}
-											rows={3}
-											placeholder="Enter detailed description of the expense"
-											disabled={isLoading}
-											style={{ fontSize: '0.8rem', resize: 'vertical' }}
-										/>
+										<div className="col-6 mx-2">
+											<textarea
+												name="description"
+												value={formData.description}
+												onChange={handleInputChange}
+												className={`custom-input ${errors.description ? "is-invalid" : ""}`}
+												rows={3}
+												placeholder="Enter detailed description of the expense"
+												disabled={isLoading}
+												style={{ fontSize: '0.8rem', resize: 'vertical' }}
+											/>
+										</div>
 										{errors.description && <div className="invalid-feedback" style={{ fontSize: '0.75rem' }}>{errors.description}</div>}
 									</div>
 								</div>
