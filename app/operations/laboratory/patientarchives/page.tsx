@@ -238,7 +238,7 @@ const PatientArchivesPage = () => {
 							<label htmlFor="searchFieldType" className="form-label fw-semibold">Search By</label>
 							<select
 								id="searchFieldType"
-								className="form-select"
+								className="form-select custom-select"
 								value={searchFieldType}
 								onChange={(e) => {
 									setSearchFieldType(e.target.value as "patientid" | "billingid" | "ascensionid" | "fullname" | "date");
@@ -273,7 +273,7 @@ const PatientArchivesPage = () => {
 							<input
 								id="searchInput"
 								placeholder="Search..."
-								className="form-control"
+								className="form-control custom-input"
 								value={searchValue}
 								onChange={(e) => {
 									setSearchValue(e.target.value);

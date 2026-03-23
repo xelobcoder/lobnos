@@ -11,7 +11,7 @@ import dayjs from 'dayjs';
 import { Tabs, Tab, Modal } from 'react-bootstrap';
 
 export default function AscensionProcessingTable() {
-    const { isLoading, collection, queryParams, toast, setCollection ,category='ungrouped'} = useLaboratoryContext();
+    const { isLoading, collection, queryParams, toast, setCollection ,category='grouped'} = useLaboratoryContext();
     const [bulkselection, setBulkSelection] = useState([]);
     const [selectstatus, setSelectStatus] = useState(false);
     const [currentBulkStatus, setCurrentBulkStatus] = useState({ action: null, target: null });

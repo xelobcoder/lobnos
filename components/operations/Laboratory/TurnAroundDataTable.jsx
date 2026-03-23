@@ -253,7 +253,7 @@ export default function TurnAroundDataTable({ data: initialData }) {
 			</form>
 			<PrimeTable
 				column={columns}
-				urlparams={{ sorting }}
+				urlparams={{sortby: sorting}}
 				data={data}
 				serverSideFiltering={true}
 				handleSeverSideProcessing={handleServerTurnAroundTime}

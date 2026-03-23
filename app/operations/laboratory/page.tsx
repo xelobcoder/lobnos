@@ -5,6 +5,7 @@ import { RiTestTubeLine, RiLoader4Line, RiCheckboxCircleLine, RiShieldCheckLine,
 import { useApplication, useApplicationSettings } from '../../../components/Auth/useApplicationContext'
 
 const LaboratoryOperationsLinks = [
+	{title: "Sample Collection",link: "/operations/phelobotomy/pending-samples-collection", icon: <RiTestTubeLine /> },
 	{ title: "Sample Validation", link: `/operations/laboratory/sample/validation`, icon: <RiTestTubeLine /> },
 	{ title: "Processing stage", link: `/operations/laboratory/processing`, icon: <RiLoader4Line /> },
 	{ title: "Completed stage", link: `/operations/laboratory/completed`, icon: <RiCheckboxCircleLine /> },

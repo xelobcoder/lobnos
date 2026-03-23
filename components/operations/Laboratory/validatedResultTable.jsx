@@ -78,7 +78,7 @@ const MobileDataDisplay = ({ data, handleResult }) => {
 };
 
 export default function ValidatedResultTable({ employeeid }) {
-     const { isLoading, collection, queryParams, setQueryParams, setCollection ,category='ungrouped'} = useLaboratoryContext();
+     const { isLoading, collection, queryParams, setQueryParams, setCollection ,category='grouped'} = useLaboratoryContext();
      const [isClient, setIsClient] = useState(false);
      const [groupByPatient, setGroupByPatient] = useState(category === 'grouped');
      const appSettings = useApplication();

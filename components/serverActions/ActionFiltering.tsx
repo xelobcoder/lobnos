@@ -227,8 +227,8 @@ export const handlePaginationServerRejectedHistory = async (pagination) => {
 
 export const handleServerTurnAroundTime = async (paginate) => {
 	try {
-		const { page, count, sorting } = paginate
-		const response = await customFetch(`testascension/tat-data?page=${page}&&count=${count}&&sorting=${sorting}`);
+		const { page, count, sorting,sortby='DESC' } = paginate
+		const response = await customFetch(`testascension/tat-data?page=${page}&&count=${count}&&sorting=${sorting}&&sortby=${sortby}`);
 		if (response?.data && Array.isArray(response?.data)) {
 			return { result: response?.data, error: false }
 		}

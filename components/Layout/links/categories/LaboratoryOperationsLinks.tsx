@@ -15,16 +15,16 @@ import {
 } from '@remixicon/react';
 
 export const LaboratoryOperationsLinks: Link[] = [
-    { title: 'Apps Home', link: "/", icon: <RiHome2Line /> },
+    { title: 'Laboratory Operations Home', link: "/operations/laboratory", icon: <RiHome2Line /> },
     { title: "Daily Laboratory Request", link: "/operations/laboratory/main/dailyRequest", icon: <RiFileListLine /> },
     { title: 'Advanced Search', link: '/operations/laboratory/advanced-search', icon: <RiSearchLine /> },
     { title: 'Customers Vital signs', link: "/operations/laboratory/vitals/record-vital-sign", icon: <RiHeartPulseLine /> },
-    { title: "Sample Collection", link: "/operations/phelobotomy/pending-samples-collection", icon: <RiTestTubeLine /> },
-    { title: "Sample Validation", link: `/operations/laboratory/sample/validation`, icon: <RiTestTubeLine /> },
-    { title: "Processing stage", link: `/operations/laboratory/processing`, icon: <RiLoader4Line /> },
-    { title: "Completed stage", link: `/operations/laboratory/completed`, icon: <RiCheckboxCircleLine /> },
-    { title: "Validation stage", link: `/operations/laboratory/validation`, icon: <RiShieldCheckLine /> },
-    { title: "Validated Result", link: `/operations/laboratory/validated`, icon: <RiFileListLine /> },
+    // { title: "Sample Collection", link: "/operations/phelobotomy/pending-samples-collection", icon: <RiTestTubeLine /> },
+    // { title: "Sample Validation", link: `/operations/laboratory/sample/validation`, icon: <RiTestTubeLine /> },
+    // { title: "Processing stage", link: `/operations/laboratory/processing`, icon: <RiLoader4Line /> },
+    // { title: "Completed stage", link: `/operations/laboratory/completed`, icon: <RiCheckboxCircleLine /> },
+    // { title: "Validation stage", link: `/operations/laboratory/validation`, icon: <RiShieldCheckLine /> },
+    // { title: "Validated Result", link: `/operations/laboratory/validated`, icon: <RiFileListLine /> },
     { title: 'Audit Log', link: '/operations/laboratory/auditlogs', icon: <RiFileListLine /> },
     { title: 'Patient Archives', link: '/operations/laboratory/patientarchives', icon: <RiFileListLine /> },
     { title: "Critical Values Alert", link: `/operations/laboratory/criticalvaluesAlert`, icon: <RiAlarmWarningLine /> },
