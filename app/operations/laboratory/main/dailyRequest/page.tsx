@@ -149,7 +149,7 @@ export default function LaboratoryClientList() {
 
      const openFolder = (patientid: number, billingid: number) => {
           if (!patientid || !billingid) return;
-          window.open(`/operations/laboratory/v2/trial-interface/visit?patientid=${patientid}&billingid=${billingid}&&isOpenSideBarShow=false`, '_blank');
+          window.open(`/operations/laboratory/main/dailyRequest/visit?patientid=${patientid}&billingid=${billingid}&&isOpenSideBarShow=false`, '_blank');
      }
      return (
           <div>

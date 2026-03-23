@@ -16,6 +16,7 @@ import {
 
 export const LaboratoryOperationsLinks: Link[] = [
     { title: 'Apps Home', link: "/", icon: <RiHome2Line /> },
+    { title: "Daily Laboratory Request", link: "/operations/laboratory/main/dailyRequest", icon: <RiFileListLine /> },
     { title: 'Advanced Search', link: '/operations/laboratory/advanced-search', icon: <RiSearchLine /> },
     { title: 'Customers Vital signs', link: "/operations/laboratory/vitals/record-vital-sign", icon: <RiHeartPulseLine /> },
     { title: "Sample Collection", link: "/operations/phelobotomy/pending-samples-collection", icon: <RiTestTubeLine /> },
