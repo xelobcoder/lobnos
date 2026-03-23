@@ -1,9 +1,38 @@
-'use client'
+
+"use client";
 import { useSearchParams } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
+
 import PreviewPatientInformation from '../../../../../../components/petientsComponent/PreviewPatientInformation'
 import { customFetch, PrepareResultEntryHeader } from '../../../../../../components/Auth/customFetch'
 import { useApplicationSettings } from '../../../../../../components/Auth/useApplicationContext'
+import { RiPlayCircleLine, RiStopCircleLine } from '@remixicon/react';
+
+// Formats a date string as "10th May, 2026 [Sat] @10:00 PM"
+function formatFullDate(dateString?: string) {
+     if (!dateString) return "N/A";
+     const date = new Date(dateString);
+     const dayOfWeek = date.toLocaleDateString(undefined, { weekday: "short" });
+     const day = date.getDate();
+     const month = date.toLocaleDateString(undefined, { month: "short" });
+     const year = date.getFullYear();
+     const hours = date.getHours();
+     const minutes = date.getMinutes();
+     const ampm = hours >= 12 ? "PM" : "AM";
+     const hour12 = hours % 12 === 0 ? 12 : hours % 12;
+     const pad = (n: number) => n < 10 ? `0${n}` : n;
+     // Add ordinal suffix
+     const ordinal = (n: number) => {
+          if (n > 3 && n < 21) return "th";
+          switch (n % 10) {
+               case 1: return "st";
+               case 2: return "nd";
+               case 3: return "rd";
+               default: return "th";
+          }
+     };
+     return `${day}${ordinal(day)} ${month}, ${year} [${dayOfWeek}] @${hour12}:${pad(minutes)} ${ampm}`;
+}
 
 interface TestAscension {
      ascension_id: number;
@@ -57,6 +86,23 @@ export default function ClientVisit() {
      const [loading, setLoading] = useState<boolean>(false);
      const [error, setError] = useState<string>('');
 
+     const allResultsCompleted =
+          Array.isArray(testAscensions) &&
+          testAscensions.length > 0 &&
+          testAscensions.every((item) => item.resultEntryStart && item.resultEntryEnd);
+
+     const allResultsValidated =
+          Array.isArray(testAscensions) &&
+          testAscensions.length > 0 &&
+          testAscensions.every((item) =>
+               item.isapproved === 1 ||
+               (item.result_validation_stage || '').toLowerCase().includes('validated') ||
+               (item.result_validation_stage || '').toLowerCase().includes('approved')
+          );
+
+     const validatedAscensionIds =
+          allResultsValidated ? testAscensions.map((item) => item.ascension_id).join(',') : '';
+
      const openResultEntry = (item: TestAscension) => {
           PrepareResultEntryHeader(
                {
@@ -80,6 +126,7 @@ export default function ClientVisit() {
                     billingid: item.billingid,
                     patientid: patientid || '',
                     ascensionid: item.ascension_id,
+                    category: 'ungrouped'
                },
                false,
                branchid,
@@ -113,6 +160,16 @@ export default function ClientVisit() {
 
      useEffect(() => {
           if (billingid) loadTestTransactions();
+
+          const intervalId = setInterval(() => {
+               if (billingid) {
+                    loadTestTransactions();
+               }
+          }, 60000); // 60 seconds
+
+          return () => {
+               clearInterval(intervalId);
+          };
      }, [billingid]);
 
      return (
@@ -120,6 +177,38 @@ export default function ClientVisit() {
                <PreviewPatientInformation patientid={patientid} />
 
                <div className="mt-4">
+                    {(allResultsCompleted && billingid) || (allResultsValidated && validatedAscensionIds) ? (
+                         <div className="row mb-3 g-2 align-items-center">
+                              {allResultsCompleted && billingid && (
+                                   <div className="col-auto">
+                                        <button
+                                             className="btn btn-sm btn-outline-success w-100"
+                                             onClick={() => window.open(`/operations/laboratory/validation?billingid=${billingid}&isOpenSideBarShow=false`, '_blank', 'noopener,noreferrer')}
+                                        >
+                                             Validate all results
+                                        </button>
+                                   </div>
+                              )}
+                              {allResultsValidated && validatedAscensionIds && (
+                                   <div className="col-auto">
+                                        <button
+                                             className="btn btn-sm btn-outline-primary w-100"
+                                             onClick={() => window.open(`/operations/laboratory/validated?ascensionid=${validatedAscensionIds}&isOpenSideBarShow=false`, '_blank', 'noopener,noreferrer')}
+                                        >
+                                             Print validated results
+                                        </button>
+                                   </div>
+                              )}
+                              <div className="col-auto">
+                                   <button
+                                        className="btn btn-sm btn-outline-secondary w-100"
+                                        onClick={loadTestTransactions}
+                                   >
+                                        Refresh Data
+                                   </button>
+                              </div>
+                         </div>
+                    ) : null}
                     {loading ? (
                          <div className="spinner-border text-primary" role="status"><span className="visually-hidden">Loading...</span></div>
                     ) : error ? (
@@ -142,136 +231,138 @@ export default function ClientVisit() {
                                         </tr>
                                    </thead>
                                    <tbody>
-                                        {testAscensions.map((item) => (
-                                             <tr key={item.ascension_id}>
-                                                  <td>
-                                                       <div><strong>{item.test_name}</strong></div>
-                                                       <div>Ascension ID: {item.ascension_id}</div>
-                                                       <div>Test ID: {item.testid}</div>
-                                                       <div><small>Key ID: {item.keyid ?? 'N/A'}</small></div>
-                                                  </td>
-                                                  <td>
-                                                       <div>{item.ascension_date ? new Date(item.ascension_date).toLocaleString() : 'N/A'}</div>
-                                                       <div><small>Sample status: {item.sample_status_date ? new Date(item.sample_status_date).toLocaleString() : 'N/A'}</small></div>
-                                                       <div><small>Validated on: {item.samplevalidatedon ? new Date(item.samplevalidatedon).toLocaleString() : 'N/A'}</small></div>
-                                                       <div><small>Validation stage: {item.sample_validation_stage ?? 'N/A'}</small></div>
-                                                       <div><small>Approval status: {item.approvalstatus === 1 ? 'Approved' : item.approvalstatus === 0 ? 'Not approved' : 'Unknown'}</small></div>
-                                                       <div><small>Redraw: {item.isRedraw ? 'Yes' : 'No'}</small></div>
-                                                  </td>
-                                                  <td>
-                                                       {item.collectionStartDate ? (
-                                                            <>
-                                                                 <div>{new Date(item.collectionStartDate).toLocaleString()}</div>
-                                                                 <div><small>By: {item.collected_by_name ?? 'N/A'}</small></div>
-                                                                 <div><small>End: {item.collectionEndDate ? new Date(item.collectionEndDate).toLocaleString() : 'N/A'}</small></div>
-                                                            </>
-                                                       ) : (
-                                                            <button
-                                                                 className="btn btn-sm btn-outline-primary"
-                                                                 onClick={() => window.open(`/operations/phelobotomy/pending-samples-collection?billing=${item.billingid}&isOpenSideBarShow=false`, '_blank', 'noopener,noreferrer')}
-                                                            >
-                                                                 Collect
-                                                            </button>
-                                                       )}
-                                                  </td>
-                                                  <td>
-                                                       {item.samplevalidatedon ? (
-                                                            <>
-                                                                 <div>{new Date(item.samplevalidatedon).toLocaleString()}</div>
-                                                                 <div><small>Stage: {item.sample_validation_stage ?? 'N/A'}</small></div>
-                                                            </>
-                                                       ) : (
-                                                            <button
-                                                                 className="btn btn-sm btn-outline-warning"
-                                                                 onClick={() => window.open(`/operations/laboratory/sample/validation?billingid=${item.billingid}&isOpenSideBarShow=false`, '_blank', 'noopener,noreferrer')}
-                                                            >
-                                                                 Validate Sample
-                                                            </button>
-                                                       )}
-                                                  </td>
-                                                  <td>
-                                                       {item.processingStartDate ? (
-                                                            <>
-                                                                 <div>{new Date(item.processingStartDate).toLocaleString()}</div>
-                                                                 <div><small>By: {item.processed_by_name ?? 'N/A'}</small></div>
-                                                                 <div><small>End: {item.processingEndDate ? new Date(item.processingEndDate).toLocaleString() : 'N/A'}</small></div>
-                                                            </>
-                                                       ) : !item.samplevalidatedon ? (
-                                                            <button className="btn btn-sm btn-secondary" disabled>
-                                                                 Process (validate first)
-                                                            </button>
-                                                       ) : item.collectionStartDate ? (
-                                                            <button
-                                                                 className="btn btn-sm btn-outline-primary"
-                                                                 onClick={() => window.open(`/operations/laboratory/processing?billingid=${item.billingid}&isOpenSideBarShow=false`, '_blank', 'noopener,noreferrer')}
-                                                            >
-                                                                 Process
-                                                            </button>
-                                                       ) : (
-                                                            'Waiting collection'
-                                                       )}
-                                                  </td>
-                                                  <td>
-                                                       {item.resultEntryStart ? (
-                                                            <>
-                                                                 <div>{new Date(item.resultEntryStart).toLocaleString()}</div>
-                                                                 <div><small>By: {item.result_entered_by_name ?? 'N/A'}</small></div>
-                                                                 <div>
-                                                                      <small>
-                                                                           {item.resultEntryEnd
-                                                                                ? `End: ${new Date(item.resultEntryEnd).toLocaleString()}`
-                                                                                : 'In result entry'
-                                                                           }
-                                                                      </small>
+                                        {Array.isArray(testAscensions) && testAscensions.map((item) => {
+                                             // Row is success if completed and validated
+                                             const isCompleted = item.resultEntryStart && item.resultEntryEnd;
+                                             const isValidated = item.isapproved === 1 || (item.result_validation_stage || '').toLowerCase().includes('validated') || (item.result_validation_stage || '').toLowerCase().includes('approved');
+                                             const rowClass = isCompleted && isValidated ? 'table-success' : '';
+                                             return (
+                                                  <tr key={item.ascension_id} className={rowClass}>
+                                                       <td>
+                                                            <div><strong>{item.test_name}</strong></div>
+                                                            <div>Ascension ID: {item.ascension_id}</div>
+                                                            <div>Test ID: {item.testid}</div>
+                                                            <div><small>Key ID: {item.keyid ?? 'N/A'}</small></div>
+                                                       </td>
+                                                       <td>
+                                                            <div>{item.ascension_date ? formatFullDate(item.ascension_date) : 'N/A'}</div>
+                                                       </td>
+                                                       <td>
+                                                            {item.collectionStartDate ? (
+                                                                 <div style={{ fontSize: '0.98rem' }}>
+                                                                      <div>start: {formatFullDate(item.collectionStartDate)}</div>
+                                                                      {item.collectionEndDate && <div>end: {formatFullDate(item.collectionEndDate)}</div>}
+                                                                      <div>by: {item.collected_by_name ?? 'N/A'}</div>
                                                                  </div>
+                                                            ) : (
                                                                  <button
-                                                                      className="btn btn-sm btn-outline-warning mt-1"
-                                                                      onClick={() => openUpdateResult(item)}
+                                                                      className="btn btn-sm btn-outline-primary"
+                                                                      onClick={() => window.open(`/operations/phelobotomy/pending-samples-collection?billingid=${item.billingid}&isOpenSideBarShow=false`, '_blank', 'noopener,noreferrer')}
                                                                  >
-                                                                      Update Result
+                                                                      Collect
                                                                  </button>
-                                                            </>
-                                                       ) : !item.samplevalidatedon ? (
-                                                            <div className="text-muted">Locked until validation</div>
-                                                       ) : item.processingEndDate ? (
-                                                            <button
-                                                                 className="btn btn-sm btn-outline-primary"
-                                                                 onClick={() => openResultEntry(item)}
-                                                            >
-                                                                 Result Entry
-                                                            </button>
-                                                       ) : (
-                                                            'Pending'
-                                                       )}
-                                                  </td>
-                                                  <td>
-                                                       <div>{item.result_validation_stage ?? 'N/A'}</div>
-                                                       <div><small>Approved: {item.isapproved === 1 ? 'Yes' : 'No'}</small></div>
-                                                       <div><small>By: {item.approvedBy ?? 'N/A'}</small></div>
-                                                       <div><small>Print Count: {item.printCount ?? 0}</small></div>
-                                                       <div><small>Last Updated: {item.lastupdatedon ? new Date(item.lastupdatedon).toLocaleString() : 'N/A'}</small></div>
-                                                       {item.isapproved !== 1 && (
-                                                            <button
-                                                                 className="btn btn-sm btn-outline-success mt-1"
-                                                                 onClick={() => window.open(`/operations/laboratory/validation?billingid=${item.billingid}&isOpenSideBarShow=false`, '_blank', 'noopener,noreferrer')}
-                                                            >
-                                                                 Validate Result
-                                                            </button>
-                                                       )}
-                                                  </td>
-                                                  <td>
-                                                       <span className={getStageBadgeClass(item.current_stage)}>{item.current_stage || 'Unknown'}</span>
-                                                       {item.current_stage && item.current_stage.trim().toLowerCase() === 'completed' && (
-                                                            <button
-                                                                 className="btn btn-sm btn-outline-success ms-2"
-                                                                 onClick={() => alert(`Print result for ascension ${item.ascension_id}`)}
-                                                            >
-                                                                 Print
-                                                            </button>
-                                                       )}
-                                                  </td>
-                                             </tr>
-                                        ))}
+                                                            )}
+                                                       </td>
+                                                       <td>
+                                                            {item.samplevalidatedon ? (
+                                                                 <div>{formatFullDate(item.samplevalidatedon)}</div>
+                                                            ) : !item.collectionStartDate ? (
+                                                                 <button className="btn btn-sm btn-secondary" disabled>
+                                                                      Validate Sample (awaiting collection)
+                                                                 </button>
+                                                            ) : (
+                                                                 <button
+                                                                      className="btn btn-sm btn-outline-warning"
+                                                                      onClick={() => window.open(`/operations/laboratory/sample/validation?billingid=${item.billingid}&isOpenSideBarShow=false`, '_blank', 'noopener,noreferrer')}
+                                                                 >
+                                                                      Validate Sample
+                                                                 </button>
+                                                            )}
+                                                       </td>
+                                                       <td>
+                                                            {item.processingStartDate ? (
+                                                                 <div style={{ fontSize: '0.98rem' }}>
+                                                                      <div>start: {formatFullDate(item.processingStartDate)}</div>
+                                                                      {item.processingEndDate && <div>end: {formatFullDate(item.processingEndDate)}</div>}
+                                                                      <div>by: {item.processed_by_name ?? 'N/A'}</div>
+                                                                 </div>
+                                                            ) : !item.samplevalidatedon ? (
+                                                                 <button className="btn btn-sm btn-secondary" disabled>
+                                                                      Process (validate first)
+                                                                 </button>
+                                                            ) : item.collectionStartDate ? (
+                                                                 <button
+                                                                      className="btn btn-sm btn-outline-primary"
+                                                                      onClick={() => window.open(`/operations/laboratory/processing?billingid=${item.billingid}&isOpenSideBarShow=false&&category=ungrouped`, '_blank', 'noopener,noreferrer')}
+                                                                 >
+                                                                      Process
+                                                                 </button>
+                                                            ) : (
+                                                                 'Waiting collection'
+                                                            )}
+                                                       </td>
+                                                       <td>
+                                                            {item.resultEntryStart ? (
+                                                                 <div style={{ fontSize: '0.98rem' }}>
+                                                                      <div>start: {formatFullDate(item.resultEntryStart)}</div>
+                                                                      {item.resultEntryEnd && <div>end: {formatFullDate(item.resultEntryEnd)}</div>}
+                                                                      <div>by: {item.result_entered_by_name ?? 'N/A'}</div>
+                                                                      <button
+                                                                           className="btn btn-sm btn-outline-primary mt-1"
+                                                                           onClick={() => openUpdateResult(item)}
+                                                                      >
+                                                                           Update Result
+                                                                      </button>
+                                                                 </div>
+                                                            ) : !item.samplevalidatedon ? (
+                                                                 <div className="text-muted">Locked until validation</div>
+                                                            ) : item.processingEndDate ? (
+                                                                 <button
+                                                                      className="btn btn-sm btn-outline-primary"
+                                                                      onClick={() => openResultEntry(item)}
+                                                                 >
+                                                                      Result Entry
+                                                                 </button>
+                                                            ) : (
+                                                                 'Pending'
+                                                            )}
+                                                       </td>
+                                                       <td>
+                                                            <div>{item.result_validation_stage ?? 'N/A'}</div>
+                                                            <div><small>Approved: {item.isapproved === 1 ? 'Yes' : 'No'}</small></div>
+
+
+                                                            <div><small>Last Updated: {item.lastupdatedon ? formatFullDate(item.lastupdatedon) : 'N/A'}</small></div>
+                                                            {item.isapproved !== 1 && (
+                                                                 item.collectionStartDate && item.samplevalidatedon && item.resultEntryStart && item.resultEntryEnd ? (
+                                                                      <button
+                                                                           className="btn btn-sm btn-outline-success mt-1"
+                                                                           onClick={() => window.open(`/operations/laboratory/validation?ascensionid=${item.ascension_id}&isOpenSideBarShow=false`, '_blank', 'noopener,noreferrer')}
+                                                                      >
+                                                                           Validate Result
+                                                                      </button>
+                                                                 ) : (
+                                                                      <button className="btn btn-sm btn-secondary mt-1" disabled>
+                                                                           Validate Result (awaiting collection/validation/result entry)
+                                                                      </button>
+                                                                 )
+                                                            )}
+                                                       </td>
+                                                       <td>
+                                                            {/* Remove completed badge, just show stage text */}
+                                                            <span>{item.current_stage || 'Unknown'}</span>
+                                                            {isCompleted && isValidated && (
+                                                                 <button
+                                                                      className="btn btn-sm btn-outline-success ms-2"
+                                                                      onClick={() => window.open(`/operations/laboratory/validated?ascensionid=${item.ascension_id}&isOpenSideBarShow=false&&category=ungrouped`, '_blank', 'noopener,noreferrer')}
+                                                                 >
+                                                                      Print
+                                                                 </button>
+                                                            )}
+                                                       </td>
+                                                  </tr>
+                                             );
+                                        })}
                                    </tbody>
                               </table>
                          </div>

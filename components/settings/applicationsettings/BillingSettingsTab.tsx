@@ -16,6 +16,10 @@ interface ApplicationSettingsData {
      patientIdGenerationMethod?: string;
      regioncode?: string;
      districtcode?: string;
+     byPassCollection?: number;
+     byPassSampleValidation?: number;
+     byPassValidation?: number;
+     byPassProcessing?: number;
      patientIdAutoIncrementStart?: number;
 }
 
@@ -72,6 +76,30 @@ export const BillingSettingsTab: React.FC<BillingSettingsTabProps> = ({ settings
                          label: 'Complete Flow',
                          description: 'Enforce complete workflow from registration to result',
                          icon: <RiFlowChart size={20} />
+                    },
+                    {
+                         name: 'byPassCollection',
+                         label: 'By pass Collection',
+                         description: 'Allow bypassing the sample collection stage',
+                         icon: <RiShieldCheckLine size={20} />
+                    },
+                    {
+                         name: 'byPassSampleValidation',
+                         label: 'By pass Sample Validation',
+                         description: 'Allow bypassing the sample validation stage',
+                         icon: <RiShieldCheckLine size={20} />
+                    },
+                    {
+                         name: 'byPassValidation',
+                         label: 'By pass Validation',
+                         description: 'Allow bypassing the validation stage',
+                         icon: <RiShieldCheckLine size={20} />
+                    },
+                    {
+                         name: 'byPassProcessing',
+                         label: 'By pass Processing',
+                         description: 'Allow bypassing the processing stage',
+                         icon: <RiShieldCheckLine size={20} />
                     },
                     {
                          name: 'approvalbeforeprinting',

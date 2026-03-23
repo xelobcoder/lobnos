@@ -14,8 +14,8 @@ import { useApplication } from "../../Auth/useApplicationContext";
 
 
 export default function AscentionCompletedTable({ employeeid, branchid }) {
-	const { isLoading, collection, queryParams, setCollection } = useLaboratoryContext();
-	const [groupByPatient, setGroupByPatient] = useState(true);
+	const { isLoading, collection, queryParams, setCollection, category='ungrouped' } = useLaboratoryContext();
+	const [groupByPatient, setGroupByPatient] = useState(category === 'grouped');
 	const [showModal, setShowModal] = useState(false);
 	const [selectedGroupTests, setSelectedGroupTests] = useState(null);
 	const [operations, setOperations] = useState({});

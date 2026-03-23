@@ -20,6 +20,7 @@ export default function PagePhelobotomy() {
     const [error, setError] = useState<string | null>(null);
     const url_start_date = useSearchParams()?.get('start_date') || '';
     const url_end_date = useSearchParams()?.get('end_date') || '';
+    const billingid = useSearchParams()?.get('billingid') || '';
 
     const [selectedDate, setSelectedDate] = useState({
         _dateFrom: url_start_date || dayjs(new Date().toISOString()).format("YYYY-MM-DD"),
@@ -32,7 +33,7 @@ export default function PagePhelobotomy() {
         setLoading(true);
         setError(null);
         try {
-            let url = `test/ascension/pendingCases?filter=${filter}&&count=10&&page=1&&start_date=${selectedDate._dateFrom}&end_date=${selectedDate._dateEnd}`;
+            let url = billingid ? `test/ascension/pendingCases?billingid=${billingid}&&count=10&&page=1` : `test/ascension/pendingCases?filter=${filter}&&count=10&&page=1&&start_date=${selectedDate._dateFrom}&end_date=${selectedDate._dateEnd}`;
             const { result } = await customFetch(url);
             setData(Array.isArray(result) && result.length > 0 ? result : []);
         } catch (err) {

@@ -14,7 +14,7 @@ import { Tabs, Tab } from 'react-bootstrap';
 
 
 export default function ValidationAscensionTable({ employeeid }) {
-	const { isLoading, collection, queryParams, setCollection } = useLaboratoryContext();
+	const { isLoading, collection, queryParams, setCollection ,category='ungrouped'} = useLaboratoryContext();
 	const router = useRouter();
 	const isMobile = useMediaQuery({ maxWidth: 768 });
 	const [isValidationModalOpened, setIsValidationModalOpened] = useState(false);
@@ -24,7 +24,7 @@ export default function ValidationAscensionTable({ employeeid }) {
 	const [selectedRows, setSelectedRows] = useState(new Set());
 	const [isBulkValidating, setIsBulkValidating] = useState(false);
 	const { settings } = useApplication();
-	const [groupByPatient, setGroupByPatient] = useState(true);
+	const [groupByPatient, setGroupByPatient] = useState(category === 'grouped');
 
 	const viewResultHandler = (item) => {
 		printResultNavigator(router, item.billingid, { ...item, testid: item.id }, true);

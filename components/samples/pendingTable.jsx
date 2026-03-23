@@ -18,6 +18,7 @@ export default function SampleValidationComponent() {
 	const today = new Date().toISOString().split('T')[0];
 	const urlStartDate = searchParams.get('start_date') || today;
 	const urlEndDate = searchParams.get('end_date') || today;
+	const billingid = searchParams.get('billingid') || '';
 
 	const [data, setData] = useState([]);
 	const [loading, setLoading] = useState(false);
@@ -41,9 +42,9 @@ export default function SampleValidationComponent() {
 		const loadInitialData = async () => {
 			setLoading(true);
 			try {
-				let url = `sample/client/list/unvalidated?count=10&page=1&sortby=DESC`;
-				if (urlStartDate) url += `&startDate=${urlStartDate}`;
-				if (urlEndDate) url += `&endDate=${urlEndDate}`;
+				let url = billingid ? `sample/client/list/unvalidated?billingid=${billingid}&&count=10&page=1&sortby=DESC` : `sample/client/list/unvalidated?count=10&page=1&sortby=DESC`;
+				if (urlStartDate && !billingid) url += `&startDate=${urlStartDate}`;
+				if (urlEndDate && !billingid) url += `&endDate=${urlEndDate}`;
 				const fetchResponse = await customFetch(url);
 				const { result } = fetchResponse;
 				if (result && Array.isArray(result)) {

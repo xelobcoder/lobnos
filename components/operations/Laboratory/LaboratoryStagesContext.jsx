@@ -27,6 +27,8 @@ export function LaboratoryStagesProvider({ children }) {
        const parsedEndDate = end_date ? dayjs(end_date).format('YYYY-MM-DD') : '';
        const testid = useSearchParams()?.get("testid");
 
+       const hasSpecificUrlFilter = Boolean(ascensionid || patientid || billingid || patientname || testid);
+
        const today = new Date();
        const yyyy = today.getFullYear();
        const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -80,7 +82,8 @@ export function LaboratoryStagesProvider({ children }) {
                      collection, setCollection, isLoading, setLoading, queryParams, _getAscensionData, toast,
                      loadCounter, setLoadCounter,
                      setQueryParams, updatePageValue, canloadPage, setLoadPage, category,
-                     ascensionid, patientid, billingid,patientname,testid
+                     ascensionid, patientid, billingid,patientname,testid,
+                     hasSpecificUrlFilter
               }}>
                      {children}
 

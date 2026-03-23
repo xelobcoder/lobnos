@@ -11,8 +11,7 @@ function handlePrintMultipleResults(row) {
 
      const popup = window.open(
           `/result/lab-report-multiple?${url}`,
-          "LabReportMultiple",
-          "width=1000,height=700,resizable=yes,scrollbars=yes"
+          "LabReportMultiple"
      )
 
      if (popup) popup.focus()
@@ -79,9 +78,9 @@ const MobileDataDisplay = ({ data, handleResult }) => {
 };
 
 export default function ValidatedResultTable({ employeeid }) {
-     const { isLoading, collection, queryParams, setQueryParams, setCollection } = useLaboratoryContext();
+     const { isLoading, collection, queryParams, setQueryParams, setCollection ,category='ungrouped'} = useLaboratoryContext();
      const [isClient, setIsClient] = useState(false);
-     const [groupByPatient, setGroupByPatient] = useState(true);
+     const [groupByPatient, setGroupByPatient] = useState(category === 'grouped');
      const appSettings = useApplication();
      const branchid = appSettings?.branchid;
      const settings = appSettings?.settings || {};
@@ -120,7 +119,6 @@ export default function ValidatedResultTable({ employeeid }) {
           const popup = window.open(
                `/result/labreport/4?${url}`,
                "LabReportView",
-               "width=1000,height=700,resizable=yes,scrollbars=yes"
           )
 
           if (popup) popup.focus()

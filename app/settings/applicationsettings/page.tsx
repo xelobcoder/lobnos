@@ -44,6 +44,10 @@ interface ApplicationSettingsData {
 	patientIdGenerationMethod: string;
 	allowResultEnteringUpaid: number,
 	allowValidationUpaid: number,
+	byPassCollection: number,
+	byPassSampleValidation: number,
+	byPassValidation: number,
+	byPassProcessing: number,
 	allowPrintingUnpaid: number
 }
 
@@ -164,6 +168,10 @@ export default function ApplicationSettings() {
 						patientIdGenerationMethod: 'region',
 						allowValidationUpaid: 0,
 						allowPrintingUnpaid: 0,
+						byPassCollection: 0,
+						byPassSampleValidation: 0,
+						byPassValidation: 0,
+						byPassProcessing: 0,
 						allowResultEnteringUpaid: 0
 					});
 				}

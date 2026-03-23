@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import DatePickerRange from "../../../components/accessories/DatePickerRange";
 import { useLaboratoryContext } from "./LaboratoryStagesContext";
@@ -14,6 +14,7 @@ export default function LaboratoryAscensionFiltering({ ascension_stage, employee
               setQueryParams,
               _getAscensionData,
               loadCounter,
+              hasSpecificUrlFilter,
               setLoadCounter,
        } = useLaboratoryContext();
 
@@ -141,7 +142,7 @@ export default function LaboratoryAscensionFiltering({ ascension_stage, employee
 
        return (
               <div className="mb-2">
-                     <div className="row g-2 align-items-end">
+                     {!hasSpecificUrlFilter && <React.Fragment><div className="row g-2 align-items-end">
                             <div className="col-12 col-lg-2">
                                    <select onChange={(ev) => {
                                           if (ev.target.value == "none") {
@@ -233,11 +234,12 @@ export default function LaboratoryAscensionFiltering({ ascension_stage, employee
                                    </button>
                             </div>
                      </div>
-                     <div className="mt-2">
-                            <small className="text-muted">
-                                   <span className="badge badge-info">💡 Tip:</span> Press <kbd>Enter</kbd> key anywhere on this page to load data with your filters
-                            </small>
-                     </div>
+                            <div className="mt-2">
+                                   <small className="text-muted">
+                                          <span className="badge badge-info">💡 Tip:</span> Press <kbd>Enter</kbd> key anywhere on this page to load data with your filters
+                                   </small>
+                            </div>
+                     </React.Fragment>}
               </div>
        );
 }

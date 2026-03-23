@@ -11,14 +11,14 @@ import dayjs from 'dayjs';
 import { Tabs, Tab, Modal } from 'react-bootstrap';
 
 export default function AscensionProcessingTable() {
-    const { isLoading, collection, queryParams, toast, setCollection } = useLaboratoryContext();
+    const { isLoading, collection, queryParams, toast, setCollection ,category='ungrouped'} = useLaboratoryContext();
     const [bulkselection, setBulkSelection] = useState([]);
     const [selectstatus, setSelectStatus] = useState(false);
     const [currentBulkStatus, setCurrentBulkStatus] = useState({ action: null, target: null });
     const { applicationsettings } = useApplicationSettings();
     const { user } = applicationsettings;
     const employeeid = user?.employeeid;
-    const [groupByPatient, setGroupByPatient] = useState(true);
+    const [groupByPatient, setGroupByPatient] = useState(category === 'grouped');
     const [showModal, setShowModal] = useState(false);
     const [selectedGroupPatient, setSelectedGroupPatient] = useState(null);
 

@@ -986,7 +986,7 @@ export const getDateRange = (range) => {
 export function PrepareResultEntryHeader(data, isUltrasound = false, branchid, isOpenSideBarShow = true) {
   if (typeof data !== "object") return
 
-  const { id, name, billingid, patientid, ascensionid } = data
+  const { id, name, billingid, patientid, ascensionid ,category='ungrouped'} = data
   if (!id || !name || !billingid || !patientid) return
 
   const csvid = `${generateRandomTextAndNumbers(70)}${billingid}`.trim()
@@ -995,7 +995,7 @@ export function PrepareResultEntryHeader(data, isUltrasound = false, branchid, i
   const popup = window.open(
     !isUltrasound
       ? `/operations/laboratory/resultentry/${branchid}?csvid=${csvid}&&ptid=${ptid}&&isOpenSideBarShow=${isOpenSideBarShow}`
-      : `/operations/imaging/ultrasound/result/${branchid}?csvid=${csvid}&&ptid=${ptid}&&testid=${id}&&ascensionid=${ascensionid}&&isOpenSideBarShow=${isOpenSideBarShow}`,
+      : `/operations/imaging/ultrasound/result/${branchid}?csvid=${csvid}&&ptid=${ptid}&&testid=${id}&&ascensionid=${ascensionid}&&isOpenSideBarShow=${isOpenSideBarShow}&&category=${category}`,
     "ResultEntry",
     "width=1100,height=750,resizable=yes,scrollbars=yes"
   )
