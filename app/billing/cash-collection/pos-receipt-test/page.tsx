@@ -155,7 +155,9 @@ export default function PosReceiptTestPage() {
      const [loading, setLoading] = useState(true);
      const [error, setError] = useState<string | null>(null);
      const [retryCount, setRetryCount] = useState(0);
-     const billingid = useSearchParams()?.get('billingid');
+     const searchParams = useSearchParams();
+     const billingid = searchParams?.get('billingid');
+     const isPos = searchParams?.get('is_pos') === 'true';
      const { theme } = useTheme();
      const companyLogoUrl = process.env.NODE_ENV === "development" ?
           `${process.env.DEVELOPMENT_BASEURL}` + `settings/companyprofile/images` : `${process.env.PRODUCTION_BASEURL}` + `settings/companyprofile/images`;
@@ -236,6 +238,14 @@ export default function PosReceiptTestPage() {
      useEffect(() => {
           fetchData();
      }, [retryCount]);
+
+     // Auto-generate POS receipt if is_pos=true and data is ready
+     useEffect(() => {
+          if (isPos && !loading && !error && billingData && companyInfo) {
+               generatePosReceipt();
+          }
+     // eslint-disable-next-line react-hooks/exhaustive-deps
+     }, [isPos, loading, error, billingData, companyInfo]);
 
 
 
@@ -497,18 +507,21 @@ export default function PosReceiptTestPage() {
 
                pdf.text('----------------------------------------------------------------------------------------------------', 0, yPosition, { align: 'left' });
 
+               // autoPrint() embeds a flag in the PDF that tells the PDF viewer to open the print dialog automatically
                pdf.autoPrint();
                const pdfBlob = pdf.output('blob');
-               const pdfUrl = URL.createObjectURL(pdfBlob);
-               const printWindow = window.open(pdfUrl, '_blank');
-
+               const blobUrl = URL.createObjectURL(pdfBlob);
+               const printWindow = window.open(blobUrl, '_blank');
                if (printWindow) {
-                    printWindow.onload = () => {
-                         printWindow.print();
-                         URL.revokeObjectURL(pdfUrl);
-                    };
+                    // Revoke the blob URL after the window has had time to load
+                    printWindow.addEventListener('load', () => {
+                         setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+                    });
+                    // Safety fallback revoke
+                    setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
                } else {
-                    pdf.save(`pos_receipt_${billingData.billingid}.pdf`);
+                    URL.revokeObjectURL(blobUrl);
+                    toast.warning('Popups are blocked. Please allow popups for this site to print receipts.');
                }
 
                // Update receipt as printed

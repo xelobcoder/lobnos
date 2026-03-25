@@ -478,15 +478,11 @@ function MultiBillingLayoutContent() {
 
             if (status == true || status === 'success') {
                 if (typeof window !== 'undefined') {
-                    const viewTransactions = window.confirm("Billing data submitted successfully. Do you want to view transactions?");
-                    if (viewTransactions && patientId && branchid) {
-                        const today = dayjs().format('YYYY-MM-DD');
-                        const url = `/billing/sales/branches/${plsEncryption(branchid?.toString())}?from=${today}&to=${today}&patientid=${plsEncryption(patientId?.toString())}`;
-                        router.replace(url);
-                    } else {
-                        setGeneratedBillingid(response.billingid || response.data?.billingid);
-                        setShowChoiceModal(true);
-                    }
+                    setGeneratedBillingid(response.billingid || response.data?.billingid);
+                    setTimeout(() => {
+                        router.push(`/crm/customers`)
+                        window.open(`/billing/cash-collection/pos-receipt-test?billingid=${response.billingid || response.data?.billingid}&is_pos=true`);
+                    }, 1000);
                 }
             }
             if (status == false) {
@@ -671,42 +667,6 @@ function MultiBillingLayoutContent() {
                 </div>
 
             </div>
-
-            {/* Choice Modal */}
-            {showChoiceModal && (
-                <Modal
-                    show={showChoiceModal}
-                    onHide={handleModalClose}
-                    centered
-                    backdrop="static"
-                    keyboard={false}
-                >
-                    <Modal.Header closeButton>
-                        <Modal.Title>Billing Complete</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-                        <p>What would you like to do next?</p>
-                        <div className="d-flex justify-content-end gap-2">
-                            <Button
-                                variant="primary"
-                                onClick={() => handleUserChoice('print')}
-                                className="d-flex align-items-center gap-2"
-                            >
-                                <RiPrinterLine size={18} />
-                                Print Receipt
-                            </Button>
-                            <Button
-                                variant="secondary"
-                                onClick={() => handleUserChoice('sales')}
-                                className="d-flex align-items-center gap-2"
-                            >
-                                <RiStore3Line size={18} />
-                                Go to Sales
-                            </Button>
-                        </div>
-                    </Modal.Body>
-                </Modal>
-            )}
 
             {/* Receipt Options Modal */}
             {showReceiptOptionsModal && (

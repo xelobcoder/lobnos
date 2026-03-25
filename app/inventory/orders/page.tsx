@@ -153,6 +153,14 @@ const STATUS_BADGES = {
      cancelled: { label: 'Cancelled', color: 'danger' }
 };
 
+const orderRowStyling = {
+     type: 'custom',
+     getRowClassName: (row) => {
+          if (row.status === 'cancelled') return 'table-danger';
+          return '';
+     },
+};
+
 export default function PurchaseOrdersPage() {
      const router = useRouter();
      const { applicationsettings } = useApplicationSettings();
@@ -419,6 +427,24 @@ export default function PurchaseOrdersPage() {
                accessor: 'orderNumber',
           },
           {
+               Header: 'Order Date',
+               accessor: 'orderDate',
+               Cell: ({ value }) => (
+                    <div>
+                         <div>{value ? new Date(value).toLocaleDateString() : '—'}</div>
+                    </div>
+               )
+          },
+          {
+               Header: 'Expected Delivery',
+               accessor: 'expectedDeliveryDate',
+               Cell: ({ value }) => (
+                    <div>
+                         <div>{value ? new Date(value).toLocaleDateString() : '—'}</div>
+                    </div>
+               )
+          },
+          {
                Header: 'Supplier',
                accessor: 'supplierName',
                Cell: ({ value, row }) => (
@@ -478,7 +504,7 @@ export default function PurchaseOrdersPage() {
                Header: 'Total Amount',
                accessor: 'totalAmount',
                Cell: ({ value, row }) => (
-                    <span>{row.original.currency} {currencyFormatter.format((value || 0).toFixed(2))}</span>
+                    <span> {currencyFormatter.format((value || 0).toFixed(2))}</span>
                )
           },
           {
@@ -486,7 +512,7 @@ export default function PurchaseOrdersPage() {
                accessor: 'remainingBalance',
                Cell: ({ value, row }) => (
                     <span className={`fw-bold ${value > 0 ? 'text-danger' : 'text-success'}`}>
-                         {row.original.currency} {currencyFormatter.format((value || 0).toFixed(2))}
+                         {currencyFormatter.format((value || 0).toFixed(2))}
                     </span>
                )
           },
@@ -495,7 +521,7 @@ export default function PurchaseOrdersPage() {
                accessor: 'totalPending',
                Cell: ({ value, row }) => (
                     <span className={`fw-bold ${value > 0 ? 'text-warning' : 'text-muted'}`}>
-                         {row.original.currency} {currencyFormatter.format((value || 0).toFixed(2))}
+                         {currencyFormatter.format((value || 0).toFixed(2))}
                     </span>
                )
           },
@@ -554,10 +580,18 @@ export default function PurchaseOrdersPage() {
                                    {(row.original.totalPending || 0) < (row.original.totalAmount || 0) && (
                                         <button
                                              className="btn btn-sm btn-outline-info"
-                                             title="Make Payment"
+                                             title={row.original.totalPending === 0 ? "View Payment" : "Make Payment"}
                                              onClick={() => handleMakePayment(row.original)}
                                         >
-                                             Make Payment       <RiMoneyDollarCircleLine size={14} />
+                                             {row.original.totalPending === 0 ? (
+                                                  <>
+                                                       View Payment <RiMoneyDollarCircleLine size={14} />
+                                                  </>
+                                             ) : (
+                                                  <>
+                                                       Make Payment <RiMoneyDollarCircleLine size={14} />
+                                                  </>
+                                             )}
                                         </button>
                                    )}
                                    <span className="text-muted small">
@@ -758,7 +792,7 @@ export default function PurchaseOrdersPage() {
 
      const handleReceiveOrder = (order: PurchaseOrder) => {
           const url = `/inventory/orders/receive-ordered-items/${order.id}?isOpenSideBarShow=false`;
-          window.open(url, '_blank', 'resizeable=yes,scrollbars=yes,width=800,height=600');
+          window.open(url, '_blank');
      };
 
      const handleViewOrderDetails = async (order: PurchaseOrder) => {
@@ -1009,6 +1043,7 @@ export default function PurchaseOrdersPage() {
                     filtering={true}
                     handleSeverSideProcessing={handleServerSideProcessing}
                     serverSideFiltering={true}
+                    rowStyling={orderRowStyling as any}
                />
 
                {/* Filter Offcanvas */}

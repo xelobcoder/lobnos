@@ -71,6 +71,20 @@
     color: white;
 }
 
+.table-danger,
+.prime-table-theme .table-danger,
+.prime-table .table-danger {
+    background-color: #f8d7da !important;
+    color: #842029 !important;
+}
+
+[data-bs-theme="dark"] .table-danger,
+[data-bs-theme="dark"] .prime-table-theme .table-danger,
+[data-bs-theme="dark"] .prime-table .table-danger {
+    background-color: #842029 !important;
+    color: #fff !important;
+}
+
 
 
 

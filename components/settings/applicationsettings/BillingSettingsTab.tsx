@@ -140,6 +140,36 @@ export const BillingSettingsTab: React.FC<BillingSettingsTabProps> = ({ settings
                          label: 'Allow Result Entering of unpaid service results',
                          description: 'Permit entering results for services that are unpaid',
                          icon: <RiCheckboxCircleLine size={20} />
+                    },
+                    {
+                         name: 'automakesupplierpaymentsexpense',
+                         label: 'Automatically Make Supplier Payments as Expense',
+                         description: 'Automatically make successful suppliers payments as expenses',
+                         icon: <RiMoneyDollarCircleLine size={20} />
+                    },
+                    {
+                         name: "automakeemployeepayrollpaymentsexpense",
+                         label: 'Automatically Make Employee Payroll Payments as Expense',
+                         description: 'Automatically make successful employee payroll payments as expenses',
+                         icon: <RiMoneyDollarCircleLine size={20} />
+                    },
+                    {
+                         name: "automakeoutsourcepaymentsexpense",
+                         label: 'Automatically Make Outsource Payments as Expense',
+                         description: 'Automatically make successful outsource payments as expenses',
+                         icon: <RiMoneyDollarCircleLine size={20} />
+                    },
+                    {
+                         name: "automakecommissionpaymentsexpense",
+                         label: 'Automatically Make Commission Payments as Expense',
+                         description: 'Automatically make successful commission payments as expenses',
+                         icon: <RiMoneyDollarCircleLine size={20} />
+                    },
+                    {
+                         name: "useamountpaidforcommissioncalculation",
+                         label: 'Use Amount Paid for Commission Calculation',
+                         description: 'Calculate commissions based on the amount paid rather than billed amount or the amount payable ',
+                         icon: <RiMoneyDollarCircleLine size={20} />
                     }
                ]
           }
