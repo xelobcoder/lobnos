@@ -35,6 +35,7 @@ interface OutsourcedCase {
      updatedby: number;
      employeeName: string;
      confirmerName: string | null;
+     is_expensed: number;
 }
 
 export default function OutsourcedCasesPage() {
@@ -47,28 +48,26 @@ export default function OutsourcedCasesPage() {
      const branchid = useApplication()?.branchid;
 
 
-     useEffect(() => {
-          const fetchOutsourcedCases = async () => {
-               try {
-                    setLoading(true);
-                    setError(null);
-
-                    const response = await customFetch('outsourced/cases');
-
-                    if (response && Array.isArray(response)) {
-                         setData(response);
-                    } else {
-                         setData([]);
-                         setError("Failed to fetch outsourced cases or data is in an unexpected format.");
-                    }
-               } catch (err) {
+     const fetchOutsourcedCases = async () => {
+          try {
+               setLoading(true);
+               setError(null);
+               const response = await customFetch('outsourced/cases');
+               if (response && Array.isArray(response)) {
+                    setData(response);
+               } else {
                     setData([]);
-                    setError(err instanceof Error ? err.message : "An unknown error occurred");
-               } finally {
-                    setLoading(false);
+                    setError("Failed to fetch outsourced cases or data is in an unexpected format.");
                }
-          };
+          } catch (err) {
+               setData([]);
+               setError(err instanceof Error ? err.message : "An unknown error occurred");
+          } finally {
+               setLoading(false);
+          }
+     };
 
+     useEffect(() => {
           fetchOutsourcedCases();
      }, []);
 
@@ -132,7 +131,7 @@ export default function OutsourcedCasesPage() {
                     setData(prevData =>
                          prevData.map(item =>
                               item.id === caseItem.id
-                                   ? { ...item, status: 2 }
+                                   ? { ...item, is_expensed: 1 }
                                    : item
                          )
                     );
@@ -181,15 +180,6 @@ export default function OutsourcedCasesPage() {
 
      const columns: Column[] = [
           {
-               Header: 'Created On',
-               accessor: 'createdOn',
-               Cell: ({ value }) => (
-                    <span className="text-muted small">
-                         {formatDate(value)}
-                    </span>
-               )
-          },
-          {
                Header: 'Test Name',
                accessor: 'testName'
           },
@@ -199,8 +189,9 @@ export default function OutsourcedCasesPage() {
                Cell: ({ value }) => value.replace(/_/g, ' ')
           },
           {
-               Header: 'Record By',
-               accessor: 'employeeName'
+               Header: 'Status',
+               accessor: 'status',
+               Cell: ({ value }) => value === 0 ? 'Pending' : 'Completed'
           },
           {
                Header: 'Outsource Price',
@@ -212,9 +203,22 @@ export default function OutsourcedCasesPage() {
                )
           },
           {
-               Header: 'Status',
-               accessor: 'status',
-               Cell: ({ value }) => value === 0 ? 'Pending' : 'Completed'
+               Header: 'Record By',
+               accessor: 'employeeName'
+          },
+          {
+               Header: 'Confirmed By',
+               accessor: 'confirmerName',
+               Cell: ({ value }) => value || <span className="text-muted">-</span>
+          },
+          {
+               Header: 'Created On',
+               accessor: 'createdOn',
+               Cell: ({ value }) => (
+                    <span className="text-muted small">
+                         {formatDate(value)}
+                    </span>
+               )
           },
           {
                Header: 'Updated On',
@@ -226,11 +230,6 @@ export default function OutsourcedCasesPage() {
                ) : (
                     <span className="text-muted">-</span>
                )
-          },
-          {
-               Header: 'Confirmed By',
-               accessor: 'confirmerName',
-               Cell: ({ value }) => value || <span className="text-muted">-</span>
           },
           {
                Header: 'Comments',
@@ -249,24 +248,28 @@ export default function OutsourcedCasesPage() {
                     const isCompleting = completingIds.has(row.original.id);
                     const isExpense = expenseIds.has(row.original.id);
                     const isCompleted = row.original.status !== 0;
-                    const isExpensed = row.original.status === 2; // Assuming status 2 means expensed
+                    const isExpensed = row.original.is_expensed === 1;
 
                     return (
-                         <div className="d-flex gap-2">
+                         <div className="d-flex gap-2 align-items-center">
                               <button
                                    className="btn btn-sm btn-success"
                                    onClick={() => handleMarkCompleted(row.original)}
-                                   disabled={isCompleted || isCompleting || isExpensed}
+                                   disabled={isCompleted || isCompleting}
                               >
                                    {isCompleting ? 'Completing...' : isCompleted ? 'Completed' : 'Mark Completed'}
                               </button>
-                              <button
-                                   className="btn btn-sm btn-warning"
-                                   onClick={() => handleMarkAsExpense(row.original)}
-                                   disabled={isExpensed || isExpense}
-                              >
-                                   {isExpense ? 'Processing...' : isExpensed ? 'Expensed' : 'Mark as Expense'}
-                              </button>
+                              {isExpensed ? (
+                                   <span className="badge bg-secondary">Expensed</span>
+                              ) : (
+                                   <button
+                                        className="btn btn-sm btn-warning"
+                                        onClick={() => handleMarkAsExpense(row.original)}
+                                        disabled={isExpense}
+                                   >
+                                        {isExpense ? 'Processing...' : 'Mark as Expense'}
+                                   </button>
+                              )}
                          </div>
                     );
                }
@@ -306,6 +309,13 @@ export default function OutsourcedCasesPage() {
                          <h1 className="h3 mb-0">Outsourced Cases</h1>
                          <p className="text-muted mt-1">Manage and view all outsourced laboratory cases</p>
                     </div>
+                    <button
+                         className="btn btn-outline-primary btn-sm"
+                         onClick={fetchOutsourcedCases}
+                         disabled={loading}
+                    >
+                         {loading ? 'Refreshing...' : '↻ Refresh'}
+                    </button>
                </div>
 
                <PrimeTable
