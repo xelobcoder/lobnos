@@ -12,23 +12,39 @@ const COLOR_BORDER = 'var(--bs-border-color)';
 
 export interface CommissionChartData {
 	service_date: string;
-	commission_earned_by_paid_amount: string;
+	commission_earned: string;
 }
 
 interface CommissionLineChartProps {
 	data: {
 		service_date: string;
-		commission_earned_by_paid_amount: string;
+		commission_earned: string;
 	}[];
 	view?: 'bar' | 'line';
 }
 
 export default function CommissionLineChart({ data, view }: CommissionLineChartProps) {
-	const chartData = data.map(item => ({
-		...item,
-		commission_earned: parseFloat(item.commission_earned_by_paid_amount),
-		dateLabel: dayjs(item.service_date).format("MMM D, YYYY"),
-	}));
+	const chartData = React.useMemo(() => {
+		const groupedByDate = data.reduce((acc, item) => {
+			const dateKey = dayjs(item.service_date).format("YYYY-MM-DD");
+			const amount = Number(item.commission_earned);
+
+			if (!Number.isFinite(amount) || amount <= 0) {
+				return acc;
+			}
+
+			acc[dateKey] = (acc[dateKey] || 0) + amount;
+			return acc;
+		}, {} as Record<string, number>);
+
+		return Object.entries(groupedByDate)
+			.sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
+			.map(([service_date, commission_earned]) => ({
+				service_date,
+				commission_earned,
+				dateLabel: dayjs(service_date).format("MMM D, YYYY"),
+			}));
+	}, [data]);
 
 	// Use view prop if provided, otherwise auto-switch
 	let useBar = chartData.length > 12;

@@ -10,6 +10,8 @@ interface DateFilterReusableProps {
      disabled?: boolean;
 }
 
+const CUSTOM_RANGE_VALUE = 'Custom Range';
+
 const DATE_FILTER_GROUPS = (labelText: string) => ({
      '': [{ value: '', label: labelText }],
      'Daily': [
@@ -52,6 +54,9 @@ const DATE_FILTER_GROUPS = (labelText: string) => ({
      ],
      'All': [
           { value: 'All', label: 'All Time' },
+     ],
+     'Custom': [
+          { value: CUSTOM_RANGE_VALUE, label: 'Custom Range' },
      ],
 });
 
@@ -191,11 +196,32 @@ export default function DateFilterReusable({
      className = 'col-12 col-lg-2',
      disabled = false
 }: DateFilterReusableProps) {
+     const [customStartDate, setCustomStartDate] = React.useState(dayjs().startOf('month').format('YYYY-MM-DD'));
+     const [customEndDate, setCustomEndDate] = React.useState(dayjs().format('YYYY-MM-DD'));
+
      const handleChange = (filterValue: string) => {
           onChange(filterValue);
           if (onDateRangeChange) {
+               if (filterValue === CUSTOM_RANGE_VALUE) {
+                    onDateRangeChange(customStartDate, customEndDate);
+                    return;
+               }
                const { startDate, endDate } = calculateDateRange(filterValue);
                onDateRangeChange(startDate, endDate);
+          }
+     };
+
+     const handleCustomStartDateChange = (startDate: string) => {
+          setCustomStartDate(startDate);
+          if (onDateRangeChange) {
+               onDateRangeChange(startDate, customEndDate);
+          }
+     };
+
+     const handleCustomEndDateChange = (endDate: string) => {
+          setCustomEndDate(endDate);
+          if (onDateRangeChange) {
+               onDateRangeChange(customStartDate, endDate);
           }
      };
 
@@ -225,6 +251,27 @@ export default function DateFilterReusable({
                          )
                     )}
                </select>
+               {value === CUSTOM_RANGE_VALUE && (
+                    <div className="d-flex gap-2 mt-2">
+                         <input
+                              type="date"
+                              className="form-control form-control-sm"
+                              value={customStartDate}
+                              onChange={(ev) => handleCustomStartDateChange(ev.target.value)}
+                              disabled={disabled}
+                              aria-label="Custom range start date"
+                         />
+                         <input
+                              type="date"
+                              className="form-control form-control-sm"
+                              value={customEndDate}
+                              min={customStartDate}
+                              onChange={(ev) => handleCustomEndDateChange(ev.target.value)}
+                              disabled={disabled}
+                              aria-label="Custom range end date"
+                         />
+                    </div>
+               )}
           </div>
      )
 }

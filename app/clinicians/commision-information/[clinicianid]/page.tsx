@@ -4,28 +4,27 @@ import Link from 'next/link';
 import styles from '../CommissionReport.module.css';
 import { customFetch, currencyFormatter, customPost } from '../../../../components/Auth/customFetch';
 import dayjs from 'dayjs';
+
 import { Modal, Button, Form } from 'react-bootstrap';
 import { toast } from 'react-toastify';
-
 import { RiUserLine, RiPhoneLine, RiBriefcaseLine, RiMoneyDollarCircleLine, RiServiceLine, RiFileList3Line } from '@remixicon/react';
 import CommissionDetailsModal from './components/CommissionDetailsModal';
 import CommissionLineChart from '../CommissionLineChart';
 import { useApplication } from "../../../../components/Auth/useApplicationContext";
+import DateFilterReusable from '../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable';
 
 interface CommissionData {
 	service_date: string;
 	clinician_id: number;
 	clinician_name: string;
 	clinician_phone: string;
-	occupation: string;
-	organization: number;
+	occupation: string | null;
+	organization: number | null;
 	total_services: number;
 	total_payable: string;
 	total_paid: string;
 	serviceid: number;
-	commission_percent: number;
-	commission_earned_by_amount_payable: string;
-	commission_earned_by_paid_amount: string;
+	commission_earned: string;
 }
 
 
@@ -52,11 +51,10 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 	const defaultStart = dayjs(`${currentYear}-01-01`).format('YYYY-MM-DD');
 	const [startDate, setStartDate] = useState(defaultStart);
 	const [endDate, setEndDate] = useState(today);
-	const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setStartDate(e.target.value);
-	};
-	const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setEndDate(e.target.value);
+	const [dateFilter, setDateFilter] = useState('This Year');
+	const handleDateRangeChange = (start: string, end: string) => {
+		setStartDate(start);
+		setEndDate(end);
 	};
 	const handleResetFilters = () => {
 		setStartDate(defaultStart);
@@ -184,15 +182,11 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 	};
 
 	// Calculate total commission due for selected records
-	const totalBulkCommissionPaid = Array.from(selectedRecords).reduce((acc, idx) => {
+	const totalBulkCommission = Array.from(selectedRecords).reduce((acc, idx) => {
 		const rec = commissionData[idx];
-		return acc + (rec ? Number(rec.commission_earned_by_paid_amount) : 0);
+		return acc + (rec ? Number(rec.commission_earned) : 0);
 	}, 0);
-	const totalBulkCommissionPayable = Array.from(selectedRecords).reduce((acc, idx) => {
-		const rec = commissionData[idx];
-		return acc + (rec ? Number(rec.commission_earned_by_amount_payable) : 0);
-	}, 0);
-	const selectedCommissionDue = bulkPayType === 'paid' ? totalBulkCommissionPaid : totalBulkCommissionPayable;
+	const selectedCommissionDue = totalBulkCommission;
 
 	// Bulk pay handler
 	const handleBulkPay = async () => {
@@ -262,12 +256,11 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 	}
 
 	const summary = commissionData.reduce((acc, item) => {
-		acc.total_commission_by_payable += Number(item.commission_earned_by_amount_payable);
-		acc.total_commission_by_paid += Number(item.commission_earned_by_paid_amount);
+		acc.total_commission += Number(item.commission_earned);
 		acc.total_value += Number(item.total_payable);
 		acc.total_services += item.total_services;
 		return acc;
-	}, { total_commission_by_payable: 0, total_commission_by_paid: 0, total_value: 0, total_services: 0 });
+	}, { total_commission: 0, total_value: 0, total_services: 0 });
 
 	// Default clinician info when no data is available
 	const clinicianInfo = commissionData.length > 0 ? commissionData[0] : {
@@ -300,62 +293,42 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 				</div>
 			</div>
 			<hr />
-			{/* Date Picker and Summary Cards */}
-			<div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-3 gap-3">
-				<div className="row g-3">
-					<div className="col-12 col-sm-6 col-md-4 col-lg-3">
-						<div className={styles.statItem}>
-							<div className={styles.statIcon}><RiPhoneLine /></div>
-							<div className={styles.statInfo}>
-								<span className={styles.statValue}>{clinician_phone}</span>
-								<span className={styles.statLabel}>Phone</span>
-							</div>
+			{/* Summary Cards */}
+			<div className="row g-3 mb-4">
+				<div className="col-12 col-sm-6 col-md-3">
+					<div className="border rounded p-3 h-100">
+						<div className="d-flex align-items-center gap-2 mb-1">
+							<RiPhoneLine size={18} className="text-secondary flex-shrink-0" />
+							<span className="text-muted small">Phone</span>
 						</div>
+						<div className="fw-bold fs-6">{clinician_phone || '—'}</div>
 					</div>
-					<div className="col-12 col-sm-6 col-md-4 col-lg-3">
-						<div className={styles.statItem}>
-							<div className={styles.statIcon}><RiBriefcaseLine /></div>
-							<div className={styles.statInfo}>
-								<span className={styles.statValue}>{occupation}</span>
-								<span className={styles.statLabel}>Occupation</span>
-							</div>
+				</div>
+				<div className="col-12 col-sm-6 col-md-3">
+					<div className="border rounded p-3 h-100">
+						<div className="d-flex align-items-center gap-2 mb-1">
+							<RiMoneyDollarCircleLine size={18} className="text-success flex-shrink-0" />
+							<span className="text-muted small">Total Commission Earned</span>
 						</div>
+						<div className="fw-bold fs-6">{currencyFormatter.format(summary.total_commission)}</div>
 					</div>
-					<div className="col-12 col-sm-6 col-md-4 col-lg-3">
-						<div className={styles.statItem}>
-							<div className={styles.statIcon}><RiMoneyDollarCircleLine /></div>
-							<div className={styles.statInfo}>
-								<span className={styles.statValue}>{currencyFormatter.format(summary.total_commission_by_payable)}</span>
-								<span className={styles.statLabel}>Commission (Payable)</span>
-							</div>
+				</div>
+				<div className="col-12 col-sm-6 col-md-3">
+					<div className="border rounded p-3 h-100">
+						<div className="d-flex align-items-center gap-2 mb-1">
+							<RiServiceLine size={18} className="text-primary flex-shrink-0" />
+							<span className="text-muted small">Total Payable</span>
 						</div>
+						<div className="fw-bold fs-6">{currencyFormatter.format(summary.total_value)}</div>
 					</div>
-					<div className="col-12 col-sm-6 col-md-4 col-lg-3">
-						<div className={styles.statItem}>
-							<div className={styles.statIcon}><RiMoneyDollarCircleLine /></div>
-							<div className={styles.statInfo}>
-								<span className={styles.statValue}>{currencyFormatter.format(summary.total_commission_by_paid)}</span>
-								<span className={styles.statLabel}>Commission (Paid)</span>
-							</div>
+				</div>
+				<div className="col-12 col-sm-6 col-md-3">
+					<div className="border rounded p-3 h-100">
+						<div className="d-flex align-items-center gap-2 mb-1">
+							<RiFileList3Line size={18} className="text-secondary flex-shrink-0" />
+							<span className="text-muted small">Services / Records</span>
 						</div>
-					</div>
-					<div className="col-12 col-sm-6 col-md-4 col-lg-3">
-						<div className={styles.statItem}>
-							<div className={styles.statIcon}><RiServiceLine /></div>
-							<div className={styles.statInfo}>
-								<span className={styles.statValue}>{summary.total_services}</span>
-								<span className={styles.statLabel}>Total Services</span>
-							</div>
-						</div>
-					</div>
-					<div className="col-12 col-sm-6 col-md-4 col-lg-3">
-						<div className={styles.statItem}>
-							<div className={styles.statIcon}><RiFileList3Line /></div>
-							<div className={styles.statInfo}>
-								<span className={styles.statValue}>{commissionData.length}</span>
-								<span className={styles.statLabel}>Records</span>
-							</div>
-						</div>
+						<div className="fw-bold fs-6">{summary.total_services} <span className="text-muted fw-normal small">/ {commissionData.length} records</span></div>
 					</div>
 				</div>
 			</div>
@@ -375,19 +348,14 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 						<h2 className="fs-6 fw-semibold text-body-emphasis mb-3 mb-lg-0 d-flex align-items-center" style={{ color: 'inherit' }}>
 							Commission Trend
 						</h2>
-						<div className="d-flex flex-row align-items-center gap-2">
-							<div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
-								<span className="input-group-text bg-transparent border-end-0" style={{ borderColor: 'var(--bs-border-color)', paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
-									Start
-								</span>
-								<input type="date" className="form-control shadow-none border-start-0" value={startDate} onChange={handleStartDateChange} aria-label="Start Date" style={{ fontSize: '0.875rem', borderColor: 'var(--bs-border-color)', paddingLeft: '0.3rem' }} />
-							</div>
-							<div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
-								<span className="input-group-text bg-transparent border-end-0" style={{ borderColor: 'var(--bs-border-color)', paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
-									End
-								</span>
-								<input type="date" className="form-control shadow-none border-start-0" value={endDate} onChange={handleEndDateChange} min={startDate} aria-label="End Date" style={{ fontSize: '0.875rem', borderColor: 'var(--bs-border-color)', paddingLeft: '0.3rem' }} />
-							</div>
+						<div className="d-flex  gap-2">
+							<DateFilterReusable
+								value={dateFilter}
+								onChange={setDateFilter}
+								onDateRangeChange={handleDateRangeChange}
+								label="Filter by"
+								className="col-12 col-lg-auto"
+							/>
 							<button onClick={loadCommissionData} className="btn btn-sm btn-primary d-flex align-items-center" type="button" aria-label="Load commission data" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
 								Load Data
 							</button>
@@ -422,18 +390,7 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 					</h2>
 
 					<div className="d-flex flex-row align-items-center gap-2">
-						<div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
-							<span className="input-group-text bg-transparent border-end-0" style={{ borderColor: 'var(--bs-border-color)', paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
-								Start
-							</span>
-							<input type="date" className="form-control shadow-none border-start-0" value={startDate} onChange={handleStartDateChange} aria-label="Start Date" style={{ fontSize: '0.875rem', borderColor: 'var(--bs-border-color)', paddingLeft: '0.3rem' }} />
-						</div>
-						<div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
-							<span className="input-group-text bg-transparent border-end-0" style={{ borderColor: 'var(--bs-border-color)', paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
-								End
-							</span>
-							<input type="date" className="form-control shadow-none border-start-0" value={endDate} onChange={handleEndDateChange} min={startDate} aria-label="End Date" style={{ fontSize: '0.875rem', borderColor: 'var(--bs-border-color)', paddingLeft: '0.3rem' }} />
-						</div>
+						{/* DateFilterReusable now handles date selection; removed old manual date pickers */}
 						<button onClick={loadCommissionData} className="btn btn-sm btn-primary d-flex align-items-center" type="button" aria-label="Load commission data" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
 							Load Data
 						</button>
@@ -479,9 +436,7 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 									<th className="py-2">Service Date</th>
 									<th className="py-2 text-start">Services</th>
 									<th className="py-2 text-start">Total Payable</th>
-									<th className="py-2 text-start">Commission %</th>
-									<th className="py-2 text-start">Commission(Payable)</th>
-									<th className="py-2 text-start">Commission(Paid)</th>
+									<th className="py-2 text-start">Commission Earned</th>
 									<th className="py-2 text-center">Payment</th>
 								</tr>
 							</thead>
@@ -499,9 +454,7 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 										<td className="py-2">{dayjs(record.service_date).format('DD/MM/YYYY')}</td>
 										<td className="py-2 text-start">{record.total_services}</td>
 										<td className="py-2 text-start">{currencyFormatter.format(Number(record.total_payable))}</td>
-										<td className="py-2 text-start">{record.commission_percent}%</td>
-										<td className="py-2 text-start">{currencyFormatter.format(Number(record.commission_earned_by_amount_payable))}</td>
-										<td className="py-2 text-start">{currencyFormatter.format(Number(record.commission_earned_by_paid_amount))}</td>
+										<td className="py-2 text-start">{currencyFormatter.format(Number(record.commission_earned))}</td>
 										<td className="py-2 text-center">
 											<button
 												type="button"
@@ -543,15 +496,12 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 				</Modal.Header>
 				<Modal.Body className="py-2">
 					<div className="mb-2 small">
-						<strong>Start Date:</strong> {startDate}<br />
-						<strong>End Date:</strong> {endDate}<br />
-						<Form.Group className="mb-3">
-							<Form.Label className="small">Commission Type</Form.Label>
-							<Form.Select value={bulkPayType} onChange={e => setBulkPayType(e.target.value as 'paid' | 'payable')} className="form-select form-select-sm">
-								<option value="paid">Commission (Earned by Amount Paid)</option>
-								<option value="payable">Commission (Earned by Amount Payable)</option>
-							</Form.Select>
-						</Form.Group>
+						<div className="mb-2">
+							<strong>Period:</strong> {startDate} &mdash; {endDate}
+						</div>
+						<div className="mb-3">
+							<strong>Selected Records:</strong> {selectedRecords.size} &nbsp;|&nbsp; <strong>Total Commission Earned:</strong> {currencyFormatter.format(selectedCommissionDue)}
+						</div>
 						<Form.Group className="mb-3">
 							<Form.Label className="small">Payment Method</Form.Label>
 							<Form.Select value={bulkPayMethod ?? ''} onChange={e => setBulkPayMethod(Number(e.target.value))} className="form-select form-select-sm">
@@ -561,7 +511,6 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 								))}
 							</Form.Select>
 						</Form.Group>
-						<strong>Total Commission Due:</strong> {currencyFormatter.format(selectedCommissionDue)}
 					</div>
 					<Form.Group className="mb-3">
 						<Form.Label className="small">Amount to Pay</Form.Label>

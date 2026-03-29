@@ -64,22 +64,20 @@ export default function CommissionDetailsModal({
      const [amountDue, setAmountDue] = useState('');
      const [submittingPayment, setSubmittingPayment] = useState(false);
      const employeeid = useApplication()?.user?.employeeid;
-     const role = useApplication()?.user?.role;     // Set default payment mode when payment modes change
+     const role = useApplication()?.user?.role;
      useEffect(() => {
           if (paymentModes.length > 0) {
                setPaymentMode(paymentModes[0].KeyID);
           }
      }, [paymentModes]);
 
-     // Set default amount to pay when commission payments change
      useEffect(() => {
           if (commissionPayments.length > 0) {
                const outstanding = commissionPayments.reduce((sum, p) => sum + (Number(p.commission_due) - Number(p.amount_allocated)), 0);
                setAmountToPay(outstanding.toString());
                setAmountDue(outstanding.toString());
           } else if (selectedRecord) {
-               // No payment records exist, set amount to full commission
-               const commissionAmount = selectedRecord.commission_earned_by_paid_amount || '0';
+               const commissionAmount = selectedRecord.commission_earned || '0';
                setAmountToPay(commissionAmount);
                setAmountDue(commissionAmount);
           }
@@ -133,7 +131,6 @@ export default function CommissionDetailsModal({
           }
      };
 
-     // Calculate outstanding amount
      const outstandingAmount = commissionPayments.reduce((sum, p) => sum + (Number(p.commission_due) - Number(p.amount_allocated)), 0);
      const shouldShowPaymentForm = commissionPayments.length === 0 || outstandingAmount > 0;
      return (
@@ -154,7 +151,6 @@ export default function CommissionDetailsModal({
                          </div>
                     ) : (
                          <>
-                              {/* Service Summary */}
                               {selectedRecord && (
                                    <div className="mb-3">
                                         <h6 className="fw-bold mb-2">
@@ -174,15 +170,20 @@ export default function CommissionDetailsModal({
                                                   </div>
                                                   <span className="text-muted">||</span>
                                                   <div>
-                                                       <small className="text-muted">Commission Earned:</small>{' '}
-                                                       <span className="fw-bold text-success">
-                                                            {currencyFormatter.format(Number(selectedRecord.commission_earned_by_paid_amount))}
-                                                       </span>
+                                                       <small className="text-muted">Total Payable:</small>{' '}
+                                                       <span className="fw-bold">{currencyFormatter.format(Number(selectedRecord.total_payable))}</span>
                                                   </div>
                                                   <span className="text-muted">||</span>
                                                   <div>
-                                                       <small className="text-muted">Commission Rate:</small>{' '}
-                                                       <span className="fw-bold">{selectedRecord.commission_percent}%</span>
+                                                       <small className="text-muted">Total Paid:</small>{' '}
+                                                       <span className="fw-bold">{currencyFormatter.format(Number(selectedRecord.total_paid))}</span>
+                                                  </div>
+                                                  <span className="text-muted">||</span>
+                                                  <div>
+                                                       <small className="text-muted">Commission Earned:</small>{' '}
+                                                       <span className="fw-bold text-success">
+                                                            {currencyFormatter.format(Number(selectedRecord.commission_earned))}
+                                                       </span>
                                                   </div>
                                              </div>
                                         </div>
@@ -191,7 +192,6 @@ export default function CommissionDetailsModal({
 
                               <hr className="my-3" />
 
-                              {/* Commission Payments */}
                               <div>
                                    <h6 className="fw-bold mb-2">
                                         <RiCalendarLine size={18} className="me-2" />
@@ -262,7 +262,6 @@ export default function CommissionDetailsModal({
 
                               <hr className="my-3" />
 
-                              {/* Payment Summary */}
                               {commissionPayments.length > 0 && (
                                    <div className="mt-3 p-2 bg-body-tertiary rounded">
                                         <h6 className="fw-bold mb-2">Payment Summary</h6>

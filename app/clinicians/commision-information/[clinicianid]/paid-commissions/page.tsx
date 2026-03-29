@@ -3,7 +3,8 @@ import React, { useState, useEffect, useMemo } from "react";
 import Link from 'next/link';
 import { customFetch, currencyFormatter } from '../../../../../components/Auth/customFetch';
 import dayjs from 'dayjs';
-import { RiUserLine, RiFileList3Line, RiLineChartLine, RiBarChartBoxLine, RiBubbleChartLine, RiErrorWarningLine, RiCalendarEventLine, RiInbox2Line, RiLoader4Line, RiRefreshLine } from '@remixicon/react';
+import { RiUserLine, RiFileList3Line, RiLineChartLine, RiBarChartBoxLine, RiBubbleChartLine, RiErrorWarningLine, RiInbox2Line, RiLoader4Line, RiRefreshLine } from '@remixicon/react';
+import DateFilterReusable from '../../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable';
 import {
      ResponsiveContainer,
      BarChart,
@@ -72,6 +73,11 @@ export default function PaidCommissionsPage({ params }: { params: { clinicianid:
      const defaultStart = dayjs(`${currentYear}-01-01`).format('YYYY-MM-DD');
      const [startDate, setStartDate] = useState(defaultStart);
      const [endDate, setEndDate] = useState(today);
+     const [dateFilter, setDateFilter] = useState('This Year');
+     const handleDateRangeChange = (start: string, end: string) => {
+          setStartDate(start);
+          setEndDate(end);
+     };
      const [paidCommissions, setPaidCommissions] = useState<PaidCommissionData[]>([]);
      const [loading, setLoading] = useState(false);
      const [error, setError] = useState<string | null>(null);
@@ -123,15 +129,10 @@ export default function PaidCommissionsPage({ params }: { params: { clinicianid:
                .finally(() => setLoading(false));
      }, [params.clinicianid, startDate, endDate]);
 
-     const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-          setStartDate(e.target.value);
-     };
-     const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-          setEndDate(e.target.value);
-     };
      const handleResetFilters = () => {
           setStartDate(defaultStart);
           setEndDate(today);
+          setDateFilter('This Year');
      };
 
      // Process data for chart
@@ -335,33 +336,6 @@ export default function PaidCommissionsPage({ params }: { params: { clinicianid:
           { type: "area" as const, icon: RiBubbleChartLine, label: "Area" },
      ];
 
-     if (error) {
-          return (
-               <main className="container py-4">
-                    <div className="alert alert-danger d-flex align-items-center" role="alert">
-                         <RiUserLine size={32} className="me-2" />
-                         <div>
-                              <strong>Could Not Load Paid Commissions</strong>
-                              <div>There was a problem connecting to the API.</div>
-                              <div>{error}</div>
-                         </div>
-                    </div>
-               </main>
-          );
-     }
-     if (!paidCommissions.length) {
-          return (
-               <main className="container py-4">
-                    <div className="alert alert-info d-flex align-items-center" role="alert">
-                         <RiUserLine size={28} className="me-2" style={{ opacity: 0.5 }} />
-                         <div>
-                              <strong>No Paid Commissions Found</strong>
-                              <div>No paid commission records found for this clinician.</div>
-                         </div>
-                    </div>
-               </main>
-          );
-     }
      return (
           <div className="py-4">
                <div className="d-flex justify-content-between align-items-center mb-3">
@@ -400,38 +374,13 @@ export default function PaidCommissionsPage({ params }: { params: { clinicianid:
                                         ))}
                                    </div>
                                    <div className="d-flex align-items-center gap-2 mt-2 mt-sm-0">
-                                        <div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
-                                             <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: COLOR_BORDER, paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
-                                                  <RiCalendarEventLine size={16} className="text-muted" style={{ color: COLOR_TEXT_MUTED }} />
-                                             </span>
-                                             <input type="date" className="form-control shadow-none border-start-0" value={startDate} onChange={(e) => setStartDate(e.target.value)} aria-label="Start Date" style={{ fontSize: '0.875rem', borderColor: COLOR_BORDER, paddingLeft: '0.3rem' }} />
-                                        </div>
-                                        <div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
-                                             <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: COLOR_BORDER, paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
-                                                  <RiCalendarEventLine size={16} className="text-muted" style={{ color: COLOR_TEXT_MUTED }} />
-                                             </span>
-                                             <input type="date" className="form-control shadow-none border-start-0" value={endDate} onChange={(e) => setEndDate(e.target.value)} min={startDate} aria-label="End Date" style={{ fontSize: '0.875rem', borderColor: COLOR_BORDER, paddingLeft: '0.3rem' }} />
-                                        </div>
-                                        <button onClick={() => {
-                                             setLoading(true);
-                                             setError(null);
-                                             getPaidCommissions({ clinicianid: params.clinicianid, startDate, endDate })
-                                                  .then((res) => {
-                                                       if ((res as any).error) {
-                                                            setError((res as any).error);
-                                                            setPaidCommissions([]);
-                                                       } else {
-                                                            setPaidCommissions(res as PaidCommissionData[]);
-                                                       }
-                                                  })
-                                                  .catch(e => {
-                                                       setError(e.message || 'An unknown error occurred');
-                                                       setPaidCommissions([]);
-                                                  })
-                                                  .finally(() => setLoading(false));
-                                        }} className="btn btn-sm btn-primary d-flex align-items-center" type="button" aria-label="Load commission data" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
-                                             Load Data
-                                        </button>
+                                        <DateFilterReusable
+                                             value={dateFilter}
+                                             onChange={setDateFilter}
+                                             onDateRangeChange={handleDateRangeChange}
+                                             label="Filter by"
+                                             className="col-12 col-lg-auto"
+                                        />
                                         <button onClick={handleResetFilters} className="btn btn-sm btn-outline-secondary d-flex align-items-center" type="button" aria-label="Reset date filters" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
                                              <RiRefreshLine size={16} className="me-1" /> Reset
                                         </button>

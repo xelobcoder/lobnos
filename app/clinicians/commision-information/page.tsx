@@ -19,24 +19,20 @@ function exportCommissionDataToPDF(commissionData, startDate, endDate) {
      autoTable(doc, {
           startY: 36,
           head: [[
-               'Service Date',
                'Clinician Name',
                'Phone',
-               'Occupation',
                'Services',
                'Total Payable',
-               'Commission %',
+               'Total Paid',
                'Commission Earned',
           ]],
           body: commissionData.map(record => [
-               formatDate(record.service_date),
                record.clinician_name,
                record.clinician_phone,
-               record.occupation,
                record.total_services,
-               record.total_payable,
-               record.commission_percent + '%',
-               record.commission_earned,
+               (typeof currencyFormatter !== 'undefined' ? currencyFormatter.format(Number(record.total_payable)) : record.total_payable),
+               (typeof currencyFormatter !== 'undefined' ? currencyFormatter.format(Number(record.total_paid)) : record.total_paid),
+               (typeof currencyFormatter !== 'undefined' ? currencyFormatter.format(Number(record.commission_earned_total)) : record.commission_earned_total),
           ]),
           styles: { fontSize: 12, font: 'times', fontStyle: 'bold' },
           headStyles: { fillColor: [22, 160, 133], fontSize: 13, font: 'times', fontStyle: 'bold' },
@@ -44,9 +40,8 @@ function exportCommissionDataToPDF(commissionData, startDate, endDate) {
      });
      doc.save(`commission-report-${startDate}-to-${endDate}.pdf`);
 }
-import type { Metadata } from 'next';
+
 import { currencyFormatter, customFetch } from '../../../components/Auth/customFetch';
-import DateFilter from './DateFilter';
 import dayjs from 'dayjs';
 import styles from './CommissionReport.module.css';
 import {
@@ -60,6 +55,7 @@ import {
      RiAlertLine,
      RiFileList3Line,
 } from '@remixicon/react';
+import DateFilterReusable from '../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable';
 
 interface CommissionData {
      service_date: string;
@@ -126,6 +122,7 @@ export default function CliniciansCommission() {
      const [commissionData, setCommissionData] = useState<CommissionData[]>([]);
      const [loading, setLoading] = useState(false);
      const [error, setError] = useState<string | null>(null);
+     const [dateFilter, setDateFilter] = useState('Today');
 
      React.useEffect(() => {
           setLoading(true);
@@ -146,7 +143,9 @@ export default function CliniciansCommission() {
                .finally(() => setLoading(false));
      }, [startDate, endDate]);
 
-     const handleFilter = (start: string, end: string) => {
+
+     // Handler for DateFilterReusable
+     const handleDateRangeChange = (start: string, end: string) => {
           setStartDate(start);
           setEndDate(end);
      };
@@ -171,8 +170,8 @@ export default function CliniciansCommission() {
 
 
      // Calculate summary statistics
-     const totalCommissionEarnedByPaid = commissionData.reduce((sum, item) => sum + Number(item.commission_earned_by_paid_amount), 0);
-     const totalCommissionEarnedByPayable = commissionData.reduce((sum, item) => sum + Number(item.commission_earned_by_amount_payable), 0);
+     // Use commission_earned_by_paid_amount as the total commission earned field
+     const totalCommissionEarned = commissionData.reduce((sum, item) => sum + Number(item.commission_earned_by_paid_amount), 0);
      const totalServiceValue = commissionData.reduce((sum, item) => sum + Number(item.total_payable), 0);
      const totalPaidAmount = commissionData.reduce((sum, item) => sum + Number(item.total_paid), 0);
      const totalServices = commissionData.reduce((sum, item) => sum + item.total_services, 0);
@@ -209,12 +208,13 @@ export default function CliniciansCommission() {
                          Clinicians Commission Analytics Report
                     </h1>
 
-                    <div style={{ flexShrink: 0, minWidth: '400px' }}>
-                         <DateFilter
-                              startDate={startDate}
-                              endDate={endDate}
-                              onFilter={handleFilter}
-                              loading={loading}
+                    <div style={{ flexShrink: 0, minWidth: '240px' }}>
+                         <DateFilterReusable
+                              value={dateFilter}
+                              onChange={setDateFilter}
+                              onDateRangeChange={handleDateRangeChange}
+                              label="Filter by"
+                              className="w-100"
                          />
                     </div>
                </div>
@@ -225,10 +225,7 @@ export default function CliniciansCommission() {
                <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-4 gap-3">
                     <div className="row g-3">
                          <div className="col-12 col-sm-6 col-md-4 col-lg-3">
-                              <Stat label="Total Commission Earned (Paid)" value={currencyFormatter.format(totalCommissionEarnedByPaid)} icon={<RiMoneyDollarCircleLine />} />
-                         </div>
-                         <div className="col-12 col-sm-6 col-md-4 col-lg-3">
-                              <Stat label="Total Commission Earned (Payable)" value={currencyFormatter.format(totalCommissionEarnedByPayable)} icon={<RiMoneyDollarCircleLine />} />
+                              <Stat label="Total Commission Earned" value={currencyFormatter.format(totalCommissionEarned)} icon={<RiMoneyDollarCircleLine />} />
                          </div>
                          <div className="col-12 col-sm-6 col-md-4 col-lg-3">
                               <Stat label="Total Payable Amount" value={currencyFormatter.format(totalServiceValue)} icon={<RiServiceLine />} />
@@ -269,63 +266,81 @@ export default function CliniciansCommission() {
                     </div>
                     <div className="card-body p-3 p-md-4">
                          {Array.isArray(commissionData) && commissionData.length > 0 ? (
-                              <div className="table-responsive table-small ">
-                                   <table className="table table-sm table-hover table-striped mb-0">
-                                        <thead className="sticky-top bg-body-tertiary table-sm">
-                                             <tr>
-                                                  <th className="py-2">Service Date</th>
-                                                  <th className="py-2">Clinician Name</th>
-                                                  <th className="py-2">Occupation</th>
-                                                  <th className="py-2 text-end">Services</th>
-                                                  <th className="py-2 text-end">Total Payable</th>
-                                                  <th className="py-2 text-end">Commission %</th>
-                                                  <th className="py-2 text-end">Commission(Payable)</th>
-                                                  <th className="py-2 text-end">Commission(Paid)</th>
-                                                  <th className="py-2 text-center">Actions</th>
-                                             </tr>
-                                        </thead>
-                                        <tbody>
-                                             {commissionData
-                                                  .sort((a, b) => new Date(b.service_date).getTime() - new Date(a.service_date).getTime())
-                                                  .map((record, index) => (
-                                                       <tr key={`${record.clinician_id}-${record.service_date}-${index}`}>
-                                                            <td className="py-2">
-                                                                 {formatDate(record.service_date)}
-                                                            </td>
-                                                            <td className="py-2">{record.clinician_name}
-                                                                 <br />
-                                                                 ({record.clinician_phone})
-                                                            </td>
-                                                            <td className="py-2">{record.occupation}</td>
-                                                            <td className="py-2 text-end">
-                                                                 <span>{record.total_services}</span>
-                                                            </td>
-                                                            <td className="py-2 text-end">
-                                                                 {currencyFormatter.format(Number(record.total_payable))}
-                                                            </td>
-                                                            <td className="py-2 text-end">
-                                                                 {record.commission_percent}%
-                                                            </td>
-                                                            <td className="py-2 text-end">
-                                                                 {currencyFormatter.format(Number(record.commission_earned_by_paid_amount))}
-                                                            </td>
-                                                            <td className="py-2 text-end">
-                                                                 {currencyFormatter.format(Number(record.commission_earned_by_amount_payable))}
-                                                            </td>
-                                                            <td className="py-2 text-center">
-                                                                 <a
-                                                                      href={`/clinicians/commision-information/${record.clinician_id}`}
-                                                                      className='btn btn-primary btn-sm'
-                                                                      target="_blank"
-                                                                      rel="noopener noreferrer"
-                                                                 >
-                                                                      View
-                                                                 </a>
-                                                            </td>
-                                                       </tr>
-                                                  ))}
-                                        </tbody>
-                                   </table>
+                              <div className="table-responsive table-small">
+                                   {/* PrimeTable integration */}
+                                   {(() => {
+                                        // Define columns for PrimeTable
+                                        const columns = [
+                                             {
+                                                  Header: 'Clinician Name',
+                                                  accessor: 'clinician_name',
+                                             },
+                                             {
+                                                  Header: 'Phone',
+                                                  accessor: 'clinician_phone',
+                                             },
+                                             {
+                                                  Header: 'Services',
+                                                  accessor: 'total_services',
+                                                  Cell: ({ value }) => value?.toLocaleString?.() ?? value,
+                                             },
+                                             {
+                                                  Header: 'Total Payable for services',
+                                                  accessor: 'total_payable',
+                                                  Cell: ({ value }) => currencyFormatter.format(Number(value)),
+                                             },
+                                             {
+                                                  Header: 'Total Paid for services',
+                                                  accessor: 'total_paid',
+                                                  Cell: ({ value }) => currencyFormatter.format(Number(value)),
+                                             },
+                                             {
+                                                  Header: 'Commission Earned',
+                                                  accessor: 'commission_earned_total',
+                                                  Cell: ({ value }) => currencyFormatter.format(Number(value)),
+                                             },
+                                             {
+                                                  Header: 'Actions',
+                                                  id: 'actions',
+                                                  disableSortBy: true,
+                                                  Cell: ({ row }) => (
+                                                       <a
+                                                            href={`/clinicians/commision-information/${row.original.clinician_id}`}
+                                                            className='btn btn-primary btn-sm'
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                       >
+                                                            View
+                                                       </a>
+                                                  ),
+                                             },
+                                        ];
+                                        // Dynamically import PrimeTable to avoid SSR issues
+                                        const PrimeTable = require('../../../components/accessories/Datatables/PrimeTable.js').default;
+                                        const handleSeverSideProcessing = async ({ page, count, sortby = 'ASC', startDate, endDate }) => {
+                                             try {
+                                                  const url = `clinician/anal/commissions/range?startDate=${startDate}&endDate=${endDate}&page=${page}&count=${count}${sortby ? `&sortby=${sortby}` : ''}`;
+                                                  const response = await customFetch(url);
+                                                  if (response && response.success && Array.isArray(response.data)) {
+                                                       return { result: response.data, error: false };
+                                                  } else {
+                                                       return { result: [], error: false };
+                                                  }
+                                             } catch (error) {
+                                                  return { result: [], error: true };
+                                             }
+                                        };
+                                        return (
+                                             <PrimeTable
+                                                  column={columns}
+                                                  data={commissionData}
+                                                  filtering={true}
+                                                  urlparams={{ startDate, endDate }}
+                                                  serverSideFiltering={true}
+                                                  handleSeverSideProcessing={handleSeverSideProcessing}
+                                             />
+                                        );
+                                   })()}
                               </div>
                          ) : (
                               <div className={styles.emptyState}>

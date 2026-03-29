@@ -5,6 +5,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Button, Dropdown, Modal } from "react-bootstrap";
 import { BarChart, CartesianGrid, XAxis, YAxis, Legend, Bar, LineChart, Line, AreaChart, Area, ResponsiveContainer, Tooltip as RechartsTooltip } from "recharts";
 import { customFetch, currencyFormatter } from "../../../components/Auth/customFetch";
+import DateFilterReusable from "../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)'; // Primary chart color
@@ -94,6 +95,7 @@ export default function PaidCommissionsPaymentMadePage() {
      const defaultStart = dayjs(`${currentYear}-01-01`).format('YYYY-MM-DD');
      const [startDate, setStartDate] = useState(defaultStart);
      const [endDate, setEndDate] = useState(today);
+     const [dateFilter, setDateFilter] = useState('This Year');
      const [paidCommissions, setPaidCommissions] = useState<PaidCommissionData[]>([]);
      const [loading, setLoading] = useState(false);
      const [error, setError] = useState(null);
@@ -154,15 +156,15 @@ export default function PaidCommissionsPaymentMadePage() {
           }
      };
 
-     const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-          setStartDate(e.target.value);
+     const handleDateRangeChange = (start: string, end: string) => {
+          setStartDate(start);
+          setEndDate(end);
      };
-     const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-          setEndDate(e.target.value);
-     };
+
      const handleResetFilters = async () => {
           setStartDate(defaultStart);
           setEndDate(today);
+          setDateFilter('This Year');
           setSelectedClinician(null);
           setSelectedOrganization(null);
           await loadData(defaultStart, today, null, null);
@@ -451,14 +453,13 @@ export default function PaidCommissionsPaymentMadePage() {
                                                   <option key={o.id} value={o.id}>{o.name}</option>
                                              ))}
                                         </select>
-                                        <div className="input-group input-group-sm" style={{ width: '140px' }}>
-                                             <span className="input-group-text">Start</span>
-                                             <input type="date" className="form-control" value={startDate} onChange={handleStartDateChange} aria-label="Start Date" />
-                                        </div>
-                                        <div className="input-group input-group-sm" style={{ width: '140px' }}>
-                                             <span className="input-group-text">End</span>
-                                             <input type="date" className="form-control" value={endDate} onChange={handleEndDateChange} min={startDate} aria-label="End Date" />
-                                        </div>
+                                        <DateFilterReusable
+                                             value={dateFilter}
+                                             onChange={setDateFilter}
+                                             onDateRangeChange={handleDateRangeChange}
+                                             label="Filter by"
+                                             className="col-12 col-lg-auto"
+                                        />
                                         <Button variant="primary" size="sm" onClick={() => loadData()} disabled={loading}>
                                              {loading ? 'Loading...' : 'Load'}
                                         </Button>
