@@ -1,7 +1,7 @@
 {
 	"editor.tabSize": 5,
 	"files.autoSave": "afterDelay",
-	"workbench.colorTheme": "Default Dark Modern",
+	"workbench.colorTheme": "Dark Modern",
 	"workbench.editor.pinnedTabSizing": "shrink",
 	"editor.fontSize": 13,
 	"editor.fontFamily": "JetBrains Mono, monospace",
