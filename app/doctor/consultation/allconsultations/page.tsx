@@ -20,7 +20,7 @@ const ConsultationRecordsTable = () => {
         try {
             setLoading(true);
             const { page, count } = pagination;
-            const url = `records/consulations/records?page=${page}&&count=${count}${searchTerm ? `&&search=${encodeURIComponent(searchTerm)}` : ''}`;
+            const url = `records/consulations/records?page=${page}&&count=${count}${searchTerm ? `&&patientid=${encodeURIComponent(searchTerm)}` : ''}`;
             const response = await customFetch(url);
 
             if (response && Array.isArray(response)) {
@@ -75,11 +75,25 @@ const ConsultationRecordsTable = () => {
     };
 
     const formatDate = (dateString) => {
+        if (!dateString) return "-";
         return moment(dateString).format("MMMM Do YYYY, h:mm:ss a");
     };
 
-    const columns = [
+    const getConsultantName = (record) => {
+        return record?.consultationby || record?.consulationby || "-";
+    };
 
+    const getProgressReport = (record) => {
+        return record?.progress_report || record?.complaints || "";
+    };
+
+    const getProgressPreview = (record, maxChars = 140) => {
+        const report = (getProgressReport(record) || "").replace(/\s+/g, " ").trim();
+        if (report.length <= maxChars) return report;
+        return `${report.slice(0, maxChars)}...`;
+    };
+
+    const columns = [
         {
             Header: "Patient Name",
             accessor: "",
@@ -98,19 +112,39 @@ const ConsultationRecordsTable = () => {
             accessor: "",
             Cell: ({ row }) => {
                 const record = row.original;
-                const age = record.age || '';
-                const gender = record.gender ? record.gender.charAt(0).toUpperCase() : '';
-                const agetype = record.agetype || '';
-                return age ? `${age} ${agetype}(${gender})` : '';
+                const age = record.age || "";
+                const gender = record.gender ? record.gender.charAt(0).toUpperCase() : "";
+                const agetype = record.agetype || "";
+                return age ? `${age} ${agetype}(${gender})` : "";
             },
         },
         {
-            Header: "Complaints",
-            accessor: "complaints",
-            Cell: ({ value }) => truncateWords(value, 50),
+            Header: "Progress Report",
+            accessor: "progress_report",
+            Cell: ({ row }) => {
+                const fullReport = getProgressReport(row.original);
+                return (
+                    <div
+                        title={fullReport || "-"}
+                        style={{
+                            maxWidth: 320,
+                            whiteSpace: "normal",
+                            wordBreak: "break-word",
+                            overflowWrap: "anywhere",
+                            lineHeight: 1.35,
+                        }}
+                    >
+                        {getProgressPreview(row.original)}
+                    </div>
+                );
+            },
         },
         { Header: "Record Type", accessor: "record_type" },
-        { Header: "Consultation By", accessor: "consultationby" },
+        {
+            Header: "Consultation By",
+            accessor: "consultationby",
+            Cell: ({ row }) => getConsultantName(row.original),
+        },
         {
             Header: "Created At",
             accessor: "created_at",
@@ -183,54 +217,66 @@ const ConsultationRecordsTable = () => {
                 </Modal.Header>
                 <Modal.Body>
                     {selectedRecord && (
-                        <table className="table">
-                            <tbody>
-                                {[
-                                    { key: "id", label: "ID" },
-                                    { key: "complaints", label: "Complaints" },
-                                    { key: "hpc", label: "HPC" },
-                                    { key: "pmh", label: "PMH" },
-                                    { key: "sh", label: "SH" },
-                                    { key: "odq", label: "ODQ" },
-                                    { key: "dhx", label: "DHX" },
-                                    { key: "se", label: "SE" },
-                                    { key: "fh", label: "FH" },
-                                    { key: "obsGynecHistory", label: "Obs Gynec History" },
-                                    { key: "oe", label: "OE" },
-                                    { key: "record_type", label: "Record Type" },
-                                    { key: "created_at", label: "Created At" },
-                                    { key: "consultationby", label: "Consultation By" },
-                                    { key: "patientid", label: "Patient ID" },
-                                    { key: "associatedTransactionid", label: "Associated Transaction ID" },
-                                    { key: "employeeid", label: "Employee ID" }, { key: "fullpatientid", label: "Full Patient ID" },
-                                    { key: "designation", label: "Designation" },
-                                    { key: "firstname", label: "First Name" },
-                                    { key: "lastname", label: "Last Name" },
-                                    { key: "middlename", label: "Middle Name" },
-                                    { key: "email", label: "Email" },
-                                    { key: "dob", label: "Date of Birth" },
-                                    { key: "age", label: "Age" },
-                                    { key: "agetype", label: "Age Type" },
-                                    { key: "gender", label: "Gender" },
-                                    { key: "marital_status", label: "Marital Status" },
-                                    { key: "mobile_number", label: "Mobile Number" },
-                                    { key: "occupation", label: "Occupation" },
-                                    { key: "organization", label: "Organization" },
-                                    { key: "contactpointer", label: "Contact Pointer" },
-                                    { key: "whatAppcontact", label: "WhatsApp Contact" },
-                                    { key: "date", label: "Registration Date" },
-                                    { key: "activation_status", label: "Activation Status" },].map((col) => (
-                                        <tr key={col.key}>
-                                            <td className="pls-label"><strong>{col.label}</strong></td>
-                                            <td className="text-sm">
-                                                {col.key === "created_at" || col.key === "date" || col.key === "dob"
-                                                    ? formatDate(selectedRecord[col.key]) // Format the date in the modal
-                                                    : selectedRecord[col.key]}
-                                            </td>
-                                        </tr>
-                                    ))}
-                            </tbody>
-                        </table>
+                        <div className="container-fluid px-0">
+                            <div className="row g-3">
+                                <div className="col-lg-6">
+                                    <div className="border rounded p-3 h-100">
+                                        <h6 className="fw-bold mb-3">Demographics</h6>
+                                        <table className="table table-sm mb-0">
+                                            <tbody>
+                                                {[
+                                                    { key: "fullpatientid", label: "Patient ID" },
+                                                    { key: "designation", label: "Designation" },
+                                                    { key: "firstname", label: "First Name" },
+                                                    { key: "middlename", label: "Middle Name" },
+                                                    { key: "lastname", label: "Last Name" },
+                                                    { key: "age", label: "Age" },
+                                                    { key: "agetype", label: "Age Type" },
+                                                    { key: "gender", label: "Gender" },
+                                                    { key: "marital_status", label: "Marital Status" },
+                                                    { key: "occupation", label: "Occupation" },
+                                                    { key: "mobile_number", label: "Mobile Number" },
+                                                    { key: "email", label: "Email" },
+                                                    { key: "organization", label: "Organization" },
+                                                    { key: "contactpointer", label: "Contact Pointer" },
+                                                    { key: "whatAppcontact", label: "WhatsApp Contact" },
+                                                    { key: "relativecontactname", label: "Relative Contact Name" },
+                                                    { key: "relativecontactnumber", label: "Relative Contact Number" },
+                                                ].map((col) => (
+                                                    <tr key={col.key}>
+                                                        <td className="pls-label"><strong>{col.label}</strong></td>
+                                                        <td className="text-sm">{selectedRecord[col.key] ?? "-"}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div className="col-lg-6">
+                                    <div className="p-3 h-100 border">
+                                        <h6 className="fw-bold mb-3">Progress Report</h6>
+                                        <pre
+                                            className="mb-0 text-wrap rounded bg-secondary-subtle p-3"
+                                            style={{
+                                                whiteSpace: "pre-wrap",
+                                                wordBreak: "break-word",
+                                                overflowWrap: "anywhere",
+                                                maxHeight: "45vh",
+                                                overflowY: "auto",
+                                                fontFamily: "inherit",
+                                            }}
+                                        >
+                                            {getProgressReport(selectedRecord) || "-"}
+                                        </pre>
+                                        <div className="mt-3 pt-2 border-top rounded bg-secondary-subtle p-3 ">
+                                            <small className="text-muted d-block">Consultation By</small>
+                                            <div className="fw-semibold">{getConsultantName(selectedRecord)}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     )}
                 </Modal.Body>
                 <Modal.Footer>

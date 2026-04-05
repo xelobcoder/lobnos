@@ -105,7 +105,7 @@ const PendingDoctorConsultationList = () => {
             Header: "Actions",
             accessor: "",
             Cell: ({ row }: { row: { original: PendingConsultation } }) => (
-                <Link href={row.original.patientid ? `/doctor/consultation/${plsEncryption(row.original.patientid.toString())}` : ''} passHref>
+                <Link href={row.original.patientid ? `/doctor/consultation/${plsEncryption(row.original.patientid.toString())}?serviceid=${row.original.serviceid}` : ''} passHref>
                     <Button variant="primary" size="sm">
                         Initialize Consultation
                     </Button>

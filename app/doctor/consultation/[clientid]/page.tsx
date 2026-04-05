@@ -51,6 +51,7 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 
 	const searchParams = useSearchParams();
 	const consultationid = searchParams?.get("consultationid");
+	const serviceid = searchParams?.get("serviceid");
 
 	const handleAddEntry = () => {
 		if (currentInput.trim()) {
@@ -90,8 +91,8 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 				...formData,
 				patientid,
 				consulationby: employeeid,
+				associatedTransactionid: serviceid ? Number(serviceid) : undefined,
 			};
-			console.log("Submitting payload:", payload);
 			const response = await customPost(requestUrl, method, payload);
 			if (response?.message) {
 				toast.success(response.message);
@@ -208,104 +209,107 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 				</Modal>
 				<hr />
 				<Row className="mt-3">
-					<Col>
-						<Form onSubmit={handleSubmit}>
-							<div style={{ marginBottom: "16px" }}>
-								<label style={{ display: "block", marginBottom: "8px", fontWeight: "bold", fontSize: "0.9rem" }}>Category</label>
-								<select
-									value={selectedCategory}
-									onChange={(e) => setSelectedCategory(e.target.value)}
-									style={{ width: "100%", padding: "8px", fontSize: "0.9rem", border: "1px solid #ccc", borderRadius: "4px" }}
-									disabled={editingMode}
-								>
-									{CATEGORIES.map((cat) => (
-										<option key={cat.key} value={cat.key}>{cat.label}</option>
-									))}
-								</select>
-							</div>
+					<Col xs={12} lg={7}>
+						<div className="bg-white p-3 border rounded h-100">
+							<h6 className="mb-3 fw-bold">New Consultation</h6>
+							<Form onSubmit={handleSubmit}>
+								<div style={{ marginBottom: "16px" }}>
+									<label style={{ display: "block", marginBottom: "8px", fontWeight: "bold", fontSize: "0.9rem" }}>Category</label>
+									<select
+										value={selectedCategory}
+										onChange={(e) => setSelectedCategory(e.target.value)}
+										style={{ width: "100%", padding: "8px", fontSize: "0.9rem", border: "1px solid #ccc", borderRadius: "4px" }}
+										disabled={editingMode}
+									>
+										{CATEGORIES.map((cat) => (
+											<option key={cat.key} value={cat.key}>{cat.label}</option>
+										))}
+									</select>
+								</div>
 
-							<div style={{ marginBottom: "16px" }}>
-								<label style={{ display: "block", marginBottom: "8px", fontWeight: "bold", fontSize: "0.9rem" }}>Add Entry</label>
-								<textarea
-									value={currentInput}
-									onChange={(e) => setCurrentInput(e.target.value)}
-									placeholder="Enter consultation notes..."
-									rows={4}
-									style={{ width: "100%", padding: "8px", fontSize: "0.9rem", border: "1px solid #ccc", borderRadius: "4px", resize: "none" }}
-									disabled={editingMode}
-								/>
-								<button
-									type="button"
-									onClick={handleAddEntry}
-									disabled={editingMode || !currentInput.trim()}
-									style={{
-										marginTop: "8px",
-										padding: "6px 12px",
-										backgroundColor: "#28a745",
-										color: "white",
-										border: "none",
-										borderRadius: "4px",
-										cursor: editingMode || !currentInput.trim() ? "not-allowed" : "pointer",
-										fontSize: "0.9rem",
-										opacity: editingMode || !currentInput.trim() ? 0.5 : 1,
-									}}
-								>
-									+ Add Entry
-								</button>
-							</div>
+								<div style={{ marginBottom: "16px" }}>
+									<label style={{ display: "block", marginBottom: "8px", fontWeight: "bold", fontSize: "0.9rem" }}>Add Entry</label>
+									<textarea
+										value={currentInput}
+										onChange={(e) => setCurrentInput(e.target.value)}
+										placeholder="Enter consultation notes..."
+										rows={4}
+										style={{ width: "100%", padding: "8px", fontSize: "0.9rem", border: "1px solid #ccc", borderRadius: "4px", resize: "none" }}
+										disabled={editingMode}
+									/>
+									<button
+										type="button"
+										onClick={handleAddEntry}
+										disabled={editingMode || !currentInput.trim()}
+										style={{
+											marginTop: "8px",
+											padding: "6px 12px",
+											backgroundColor: "#28a745",
+											color: "white",
+											border: "none",
+											borderRadius: "4px",
+											cursor: editingMode || !currentInput.trim() ? "not-allowed" : "pointer",
+											fontSize: "0.9rem",
+											opacity: editingMode || !currentInput.trim() ? 0.5 : 1,
+										}}
+									>
+										+ Add Entry
+									</button>
+								</div>
 
-							<div style={{ marginBottom: "16px" }}>
-								<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-									<label style={{ fontWeight: "bold", fontSize: "0.9rem" }}>Consultation Notes</label>
-									{!editingMode && formData.consultation_notes && (
-										<button
-											type="button"
-											onClick={handleClearNotes}
-											style={{
-												padding: "4px 8px",
-												backgroundColor: "#dc3545",
-												color: "white",
-												border: "none",
-												borderRadius: "4px",
-												cursor: "pointer",
-												fontSize: "0.85rem",
-											}}
-										>
-											Clear
-										</button>
+								<div style={{ marginBottom: "16px" }}>
+									<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+										<label style={{ fontWeight: "bold", fontSize: "0.9rem" }}>Consultation Notes</label>
+										{!editingMode && formData.consultation_notes && (
+											<button
+												type="button"
+												onClick={handleClearNotes}
+												style={{
+													padding: "4px 8px",
+													backgroundColor: "#dc3545",
+													color: "white",
+													border: "none",
+													borderRadius: "4px",
+													cursor: "pointer",
+													fontSize: "0.85rem",
+												}}
+											>
+												Clear
+											</button>
+										)}
+									</div>
+									<textarea
+										value={formData.consultation_notes}
+										onChange={(e) => setFormData({ ...formData, consultation_notes: e.target.value })}
+										placeholder="Your consultation notes will appear here..."
+										rows={6}
+										style={{
+											width: "100%",
+											padding: "8px",
+											fontSize: "0.9rem",
+											border: "1px solid #ccc",
+											borderRadius: "4px",
+											resize: "none",
+											fontFamily: "monospace",
+										}}
+										readOnly={editingMode}
+									/>
+									{errors["consultation_notes"] && (
+										<div style={{ color: "#dc3545", marginTop: "4px", fontSize: "0.85rem" }}>{errors["consultation_notes"]}</div>
 									)}
 								</div>
-								<textarea
-									value={formData.consultation_notes}
-									onChange={(e) => setFormData({ ...formData, consultation_notes: e.target.value })}
-									placeholder="Your consultation notes will appear here..."
-									rows={6}
-									style={{
-										width: "100%",
-										padding: "8px",
-										fontSize: "0.9rem",
-										border: "1px solid #ccc",
-										borderRadius: "4px",
-										resize: "none",
-										fontFamily: "monospace",
-									}}
-									readOnly={editingMode}
-								/>
-								{errors["consultation_notes"] && (
-									<div style={{ color: "#dc3545", marginTop: "4px", fontSize: "0.85rem" }}>{errors["consultation_notes"]}</div>
-								)}
-							</div>
 
-							<div style={{ marginTop: "16px", textAlign: "right" }}>
-								<button disabled={isSubmitting} type="submit" style={{ padding: "6px 16px", backgroundColor: "#007bff", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontSize: "0.9rem" }}>
-									{isSubmitting ? "submitting...." : "submit"}
-								</button>
-							</div>
-						</Form>
+								<div style={{ marginTop: "16px", textAlign: "right" }}>
+									<button disabled={isSubmitting} type="submit" style={{ padding: "6px 16px", backgroundColor: "#007bff", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontSize: "0.9rem" }}>
+										{isSubmitting ? "submitting...." : "submit"}
+									</button>
+								</div>
+							</Form>
+						</div>
 					</Col>
 
-					<Col>
-						<div className="bg-white p-3 border rounded mt-3">
+					<Col xs={12} lg={5}>
+						<div className="bg-white p-3 border rounded h-100">
 							<h6 className="mb-3 fw-bold">Previous Consultations</h6>
 							<PreviousConsulation patientid={clientid} />
 						</div>
