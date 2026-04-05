@@ -354,7 +354,10 @@ export default function ClientVisit() {
                                                             {isCompleted && isValidated && (
                                                                  <button
                                                                       className="btn btn-sm btn-outline-success ms-2"
-                                                                      onClick={() => window.open(`/operations/laboratory/validated?ascensionid=${item.ascension_id}&isOpenSideBarShow=false&&category=ungrouped`, '_blank', 'noopener,noreferrer')}
+                                                                      onClick={(ev) => {
+                                                                           const result = `/result/labreport/4?csvid=qorDq80VzriednbPrhspApGfj5xVvO5ICmMs4GVPo5cqKcxS8qa1t6oZod3cVGX8uK54Oe${item.billingid}&&testid=${item.testid}&&testname=${item.test_name}&&ptid=CveaWArnHe05cNjDhvkARl45nQYnowkGyHb0xDqPNGRVflyC4V${patientid}&&target=70,50&&ascensionId=${item.ascension_id}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&&password=`
+                                                                           window.open(result, '_blank', 'noopener,noreferrer');
+                                                                      }}
                                                                  >
                                                                       Print
                                                                  </button>

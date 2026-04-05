@@ -14,7 +14,7 @@ import Link from "next/link";
 
 export default function CreateTestRule({ clientdata }) {
 	const { testid, test, patientid, billingid, employeeid, ascensionid, resultEntryStart, resultEntryEnd, globalPin } = clientdata;
-	const { result } = useApplicationSettings().applicationsettings;
+	const { result, settings } = useApplicationSettings().applicationsettings;
 	const [comments, setComments] = useState({ comments: '' });
 	const [testname, setTestname] = useState("");
 	const [resultEntered, setResultEntered] = useState(false);
@@ -99,10 +99,15 @@ export default function CreateTestRule({ clientdata }) {
 
 	const handleSubmit = async () => {
 		try {
-			if (!effectivePin) return toast.warn("PIN is required");
-			const response = await validatePin(employeeid, effectivePin);
-			const { status, message } = response;
-			if (!status) return toast.error(message || "Invalid PIN");
+			const pinOnResultEntry = settings?.pinOnResultEntry;
+			if (pinOnResultEntry == 1) {
+				if (!effectivePin){
+					return toast.error("PIN is required");
+				}
+				const response = await validatePin(employeeid, effectivePin);
+				const { status, message } = response;
+				if (status == "error" || status == "invalid" || status == "false") return toast.error(message || "Invalid PIN");
+			}
 
 			setIsSaving(true);
 			const transformed = rule.map((item) => {

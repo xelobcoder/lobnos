@@ -21,7 +21,8 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
      const [validatingSpinner, setValidatingSpinner] = useState(false);
      const [showProceedModal, setShowProceedModal] = useState(false);
      const ascensions = Array.isArray(selectedAscension) ? selectedAscension : [selectedAscension];
-
+     const { settings } = useApplicationSettings().applicationsettings;
+     const pinOnResultValidation = settings?.pinOnResultValidation == 1 ? true : false;
 
 
      useEffect(() => {
@@ -29,6 +30,26 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
           window.addEventListener("resize", handleResize);
           return () => window.removeEventListener("resize", handleResize);
      }, []);
+
+     // Auto-approve when PIN is not required and user checks the approve toggle
+     useEffect(() => {
+          if (!pinOnResultValidation && isApproved && !isBulk) {
+               const alreadyApproved = staff.some(s => s.employeeid === employeeid);
+               if (!alreadyApproved) {
+                    setStaff([...staff, { username: selectedAscension.fullname, employeeid, ascensionid: selectedAscension.ascensionid }]);
+                    setIsPinValidated(true);
+               }
+          }
+     }, [isApproved, pinOnResultValidation, isBulk]);
+
+
+     const disableButton = () => {
+          if (pinOnResultValidation) {
+               return isBulk ? !isApproved || !pinValue : !isPinValidated
+          }
+          // When PIN is not required, enable if approved and staff has current user
+          return isBulk ? !isApproved : !(isApproved && staff.some(s => s.employeeid === employeeid));
+     }
 
      async function getInitData() {
           if (employeeid && !isBulk) {
@@ -46,16 +67,28 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
      const handleAddApproved = async () => {
           setValidatingSpinner(true);
           try {
-               if (isApproved && pinValue.toString().length > 0) {
-                    // Validate PIN first
-                    const { status, message } = await validatePin(employeeid, pinValue);
-                    if (status == false) {
-                         setIsPinValidated(false);
-                         toast.error(message || 'PIN validation failed');
+               if (isApproved) {
+                    // If PIN validation is required, validate PIN first
+                    if (pinOnResultValidation) {
+                         if (!pinValue || pinValue.toString().length === 0) {
+                              toast.warn('PIN is required for approval');
+                              setValidatingSpinner(false);
+                              return;
+                         }
+                         const { status, message } = await validatePin(employeeid, pinValue);
+                         if (status == false) {
+                              setIsPinValidated(false);
+                              toast.error(message || 'PIN validation failed');
+                              setValidatingSpinner(false);
+                              return;
+                         }
+                         setIsPinValidated(true);
+                    } else {
+                         // PIN not required, directly approve
+                         setIsPinValidated(true);
                     }
-                    setIsPinValidated(true);
-                    if (status && staff.length < resultSettings.maximumResultValidation) {
-                         setIsApproved(true);
+
+                    if (staff.length < resultSettings.maximumResultValidation) {
                          setStaff([...staff, { username: selectedAscension.fullname, employeeid, ascensionid: selectedAscension.ascensionid }]);
                     }
                }
@@ -63,7 +96,6 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
           } catch (error) {
                console.error("Error adding approved staff:", error);
                setIsPinValidated(false);
-          } finally {
                setValidatingSpinner(false);
           }
      };
@@ -79,11 +111,6 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
      }
 
      const handleSaveValue = async () => {
-          if (!pinValue || pinValue.toString().length === 0) {
-               toast.warn('Pin Must be filled before saving');
-               return;
-          }
-
           if (isBulk && Array.isArray(ascensions) && ascensions.length > 0) {
                // Bulk validation
                const validationPromises = ascensions.map(asc => {
@@ -113,7 +140,10 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
                // Single validation
                const { ascensionid } = selectedAscension;
 
-               if (pinValue && isApproved && staff.length > 0) {
+               // Check if approval is satisfied (with or without PIN depending on settings)
+               const isApprovalSatisfied = isApproved && staff.length > 0;
+
+               if (isApprovalSatisfied) {
                     const currentStaffApproval = staff.filter((a) => a.employeeid === employeeid);
                     if (currentStaffApproval.length > 0) {
                          const sendReponse = await customPost(`test/approval/get/staffQualifiedToValidationResult?employeeid=${employeeid}&&ascensionid=${ascensionid}&&ascensionId=${ascensionid}`, 'PUT', currentStaffApproval[0]);
@@ -133,8 +163,8 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
 
      const handleProceedToValidatedResult = () => {
           const ascensionIds = Array.isArray(successfulValidation) ? successfulValidation.join(',') : successfulValidation;
-        const newWindow=  window.open(`/operations/laboratory/validated?ascensionid=${ascensionIds}&&isOpenSideBarShow=false`,
-           '_blank','width=1000,height=auto');
+          const newWindow = window.open(`/operations/laboratory/validated?ascensionid=${ascensionIds}&&isOpenSideBarShow=false`,
+               '_blank', 'width=1000,height=auto');
           setShowProceedModal(false);
           onClose(successfulValidation);
           window.close()
@@ -217,17 +247,30 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
                               </ListGroup.Item>
                               {isApproved && (
                                    <ListGroup.Item>
-                                        <div className="grid-reg">
-                                             <label htmlFor="pin">PIN</label>
-                                             <input autoComplete="new-password"
-                                                  autoCorrect="off"
-                                                  name="pin" value={pinValue} onChange={(ev) => { setPin(ev.target.value) }} className="custom-input" type="password" />
-                                        </div>
-                                        <div className="d-flex justify-content-end mt-2">
-                                             <button onClick={handleAddApproved} className="btn btn-sm btn-light">
-                                                  {validatingSpinner && <Spinner animation="border" size="sm" />}
-                                                  Approve</button>
-                                        </div>
+                                        {
+                                             pinOnResultValidation && (
+                                                  <>
+                                                       <div className="grid-reg">
+                                                            <label htmlFor="pin">PIN</label>
+                                                            <input autoComplete="new-password"
+                                                                 autoCorrect="off"
+                                                                 name="pin" value={pinValue} onChange={(ev) => { setPin(ev.target.value) }} className="custom-input" type="password" />
+                                                       </div>
+                                                       <div className="d-flex justify-content-end mt-2">
+                                                            <button onClick={handleAddApproved} className="btn btn-sm btn-light">
+                                                                 {validatingSpinner && <Spinner animation="border" size="sm" />}
+                                                                 Approve</button>
+                                                       </div>
+                                                  </>
+                                             )
+                                        }
+                                        {
+                                             !pinOnResultValidation && (
+                                                  <div className="alert alert-success mb-0">
+                                                       <small>Approved without PIN</small>
+                                                  </div>
+                                             )
+                                        }
                                    </ListGroup.Item>
                               )}
                          </ListGroup>
@@ -245,7 +288,7 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
                     </Modal.Body>
                     <Modal.Footer>
                          <Button variant="secondary" onClick={(ev) => { onClose(successfulValidation) }}>Close</Button>
-                         <Button variant="primary" onClick={handleSaveValue} disabled={isBulk ? !isApproved || !pinValue : !isPinValidated}>{isBulk ? 'Validate All' : 'Validate'}</Button>
+                         <Button variant="primary" onClick={handleSaveValue} disabled={disableButton()}>{isBulk ? 'Validate All' : 'Validate'}</Button>
                     </Modal.Footer>
                </Modal>
 

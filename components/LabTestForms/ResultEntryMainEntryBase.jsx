@@ -1,4 +1,5 @@
 import ResultEntryHtmlGenerator from "../Auth/ResultEntryHtmlGenerator";
+import { useApplication } from "../Auth/useApplicationContext";
 import CommentSection from "./commentSection";
 import ResultEntryDrugsForm from "./ResultEntryDrugsForm";
 import dynamic from 'next/dynamic';
@@ -7,6 +8,9 @@ const MARKDOWN_EDITOR = dynamic(() => import('../accessories/markdownEditor'), {
 
 
 export default function ResultEntryMainEntryBase({ handlestate, handleCreateFields, rule = [], setPin, pin, handleSubmit, setComments, comments, handleComments, isPinUsed, hasDrugs, setModifiedDrugs, ascensionid, testid, isloading, isPinShared }) {
+	const applicationCtx = useApplication()?.settings;
+	const { pinOnResultEntry } = applicationCtx || {};
+	const isPinRequired = pinOnResultEntry == 1;
 
 	// Check if any rule is an ultrasound field
 	const hasUltrasoundFields = rule.some(item => item.plan === 'ultrasoundFields');
@@ -19,7 +23,7 @@ export default function ResultEntryMainEntryBase({ handlestate, handleCreateFiel
 			const itemIndex = rule.findIndex((a) => {
 				return a.name === name && a.plan === 'ultrasoundFields';
 			})
-			handlestate(event,itemIndex);
+			handlestate(event, itemIndex);
 		};
 
 
@@ -34,7 +38,7 @@ export default function ResultEntryMainEntryBase({ handlestate, handleCreateFiel
 					))}
 				</div>
 				<div className="d-flex flex-column flex-md-row justify-content-between mt-2">
-					{isPinUsed && (
+					{isPinRequired && (
 						<div className="mb-2 mb-md-0">
 							<input
 								className="custom-input form-control"
@@ -88,7 +92,7 @@ export default function ResultEntryMainEntryBase({ handlestate, handleCreateFiel
 			{hasDrugs && <ResultEntryDrugsForm ascensionid={ascensionid} testid={testid} setModifiedDrugs={setModifiedDrugs} />}
 			<CommentSection datafunction={setComments} getcomment={handleComments} datasource={comments} target={'comments'} value={comments.comments} />
 			<div className="d-flex flex-column flex-md-row justify-content-between mt-2">
-				{isPinUsed && (
+				{/* {isPinUsed && (
 					<div className="mb-2 mb-md-0">
 						<input
 							className="custom-input form-control"
@@ -101,7 +105,7 @@ export default function ResultEntryMainEntryBase({ handlestate, handleCreateFiel
 							onChange={e => setPin(e.target.value)}
 						/>
 					</div>
-				)}
+				)} */}
 				<div>
 					<button onClick={handleSubmit} className="btn btn-primary btn-sm my-2 mx-1" disabled={isloading}>
 						{isloading ? 'Saving...' : 'Save changes'}

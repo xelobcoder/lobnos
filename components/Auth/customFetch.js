@@ -143,7 +143,6 @@ export const parseDate = (date) => {
 }
 
 export const validatePin = async (employeeid, pin) => {
-	// Validate PIN first
 	try {
 		if (pin && pin.toString().length < 4) {
 			return "PIN must be at least 4 digits long";
@@ -996,8 +995,6 @@ export function PrepareResultEntryHeader(data, isUltrasound = false, branchid, i
     !isUltrasound
       ? `/operations/laboratory/resultentry/${branchid}?csvid=${csvid}&&ptid=${ptid}&&isOpenSideBarShow=${isOpenSideBarShow}`
       : `/operations/imaging/ultrasound/result/${branchid}?csvid=${csvid}&&ptid=${ptid}&&testid=${id}&&ascensionid=${ascensionid}&&isOpenSideBarShow=${isOpenSideBarShow}&&category=${category}`,
-    "ResultEntry",
-    "width=1100,height=750,resizable=yes,scrollbars=yes"
   )
 
   if (popup) popup.focus()

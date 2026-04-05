@@ -15,6 +15,9 @@ export default function OperationsListTestCollection({ operations }) {
 	const [showAccessRequest, setShowAccessRequest] = useState(false);
 	const [selectedTestForAccess, setSelectedTestForAccess] = useState(null);
 	const [globalPin, setGlobalPin] = useState("");
+	const pinOnResultEntry = appCtx?.settings?.pinOnResultEntry == 1 ? true : false;
+
+
 
 
 	const handleCheckboxChange = (item) => {
@@ -120,15 +123,19 @@ export default function OperationsListTestCollection({ operations }) {
 			</div>
 			{multiMode && loaded && selectedTests.length > 0 && (
 				<div>
-					<div className="d-flex gap-2 mb-2 align-items-center">
-						<input type="password" className="form-control form-control-sm" placeholder="Enter PIN for all tests" value={globalPin} onChange={e => setGlobalPin(e.target.value)} style={{ maxWidth: 220 }} />
-						<button className="btn btn-sm btn-outline-primary" onClick={() => { if (!globalPin) return alert('PIN is required'); /* pin set in state */ }}>Apply PIN to all</button>
-						<button className="btn btn-sm btn-outline-secondary" onClick={() => setGlobalPin('')}>Clear</button>
-					</div>
+					{
+						pinOnResultEntry && (
+							<div className="d-flex gap-2 mb-2 align-items-center">
+								<input type="password" className="form-control form-control-sm" placeholder="Enter PIN for all tests" value={globalPin} onChange={e => setGlobalPin(e.target.value)} style={{ maxWidth: 220 }} />
+								<button className="btn btn-sm btn-outline-primary" onClick={() => { if (!globalPin) return alert('PIN is required'); }}>Apply PIN to all</button>
+								<button className="btn btn-sm btn-outline-secondary" onClick={() => setGlobalPin('')}>Clear</button>
+							</div>
+						)
+					}
 					<div className={`mt-2 ${selectedTests.length > 1 ? "responsive-grid" : ""}`}>
 						{Array.isArray(selectedTests) && selectedTests.length > 0 && selectedTests.map((test, idx) => (
 							<div key={test.testid} style={{ minWidth: 0 }}>
-								<ResultEntryComponent operations={{ ...operations,  testid: test.testid, uiLayout: 3, ascensionid: test.ascensionid, globalPin: globalPin }} />
+								<ResultEntryComponent operations={{ ...operations, testid: test.testid, uiLayout: 3, ascensionid: test.ascensionid, globalPin: globalPin }} />
 							</div>
 						))}
 					</div>

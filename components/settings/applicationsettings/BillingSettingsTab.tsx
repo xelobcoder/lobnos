@@ -106,6 +106,18 @@ export const BillingSettingsTab: React.FC<BillingSettingsTabProps> = ({ settings
                          label: 'Approval Before Printing',
                          description: 'Require management approval before printing documents',
                          icon: <RiShieldCheckLine size={20} />
+                    },
+                    {
+                         name: 'pinOnResultEntry',
+                         label: 'Pin on Result Entry',
+                         description: 'Enable pinning on result entry',
+                         icon: <RiShieldCheckLine size={20} />
+                    },
+                    {
+                         name: 'pinOnResultValidation',
+                         label: 'Pin on Result Validation',
+                         description: 'Enable pinning on result validation',
+                         icon: <RiShieldCheckLine size={20} />
                     }
                ]
           },
