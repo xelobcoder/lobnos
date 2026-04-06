@@ -7,6 +7,28 @@ import style from '../../styles/SmsTemplateList.module.css'
 export default function VitalSignTable({ groupedVitalSigns, openModal }) {
 	const router = useRouter();
 
+	const formatTime = (vitalSign) => {
+		if (vitalSign?.time) {
+			return vitalSign.time;
+		}
+
+		if (!vitalSign?.date) {
+			return '--:--:--';
+		}
+
+		const dateValue = new Date(vitalSign.date);
+		if (Number.isNaN(dateValue.getTime())) {
+			return '--:--:--';
+		}
+
+		return dateValue.toLocaleTimeString([], {
+			hour: '2-digit',
+			minute: '2-digit',
+			second: '2-digit',
+			hour12: true,
+		});
+	};
+
 	const getStatusIndicator = (value, range, type = 'normal') => {
 		if (!range || !value) return 'table-success';
 
@@ -104,7 +126,7 @@ export default function VitalSignTable({ groupedVitalSigns, openModal }) {
 											</span>
 										</td>
 										<td style={{ fontFamily: 'Monaco, Menlo, monospace', fontWeight: '500' }}>
-											{vitalSign.time}
+											{formatTime(vitalSign)}
 										</td>
 										<td className={bpStatus}>
 											{vitalSign.bp} mmHg

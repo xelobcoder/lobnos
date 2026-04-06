@@ -127,7 +127,8 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 		{ value: 'options', label: 'Dropdown' },
 		{ value: 'input', label: 'Text' },
 		{ value: 'textReference', label: 'Reference' },
-		{ value: 'limits', label: 'Range' },
+		{ value: 'limits', label: 'Range (M/F/Child/Neonate)' },
+		{ value: 'fetalBiometry', label: 'Fetal Biometry (Hadlock)' },
 		{ value: 'greaterLess', label: 'Compare' },
 		{ value: 'greaterLessEqualTo', label: 'Compare (<=/>=)' },
 		{ value: 'plain', label: 'Text Area' },
@@ -136,6 +137,27 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 		{ value: 'datetime', label: 'Date & Time' },
 		{ value: 'date', label: 'Date' }
 	];
+
+	const getDemographicLimitValue = (field: any, key: string) => {
+		return field?.[key] ?? '';
+	};
+
+	const hasDemographicLimits = (field: any) => {
+		const keys = [
+			'lowerLimitFemale',
+			'upperLimitFemale',
+			'lowerLimitMale',
+			'upperLimitMale',
+			'lowerLimitChildren',
+			'upperLimitChildren',
+			'lowerLimitNeonates',
+			'upperLimitNeonates',
+		];
+		return keys.some((key) => {
+			const value = field?.[key];
+			return value !== null && value !== undefined && `${value}`.trim() !== '';
+		});
+	};
 
 	const renderFieldPreview = (field: any) => {
 		const { plan, units, lowerlimit, upperlimit, options, textReference } = field;
@@ -152,6 +174,18 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 			case 'plain':
 				return <textarea className="form-control form-control-sm" value="Sample text area content..." disabled style={{ width: '120px', height: '30px', fontSize: '0.75rem', resize: 'none' }}></textarea>;
 			case 'limits':
+				if (hasDemographicLimits(field)) {
+					return (
+						<div style={{ fontSize: '0.65rem', lineHeight: '1.2', minWidth: '140px' }}>
+							<div><span className="fw-semibold">M:</span> {getDemographicLimitValue(field, 'lowerLimitMale') || '-'} - {getDemographicLimitValue(field, 'upperLimitMale') || '-'}</div>
+							<div><span className="fw-semibold">F:</span> {getDemographicLimitValue(field, 'lowerLimitFemale') || '-'} - {getDemographicLimitValue(field, 'upperLimitFemale') || '-'}</div>
+							<div><span className="fw-semibold">C:</span> {getDemographicLimitValue(field, 'lowerLimitChildren') || '-'} - {getDemographicLimitValue(field, 'upperLimitChildren') || '-'}</div>
+							<div><span className="fw-semibold">N:</span> {getDemographicLimitValue(field, 'lowerLimitNeonates') || '-'} - {getDemographicLimitValue(field, 'upperLimitNeonates') || '-'}</div>
+							{units && <div className="text-secondary mt-1">{units}</div>}
+						</div>
+					);
+				}
+
 				return (
 					<div className="d-flex align-items-center gap-1" style={{ fontSize: '0.75rem' }}>
 						<span className="fw-bold">{lowerlimit || '0'}</span>
@@ -174,6 +208,13 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 				);
 			case 'ultrasoundFields':
 				return <input type="text" className="form-control form-control-sm" placeholder="Measurement" disabled style={{ width: '120px', fontSize: '0.75rem' }} />;
+			case 'fetalBiometry':
+				return (
+					<div className="d-flex flex-column" style={{ fontSize: '0.65rem', minWidth: '120px' }}>
+						<span className="fw-semibold">BPD, FL, HC, AC</span>
+						<span className="text-muted">Hadlock EFW</span>
+					</div>
+				);
 			default:
 				return <span className="text-muted">-</span>;
 		}
@@ -183,23 +224,102 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 		switch (fieldState.plan) {
 			case 'limits':
 				return (
-					<div className="d-flex gap-1">
-						<input
-							type="number"
-							className="form-control form-control-sm"
-							value={fieldState.lowerlimit || ''}
-							onChange={(e) => setFieldState({ ...fieldState, lowerlimit: e.target.value })}
-							placeholder="Min"
-							style={{ width: '60px' }}
-						/>
-						<input
-							type="number"
-							className="form-control form-control-sm"
-							value={fieldState.upperlimit || ''}
-							onChange={(e) => setFieldState({ ...fieldState, upperlimit: e.target.value })}
-							placeholder="Max"
-							style={{ width: '60px' }}
-						/>
+					<div className="d-flex flex-column gap-1" style={{ minWidth: '260px' }}>
+						<div className="d-flex gap-1 align-items-center">
+							<span style={{ width: '50px', fontSize: '0.75rem' }}>Male</span>
+							<input
+								type="number"
+								className="form-control form-control-sm"
+								value={fieldState.lowerLimitMale ?? ''}
+								onChange={(e) => setFieldState({ ...fieldState, lowerLimitMale: e.target.value })}
+								placeholder="Min"
+								style={{ width: '85px' }}
+							/>
+							<input
+								type="number"
+								className="form-control form-control-sm"
+								value={fieldState.upperLimitMale ?? ''}
+								onChange={(e) => setFieldState({ ...fieldState, upperLimitMale: e.target.value })}
+								placeholder="Max"
+								style={{ width: '85px' }}
+							/>
+						</div>
+						<div className="d-flex gap-1 align-items-center">
+							<span style={{ width: '50px', fontSize: '0.75rem' }}>Female</span>
+							<input
+								type="number"
+								className="form-control form-control-sm"
+								value={fieldState.lowerLimitFemale ?? ''}
+								onChange={(e) => setFieldState({ ...fieldState, lowerLimitFemale: e.target.value })}
+								placeholder="Min"
+								style={{ width: '85px' }}
+							/>
+							<input
+								type="number"
+								className="form-control form-control-sm"
+								value={fieldState.upperLimitFemale ?? ''}
+								onChange={(e) => setFieldState({ ...fieldState, upperLimitFemale: e.target.value })}
+								placeholder="Max"
+								style={{ width: '85px' }}
+							/>
+						</div>
+						<div className="d-flex gap-1 align-items-center">
+							<span style={{ width: '50px', fontSize: '0.75rem' }}>Children</span>
+							<input
+								type="number"
+								className="form-control form-control-sm"
+								value={fieldState.lowerLimitChildren ?? ''}
+								onChange={(e) => setFieldState({ ...fieldState, lowerLimitChildren: e.target.value })}
+								placeholder="Min"
+								style={{ width: '85px' }}
+							/>
+							<input
+								type="number"
+								className="form-control form-control-sm"
+								value={fieldState.upperLimitChildren ?? ''}
+								onChange={(e) => setFieldState({ ...fieldState, upperLimitChildren: e.target.value })}
+								placeholder="Max"
+								style={{ width: '85px' }}
+							/>
+						</div>
+						<div className="d-flex gap-1 align-items-center">
+							<span style={{ width: '50px', fontSize: '0.75rem' }}>Neonate</span>
+							<input
+								type="number"
+								className="form-control form-control-sm"
+								value={fieldState.lowerLimitNeonates ?? ''}
+								onChange={(e) => setFieldState({ ...fieldState, lowerLimitNeonates: e.target.value })}
+								placeholder="Min"
+								style={{ width: '85px' }}
+							/>
+							<input
+								type="number"
+								className="form-control form-control-sm"
+								value={fieldState.upperLimitNeonates ?? ''}
+								onChange={(e) => setFieldState({ ...fieldState, upperLimitNeonates: e.target.value })}
+								placeholder="Max"
+								style={{ width: '85px' }}
+							/>
+						</div>
+						<div className="d-flex gap-1 align-items-center mt-1">
+							<span style={{ width: '50px', fontSize: '0.7rem' }} className="text-muted">Legacy</span>
+							<input
+								type="number"
+								className="form-control form-control-sm"
+								value={fieldState.lowerlimit || ''}
+								onChange={(e) => setFieldState({ ...fieldState, lowerlimit: e.target.value })}
+								placeholder="Min"
+								style={{ width: '85px' }}
+							/>
+							<input
+								type="number"
+								className="form-control form-control-sm"
+								value={fieldState.upperlimit || ''}
+								onChange={(e) => setFieldState({ ...fieldState, upperlimit: e.target.value })}
+								placeholder="Max"
+								style={{ width: '85px' }}
+							/>
+						</div>
 					</div>
 				);
 			case 'options':
@@ -236,6 +356,8 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 						placeholder="e.g. > 10"
 					/>
 				);
+			case 'fetalBiometry':
+				return <span className="text-muted">Uses BPD, FL, HC, AC with Hadlock EFW in result entry</span>;
 			default:
 				return <span className="text-muted">-</span>;
 		}
@@ -279,7 +401,15 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 		const normalizedField = {
 			...field,
 			lowerlimit: field.lowerlimit || field.lowerLimit || '',
-			upperlimit: field.upperlimit || field.upperLimit || ''
+			upperlimit: field.upperlimit || field.upperLimit || '',
+			lowerLimitFemale: field.lowerLimitFemale ?? '',
+			upperLimitFemale: field.upperLimitFemale ?? '',
+			lowerLimitMale: field.lowerLimitMale ?? '',
+			upperLimitMale: field.upperLimitMale ?? '',
+			lowerLimitChildren: field.lowerLimitChildren ?? '',
+			upperLimitChildren: field.upperLimitChildren ?? '',
+			lowerLimitNeonates: field.lowerLimitNeonates ?? '',
+			upperLimitNeonates: field.upperLimitNeonates ?? ''
 		};
 		setNewField(normalizedField);
 		// If the existing unit is not in standard list, show custom input
@@ -312,6 +442,20 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 		// Ensure options is a string for consistency
 		if (Array.isArray(fieldToSave.options)) {
 			fieldToSave.options = fieldToSave.options.join(', ');
+		}
+
+		if (fieldToSave.plan === 'limits') {
+			fieldToSave = {
+				...fieldToSave,
+				lowerLimitFemale: fieldToSave.lowerLimitFemale ?? null,
+				upperLimitFemale: fieldToSave.upperLimitFemale ?? null,
+				lowerLimitMale: fieldToSave.lowerLimitMale ?? null,
+				upperLimitMale: fieldToSave.upperLimitMale ?? null,
+				lowerLimitChildren: fieldToSave.lowerLimitChildren ?? null,
+				upperLimitChildren: fieldToSave.upperLimitChildren ?? null,
+				lowerLimitNeonates: fieldToSave.lowerLimitNeonates ?? null,
+				upperLimitNeonates: fieldToSave.upperLimitNeonates ?? null,
+			};
 		}
 
 		if (fieldToSave.plan === "plain") {
@@ -472,10 +616,12 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 															renderConfigInput(newField, setNewField)
 														) : (
 															<div style={{ fontSize: '0.8rem' }}>
-																{field.plan === 'limits' && ((field.lowerlimit || field.lowerLimit) || (field.upperlimit || field.upperLimit)) ? `${field.lowerlimit || field.lowerLimit || 0} - ${field.upperlimit || field.upperLimit || 0}` :
-																	field.plan === 'options' ? (Array.isArray(field.options) ? field.options.join(', ') : field.options || '-') :
-																		field.plan === 'textReference' ? (field.textReference || '-') :
-																			(field.plan === 'greaterLess' || field.plan === 'greaterLessEqualTo' || field.plan === 'time') ? (field.textReference || '-') : '-'}
+																{field.plan === 'limits' && hasDemographicLimits(field) ? `M:${field.lowerLimitMale || '-'}-${field.upperLimitMale || '-'} F:${field.lowerLimitFemale || '-'}-${field.upperLimitFemale || '-'} C:${field.lowerLimitChildren || '-'}-${field.upperLimitChildren || '-'} N:${field.lowerLimitNeonates || '-'}-${field.upperLimitNeonates || '-'}` :
+																	field.plan === 'limits' && ((field.lowerlimit || field.lowerLimit) || (field.upperlimit || field.upperLimit)) ? `${field.lowerlimit || field.lowerLimit || 0} - ${field.upperlimit || field.upperLimit || 0}` :
+																		field.plan === 'fetalBiometry' ? 'BPD, FL, HC, AC (Hadlock)' :
+																			field.plan === 'options' ? (Array.isArray(field.options) ? field.options.join(', ') : field.options || '-') :
+																				field.plan === 'textReference' ? (field.textReference || '-') :
+																					(field.plan === 'greaterLess' || field.plan === 'greaterLessEqualTo' || field.plan === 'time') ? (field.textReference || '-') : '-'}
 
 															</div>
 														)}

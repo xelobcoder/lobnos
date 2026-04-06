@@ -35,7 +35,7 @@ interface TestData {
 	post_TatEvaluation: string;
 	pre_TatEvaluation: string;
 	tatEvaluation: string;
-	sample_container: string;
+	sample_container: string | number;
 	unit: string;
 	hasDrugs: number;
 	qty_required: string;
@@ -103,8 +103,23 @@ const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router }) => 
 	const handleForm = async (ev: FormEvent): Promise<void> => {
 		ev.preventDefault();
 		const { category, sample_container, sample, name, testprice, reportitle, method: testMethod, deviceInterfaceMapping } = data;
+		const resolvedSampleContainerId = sample === 8
+			? ""
+			: (() => {
+				const directValue = Number(sample_container);
+				if (!Number.isNaN(directValue) && directValue > 0) {
+					return directValue;
+				}
 
-		if (sample === 0 || (sample_container === "" && sample !== 8) || name === "" || category === 0) {
+				const matched = sampleContainers.find((container) => {
+					return (container?.name || '').toString().trim().toLowerCase() ===
+						(sample_container || '').toString().trim().toLowerCase();
+				});
+
+				return matched?.id || "";
+			})();
+
+		if (sample === 0 || (resolvedSampleContainerId === "" && sample !== 8) || name === "" || category === 0) {
 			toast.error("Sample type, container, and category are required", { autoClose: 2000 });
 			return;
 		}
@@ -113,7 +128,7 @@ const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router }) => 
 		// 	return;
 		// }
 
-		
+
 		if (!testMethod || testMethod.trim() === "") {
 			toast.error("Method is required", { autoClose: 2000 });
 			return;
@@ -124,7 +139,11 @@ const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router }) => 
 		}
 
 		try {
-			const response = await customPost(`testpanel/list`, method, { ...data, employeeid });
+			const response = await customPost(`testpanel/list`, method, {
+				...data,
+				sample_container: resolvedSampleContainerId,
+				employeeid,
+			});
 			response.status === "success"
 				? toast.success("Test panel updated successfully", { autoClose: 500 })
 				: toast.error("Test panel not updated", { autoClose: 500 });
@@ -151,6 +170,24 @@ const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router }) => 
 			setFieldDisabledDueNone(false);
 		}
 	}, [data.sample]);
+
+	useEffect(() => {
+		if (!Array.isArray(sampleContainers) || sampleContainers.length === 0) return;
+		const currentValue = data?.sample_container;
+
+		if (currentValue === null || currentValue === undefined || currentValue === "") return;
+		const numericCurrent = Number(currentValue);
+		if (!Number.isNaN(numericCurrent) && numericCurrent > 0) return;
+
+		const matched = sampleContainers.find((container) => {
+			return (container?.name || '').toString().trim().toLowerCase() ===
+				currentValue.toString().trim().toLowerCase();
+		});
+
+		if (matched?.id) {
+			setTestData((prev: TestData) => ({ ...prev, sample_container: matched.id }));
+		}
+	}, [sampleContainers, data?.sample_container]);
 
 	if (isLoading) return <Loader />;
 

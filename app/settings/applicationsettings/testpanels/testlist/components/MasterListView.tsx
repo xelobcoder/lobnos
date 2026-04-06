@@ -53,6 +53,14 @@ interface TestRule {
      categoryid: string | null;
      valueAlert: string | null;
      alert: string | null;
+     upperLimitFemale?: string | null;
+     lowerLimitFemale?: string | null;
+     upperLimitMale?: string | null;
+     lowerLimitMale?: string | null;
+     upperLimitChildren?: string | null;
+     lowerLimitChildren?: string | null;
+     upperLimitNeonates?: string | null;
+     lowerLimitNeonates?: string | null;
 }
 
 export default function MasterListView({ isVisible }: MasterListViewProps) {
@@ -64,6 +72,8 @@ export default function MasterListView({ isVisible }: MasterListViewProps) {
      const [loadingTestRules, setLoadingTestRules] = useState<boolean>(false);
      const [selectedTestIds, setSelectedTestIds] = useState<Set<number>>(new Set());
      const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
+     const [isImporting, setIsImporting] = useState<boolean>(false);
+     const allMasterTestsSelected = masterListData.length > 0 && masterListData.every((item) => selectedTestIds.has(item.id));
 
      const columns: Column[] = [
           {
@@ -136,8 +146,9 @@ export default function MasterListView({ isVisible }: MasterListViewProps) {
           setLoadingTestRules(true);
           try {
                const rulesRes = await customFetch(`testpanel/list/customtestrule?testid=${test.id}&tenantId=3&grouping=master`).catch(() => []);
-               const rules = Array.isArray(rulesRes) ? rulesRes : [];
-               console.log('Test Rules:', rules); // Debug log
+               const rules = Array.isArray(rulesRes?.data)
+                    ? rulesRes.data
+                    : (Array.isArray(rulesRes) ? rulesRes : []);
                setTestRules(rules);
           } catch (error) {
                console.error('Error loading test rules:', error);
@@ -145,6 +156,65 @@ export default function MasterListView({ isVisible }: MasterListViewProps) {
           } finally {
                setLoadingTestRules(false);
           }
+     };
+
+     const hasValue = (value: unknown) => value !== null && value !== undefined && `${value}`.trim() !== '';
+
+     const renderList = (rawValue: string | null | undefined) => {
+          if (!rawValue) return <span className="text-muted">-</span>;
+          if (!rawValue.includes(',')) return <span>{rawValue}</span>;
+
+          return (
+               <ol className="mb-0 ps-3">
+                    {rawValue.split(',').map((item, idx) => (
+                         <li key={idx}>{item.trim()}</li>
+                    ))}
+               </ol>
+          );
+     };
+
+     const renderReferenceConfig = (rule: TestRule) => {
+          if (rule.plan === 'fetalBiometry') {
+               return <span>BPD, FL, HC, AC (Hadlock EFW)</span>;
+          }
+
+          if (rule.plan === 'limits') {
+               const hasDemographicRanges = [
+                    rule.lowerLimitMale,
+                    rule.upperLimitMale,
+                    rule.lowerLimitFemale,
+                    rule.upperLimitFemale,
+                    rule.lowerLimitChildren,
+                    rule.upperLimitChildren,
+                    rule.lowerLimitNeonates,
+                    rule.upperLimitNeonates,
+               ].some(hasValue);
+
+               if (hasDemographicRanges) {
+                    return (
+                         <div className="small">
+                              <div>M: {rule.lowerLimitMale || '-'} - {rule.upperLimitMale || '-'}</div>
+                              <div>F: {rule.lowerLimitFemale || '-'} - {rule.upperLimitFemale || '-'}</div>
+                              <div>C: {rule.lowerLimitChildren || '-'} - {rule.upperLimitChildren || '-'}</div>
+                              <div>N: {rule.lowerLimitNeonates || '-'} - {rule.upperLimitNeonates || '-'}</div>
+                         </div>
+                    );
+               }
+
+               if (hasValue(rule.lowerlimit) || hasValue(rule.upperlimit)) {
+                    return <span>{rule.lowerlimit || '-'} - {rule.upperlimit || '-'}</span>;
+               }
+          }
+
+          if (rule.plan === 'options') {
+               return renderList(rule.options);
+          }
+
+          if (rule.plan === 'textReference' || rule.plan === 'greaterLess' || rule.plan === 'greaterLessEqualTo' || rule.plan === 'time') {
+               return renderList(rule.textReference);
+          }
+
+          return <span className="text-muted">-</span>;
      };
 
      useEffect(() => {
@@ -165,17 +235,56 @@ export default function MasterListView({ isVisible }: MasterListViewProps) {
           setShowConfirmModal(true);
      };
 
-     const confirmImport = () => {
+     const handleToggleSelectAll = () => {
+          if (allMasterTestsSelected) {
+               setSelectedTestIds(new Set());
+               return;
+          }
+
+          setSelectedTestIds(new Set(masterListData.map((item) => item.id)));
+     };
+
+     const confirmImport = async () => {
           const selectedTests = masterListData.filter(t => selectedTestIds.has(t.id));
-          console.log('Importing tests:', selectedTests);
-          // Add import logic here
-          setShowConfirmModal(false);
+          if (selectedTests.length === 0) {
+               alert('No tests selected for import');
+               return;
+          }
+
+          setIsImporting(true);
+          try {
+               const selectedIds = selectedTests.map((test) => test.id).join(',');
+               const response = await customFetch(`testpanel/master/list/import?testid=${selectedIds}`);
+               const isSuccess = response?.status === true || response?.status === 'success';
+
+               if (isSuccess) {
+                    alert(`Successfully imported ${selectedTests.length} test(s).`);
+               } else {
+                    alert(response?.message || 'Some imports may have failed.');
+               }
+
+               setSelectedTestIds(new Set());
+               await loadMasterListData();
+          } catch (error) {
+               console.error('Error importing master list tests:', error);
+               alert('Failed to import selected tests.');
+          } finally {
+               setIsImporting(false);
+               setShowConfirmModal(false);
+          }
      };
 
      return (
           <div>
                {masterListData.length > 0 && (
-                    <div className="d-flex justify-content-end mb-3">
+                    <div className="d-flex justify-content-end gap-2 mb-3">
+                         <button
+                              onClick={handleToggleSelectAll}
+                              disabled={masterListData.length === 0}
+                              className="btn btn-sm btn-outline-secondary"
+                         >
+                              {allMasterTestsSelected ? 'Clear Selection' : `Select All (${masterListData.length})`}
+                         </button>
                          <button
                               onClick={handleImport}
                               disabled={selectedTestIds.size === 0}
@@ -223,50 +332,24 @@ export default function MasterListView({ isVisible }: MasterListViewProps) {
                                                        <thead className="table-light">
                                                             <tr>
                                                                  <th>Field</th>
-                                                                 <th>Units</th>
-                                                                 <th>Lower Limit</th>
-                                                                 <th>Upper Limit</th>
                                                                  <th>Plan</th>
-                                                                 <th>Options</th>
-                                                                 <th>Text Reference</th>
+                                                                 <th>Units</th>
+                                                                 <th>Reference / Config</th>
+                                                                 <th>Value Format Preview</th>
                                                             </tr>
                                                        </thead>
                                                        <tbody>
                                                             {testRules.map((rule) => (
                                                                  <tr key={rule.id}>
                                                                       <td>{rule.name || 'N/A'}</td>
-                                                                      <td>{rule.units || 'N/A'}</td>
-                                                                      <td>{rule.lowerlimit || 'N/A'}</td>
-                                                                      <td>{rule.upperlimit || 'N/A'}</td>
                                                                       <td>{rule.plan || 'N/A'}</td>
+                                                                      <td>{rule.units || 'N/A'}</td>
+                                                                      <td>{renderReferenceConfig(rule)}</td>
                                                                       <td>
-                                                                           {rule.options ? (
-                                                                                rule.options.includes(',') ? (
-                                                                                     <ol className="mb-0 ps-3">
-                                                                                          {rule.options.split(',').map((opt, idx) => (
-                                                                                               <li key={idx}>{opt.trim()}</li>
-                                                                                          ))}
-                                                                                     </ol>
-                                                                                ) : (
-                                                                                     <span>{rule.options}</span>
-                                                                                )
+                                                                           {rule.plan === 'fetalBiometry' ? (
+                                                                                <span>{'{"BPD":"","FL":"","HC":"","AC":""}'}</span>
                                                                            ) : (
-                                                                                <span className="text-muted">-</span>
-                                                                           )}
-                                                                      </td>
-                                                                      <td>
-                                                                           {rule.textReference ? (
-                                                                                rule.textReference.includes(',') ? (
-                                                                                     <ol className="mb-0 ps-3">
-                                                                                          {rule.textReference.split(',').map((ref, idx) => (
-                                                                                               <li key={idx}>{ref.trim()}</li>
-                                                                                          ))}
-                                                                                     </ol>
-                                                                                ) : (
-                                                                                     <span>{rule.textReference}</span>
-                                                                                )
-                                                                           ) : (
-                                                                                <span className="text-muted">-</span>
+                                                                                <span className="text-muted">Standard</span>
                                                                            )}
                                                                       </td>
                                                                  </tr>
@@ -319,8 +402,9 @@ export default function MasterListView({ isVisible }: MasterListViewProps) {
                                              type="button"
                                              className="btn btn-sm btn-outline-success"
                                              onClick={confirmImport}
+                                             disabled={isImporting}
                                         >
-                                             Import
+                                             {isImporting ? 'Importing...' : 'Import'}
                                         </button>
                                    </div>
                               </div>

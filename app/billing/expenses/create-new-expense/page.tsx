@@ -6,7 +6,7 @@ import Loader from "../../../../components/accessories/Loader";
 import { useSearchParams } from "next/navigation";
 import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
 import Select, { SingleValue } from "react-select";
-import { RiReceiptLine } from '@remixicon/react';
+import { RiReceiptLine, RiStoreLine, RiPriceTag3Line, RiRefreshLine } from '@remixicon/react';
 import { useRouter } from "next/navigation";
 
 interface ExpenseForm {
@@ -151,7 +151,7 @@ export default function AddNewExpense() {
 	};
 
 
-	useEffect(() => {
+	const loadFormData = () => {
 		if (!branchid || !employeeid) return;
 		setLoading(true);
 		Promise.all([
@@ -170,15 +170,42 @@ export default function AddNewExpense() {
 				toast.error("Failed to load categories or merchants", { autoClose: 3000 });
 			})
 			.finally(() => setLoading(false));
+	};
+
+	useEffect(() => {
+		loadFormData();
 	}, [branchid, employeeid]);
 
 	return (
 		<div className="container-fluid">
-			<div>
-				<button className="btn btn-sm btn-outline-secondary mb-3" onClick={(ev) => {
+			<div className="d-flex flex-wrap gap-2 mb-3">
+				<button className="btn btn-sm btn-outline-secondary" onClick={() => {
 					router.push('/billing/expenses/create-multiple-expenses')
 				}}>
 					create bulk expenses
+				</button>
+				<button
+					className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
+					onClick={() => window.open('/billing/expenses/merchants/create', '_blank')}
+				>
+					<RiStoreLine size={15} />
+					New Merchant
+				</button>
+				<button
+					className="btn btn-sm btn-outline-success d-flex align-items-center gap-1"
+					onClick={() => window.open('/billing/expenses/category', '_blank')}
+				>
+					<RiPriceTag3Line size={15} />
+					New Category
+				</button>
+				<button
+					className="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
+					onClick={loadFormData}
+					disabled={isLoading}
+					title="Refresh merchants and categories"
+				>
+					<RiRefreshLine size={15} />
+					Refresh
 				</button>
 			</div>
 			<div className="row">

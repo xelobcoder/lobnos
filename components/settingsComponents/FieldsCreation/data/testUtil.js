@@ -112,6 +112,14 @@ export const defaultCreationRule = {
   isRequired: false,
   lowerLimit: "",
   upperLimit: "",
+  upperLimitFemale: null,
+  lowerLimitFemale: null,
+  upperLimitMale: null,
+  lowerLimitMale: null,
+  upperLimitChildren: null,
+  lowerLimitChildren: null,
+  upperLimitNeonates: null,
+  lowerLimitNeonates: null,
 };
 
 export const parseTextToObject = function (text) {

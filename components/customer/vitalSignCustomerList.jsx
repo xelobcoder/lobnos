@@ -71,9 +71,30 @@ export default function VitalSignCustomerListInformation({ searchParams, size = 
 
     const groupedVitalSigns = groupByDate(vitalSigns);
 
+    const getTimeFromVitalSign = (sign) => {
+        if (sign?.time) {
+            return convertTo12HourFormat(sign.time.split('.')[0]);
+        }
+
+        if (!sign?.date) {
+            return '--:--:--';
+        }
+
+        const dateValue = new Date(sign.date);
+        if (Number.isNaN(dateValue.getTime())) {
+            return '--:--:--';
+        }
+
+        const hours = String(dateValue.getHours()).padStart(2, '0');
+        const minutes = String(dateValue.getMinutes()).padStart(2, '0');
+        const seconds = String(dateValue.getSeconds()).padStart(2, '0');
+
+        return convertTo12HourFormat(`${hours}:${minutes}:${seconds}`);
+    };
+
     const processVitalSignData = (vitalSigns) => {
         return vitalSigns.map(sign => ({
-            time: convertTo12HourFormat(sign.time.split('.')[0]),
+            time: getTimeFromVitalSign(sign),
             bp: sign.bp,
             temperature: sign.temperature,
             pulse: sign.pulse,

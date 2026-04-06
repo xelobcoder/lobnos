@@ -68,6 +68,13 @@ const fieldTypes: FieldType[] = [
           example: 'Blood pressure: 80-120 mmHg'
      },
      {
+          value: 'fetalBiometry',
+          label: 'Fetal Biometry (Hadlock)',
+          description: 'Captures BPD, FL, HC, AC and calculates EFW',
+          icon: RiHeartPulseLine,
+          example: 'BPD, FL, HC, AC with Hadlock EFW'
+     },
+     {
           value: 'greaterLess',
           label: 'Greater/Less Than',
           description: 'Comparison-based numeric values',
@@ -105,8 +112,8 @@ export default function VisualFieldTypeSelector({ selectedType, onSelect }: Visu
                               <div key={type.value} className="col-md-6">
                                    <div
                                         className={`card h-100 cursor-pointer border-2 transition-all ${isSelected
-                                                  ? 'border-primary bg-primary bg-opacity-10'
-                                                  : 'border-light hover-border-primary'
+                                             ? 'border-primary bg-primary bg-opacity-10'
+                                             : 'border-light hover-border-primary'
                                              }`}
                                         onClick={() => onSelect(type.value)}
                                         style={{ cursor: 'pointer' }}

@@ -27,7 +27,12 @@ export default function TestListDisplay() {
     const [data, setData] = useState<TestPanel[]>([]);
     const [isLoading, setLoading] = useState<boolean>(true);
     const [activeTab, setActiveTab] = useState<'active' | 'master'>('active');
+    const [selectedUserTestIds, setSelectedUserTestIds] = useState<Set<number>>(new Set());
+    const [showBulkDeleteModal, setShowBulkDeleteModal] = useState<boolean>(false);
+    const [bulkDeleteConfirmText, setBulkDeleteConfirmText] = useState<string>('');
+    const [isBulkDeleting, setIsBulkDeleting] = useState<boolean>(false);
     const router = useRouter();
+    const BULK_DELETE_PHRASE = 'DELETE USER TESTS';
 
     useEffect(() => {
         customFetch('testpanel/list/bulk')
@@ -60,7 +65,22 @@ export default function TestListDisplay() {
             Header: 'Name',
             accessor: 'name',
             Cell: ({ row, value }: { row: { original: TestPanel }, value: string }) => (
-                <span>{value} {row.original.shorttext ? `(${row.original.shorttext})` : ""}</span>
+                <div className="d-flex align-items-center gap-2">
+                    <input
+                        type="checkbox"
+                        checked={selectedUserTestIds.has(row.original.id)}
+                        onChange={(e) => {
+                            const updated = new Set(selectedUserTestIds);
+                            if (e.target.checked) {
+                                updated.add(row.original.id);
+                            } else {
+                                updated.delete(row.original.id);
+                            }
+                            setSelectedUserTestIds(updated);
+                        }}
+                    />
+                    <span>{value} {row.original.shorttext ? `(${row.original.shorttext})` : ""}</span>
+                </div>
             )
         },
         {
@@ -83,6 +103,59 @@ export default function TestListDisplay() {
             }
         }
     ];
+
+    const handleBulkDelete = () => {
+        if (selectedUserTestIds.size === 0) {
+            alert('Please select at least one user-defined test to delete.');
+            return;
+        }
+        setShowBulkDeleteModal(true);
+    };
+
+    const allUserTestsSelected = data.length > 0 && data.every((item) => selectedUserTestIds.has(item.id));
+
+    const handleToggleSelectAll = () => {
+        if (allUserTestsSelected) {
+            setSelectedUserTestIds(new Set());
+            return;
+        }
+
+        setSelectedUserTestIds(new Set(data.map((item) => item.id)));
+    };
+
+    const confirmBulkDelete = async () => {
+        const selectedTests = data.filter((item) => selectedUserTestIds.has(item.id));
+        if (selectedTests.length === 0) {
+            alert('No selected tests found.');
+            return;
+        }
+
+        if (bulkDeleteConfirmText.trim() !== BULK_DELETE_PHRASE) {
+            alert(`Type ${BULK_DELETE_PHRASE} to continue.`);
+            return;
+        }
+
+        setIsBulkDeleting(true);
+        try {
+            const selectedIds = selectedTests.map((item) => item.id).join(',');
+            const response = await customPost(`testpanel/list?testid=${selectedIds}`, 'DELETE', {});
+            const isSuccess = response?.status === 'success' || response?.status === true;
+
+            if (isSuccess) {
+                setData((prev) => prev.filter((item) => !selectedUserTestIds.has(item.id)));
+                setSelectedUserTestIds(new Set());
+                alert(`Deleted ${selectedTests.length} test(s) successfully.`);
+            } else {
+                alert(response?.message || 'Bulk delete failed.');
+            }
+        } catch (error) {
+            alert('Bulk delete failed. Please try again.');
+        } finally {
+            setIsBulkDeleting(false);
+            setBulkDeleteConfirmText('');
+            setShowBulkDeleteModal(false);
+        }
+    };
 
     if (isLoading) return <Loader />;
     return (
@@ -115,7 +188,23 @@ export default function TestListDisplay() {
             </div>
             <div className="tab-content">
                 <div className={`tab-pane ${activeTab === 'active' ? 'active' : ''}`} role="tabpanel">
-                    <div className="d-flex justify-content-end mx-2 mb-3">
+                    <div className="d-flex justify-content-between mx-2 mb-3">
+                        <div className="d-flex gap-2">
+                            <button
+                                onClick={handleToggleSelectAll}
+                                disabled={data.length === 0}
+                                className="btn btn-outline-secondary btn-sm text-capitalize"
+                            >
+                                {allUserTestsSelected ? 'Clear Selection' : `Select All (${data.length})`}
+                            </button>
+                            <button
+                                onClick={handleBulkDelete}
+                                disabled={selectedUserTestIds.size === 0}
+                                className="btn btn-outline-danger btn-sm text-capitalize"
+                            >
+                                Delete Selected ({selectedUserTestIds.size})
+                            </button>
+                        </div>
                         <button
                             onClick={() => router.push("/settings/applicationsettings/testpanels/testlist/createcustomtest")}
                             className="btn btn-dark btn-sm text-capitalize"
@@ -139,6 +228,60 @@ export default function TestListDisplay() {
                     <MasterListView isVisible={activeTab === 'master'} />
                 </div>
             </div>
+
+            {showBulkDeleteModal && (
+                <div className="modal d-block" tabIndex={-1} role="dialog" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+                    <div className="modal-dialog" role="document">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">Confirm Bulk Delete</h5>
+                                <button
+                                    type="button"
+                                    className="btn-close"
+                                    onClick={() => {
+                                        setShowBulkDeleteModal(false);
+                                        setBulkDeleteConfirmText('');
+                                    }}
+                                />
+                            </div>
+                            <div className="modal-body">
+                                <p>
+                                    You are about to delete <strong>{selectedUserTestIds.size}</strong> user-defined test(s).
+                                </p>
+                                <p className="text-danger mb-2">This action cannot be undone.</p>
+                                <label className="form-label">Type <strong>{BULK_DELETE_PHRASE}</strong> to continue</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    value={bulkDeleteConfirmText}
+                                    onChange={(e) => setBulkDeleteConfirmText(e.target.value)}
+                                    placeholder={BULK_DELETE_PHRASE}
+                                />
+                            </div>
+                            <div className="modal-footer">
+                                <button
+                                    type="button"
+                                    className="btn btn-sm btn-outline-secondary"
+                                    onClick={() => {
+                                        setShowBulkDeleteModal(false);
+                                        setBulkDeleteConfirmText('');
+                                    }}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn btn-sm btn-danger"
+                                    disabled={isBulkDeleting || bulkDeleteConfirmText.trim() !== BULK_DELETE_PHRASE}
+                                    onClick={confirmBulkDelete}
+                                >
+                                    {isBulkDeleting ? 'Deleting...' : 'Delete Selected'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </section>
     );
 }

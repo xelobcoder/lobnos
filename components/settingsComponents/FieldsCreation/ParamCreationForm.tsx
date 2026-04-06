@@ -24,6 +24,7 @@ export default function ParamCreationGForm({ field, setField, fieldConstraintsCa
         { value: 'input', label: 'Single Line' },
         { value: 'textReference', label: 'Text with Ref' },
         { value: 'limits', label: 'Numeric Range' },
+        { value: 'fetalBiometry', label: 'Fetal Biometry (Hadlock)' },
         { value: 'greaterLess', label: 'Greater Than / Less Than Value' },
         { value: 'plain', label: 'Text Area' },
         { value: 'ultrasoundFields', label: 'Ultrasound Fields' },
@@ -156,23 +157,23 @@ export default function ParamCreationGForm({ field, setField, fieldConstraintsCa
                 </div>
             )}
 
-        {/* time */}
+            {/* time */}
 
-        {
-            field?.plan == "time" && (
-                <div className="mb-3">
-                    <label htmlFor="timeFormat">Time Format</label>
-                    <input
-                        id="timeFormat"
-                        type="text"
-                        value={field?.textReference || ''}
-                        onChange={e => setField({ ...field, textReference: e.target.value })}
-                        placeholder="e.g. HH:mm:ss" 
-                        className="form-control"
-                    />
-                </div>
-            )
-        }
+            {
+                field?.plan == "time" && (
+                    <div className="mb-3">
+                        <label htmlFor="timeFormat">Time Format</label>
+                        <input
+                            id="timeFormat"
+                            type="text"
+                            value={field?.textReference || ''}
+                            onChange={e => setField({ ...field, textReference: e.target.value })}
+                            placeholder="e.g. HH:mm:ss"
+                            className="form-control"
+                        />
+                    </div>
+                )
+            }
         </div>
     );
 }

@@ -2,17 +2,71 @@ import LimitViewHtmlGenerator from "./ResultEntryOptions/LimitsView";
 import OptionsViewHtmlGenerator from "./ResultEntryOptions/OptionsView";
 import PlainViewHtmlGenerator from "./ResultEntryOptions/Plain";
 import TextReferenceViewHtmlGenerator from "./ResultEntryOptions/textReferenceOption";
-import GreaterLessViewHtmlGenerator from './ResultEntryOptions/GreaterLessViewHtmlGenerator'
+import GreaterLessViewHtmlGenerator from "./ResultEntryOptions/GreaterLessViewHtmlGenerator";
 import TimeOptionHtmlGenerator from "./ResultEntryOptions/TimeOptionHtmlGenerator";
+import FetalBiometryView from "./ResultEntryOptions/FetalBiometryView";
 
-export default function ResultEntryHtmlGenerator({ item, statehandler, index, isDisabled }) {
-    const { plan } = item;
-    if (plan === 'limits') return <LimitViewHtmlGenerator index={index}
-        statehandler={statehandler} fieldItem={item} />
-    else if (plan === "greaterLess" || plan === "greaterLessEqualTo") return <GreaterLessViewHtmlGenerator index={index}
-        statehandler={statehandler} fieldItem={item} />
-    else if (plan === "options") return <OptionsViewHtmlGenerator index={index} statehandler={statehandler} fieldItem={item} />
-    else if (plan === "textReference") return <TextReferenceViewHtmlGenerator index={index} statehandler={statehandler} fieldItem={item} />
-    else if (plan === "time" || plan === "date" || plan === "datetime") return <TimeOptionHtmlGenerator index={index} statehandler={statehandler} fieldItem={item} isDisabled={isDisabled} />
-    return <PlainViewHtmlGenerator index={index} statehandler={statehandler} fieldItem={item} />
+export default function ResultEntryHtmlGenerator({
+  item,
+  statehandler,
+  index,
+  isDisabled,
+}) {
+  const { plan } = item;
+  if (plan === "limits")
+    return (
+      <LimitViewHtmlGenerator
+        index={index}
+        statehandler={statehandler}
+        fieldItem={item}
+      />
+    );
+  else if (plan === "greaterLess" || plan === "greaterLessEqualTo")
+    return (
+      <GreaterLessViewHtmlGenerator
+        index={index}
+        statehandler={statehandler}
+        fieldItem={item}
+      />
+    );
+  else if (plan === "options")
+    return (
+      <OptionsViewHtmlGenerator
+        index={index}
+        statehandler={statehandler}
+        fieldItem={item}
+      />
+    );
+  else if (plan === "textReference")
+    return (
+      <TextReferenceViewHtmlGenerator
+        index={index}
+        statehandler={statehandler}
+        fieldItem={item}
+      />
+    );
+  else if (plan === "time" || plan === "date" || plan === "datetime")
+    return (
+      <TimeOptionHtmlGenerator
+        index={index}
+        statehandler={statehandler}
+        fieldItem={item}
+        isDisabled={isDisabled}
+      />
+    );
+  else if (plan === "fetalBiometry")
+    return (
+      <FetalBiometryView
+        index={index}
+        statehandler={statehandler}
+        fieldItem={item}
+      />
+    );
+  return (
+    <PlainViewHtmlGenerator
+      index={index}
+      statehandler={statehandler}
+      fieldItem={item}
+    />
+  );
 }
