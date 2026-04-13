@@ -134,6 +134,12 @@ export const BillingSettingsTab: React.FC<BillingSettingsTabProps> = ({ settings
                          icon: <RiMoneyDollarCircleLine size={20} />
                     },
                     {
+                         name:"allowScientistToRegisterClient",
+                         label: 'Allow Scientist to Register Client',
+                         description: 'Permit scientists to register new clients in the system',
+                         icon: <RiUserSharedLine size={20} />
+                    },
+                    {
                          name: "allowValidationUpaid",
                          label: 'Allow Validation of Unpaid service or report',
                          description: 'Permit validation processes even if bills are unpaid',

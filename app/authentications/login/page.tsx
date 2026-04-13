@@ -65,6 +65,10 @@ export default function PrimeLabLoginPage() {
 				return;
 			}
 
+			console.log(backendResponse, "BACKEND RESPONSE");
+
+	
+
 			const cookieResponse = await fetch('/api/auth/login', {
 				method: 'POST',
 				headers: {
@@ -97,7 +101,11 @@ export default function PrimeLabLoginPage() {
 
 			const { role } = cookieResult;
 			setTimeout(() => {
-				if (role === "admin" || role === "manager" || role == "customer service representative") {
+				if (role === "customer service representative") {
+					router.push("/crm/customers");
+				}  else if (role === 'admin') {
+					router.push("/analytics");
+				} else if (role === 'manager') {
 					router.push("/");
 				} else if (role === "sonographer") {
 					router.push("/operations/imaging/ultrasound");

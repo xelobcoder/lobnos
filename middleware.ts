@@ -47,14 +47,19 @@ export async function middleware(request: NextRequest) {
             const role = user.role || "";
             const currentPath = request.nextUrl.pathname;
 
+            console.log(payload, "PAYLOAD IN MIDDLEWARE");
+
             // Check CRM access first
             if (currentPath.startsWith("/crm")) {
-                if (!["admin", "manager", "customer service representative"].includes(role.toString().toLowerCase().trim())) {
-                    if (role == "sonographer") {
-                        return NextResponse.redirect(new URL('/operations/imaging/ultrasound', request.url));
-                    } else if (role == "scientist") {
-                        return NextResponse.redirect(new URL('/operations/laboratory', request.url));
-                    } else if (role == "storekeeper") {
+                if (!["admin", "manager", "customer service representative", 'scientist', 'sonographer'].includes(role.toString().toLowerCase().trim())) {
+                    // if (role == "sonographer") {
+                    //     return NextResponse.redirect(new URL('/operations/imaging/ultrasound', request.url));
+                    // } else if (role == "scientist") {
+                    //     return NextResponse.redirect(new URL('/operations/laboratory', request.url));
+                    // } else  else {
+                    //     return NextResponse.next();
+                    // }
+                    if (role == "storekeeper") {
                         return NextResponse.redirect(new URL('/inventory', request.url));
                     } else {
                         return NextResponse.next();

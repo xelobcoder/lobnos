@@ -181,7 +181,12 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 				return row.original.isFirstOfDay ? <span style={{ backgroundColor: 'red', color: 'white', padding: '2px 4px', borderRadius: '4px' }}>{formatted}</span> : <span>{formatted}</span>;
 			}
 		},
-		{ Header: "Patient", accessor: "fullname", Cell: ({ row }) => <div className="d-flex flex-column"><span className="fw-semibold">{row.original.fullname}</span><span className="text-muted small">{row.original.fullpatientid}</span></div> },
+		{
+			Header: "Billed By",
+			accessor: "salesperson",
+			Cell: ({ value }) => value ? <span>{value}</span> : <span className="text-muted">-</span>
+		},
+		{ Header: "Client Name", accessor: "fullname", Cell: ({ row }) => <div className="d-flex flex-column"><span className="fw-semibold">{row.original.fullname}</span><span className="text-muted small">{row.original.fullpatientid}</span></div> },
 		{ Header: "Bill Id", accessor: "billingid" },
 		{
 			Header: "Billing Source", accessor: "billingSource",
@@ -193,9 +198,9 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 		{ Header: "Discount", accessor: "discount", Cell: ({ value }) => <div>{currencyFormatter.format(Number(value) || 0)}</div> },
 		{ Header: "Amt Refunded", accessor: "totalrefunded", Cell: ({ value }) => <div>{currencyFormatter.format(Number(value) || 0)}</div> },
 		{ Header: "Balance", accessor: "balance", Cell: ({ value }) => <div>{currencyFormatter.format(Number(value) || 0)}</div> },
-		{Header:"surcharge", accessor: "surcharges", Cell:({value})=><div>{currencyFormatter.format(Number(value)||0)}</div>},
+		{ Header: "surcharge", accessor: "surcharges", Cell: ({ value }) => <div>{currencyFormatter.format(Number(value) || 0)}</div> },
 		{ Header: "Status", accessor: "status", Cell: ({ value }) => value ? <span className={value === 'pending' ? 'text-warning' : 'text-success'}>{value}</span> : <span className="text-muted">-</span> },
-		{Header:"write off",accessor:"writeoff",Cell:({value})=><div>{currencyFormatter.format(Number(value)||0)}</div>},
+		{ Header: "write off", accessor: "writeoff", Cell: ({ value }) => <div>{currencyFormatter.format(Number(value) || 0)}</div> },
 		{
 			Header: "Actions",
 			accessor: "actions",
@@ -277,6 +282,13 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 	const monetaryFields: string[] = [
 		'payable', 'paid', 'outstanding', 'discount', 'totalrefunded', 'balance', 'totalcost', 'totalTransactionCost', 'amountIncurredDueTax', 'adjustmentamount', 'promoValue', 'currentPayable', 'previousPaid', 'newPayments', 'totalPaid', 'outstandingToWriteOff'
 	];
+
+	const getPaymentStatusRowClass = (row: any): string => {
+		const status = String(row?.paymentstatus ?? row?.status ?? "").trim().toLowerCase();
+		if (status === "pending") return "table-danger";
+		if (status === "partial" || status === "partail") return "table-warning";
+		return "";
+	};
 
 
 
@@ -483,7 +495,7 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 								</thead>
 								<tbody>
 									{processedData.map((row, index) => (
-										<tr key={index}>
+										<tr key={index} className={getPaymentStatusRowClass(row)}>
 											{coreColumns.map(col => {
 												const value = row[col.accessor];
 												const cellContent = col.Cell ? col.Cell({ value, row: { original: row } }) : value;
@@ -509,7 +521,7 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 							</thead>
 							<tbody>
 								{processedData.map((row, index) => (
-									<tr key={index}>
+									<tr key={index} className={getPaymentStatusRowClass(row)}>
 										{coreColumns.map(col => {
 											const value = row[col.accessor];
 											const cellContent = col.Cell ? col.Cell({ value, row: { original: row } }) : value;

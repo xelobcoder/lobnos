@@ -2,12 +2,13 @@ import React, { useCallback, useEffect, useState } from "react";
 import { regions, organizationDefaultBasicInfo, customFetch, customFile, customPost, validateFormData } from "../Auth/customFetch";
 import Loader from "../accessories/Loader";
 import { toast, ToastContainer } from 'react-toastify';
-import { 
-	RiBuildingLine, 
-	RiMapPinLine, 
-	RiPhoneLine, 
-	RiMailLine, 
-	RiGlobalLine, 
+import { useRouter } from "next/navigation";
+import {
+	RiBuildingLine,
+	RiMapPinLine,
+	RiPhoneLine,
+	RiMailLine,
+	RiGlobalLine,
 	RiSaveLine,
 	RiUploadLine,
 	RiFileExcel2Line,
@@ -36,6 +37,7 @@ const customStyles = `
 
 
 export default function OrganizationBasicForm({ organizationid }) {
+	const router = useRouter();
 	const [data, setData] = useState(organizationDefaultBasicInfo);
 	const [message, setMessage] = useState("Add new organization");
 	const [isloading, setLoading] = useState(false);
@@ -43,6 +45,7 @@ export default function OrganizationBasicForm({ organizationid }) {
 	const [dragging, setDragging] = useState(false);
 	const [formValues, setFormValues] = useState(organizationDefaultBasicInfo);
 	const [formErrors, setFormErrors] = useState({});
+	const [showPostCreateModal, setShowPostCreateModal] = useState(false);
 	const [excelFile, setExcelFile] = useState(null);
 	const [uploading, setUploading] = useState(false);
 	const [showExcelModal, setShowExcelModal] = useState(false);
@@ -62,7 +65,7 @@ export default function OrganizationBasicForm({ organizationid }) {
 		customFetch(`organization/basic?id=${organizationid}`)
 			.then((response) => {
 				const { statusCode, status, result } = response;
-				if (statusCode === 200 && status === "success") {
+				if (statusCode === 200 && status === "success" && Array.isArray(result) && result.length > 0) {
 					setData(result[0]);
 					setFormValues(result[0]);
 				}
@@ -107,6 +110,22 @@ export default function OrganizationBasicForm({ organizationid }) {
 		});
 	};
 
+	const resetFormForNewOrganization = () => {
+		setFormValues(organizationDefaultBasicInfo);
+		setFormErrors({});
+		setSelectedImage(null);
+	};
+
+	const handleAddAnother = () => {
+		resetFormForNewOrganization();
+		setShowPostCreateModal(false);
+	};
+
+	const handleViewOrganizationList = () => {
+		setShowPostCreateModal(false);
+		router.push("/organization");
+	};
+
 	const onSubmit = async (e) => {
 		e.preventDefault();
 		const validationErrors = validateFields(formValues);
@@ -123,9 +142,19 @@ export default function OrganizationBasicForm({ organizationid }) {
 		}
 
 		const handleResponseCallBack = (response) => {
-			const { status, message } = response;
-			if (status === "exist") return toast.warning(message);
-			toast.success(message)
+			const { status, message, statusCode } = response || {};
+			if (status === "exist") {
+				return toast.warning(message);
+			}
+
+			const isSuccessfulCreate = status === "success" || status == "created" || status === true || statusCode === 200;
+			if (isSuccessfulCreate) {
+				toast.success(message || "Organization created successfully");
+				setShowPostCreateModal(true);
+				return;
+			}
+
+			toast.error(message || "Unable to create organization");
 		}
 		try {
 			if (!organizationid) {
@@ -147,7 +176,7 @@ export default function OrganizationBasicForm({ organizationid }) {
 
 			console.log('Uploading image...');
 			const response = await customFile(`organization/profile/image?id=${organizationid}`, formData);
-console.log('Image upload response:', response);
+			console.log('Image upload response:', response);
 		} catch (error) {
 			console.error('Error during upload:', error);
 			return null;
@@ -212,7 +241,7 @@ console.log('Image upload response:', response);
 		formData.append('target', 'organization');
 		try {
 			const response = await customFile('parse-excel', formData);
-			if (response && response.header && response.validation ){
+			if (response && response.header && response.validation) {
 				setExcelPreview(response);
 				setSelectedRows([]); // Reset selected rows when new data is loaded
 			} else {
@@ -233,10 +262,10 @@ console.log('Image upload response:', response);
 
 	const handleConfirmImport = async () => {
 		if (!excelPreview) return;
-		
+
 		// Filter out selected rows from the data
 		const filteredData = excelPreview.validation.filter((_, index) => !selectedRows.includes(index));
-		
+
 		if (filteredData.length === 0) {
 			toast.error('No data to import. Please unselect some rows or upload a different file.', {
 				position: 'top-right',
@@ -244,7 +273,7 @@ console.log('Image upload response:', response);
 			});
 			return;
 		}
-		
+
 		setUploading(true);
 		try {
 			// Send the filtered data to the backend for saving
@@ -294,8 +323,8 @@ console.log('Image upload response:', response);
 	};
 
 	const handleRowSelect = (rowIndex) => {
-		setSelectedRows(prev => 
-			prev.includes(rowIndex) 
+		setSelectedRows(prev =>
+			prev.includes(rowIndex)
 				? prev.filter(index => index !== rowIndex)
 				: [...prev, rowIndex]
 		);
@@ -303,7 +332,7 @@ console.log('Image upload response:', response);
 
 	const handleSelectAll = () => {
 		if (!excelPreview) return;
-		
+
 		if (selectedRows.length === excelPreview.validation.length) {
 			// If all rows are selected, deselect all
 			setSelectedRows([]);
@@ -315,7 +344,7 @@ console.log('Image upload response:', response);
 
 	const handleRemoveSelected = () => {
 		if (!excelPreview || selectedRows.length === 0) return;
-		
+
 		const newValidation = excelPreview.validation.filter((_, index) => !selectedRows.includes(index));
 		setExcelPreview({
 			...excelPreview,
@@ -341,7 +370,7 @@ console.log('Image upload response:', response);
 	return (
 		<div className="container-fluid py-4">
 			<style>{customStyles}</style>
-			
+
 			<div className="d-flex justify-content-between align-items-center mb-4">
 				<h4 className="d-flex align-items-center gap-2 mb-0">
 					<RiBuildingLine size={20} />
@@ -376,11 +405,11 @@ console.log('Image upload response:', response);
 									>
 										{selectedImage ? (
 											<div className="text-center">
-												<img 
-													src={selectedImage} 
-													alt="Organization Logo" 
-													className="img-thumbnail mb-2" 
-													style={{ maxWidth: '100%', maxHeight: 140, borderRadius: 4 }} 
+												<img
+													src={selectedImage}
+													alt="Organization Logo"
+													className="img-thumbnail mb-2"
+													style={{ maxWidth: '100%', maxHeight: 140, borderRadius: 4 }}
 												/>
 												<div className="d-flex align-items-center justify-content-center gap-1 text-primary">
 													<RiEditLine size={14} />
@@ -482,18 +511,18 @@ console.log('Image upload response:', response);
 										)}
 									</div>
 								</div>
-				<div className="mb-3">
-					<label className="form-label">Full Address</label>
-					<textarea
-						className="form-control"
-						rows={3}
-						autoComplete="off"
-						placeholder="Complete address"
-						name="address"
-						value={formValues.address}
-						onChange={handleChange}
-					/>
-				</div>
+								<div className="mb-3">
+									<label className="form-label">Full Address</label>
+									<textarea
+										className="form-control"
+										rows={3}
+										autoComplete="off"
+										placeholder="Complete address"
+										name="address"
+										value={formValues.address}
+										onChange={handleChange}
+									/>
+								</div>
 								<div className="mb-3">
 									<label className="form-label">Email Address</label>
 									<div className="input-group">
@@ -585,7 +614,7 @@ console.log('Image upload response:', response);
 									</select>
 								</div>
 								<div className="d-flex justify-content-center mt-4 pt-3 border-top border-secondary-subtle">
-									<button 
+									<button
 										type="submit"
 										className="btn btn-primary btn-lg px-5 py-3 d-flex align-items-center gap-2"
 									>
@@ -648,7 +677,7 @@ console.log('Image upload response:', response);
 									<div className="mb-3">
 										<strong>Review the data below. Click Confirm & Save to import, or Back to select a different file.</strong>
 									</div>
-									
+
 									{excelPreview.validation && excelPreview.validation.length > 0 && (
 										<div className="mb-3 d-flex gap-2 align-items-center">
 											<button
@@ -672,7 +701,7 @@ console.log('Image upload response:', response);
 											</small>
 										</div>
 									)}
-									
+
 									<div style={{ overflow: 'auto' }}>
 										<table className="table table-bordered table-striped">
 											<thead className="table-dark">
@@ -766,6 +795,23 @@ console.log('Image upload response:', response);
 									)}
 								</Button>
 							)}
+						</Modal.Footer>
+					</Modal>
+
+					<Modal show={showPostCreateModal} onHide={() => setShowPostCreateModal(false)} centered>
+						<Modal.Header closeButton>
+							<Modal.Title>Organization Created Successfully</Modal.Title>
+						</Modal.Header>
+						<Modal.Body>
+							Do you want to add a new organization or view organizations list?
+						</Modal.Body>
+						<Modal.Footer>
+							<Button variant="outline-primary" onClick={handleAddAnother}>
+								Add New
+							</Button>
+							<Button variant="primary" onClick={handleViewOrganizationList}>
+								View List
+							</Button>
 						</Modal.Footer>
 					</Modal>
 

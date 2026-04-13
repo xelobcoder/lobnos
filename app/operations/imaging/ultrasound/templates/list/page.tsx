@@ -92,6 +92,27 @@ export default function UltrasoundTemplatesList() {
 		updatePagination(value, setQuery, query);
 	};
 
+
+
+	const handleserverSidefilteringTemplates = async (filters: {
+		count: number, page: number, sortby:
+		"ASC" | "DESC"
+	}) => {
+		try {
+			const { count, page, sortby } = filters;
+			const url = `result/entry/ultrasound/templates/list?page=${page}&count=${count}&employeeid=${employeeid}&sortby=${sortby}`;
+			const response = await customFetch(url);
+			if (Array.isArray(response)) {
+				return { result: response, error: false };
+			} else {
+				return { result: [], error: false };
+			}
+		} catch (err) {
+			console.error("Error fetching data:", err);
+			return { result: [], error: true };
+		}
+	}
+
 	if (!employeeid) return null;
 
 	if (isLoading) {
@@ -115,13 +136,8 @@ export default function UltrasoundTemplatesList() {
 					column={columns}
 					data={templateList}
 					filtering={false}
-					handleSeverSideProcessing={null}
-				/>
-			</div>
-			<div className="d-flex justify-content-center">
-				<Pagination
-					load={setLoading} page={query.page}
-					updateFunction={updateFunction}
+					handleSeverSideProcessing={handleserverSidefilteringTemplates}
+					serverSideFiltering={true}
 				/>
 			</div>
 		</div>

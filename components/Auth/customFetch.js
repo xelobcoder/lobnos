@@ -44,9 +44,14 @@ export async function  customFetch(endpoint,isLogin=false) {
 	try {
 		const url = new URL(`/api/v1/${endpoint}`, process.env.NODE_ENV == "production" ? process.env.PRODUCTION_BASEURL : process.env.DEVELOPMENT_BASEURL);
 		url.searchParams.append("tenantId", process.env.TENANTID);
-
 			const context = await getRequestContext();
 		if (!isLogin && (!context || !context['PLS_PRIME_TENANT_SESSION'] || !context['PLS_SESSION'])) {
+			if (window) {
+				alert(
+					"SESSION EXPIRED, LOGGING YOU OUT..."
+				)
+				window.location.href = "/authentication/logout"
+			}
 			return { error: "Session not found" };
 		}
 
@@ -65,6 +70,7 @@ export async function  customFetch(endpoint,isLogin=false) {
 		});
 
 		const source = await response.json();
+
 		const { status, message, statusCode } = source;
 		if ((status == 401 || statusCode == 401 || statusCode == 500) && (message.toLowerCase() == "Unauthorized".toLowerCase() || message.toLowerCase() == "Token not Provided".toLowerCase() || message.toLowerCase() == "Token Expired".toLowerCase())) {
 			handleLogout();

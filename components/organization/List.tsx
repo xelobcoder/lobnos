@@ -211,7 +211,7 @@ export default function OrganizationList() {
 	if (organization.length === 0 && !isloading && !filter.value) {
 		return (
 			<div className="container-fluid py-4">
-				<Card className="empty-state-card border-0 rounded-4">
+				<Card className="">
 					<Card.Body className="p-5 text-center">
 						<div className="mb-4">
 							<div

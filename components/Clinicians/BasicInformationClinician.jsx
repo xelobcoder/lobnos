@@ -171,7 +171,7 @@ export default function BasicInformationClinician() {
 
 	return (
 		<React.Fragment>
-			<div style={{ border: '1px solid #dee2e6', borderRadius: '0.5rem', padding: '1.5rem', background: '#fff' }}>
+			<div >
 				<h4 className="mb-2" style={{ fontSize: '1.25rem', fontWeight: 500 }}>{clinicianId ? "Edit Clinician Details" : "Register New Clinician"}</h4>
 				<hr className="mb-4" />
 				{formError && <Alert variant="danger">{formError}</Alert>}
@@ -193,7 +193,7 @@ export default function BasicInformationClinician() {
 													placeholder="e.g., Dr. Jane Doe"
 													{...field}
 													isInvalid={!!errors.name}
-													className="form-control-sm w-100"
+													className="custom-input"
 												/>
 											)}
 										/>
@@ -221,7 +221,7 @@ export default function BasicInformationClinician() {
 													placeholder="e.g., 1234567890"
 													{...field}
 													isInvalid={!!errors.phone}
-													className="form-control-sm w-100"
+													className="custom-input"
 													minLength={10}
 													maxLength={10}
 												/>
@@ -252,7 +252,7 @@ export default function BasicInformationClinician() {
 													{...field}
 													value={field.value || ''}
 													isInvalid={!!errors.email}
-													className="form-control-sm w-100"
+													className="custom-input"
 												/>
 											)}
 										/>
@@ -281,7 +281,7 @@ export default function BasicInformationClinician() {
 													{...field}
 													value={field.value || ''}
 													isInvalid={!!errors.occupation}
-													className="form-control-sm w-100"
+													className="custom-input"
 												/>
 											)}
 										/>
@@ -310,7 +310,7 @@ export default function BasicInformationClinician() {
 													{...field}
 													value={field.value || ''}
 													isInvalid={!!errors.location}
-													className="form-control-sm w-100"
+													className="custom-input"
 												/>
 											)}
 										/>
@@ -338,7 +338,7 @@ export default function BasicInformationClinician() {
 													value={field.value || 0}
 													isInvalid={!!errors.organization}
 													disabled={organizationList.length === 0 && !isLoadingData}
-													className="form-control-sm w-100"
+													className="form-select-sm w-100"
 													style={{ height: '28px' }}
 												>
 													<option value={0}>Select Organization...</option>
@@ -376,7 +376,7 @@ export default function BasicInformationClinician() {
 												{...field}
 												value={field.value || ''}
 												isInvalid={!!errors.address}
-												className="form-control-sm w-100"
+												className="custom-input"
 											/>
 										)}
 									/>
@@ -389,10 +389,10 @@ export default function BasicInformationClinician() {
 
 						<Row>
 							<Col xs={12} className="d-flex justify-content-end align-items-center gap-2 mt-3 pt-3 border-top">
-								<Button variant="outline-secondary" onClick={handleReset} disabled={isSubmitting || (!dirtyFields && !!clinicianId)} size="sm">
+								<Button variant="outline-danger" onClick={handleReset} disabled={isSubmitting || (!dirtyFields && !!clinicianId)} >
 									Reset
 								</Button>
-								<Button type="submit" variant="primary" className="px-4" disabled={isSubmitting || isLoadingData} size="sm">
+								<Button type="submit" variant="primary" className="px-4" disabled={isSubmitting || isLoadingData} >
 									{isSubmitting ? (
 										<>
 											<Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-2" />

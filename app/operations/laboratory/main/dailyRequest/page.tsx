@@ -209,7 +209,7 @@ export default function LaboratoryClientList() {
                                              <th>Patient Details</th>
                                              <th>Request Time</th>
                                              <th>Tests</th>
-                                             <th>Control</th>
+                                             <th>Action</th>
                                         </tr>
                                    </thead>
                                    <tbody>
@@ -253,7 +253,7 @@ export default function LaboratoryClientList() {
                                                             })}
                                                   </td>
                                                   <td>
-                                                       <button onClick={(ev) => openFolder(client.patientid, client.billingid)} className="btn btn-sm btn-outline-primary">Open Folder</button>
+                                                       <button onClick={(ev) => openFolder(client.patientid, client.billingid)} className="btn btn-sm btn-outline-primary">View Details</button>
                                                   </td>
                                              </tr>
                                         ))}
