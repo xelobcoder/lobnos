@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import Link from 'next/link';
 import { customFetch, customPost } from '../../../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../../../components/Auth/useApplicationContext';
@@ -236,6 +238,120 @@ export default function PayrollPeriodDetailPage() {
           setShowTransactionModal(true);
      };
 
+     const handleDownloadPayslip = (transaction: PayrollTransaction) => {
+          if (!period) return;
+          const doc = new jsPDF();
+          
+          const formatCurrencyForPDF = (value: number | string | null | undefined) => {
+               return currencyFormatter.format(Number(value ?? 0)).replace(/₵/g, 'S');
+          };
+          
+          // Header
+          doc.setFontSize(22);
+          doc.setTextColor(33, 37, 41);
+          doc.text('PAYSLIP', 14, 22);
+          
+          doc.setFontSize(11);
+          doc.setTextColor(108, 117, 125);
+          doc.text(`Period: ${period.period_name}`, 14, 30);
+          doc.text(`Duration: ${formatDate(period.period_start_date)} to ${formatDate(period.period_end_date)}`, 14, 36);
+          
+          // Employee Details Table
+          autoTable(doc, {
+               startY: 45,
+               theme: 'grid',
+               head: [],
+               body: [
+                    ['Employee Name:', transaction.employee_name, 'Role:', transaction.employee_role],
+                    ['Email:', transaction.email || 'N/A', 'Branch:', transaction.branch_name || 'N/A'],
+                    ['Payment Status:', transaction.status.toUpperCase(), 'Payment Method:', transaction.payment_method || 'N/A'],
+               ],
+               styles: { font: 'candara', fontSize: 10, cellPadding: 4, lineColor: [222, 226, 230], lineWidth: 0.1 },
+               columnStyles: {
+                    0: { fontStyle: 'bold', cellWidth: 35, fillColor: [248, 249, 250], textColor: [33, 37, 41] },
+                    1: { cellWidth: 55, textColor: [73, 80, 87] },
+                    2: { fontStyle: 'bold', cellWidth: 35, fillColor: [248, 249, 250], textColor: [33, 37, 41] },
+                    3: { cellWidth: 55, textColor: [73, 80, 87] },
+               }
+          });
+
+          const getFinalY = () => (doc as any).lastAutoTable?.finalY || 80;
+          let currentY = getFinalY() + 10;
+
+          // Earnings Table
+          doc.setFontSize(14);
+          doc.setTextColor(15, 81, 50); // green-like
+          doc.text('Earnings', 14, currentY);
+          
+          autoTable(doc, {
+               startY: currentY + 5,
+               theme: 'grid',
+               head: [['Description', 'Amount']],
+               body: [
+                    ['Basic Salary', formatCurrencyForPDF(transaction.basic_salary)],
+                    ['Hourly Earnings', formatCurrencyForPDF(transaction.hourly_earnings)],
+                    ['Overtime Earnings', formatCurrencyForPDF(transaction.overtime_earnings)],
+                    ['Commission Earnings', formatCurrencyForPDF(transaction.commission_earnings)],
+                    ['Allowances', formatCurrencyForPDF(transaction.total_allowances)],
+                    ['Bonuses', formatCurrencyForPDF(transaction.total_bonuses)],
+               ],
+               foot: [['Gross Salary', formatCurrencyForPDF(transaction.gross_salary)]],
+               headStyles: { fillColor: [248, 249, 250], textColor: [33, 37, 41] },
+               footStyles: { fillColor: [233, 236, 239], textColor: [15, 81, 50], fontStyle: 'bold' },
+               columnStyles: {
+                    0: { cellWidth: 'auto' },
+                    1: { halign: 'right', cellWidth: 50 },
+               }
+          });
+
+          currentY = getFinalY() + 10;
+
+          // Deductions Table
+          doc.setFontSize(14);
+          doc.setTextColor(132, 32, 41); // red-like
+          doc.text('Deductions', 14, currentY);
+          
+          autoTable(doc, {
+               startY: currentY + 5,
+               theme: 'grid',
+               head: [['Description', 'Amount']],
+               body: [
+                    ['Income Tax', formatCurrencyForPDF(transaction.income_tax)],
+                    ['Employee SSNIT', formatCurrencyForPDF(transaction.employee_ssnit)],
+                    ['Employee Tier 3', formatCurrencyForPDF(transaction.employee_tier3)],
+                    ['NHIS', formatCurrencyForPDF(transaction.nhis)],
+                    ['Other Deductions', formatCurrencyForPDF(transaction.total_other_deductions)],
+               ],
+               foot: [['Total Deductions', formatCurrencyForPDF(transaction.total_deductions)]],
+               headStyles: { fillColor: [248, 249, 250], textColor: [33, 37, 41] },
+               footStyles: { fillColor: [248, 215, 218], textColor: [132, 32, 41], fontStyle: 'bold' },
+               columnStyles: {
+                    0: { cellWidth: 'auto' },
+                    1: { halign: 'right', cellWidth: 50 },
+               }
+          });
+
+          currentY = getFinalY() + 15;
+          if (currentY > 260) {
+               doc.addPage();
+               currentY = 20;
+          }
+
+          // Net Salary Summary
+          autoTable(doc, {
+               startY: currentY,
+               theme: 'grid',
+               head: [['NET SALARY PAYABLE']],
+               body: [[formatCurrencyForPDF(transaction.net_salary)]],
+               headStyles: { fillColor: [13, 110, 253], halign: 'center', fontSize: 13 },
+               bodyStyles: { fontStyle: 'bold', fontSize: 18, halign: 'center', textColor: [13, 110, 253] }
+          });
+
+          // Save the PDF
+          const fileName = `Payslip_${transaction.employee_name.replace(/[^a-zA-Z0-9]/g, '_')}_${period.period_name.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+          doc.save(fileName);
+     };
+
      const handlePageChange = (page: number) => {
           setCurrentPage(page);
      };
@@ -405,13 +521,22 @@ export default function PayrollPeriodDetailPage() {
                                                        </span>
                                                   </td>
                                                   <td>
-                                                       <button
-                                                            className="btn btn-sm btn-outline-secondary"
-                                                            title="View Details"
-                                                            onClick={() => viewTransactionDetails(txn)}
-                                                       >
-                                                            <RiEyeLine size={14} />
-                                                       </button>
+                                                       <div className="d-flex gap-2 justify-content-end">
+                                                            <button
+                                                                 className="btn btn-sm btn-outline-secondary"
+                                                                 title="View Details"
+                                                                 onClick={() => viewTransactionDetails(txn)}
+                                                            >
+                                                                 <RiEyeLine size={14} />
+                                                            </button>
+                                                            <button
+                                                                 className="btn btn-sm btn-outline-primary"
+                                                                 title="Download Payslip"
+                                                                 onClick={() => handleDownloadPayslip(txn)}
+                                                            >
+                                                                 <RiDownloadLine size={14} />
+                                                            </button>
+                                                       </div>
                                                   </td>
                                              </tr>
                                         ))}
