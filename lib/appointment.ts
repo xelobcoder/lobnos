@@ -202,6 +202,9 @@ export const handleSubmitForm = async (
 			} else {
 				if (pushData?.success == false) {
 					toast.error("Appointment slot not available ", 3000);
+				}
+				else if (pushData?.status == "error") {
+					toast.error(pushData?.message || "Error Processing Information");
 				} else {
 					toast.error("something wrong occured", { position: "top-center" });
 				}
