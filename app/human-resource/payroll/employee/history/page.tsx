@@ -71,7 +71,7 @@ export default function EmployeeHistoryPage() {
           setLoading(true);
           try {
                const response = await customFetch(
-                    `payroll/employee/${employeeId}/history?page=${currentPage}&count=${pageSize}`
+                    `payroll/employee/all/history?page=${currentPage}&count=${pageSize}`
                );
                if (response?.status === 'success' && response?.statusCode === 200) {
                     setTransactions(response.result || []);

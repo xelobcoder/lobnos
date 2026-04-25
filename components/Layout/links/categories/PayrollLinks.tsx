@@ -39,6 +39,11 @@ export const PayrollLinks: Link[] = [
                     title: "Process Payroll",
                     link: "/human-resource/payroll/periods/process",
                     icon: <RiCheckboxCircleLine size={18} />
+               },
+               {
+                    title: "Reverse Payments",
+                    link: "/human-resource/payroll/periods/reverse-payrol-payments",
+                    icon: <RiLockLine size={18} />
                }
           ]
      },

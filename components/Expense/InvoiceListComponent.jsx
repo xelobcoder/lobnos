@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { currencyFormatter, customFetch, customPost } from '../../components/Auth/customFetch';
 import { RiMoneyDollarCircleLine, RiFileList2Line, RiInboxArchiveLine, RiCalendarEventLine, RiFilter3Line, RiRefreshLine, RiSearchLine, RiEyeLine, RiMoneyDollarBoxLine } from '@remixicon/react';
 import PrimeTable from '../accessories/Datatables/PrimeTable';
-import { Offcanvas, Button, Modal } from 'react-bootstrap';
+import { Offcanvas, Button, Modal, ButtonGroup } from 'react-bootstrap';
 
 const statusMap = {
      'Pending': { label: 'Pending', color: 'warning' },
@@ -20,6 +20,7 @@ const InvoiceList = ({ branchid, employeeid }) => {
      const [showDetailModal, setShowDetailModal] = useState(false);
      const [invoiceExpenses, setInvoiceExpenses] = useState([]);
      const [loadingExpenses, setLoadingExpenses] = useState(false);
+     const [selectedInvoicesArray, setSelectedInvoicesArray] = useState([])
      const [invoicePayments, setInvoicePayments] = useState([]);
      const [loadingPayments, setLoadingPayments] = useState(false);
      const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -86,6 +87,13 @@ const InvoiceList = ({ branchid, employeeid }) => {
           setShowOffcanvas(false);
           getInvoiceData();
      };
+
+
+
+     const handleAllPendingInvoiceSelection = (ev) => {
+          const allPending = invoices.filter((item) => item.status == "Pending");
+          setSelectedInvoicesArray(allPending.map((item) => item.id));
+     }
 
      const handleViewInvoice = async (invoice) => {
           setSelectedInvoice(invoice);
@@ -155,7 +163,7 @@ const InvoiceList = ({ branchid, employeeid }) => {
           } catch (error) {
                setInvoicePayments([]);
                setPaymentData({
-                    payment_date: new Date().toISOString().slice(0, 16), 
+                    payment_date: new Date().toISOString().slice(0, 16),
                     amount: invoice.total_amount.toString(),
                     method: '',
                     status: 'Paid'
@@ -306,12 +314,25 @@ const InvoiceList = ({ branchid, employeeid }) => {
           }
      }
 
+
+     const handleInvoiceSelection = (invoiceId) => {
+          setSelectedInvoicesArray((prevSelected) => {
+               if (prevSelected.includes(invoiceId)) {
+                    return prevSelected.filter(id => id !== invoiceId);
+               } else {
+                    return [...prevSelected, invoiceId];
+               }
+          });
+     };
+
      const columns = [
           {
                Header: 'Invoice Number',
                accessor: 'invoice_number',
                Cell: ({ cell: { value }, row }) => (
                     <span className="fw-bold">
+                         {/* add checkbox */}
+                         <input type="checkbox" className='ms-2' checked={selectedInvoicesArray.includes(row.original.id) ? true : false} onChange={() => handleInvoiceSelection(row.original.id)} />
                          {value}
                     </span>
                )
@@ -392,7 +413,7 @@ const InvoiceList = ({ branchid, employeeid }) => {
                                              setSelectedReversalInfo(row.original);
                                              setShowReversalInfoModal(true);
                                         }}
-                                        
+
                                    >
                                         Details
                                    </Button>
@@ -450,15 +471,22 @@ const InvoiceList = ({ branchid, employeeid }) => {
 
                {/* Filter Button */}
                <div className="mb-3">
-                    <Button
-                         variant="outline-secondary"
-                         size="sm"
-                         onClick={() => setShowOffcanvas(true)}
-                         className="d-flex align-items-center"
-                    >
-                         <RiFilter3Line className="me-2" size={16} />
-                         Open Filters
-                    </Button>
+                    <ButtonGroup>
+                         <Button onClick={(ev) => {
+                              handleAllPendingInvoiceSelection(ev)
+                         }}>
+                              Select All Pending Payments
+                         </Button>
+                         <Button
+                              variant="outline-secondary"
+                              size="sm"
+                              onClick={() => setShowOffcanvas(true)}
+                              className="d-flex align-items-center"
+                         >
+                              <RiFilter3Line className="me-2" size={16} />
+                              Open Filters
+                         </Button>
+                    </ButtonGroup>
                </div>
 
                {/* Offcanvas Filters */}
@@ -1010,7 +1038,7 @@ const InvoiceList = ({ branchid, employeeid }) => {
                                    getRowStyle: (rowData) => {
                                         const status = rowData?.final_payment_status?.toLowerCase();
                                         if (status === "reversed") {
-                                             return { backgroundColor: "#f8d7da", color: "#842029"};
+                                             return { backgroundColor: "#f8d7da", color: "#842029" };
                                         }
                                         return {};
                                    }

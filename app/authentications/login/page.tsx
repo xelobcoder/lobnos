@@ -56,7 +56,7 @@ export default function PrimeLabLoginPage() {
 			}
 
 
-			const { status, accessToken, user } = backendResponse;
+			const { status, accessToken, user ,settings} = backendResponse;
 
 			if (!status) {
 				setLoginStatus('error');
@@ -65,7 +65,7 @@ export default function PrimeLabLoginPage() {
 				return;
 			}
 
-			console.log(backendResponse, "BACKEND RESPONSE");
+			console.log(settings, "BACKEND RESPONSE");
 
 	
 
@@ -79,7 +79,8 @@ export default function PrimeLabLoginPage() {
 					accessToken,
 					user,
 					email,
-					browserInfo
+					browserInfo,
+					settings
 				}),
 			});
 

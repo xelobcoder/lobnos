@@ -4,7 +4,7 @@ import { SignJWT, jwtVerify } from 'jose';
 
 export async function POST(request: NextRequest) {
     try {
-        const { status, accessToken, user, email } = await request.json();
+        const { status, accessToken, user, email,settings } = await request.json();
 
         if (!status || !accessToken || !user) {
             return NextResponse.json({ error: 'Invalid authentication data' }, { status: 400 });
@@ -15,7 +15,8 @@ export async function POST(request: NextRequest) {
         const signedToken = await new SignJWT({
             email,
             user,
-            accessToken
+            accessToken,
+            settings
         })
             .setProtectedHeader({ alg: 'HS256' })
             .setIssuedAt()

@@ -197,7 +197,9 @@ export default function PayrollPeriodDetailPage() {
                     {
                          paid_by: user.employeeid,
                          payment_date: paymentDate,
-                         payment_method: paymentMethod
+                         payment_method: paymentMethod,
+                         branchid: applicationsettings?.branchid,
+                         employeeid:user.employeeid
                     }
                );
 
@@ -545,6 +547,7 @@ export default function PayrollPeriodDetailPage() {
                                                   <option value="Cash">Cash</option>
                                                   <option value="Cheque">Cheque</option>
                                                   <option value="Direct Deposit">Direct Deposit</option>
+                                                  <option value="MoMo">MoMo(Mobile Money)</option>
                                              </select>
                                         </div>
                                    </div>

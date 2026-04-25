@@ -8,6 +8,7 @@ export interface UserPayload {
         employeeid: number
     };
     email: string;
+    settings: any;
 }
 
 export async function verifyPrimeToken(token: string) {
@@ -43,23 +44,19 @@ export async function middleware(request: NextRequest) {
         }
 
         if (isValid && payload && !isLoginPage) {
-            const { user, email } = payload as UserPayload;
+            const { user, email, settings } = payload as UserPayload;
             const role = user.role || "";
             const currentPath = request.nextUrl.pathname;
-
-            console.log(payload, "PAYLOAD IN MIDDLEWARE");
 
             // Check CRM access first
             if (currentPath.startsWith("/crm")) {
                 if (!["admin", "manager", "customer service representative", 'scientist', 'sonographer'].includes(role.toString().toLowerCase().trim())) {
-                    // if (role == "sonographer") {
+                    // if (role == "sonographer" && settings?.allowScientistToRegisterClient == 0) {
                     //     return NextResponse.redirect(new URL('/operations/imaging/ultrasound', request.url));
-                    // } else if (role == "scientist") {
+                    // } else if (role == "scientist" && settings?.allowScientistToRegisterClient == 0) {
                     //     return NextResponse.redirect(new URL('/operations/laboratory', request.url));
-                    // } else  else {
-                    //     return NextResponse.next();
-                    // }
-                    if (role == "storekeeper") {
+                    // } else
+                         if (role == "storekeeper") {
                         return NextResponse.redirect(new URL('/inventory', request.url));
                     } else {
                         return NextResponse.next();
@@ -80,7 +77,8 @@ export async function middleware(request: NextRequest) {
             // Handle lab scientist access
             if (role === "scientist") {
                 if (!currentPath.startsWith('/operations/laboratory') && !currentPath.startsWith('/operations/phelobotomy') &&
-                    !currentPath.startsWith('/phelobotomy') && !currentPath.startsWith('/operations/phlebotomy') && !currentPath.startsWith('/phlebotomy')) {
+                    !currentPath.startsWith('/phelobotomy') && !currentPath.startsWith('/operations/phlebotomy')
+                     && (currentPath.startsWith('/billing') && settings?.allowScientistToRegisterClient == 0) && !currentPath.startsWith('/phlebotomy')) {
                     return NextResponse.redirect(new URL('/unauthorized', request.url));
                 }
                 return NextResponse.next();

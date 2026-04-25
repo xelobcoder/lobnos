@@ -18,7 +18,7 @@ export default function ReceiptUploadForm() {
      const expenseid = useParams().id;
      const { branchid, user } = useApplication();
      const employeeid = user?.employeeid;
-
+const basurl = process.env.NODE_ENV == "development" ? process.env.DEVELOPMENT_BASEURL : process.env.BASEURL;
      const onDrop = useCallback((acceptedFiles) => {
           setFiles(acceptedFiles.map((file) => { return { file, preview: URL.createObjectURL(file) } }));
      }, []);
@@ -39,8 +39,8 @@ export default function ReceiptUploadForm() {
                     formData.append("images", item.file);
                })
                formData.append("receiptid", expenseid);
-
-               const response = await fetch(`${process.env.BASEURL}expenses/receipt/upload?id=${expenseid}`, {
+               
+               const response = await fetch(`${basurl}expenses/receipt/upload?id=${expenseid}`, {
                     method: 'POST',
                     body: formData,
                })
@@ -133,7 +133,7 @@ export default function ReceiptUploadForm() {
                <div>
                     {loading && <Loader />}
                     {Array.isArray(previous) && previous.length == 0 ? <div className="alert alert-info">No Receipts Were Preveiously uploaded</div> : previous.map((item, index) => {
-                         const url = `${process.env.BASEURL}expenses/receipt/upload/images?imageid=${item}`
+                         const url = `${basurl}expenses/receipt/upload/images?imageid=${item}`
                          return (<div key={index} style={{ display: 'grid', gridTemplateColumns: '5% 95%' }} >
                               <div>
                                    <input checked={deleteList.includes(item) ? true : false} onClick={(ev) => { setDeleteList([...deleteList, item]) }} type="checkbox" className="custom-input" />

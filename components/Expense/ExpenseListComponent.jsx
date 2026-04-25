@@ -82,6 +82,13 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 		setShowBulkModal(true);
 	};
 
+
+
+	const handleSelectAllExpenses = (e) => {
+		const allApprovedExpenseIds = expenses.filter(exp => exp.approved === 0).map(exp => exp.id);
+		setSelectedExpenses(allApprovedExpenseIds);
+	};
+
 	const handleDecisionChange = (expenseId, status) => {
 		setBulkDecisions(prev => ({
 			...prev,
@@ -351,6 +358,7 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 		{
 			Header: 'Description',
 			accessor: 'description',
+		
 			Cell: ({ cell: { value }, row }) => (
 				<span className="text-secondary">
 					{value}
@@ -381,14 +389,20 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 						<RiFileList2Line className="me-1" size={14} />
 						View
 					</Button>
-					<Button
-						variant="outline-warning"
-						size="sm"
-						onClick={() => window.open(`/billing/expenses/edit-expense?id=${row.original.id}`, '_blank')}
-						className="d-flex align-items-center"
-					>
-						Edit
-					</Button>
+					{
+						row.original.approved === 0 && (
+							<Button
+								variant="outline-warning"
+								size="sm"
+								disabled={row.original.approved === 1}
+								onClick={() => window.open(`/billing/expenses/edit-expense?id=${row.original.id}`, '_blank')}
+								className="d-flex align-items-center"
+							>
+								{<RiInboxArchiveLine className="me-1" size={14} />}
+								Edit
+							</Button>
+						)
+					}
 				</div>
 			)
 		},
@@ -401,6 +415,12 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 			<div className="d-flex justify-content-between align-items-center mb-3">
 				<h5 className="mb-0 fw-semibold text-body">Expense Management</h5>
 				<ButtonGroup>
+					<Button variant="outline-primary"
+						onClick={(ev) => { handleSelectAllExpenses(ev) }}
+						size="sm" className="d-flex align-items-center">
+						Select All Expenses
+					</Button>
+
 					<Button variant="outline-primary" size="sm" className="d-flex align-items-center"
 						onClick={() => window.location.href = '/billing/expenses/create-new-expense'}>
 						<RiAddBoxLine className="me-1" size={16} />
@@ -627,25 +647,27 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 				</Modal.Footer>
 			</Modal>
 
-			{Array.isArray(expenses) && expenses.length === 0 ? (
-				<div className="d-flex flex-column align-items-center justify-content-center bg-light-subtle rounded-3 py-5 my-4 border border-0 shadow-sm" style={{ minHeight: 220 }}>
-					<RiInboxArchiveLine size={48} className="mb-3 text-secondary" />
-					<h4 className="text-secondary mb-1">No Expenses Found</h4>
-					<p className="text-muted">Try adjusting your filters or add a new expense.</p>
-				</div>
-			) : (
-				<div>
-					<PrimeTable
-						column={columns}
-						data={expenses}
-						urlparams={localFilter}
-						filtering={true}
-						serverSideFiltering={true}
-						handleSeverSideProcessing={handleServerSideProcessingForExpenses}
-					/>
-				</div>
-			)}
-		</div>
+			{
+				Array.isArray(expenses) && expenses.length === 0 ? (
+					<div className="d-flex flex-column align-items-center justify-content-center bg-light-subtle rounded-3 py-5 my-4 border border-0 shadow-sm" style={{ minHeight: 220 }}>
+						<RiInboxArchiveLine size={48} className="mb-3 text-secondary" />
+						<h4 className="text-secondary mb-1">No Expenses Found</h4>
+						<p className="text-muted">Try adjusting your filters or add a new expense.</p>
+					</div>
+				) : (
+					<div>
+						<PrimeTable
+							column={columns}
+							data={expenses}
+							urlparams={localFilter}
+							filtering={true}
+							serverSideFiltering={true}
+							handleSeverSideProcessing={handleServerSideProcessingForExpenses}
+						/>
+					</div>
+				)
+			}
+		</div >
 	);
 
 };
