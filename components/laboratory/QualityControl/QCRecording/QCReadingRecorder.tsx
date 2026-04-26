@@ -65,6 +65,23 @@ export function QCReadingRecorder({ sessionId, controlId }: QCReadingRecorderPro
         }
     };
 
+    const parseNumericValue = (value: string) => parseFloat(value);
+
+    const getParameterConfigurationError = (parameter: ControlParameter): string | null => {
+        const targetValue = parseNumericValue(parameter.value);
+        const standardDev = parseNumericValue(parameter.standardDeviation);
+
+        if (isNaN(targetValue) || targetValue <= 0) {
+            return `QC setup incomplete for ${parameter.parameter}: set Expected Value in Control Parameters`;
+        }
+
+        if (isNaN(standardDev) || standardDev <= 0) {
+            return `QC setup incomplete for ${parameter.parameter}: set Standard Deviation in Control Parameters`;
+        }
+
+        return null;
+    };
+
     const validateReading = (value: number, parameter: ControlParameter): {status: ReadingStatus, value: string} => {
         if (isNaN(value) || value <= 0) {
             return {
@@ -118,11 +135,23 @@ export function QCReadingRecorder({ sessionId, controlId }: QCReadingRecorderPro
         const errors: string[] = [];
 
         controlParameters.forEach(param => {
+            const configurationError = getParameterConfigurationError(param);
+            if (configurationError) {
+                errors.push(configurationError);
+                return;
+            }
+
             const reading = readings[param.parameter];
-            if (!reading || reading.status === 'unmonitored') {
-                errors.push(`Invalid value for ${param.parameter}`);
-            } else if (reading.value === '') {
+            const enteredValue = reading ? parseFloat(reading.value) : NaN;
+
+            if (!reading || reading.value === '') {
                 errors.push(`Value for ${param.parameter} cannot be empty`);
+            } else if (isNaN(enteredValue)) {
+                errors.push(`Value for ${param.parameter} must be numeric`);
+            } else if (enteredValue <= 0) {
+                errors.push(`Value for ${param.parameter} must be greater than 0`);
+            } else if (reading.status === 'unmonitored') {
+                errors.push(`Unable to evaluate ${param.parameter}. Check the QC setup for this parameter`);
             }
         });
 

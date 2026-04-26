@@ -1,5 +1,6 @@
 'use client';
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { customFetch } from '../../../../../components/Auth/customFetch';
 
 interface ClientFolderItem {
@@ -14,12 +15,14 @@ interface ClientFolderItem {
 }
 
 export default function LaboratoryClientList() {
+     const router = useRouter();
      const today = new Date();
      const [selectedDay, setSelectedDay] = React.useState<string>(today.toISOString().slice(0, 10));
      const [selectedStatus, setSelectedStatus] = React.useState<string>('pending');
      const [clients, setClients] = React.useState<ClientFolderItem[]>([]);
      const [loading, setLoading] = React.useState<boolean>(false);
      const [error, setError] = React.useState<string>('');
+     const [query, setQuery] = React.useState('');
 
      const loadClients = async () => {
           if (!selectedDay) {
@@ -50,13 +53,13 @@ export default function LaboratoryClientList() {
           }
      };
 
-     const getStatusBadgeClass = (stage: string) => {
-          const normalized = stage.trim().toLowerCase();
-          if (normalized.includes('pending')) return 'badge bg-warning text-dark';
-          if (normalized.includes('paid') || normalized.includes('completed') || normalized.includes('done')) return 'badge bg-success';
-          if (normalized.includes('partial')) return 'badge bg-info text-dark';
-          if (normalized.includes('cancel') || normalized.includes('rejected') || normalized.includes('failed')) return 'badge bg-danger';
-          return 'badge bg-secondary';
+     const getStageTextClass = (stage: string) => {
+          const normalized = (stage || '').trim().toLowerCase();
+          if (normalized.includes('pending')) return 'text-warning';
+          if (normalized.includes('paid') || normalized.includes('completed') || normalized.includes('done')) return 'text-success';
+          if (normalized.includes('partial')) return 'text-info';
+          if (normalized.includes('cancel') || normalized.includes('rejected') || normalized.includes('failed')) return 'text-danger';
+          return 'text-muted';
      };
 
      const formatElapsed = (ascensionDateStr: string) => {
@@ -120,15 +123,14 @@ export default function LaboratoryClientList() {
                <option key={`curr-${dayNum}`} value={isoDate}>{dayNum} - {monthName} {yearNum} [{weekday}]</option>
           );
      }
-     currMonthOptions.reverse();
-     // Previous month last 15 days (asc)
+     // Previous month last 15 days (desc)
      const prevMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
      const prevMonthYear = prevMonth.getFullYear();
      const prevMonthNum = prevMonth.getMonth();
      const prevMonthDays = new Date(prevMonthYear, prevMonthNum + 1, 0).getDate();
      const prevMonthName = prevMonth.toLocaleString('default', { month: 'long' });
      const prevMonthOptions: React.ReactElement[] = [];
-     for (let i = prevMonthDays - 14; i <= prevMonthDays; i++) {
+     for (let i = prevMonthDays; i >= Math.max(1, prevMonthDays - 14); i--) {
           const date = new Date(prevMonthYear, prevMonthNum, i);
           const dayNum = i;
           const yearNum = date.getFullYear();
@@ -149,118 +151,183 @@ export default function LaboratoryClientList() {
 
      const openFolder = (patientid: number, billingid: number) => {
           if (!patientid || !billingid) return;
-          window.open(`/operations/laboratory/main/dailyRequest/visit?patientid=${patientid}&billingid=${billingid}&&isOpenSideBarShow=false`, '_blank');
+          router.push(`/operations/laboratory/main/dailyRequest/visit?patientid=${patientid}&billingid=${billingid}&&isOpenSideBarShow=false`);
      }
+
+     const filteredClients = React.useMemo(() => {
+          const q = query.trim().toLowerCase();
+          if (!q) return clients;
+          return clients.filter(c =>
+               (c.patient_details || '').toLowerCase().includes(q) ||
+               String(c.patientid).includes(q) ||
+               String(c.billingid).includes(q)
+          );
+     }, [clients, query]);
+
+     const stats = React.useMemo(() => {
+          const pendingPayment = clients.filter(c => (c.payment_status || '').toLowerCase() === 'pending').length;
+          const paid = clients.filter(c => (c.payment_status || '').toLowerCase() === 'paid').length;
+          const partial = clients.filter(c => (c.payment_status || '').toLowerCase() === 'partial').length;
+          const totalTests = clients.reduce((acc, c) => acc + (c.total_tests || 0), 0);
+          return { pendingPayment, paid, partial, totalTests };
+     }, [clients]);
+
      return (
           <div>
-               <div className="d-flex align-items-center justify-content-between mb-2">
-                    <h3 style={{ fontWeight: 700, fontSize: '1.5rem', margin: 0 }}>Request Client List</h3>
-                    <div style={{ fontWeight: 700, fontSize: '1.25rem' }}>
-                         Requests: {clients.length}
+               <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                    <div>
+                         <h3 style={{ fontWeight: 700, fontSize: '1.5rem', margin: 0 }}>Daily Requests</h3>
+                         <div className="text-muted" style={{ fontSize: '0.9rem' }}>
+                              Today: {day} {month} {year} [{weekday}]
+                         </div>
+                    </div>
+                    <div className="d-flex align-items-center gap-2">
+                         <span className="badge bg-primary">Requests: {filteredClients.length}</span>
+                         <span className="badge bg-secondary">Tests: {stats.totalTests}</span>
+                         {stats.pendingPayment > 0 ? <span className="badge bg-danger">Payment Pending: {stats.pendingPayment}</span> : null}
                     </div>
                </div>
-               <div>
-                    <strong>Today &rarr; {day} {month} {year} [{weekday}]</strong> <span style={{ marginLeft: 8 }}>(<b>{daysElapsed}</b> day{daysElapsed > 1 ? 's' : ''} elapsed)</span>
-                    <div className="mt-2 d-flex align-items-center gap-3">
-                         <div className="d-flex align-items-center">
-                              <label className="me-2 mb-0">Day :</label>
-                              <select value={selectedDay} onChange={(e) => setSelectedDay(e.target.value)}>
-                                   <optgroup key="curr-month" label={`Current Month: ${today.toLocaleString('default', { month: 'long' })} ${today.getFullYear()}`}>
-                                        {currMonthOptions}
-                                   </optgroup>
-                                   <optgroup key="prev-month" label={`Previous Month: ${prevMonthName} ${prevMonthYear}`}>
-                                        {prevMonthOptions}
-                                   </optgroup>
-                              </select>
-                         </div>
-                         <div className="d-flex align-items-center">
-                              <label className="me-2 mb-0">Status :</label>
-                              <select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)}>
-                                   <option value="pending">Pending</option>
-                                   <option value="paid">Paid</option>
-                                   <option value="partial">Partial</option>
-                              </select>
-                         </div>
-                    </div>
 
-                    <div className="mt-2 mb-2" style={{ fontWeight: 700, fontSize: '1.1rem' }}>
-                         Date: {selectedDay} | Total Requests: {clients.length}
+               <div className="card">
+                    <div className="card-body">
+                         <div className="d-flex flex-wrap align-items-end gap-3">
+                              <div style={{ minWidth: 240 }}>
+                                   <div className="fw-semibold mb-1" style={{ fontSize: '0.9rem' }}>Day</div>
+                                   <select className="form-select form-select-sm" value={selectedDay} onChange={(e) => setSelectedDay(e.target.value)}>
+                                        <optgroup key="curr-month" label={`Current Month: ${today.toLocaleString('default', { month: 'long' })} ${today.getFullYear()}`}>
+                                             {currMonthOptions}
+                                        </optgroup>
+                                        <optgroup key="prev-month" label={`Previous Month: ${prevMonthName} ${prevMonthYear}`}>
+                                             {prevMonthOptions}
+                                        </optgroup>
+                                   </select>
+                              </div>
+
+                              <div style={{ minWidth: 240 }}>
+                                   <div className="fw-semibold mb-1" style={{ fontSize: '0.9rem' }}>Payment Status</div>
+                                   <select
+                                        className="form-select form-select-sm"
+                                        value={selectedStatus}
+                                        onChange={(e) => setSelectedStatus(e.target.value)}
+                                   >
+                                        <option value="pending">Pending</option>
+                                        <option value="partial">Partial</option>
+                                        <option value="paid">Paid</option>
+                                   </select>
+                              </div>
+
+                              <div style={{ minWidth: 260, flex: 1 }}>
+                                   <div className="fw-semibold mb-1" style={{ fontSize: '0.9rem' }}>Search</div>
+                                   <input
+                                        className="form-control form-control-sm"
+                                        placeholder="Search patient / ID / billing"
+                                        value={query}
+                                        onChange={(e) => setQuery(e.target.value)}
+                                   />
+                              </div>
+
+                              <div className="ms-auto d-flex gap-2">
+                                   <button className="btn btn-sm btn-outline-secondary" onClick={loadClients} disabled={loading}>
+                                        Refresh
+                                   </button>
+                              </div>
+                         </div>
                     </div>
-                    <div className="mt-4">
-                         {loading ? (
-                              <div className="text-center py-5">
-                                   <div className="spinner-border text-primary" role="status">
-                                        <span className="visually-hidden">Loading...</span>
-                                   </div>
-                                   <p className="mt-2 mb-0">Loading client folder list...</p>
+               </div>
+
+               <div className="mt-3">
+                    {loading ? (
+                         <div className="text-center py-5">
+                              <div className="spinner-border text-primary" role="status">
+                                   <span className="visually-hidden">Loading...</span>
                               </div>
-                         ) : error ? (
-                              <div className="alert alert-danger" role="alert">
-                                   {error}
-                              </div>
-                         ) : clients.length === 0 ? (
-                              <div className="alert alert-secondary" role="alert">
-                                   No records found for selected date and status.
-                              </div>
-                         ) : (
+                              <p className="mt-2 mb-0">Loading requests...</p>
+                         </div>
+                    ) : error ? (
+                         <div className="alert alert-danger" role="alert">
+                              {error}
+                         </div>
+                    ) : clients.length === 0 ? (
+                         <div className="alert alert-secondary" role="alert">
+                              No records found for selected date and status.
+                         </div>
+                    ) : filteredClients.length === 0 ? (
+                         <div className="alert alert-secondary" role="alert">
+                              No matches for your search.
+                         </div>
+                    ) : (
+                         <div className="table-responsive">
                               <table className="table table-bordered table-striped align-middle">
-                                   <thead className="table-secondary">
+                                   <thead className="table-light">
                                         <tr>
-                                             <th>Patient Details</th>
-                                             <th>Request Time</th>
-                                             <th>Tests</th>
-                                             <th>Action</th>
+                                             <th style={{ minWidth: 260 }}>Patient</th>
+                                             <th style={{ minWidth: 160 }}>Request</th>
+                                             <th style={{ minWidth: 260 }}>Progress</th>
+                                             <th style={{ width: 140 }}>Action</th>
                                         </tr>
                                    </thead>
                                    <tbody>
-                                        {clients.map((client) => (
-                                             <tr key={`${client.patientid}-${client.billingid}`}
-                                                  className={client.payment_status && client.payment_status.toLowerCase() === 'pending' ? 'table-danger' : ''}>
-                                                  <td style={{ minWidth: 240 }}>
-                                                       <div><strong>{client.patient_details}</strong></div>
-                                                       <div>ID: {client.patientid}</div>
-                                                       <div>Billing: {client.billingid}</div>
-                                                       <div>Billed: {new Date(client.billedon).toLocaleString()}</div>
-                                                  </td>
-                                                  <td>
-                                                       <div>
-                                                            <div>{new Date(client.ascension_date).toLocaleString()}</div>
-                                                            <div style={{ fontWeight: 700, marginTop: 4 }}>{formatElapsed(client.ascension_date)}</div>
-                                                       </div>
-                                                  </td>
-                                                  <td style={{ fontSize: '1rem', whiteSpace: 'pre-wrap', minWidth: 220 }}>
-                                                       <div style={{ fontWeight: 700, marginBottom: 4 }}>Total tests: {client.total_tests}</div>
-                                                       {client.tests_with_stage
-                                                            .split(',')
-                                                            .map((test) => test.trim())
-                                                            .filter(Boolean)
-                                                            .map((test, i) => {
-                                                                 const match = test.match(/^(.*)\s*\((.*)\)$/);
-                                                                 const name = match ? match[1] : test;
-                                                                 const stage = match ? match[2] : 'unknown';
-                                                                 const normalizedStage = stage.toLowerCase();
-                                                                 let bgColor = '#f8f9fa';
-                                                                 if (normalizedStage.includes('pending')) bgColor = '#fff3cd';
-                                                                 else if (normalizedStage.includes('completed') || normalizedStage.includes('done') || normalizedStage.includes('paid')) bgColor = '#d1e7dd';
-                                                                 else if (normalizedStage.includes('failed') || normalizedStage.includes('reject') || normalizedStage.includes('cancel')) bgColor = '#f8d7da';
-                                                                 else if (normalizedStage.includes('partial')) bgColor = '#cff4fc';
-                                                                 return (
-                                                                      <div key={i} style={{ backgroundColor: bgColor, borderRadius: 4, padding: '4px 6px', marginBottom: 4, display: 'block', width: '100%' }}>
-                                                                           <span style={{ fontWeight: 500 }}>{name}</span>
-                                                                           <span style={{ fontWeight: 700, marginLeft: 6 }}>({stage})</span>
-                                                                      </div>
-                                                                 );
-                                                            })}
-                                                  </td>
-                                                  <td>
-                                                       <button onClick={(ev) => openFolder(client.patientid, client.billingid)} className="btn btn-sm btn-outline-primary">View Details</button>
-                                                  </td>
-                                             </tr>
-                                        ))}
+                                        {filteredClients.map((client) => {
+                                             const breakdown = parseBreakdown(client.tests_with_stage);
+                                             const isPaymentPending = (client.payment_status || '').toLowerCase() === 'pending';
+                                             const paymentStatus = (client.payment_status || selectedStatus || '').toString();
+                                             return (
+                                                  <tr
+                                                       key={`${client.patientid}-${client.billingid}`}
+                                                       className={isPaymentPending ? 'bg-danger-subtle border-start border-4 border-danger' : ''}
+                                                  >
+                                                       <td>
+                                                            <div className="fw-semibold">{client.patient_details}</div>
+                                                            <div className="text-muted" style={{ fontSize: '0.85rem' }}>
+                                                                 ID: {client.patientid} • Billing: {client.billingid}
+                                                            </div>
+                                                            <div className="text-muted" style={{ fontSize: '0.85rem' }}>
+                                                                 Billed: {client.billedon ? new Date(client.billedon).toLocaleString() : 'N/A'}
+                                                            </div>
+                                                       </td>
+                                                       <td>
+                                                            <div>{client.ascension_date ? new Date(client.ascension_date).toLocaleString() : 'N/A'}</div>
+                                                            <div className="fw-semibold mt-1">{formatElapsed(client.ascension_date)}</div>
+                                                            <div className={`mt-1 text-capitalize ${getStageTextClass(paymentStatus)}`}>{paymentStatus}</div>
+                                                       </td>
+                                                       <td>
+                                                            <div className="fw-semibold mb-2">Total: {client.total_tests}</div>
+                                                            <div className="text-muted mb-2" style={{ fontSize: '0.85rem' }}>
+                                                                 Collected: {breakdown.collected} | Validated: {breakdown.validated} | Processing: {breakdown.processing} | Completed: {breakdown.completed} | Other: {breakdown.other}
+                                                            </div>
+                                                            <div className="mt-2">
+                                                                 {(client.tests_with_stage || '')
+                                                                      .split(',')
+                                                                      .map((t) => t.trim())
+                                                                      .filter(Boolean)
+                                                                      .map((t, i) => {
+                                                                           const match = t.match(/^(.*)\s*\((.*)\)$/);
+                                                                           const name = match ? match[1] : t;
+                                                                           const stage = match ? match[2] : 'unknown';
+                                                                           return (
+                                                                                <div key={i} className="d-flex justify-content-between align-items-center py-1 border-bottom">
+                                                                                     <div style={{ minWidth: 0 }} className="text-truncate">{name}</div>
+                                                                                     <div className={`text-capitalize ms-2 ${getStageTextClass(stage)}`} style={{ fontSize: '0.85rem' }}>{stage}</div>
+                                                                                </div>
+                                                                           );
+                                                                      })}
+                                                            </div>
+                                                       </td>
+                                                       <td>
+                                                            <button
+                                                                 onClick={() => openFolder(client.patientid, client.billingid)}
+                                                                 className={`btn btn-sm ${isPaymentPending ? 'btn-primary' : 'btn-outline-primary'} w-100`}
+                                                            >
+                                                                 Open
+                                                            </button>
+                                                       </td>
+                                                  </tr>
+                                             );
+                                        })}
                                    </tbody>
                               </table>
-                         )}
-                    </div>
+                         </div>
+                    )}
                </div>
           </div>
      );

@@ -12,7 +12,7 @@ import Link from "next/link";
 
 
 
-export default function CreateTestRule({ clientdata }) {
+export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
 	const { testid, test, patientid, billingid, employeeid, ascensionid, resultEntryStart, resultEntryEnd, globalPin } = clientdata;
 	const { result, settings } = useApplicationSettings().applicationsettings;
 	const [comments, setComments] = useState({ comments: '' });
@@ -136,6 +136,7 @@ export default function CreateTestRule({ clientdata }) {
 				const { message, statusCode, status } = response;
 				if (status === "success" && statusCode === 200) {
 					toast.success(message, { autoClose: 500 });
+					if (typeof onSaved === "function") onSaved();
 					setShowValidationModal(true);
 				} else {
 					toast.error(message, { autoClose: 2000 });
@@ -273,12 +274,16 @@ export default function CreateTestRule({ clientdata }) {
 						Cancel
 					</Button>
 					<Button variant="primary" onClick={() => {
-						window.location.href = `/operations/laboratory/validation?ascensionid=${ascensionid}&isOpenSideBarShow=false`;
+						const url = `/operations/laboratory/validation?ascensionid=${ascensionid}&isOpenSideBarShow=false`;
+						if (typeof onNavigate === "function") return onNavigate(url);
+						window.location.href = url;
 					}}>
 						Continue
 					</Button>
 					<Button variant="success" onClick={() => {
-						window.location.href = `/operations/laboratory/validation?billingid=${billingid.slice(70)}&&isOpenSideBarShow=false`;
+						const url = `/operations/laboratory/validation?billingid=${billingid.slice(70)}&&isOpenSideBarShow=false`;
+						if (typeof onNavigate === "function") return onNavigate(url);
+						window.location.href = url;
 					}}>
 						Validate All
 					</Button>

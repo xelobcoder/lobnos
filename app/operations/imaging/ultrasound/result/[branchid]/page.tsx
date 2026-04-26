@@ -9,8 +9,7 @@ import PreviewPatientInformation from '../../../../../../components/petientsComp
 import { useApplicationSettings } from '../../../../../../components/Auth/useApplicationContext';
 import Select from 'react-select';
 import { reactSelectCustomStyles } from '../../../../../../components/Auth/customFetch';
-import { Tabs, Tab } from 'react-bootstrap';
-import { RiFileTextLine, RiImageLine, RiHistoryLine } from '@remixicon/react';
+import { RiFileTextLine, RiImageLine, RiHistoryLine, RiFileList2Line } from '@remixicon/react';
 import AccessHistoryTab from './AccessHistoryTab';
 import AccessRequestForm from './AccessRequestForm';
 import ImageUploadTab from './ImageUploadTab';
@@ -49,7 +48,7 @@ export default function EnterResultUltrasound() {
 	const [submitting, setSubmitting] = useState(false);
 	const [viewAllTemplates, setViewAllTemplates] = useState(false);
 	const [entered, setEnteredResult] = useState(false);
-	const [activeTab, setActiveTab] = useState('result');
+	const [activeSection, setActiveSection] = useState<'result' | 'clinical' | 'images' | 'access' | 'access-history'>('result');
 
 	// PIN state
 	const [isPinUsed, setIsPinUsed] = useState(true);
@@ -252,133 +251,167 @@ export default function EnterResultUltrasound() {
 
 	return (
 		<div>
-		<PreviewPatientInformation patientid={patientid} />
-		<div className="d-flex justify-content-between">
-			
-			<div className="mt-2 col-2 px-2">
-				<div className="list-group pls-color br-5 mt-3">
-					<div className="list-group-item fw-bold text-uppercase bg-body-secondary pls-color">Clinical History</div>
-					<div className="list-group-item">
-						<textarea
-							className="form-control"
-							rows={5}
-							value={clinicalHistory}
-							onChange={(e) => setClinicalHistory(e.target.value)}
-							placeholder="Enter clinical history here"
-						/>
-					</div>
-					<div className="list-group-item">
-						<button
-							onClick={handleSaveClinicalHistory}
-							className="btn btn-primary btn-sm"
-							disabled={submitting}
-						>
-							{submitting ? "Saving..." : "Save Clinical History"}
-						</button>
-					</div>
-				</div>
-			</div>
-			<div className="col-10 px-2">
-				<Tabs activeKey={activeTab} onSelect={(k) => k && setActiveTab(k)} id="ultrasound-tabs" className="mb-3">
-					<Tab eventKey="result" title={<span><RiFileTextLine className="me-2" />Result Entry</span>}>
-						<div>
-							<div className="d-flex justify-content-between bg-secondary-subtle br-5 my-2 p-2">
-								<div>
-									<h5 className="d-flex my-2 mx-4 text-uppercase">{testname} </h5>
-								</div>
-								<div className='col-9 d-flex justify-content-end align-items-center'>
-									<div className="d-flex align-items-center">
-										<div>
-											<input type='checkbox' checked={viewAllTemplates} onChange={(ev) => { setViewAllTemplates(ev.target.checked) }} />
-										</div>
-										<div style={{width:'80%'}}>
-											<Select
-												options={templateOptions}
-												onChange={handleTemplateChange}
-												styles={reactSelectCustomStyles}
-												placeholder="Select a Template"
-												defaultInputValue=''
-												autoFocus={false}
-												className='pls-color'
-value={selectedTemplate || ''}
-												isClearable
-												isDisabled={isTemplateLoading}
-											/>
-										</div>
-										<div>
-											<button className="btn btn-link btn-sm ms-2" onClick={fetchTemplates}> Refresh Templates </button>
-
-										</div>
-										{isTemplateLoading && (
-											<div className="ms-2">
-												<div className="spinner-border spinner-border-sm" role="status">
-													<span className="visually-hidden">Loading...</span>
-												</div>
-											</div>
-										)}
-									</div>
+			<PreviewPatientInformation patientid={patientid} compact />
+			<div className="mt-3 card">
+				<div className="card-body p-0">
+					<div className="row g-0">
+						<div className="col-12 col-lg-3 border-end">
+							<div className="px-3 py-2 border-bottom d-flex align-items-center justify-content-between bg-body-tertiary">
+								<div className="fw-semibold">Sections</div>
+								<span className={`badge ${entered ? 'bg-success' : 'bg-secondary'}`}>{entered ? 'Saved' : 'Draft'}</span>
+							</div>
+							<div className="p-3">
+								<div className="list-group">
+									<button type="button" className={`list-group-item list-group-item-action d-flex align-items-center gap-2 ${activeSection === 'result' ? 'active' : ''}`} onClick={() => setActiveSection('result')}>
+										<RiFileTextLine /> Result Entry
+									</button>
+									<button type="button" className={`list-group-item list-group-item-action d-flex align-items-center gap-2 ${activeSection === 'clinical' ? 'active' : ''}`} onClick={() => setActiveSection('clinical')}>
+										<RiFileList2Line /> Clinical History
+									</button>
+									<button type="button" className={`list-group-item list-group-item-action d-flex align-items-center gap-2 ${activeSection === 'images' ? 'active' : ''}`} onClick={() => setActiveSection('images')}>
+										<RiImageLine /> Image Upload
+									</button>
+									<button type="button" className={`list-group-item list-group-item-action d-flex align-items-center gap-2 ${activeSection === 'access' ? 'active' : ''}`} onClick={() => setActiveSection('access')}>
+										<RiFileTextLine /> Access Request
+									</button>
+									<button type="button" className={`list-group-item list-group-item-action d-flex align-items-center gap-2 ${activeSection === 'access-history' ? 'active' : ''}`} onClick={() => setActiveSection('access-history')}>
+										<RiHistoryLine /> Access History
+									</button>
 								</div>
 							</div>
-							<div>
-								{Array.isArray(fields) && fields.length > 0 && fields.map((item, index) => (
-									<div className="my-3 list-group" key={index}>
-										<div className="fw-bold pls-color list-group-item bg-secondary-subtle">{item.name}</div>
+						</div>
+
+						<div className="col-12 col-lg-6 border-end">
+							<div className="px-3 py-2 border-bottom bg-body-tertiary d-flex align-items-center justify-content-between">
+								<div className="fw-semibold text-uppercase">{testname || scan || 'Ultrasound'}</div>
+								<div className="text-muted" style={{ fontSize: '0.85rem' }}>Ascension: {ascensionid || 'N/A'}</div>
+							</div>
+							<div className="p-3">
+								{activeSection === 'clinical' ? (
+									<div className="list-group pls-color br-5">
+										<div className="list-group-item fw-bold text-uppercase bg-body-secondary pls-color">Clinical History</div>
 										<div className="list-group-item">
-											<MARKDOWN_EDITOR updatedata={(ev, data) => handleFieldChange(data, index)} initialData={item.value} />
-										</div>
-									</div>
-								))}
-								<div className="list-group pls-color br-5">
-									<div className="list-group-item fw-bold text-uppercase bg-body-secondary pls-color">Impression</div>
-									<div className="list-group-item">
-										<MARKDOWN_EDITOR updatedata={(ev, data) => setImpression(data)} initialData={impression || "Impression Here"} />
-									</div>
-								</div>
-								<div className="d-flex flex-column flex-md-row justify-content-between mt-2">
-									{isPinUsed && (
-										<div className="mb-2 mb-md-0">
-											<input
-												className="custom-input"
-												type="password"
-												placeholder="Enter pin here"
-												style={{ fontSize: '0.85rem', height: 28, padding: '2px 6px' }}
-												value={pin}
-												autoComplete="off"
-												autoCorrect="off"
-												onChange={e => setPin(e.target.value)}
+											<textarea
+												className="form-control"
+												rows={8}
+												value={clinicalHistory}
+												onChange={(e) => setClinicalHistory(e.target.value)}
+												placeholder="Enter clinical history here"
 											/>
 										</div>
-									)}
+										<div className="list-group-item d-flex justify-content-end">
+											<button
+												onClick={handleSaveClinicalHistory}
+												className="btn btn-primary btn-sm"
+												disabled={submitting}
+											>
+												{submitting ? "Saving..." : "Save Clinical History"}
+											</button>
+										</div>
+									</div>
+								) : activeSection === 'images' ? (
+									<ImageUploadTab ascensionid={ascensionid} testid={testid} patientid={patientid} />
+								) : activeSection === 'access' ? (
+									<AccessRequestForm
+										ascensionid={ascensionid as string}
+										testid={testid as string}
+										patientid={patientid as string}
+										employeeid={employeeid}
+									/>
+								) : activeSection === 'access-history' ? (
+									<AccessHistoryTab employeeid={employeeid} ascensionid={ascensionid} shouldLoad={activeSection === 'access-history'} />
+								) : (
 									<div>
+										{Array.isArray(fields) && fields.length > 0 && fields.map((item, index) => (
+											<div className="my-3 list-group" key={index}>
+												<div className="fw-bold pls-color list-group-item bg-secondary-subtle">{item.name}</div>
+												<div className="list-group-item">
+													<MARKDOWN_EDITOR updatedata={(ev, data) => handleFieldChange(data, index)} initialData={item.value} />
+												</div>
+											</div>
+										))}
+										<div className="list-group pls-color br-5">
+											<div className="list-group-item fw-bold text-uppercase bg-body-secondary pls-color">Impression</div>
+											<div className="list-group-item">
+												<MARKDOWN_EDITOR updatedata={(ev, data) => setImpression(data)} initialData={impression || "Impression Here"} />
+											</div>
+										</div>
+									</div>
+								)}
+							</div>
+						</div>
+
+						<div className="col-12 col-lg-3">
+							<div className="px-3 py-2 border-bottom bg-body-tertiary d-flex align-items-center justify-content-between">
+								<div className="fw-semibold">Controls</div>
+								<button className="btn btn-sm btn-outline-secondary" onClick={fetchTemplates} disabled={isTemplateLoading}>
+									Refresh
+								</button>
+							</div>
+							<div className="p-3">
+								{activeSection === 'result' ? (
+									<>
+										<div className="mb-2 fw-semibold">Template</div>
+										<div className="d-flex align-items-center gap-2 mb-2">
+											<input type='checkbox' checked={viewAllTemplates} onChange={(ev) => { setViewAllTemplates(ev.target.checked) }} />
+											<div className="text-muted" style={{ fontSize: '0.85rem' }}>View all templates</div>
+										</div>
+										<Select
+											options={templateOptions}
+											onChange={handleTemplateChange}
+											styles={reactSelectCustomStyles}
+											placeholder="Select a Template"
+											defaultInputValue=''
+											autoFocus={false}
+											className='pls-color'
+											value={selectedTemplate || ''}
+											isClearable
+											isDisabled={isTemplateLoading}
+										/>
+										{isTemplateLoading ? (
+											<div className="text-muted mt-2" style={{ fontSize: '0.85rem' }}>
+												Loading template...
+											</div>
+										) : null}
+										<hr />
+										<div className="mb-2 fw-semibold">Save</div>
+										{isPinUsed && (
+											<div className="mb-2">
+												<input
+													className="custom-input w-100"
+													type="password"
+													placeholder="Enter pin here"
+													style={{ fontSize: '0.9rem', height: 34, padding: '6px 10px' }}
+													value={pin}
+													autoComplete="off"
+													autoCorrect="off"
+													onChange={e => setPin(e.target.value)}
+												/>
+											</div>
+										)}
 										<button
 											onClick={handleResult}
-											className="btn btn-primary btn-sm"
+											className="btn btn-primary w-100"
 											disabled={submitting || isTemplateLoading}
 										>
 											{submitting ? "Submitting..." : "Save Result"}
 										</button>
+									</>
+								) : (
+									<div className="text-muted" style={{ fontSize: '0.9rem' }}>
+										Select “Result Entry” to edit and save the report.
 									</div>
+								)}
+								<hr />
+								<div className="text-muted" style={{ fontSize: '0.85rem' }}>
+									Test ID: {testid || 'N/A'}<br />
+									Billing ID: {billingid || 'N/A'}
 								</div>
 							</div>
 						</div>
-					</Tab>
-					<Tab eventKey="images" title={<span><RiImageLine className="me-2" />Image Upload</span>}>
-						<ImageUploadTab ascensionid={ascensionid} testid={testid} patientid={patientid} />
-					</Tab>
-					<Tab eventKey="access" title={<span><RiFileTextLine className="me-2" />Access Request</span>}>
-						<AccessRequestForm
-							ascensionid={ascensionid as string}
-							testid={testid as string}
-							patientid={patientid as string}
-							employeeid={employeeid}
-						/>
-					</Tab>
-					<Tab eventKey="access-history" title={<span><RiHistoryLine className="me-2" />Access History</span>}>
-						<AccessHistoryTab employeeid={employeeid} ascensionid={ascensionid} shouldLoad={activeTab === 'access-history'} />
-					</Tab>
-				</Tabs>
+					</div>
+				</div>
 			</div>
-		</div>
 		</div>
 	);
 }

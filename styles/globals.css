@@ -16,6 +16,14 @@ html, body {
    font-size: var(--theme-font-size, 15px);
 }
 
+.pls-modal-top .modal-dialog {
+   margin-top: 1.25rem;
+}
+
+.pls-modal-top .modal-content {
+   border-radius: var(--theme-border-radius);
+}
+
 @import './theme.css';
 @import './form-fields.css';
 @import './layout.css';
