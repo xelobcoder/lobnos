@@ -10,7 +10,8 @@ import {
     RiHistoryLine,
     RiArrowUpSLine,
     RiArrowDownSLine,
-    RiMoreFill
+    RiMoreFill,
+    RiTruckLine
 } from "@remixicon/react";
 import { customFetch } from "../../Auth/customFetch";
 import { Dropdown } from "react-bootstrap";
@@ -31,6 +32,7 @@ export interface transactionSummaryBilling {
     amountIncuredDueTax: number;
     clientstatus: string;
     lastupdated: string;
+    patientid?: number;
 }
 
 interface Props {
@@ -348,6 +350,16 @@ const TransactionsViewOnly = ({ patientid }: Props) => {
 
                                                 <Dropdown.Item className="d-flex align-items-center gap-2">
                                                     <RiFileListLine size={16} /> Documents
+                                                </Dropdown.Item>
+
+                                                <Dropdown.Item
+                                                    className="d-flex align-items-center gap-2"
+                                                    onClick={() => {
+                                                        setSelectedBillingId(transaction.billingid);
+                                                        setShowDetails(true);
+                                                    }}
+                                                >
+                                                    <RiTruckLine size={16} /> Delivery Chain
                                                 </Dropdown.Item>
                                             </Dropdown.Menu>
                                         </Dropdown>

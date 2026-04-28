@@ -17,7 +17,7 @@ import { MultiBillingData } from "../../../lib/Multi/MultiTypes";
 
 interface MultiSummaryProps {
     summaryData?: any;
-    handlesubmit?: (data: MultiBillingData) => void;
+    handlesubmit?: (data: MultiBillingData) => Promise<any>;
 }
 
 export default function MultiSummary({ summaryData, handlesubmit }: MultiSummaryProps) {

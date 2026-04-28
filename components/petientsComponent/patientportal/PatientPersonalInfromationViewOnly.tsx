@@ -1,6 +1,6 @@
 "use client"
 import React, { useEffect, useState } from 'react';
-import { customFetch, fetchPatientPersonalInfo } from '../../Auth/customFetch';
+import { fetchPatientPersonalInfo } from '../../Auth/customFetch';
 import { RiUser3Line, RiCalendarLine, RiMailLine, RiPhoneLine, RiWhatsappLine, RiUserHeartLine, RiBriefcaseLine, RiIdCardLine, RiEditLine } from '@remixicon/react';
 import styles from './PatientPersonalInformationViewOnly.module.css';
 
@@ -29,10 +29,18 @@ const PatientPersonalInformationViewOnly = ({ patientid }) => {
 
     useEffect(() => {
         fetchPatientPersonalInfo(patientid)
-            .then(() => {
+            .then((response: any) => {
+                if (response?.result) {
+                    setPersonalInfo(response.result);
+                    setError(null);
+                } else {
+                    setPersonalInfo(null);
+                    setError('No personal information available');
+                }
                 setLoading(false)
             }).catch((err) => {
                 setLoading(false);
+                setError('Failed to load personal information');
             })
     }, [patientid]);
 

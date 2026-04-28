@@ -154,6 +154,8 @@ export interface MultiBillingData {
     insuranceid: number | null;
     promoVerifyLoading?: boolean;
     billingIdVerified?: boolean;
+    resultDeliveryMode?: string;
+    resultDeliveryDetail?: string;
 }
 
 export const defaultMultiBillingData: MultiBillingData = {

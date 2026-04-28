@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import styles from './TransactionDetails.module.css';
-import { currencyFormatter, customFetch } from '../../Auth/customFetch';
-import { RiCloseLine, RiCalendarLine, RiMoneyDollarCircleLine, RiUserLine ,RiTestTubeLine} from '@remixicon/react';
+import { toast } from 'react-toastify';
+import { currencyFormatter, customFetch, customPost } from '../../Auth/customFetch';
+ import { RiCloseLine, RiCalendarLine, RiMoneyDollarCircleLine, RiUserLine ,RiTestTubeLine, RiTruckLine, RiSendPlaneLine, RiInboxArchiveLine } from '@remixicon/react';
 import { transactionSummaryBilling } from './TransactionsViewOnly';
+import { useApplication } from '../../Auth/useApplicationContext';
 
 interface Witness {
     witnessType: string;
@@ -51,6 +53,44 @@ interface TransactionDetail {
     witnesses: Witness[];
 }
 
+interface DeliveryPreference {
+    requested_mode: string;
+    requested_mode_detail?: string;
+    updated_at?: string;
+}
+
+interface DeliveryChainResponse {
+    billingid: number;
+    handovers: Array<{
+        id: number;
+        billingid: number;
+        patientid: number;
+        from_employeeid: number;
+        to_employeeid: number;
+        status: string;
+        notes: string;
+        created_at: string;
+        from_username?: string;
+        from_role?: string;
+        to_username?: string;
+        to_role?: string;
+    }>;
+    deliveries: Array<{
+        id: number;
+        billingid: number;
+        patientid: number;
+        requested_mode?: string;
+        delivered_mode: string;
+        delivered_by_employeeid: number;
+        delivered_at: string;
+        notes?: string;
+        delivered_by_username?: string;
+        delivered_by_role?: string;
+    }>;
+}
+
+const deliveryModes = ['whatsapp', 'email', 'hard copy', 'phone call'];
+
 interface TransactionDetailsProps {
     billingId: number;
     onClose: () => void;
@@ -66,6 +106,22 @@ const TransactionDetails: React.FC<TransactionDetailsProps> = ({
     const [data, setData] = useState<TransactionDetail[]>([]); 
     const [loading, setLoading] = useState(true); 
     const [error, setError] = useState<string | null>(null);
+    const employeeid = useApplication()?.user?.employeeid;
+    const [deliveryPreference, setDeliveryPreference] = useState<DeliveryPreference | null>(null);
+    const [deliveryChain, setDeliveryChain] = useState<DeliveryChainResponse | null>(null);
+    const [loadingDelivery, setLoadingDelivery] = useState(false);
+    const [savingDelivery, setSavingDelivery] = useState(false);
+    const [savingHandover, setSavingHandover] = useState(false);
+    const [deliveryForm, setDeliveryForm] = useState({
+        delivered_mode: 'hard copy',
+        notes: '',
+    });
+    const [handoverForm, setHandoverForm] = useState({
+        from_employeeid: '',
+        to_employeeid: '',
+        status: 'handover',
+        notes: '',
+    });
 
 
     useEffect(() => {
@@ -83,6 +139,127 @@ const TransactionDetails: React.FC<TransactionDetailsProps> = ({
 
         fetchTransactionDetails();
     }, [billingId]);
+
+    const patientId = summary?.patientid || null;
+
+    const loadDeliveryContext = async () => {
+        setLoadingDelivery(true);
+        try {
+            const requests: Promise<any>[] = [
+                customFetch(`result/delivery/chain/${billingId}`),
+                customFetch(`result/delivery/preference/${billingId}`),
+            ];
+            const [chainResponse, preferenceResponse] = await Promise.all(requests);
+            setDeliveryChain({
+                billingid: billingId,
+                handovers: Array.isArray(chainResponse?.handovers) ? chainResponse.handovers : [],
+                deliveries: Array.isArray(chainResponse?.deliveries) ? chainResponse.deliveries : [],
+            });
+            if (preferenceResponse?.preference) {
+                setDeliveryPreference(preferenceResponse.preference);
+                setDeliveryForm((prev) => ({
+                    ...prev,
+                    delivered_mode: preferenceResponse.preference.requested_mode || prev.delivered_mode,
+                }));
+            } else {
+                setDeliveryPreference(null);
+            }
+        } catch (err) {
+            console.error('Failed to load delivery chain', err);
+            setDeliveryChain({
+                billingid: billingId,
+                handovers: [],
+                deliveries: [],
+            });
+            setDeliveryPreference(null);
+        } finally {
+            setLoadingDelivery(false);
+        }
+    };
+
+    useEffect(() => {
+        loadDeliveryContext();
+    }, [billingId, patientId]);
+
+    const chainTimeline = useMemo(() => {
+        const handovers = (deliveryChain?.handovers || []).map((item) => ({
+            id: `handover-${item.id}`,
+            type: 'handover',
+            when: item.created_at,
+            title: `${item.from_username || item.from_employeeid} -> ${item.to_username || item.to_employeeid}`,
+            subtitle: item.notes || item.status,
+        }));
+
+        const deliveries = (deliveryChain?.deliveries || []).map((item) => ({
+            id: `delivery-${item.id}`,
+            type: 'delivery',
+            when: item.delivered_at,
+            title: `Delivered via ${item.delivered_mode}`,
+            subtitle: item.notes || item.delivered_by_username || '',
+        }));
+
+        return [...handovers, ...deliveries].sort((a, b) => new Date(b.when).getTime() - new Date(a.when).getTime());
+    }, [deliveryChain]);
+
+    const submitDeliveryRecord = async () => {
+        if (!employeeid) {
+            toast.error('Employee session not found');
+            return;
+        }
+        setSavingDelivery(true);
+        try {
+            const response: any = await customPost('result/delivery/record', 'POST', {
+                billingid: billingId,
+                delivered_mode: deliveryForm.delivered_mode,
+                delivered_by_employeeid: employeeid,
+                notes: deliveryForm.notes,
+            });
+            if (response?.status === true || response?.success === true) {
+                toast.success('Result delivery recorded');
+                setDeliveryForm((prev) => ({ ...prev, notes: '' }));
+                await loadDeliveryContext();
+            } else {
+                toast.error(response?.message || 'Failed to record result delivery');
+            }
+        } catch (err) {
+            toast.error('Failed to record result delivery');
+        } finally {
+            setSavingDelivery(false);
+        }
+    };
+
+    const submitHandover = async () => {
+        if (!handoverForm.from_employeeid || !handoverForm.to_employeeid) {
+            toast.error('Both from and to employee IDs are required');
+            return;
+        }
+        setSavingHandover(true);
+        try {
+            const response: any = await customPost('result/delivery/handover', 'POST', {
+                billingid: billingId,
+                from_employeeid: Number(handoverForm.from_employeeid),
+                to_employeeid: Number(handoverForm.to_employeeid),
+                status: handoverForm.status,
+                notes: handoverForm.notes,
+            });
+            if (response?.status === true || response?.success === true) {
+                toast.success('Internal handover recorded');
+                setHandoverForm({
+                    from_employeeid: '',
+                    to_employeeid: '',
+                    status: 'handover',
+                    notes: '',
+                });
+                await loadDeliveryContext();
+            } else {
+                toast.error(response?.message || 'Failed to record handover');
+            }
+        } catch (err) {
+            toast.error('Failed to record handover');
+        } finally {
+            setSavingHandover(false);
+        }
+    };
 
     if (loading) return <div className={styles.loading}>Loading...</div>;
     if (error) return <div className={styles.error}>{error}</div>;
@@ -242,6 +419,155 @@ const TransactionDetails: React.FC<TransactionDetailsProps> = ({
                                     ))}
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+
+                    <div className={styles.section}>
+                        <h4><RiTruckLine size={18} /> Result Delivery And Handover</h4>
+
+                        <div className="row g-3 mb-3">
+                            <div className="col-lg-6">
+                                <div className="border rounded p-3 h-100">
+                                    <div className="fw-semibold mb-2">Requested Mode (This Transaction)</div>
+                                    {(() => {
+                                        const fromDelivery = (deliveryChain?.deliveries || []).find((d) => !!d.requested_mode);
+                                        if (fromDelivery?.requested_mode) {
+                                            return (
+                                                <>
+                                                    <div className="text-capitalize">{fromDelivery.requested_mode}</div>
+                                                    <div className="text-muted small">Captured for this billing during delivery logging.</div>
+                                                </>
+                                            );
+                                        }
+                                        if (deliveryPreference) {
+                                            return (
+                                                <>
+                                                    <div className="text-capitalize">{deliveryPreference.requested_mode}</div>
+                                                    <div className="text-muted small">{deliveryPreference.requested_mode_detail || 'No extra instruction'}</div>
+                                                    {deliveryPreference.updated_at ? (
+                                                        <div className="text-muted small mt-1">Last saved {new Date(deliveryPreference.updated_at).toLocaleString()}</div>
+                                                    ) : null}
+                                                    <div className="text-muted small mt-2">
+                                                        This can change per transaction. Set it during billing.
+                                                    </div>
+                                                </>
+                                            );
+                                        }
+                                        return <div className="text-muted small">No requested mode recorded yet for this billing.</div>;
+                                    })()}
+                                </div>
+                            </div>
+
+                            <div className="col-lg-6">
+                                <div className="border rounded p-3 h-100">
+                                    <div className="fw-semibold mb-2">Record Final Delivery</div>
+                                    <div className="mb-2">
+                                        <label className="form-label small text-muted mb-1">Delivered Mode</label>
+                                        <select
+                                            className="form-select form-select-sm"
+                                            value={deliveryForm.delivered_mode}
+                                            onChange={(e) => setDeliveryForm((prev) => ({ ...prev, delivered_mode: e.target.value }))}
+                                        >
+                                            {deliveryModes.map((mode) => (
+                                                <option key={mode} value={mode}>{mode}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="mb-2">
+                                        <label className="form-label small text-muted mb-1">Notes</label>
+                                        <textarea
+                                            className="form-control form-control-sm"
+                                            rows={3}
+                                            value={deliveryForm.notes}
+                                            onChange={(e) => setDeliveryForm((prev) => ({ ...prev, notes: e.target.value }))}
+                                            placeholder="Delivered after ID confirmation, email sent, etc."
+                                        />
+                                    </div>
+                                    <button type="button" className="btn btn-sm btn-primary" onClick={submitDeliveryRecord} disabled={savingDelivery}>
+                                        {savingDelivery ? 'Saving...' : 'Record Delivery'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="row g-3 mb-3">
+                            <div className="col-12">
+                                <div className="border rounded p-3">
+                                    <div className="fw-semibold mb-2">Record Internal Handover</div>
+                                    <div className="row g-2">
+                                        <div className="col-md-3">
+                                            <label className="form-label small text-muted mb-1">From Employee ID</label>
+                                            <input
+                                                className="form-control form-control-sm"
+                                                value={handoverForm.from_employeeid}
+                                                onChange={(e) => setHandoverForm((prev) => ({ ...prev, from_employeeid: e.target.value }))}
+                                            />
+                                        </div>
+                                        <div className="col-md-3">
+                                            <label className="form-label small text-muted mb-1">To Employee ID</label>
+                                            <input
+                                                className="form-control form-control-sm"
+                                                value={handoverForm.to_employeeid}
+                                                onChange={(e) => setHandoverForm((prev) => ({ ...prev, to_employeeid: e.target.value }))}
+                                            />
+                                        </div>
+                                        <div className="col-md-3">
+                                            <label className="form-label small text-muted mb-1">Status</label>
+                                            <select
+                                                className="form-select form-select-sm"
+                                                value={handoverForm.status}
+                                                onChange={(e) => setHandoverForm((prev) => ({ ...prev, status: e.target.value }))}
+                                            >
+                                                <option value="handover">handover</option>
+                                                <option value="received">received</option>
+                                                <option value="returned">returned</option>
+                                            </select>
+                                        </div>
+                                        <div className="col-md-3">
+                                            <label className="form-label small text-muted mb-1">Notes</label>
+                                            <input
+                                                className="form-control form-control-sm"
+                                                value={handoverForm.notes}
+                                                onChange={(e) => setHandoverForm((prev) => ({ ...prev, notes: e.target.value }))}
+                                                placeholder="Validated and handed over"
+                                            />
+                                        </div>
+                                    </div>
+                                    <button type="button" className="btn btn-sm btn-outline-primary mt-3" onClick={submitHandover} disabled={savingHandover}>
+                                        {savingHandover ? 'Saving...' : 'Record Handover'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="border rounded p-3">
+                            <div className="d-flex justify-content-between align-items-center mb-3">
+                                <div className="fw-semibold">Delivery Timeline</div>
+                                {loadingDelivery ? <div className="text-muted small">Loading...</div> : null}
+                            </div>
+
+                            {chainTimeline.length === 0 ? (
+                                <div className="text-muted small">No handover or delivery records found for this billing ID.</div>
+                            ) : (
+                                <div className="d-grid gap-2">
+                                    {chainTimeline.map((item) => (
+                                        <div key={item.id} className="border rounded p-2">
+                                            <div className="d-flex justify-content-between align-items-start gap-2">
+                                                <div className="d-flex align-items-start gap-2">
+                                                    <span className={`mt-1 ${item.type === 'delivery' ? 'text-success' : 'text-primary'}`}>
+                                                        {item.type === 'delivery' ? <RiSendPlaneLine size={16} /> : <RiInboxArchiveLine size={16} />}
+                                                    </span>
+                                                    <div>
+                                                        <div className="fw-semibold">{item.title}</div>
+                                                        <div className="text-muted small">{item.subtitle || 'No note provided'}</div>
+                                                    </div>
+                                                </div>
+                                                <small className="text-muted">{new Date(item.when).toLocaleString()}</small>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

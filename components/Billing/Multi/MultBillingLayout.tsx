@@ -6,7 +6,7 @@ import MultiPACKAGESELECT from './MultiPACKAGESELECT';
 import MultiRenderingWithPatientId from "./MultiRenderingWithPatientId";
 import { Button, Spinner, Modal } from "react-bootstrap";
 import { useContext, useState, useEffect } from "react";
-import { customFetch } from "../../Auth/customFetch";
+import { customFetch, customPost } from "../../Auth/customFetch";
 import { billingContextProps, defaultMultiBillingData, MultiBillingData } from "../../../lib/Multi/MultiTypes";
 import { MultiBillingProvider, MultiBillingContext } from "./MultiBillingContext";
 import MultiSummary from "./MultiSummary";
@@ -396,6 +396,12 @@ function MultiBillingLayoutContent() {
     }
 
     const [isSaving, setIsSaving] = useState(false);
+    const [showDeliveryModal, setShowDeliveryModal] = useState(false);
+    const [savingDeliveryPreference, setSavingDeliveryPreference] = useState(false);
+    const [loadingDeliveryDefaults, setLoadingDeliveryDefaults] = useState(false);
+    const [deliveryMode, setDeliveryMode] = useState<string>('whatsapp');
+    const [deliveryDetail, setDeliveryDetail] = useState<string>('');
+    const [pendingSubmit, setPendingSubmit] = useState<null | { billingdata: MultiBillingData; writeOffConfirmed: boolean }>(null);
 
     const handleModalClose = () => {
         setShowChoiceModal(false);
@@ -422,7 +428,7 @@ function MultiBillingLayoutContent() {
 
     const closeReceiptModal = () => setShowReceiptOptionsModal(false);
 
-    const handleSubmit = async (billingdata: MultiBillingData, writeOffConfirmed = false) => {
+    const submitBillingInternal = async (billingdata: MultiBillingData, writeOffConfirmed = false) => {
         if (isSaving) return;
 
         if (!billingdata || !billingdata.patientid) {
@@ -453,7 +459,7 @@ function MultiBillingLayoutContent() {
                 isPromo: billingdata.isPromo ?? false,
                 promoCodeId: billingdata.promoDetails?.id || billingdata?.promoId,
                 promoCode: billingdata.promoDetails?.code || '',
-                patientid: Number(patientid),
+                patientid: Number(billingdata.patientid),
                 payments: billingdata.payments,
                 additionalinformation: billingdata.additionalInfo ?? '',
                 isAdjustment: typeof billingdata.isAdjustment === 'boolean' ? (billingdata.isAdjustment ? 1 : 0) : billingdata.isAdjustment,
@@ -488,11 +494,95 @@ function MultiBillingLayoutContent() {
             if (status == false) {
                 return toast.error(message || "Failed to submit billing data");
             }
+            return response;
 
         } catch (error) {
             setIsSaving(false);
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const handleSubmit = async (billingdata: MultiBillingData, writeOffConfirmed = false) => {
+        if (isSaving) return;
+
+        if (!billingdata || !billingdata.patientid) {
+            return toast.error('Patient ID is required to submit billing');
+        }
+
+        if (billingdata.isAdjustment === 1 && !billingdata.adjustmentType) {
+            return toast.error('Adjustment type is required for adjustments');
+        }
+
+        if (billingdata.isAdjustment === 1 && !billingdata.adjustmentReason && billingdata.adjustmentType == 'correction') {
+            return toast.error('Adjustment reason is required for correction adjustments');
+        }
+
+        setPendingSubmit({ billingdata, writeOffConfirmed });
+        setShowDeliveryModal(true);
+    };
+
+    const saveDeliveryPreferenceAndContinue = async () => {
+        if (!pendingSubmit) return;
+        if (!employeeid) {
+            toast.error('Employee session not found');
+            return;
+        }
+
+        setSavingDeliveryPreference(true);
+        try {
+            const { billingdata, writeOffConfirmed } = pendingSubmit;
+            const submitResponse: any = await submitBillingInternal(billingdata, writeOffConfirmed);
+            const submittedBillingId = submitResponse?.billingid || submitResponse?.data?.billingid;
+            if (!submittedBillingId) {
+                toast.error(submitResponse?.message || 'Billing submission failed');
+                return;
+            }
+            const payload = {
+                billingid: Number(submittedBillingId),
+                requested_mode: deliveryMode,
+                requested_mode_detail: deliveryDetail,
+                employeeid,
+            };
+            const response: any = await customPost('result/delivery/preference', 'POST', payload);
+            if (response?.status === true || response?.success === true) {
+                setBillingData(prev => ({
+                    ...prev,
+                    resultDeliveryMode: deliveryMode,
+                    resultDeliveryDetail: deliveryDetail,
+                    resultDeliverySavedAt: new Date().toISOString(),
+                }));
+                setShowDeliveryModal(false);
+                setPendingSubmit(null);
+            } else {
+                toast.error(response?.message || 'Failed to save delivery preference');
+            }
+        } catch (err) {
+            toast.error('Failed to save delivery preference');
+        } finally {
+            setSavingDeliveryPreference(false);
+        }
+    };
+
+    const loadDeliveryDefaults = async (billingIdToLoad: string | number | null | undefined) => {
+        const resolvedBillingId = Number(billingIdToLoad);
+        if (!resolvedBillingId || Number.isNaN(resolvedBillingId)) return;
+        setLoadingDeliveryDefaults(true);
+        try {
+            const response: any = await customFetch(`result/delivery/preference/${resolvedBillingId}`);
+            const pref = response?.preference || null;
+            if (pref) {
+                setDeliveryMode(pref.requested_mode || 'whatsapp');
+                setDeliveryDetail(pref.requested_mode_detail || '');
+                setBillingData(prev => ({
+                    ...prev,
+                    resultDeliveryMode: pref.requested_mode || prev.resultDeliveryMode,
+                    resultDeliveryDetail: pref.requested_mode_detail || prev.resultDeliveryDetail,
+                }));
+            }
+        } catch (err) {
+        } finally {
+            setLoadingDeliveryDefaults(false);
         }
     };
 
@@ -541,6 +631,11 @@ function MultiBillingLayoutContent() {
     useEffect(() => {
         onMountedRun();
     }, []);
+
+    useEffect(() => {
+        if (!billingdata?.billingid) return;
+        loadDeliveryDefaults(billingdata.billingid);
+    }, [billingdata?.billingid]);
 
 
 
@@ -677,6 +772,73 @@ function MultiBillingLayoutContent() {
                     billingid={generatedBillingid ? Number(generatedBillingid) : 0}
                 />
             )}
+
+            <Modal
+                show={showDeliveryModal}
+                onHide={() => {
+                    if (savingDeliveryPreference) return;
+                    setShowDeliveryModal(false);
+                    setPendingSubmit(null);
+                }}
+                backdrop="static"
+                centered
+            >
+                <Modal.Header closeButton>
+                    <Modal.Title>Result Delivery Mode</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <div className="text-muted mb-3">
+                        Select how the patient wants to receive the result for this transaction.
+                    </div>
+                {loadingDeliveryDefaults ? (
+                    <div className="text-muted mb-3" style={{ fontSize: '0.9rem' }}>
+                        Loading last saved delivery preference...
+                    </div>
+                ) : null}
+                    <div className="mb-3">
+                        <label className="form-label">Mode of delivery</label>
+                        <select
+                            className="form-select"
+                            value={deliveryMode}
+                            onChange={(e) => setDeliveryMode(e.target.value)}
+                        >
+                            <option value="whatsapp">WhatsApp</option>
+                            <option value="email">Email</option>
+                            <option value="hard copy">Hard copy</option>
+                            <option value="phone call">Phone call</option>
+                        </select>
+                    </div>
+                    <div className="mb-0">
+                        <label className="form-label">Detail / instruction (optional)</label>
+                        <textarea
+                            className="form-control"
+                            rows={3}
+                            value={deliveryDetail}
+                            onChange={(e) => setDeliveryDetail(e.target.value)}
+                            placeholder="Example: Send to main number, call before delivery, email to patient"
+                        />
+                    </div>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button
+                        variant="outline-secondary"
+                        onClick={() => {
+                            if (savingDeliveryPreference) return;
+                            setShowDeliveryModal(false);
+                            setPendingSubmit(null);
+                        }}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="primary"
+                        onClick={saveDeliveryPreferenceAndContinue}
+                        disabled={savingDeliveryPreference}
+                    >
+                        {savingDeliveryPreference ? 'Saving...' : 'Submit And Save'}
+                    </Button>
+                </Modal.Footer>
+            </Modal>
 
         </React.Fragment>
     );

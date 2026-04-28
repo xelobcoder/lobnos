@@ -59,6 +59,18 @@ export default function PatientInformationPage({params}: {params: {
                                 </button>
                             )}
                             <button 
+                                className={`${styles.tabButton} ${activeTab === 'personal-info' ? styles.activeTab : styles.inactiveTab}`}
+                                onClick={() => setActiveTab('personal-info')}
+                            >
+                                {activeTab === 'personal-info' ? (
+                                    <RiHomeFill className={styles.tabIcon} />
+                                ) : (
+                                    <RiHomeLine className={styles.tabIcon} />
+                                )}
+                                Profile
+                            </button>
+
+                            <button 
                                 className={`${styles.tabButton} ${activeTab === 'address' ? styles.activeTab : styles.inactiveTab}`}
                                 onClick={() => setActiveTab('address')}
                             >
@@ -144,6 +156,9 @@ export default function PatientInformationPage({params}: {params: {
                         </nav>
                         
                         <div className={styles.tabContent}>
+                            {activeTab === 'personal-info' && (
+                                <PatientPersonalInformationViewOnly patientid={patientid} />
+                            )}
                             {activeTab === 'address' && (
                                 <AddressViewOnly patientid={patientid} />
                             )}

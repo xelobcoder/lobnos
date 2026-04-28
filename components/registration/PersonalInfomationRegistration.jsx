@@ -61,6 +61,7 @@ export default function PersonalInformationRegistration({
 				mobile: formData.mobile && formData.mobileCountryCode ? `${formData.mobileCountryCode}${formData.mobile}` : formData.mobile,
 				whatAppcontact: formData.whatAppcontact && formData.whatsappCountryCode ? `${formData.whatsappCountryCode}${formData.whatAppcontact}` : formData.whatAppcontact,
 				relativecontactnumber: formData.relativecontactnumber && formData.relativeCountryCode ? `${formData.relativeCountryCode}${formData.relativecontactnumber}` : formData.relativecontactnumber,
+				employeeid,
 			};
 
 			const response = await customPost(endpoint, method, {

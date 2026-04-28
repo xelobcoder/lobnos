@@ -17,7 +17,7 @@ interface PaymentEntry {
 
 
 interface MultiPaymentProps {
-    handlesubmit?: (data: MultiBillingData) => Promise<{ status: boolean; message?: string; billingid?: string | number; } | undefined>;
+    handlesubmit?: (data: MultiBillingData) => Promise<any>;
 }
 
 const MultiPayment: React.FC<MultiPaymentProps> = ({ handlesubmit }) => {

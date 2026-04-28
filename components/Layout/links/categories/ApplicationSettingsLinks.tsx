@@ -77,6 +77,7 @@ export const ApplicationSettingsLinks: Link[] =
             link: "",
             icon: <RiMoneyDollarCircleLine />,
             children: [
+                {title:"Discount Limits",link:"/settings/applicationsettings/discount-limits",icon:<RiMoneyDollarCircleLine />},
                 { title: "Services", link: "/settings/additionalservices", icon: <RiCustomerService2Line /> },
                 { title: 'Billing Strategy', link: '/billing/billing-strategy/strategies', icon: <RiStarHalfLine /> },
                 { title: 'Insurance Companies', link: '/billing/insurance', icon: <RiGitRepositoryFill /> },

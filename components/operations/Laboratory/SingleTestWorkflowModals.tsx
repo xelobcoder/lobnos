@@ -136,7 +136,7 @@ export function SingleTestCollectionWorkflowModal({
   const canComplete = Boolean(startAt) && !endAt;
 
   const updateStage = async (stage: "collectionStartDate" | "collectionEndDate") => {
-    if (!employeeid) return toast.error("Missing employee id");
+    if (employeeid == null) return toast.error("Missing employee id");
     const proceed = window.confirm(stage === "collectionStartDate" ? "Initiate sample collection for this test?" : "Complete sample collection for this test?");
     if (!proceed) return;
     try {
@@ -222,7 +222,6 @@ export function SingleTestSampleValidationWorkflowModal({
 }: WorkflowBaseProps & { test: TestContext }) {
   const { applicationsettings } = useApplicationSettings();
   const employeeid = applicationsettings?.user?.employeeid;
-  const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [item, setItem] = useState<any | null>(null);
   const [decision, setDecision] = useState<"accept" | "reject" | "">("");
@@ -232,39 +231,74 @@ export function SingleTestSampleValidationWorkflowModal({
     if (!show) return;
     setDecision("");
     setRejectReason("");
-    const run = async () => {
-      try {
-        setLoading(true);
-        const resp = await customFetch(`phelobotomy/sample/assesment/list?billingid=${test.billingid}`);
-        const found = Array.isArray(resp?.result) ? resp.result.find((r: any) => Number(r.testid) === Number(test.testid)) : null;
-        setItem(found || null);
-      } catch {
-        setItem(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    run();
-  }, [show, test.billingid, test.testid]);
+    setItem({
+      billingid: test.billingid,
+      patientid: test.patientid,
+      ascensionid: test.ascensionid,
+      ascension_id: test.ascensionid,
+      id: test.ascensionid,
+      testid: test.testid,
+      test_id: test.testid,
+      name: test.testname,
+    });
+  }, [show, test.billingid, test.testid, test.ascensionid]);
 
   const submit = async () => {
-    if (!employeeid) return toast.error("Missing employee id");
-    if (!item) return toast.error("Unable to load sample for this test");
+    if (employeeid == null) return toast.error("Missing employee id");
     if (!decision) return toast.error("Select Accept or Reject");
     if (decision === "reject" && !rejectReason.trim()) return toast.error("Provide a rejection reason");
 
-    const updated = {
-      ...item,
-      validatedby: employeeid,
-      approvalstatus: decision === "accept" ? 1 : 0,
-      declinemessage: decision === "reject" ? rejectReason.trim() : null,
-      validatedon: new Date().toISOString(),
-      rejectionDetails: decision === "reject" ? { reason: rejectReason.trim() } : null,
-    };
-
     try {
       setSubmitting(true);
+      const fallbackItem: any = {
+        billingid: test.billingid,
+        patientid: test.patientid,
+        ascensionid: test.ascensionid,
+        ascension_id: test.ascensionid,
+        id: test.ascensionid,
+        testid: test.testid,
+        test_id: test.testid,
+        name: test.testname,
+        collection: "true",
+      };
+
+      let resolvedItem: any = item || fallbackItem;
+      try {
+        const resp = await customFetch(`phelobotomy/sample/assesment/list?billingid=${test.billingid}`);
+        const list = Array.isArray(resp?.result) ? resp.result : [];
+        const found = list.find((r: any) => {
+          const rTestId = Number(r?.testid ?? r?.test_id ?? r?.serviceid ?? r?.service_id);
+          const rAscensionId = Number(r?.ascensionid ?? r?.ascension_id ?? r?.id);
+          return rTestId === Number(test.testid) || rAscensionId === Number(test.ascensionid);
+        });
+        if (found) {
+          resolvedItem = {
+            ...found,
+            testid: found?.testid ?? found?.test_id ?? found?.serviceid ?? found?.service_id,
+            test_id: found?.test_id ?? found?.testid ?? found?.serviceid ?? found?.service_id,
+            ascensionid: found?.ascensionid ?? found?.ascension_id ?? found?.id,
+            ascension_id: found?.ascension_id ?? found?.ascensionid ?? found?.id,
+          };
+        }
+      } catch (loadError) {
+        console.warn("Sample list fetch failed during submit; using fallback payload.", loadError);
+      }
+
+      const updated = {
+        ...resolvedItem,
+        validatedby: employeeid,
+        approvalstatus: decision === "accept" ? 1 : 0,
+        declinemessage: decision === "reject" ? rejectReason.trim() : null,
+        validatedon: new Date().toISOString(),
+        collection: resolvedItem?.collection ?? "true",
+        rejectionDetails: decision === "reject" ? { reason: rejectReason.trim() } : null,
+      };
+
       const res = await customPost("sample/transaction/sample/validation/update", "PUT", { testcollection: [updated] });
+      if (!res) {
+        toast.error("No response from sample validation endpoint");
+        return;
+      }
       if (res?.status === true) {
         toast.success(res?.message || "Sample validation updated");
         if (onSuccess) onSuccess();
@@ -272,6 +306,9 @@ export function SingleTestSampleValidationWorkflowModal({
       } else {
         toast.error(res?.message || "Failed to update sample validation");
       }
+    } catch (error) {
+      console.error("Sample validation failed:", error);
+      toast.error("Sample validation failed. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -298,43 +335,37 @@ export function SingleTestSampleValidationWorkflowModal({
             },
           ]}
         />
-        {loading ? (
-          <div className="text-center py-3">
-            <Spinner />
+        <>
+          <div className="mb-2">Validated On: {test.samplevalidatedon ? formatWhen(test.samplevalidatedon) : "Not validated"}</div>
+          <div className="d-flex gap-3">
+            <Form.Check
+              type="radio"
+              id="sv-accept"
+              label="Accept"
+              checked={decision === "accept"}
+              onChange={() => setDecision("accept")}
+            />
+            <Form.Check
+              type="radio"
+              id="sv-reject"
+              label="Reject"
+              checked={decision === "reject"}
+              onChange={() => setDecision("reject")}
+            />
           </div>
-        ) : (
-          <>
-            <div className="mb-2">Validated On: {test.samplevalidatedon ? formatWhen(test.samplevalidatedon) : "Not validated"}</div>
-            <div className="d-flex gap-3">
-              <Form.Check
-                type="radio"
-                id="sv-accept"
-                label="Accept"
-                checked={decision === "accept"}
-                onChange={() => setDecision("accept")}
-              />
-              <Form.Check
-                type="radio"
-                id="sv-reject"
-                label="Reject"
-                checked={decision === "reject"}
-                onChange={() => setDecision("reject")}
-              />
+          {decision === "reject" ? (
+            <div className="mt-3">
+              <Form.Label>Rejection reason</Form.Label>
+              <Form.Control as="textarea" rows={3} value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} />
             </div>
-            {decision === "reject" ? (
-              <div className="mt-3">
-                <Form.Label>Rejection reason</Form.Label>
-                <Form.Control as="textarea" rows={3} value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} />
-              </div>
-            ) : null}
-          </>
-        )}
+          ) : null}
+        </>
       </Modal.Body>
       <Modal.Footer className="gap-2">
         <Button variant="outline-secondary" onClick={onHide} disabled={submitting}>
           Close
         </Button>
-        <Button variant="primary" onClick={submit} disabled={loading || submitting}>
+        <Button variant="primary" onClick={submit} disabled={submitting}>
           {submitting ? <Spinner size="sm" /> : "Save"}
         </Button>
       </Modal.Footer>
@@ -382,7 +413,7 @@ export function SingleTestProcessingWorkflowModal({
   const canEnd = Boolean(startAt) && !endAt;
 
   const updateStage = async (stage: "processingStartDate" | "processingEndDate") => {
-    if (!employeeid) return toast.error("Missing employee id");
+    if (employeeid == null) return toast.error("Missing employee id");
     const proceed = window.confirm(stage === "processingStartDate" ? "Start processing for this test?" : "Complete processing for this test?");
     if (!proceed) return;
     try {
@@ -493,7 +524,7 @@ export function SingleTestResultValidationWorkflowModal({
   }, [show, test.patientid]);
 
   const submit = async () => {
-    if (!employeeid) return toast.error("Missing employee id");
+    if (employeeid == null) return toast.error("Missing employee id");
     if (!approved) return toast.error("Approve is required");
     try {
       setSubmitting(true);

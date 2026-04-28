@@ -14,7 +14,7 @@ import { calculateCorrectionalAdjustment } from '../../../lib/Multi/correctionUt
 import { currencyFormatter } from "../../Auth/customFetch";
 
 
-export default function MultiBillingPageAdditionalInformation({ showChoiceModal: forceShowChoiceModal = false, onBillingSuccess, handlesubmit }: { showChoiceModal?: boolean, onBillingSuccess?: (billingid: string, message?: string) => void, handlesubmit?: (data:MultiBillingData) => void }) {
+export default function MultiBillingPageAdditionalInformation({ showChoiceModal: forceShowChoiceModal = false, onBillingSuccess, handlesubmit }: { showChoiceModal?: boolean, onBillingSuccess?: (billingid: string, message?: string) => void, handlesubmit?: (data:MultiBillingData) => Promise<any> }) {
 	// Outstanding Write-Off Dialog State
 	const [showOutstandingDialog, setShowOutstandingDialog] = useState(false);
 	const [outstandingInfo, setOutstandingInfo] = useState<{

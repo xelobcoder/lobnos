@@ -7,6 +7,7 @@ import Loader from '../../../components/isLoading';
 import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
 import { BillingSettingsTab } from '../../../components/settings/applicationsettings/BillingSettingsTab';
 import { availableFonts } from '../../../lib/themes';
+import Link from 'next/link';
 
 // Helper to get region/district objects from code
 function getRegionAndDistrict(regions: any[], regioncode: string, districtcode: string): { region: any, district: any } {
@@ -265,16 +266,21 @@ export default function ApplicationSettings() {
 					</h2>
 					<p className="text-muted mb-0">Configure system-wide settings and preferences</p>
 				</div>
-				<Button
-					type="submit"
-					disabled={saving}
-					variant="primary"
-					className="d-flex align-items-center"
-					onClick={handleSubmit}
-				>
-					<RiSaveLine size={18} className="me-2" />
-					{saving ? "Saving Changes..." : "Save Changes"}
-				</Button>
+				<div className="d-flex gap-2">
+					<Link href="/settings/applicationsettings/discount-limits" className="btn btn-outline-secondary">
+						Discount Limits
+					</Link>
+					<Button
+						type="submit"
+						disabled={saving}
+						variant="primary"
+						className="d-flex align-items-center"
+						onClick={handleSubmit}
+					>
+						<RiSaveLine size={18} className="me-2" />
+						{saving ? "Saving Changes..." : "Save Changes"}
+					</Button>
+				</div>
 			</div>
 
 			{error && <Alert variant="danger" className="mb-4">{error}</Alert>}

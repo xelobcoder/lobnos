@@ -89,7 +89,7 @@ const YearMonthTestCasesCountPage = () => {
 		const xAxisProps = {
 			dataKey: "month",
 			angle: -45,
-			textAnchor: "end",
+			textAnchor: "end" as const,
 			height: 60,
 			interval: 0,
 			tick: { fontSize: 11, fill: COLOR_TEXT_MUTED },

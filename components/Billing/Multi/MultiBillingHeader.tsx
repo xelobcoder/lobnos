@@ -144,6 +144,11 @@ export default function MultiBillingHeader({
                     {billingdata.showPromoCode && billingdata.promoVerifySuccess === false && (
                         <span className="badge bg-danger ms-2" style={{ fontSize: '0.55em', fontWeight: 500 }}>Promo Invalid</span>
                     )}
+                    {!!billingdata?.resultDeliveryMode && (
+                        <span className="badge bg-primary ms-2 text-sm text-capitalize" style={{ fontSize: '0.55em', fontWeight: 500 }}>
+                            Results: {billingdata.resultDeliveryMode}
+                        </span>
+                    )}
                     <span className="mx-1" style={{ color: '#bbb' }}>|</span>
                     <Form.Check
                         type="checkbox"
