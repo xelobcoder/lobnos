@@ -5,6 +5,7 @@ import Link from "next/link";
 import { toast } from "react-toastify";
 import { customFetch, customPost } from "../../../../components/Auth/customFetch";
 import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
+import PrimeTable from "../../../../components/accessories/Datatables/PrimeTable";
 
 interface DiscountLimitRule {
   id?: number;
@@ -28,6 +29,13 @@ interface DiscountUsageRecord {
   surcharge_total: string;
   created_at: string;
   updated_at: string;
+}
+
+interface Employee {
+  employeeid: number;
+  username: string;
+  role: string;
+  email?: string;
 }
 
 const recommendedRoles = [
@@ -75,6 +83,10 @@ export default function DiscountLimitsPage() {
   const { applicationsettings } = useApplicationSettings();
   const employeeid = applicationsettings?.user?.employeeid;
 
+  const [employees, setEmployees] = React.useState<Employee[]>([]);
+  const [loadingEmployees, setLoadingEmployees] = React.useState(false);
+  const [interestedUserId, setInterestedUserId] = React.useState<number | "">("");
+
   const [discountRules, setDiscountRules] = React.useState<DiscountLimitRule[]>(
     []
   );
@@ -88,6 +100,18 @@ export default function DiscountLimitsPage() {
     new Date().toISOString().slice(0, 10)
   );
   const [usageRoleFilter, setUsageRoleFilter] = React.useState<string>("");
+  const [usageTableVersion, setUsageTableVersion] = React.useState(0);
+  const [showUsageFilters, setShowUsageFilters] = React.useState(false);
+
+  const employeeLabelById = React.useMemo(() => {
+    const map = new Map<number, string>();
+    employees.forEach((e) => {
+      if (e?.employeeid != null) {
+        map.set(Number(e.employeeid), String(e.username || e.employeeid));
+      }
+    });
+    return map;
+  }, [employees]);
 
   const loadDiscountRules = async () => {
     if (!employeeid) return;
@@ -114,22 +138,88 @@ export default function DiscountLimitsPage() {
     }
   };
 
+  const fetchDailyUsage = async ({
+    role,
+    date,
+    interestedUserId: interested,
+    page = 1,
+    count = 10,
+    sortby = "DESC",
+  }: {
+    role?: string;
+    date?: string;
+    interestedUserId?: number | "";
+    page?: number;
+    count?: number;
+    sortby?: string;
+  }) => {
+    if (!employeeid) return [];
+    const params = new URLSearchParams();
+    params.set("page", String(page));
+    params.set("count", String(count));
+    params.set("employeeid", String(employeeid));
+  
+    if (date) {
+      params.set("date", date);
+    }
+
+    const allSelected = !role && interested === "";
+    if (!allSelected) {
+      params.set("employeeid", String(employeeid));
+      params.set("sortby", String(sortby));
+      if (date) params.set("date", date);
+      if (role) params.set("role", role);
+      if (interested !== "") params.set("interestedUserId", String(interested));
+    }
+    const response: any = await customFetch(
+      `billing/discount-limits/daily-usage?${params.toString()}`
+    );
+    return Array.isArray(response?.usage) ? response.usage : [];
+  };
+
   const loadDailyUsage = async (role = usageRoleFilter, date = usageDate) => {
     if (!employeeid) return;
     setLoadingUsage(true);
     try {
-      const params = new URLSearchParams();
-      params.set("employeeid", String(employeeid));
-      if (date) params.set("date", date);
-      if (role) params.set("role", role);
-      const response: any = await customFetch(
-        `billing/discount-limits/daily-usage?${params.toString()}`
-      );
-      setUsageRecords(Array.isArray(response?.usage) ? response.usage : []);
-    } catch (error) {
+      const usage = await fetchDailyUsage({
+        role,
+        date,
+        interestedUserId,
+        page: 1,
+        count: 10,
+        sortby: "DESC",
+      });
+      setUsageRecords(usage);
+    } catch {
       toast.error("Failed to load discount daily usage");
     } finally {
       setLoadingUsage(false);
+    }
+  };
+
+  const handleUsageServerSideProcessing = async (params: {
+    page: number;
+    count: number;
+    sortby?: string;
+    date?: string;
+    role?: string;
+    interestedUserId?: number | "";
+  }) => {
+    try {
+      const usage = await fetchDailyUsage({
+        page: params.page,
+        count: params.count,
+        sortby: params.sortby || "DESC",
+        date: params.date ?? usageDate,
+        role: params.role ?? usageRoleFilter,
+        interestedUserId:
+          params.interestedUserId !== undefined
+            ? params.interestedUserId
+            : interestedUserId,
+      });
+      return { result: usage, error: false };
+    } catch {
+      return { result: [], error: true };
     }
   };
 
@@ -232,8 +322,70 @@ export default function DiscountLimitsPage() {
   React.useEffect(() => {
     if (!employeeid) return;
     loadDiscountRules();
-    loadDailyUsage();
   }, [employeeid]);
+
+  React.useEffect(() => {
+    const fetchEmployees = async () => {
+      if (!employeeid) return;
+      setLoadingEmployees(true);
+      try {
+        const response: any = await customFetch("logins");
+        if (response?.status === "success" && Array.isArray(response?.result)) {
+          setEmployees(response.result);
+        } else {
+          setEmployees([]);
+        }
+      } catch {
+        setEmployees([]);
+      } finally {
+        setLoadingEmployees(false);
+      }
+    };
+    fetchEmployees();
+  }, [employeeid]);
+
+  React.useEffect(() => {
+    if (!employeeid) return;
+    setUsageTableVersion((v) => v + 1);
+    loadDailyUsage();
+  }, [employeeid, usageDate, usageRoleFilter, interestedUserId]);
+
+  const usageColumns = React.useMemo(
+    () => [
+      {
+        Header: "Role",
+        accessor: "role",
+        Cell: ({ value }: { value: string }) => (
+          <span className="text-capitalize">{value}</span>
+        ),
+      },
+      {
+        Header: "Employee",
+        accessor: "employeeid",
+        Cell: ({ value }: { value: number }) => {
+          const label = employeeLabelById.get(Number(value));
+          return label ? `${label} (#${value})` : value;
+        },
+      },
+      {
+        Header: "Discount",
+        accessor: "discount_total",
+      },
+      {
+        Header: "Surcharge",
+        accessor: "surcharge_total",
+      },
+      {
+        Header: "Updated",
+        accessor: "updated_at",
+        Cell: ({ row }: any) =>
+          new Date(
+            row?.original?.updated_at || row?.original?.created_at
+          ).toLocaleString(),
+      },
+    ],
+    [employeeLabelById]
+  );
 
   return (
     <div className="container-fluid p-4">
@@ -257,6 +409,7 @@ export default function DiscountLimitsPage() {
             onClick={() => {
               loadDiscountRules();
               loadDailyUsage();
+              setUsageTableVersion((v) => v + 1);
             }}
             disabled={loadingRules || loadingUsage}
           >
@@ -274,7 +427,7 @@ export default function DiscountLimitsPage() {
       </div>
 
       <div className="row g-4">
-        <div className="col-12 col-xl-7">
+        <div className="col-12">
           <div className="card">
             <div className="card-body">
               <div className="d-flex justify-content-between align-items-center mb-3">
@@ -448,88 +601,98 @@ export default function DiscountLimitsPage() {
           </div>
         </div>
 
-        <div className="col-12 col-xl-5">
+        <div className="col-12">
           <div className="card">
             <div className="card-body">
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <h5 className="mb-0">Daily Usage</h5>
-                {loadingUsage ? <span className="text-muted">Loading...</span> : null}
-              </div>
-
-              <div className="row g-2 mb-3">
-                <div className="col-sm-6">
-                  <label className="form-label small text-muted">Date</label>
-                  <input
-                    type="date"
-                    className="form-control"
-                    value={usageDate}
-                    onChange={(e) => setUsageDate(e.target.value)}
-                  />
-                </div>
-                <div className="col-sm-6">
-                  <label className="form-label small text-muted">Role</label>
-                  <select
-                    className="form-select"
-                    value={usageRoleFilter}
-                    onChange={(e) => setUsageRoleFilter(e.target.value)}
-                  >
-                    <option value="">All roles</option>
-                    {recommendedRoles.map((role) => (
-                      <option key={role} value={role}>
-                        {role}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="col-12">
+                <div className="d-flex align-items-center gap-2">
+                  {loadingUsage ? <span className="text-muted">Loading...</span> : null}
                   <button
                     type="button"
-                    className="btn btn-outline-primary"
-                    onClick={() => loadDailyUsage()}
+                    className="btn btn-outline-secondary btn-sm"
+                    onClick={() => setShowUsageFilters((v) => !v)}
                   >
-                    Load Usage
+                    {showUsageFilters ? "Hide Filters" : "Show Filters"}
                   </button>
                 </div>
               </div>
 
-              <div className="table-responsive">
-                <table className="table table-sm align-middle">
-                  <thead className="table-light">
-                    <tr>
-                      <th>Role</th>
-                      <th>Employee</th>
-                      <th>Discount</th>
-                      <th>Surcharge</th>
-                      <th>Updated</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {usageRecords.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="text-muted text-center py-4">
-                          {loadingUsage
-                            ? "Loading usage..."
-                            : "No usage records found for the selected filters."}
-                        </td>
-                      </tr>
-                    ) : (
-                      usageRecords.map((item) => (
-                        <tr key={item.id}>
-                          <td className="text-capitalize">{item.role}</td>
-                          <td>{item.employeeid}</td>
-                          <td>{item.discount_total}</td>
-                          <td>{item.surcharge_total}</td>
-                          <td>
-                            {new Date(
-                              item.updated_at || item.created_at
-                            ).toLocaleString()}
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+              {showUsageFilters ? (
+                <div className="border rounded p-3 mb-3 bg-body-tertiary">
+                  <div className="row g-2 align-items-end">
+                    <div className="col-sm-4">
+                      <label className="form-label small text-muted">Date</label>
+                      <input
+                        type="date"
+                        className="form-control"
+                        value={usageDate}
+                        onChange={(e) => setUsageDate(e.target.value)}
+                      />
+                    </div>
+                    <div className="col-sm-4">
+                      <label className="form-label small text-muted">Role</label>
+                      <select
+                        className="form-select"
+                        value={usageRoleFilter}
+                        onChange={(e) => setUsageRoleFilter(e.target.value)}
+                      >
+                        <option value="">All roles</option>
+                        {recommendedRoles.map((role) => (
+                          <option key={role} value={role}>
+                            {role}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="col-sm-4">
+                      <label className="form-label small text-muted">
+                        User {loadingEmployees ? "(loading...)" : ""}
+                      </label>
+                      <select
+                        className="form-select"
+                        value={interestedUserId === "" ? "" : String(interestedUserId)}
+                        onChange={(e) => {
+                          const next = e.target.value;
+                          setInterestedUserId(next ? Number(next) : "");
+                        }}
+                      >
+                        <option value="">All users</option>
+                        {employees.map((u) => (
+                          <option key={u.employeeid} value={String(u.employeeid)}>
+                            {u.username} (#{u.employeeid})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="col-12 d-flex justify-content-end">
+                      <button
+                        type="button"
+                        className="btn btn-outline-primary"
+                        onClick={() => {
+                          setUsageTableVersion((v) => v + 1);
+                          loadDailyUsage();
+                        }}
+                      >
+                        Load Usage
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+
+              <PrimeTable
+                key={`${employeeid || "na"}-${usageDate || "na"}-${usageRoleFilter || "all"}-${interestedUserId || "all"}-${usageTableVersion}`}
+                column={usageColumns}
+                data={usageRecords}
+                handleSeverSideProcessing={handleUsageServerSideProcessing}
+                serverSideFiltering={true}
+                urlparams={{
+                  date: usageDate,
+                  role: usageRoleFilter,
+                  interestedUserId,
+                }}
+              />
             </div>
           </div>
         </div>

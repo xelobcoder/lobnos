@@ -339,6 +339,7 @@ export default function ClientVisit() {
                                                   {selectedItem && (
                                                        <div className="text-muted" style={{ fontSize: '0.85rem' }}>
                                                             Ascension: {selectedItem.ascension_id}
+
                                                        </div>
                                                   )}
                                              </div>

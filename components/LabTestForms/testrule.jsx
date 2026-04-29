@@ -29,6 +29,8 @@ export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
 	const isPinShared = Boolean(globalPin);
 	const effectivePin = isPinShared ? globalPin : pin;
 	const [showValidationModal, setShowValidationModal] = useState(false);
+	const [resultDeliveryPreference,setResultEntryPreference] = useState({  requested_mode: "HardCopy",requested_mode_detail: "",
+        updated_by_employeeid: null})
 
 
 
@@ -43,7 +45,7 @@ export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
 				const [resultResponse, commentsResponse] = await getResultEntryDataServerSide({ testid, billingid, patientid, ascensionid, employeeid })
 
 				function updatesResultForm(data) {
-					const { testname, result, hasDrugs } = data;
+					const { testname, result, hasDrugs ,resultDeliveryPreference} = data;
 					if (result && Array.isArray(result)) {
 						setRule(result);
 						if (result.length === 0) return;
@@ -52,6 +54,7 @@ export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
 					}
 					testname && setTestname(testname);
 					setHasDrugs(hasDrugs);
+					resultDeliveryPreference && setResultEntryPreference(resultDeliveryPreference)
 				}
 
 				function updatesCommentsForm(data) {
@@ -237,6 +240,12 @@ export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
 					</div>
 				</div>
 				<div className="card-body p-0" style={{ padding: 0 }}>
+					<div  className="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2 px-4 pt-4 px-2">
+						<span className="alert alert-warning-subtle text-sm border border-2 border-warning p-2 px-3 rounded-3 border mb-2 mb-sm-0 mt-2" style={{ minWidth: 220 }}> 
+							Result Delivery Preference: {resultDeliveryPreference.requested_mode || "Printed Hardcopy"}
+							({resultDeliveryPreference.requested_mode_detail || ""})
+						</span>
+				</div>
 					<div className="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2 mb-3 px-4 pt-4 px-2">
 						<span className="bg-body-tertiary p-2 px-3 rounded-3 border mb-2 mb-sm-0" style={{ minWidth: 220 }}>{resultEntryStart ? `Result Entry Started At: ${moment(resultEntryStart).format('LLLL')}` : null}</span>
 						<span className="bg-body-tertiary p-2 px-3 rounded-3 border" style={{ minWidth: 220 }}>{resultEntryEnd ? `Result Concluded on: ${moment(resultEntryEnd).format('LLLL')}` : null}</span>
