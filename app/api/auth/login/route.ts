@@ -4,7 +4,9 @@ import { SignJWT, jwtVerify } from 'jose';
 
 export async function POST(request: NextRequest) {
     try {
-        const { status, accessToken, user, email,settings } = await request.json();
+        const response = await request.json();
+        const { status, accessToken, user, email, settings, sessionExpiryTime,
+            loginsessionId } = response
 
         if (!status || !accessToken || !user) {
             return NextResponse.json({ error: 'Invalid authentication data' }, { status: 400 });
@@ -24,22 +26,35 @@ export async function POST(request: NextRequest) {
             .sign(secret);
 
         const { payload } = await jwtVerify(signedToken, secret);
-
+        const maxAge = Math.floor((sessionExpiryTime - Date.now()) / 1000);
         // Set cookies
         cookies().set('PLS-SESSION', signedToken, {
             httpOnly: true,
             secure: false,
             sameSite: 'lax',
             path: '/',
-            maxAge: payload.exp ? payload.exp - Math.floor(Date.now() / 1000) : 3600
+            maxAge
         });
+
 
         cookies().set('pls-prime-tenant-session', accessToken, {
             httpOnly: true,
             secure: false,
             sameSite: 'lax',
             path: '/',
+            maxAge
         });
+
+
+        cookies().set("loginsessionId", loginsessionId, {
+            httpOnly: true,
+            secure: false,
+            sameSite: 'lax',
+            path: '/',
+            maxAge
+        })
+
+        console.log(response, 'Reponse')
 
         const allowedRoles = ["storekeeper", "sonographer", "scientist", "manager", "admin", "customer service representative"];
         const userRole = user?.role?.toLowerCase();

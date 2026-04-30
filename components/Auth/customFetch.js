@@ -63,13 +63,21 @@ export async function  customFetch(endpoint,isLogin=false) {
 				"Content-Type": "application/json",
 				"cache": "no-cache,must-revalidate,no-store,max-age=60,s-maxage=0",
 				"pls-prime-tenant-session": PLS_PRIME_TENANT_SESSION ? PLS_PRIME_TENANT_SESSION : null,
-				"pls-session": PLS_SESSION ? PLS_SESSION : null
+				"pls-session": PLS_SESSION ? PLS_SESSION : null,
+				"loginsessionId": context?.loginsessionId ? context.loginsessionId : null
 			},
 			cache: "no-cache",
 			credentials: "include",
 		});
 
 		const source = await response.json();
+
+		// if (typeof source === "object" && source['isExpired'] && source['isExpired'] === true) {
+		// 	handleLogout();
+		// 	return { error: "Session expired" };
+		// }
+
+		console.log("source", source)
 
 		const { status, message, statusCode } = source;
 		if ((status == 401 || statusCode == 401 || statusCode == 500) && (message.toLowerCase() == "Unauthorized".toLowerCase() || message.toLowerCase() == "Token not Provided".toLowerCase() || message.toLowerCase() == "Token Expired".toLowerCase())) {

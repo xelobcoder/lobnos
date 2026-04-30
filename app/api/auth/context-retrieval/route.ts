@@ -40,9 +40,9 @@ export async function GET(request: NextRequest) {
                credentials: 'include',
           });
 
-          const data = await response.json();
-
+          const data = await response.json()
           const { message, statusCode, status } = data;
+          console.log(data);
           if (status != true) {
                return new Response(
                     JSON.stringify({ error: message, redirect: '/authentications/login' }),
@@ -52,6 +52,8 @@ export async function GET(request: NextRequest) {
                     }
                );
           }
+
+
           return new Response(JSON.stringify(data), {
                status: 200,
                headers: { 'Content-Type': 'application/json' },

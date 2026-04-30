@@ -6,6 +6,7 @@ export async function POST(request: NextRequest) {
         // Clear the session cookies
         cookies().delete('PLS-SESSION');
         cookies().delete('pls-prime-tenant-session');
+        cookies().delete('loginsessionId');
 
         return NextResponse.json({ 
             status: true,
