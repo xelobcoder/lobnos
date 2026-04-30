@@ -155,6 +155,7 @@ export interface MultiBillingData {
     promoVerifyLoading?: boolean;
     billingIdVerified?: boolean;
     resultDeliveryMode?: string;
+    result_delivery: any;
     resultDeliveryDetail?: string;
 }
 
@@ -166,6 +167,7 @@ export const defaultMultiBillingData: MultiBillingData = {
     promoId: null,
     totaldiscount: 0,
     isAdjustment: 0,
+    result_delivery: null,
     adjustmentType: 'addition',
     outstanding: 0,
     adjustmentReason: '',

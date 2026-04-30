@@ -7,6 +7,7 @@ import PreviewPatientInformation from '../../../../../../components/petientsComp
 import { customFetch } from '../../../../../../components/Auth/customFetch'
 import { useApplicationSettings } from '../../../../../../components/Auth/useApplicationContext'
 import ResultEntryComponent from '../../../../../../components/operations/ViewTwoResultEntry/ResultEntryComponent'
+import { RiCheckLine, RiInformationLine, RiMailLine, RiPhoneLine, RiPrinterLine, RiRefreshLine, RiTruckLine, RiWhatsappLine, RiFileTextLine } from '@remixicon/react';
 import {
      BulkResultValidationWorkflowModal,
      SingleTestCollectionWorkflowModal,
@@ -14,6 +15,7 @@ import {
      SingleTestResultValidationWorkflowModal,
      SingleTestSampleValidationWorkflowModal
 } from '../../../../../../components/operations/Laboratory/SingleTestWorkflowModals'
+import SingleWorkFlowResultDeliveryModal from '../../../../../../components/operations/Laboratory/singleWorkFlowDeliveryResult';
 
 // Formats a date string as "10th May, 2026 [Sat] @10:00 PM"
 function formatFullDate(dateString?: string) {
@@ -54,6 +56,9 @@ interface TestAscension {
      processingEndDate?: string;
      resultEntryStart?: string;
      resultEntryEnd?: string;
+     delivered_mode: string | null;
+     requested_mode: string | null;
+     delivery_notes: string | null;
      collected_by_name?: string;
      processed_by_name?: string;
      result_entered_by_name?: string;
@@ -95,7 +100,7 @@ export default function ClientVisit() {
      const [selectedAscensionId, setSelectedAscensionId] = useState<number | null>(null);
      const [testFilter, setTestFilter] = useState('');
      const [entryTokensByAscensionId, setEntryTokensByAscensionId] = useState<Record<number, { csvid: string; ptid: string }>>({});
-     const [workflow, setWorkflow] = useState<null | 'collection' | 'sampleValidation' | 'processing' | 'resultValidation' | 'bulkResultValidation'>(null);
+     const [workflow, setWorkflow] = useState<null | 'collection' | 'sampleValidation' | 'processing' | 'resultDelivery' | 'resultValidation' | 'bulkResultValidation'>(null);
 
      const allResultsCompleted =
           Array.isArray(testAscensions) &&
@@ -228,49 +233,93 @@ export default function ClientVisit() {
           return 'visitTimelineDotPending';
      };
 
+     const formatDeliveryModeLabel = (mode: any) => {
+          const v = (mode ?? '').toString().trim();
+          if (!v) return null;
+          return v;
+     };
+
+     const DeliveryModeIcon = ({ mode }: { mode: any }) => {
+          const normalized = (mode ?? '').toString().trim().toLowerCase();
+          if (normalized.includes('whatsapp')) return <RiWhatsappLine size={16} />;
+          if (normalized.includes('email')) return <RiMailLine size={16} />;
+          if (normalized.includes('phone')) return <RiPhoneLine size={16} />;
+          if (normalized.includes('hard')) return <RiFileTextLine size={16} />;
+          return <RiInformationLine size={16} />;
+     };
+
      return (
           <div>
                <PreviewPatientInformation patientid={patientid} compact />
 
                <div className="mt-4">
                     {billingid ? (
-                         <div className="row mb-3 g-2 align-items-center">
-                              <div className="col-auto">
-                                   <button
-                                        className="btn btn-sm btn-outline-primary w-100"
-                                        disabled={!patientid || testAscensions.length === 0}
-                                        onClick={handlePrintAllResults}
-                                   >
-                                        Print all results
-                                   </button>
-                              </div>
-                              {allResultsCompleted && (
-                                   <div className="col-auto">
+                         <div className="card border-0 shadow-sm mb-3">
+                              <div className="card-body py-2">
+                                   <div className="d-flex flex-wrap align-items-center gap-2 justify-content-between">
+                                        <div className="d-flex flex-wrap align-items-center gap-2">
+                                             <button
+                                                  className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
+                                                  disabled={!patientid || testAscensions.length === 0}
+                                                  onClick={handlePrintAllResults}
+                                                  title="Print all results for this billing"
+                                             >
+                                                  <RiPrinterLine size={16} />
+                                                  <span>Print all results</span>
+                                             </button>
+                                             {allResultsCompleted && (
+                                                  <button
+                                                       className="btn btn-sm btn-success d-inline-flex align-items-center gap-1"
+                                                       onClick={() => setWorkflow('bulkResultValidation')}
+                                                       title="Validate all entered results"
+                                                  >
+                                                       <RiCheckLine size={16} />
+                                                       <span>Validate all</span>
+                                                  </button>
+                                             )}
+                                             {allResultsValidated && validatedAscensionIds ? (
+                                                  <button
+                                                       className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
+                                                       onClick={() => window.open(`/operations/laboratory/validated?ascensionid=${validatedAscensionIds}&isOpenSideBarShow=false`, '_blank', 'noopener,noreferrer')}
+                                                       title="Print validated results"
+                                                  >
+                                                       <RiPrinterLine size={16} />
+                                                       <span>Print validated</span>
+                                                  </button>
+                                             ) : null}
+                                        </div>
                                         <button
-                                             className="btn btn-sm btn-outline-success w-100"
-                                             onClick={() => setWorkflow('bulkResultValidation')}
+                                             className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1"
+                                             onClick={loadTestTransactions}
+                                             title="Refresh test transactions"
                                         >
-                                             Validate all results
+                                             <RiRefreshLine size={16} />
+                                             <span>Refresh</span>
                                         </button>
                                    </div>
-                              )}
-                              {allResultsValidated && validatedAscensionIds ? (
-                                   <div className="col-auto">
-                                        <button
-                                             className="btn btn-sm btn-outline-primary w-100"
-                                             onClick={() => window.open(`/operations/laboratory/validated?ascensionid=${validatedAscensionIds}&isOpenSideBarShow=false`, '_blank', 'noopener,noreferrer')}
-                                        >
-                                             Print validated results
-                                        </button>
+
+                                   <div className="mt-2 d-flex flex-wrap align-items-center gap-2 small">
+                                        <span className="text-muted d-inline-flex align-items-center gap-1">
+                                             <RiTruckLine size={16} />
+                                             <span>Result delivery</span>
+                                        </span>
+                                        {!selectedItem ? (
+                                             <span className="text-muted">Select a test to view delivery status.</span>
+                                        ) : (
+                                             <>
+                                                  <span className="badge text-bg-light border d-inline-flex align-items-center gap-1">
+                                                       <DeliveryModeIcon mode={selectedItem.requested_mode} />
+                                                       <span>Requested:</span>
+                                                       <span className="fw-semibold">{formatDeliveryModeLabel(selectedItem.requested_mode) || 'Not set'}</span>
+                                                  </span>
+                                                  <span className="badge text-bg-light border d-inline-flex align-items-center gap-1">
+                                                       <DeliveryModeIcon mode={selectedItem.delivered_mode} />
+                                                       <span>Delivered:</span>
+                                                       <span className="fw-semibold">{formatDeliveryModeLabel(selectedItem.delivered_mode) || 'Not delivered'}</span>
+                                                  </span>
+                                             </>
+                                        )}
                                    </div>
-                              ) : null}
-                              <div className="col-auto">
-                                   <button
-                                        className="btn btn-sm btn-outline-secondary w-100"
-                                        onClick={loadTestTransactions}
-                                   >
-                                        Refresh
-                                   </button>
                               </div>
                          </div>
                     ) : null}
@@ -305,6 +354,9 @@ export default function ClientVisit() {
                                                             const isValidated = item.isapproved === 1 || (item.result_validation_stage || '').toLowerCase().includes('validated') || (item.result_validation_stage || '').toLowerCase().includes('approved');
                                                             const isLocked = !item.samplevalidatedon || !item.processingEndDate;
                                                             const badgeClass = isValidated ? 'bg-success' : isCompleted ? 'bg-primary' : item.samplevalidatedon ? 'bg-warning text-dark' : 'bg-secondary';
+                                                            const requestedMode = item.requested_mode;
+                                                            const deliveredMode = item.delivered_mode;
+                                                            const deliveryNotes = item.delivery_notes;
                                                             return (
                                                                  <button
                                                                       key={item.ascension_id}
@@ -326,6 +378,7 @@ export default function ClientVisit() {
                                                                       <span className={`badge ${badgeClass}`} style={{ height: 'fit-content' }}>
                                                                            {isValidated ? 'Validated' : isCompleted ? 'Entered' : item.samplevalidatedon ? 'In Lab' : 'Pending'}
                                                                       </span>
+
                                                                  </button>
                                                             );
                                                        })}
@@ -439,6 +492,7 @@ export default function ClientVisit() {
                                                                                 extra: selectedItem.lastupdatedon ? `Last Updated: ${formatFullDate(selectedItem.lastupdatedon)}` : null,
                                                                                 status: selectedItem.isapproved === 1 ? 'done' : (selectedItem.resultEntryEnd ? 'current' : 'blocked'),
                                                                            },
+
                                                                       ] as Array<{ label: string; when: string; extra?: string | null; status: 'done' | 'current' | 'blocked' | 'pending' }>;
 
                                                                       return steps.map((s) => (
@@ -508,6 +562,21 @@ export default function ClientVisit() {
                                                                            Result Validated
                                                                       </button>
                                                                  )}
+
+                                                                 {
+                                                                      selectedItem.isapproved == 1 ? (
+                                                                           <button
+                                                                                className="btn btn-sm btn-outline-primary"
+                                                                                onClick={() => setWorkflow('resultDelivery')}
+                                                                           >
+                                                                                Record Result Delivery
+                                                                           </button>
+                                                                      ) : (
+                                                                           <button className="btn btn-sm btn-outline-secondary" disabled>
+                                                                                Record Result Delivery
+                                                                           </button>
+                                                                      )
+                                                                 }
                                                             </div>
                                                        </>
                                                   )}
@@ -581,6 +650,16 @@ export default function ClientVisit() {
                                    resultEntryEnd: selectedItem.resultEntryEnd,
                                    isapproved: selectedItem.isapproved,
                               }}
+                         />
+
+                         <SingleWorkFlowResultDeliveryModal
+                              item={selectedItem}
+                              employeeid={employeeid}
+                              workflow={'resultDelivery'}
+                              show={workflow === 'resultDelivery'}
+                              onHide={() => { setWorkflow(null); loadTestTransactions(); }}
+                              onSuccess={loadTestTransactions}
+
                          />
                          <BulkResultValidationWorkflowModal
                               show={workflow === 'bulkResultValidation'}

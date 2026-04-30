@@ -403,6 +403,15 @@ function MultiBillingLayoutContent() {
     const [deliveryDetail, setDeliveryDetail] = useState<string>('');
     const [pendingSubmit, setPendingSubmit] = useState<null | { billingdata: MultiBillingData; writeOffConfirmed: boolean }>(null);
 
+    // Per-test delivery preferences
+    const [testDeliveryPreferences, setTestDeliveryPreferences] = useState<Array<{
+        testid?: string | number;
+        testname?: string;
+        deliveryMode: string;
+        deliveryDetail: string;
+    }>>([]);
+    const [usePerTestDelivery, setUsePerTestDelivery] = useState(false);
+
     const handleModalClose = () => {
         setShowChoiceModal(false);
         setBillingData(prev => ({
@@ -473,6 +482,7 @@ function MultiBillingLayoutContent() {
                 clinicianId: billingdata.clinicianId || null,
                 organizationId: billingdata.organizationId || null,
                 nhismembershipid: billingdata.nhismembershipid || null,
+                result_delivery: billingdata.result_delivery || null,
             } as any;
 
             const response = await MultiValidateAndSubmitBillingInformation(
@@ -485,10 +495,10 @@ function MultiBillingLayoutContent() {
             if (status == true || status === 'success') {
                 if (typeof window !== 'undefined') {
                     setGeneratedBillingid(response.billingid || response.data?.billingid);
-                    setTimeout(() => {
-                        router.push(`/crm/customers`)
-                        window.open(`/billing/cash-collection/pos-receipt-test?billingid=${response.billingid || response.data?.billingid}&is_pos=true`);
-                    }, 1000);
+                    // setTimeout(() => {
+                    //     router.push(`/crm/customers`)
+                    //     window.open(`/billing/cash-collection/pos-receipt-test?billingid=${response.billingid || response.data?.billingid}&is_pos=true`);
+                    // }, 1000);
                 }
             }
             if (status == false) {
@@ -518,6 +528,18 @@ function MultiBillingLayoutContent() {
             return toast.error('Adjustment reason is required for correction adjustments');
         }
 
+        // Initialize test delivery preferences
+        const tests = billingdata.cart || [];
+        if (tests.length > 0) {
+            const prefs = tests.map((test: any) => ({
+                testid: test.testid,
+                testname: test.testname || test.name || 'Test',
+                deliveryMode: 'whatsapp',
+                deliveryDetail: '',
+            }));
+            setTestDeliveryPreferences(prefs);
+        }
+
         setPendingSubmit({ billingdata, writeOffConfirmed });
         setShowDeliveryModal(true);
     };
@@ -532,36 +554,90 @@ function MultiBillingLayoutContent() {
         setSavingDeliveryPreference(true);
         try {
             const { billingdata, writeOffConfirmed } = pendingSubmit;
-            const submitResponse: any = await submitBillingInternal(billingdata, writeOffConfirmed);
+            const resolvedBillingId =
+                billingdata?.billingid ? Number(billingdata.billingid) : (billingid ? Number(billingid) : undefined);
+
+            // Prepare delivery preferences based on mode
+            let preferencesPayload: any = [];
+            if (usePerTestDelivery && testDeliveryPreferences.length > 0) {
+                preferencesPayload = testDeliveryPreferences.map(pref => ({
+                    ...(resolvedBillingId ? { billingid: resolvedBillingId } : {}),
+                    testid: pref.testid,
+                    testname: pref.testname,
+                    requested_mode: pref.deliveryMode,
+                    requested_mode_detail: pref.deliveryDetail,
+                    employeeid,
+                }));
+            } else {
+                // Global delivery preference
+                const tests = billingdata.cart || [];
+                preferencesPayload = tests.map((test: any) => ({
+                    ...(resolvedBillingId ? { billingid: resolvedBillingId } : {}),
+                    testid: test.testid,
+                    testname: test.testname || test.name || 'Test',
+                    requested_mode: deliveryMode,
+                    requested_mode_detail: deliveryDetail,
+                    employeeid,
+                }));
+            }
+
+            const resultDeliveryPayload = {
+                ...(resolvedBillingId ? { billingid: resolvedBillingId } : {}),
+                preferences: preferencesPayload,
+                employeeid,
+            };
+
+            const submitResponse: any = await submitBillingInternal(
+                { ...billingdata, result_delivery: resultDeliveryPayload },
+                writeOffConfirmed
+            );
             const submittedBillingId = submitResponse?.billingid || submitResponse?.data?.billingid;
             if (!submittedBillingId) {
                 toast.error(submitResponse?.message || 'Billing submission failed');
                 return;
             }
-            const payload = {
+
+            const payloadWithBillingId = {
+                ...resultDeliveryPayload,
                 billingid: Number(submittedBillingId),
-                requested_mode: deliveryMode,
-                requested_mode_detail: deliveryDetail,
-                employeeid,
+                preferences: Array.isArray(resultDeliveryPayload.preferences)
+                    ? resultDeliveryPayload.preferences.map((p: any) => ({
+                        ...p,
+                        billingid: Number(submittedBillingId),
+                    }))
+                    : resultDeliveryPayload.preferences,
             };
-            const response: any = await customPost('result/delivery/preference', 'POST', payload);
-            if (response?.status === true || response?.success === true) {
-                setBillingData(prev => ({
-                    ...prev,
-                    resultDeliveryMode: deliveryMode,
-                    resultDeliveryDetail: deliveryDetail,
-                    resultDeliverySavedAt: new Date().toISOString(),
-                }));
-                setShowDeliveryModal(false);
-                setPendingSubmit(null);
-            } else {
-                toast.error(response?.message || 'Failed to save delivery preference');
-            }
+
+            setBillingData(prev => ({
+                ...prev,
+                result_delivery: payloadWithBillingId
+            }));
+            setShowDeliveryModal(false);
+            setPendingSubmit(null);
         } catch (err) {
             toast.error('Failed to save delivery preference');
         } finally {
             setSavingDeliveryPreference(false);
         }
+    };
+
+    const handleBulkDeliveryModeChange = (mode: string) => {
+        setTestDeliveryPreferences(prefs =>
+            prefs.map(pref => ({
+                ...pref,
+                deliveryMode: mode,
+            }))
+        );
+    };
+
+    const handleTestDeliveryPreferenceChange = (testid: string | number | undefined, field: 'deliveryMode' | 'deliveryDetail', value: string) => {
+        setTestDeliveryPreferences(prefs =>
+            prefs.map(pref =>
+                pref.testid === testid
+                    ? { ...pref, [field]: value }
+                    : pref
+            )
+        );
     };
 
     const loadDeliveryDefaults = async (billingIdToLoad: string | number | null | undefined) => {
@@ -782,42 +858,166 @@ function MultiBillingLayoutContent() {
                 }}
                 backdrop="static"
                 centered
+                size="lg"
             >
                 <Modal.Header closeButton>
-                    <Modal.Title>Result Delivery Mode</Modal.Title>
+                    <Modal.Title className="fs-5 fw-semibold text-body-emphasis">Result Delivery Preferences</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <div className="text-muted mb-3">
-                        Select how the patient wants to receive the result for this transaction.
+                    <div className="text-muted mb-4 small">
+                        Configure how results and delivery preferences will be handled for this transaction.
                     </div>
-                {loadingDeliveryDefaults ? (
-                    <div className="text-muted mb-3" style={{ fontSize: '0.9rem' }}>
-                        Loading last saved delivery preference...
+
+                    {/* Delivery Mode Toggle */}
+                    <div className="mb-4">
+                        <label className="form-label fw-semibold text-body-emphasis">Delivery Configuration</label>
+                        <div className="btn-group w-100" role="group">
+                            <input
+                                type="radio"
+                                className="btn-check"
+                                name="deliveryMode"
+                                id="globalDelivery"
+                                checked={!usePerTestDelivery}
+                                onChange={() => setUsePerTestDelivery(false)}
+                            />
+                            <label className="btn btn-outline-primary" htmlFor="globalDelivery">
+                                Global Delivery Mode
+                            </label>
+
+                            <input
+                                type="radio"
+                                className="btn-check"
+                                name="deliveryMode"
+                                id="perTestDelivery"
+                                checked={usePerTestDelivery}
+                                onChange={() => setUsePerTestDelivery(true)}
+                            />
+                            <label className="btn btn-outline-primary" htmlFor="perTestDelivery">
+                                Per-Test Configuration
+                            </label>
+                        </div>
                     </div>
-                ) : null}
-                    <div className="mb-3">
-                        <label className="form-label">Mode of delivery</label>
-                        <select
-                            className="form-select"
-                            value={deliveryMode}
-                            onChange={(e) => setDeliveryMode(e.target.value)}
-                        >
-                            <option value="whatsapp">WhatsApp</option>
-                            <option value="email">Email</option>
-                            <option value="hard copy">Hard copy</option>
-                            <option value="phone call">Phone call</option>
-                        </select>
-                    </div>
-                    <div className="mb-0">
-                        <label className="form-label">Detail / instruction (optional)</label>
-                        <textarea
-                            className="form-control"
-                            rows={3}
-                            value={deliveryDetail}
-                            onChange={(e) => setDeliveryDetail(e.target.value)}
-                            placeholder="Example: Send to main number, call before delivery, email to patient"
-                        />
-                    </div>
+
+                    {/* Global Delivery Mode */}
+                    {!usePerTestDelivery && (
+                        <div className="card mb-4">
+                            <div className="card-body">
+                                <h6 className="card-title mb-3 fw-semibold text-body-emphasis">Global Settings</h6>
+                                <div className="mb-3">
+                                    <label className="form-label fw-medium text-body">Mode of Delivery</label>
+                                    <select
+                                        className="form-select"
+                                        value={deliveryMode}
+                                        onChange={(e) => setDeliveryMode(e.target.value)}
+                                    >
+                                        <option value="whatsapp">WhatsApp</option>
+                                        <option value="email">Email</option>
+                                        <option value="hard copy">Hard copy</option>
+                                        <option value="phone call">Phone call</option>
+                                    </select>
+                                </div>
+                                <div className="mb-0">
+                                    <label className="form-label fw-medium text-body">Detail / Instruction (optional)</label>
+                                    <textarea
+                                        className="form-control"
+                                        rows={2}
+                                        value={deliveryDetail}
+                                        onChange={(e) => setDeliveryDetail(e.target.value)}
+                                        placeholder="Example: Send to main number, call before delivery"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Per-Test Configuration */}
+                    {usePerTestDelivery && testDeliveryPreferences.length > 0 && (
+                        <div className="card mb-4">
+                            <div className="card-body">
+                                <h6 className="card-title mb-3 fw-semibold text-body-emphasis">Per-Test Configuration</h6>
+
+                                {/* Bulk Actions */}
+                                <div className="mb-3 p-2 bg-light rounded">
+                                    <label className="form-label form-label-sm fw-medium text-body">Apply Delivery Mode to All Tests</label>
+                                    <select
+                                        className="form-select form-select-sm"
+                                        onChange={(e) => {
+                                            if (e.target.value) {
+                                                handleBulkDeliveryModeChange(e.target.value);
+                                                e.target.value = '';
+                                            }
+                                        }}
+                                        defaultValue=""
+                                    >
+                                        <option value="">Select mode...</option>
+                                        <option value="whatsapp">WhatsApp</option>
+                                        <option value="email">Email</option>
+                                        <option value="hard copy">Hard copy</option>
+                                        <option value="phone call">Phone call</option>
+                                    </select>
+                                </div>
+
+                                {/* Test Table */}
+                                <div className="table-responsive">
+                                    <table className="table table-sm table-hover">
+                                        <thead className="table-light">
+                                            <tr>
+                                                <th className="fw-semibold text-body-emphasis">Test Name</th>
+                                                <th className="fw-semibold text-body-emphasis">Delivery Mode</th>
+                                                <th className="fw-semibold text-body-emphasis">Notes</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {testDeliveryPreferences.map((pref, idx) => (
+                                                <tr key={idx}>
+                                                    <td className="align-middle">{pref.testname}</td>
+                                                    <td className="align-middle">
+                                                        <select
+                                                            className="form-select form-select-sm"
+                                                            value={pref.deliveryMode}
+                                                            onChange={(e) =>
+                                                                handleTestDeliveryPreferenceChange(
+                                                                    pref.testid,
+                                                                    'deliveryMode',
+                                                                    e.target.value
+                                                                )
+                                                            }
+                                                        >
+                                                            <option value="whatsapp">WhatsApp</option>
+                                                            <option value="email">Email</option>
+                                                            <option value="hard copy">Hard copy</option>
+                                                            <option value="phone call">Phone call</option>
+                                                        </select>
+                                                    </td>
+                                                    <td className="align-middle">
+                                                        <input
+                                                            type="text"
+                                                            className="form-control form-control-sm"
+                                                            placeholder="Add notes..."
+                                                            value={pref.deliveryDetail}
+                                                            onChange={(e) =>
+                                                                handleTestDeliveryPreferenceChange(
+                                                                    pref.testid,
+                                                                    'deliveryDetail',
+                                                                    e.target.value
+                                                                )
+                                                            }
+                                                        />
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {loadingDeliveryDefaults && (
+                        <div className="alert alert-info mb-3 small text-body">
+                            Loading last saved delivery preference...
+                        </div>
+                    )}
                 </Modal.Body>
                 <Modal.Footer>
                     <Button
@@ -827,6 +1027,7 @@ function MultiBillingLayoutContent() {
                             setShowDeliveryModal(false);
                             setPendingSubmit(null);
                         }}
+                        className="fw-medium"
                     >
                         Cancel
                     </Button>
@@ -834,8 +1035,23 @@ function MultiBillingLayoutContent() {
                         variant="primary"
                         onClick={saveDeliveryPreferenceAndContinue}
                         disabled={savingDeliveryPreference}
+                        className="fw-medium"
                     >
-                        {savingDeliveryPreference ? 'Saving...' : 'Submit And Save'}
+                        {savingDeliveryPreference ? (
+                            <>
+                                <Spinner
+                                    as="span"
+                                    animation="border"
+                                    size="sm"
+                                    role="status"
+                                    aria-hidden="true"
+                                    className="me-2"
+                                />
+                                Saving...
+                            </>
+                        ) : (
+                            'Submit & Save'
+                        )}
                     </Button>
                 </Modal.Footer>
             </Modal>

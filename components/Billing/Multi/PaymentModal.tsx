@@ -1081,6 +1081,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                               Skip Payment
                          </Button>
                          <Button
+                         size="sm"
+                         variant="outline-info"
+                         >
+                              Result Delivery Configutation
+                         </Button>
+                         <Button
                               variant="primary"
                               size="sm"
                               disabled={

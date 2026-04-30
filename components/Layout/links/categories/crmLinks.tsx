@@ -13,7 +13,8 @@ import {
     RiMoonLine,
     RiScales2Fill,
     RiCalendarEventFill,
-    RiStoreLine
+    RiStoreLine,
+    RiFileListLine
 } from '@remixicon/react';
 
 export const CrmLinks: Link[] = [
@@ -56,6 +57,11 @@ export const CrmLinks: Link[] = [
                 title: "Birthday Wishes",
                 link: "/crm/birthdays/wishes",
                 icon: <RiCustomerService2Line />
+            },
+            {
+                title: "Validated Results",
+                link: "/crm/validated",
+                icon: <RiFileListLine />
             }
         ]
     },

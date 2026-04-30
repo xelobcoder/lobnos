@@ -818,20 +818,6 @@ export const organizationPaymentDefault = {
 	momoname: "",
 }
 
-// export const handleLogout = async function (employeeid) {
-// 	try {
-// 		if (!employeeid) return;
-// 		const response = await customFetch(`security/user/logout?employeeid=${employeeid}`);
-// 		Cookies.remove('X-AUTH-PRIME-LAB-SYSTEM');
-// 		if (response?.status == true) {
-// 			window.location.href = "/authentication/login";
-// 		}
-// 		window.location.reload();
-// 	} catch (err) {
-// 		console.log('error connecting to server');
-// 	}
-// }
-
 export const filterTrendData = async (parameters, data) => {
 	const trend = parameters.map((item, index) => {
 		const filtered = data.filter((u, t) => {

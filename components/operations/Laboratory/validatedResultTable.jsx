@@ -23,11 +23,81 @@ import { useMediaQuery } from 'react-responsive';
 import Loader from '../../accessories/Loader';
 import { customFetch, generateRandomTextAndNumbers } from '../../Auth/customFetch';
 import { handleServerSideProcessingAscensionData } from '../../serverActions/ActionFiltering';
-import { RiMoreLine } from '@remixicon/react';
+import { RiAlertLine, RiExternalLinkLine, RiFileTextLine, RiInformationLine, RiMailLine, RiMoreLine, RiPhoneLine, RiTimeLine, RiTruckLine, RiUser3Line, RiWhatsappLine } from '@remixicon/react';
 import { useApplication } from '../../Auth/useApplicationContext';
 import PrimeTable from '../../accessories/Datatables/PrimeTable';
 import dayjs from 'dayjs';
-import { Cell } from 'recharts';
+import SingleWorkFlowResultDeliveryModal from './singleWorkFlowDeliveryResult';
+
+const normalizeDeliveryMode = (mode) => {
+     const raw = (mode ?? '').toString().trim();
+     if (!raw) return '';
+     const normalized = raw.toLowerCase();
+     if (normalized === 'whatapp') return 'whatsapp';
+     if (normalized === 'hardcopy') return 'hard copy';
+     return normalized;
+};
+
+const formatDeliveryModeLabel = (mode) => {
+     const normalized = normalizeDeliveryMode(mode);
+     if (!normalized) return 'Not set';
+     if (normalized === 'whatsapp') return 'WhatsApp';
+     if (normalized === 'email') return 'Email';
+     if (normalized === 'phone call') return 'Phone call';
+     if (normalized === 'hard copy') return 'Hard copy';
+     return normalized;
+};
+
+const DeliveryModeIcon = ({ mode }) => {
+     const normalized = normalizeDeliveryMode(mode);
+     if (!normalized) return <RiInformationLine size={16} />;
+     if (normalized === 'whatsapp') return <RiWhatsappLine size={16} />;
+     if (normalized === 'email') return <RiMailLine size={16} />;
+     if (normalized.includes('phone')) return <RiPhoneLine size={16} />;
+     if (normalized.includes('hard')) return <RiFileTextLine size={16} />;
+     return <RiInformationLine size={16} />;
+};
+
+const DeliveryBadges = ({ requested_mode, delivered_mode, delivered_by_username, delivered_at }) => {
+     const requested = normalizeDeliveryMode(requested_mode);
+     const delivered = normalizeDeliveryMode(delivered_mode);
+     const isMismatch = Boolean(delivered && requested && delivered !== requested);
+
+     const requestedClass = requested ? 'text-bg-info' : 'text-bg-light border';
+     const deliveredClass = delivered ? (isMismatch ? 'text-bg-warning text-dark' : 'text-bg-success') : 'text-bg-secondary';
+
+     return (
+          <div className="d-flex flex-column gap-1" style={{ minWidth: 180 }}>
+               <span className={`badge d-inline-flex align-items-center gap-1 ${requestedClass}`}>
+                    <RiTruckLine size={16} />
+                    <span>Requested:</span>
+                    <span className="fw-semibold">{formatDeliveryModeLabel(requested_mode)}</span>
+               </span>
+               <span className={`badge d-inline-flex align-items-center gap-1 ${deliveredClass}`}>
+                    <DeliveryModeIcon mode={delivered_mode} />
+                    <span>Delivered:</span>
+                    <span className="fw-semibold">{delivered ? formatDeliveryModeLabel(delivered_mode) : 'Not delivered'}</span>
+                    {isMismatch ? <RiAlertLine size={16} /> : null}
+               </span>
+               {(delivered_by_username || delivered_at) ? (
+                    <div className="text-muted d-flex flex-wrap align-items-center gap-2" style={{ fontSize: 12 }}>
+                         {delivered_by_username ? (
+                              <span className="d-inline-flex align-items-center gap-1">
+                                   <RiUser3Line size={14} />
+                                   <span className="text-truncate" style={{ maxWidth: 160 }}>{delivered_by_username}</span>
+                              </span>
+                         ) : null}
+                         {delivered_at ? (
+                              <span className="d-inline-flex align-items-center gap-1">
+                                   <RiTimeLine size={14} />
+                                   <span>{dayjs(delivered_at).format('DD-MM-YYYY HH:mm')}</span>
+                              </span>
+                         ) : null}
+                    </div>
+               ) : null}
+          </div>
+     );
+};
 
 
 const Print = (
@@ -51,24 +121,59 @@ const MobileDataDisplay = ({ data, handleResult }) => {
                                    >
                                         {index + 1}
                                    </span>
-                                   <span>{item.fullname} ({item.patientid})</span>
+                                   <span>{item.fullname} ({item.fullpatientid || item.patientid})</span>
                               </div>
                               <div>
-                                   <button className='btn btn-light shadow' onClick={(ev) => { handleResult(item) }}>
+                                   <button className='btn btn-light shadow' onClick={(ev) => { handleResult(Array.isArray(item.tests) && item.tests.length > 0 ? item.tests[0] : item) }}>
                                         {Print}
                                    </button>
                               </div>
                          </ListGroup.Item>
                          <ListGroup.Item className='pls-color'>
-                              <span>{item.name} <small className="text-muted">({item.department})</small></span>
+                              {Array.isArray(item.tests) ? (
+                                   <>
+                                        <div className="d-flex align-items-center justify-content-between">
+                                             <span className="fw-semibold">Tests</span>
+                                             <span className="text-muted">{item.tests.length} item{item.tests.length !== 1 ? 's' : ''}</span>
+                                        </div>
+                                        <div className="mt-2 d-flex flex-column gap-2">
+                                             {item.tests.slice(0, 3).map((t, idx) => (
+                                                  <div key={idx} className="d-flex flex-column">
+                                                       <div className="fw-semibold">{t.name} <small className="text-muted">({t.department})</small></div>
+                                                       <DeliveryBadges
+                                                            requested_mode={t.requested_mode}
+                                                            delivered_mode={t.delivered_mode}
+                                                            delivered_by_username={t.delivered_by_username}
+                                                            delivered_at={t.delivered_at}
+                                                       />
+                                                  </div>
+                                             ))}
+                                             {item.tests.length > 3 ? (
+                                                  <div className="text-muted small">+ {item.tests.length - 3} more</div>
+                                             ) : null}
+                                        </div>
+                                   </>
+                              ) : (
+                                   <>
+                                        <div className="fw-semibold">{item.name} <small className="text-muted">({item.department})</small></div>
+                                        <div className="mt-2">
+                                             <DeliveryBadges
+                                                  requested_mode={item.requested_mode}
+                                                  delivered_mode={item.delivered_mode}
+                                                  delivered_by_username={item.delivered_by_username}
+                                                  delivered_at={item.delivered_at}
+                                             />
+                                        </div>
+                                   </>
+                              )}
                               <hr />
                               <span>Validators:</span>
                               <ul className="list-unstyled">
-                                   {item.validators && Array.isArray(item.validators) ? item.validators.map((validator, idx) => (
+                                   {(item.validators && Array.isArray(item.validators) ? item.validators : (item.allValidators && Array.isArray(item.allValidators) ? item.allValidators : [])).map((validator, idx) => (
                                         <li key={idx}>
                                              <strong>{validator.username}</strong> ({validator.role})
                                         </li>
-                                   )) : <li className="text-muted">No validators assigned</li>}
+                                   ))}
                               </ul>
                          </ListGroup.Item>
                     </ListGroup>
@@ -77,14 +182,16 @@ const MobileDataDisplay = ({ data, handleResult }) => {
      );
 };
 
-export default function ValidatedResultTable({ employeeid }) {
-     const { isLoading, collection, queryParams, setQueryParams, setCollection ,category='grouped'} = useLaboratoryContext();
+export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
+     const { isLoading, collection, queryParams, setQueryParams, setCollection, _getAscensionData, category = 'grouped' } = useLaboratoryContext();
      const [isClient, setIsClient] = useState(false);
-     const [groupByPatient, setGroupByPatient] = useState(category === 'grouped');
+     const [groupByPatient, setGroupByPatient] = useState(mode === 'crm' ? false : category === 'grouped');
      const appSettings = useApplication();
      const branchid = appSettings?.branchid;
      const settings = appSettings?.settings || {};
      const allowPrintingUnpaid = settings?.allowPrintingUnpaid;
+     const [showDeliveryModal, setShowDeliveryModal] = useState(false);
+     const [selectedDeliveryItem, setSelectedDeliveryItem] = useState(null);
 
      const viewResultHandler = (item, multiple = false) => {
           const { testid, name, patientid, ascensionid, billingid } = item;
@@ -161,6 +268,18 @@ export default function ValidatedResultTable({ employeeid }) {
                Header: 'Department',
                accessor: 'department',
           },
+          {
+               Header: 'Delivery',
+               accessor: 'requested_mode',
+               Cell: ({ row }) => (
+                    <DeliveryBadges
+                         requested_mode={row.original.requested_mode}
+                         delivered_mode={row.original.delivered_mode}
+                         delivered_by_username={row.original.delivered_by_username}
+                         delivered_at={row.original.delivered_at}
+                    />
+               )
+          },
 
           {
                Header: 'Client Status',
@@ -190,27 +309,45 @@ export default function ValidatedResultTable({ employeeid }) {
                          </Dropdown.Toggle>
                          <Dropdown.Menu>
                               <Dropdown.Item
+                                   className='pls-label'
+                                   onClick={() => {
+                                        const normalizedItem = {
+                                             ...row.original,
+                                             ascension_id: row.original.ascension_id ?? row.original.ascensionid,
+                                        };
+                                        setSelectedDeliveryItem(normalizedItem);
+                                        setShowDeliveryModal(true);
+                                   }}
+                              >
+                                   <RiTruckLine size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+                                   {row.original?.delivered_mode ? 'Update Result Delivery' : 'Record Result Delivery'}
+                              </Dropdown.Item>
+                              {/* <Dropdown.Item
                                    className='pls-label' onClick={() => handleBrowserView(row.original)}>
                                    {downloadSvg}  Print Result
                               </Dropdown.Item>
                               <Dropdown.Item
                                    className='pls-label' onClick={() => handlePrintMultipleResults(row)}>
                                    {downloadSvg}  Print Multiple Results
-                              </Dropdown.Item>
-                              <Dropdown.Item className='pls-label' onClick={() => {
-                                   const { testid, patientid, ascensionid, billingid } = row.original;
-                                   window.open(`/communications/sms/laboratory-lifecycle-events/sends?testid=${encodeURIComponent(testid)}&patientid=${encodeURIComponent(patientid)}&ascensionid=${encodeURIComponent(ascensionid)}&billingid=${encodeURIComponent(billingid)}`);
-                              }}>
-                                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style={{ marginRight: '6px', verticalAlign: 'middle' }}><path fill="none" d="M0 0h24v24H0z"></path><path d="M2 21l21-9-21-9v7l15 2-15 2z"></path></svg>
-                                   Send Completed SMS
-                              </Dropdown.Item>
-                              <Dropdown.Item className='pls-label' as="a" target="_blank" href={`/operations/laboratory/validated/printing-tracking/${row.original.ascensionid}`}>
-                                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style={{ marginRight: '6px', verticalAlign: 'middle' }}><path fill="none" d="M0 0h24v24H0z"></path><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 14.93V19h-2v-2.07A8.001 8.001 0 0 1 4.07 13H2v-2h2.07A8.001 8.001 0 0 1 11 4.07V2h2v2.07A8.001 8.001 0 0 1 19.93 11H22v2h-2.07A8.001 8.001 0 0 1 13 19.93zM12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"></path></svg>
-                                   View Result Tracking
-                              </Dropdown.Item>
-                              <Dropdown.Item className='pls-label' onClick={() => PrepareResultEntryHeader({ id: row.original.testid, ...row.original }, false, branchid, false)}>
-                                   {downloadSvg} Edit Patient Result
-                              </Dropdown.Item>
+                              </Dropdown.Item> */}
+                              {mode !== 'crm' ? (
+                                   <>
+                                        <Dropdown.Item className='pls-label' onClick={() => {
+                                             const { testid, patientid, ascensionid, billingid } = row.original;
+                                             window.open(`/communications/sms/laboratory-lifecycle-events/sends?testid=${encodeURIComponent(testid)}&patientid=${encodeURIComponent(patientid)}&ascensionid=${encodeURIComponent(ascensionid)}&billingid=${encodeURIComponent(billingid)}`);
+                                        }}>
+                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style={{ marginRight: '6px', verticalAlign: 'middle' }}><path fill="none" d="M0 0h24v24H0z"></path><path d="M2 21l21-9-21-9v7l15 2-15 2z"></path></svg>
+                                             Send Completed SMS
+                                        </Dropdown.Item>
+                                        <Dropdown.Item className='pls-label' as="a" target="_blank" href={`/operations/laboratory/validated/printing-tracking/${row.original.ascensionid}`}>
+                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style={{ marginRight: '6px', verticalAlign: 'middle' }}><path fill="none" d="M0 0h24v24H0z"></path><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 14.93V19h-2v-2.07A8.001 8.001 0 0 1 4.07 13H2v-2h2.07A8.001 8.001 0 0 1 11 4.07V2h2v2.07A8.001 8.001 0 0 1 19.93 11H22v2h-2.07A8.001 8.001 0 0 1 13 19.93zM12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"></path></svg>
+                                             View Result Tracking
+                                        </Dropdown.Item>
+                                        <Dropdown.Item className='pls-label' onClick={() => PrepareResultEntryHeader({ id: row.original.testid, ...row.original }, false, branchid, false)}>
+                                             {downloadSvg} Edit Patient Result
+                                        </Dropdown.Item>
+                                   </>
+                              ) : null}
                          </Dropdown.Menu>
                     </Dropdown>
 
@@ -249,6 +386,52 @@ export default function ValidatedResultTable({ employeeid }) {
                )
           },
           {
+               Header: 'Delivery',
+               accessor: 'tests_delivery',
+               Cell: ({ row }) => {
+                    const tests = Array.isArray(row.original.tests) ? row.original.tests : [];
+                    const deliveredCount = tests.filter(t => Boolean(normalizeDeliveryMode(t.delivered_mode))).length;
+                    const mismatchCount = tests.filter(t => {
+                         const requested = normalizeDeliveryMode(t.requested_mode);
+                         const delivered = normalizeDeliveryMode(t.delivered_mode);
+                         return Boolean(delivered && requested && delivered !== requested);
+                    }).length;
+                    const requestedModes = Array.from(new Set(tests.map(t => normalizeDeliveryMode(t.requested_mode)).filter(Boolean)));
+
+                    return (
+                         <div className="d-flex flex-column gap-1" style={{ minWidth: 180 }}>
+                              <div className="d-flex flex-wrap gap-1">
+                                   {requestedModes.length > 0 ? requestedModes.slice(0, 3).map((m) => (
+                                        <span key={m} className="badge text-bg-info d-inline-flex align-items-center gap-1">
+                                             <DeliveryModeIcon mode={m} />
+                                             <span>{formatDeliveryModeLabel(m)}</span>
+                                        </span>
+                                   )) : (
+                                        <span className="badge text-bg-light border d-inline-flex align-items-center gap-1">
+                                             <RiTruckLine size={16} />
+                                             <span>Not set</span>
+                                        </span>
+                                   )}
+                                   {requestedModes.length > 3 ? (
+                                        <span className="badge text-bg-light border">+{requestedModes.length - 3}</span>
+                                   ) : null}
+                              </div>
+                              <div className="d-flex flex-wrap gap-1">
+                                   <span className={`badge ${deliveredCount > 0 ? 'text-bg-success' : 'text-bg-secondary'}`}>
+                                        Delivered: {deliveredCount}/{tests.length}
+                                   </span>
+                                   {mismatchCount > 0 ? (
+                                        <span className="badge text-bg-warning text-dark d-inline-flex align-items-center gap-1">
+                                             <RiAlertLine size={16} />
+                                             <span>Mismatch: {mismatchCount}</span>
+                                        </span>
+                                   ) : null}
+                              </div>
+                         </div>
+                    );
+               }
+          },
+          {
                Header: 'Validators',
                accessor: 'allValidators',
                Cell: ({ row }) => (
@@ -265,16 +448,30 @@ export default function ValidatedResultTable({ employeeid }) {
                Header: 'Action',
                accessor: '',
                Cell: ({ row }) => (
-                    <button
-                         className="btn btn-sm btn-primary"
-                         onClick={() => {
-                              if (row.original.tests && row.original.tests.length > 0) {
-                                   handlePrintMultipleResults({ original: row.original.tests[0] });
-                              }
-                         }}
-                    >
-                         Print Results
-                    </button>
+                    <div className="d-flex flex-wrap gap-2">
+                         <button
+                              className="btn btn-sm btn-primary"
+                              onClick={() => {
+                                   if (row.original.tests && row.original.tests.length > 0) {
+                                        handlePrintMultipleResults({ original: row.original.tests[0] });
+                                   }
+                              }}
+                         >
+                              Print Results
+                         </button>
+                         <button
+                              type="button"
+                              className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
+                              onClick={() => {
+                                   const patientid = row.original.patientid;
+                                   const billingid = row.original.billingid;
+                                   window.open(`/operations/laboratory/main/dailyRequest/visit?billingid=${encodeURIComponent(billingid)}&patientid=${encodeURIComponent(patientid)}`, '_blank', 'noopener,noreferrer');
+                              }}
+                         >
+                              <RiExternalLinkLine size={16} />
+                              <span>Open Visit</span>
+                         </button>
+                    </div>
                )
           }
      ];
@@ -316,14 +513,36 @@ export default function ValidatedResultTable({ employeeid }) {
      if (isLoading) return <Loader />
      return (
           <div>
-               <Tabs
-                    activeKey={groupByPatient ? "grouped" : "ungrouped"}
-                    onSelect={(k) => setGroupByPatient(k === "grouped")}
-                    className="mb-3"
-               >
-                    <Tab eventKey="grouped" title={`Grouped View (${groupByPatient ? groupedData.length : 0})`} />
-                    <Tab eventKey="ungrouped" title={`Individual Records (${!groupByPatient ? collection.length : 0})`} />
-               </Tabs>
+               {selectedDeliveryItem ? (
+                    <SingleWorkFlowResultDeliveryModal
+                         key={String(selectedDeliveryItem.ascension_id ?? selectedDeliveryItem.ascensionid ?? '')}
+                         item={selectedDeliveryItem}
+                         employeeid={Number(employeeid)}
+                         workflow={'resultDelivery'}
+                         show={showDeliveryModal}
+                         onHide={() => {
+                              setShowDeliveryModal(false);
+                              setSelectedDeliveryItem(null);
+                         }}
+                         onSuccess={async () => {
+                              setShowDeliveryModal(false);
+                              setSelectedDeliveryItem(null);
+                              if (typeof _getAscensionData === 'function') {
+                                   await _getAscensionData('VALIDATED', employeeid, branchid, {});
+                              }
+                         }}
+                    />
+               ) : null}
+               {mode !== 'crm' ? (
+                    <Tabs
+                         activeKey={groupByPatient ? "grouped" : "ungrouped"}
+                         onSelect={(k) => setGroupByPatient(k === "grouped")}
+                         className="mb-3"
+                    >
+                         <Tab eventKey="grouped" title={`Grouped View (${groupByPatient ? groupedData.length : 0})`} />
+                         <Tab eventKey="ungrouped" title={`Individual Records (${!groupByPatient ? collection.length : 0})`} />
+                    </Tabs>
+               ) : null}
 
                {isClient && (isMobile ? (
                     <MobileDataDisplay data={groupedData} handleResult={viewResultHandler} />
