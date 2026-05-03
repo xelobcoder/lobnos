@@ -788,7 +788,7 @@ function MultiBillingLayoutContent() {
 
                 <div className="card-body m-0 p-0">
                     <div className="row g-0">
-                        <div className="col-12 col-md-3 p-3 border-end" style={{ minHeight: 300 }}>
+                        <div className="col-12 col-md-2 p-3 border-end" style={{ minHeight: 300 }}>
                             <MultiRenderingBillingSourceFields
                                 isClient={true}
                                 updateValuesToContext={handleOrganizationSelection}
@@ -808,7 +808,7 @@ function MultiBillingLayoutContent() {
                                 </div>
                             )}
                         </div>
-                        <div className="col-12 col-md-6" style={{ minHeight: 300 }}>
+                        <div className="col-12 col-md-7" style={{ minHeight: 300 }}>
                             {loadingPanels ? (
                                 <div className="h-100 w-100 d-flex align-items-center justify-content-center">
                                     <Spinner animation="border" variant="primary" />

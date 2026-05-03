@@ -32,7 +32,7 @@ export async function loadClinicianPackage(packageid: number) {
 
 export async function AsyncPatientFilteringloadOptions
 	(input = "") {
-	return await loadOptions(input);
+	return await loadOptions(input,'firstname');
 }
 
 

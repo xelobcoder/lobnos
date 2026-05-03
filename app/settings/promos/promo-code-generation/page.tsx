@@ -179,7 +179,7 @@ export default function PromoCodeGenerationForm() {
 
 					<div className="form-row grid-reg mt-4">
 						<div>
-							<button className="btn btn-primary px-3 py-1 d-flex align-items-center gap-2" type="submit" style={{ fontSize: 14, height: 32 }} disabled={isSubmitting}>
+							<button className="btn btn-primary d-flex" type="submit" disabled={isSubmitting}>
 								{isSubmitting ? "Submitting..." : "Create Promo Code"}
 							</button>
 						</div>

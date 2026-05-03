@@ -19,6 +19,8 @@ export default function LaboratoryClientList() {
      const today = new Date();
      const [selectedDay, setSelectedDay] = React.useState<string>(today.toISOString().slice(0, 10));
      const [selectedStatus, setSelectedStatus] = React.useState<string>('pending');
+     const [patientid, setPatientId] = React.useState<number | null>(null);
+     const [billingid, setBillingId] = React.useState<number | null>(null);
      const [clients, setClients] = React.useState<ClientFolderItem[]>([]);
      const [loading, setLoading] = React.useState<boolean>(false);
      const [error, setError] = React.useState<string>('');
@@ -34,7 +36,7 @@ export default function LaboratoryClientList() {
           setError('');
 
           try {
-               const response = await customFetch(`operations/overview/folder?date=${selectedDay}&status=${selectedStatus}`);
+               const response = await customFetch(`operations/overview/folder?date=${selectedDay}&status=${selectedStatus}&&billingid=${billingid || ''}&&patientid=${patientid || ''}`);
 
                if (response?.statusCode === 200 && Array.isArray(response.result)) {
                     setClients(response.result);
@@ -217,14 +219,24 @@ export default function LaboratoryClientList() {
                               </div>
 
                               <div style={{ minWidth: 260, flex: 1 }}>
-                                   <div className="fw-semibold mb-1" style={{ fontSize: '0.9rem' }}>Search</div>
                                    <input
                                         className="form-control form-control-sm"
-                                        placeholder="Search patient / ID / billing"
-                                        value={query}
-                                        onChange={(e) => setQuery(e.target.value)}
+                                        placeholder="Search patientId"
+                                        value={patientid !== null ? patientid : ''}
+                                        type='number'
+                                        onChange={(ev) => { setPatientId(ev.target.value === '' ? null : parseInt(ev.target.value)) }}
                                    />
                               </div>
+                              <div style={{ minWidth: 260, flex: 1 }}>
+                                   <div className="fw-semibold mb-1" style={{ fontSize: '0.9rem' }}>Search</div>
+                                   <input type='number'
+                                        className="form-control form-control-sm"
+                                        placeholder="Search billingId"
+                                        value={billingid !== null ? billingid : ''}
+                                        onChange={(ev) => { setBillingId(ev.target.value === '' ? null : parseInt(ev.target.value)) }}
+                                   />
+                              </div>
+                              {/* SE */}
 
                               <div className="ms-auto d-flex gap-2">
                                    <button className="btn btn-sm btn-outline-secondary" onClick={loadClients} disabled={loading}>
