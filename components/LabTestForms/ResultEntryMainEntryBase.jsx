@@ -92,7 +92,7 @@ export default function ResultEntryMainEntryBase({ handlestate, handleCreateFiel
 			{hasDrugs && <ResultEntryDrugsForm ascensionid={ascensionid} testid={testid} setModifiedDrugs={setModifiedDrugs} />}
 			<CommentSection datafunction={setComments} getcomment={handleComments} datasource={comments} target={'comments'} value={comments.comments} />
 			<div className="d-flex flex-column flex-md-row justify-content-between mt-2">
-				{/* {isPinUsed && (
+				{isPinUsed && (
 					<div className="mb-2 mb-md-0">
 						<input
 							className="custom-input form-control"
@@ -105,7 +105,7 @@ export default function ResultEntryMainEntryBase({ handlestate, handleCreateFiel
 							onChange={e => setPin(e.target.value)}
 						/>
 					</div>
-				)} */}
+				)}
 				<div>
 					<button onClick={handleSubmit} className="btn btn-primary btn-sm my-2 mx-1" disabled={isloading}>
 						{isloading ? 'Saving...' : 'Save changes'}

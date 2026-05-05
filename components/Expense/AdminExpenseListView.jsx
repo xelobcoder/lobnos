@@ -46,6 +46,7 @@ export default function AdminExpensesList({ branchid, employeeid }) {
 				filter={filter}
 				branchid={branchid}
 				setFilter={setFilter}
+				setExpenses={setExpenses}
 				handleFilters={handleFilters}
 			/>
 			<Modal

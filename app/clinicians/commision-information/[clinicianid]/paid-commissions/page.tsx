@@ -1,8 +1,10 @@
 "use client";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import Link from 'next/link';
 import { customFetch, currencyFormatter } from '../../../../../components/Auth/customFetch';
 import dayjs from 'dayjs';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { RiUserLine, RiFileList3Line, RiLineChartLine, RiBarChartBoxLine, RiBubbleChartLine, RiErrorWarningLine, RiInbox2Line, RiLoader4Line, RiRefreshLine } from '@remixicon/react';
 import DateFilterReusable from '../../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable';
 import {
@@ -19,6 +21,8 @@ import {
      AreaChart,
      Area,
 } from "recharts";
+import { useApplication } from "../../../../../components/Auth/useApplicationContext";
+import { toast } from "react-toastify";
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)'; // Primary chart color
 const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
@@ -53,9 +57,9 @@ interface PaidCommissionData {
      recipient_name: string;
 }
 
-async function getPaidCommissions({ clinicianid, startDate, endDate }: { clinicianid: string, startDate: string, endDate: string }) {
+async function getPaidCommissions({ clinicianid, startDate, endDate, employeeid }: { clinicianid: string, startDate: string, endDate: string, employeeid: string }) {
      try {
-          const url = `commission-payments/commission/batch/information?recipient_type=clinician&recipient_id=${encodeURIComponent(clinicianid)}&startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`;
+          const url = `commission-payments/commission/batch/information?recipient_type=clinician&recipient_id=${encodeURIComponent(clinicianid)}&startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}&&employeeid=${encodeURIComponent(employeeid || '')}`;
           const response = await customFetch(url);
           if (!response || !(response.success || response.status === true || response.status === 'success')) {
                throw new Error('API returned no data or failed.');
@@ -86,11 +90,54 @@ export default function PaidCommissionsPage({ params }: { params: { clinicianid:
      const [selectedCommission, setSelectedCommission] = useState<PaidCommissionData | null>(null);
      const [breakdownData, setBreakdownData] = useState<any[]>([]);
      const [breakdownLoading, setBreakdownLoading] = useState(false);
+     const employeeid = useApplication()?.user?.employeeid;
+     const generalPdfRef = useRef<HTMLDivElement | null>(null);
+     const breakdownPdfRef = useRef<HTMLDivElement | null>(null);
+
+     const exportPdf = async (element: HTMLElement | null, fileName: string) => {
+          if (!element) return;
+
+          try {
+               const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+               const imgData = canvas.toDataURL('image/png');
+               const pdf = new jsPDF('p', 'mm', 'a4');
+               const pageWidth = pdf.internal.pageSize.getWidth();
+               const pageHeight = pdf.internal.pageSize.getHeight();
+               const imgProps = pdf.getImageProperties(imgData);
+               const pdfWidth = pageWidth - 20;
+               const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+               let heightLeft = pdfHeight;
+               let position = 10;
+
+               pdf.addImage(imgData, 'PNG', 10, position, pdfWidth, pdfHeight);
+               heightLeft -= pageHeight - 20;
+
+               while (heightLeft > 0) {
+                    pdf.addPage();
+                    position = heightLeft - pdfHeight + 10;
+                    pdf.addImage(imgData, 'PNG', 10, position, pdfWidth, pdfHeight);
+                    heightLeft -= pageHeight - 20;
+               }
+
+               pdf.save(fileName);
+          } catch (error) {
+               console.error('Failed to export PDF', error);
+               toast.error('Unable to generate PDF. Please try again.');
+          }
+     };
+
+     const downloadGeneralPdf = async () => {
+          await exportPdf(generalPdfRef.current, `commission-payments-${params.clinicianid}-${startDate}-${endDate}.pdf`);
+     };
+
+     const downloadBreakdownPdf = async () => {
+          await exportPdf(breakdownPdfRef.current, `commission-breakdown-${selectedCommission?.batch_reference || 'details'}.pdf`);
+     };
 
      const fetchBreakdownData = async (batchId: number) => {
           setBreakdownLoading(true);
           try {
-               const url = `commission-payments/commission/batch/information/${batchId}/batch`;
+               const url = `commission-payments/commission/batch/information/${batchId}/batch?employeeid=${employeeid}`;
                const response = await customFetch(url);
                if (response?.status == true && Array.isArray(response.data)) {
                     setBreakdownData(response.data || []);
@@ -113,7 +160,7 @@ export default function PaidCommissionsPage({ params }: { params: { clinicianid:
      useEffect(() => {
           setLoading(true);
           setError(null);
-          getPaidCommissions({ clinicianid: params.clinicianid, startDate, endDate })
+          getPaidCommissions({ clinicianid: params.clinicianid, employeeid, startDate, endDate })
                .then((res) => {
                     if ((res as any).error) {
                          setError((res as any).error);
@@ -409,7 +456,7 @@ export default function PaidCommissionsPage({ params }: { params: { clinicianid:
                     </div>
                     <div className="card-body">
                          {paidCommissions.length > 0 && (
-                              <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{ borderTop: `1px solid ${COLOR_BORDER}` }}>
+                              <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{ borderTop: `1px solid ${COLOR_BORDER}` }} ref={generalPdfRef}>
                                    <div className="print-date-range" style={{ display: 'none' }}>
                                         Commission Payments Report Period: {new Date(startDate).toLocaleDateString()} - {new Date(endDate).toLocaleDateString()}
                                    </div>
@@ -417,9 +464,14 @@ export default function PaidCommissionsPage({ params }: { params: { clinicianid:
                                         <h4 className="fs-6 fw-medium mb-3">
                                              Commission Payments Data Table
                                         </h4>
-                                        <button className="btn btn-sm btn-outline-primary" onClick={() => window.print()}>
-                                             Print
-                                        </button>
+                                        <div className="d-flex gap-2">
+                                             <button className="btn btn-sm btn-outline-secondary" type="button" onClick={downloadGeneralPdf}>
+                                                  Download PDF
+                                             </button>
+                                             <button className="btn btn-sm btn-outline-primary" type="button" onClick={() => window.print()}>
+                                                  Print
+                                             </button>
+                                        </div>
                                    </div>
                                    <div className="table-responsive">
                                         <table className="table table-sm table-hover table-striped small printable-table-with-borders">
@@ -534,7 +586,7 @@ export default function PaidCommissionsPage({ params }: { params: { clinicianid:
                                         <h5 className="modal-title">Commission Breakdown - {selectedCommission.batch_reference}</h5>
                                         <button type="button" className="btn-close" onClick={() => setShowBreakdownModal(false)}></button>
                                    </div>
-                                   <div className="modal-body">
+                                   <div className="modal-body" ref={breakdownPdfRef}>
                                         {breakdownLoading ? (
                                              <div className="d-flex flex-column justify-content-center align-items-center py-5">
                                                   <div className="spinner-border text-primary mb-3" role="status" style={{ width: '3rem', height: '3rem' }}>
@@ -670,6 +722,9 @@ export default function PaidCommissionsPage({ params }: { params: { clinicianid:
                                         )}
                                    </div>
                                    <div className="modal-footer">
+                                        <button type="button" className="btn btn-outline-primary me-auto" onClick={downloadBreakdownPdf}>
+                                             Download Breakdown PDF
+                                        </button>
                                         <button type="button" className="btn btn-secondary" onClick={() => setShowBreakdownModal(false)}>Close</button>
                                    </div>
                               </div>

@@ -7,6 +7,8 @@ import {
 export const OrganizationMainLinks: Link[] = [
     { title: 'New Organization', link: '/organization/new', icon: <RiUserHeartLine /> },
     { title: 'Organizations', link: "/organization", icon: <RiUserStarLine /> },
+    { title: "Pending Commission", link: "/organization/pending-commissions", icon: <RiUserStarLine /> },
+    { title: "commission payments", link: "/organization/commission-payments", icon: <RiUserStarLine /> },
     {
         title: 'outsourcing',
         link: '/settings/outsource',

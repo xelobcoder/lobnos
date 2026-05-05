@@ -17,6 +17,7 @@ import {
 import { useParams } from 'next/navigation'
 import { customFetch, customPost } from '../../../../components/Auth/customFetch';
 import { toast } from 'react-toastify';
+import { useApplication } from '../../../../components/Auth/useApplicationContext';
 
 
 // Define the Zod schema for validation
@@ -121,6 +122,7 @@ export default function PaymentModuleClinician() {
             accountName: '',
         },
     });
+    const employeeid = useApplication()?.user?.employeeid;
     const [isLoading, setIsLoading] = useState(false);
     const paymentModule = watch('module');
     const clinicianid = useParams()?.clinicianid
@@ -140,14 +142,19 @@ export default function PaymentModuleClinician() {
                 momoname: data.momo ? data.momo : undefined,
             };
 
-            const response = await customPost(`clinicians/payments/${clinicianid}`, 'PUT', payload);
+            const response = await customPost(`clinicians/payments/${clinicianid}?employeeid=${employeeid}`, 'PUT', payload);
             const { status } = response;
 
             if (response && status == true) {
                 toast.success('Clincian Payment Information Updated Successuly')
             }
+
+
+            if (status && status == "error") {
+                toast.error(response?.message || 'Failed to update payment information');
+            }
         } catch (error) {
-            alert(`Failed to save configuration: ${error.message}`);
+            alert(`Failed to save configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     };
 

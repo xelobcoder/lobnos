@@ -50,6 +50,14 @@ const COLOR_TERTIARY = '#7c3aed'; // Purple for total_discount
 const COLOR_EXPENSES = '#dc2626'; // Red for total_expenses
 const COLOR_NET_REVENUE = '#198754'; // Green for net_revenue
 
+const METRICS_CONFIG = [
+    { key: "actual_revenue", name: "Actual Revenue", color: COLOR_SECONDARY },
+    { key: "accrued_revenue", name: "Accrued Revenue", color: COLOR_ACCENT },
+    { key: "total_discount", name: "Total Discount", color: COLOR_TERTIARY },
+    { key: "total_expenses", name: "Total Expenses", color: COLOR_EXPENSES },
+    { key: "net_revenue", name: "Net Revenue", color: COLOR_NET_REVENUE },
+];
+
 
 export default function DailySalesTrend() {
     const [data, setData] = useState<SalesDataEntry[]>([]);
@@ -57,15 +65,26 @@ export default function DailySalesTrend() {
     const [error, setError] = useState<string | null>(null);
     const [view, setView] = useState<"line" | "bar" | "area">("line");
     const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
+    const [enabledMetrics, setEnabledMetrics] = useState<Set<string>>(new Set([
+        "actual_revenue",
+        "accrued_revenue",
+        "total_discount",
+        "total_expenses",
+        "net_revenue"
+    ]));
 
     const { branchid, user } = useApplicationSettings().applicationsettings || {};
     const employeeid = user?.employeeid;
 
     const getInitialDates = () => {
-        const currentYear = new Date().getFullYear();
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();
+        const startDate = new Date(currentYear, currentMonth, 1).toISOString().split('T')[0];
+        const endDate = new Date(currentYear, currentMonth + 1, 0).toISOString().split('T')[0];
         return {
-            startDate: `${currentYear}-01-01`,
-            endDate: `${currentYear}-12-31`,
+            startDate,
+            endDate,
         };
     };
 
@@ -172,6 +191,18 @@ export default function DailySalesTrend() {
         setEndDate(defaultEndDate);
     };
 
+    const handleMetricToggle = (metricKey: string) => {
+        setEnabledMetrics(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(metricKey)) {
+                newSet.delete(metricKey);
+            } else {
+                newSet.add(metricKey);
+            }
+            return newSet;
+        });
+    };
+
     const handleBreakdownClick = (entry: SalesDataEntry) => {
         const dateParam = dayjs(entry.date).format('YYYY-MM-DD');
         const link = `/billing/sales/branches/${plsEncryption(branchid.toString())}/day-transaction-break-down?date=${dateParam}&from=${dateParam}&end=${dateParam}&branchid=${branchid}`;
@@ -235,6 +266,8 @@ export default function DailySalesTrend() {
         return null;
     };
 
+
+
     const renderChart = () => {
         const commonProps = {
             data: data,
@@ -274,11 +307,16 @@ export default function DailySalesTrend() {
                     <YAxis {...yAxisProps} />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                     <Legend {...legendProps} />
-                    <Bar dataKey="actual_revenue" name="Actual Revenue" fill={COLOR_SECONDARY} radius={[4, 4, 0, 0]} maxBarSize={30} />
-                    <Bar dataKey="accrued_revenue" name="Accrued Revenue" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={30} />
-                    <Bar dataKey="total_discount" name="Total Discount" fill={COLOR_TERTIARY} radius={[4, 4, 0, 0]} maxBarSize={30} />
-                    <Bar dataKey="total_expenses" name="Total Expenses" fill={COLOR_EXPENSES} radius={[4, 4, 0, 0]} maxBarSize={30} />
-                    <Bar dataKey="net_revenue" name="Net Revenue" fill={COLOR_NET_REVENUE} radius={[4, 4, 0, 0]} maxBarSize={30} />
+                    {METRICS_CONFIG.filter(metric => enabledMetrics.has(metric.key)).map(metric => (
+                        <Bar
+                            key={metric.key}
+                            dataKey={metric.key}
+                            name={metric.name}
+                            fill={metric.color}
+                            radius={[4, 4, 0, 0]}
+                            maxBarSize={30}
+                        />
+                    ))}
                 </BarChart>
             );
         }
@@ -290,11 +328,18 @@ export default function DailySalesTrend() {
                     <YAxis {...yAxisProps} />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                     <Legend {...legendProps} />
-                    <Line type="monotone" dataKey="actual_revenue" name="Actual Revenue" stroke={COLOR_SECONDARY} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_SECONDARY }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_SECONDARY, stroke: COLOR_TOOLTIP_BG }} />
-                    <Line type="monotone" dataKey="accrued_revenue" name="Accrued Revenue" stroke={COLOR_ACCENT} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
-                    <Line type="monotone" dataKey="total_discount" name="Total Discount" stroke={COLOR_TERTIARY} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_TERTIARY }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_TERTIARY, stroke: COLOR_TOOLTIP_BG }} />
-                    <Line type="monotone" dataKey="total_expenses" name="Total Expenses" stroke={COLOR_EXPENSES} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_EXPENSES }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_EXPENSES, stroke: COLOR_TOOLTIP_BG }} />
-                    <Line type="monotone" dataKey="net_revenue" name="Net Revenue" stroke={COLOR_NET_REVENUE} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_NET_REVENUE }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_NET_REVENUE, stroke: COLOR_TOOLTIP_BG }} />
+                    {METRICS_CONFIG.filter(metric => enabledMetrics.has(metric.key)).map(metric => (
+                        <Line
+                            key={metric.key}
+                            type="monotone"
+                            dataKey={metric.key}
+                            name={metric.name}
+                            stroke={metric.color}
+                            strokeWidth={2}
+                            dot={{ r: 3, strokeWidth: 1, fill: metric.color }}
+                            activeDot={{ r: 6, strokeWidth: 1.5, fill: metric.color, stroke: COLOR_TOOLTIP_BG }}
+                        />
+                    ))}
                 </LineChart>
             );
         }
@@ -302,37 +347,31 @@ export default function DailySalesTrend() {
         return (
             <AreaChart {...commonProps}>
                 <defs>
-                    <linearGradient id="colorTotalPaidFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#2563eb" stopOpacity={0.5} />
-                        <stop offset="95%" stopColor="#2563eb" stopOpacity={0.05} />
-                    </linearGradient>
-                    <linearGradient id="colorTotalPayableFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={COLOR_ACCENT} stopOpacity={0.5} />
-                        <stop offset="95%" stopColor={COLOR_ACCENT} stopOpacity={0.05} />
-                    </linearGradient>
-                    <linearGradient id="colorTotalDiscountFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.5} />
-                        <stop offset="95%" stopColor="#7c3aed" stopOpacity={0.05} />
-                    </linearGradient>
-                    <linearGradient id="colorTotalExpensesFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#dc2626" stopOpacity={0.5} />
-                        <stop offset="95%" stopColor="#dc2626" stopOpacity={0.05} />
-                    </linearGradient>
-                    <linearGradient id="colorNetRevenueFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#198754" stopOpacity={0.5} />
-                        <stop offset="95%" stopColor="#198754" stopOpacity={0.05} />
-                    </linearGradient>
+                    {METRICS_CONFIG.filter(metric => enabledMetrics.has(metric.key)).map(metric => (
+                        <linearGradient key={metric.key} id={`color${metric.key.replace('_', '').replace(/^\w/, c => c.toUpperCase())}Fill`} x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={metric.color} stopOpacity={0.5} />
+                            <stop offset="95%" stopColor={metric.color} stopOpacity={0.05} />
+                        </linearGradient>
+                    ))}
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
                 <XAxis {...xAxisProps} />
                 <YAxis {...yAxisProps} />
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                 <Legend {...legendProps} />
-                <Area type="monotone" dataKey="actual_revenue" name="Actual Revenue" stroke={COLOR_SECONDARY} fill="url(#colorTotalPaidFill)" strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_SECONDARY }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_SECONDARY, stroke: COLOR_TOOLTIP_BG }} />
-                <Area type="monotone" dataKey="accrued_revenue" name="Accrued Revenue" stroke={COLOR_ACCENT} fill="url(#colorTotalPayableFill)" strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
-                <Area type="monotone" dataKey="total_discount" name="Total Discount" stroke={COLOR_TERTIARY} fill="url(#colorTotalDiscountFill)" strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_TERTIARY }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_TERTIARY, stroke: COLOR_TOOLTIP_BG }} />
-                <Area type="monotone" dataKey="total_expenses" name="Total Expenses" stroke={COLOR_EXPENSES} fill="url(#colorTotalExpensesFill)" strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_EXPENSES }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_EXPENSES, stroke: COLOR_TOOLTIP_BG }} />
-                <Area type="monotone" dataKey="net_revenue" name="Net Revenue" stroke={COLOR_NET_REVENUE} fill="url(#colorNetRevenueFill)" strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_NET_REVENUE }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_NET_REVENUE, stroke: COLOR_TOOLTIP_BG }} />
+                {METRICS_CONFIG.filter(metric => enabledMetrics.has(metric.key)).map(metric => (
+                    <Area
+                        key={metric.key}
+                        type="monotone"
+                        dataKey={metric.key}
+                        name={metric.name}
+                        stroke={metric.color}
+                        fill={`url(#color${metric.key.replace('_', '').replace(/^\w/, c => c.toUpperCase())}Fill)`}
+                        strokeWidth={2}
+                        dot={{ r: 3, strokeWidth: 1, fill: metric.color }}
+                        activeDot={{ r: 6, strokeWidth: 1.5, fill: metric.color, stroke: COLOR_TOOLTIP_BG }}
+                    />
+                ))}
             </AreaChart>
         );
     };
@@ -437,6 +476,41 @@ export default function DailySalesTrend() {
                     </div>
                 )}
                 {renderChartContainerContent()}
+                <div className="mt-3 pt-3 border-top">
+                    <h6 className="fs-6 fw-medium mb-3" style={{ color: COLOR_TEXT_MUTED }}>Select Metrics to Display</h6>
+                    <div className="row g-2">
+                        {METRICS_CONFIG.map(metric => (
+                            <div key={metric.key} className="col-auto">
+                                <div className="form-check">
+                                    <input
+                                        className="form-check-input"
+                                        type="checkbox"
+                                        id={`metric-${metric.key}`}
+                                        checked={enabledMetrics.has(metric.key)}
+                                        onChange={() => handleMetricToggle(metric.key)}
+                                        style={{ borderColor: COLOR_BORDER }}
+                                    />
+                                    <label
+                                        className="form-check-label small fw-medium"
+                                        htmlFor={`metric-${metric.key}`}
+                                        style={{ color: COLOR_TEXT_MUTED }}
+                                    >
+                                        <span
+                                            className="d-inline-block me-1"
+                                            style={{
+                                                width: '12px',
+                                                height: '12px',
+                                                backgroundColor: metric.color,
+                                                borderRadius: '2px'
+                                            }}
+                                        ></span>
+                                        {metric.name}
+                                    </label>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
 
             {data.length > 0 && (

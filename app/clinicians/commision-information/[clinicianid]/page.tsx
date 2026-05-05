@@ -48,6 +48,7 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 	const today = dayjs().format('YYYY-MM-DD');
 	const currentYear = dayjs().year();
 	const employeeid = useApplication()?.user?.employeeid;
+	const branchid = useApplication()?.branchid;
 	const defaultStart = dayjs(`${currentYear}-01-01`).format('YYYY-MM-DD');
 	const [startDate, setStartDate] = useState(defaultStart);
 	const [endDate, setEndDate] = useState(today);
@@ -214,11 +215,12 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 				paymentMethod: bulkPayMethod,
 				employeeid,
 				recipient_type: 'clinician',
+				branchid,
 				recipientid: params.clinicianid,
 				services: selectedServiceIds
 			};
 
-			const response = await customPost('commission-payments/commission/batch/process-services', 'POST', payload);
+			const response = await customPost('commission-payments/commission/batch/process-services?employeeid=' + employeeid	+ '&branchid=' + branchid, 'POST', payload);
 			if (response && response.status == true) {
 				setShowBulkPayModal(false);
 				setBulkPayAmount('');

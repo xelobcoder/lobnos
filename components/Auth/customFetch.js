@@ -531,18 +531,15 @@ export const defaultApplicationSettings = {
 	includeTax: 0,
 }
 
-export const deleteOrganization = async function (id, getdatafxn) {
+export const deleteOrganization = async function (id, getdatafxn,employeeid) {
 	try {
 		if (!id) {
 			alert(`id required`)
 		}
 		let confirmation = window.confirm("Do you want to delete organization? This will affect your finances records")
 		if (confirmation) {
-			const deleteResponse = await customPost(`organization?id=${id}`, "DELETE", {})
-			const { statusCode } = deleteResponse
-			if (statusCode == 201) {
-				getdatafxn()
-			}
+			const deleteResponse = await customPost(`organization?id=${id}&&employeeid=${employeeid}`, "DELETE", {})
+			return deleteResponse;
 		}
 	} catch (err) {
 		console.log(err)

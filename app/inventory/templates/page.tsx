@@ -105,7 +105,7 @@ export default function TemplatesPage() {
 
      const loadInventoryItems = async () => {
           try {
-               const response = await customFetch(`inventory/items?branchid=${branchid}&employeeid=${employeeid}`);
+               const response = await customFetch(`inventory/items?branchid=${branchid}&employeeid=${employeeid}&page=1&count=1000`);
                const data = Array.isArray(response) ? response : (response?.data || response?.result || []);
                const mappedItems = (data || []).map((item: any) => ({
                     id: item.id?.toString() || String(item.id),

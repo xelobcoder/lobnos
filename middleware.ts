@@ -47,7 +47,6 @@ export async function middleware(request: NextRequest) {
             const { user, email, settings } = payload as UserPayload;
             const role = user.role || "";
             const currentPath = request.nextUrl.pathname;
-
             // Check CRM access first
             if (currentPath.startsWith("/crm")) {
                 if (!["admin", "manager", "customer service representative", 'scientist', 'sonographer'].includes(role.toString().toLowerCase().trim())) {

@@ -183,16 +183,6 @@ export default function ClientVisit() {
 
      useEffect(() => {
           if (billingid) loadTestTransactions();
-
-          const intervalId = setInterval(() => {
-               if (billingid) {
-                    loadTestTransactions();
-               }
-          }, 60000); // 60 seconds
-
-          return () => {
-               clearInterval(intervalId);
-          };
      }, [billingid]);
 
      const selectedItem =

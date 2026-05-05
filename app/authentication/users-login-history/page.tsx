@@ -4,7 +4,7 @@ import ApplicationUserLoginHx from '../../../components/settingsComponents/Aplli
 import { customFetch } from '../../../components/Auth/customFetch';
 import { useApplication } from '../../../components/Auth/useApplicationContext';
 
-export default function page() {
+export default function UserPage() {
      const [employeesList, setusers] = useState<any[]>([]);
      const [history, sethistory] = useState<any[]>([]);
      const [selectedEmployee, setSelectedEmployee] = useState(null);

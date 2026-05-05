@@ -19,6 +19,7 @@ import { Dropdown, Button, Card } from 'react-bootstrap';
 import { orgainzationServerSideProcessing } from "../serverActions/ActionFiltering";
 import ExcelExportButton from "../common/ExcelExportButton";
 import '../../styles/organization-list.css';
+import { useApplication } from "../Auth/useApplicationContext";
 
 type Organization = {
 	id: number | string;
@@ -40,6 +41,7 @@ export default function OrganizationList() {
 	const [load, setLoad] = useState(false)
 	const [isloading, setLoading] = useState(true)
 	const router = useRouter()
+	const currentEmployeeId = useApplication()?.user?.employeeid;
 
 	// Define export columns mapping for better control
 	const exportColumns = [
@@ -85,10 +87,14 @@ export default function OrganizationList() {
 			Header: "Actions",
 			accessor: "actions",
 			Cell: ({ row }) => {
-				const handleDelete = (e) => {
+				const handleDelete = async (e) => {
 					e.preventDefault();
 					if (window.confirm(`Are you sure you want to delete "${row.original.name}"? This action cannot be undone.`)) {
-						deleteOrganization(row.original.ID, getOrganizationData);
+						const response = await deleteOrganization(row.original.id, getOrganizationData,currentEmployeeId);
+						if (response && response?.status == true) {
+							alert("Deleted successfully");
+							getOrganizationData()
+						}
 					}
 				};
 

@@ -322,16 +322,17 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
                                    <RiTruckLine size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
                                    {row.original?.delivered_mode ? 'Update Result Delivery' : 'Record Result Delivery'}
                               </Dropdown.Item>
-                              {/* <Dropdown.Item
-                                   className='pls-label' onClick={() => handleBrowserView(row.original)}>
-                                   {downloadSvg}  Print Result
-                              </Dropdown.Item>
-                              <Dropdown.Item
-                                   className='pls-label' onClick={() => handlePrintMultipleResults(row)}>
-                                   {downloadSvg}  Print Multiple Results
-                              </Dropdown.Item> */}
+
                               {mode !== 'crm' ? (
                                    <>
+                                        <Dropdown.Item
+                                             className='pls-label' onClick={() => handleBrowserView(row.original)}>
+                                             {downloadSvg}  Print Result
+                                        </Dropdown.Item>
+                                        <Dropdown.Item
+                                             className='pls-label' onClick={() => handlePrintMultipleResults(row)}>
+                                             {downloadSvg}  Print Multiple Results
+                                        </Dropdown.Item>
                                         <Dropdown.Item className='pls-label' onClick={() => {
                                              const { testid, patientid, ascensionid, billingid } = row.original;
                                              window.open(`/communications/sms/laboratory-lifecycle-events/sends?testid=${encodeURIComponent(testid)}&patientid=${encodeURIComponent(patientid)}&ascensionid=${encodeURIComponent(ascensionid)}&billingid=${encodeURIComponent(billingid)}`);

@@ -10,7 +10,7 @@ const statusMap = {
 	2: { label: 'Rejected', color: 'danger', icon: <RiCloseCircleFill className="me-1" /> },
 };
 
-const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setFilter, handleFilters, branchid }) => {
+const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setFilter, handleFilters, branchid, setExpenses }) => {
 	const [localFilter, setLocalFilter] = useState({ ...filter });
 	const [showOffcanvas, setShowOffcanvas] = useState(false);
 	const [selectedExpenses, setSelectedExpenses] = useState([]);
@@ -261,6 +261,7 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 		try {
 			const response = await customFetch(urlString);
 			if (response && Array.isArray(response)) {
+				setExpenses(response);
 				return { result: response, error: false }
 			} else {
 				return { result: [], error: false }
@@ -273,7 +274,6 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 	}
 
 	const columns = [
-
 		{
 			Header: 'Expense Name',
 			accessor: 'name',

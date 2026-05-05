@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { customPost, customFetch } from '../../../../../../components/Auth/customFetch';
+import { customFile, customFetch, customPost } from '../../../../../../components/Auth/customFetch';
 import { toast } from 'react-toastify';
 import { ProgressBar } from 'react-bootstrap';
 import { RiUploadLine, RiImageLine, RiEyeLine, RiDeleteBinLine } from '@remixicon/react';
@@ -80,7 +80,7 @@ interface ImageUploadTabProps {
                     formData.append('testid', testid || '');
                     formData.append('patientid', patientid || '');
 
-                    const response = await customPost('ultrasound/images/upload', 'POST', formData);
+                    const response = await customFile('ultrasound/images/upload', formData);
 
                     return {
                          id: Date.now() + index,
