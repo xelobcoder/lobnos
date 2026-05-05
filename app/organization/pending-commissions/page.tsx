@@ -12,14 +12,14 @@ function exportCommissionDataToPDF(commissionData, startDate, endDate) {
           doc.setFont('times', 'bold');
      }
      doc.setFontSize(22);
-     doc.text('Clinicians Commission Report', 14, 18);
+     doc.text('Organizations Commission Report', 14, 18);
      doc.setFontSize(14);
      doc.setFont('times', 'normal');
      doc.text(`Period: ${startDate} to ${endDate}`, 14, 28);
      autoTable(doc, {
           startY: 36,
           head: [[
-               'Clinician Name',
+               'Organization Name',
                'Phone',
                'Services',
                'Total Payable',
@@ -27,8 +27,8 @@ function exportCommissionDataToPDF(commissionData, startDate, endDate) {
                'Commission Earned',
           ]],
           body: commissionData.map(record => [
-               record.clinician_name,
-               record.clinician_phone,
+               record.organization_name,
+               record.organization_phone,
                record.total_services,
                (typeof currencyFormatter !== 'undefined' ? currencyFormatter.format(Number(record.total_payable)) : record.total_payable),
                (typeof currencyFormatter !== 'undefined' ? currencyFormatter.format(Number(record.total_paid)) : record.total_paid),
@@ -44,22 +44,18 @@ function exportCommissionDataToPDF(commissionData, startDate, endDate) {
 import styles from '../../clinicians/commision-information/CommissionReport.module.css';
 import { RiAlertLine, RiFileList3Line, RiMoneyDollarCircleLine, RiServiceLine, RiUserLine } from '@remixicon/react';
 import dayjs from 'dayjs';
-import { currencyFormatter,customFetch } from '../../../components/Auth/customFetch';
+import { currencyFormatter, customFetch } from '../../../components/Auth/customFetch';
 import DateFilterReusable from '../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable';
 
 interface CommissionData {
+     organization_id: number;
+     organization_name: string;
+     organization_phone: string;
      service_date: string;
-     clinician_id: number;
-     clinician_name: string;
-     clinician_phone: string;
-     occupation: string;
-     organization: number;
      total_services: number;
      total_payable: string;
      total_paid: string;
-     commission_percent: number;
-     commission_earned_by_amount_payable: string;
-     commission_earned_by_paid_amount: string;
+     commission_earned_total: string;
 }
 
 interface ApiResponse {
@@ -94,11 +90,8 @@ const Stat = ({ label, value, icon }: { label: string, value: string | number, i
 
 async function getCommissionData(startDate: string, endDate: string) {
      try {
-          const response = await customFetch(`clinician/anal/commissions/range?startDate=${startDate}&endDate=${endDate}`);
-          if (!response || !response.success) {
-               throw new Error("API returned no data or failed.");
-          }
-          return response;
+          const response = await customFetch(`organization/commission/summary?startDate=${startDate}&endDate=${endDate}`);
+          return response && response?.result && Array.isArray(response.result) ? response.result : []
      } catch (error: any) {
           return { error: error.message || 'An unknown error occurred' };
      }
@@ -119,11 +112,11 @@ export default function OrganizationPendingCommission() {
           setError(null);
           getCommissionData(startDate, endDate)
                .then(res => {
-                    if (res.error) {
+                    if (res  && res.error || !Array.isArray(res)) {
                          setError(res.error);
                          setCommissionData([]);
                     } else {
-                         setCommissionData(res.data || []);
+                         setCommissionData(res || []);
                     }
                })
                .catch(e => {
@@ -160,28 +153,27 @@ export default function OrganizationPendingCommission() {
 
 
      // Calculate summary statistics
-     // Use commission_earned_by_paid_amount as the total commission earned field
-     const totalCommissionEarned = commissionData.reduce((sum, item) => sum + Number(item.commission_earned_by_paid_amount), 0);
+     // Use commission_earned_total as the total commission earned field
+     const totalCommissionEarned = commissionData.reduce((sum, item) => sum + Number(item.commission_earned_total), 0);
      const totalServiceValue = commissionData.reduce((sum, item) => sum + Number(item.total_payable), 0);
      const totalPaidAmount = commissionData.reduce((sum, item) => sum + Number(item.total_paid), 0);
      const totalServices = commissionData.reduce((sum, item) => sum + item.total_services, 0);
-     const uniqueClinicians = new Set(commissionData.map(item => item.clinician_id)).size;
+     const uniqueOrganizations = new Set(commissionData.map(item => item.organization_id)).size;
 
-     // Group data by clinician for summary
-     const clinicianSummary = commissionData.reduce((acc, item) => {
-          const key = item.clinician_id;
+     // Group data by organization for summary
+     const organizationSummary = commissionData.reduce((acc, item) => {
+          const key = item.organization_id;
           if (!acc[key]) {
                acc[key] = {
-                    clinician_name: item.clinician_name,
-                    clinician_phone: item.clinician_phone,
-                    occupation: item.occupation,
-                    total_commission_earned_by_paid_amount: 0,
+                    organization_name: item.organization_name,
+                    organization_phone: item.organization_phone,
+                    total_commission_earned_total: 0,
                     total_value: 0,
                     total_services: 0,
                     records: 0
                };
           }
-          acc[key].total_commission_earned_by_paid_amount += Number(item.commission_earned_by_paid_amount);
+          acc[key].total_commission_earned_total += Number(item.commission_earned_total);
           acc[key].total_value += Number(item.total_payable);
           acc[key].total_services += item.total_services;
           acc[key].records += 1;
@@ -195,7 +187,7 @@ export default function OrganizationPendingCommission() {
                <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-4 gap-3">
                     <h1 className={styles.title} style={{ margin: 0 }}>
                          <RiFileList3Line />
-                         Clinicians Commission Analytics Report
+                         Organizations Commission Analytics Report
                     </h1>
 
                     <div style={{ flexShrink: 0, minWidth: '240px' }}>
@@ -227,7 +219,7 @@ export default function OrganizationPendingCommission() {
                               <Stat label="Total Services Rendered" value={totalServices.toLocaleString()} icon={<RiServiceLine />} />
                          </div>
                          <div className="col-12 col-sm-6 col-md-4 col-lg-3">
-                              <Stat label="Active Clinicians" value={uniqueClinicians} icon={<RiUserLine />} />
+                              <Stat label="Active Organizations" value={uniqueOrganizations} icon={<RiUserLine />} />
                          </div>
                          <div className="col-12 col-sm-6 col-md-4 col-lg-3">
                               <Stat label="Total Records" value={commissionData.length.toLocaleString()} icon={<RiFileList3Line />} />
@@ -262,12 +254,12 @@ export default function OrganizationPendingCommission() {
                                         // Define columns for PrimeTable
                                         const columns = [
                                              {
-                                                  Header: 'Clinician Name',
-                                                  accessor: 'clinician_name',
+                                                  Header: 'Organization Name',
+                                                  accessor: 'organization_name',
                                              },
                                              {
                                                   Header: 'Phone',
-                                                  accessor: 'clinician_phone',
+                                                  accessor: 'organization_phone',
                                              },
                                              {
                                                   Header: 'Services',
@@ -295,7 +287,7 @@ export default function OrganizationPendingCommission() {
                                                   disableSortBy: true,
                                                   Cell: ({ row }) => (
                                                        <a
-                                                            href={`/organizations/commision-information/${row.original.clinician_id}`}
+                                                            href={`/organization/commission-details/${row.original.organization_id}`}
                                                             className='btn btn-primary btn-sm'
                                                             target="_blank"
                                                             rel="noopener noreferrer"
@@ -309,10 +301,10 @@ export default function OrganizationPendingCommission() {
                                         const PrimeTable = require('../../../components/accessories/Datatables/PrimeTable.js').default;
                                         const handleSeverSideProcessing = async ({ page, count, sortby = 'ASC', startDate, endDate }) => {
                                              try {
-                                                  const url = `clinician/anal/commissions/range?startDate=${startDate}&endDate=${endDate}&page=${page}&count=${count}${sortby ? `&sortby=${sortby}` : ''}`;
+                                                  const url = `organization/commission/summary?startDate=${startDate}&endDate=${endDate}&page=${page}&count=${count}${sortby ? `&sortby=${sortby}` : ''}`;
                                                   const response = await customFetch(url);
-                                                  if (response && response.success && Array.isArray(response.data)) {
-                                                       return { result: response.data, error: false };
+                                                  if (response && response?.result && Array.isArray(response.result)) {
+                                                       return { result: response.result, error: false };
                                                   } else {
                                                        return { result: [], error: false };
                                                   }

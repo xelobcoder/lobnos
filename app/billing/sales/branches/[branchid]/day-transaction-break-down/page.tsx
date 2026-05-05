@@ -640,33 +640,7 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                 {/* Desktop Card View */}
                 <div className="d-none d-md-block">
                     <div className="d-flex flex-row gap-3 mb-3">
-                        <div className="flex-fill" style={{ height: '150px' }}>
-                            <AnalyticCard
-                                title="Net Revenue"
-                                value={Number(aggregatedSnapshot.net_revenue || 0)}
-                                Icon={RiMoneyDollarCircleLine}
-                                bgColor={cardColors.totalSales.bg}
-                                iconColor={cardColors.totalSales.icon}
-                            />
-                        </div>
-                        <div className="flex-fill" style={{ height: '150px' }}>
-                            <AnalyticCard
-                                title="Accrued Revenue"
-                                value={Number(aggregatedSnapshot.accrued_revenue || 0)}
-                                Icon={RiLineChartLine}
-                                bgColor={cardColors.discount.bg}
-                                iconColor={cardColors.discount.icon}
-                            />
-                        </div>
-                        <div className="flex-fill" style={{ height: '150px' }}>
-                            <AnalyticCard
-                                title="Actual Revenue "
-                                value={Number(aggregatedSnapshot.actual_revenue || 0)}
-                                Icon={RiHandCoinLine}
-                                bgColor={cardColors.amountPaid.bg}
-                                iconColor={cardColors.amountPaid.icon}
-                            />
-                        </div>
+
                         <div className="flex-fill" style={{ height: '150px' }}>
                             <AnalyticCard
                                 title="Outstanding Debt"
@@ -696,32 +670,43 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                         </div>
                     </div>
                     <div className="d-flex flex-row gap-3 mb-3">
+
                         <div className="flex-fill" style={{ height: '150px' }}>
                             <AnalyticCard
-                                title="Total Expenses"
-                                value={Number(ceoExpenseSummarySnapshot[0]?.total_expenses_amount || 0)}
+                                title="Accrued Revenue"
+                                value={Number(aggregatedSnapshot.accrued_revenue || 0)}
+                                Icon={RiLineChartLine}
+                                bgColor={cardColors.discount.bg}
+                                iconColor={cardColors.discount.icon}
+                            />
+                        </div>
+                        <div className="flex-fill" style={{ height: '150px' }}>
+                            <AnalyticCard
+                                title="Actual Revenue "
+                                value={Number(aggregatedSnapshot.actual_revenue || 0)}
+                                Icon={RiHandCoinLine}
+                                bgColor={cardColors.amountPaid.bg}
+                                iconColor={cardColors.amountPaid.icon}
+                            />
+                        </div>
+
+                        <div className="flex-fill" style={{ height: '150px' }}>
+                            <AnalyticCard
+                                title="Total Expenses Payments "
+                                value={Number(dailyCeoSnapshot[0]?.total_expense_payments || 0)}
                                 Icon={RiCashLine}
                                 bgColor={cardColors.expenses.bg}
                                 iconColor={cardColors.expenses.icon}
                             />
                         </div>
+
                         <div className="flex-fill" style={{ height: '150px' }}>
                             <AnalyticCard
-                                title="Approved Expenses"
-                                value={Number(ceoExpenseSummarySnapshot[0]?.approved_expenses_amount || 0)}
-                                Icon={RiFileList3Line}
-                                bgColor={cardColors.amountPaid.bg}
-                                iconColor={cardColors.amountPaid.icon}
-                            />
-                        </div>
-                        <div className="flex-fill" style={{ height: '150px' }}>
-                            <AnalyticCard
-                                title="Pending Expenses"
-                                value={ceoExpenseSummarySnapshot[0]?.pending_expenses_count || 0}
-                                Icon={RiFileList3Line}
-                                bgColor={cardColors.pendingDebts.bg}
-                                iconColor={cardColors.pendingDebts.icon}
-                                formatAsCurrency={false}
+                                title="Net Revenue"
+                                value={Number(aggregatedSnapshot.net_revenue || 0)}
+                                Icon={RiMoneyDollarCircleLine}
+                                bgColor={cardColors.totalSales.bg}
+                                iconColor={cardColors.totalSales.icon}
                             />
                         </div>
                     </div>
@@ -863,12 +848,12 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                                     <span className="small fw-medium text-muted">Total Expenses</span>
                                 </div>
                                 <span className="fw-semibold text-dark small">
-                                    {currencyFormatter.format(Number(ceoExpenseSummarySnapshot[0]?.total_expense_payments || 0))}
+                                    {currencyFormatter.format(Number(ceoExpenseSummarySnapshot[0]?.total_expenses_amount || 0))}
                                 </span>
                             </div>
                         </div>
 
-                                                <div className="list-group-item px-3 py-2 border-0">
+                        <div className="list-group-item px-3 py-2 border-0">
                             <div className="d-flex justify-content-between align-items-center">
                                 <div className="d-flex align-items-center gap-2">
                                     <div

@@ -14,7 +14,7 @@ import { calculateCorrectionalAdjustment } from '../../../lib/Multi/correctionUt
 import { currencyFormatter } from "../../Auth/customFetch";
 
 
-export default function MultiBillingPageAdditionalInformation({ showChoiceModal: forceShowChoiceModal = false, onBillingSuccess, handlesubmit }: { showChoiceModal?: boolean, onBillingSuccess?: (billingid: string, message?: string) => void, handlesubmit?: (data:MultiBillingData) => Promise<any> }) {
+export default function MultiBillingPageAdditionalInformation({ showChoiceModal: forceShowChoiceModal = false, onBillingSuccess, handlesubmit, generatedBillingId }: { showChoiceModal?: boolean, onBillingSuccess?: (billingid: string, message?: string) => void, handlesubmit?: (data:MultiBillingData) => Promise<any>, generatedBillingId?: string }) {
 	// Outstanding Write-Off Dialog State
 	const [showOutstandingDialog, setShowOutstandingDialog] = useState(false);
 	const [outstandingInfo, setOutstandingInfo] = useState<{
@@ -33,24 +33,28 @@ export default function MultiBillingPageAdditionalInformation({ showChoiceModal:
 	const branchid = applicationsettings.branchid;
 	const { employeeid, role } = applicationsettings.user;
 	const [showReceiptOptionsModal, setShowReceiptOptionsModal] = useState(false);
-	const [generatedBillingid, setGeneratedBillingid] = useState<string | undefined>(undefined);
+	const [generatedBillingIdState, setGeneratedBillingIdState] = useState<string | undefined>(generatedBillingId);
 	const [showChoiceModal, setShowChoiceModal] = useState(forceShowChoiceModal || false);
+
+	useEffect(() => {
+		if (generatedBillingId && generatedBillingId !== generatedBillingIdState) {
+			setGeneratedBillingIdState(generatedBillingId);
+			setShowChoiceModal(true);
+		}
+	}, [generatedBillingId]);
 	const [userAgreedToWriteOff, setUserAgreedToWriteOff] = useState(false);
 	const [adminWriteOffInternalLoss, setAdminWriteOffInternalLoss] = useState(false);
-	const closeReceiptModal = () => setShowReceiptOptionsModal(false);
+	const closeReceiptModal = () => {
+		setShowReceiptOptionsModal(false);
+		// Reset billing data after receipt modal is closed
+		setBillingData(defaultMultiBillingData);
+	};
 	const router = useRouter();
 
 	const handleModalClose = () => {
 		setShowChoiceModal(false);
-		setBillingData(prev => ({
-			...defaultMultiBillingData,
-			billingSource: prev.billingSource,
-			branchid: prev.branchid,
-			patientid: prev.patientid,
-			entitytype: prev.entitytype,
-			entityId: prev.entityId,
-			entityname: prev.entityname
-		}));
+		// Reset billing data after successful billing
+		setBillingData(defaultMultiBillingData);
 		setUserAgreedToWriteOff(false);
 	};
 
@@ -61,8 +65,9 @@ export default function MultiBillingPageAdditionalInformation({ showChoiceModal:
 		if (choice === 'print') {
 			setShowReceiptOptionsModal(true);
 		} else {
+			// Reset billing data after successful billing
 			setBillingData(defaultMultiBillingData);
-			router.push(`/billing/sales/branches/${plsEncryption(branchid.toString())}`);
+			router.push(`/crm/customers`);
 		}
 	};
 
@@ -88,7 +93,7 @@ export default function MultiBillingPageAdditionalInformation({ showChoiceModal:
 			</div>
 			{showReceiptOptionsModal && <ReceiptOptionsModal open={showReceiptOptionsModal} close={closeReceiptModal}
 				patientid={Number(patientid)}
-				billingid={generatedBillingid ? Number(generatedBillingid) : 0} />}
+				billingid={generatedBillingIdState ? Number(generatedBillingIdState) : 0} />}
 			{showChoiceModal && (
 				<Modal
 					show={showChoiceModal}
@@ -98,26 +103,30 @@ export default function MultiBillingPageAdditionalInformation({ showChoiceModal:
 					keyboard={false}
 				>
 					<Modal.Header closeButton>
-						<Modal.Title>Billing Complete</Modal.Title>
+						<Modal.Title className="text-success">✓ Billing Complete</Modal.Title>
 					</Modal.Header>
-					<Modal.Body>
-						<p>What would you like to do next?</p>
-						<div className="d-flex justify-content-end gap-2">
+					<Modal.Body className="text-center">
+						<div className="mb-4">
+							<div className="display-4 fw-bold text-primary mb-2">{generatedBillingIdState}</div>
+							<p className="text-muted mb-4">Billing ID</p>
+						</div>
+						<p className="mb-4">What would you like to do next?</p>
+						<div className="d-flex justify-content-center gap-3">
 							<Button
 								variant="primary"
 								onClick={() => handleUserChoice('print')}
-								className="d-flex align-items-center gap-2"
+								className="d-flex align-items-center gap-2 px-4 py-2"
 							>
 								<RiPrinterLine size={18} />
 								Print Receipt
 							</Button>
 							<Button
 								variant="secondary"
-								onClick={() => handleUserChoice('sales')}
-								className="d-flex align-items-center gap-2"
+								onClick={() => handleUserChoice('customers')}
+								className="d-flex align-items-center gap-2 px-4 py-2"
 							>
 								<RiStore3Line size={18} />
-								Go to Sales
+								Return to Customers
 							</Button>
 						</div>
 					</Modal.Body>

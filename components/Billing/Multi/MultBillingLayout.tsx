@@ -494,11 +494,9 @@ function MultiBillingLayoutContent() {
 
             if (status == true || status === 'success') {
                 if (typeof window !== 'undefined') {
-                    setGeneratedBillingid(response.billingid || response.data?.billingid);
-                    // setTimeout(() => {
-                    //     router.push(`/crm/customers`)
-                    //     window.open(`/billing/cash-collection/pos-receipt-test?billingid=${response.billingid || response.data?.billingid}&is_pos=true`);
-                    // }, 1000);
+                    const billingId = response.billingid || response.data?.billingid;
+                    setGeneratedBillingid(billingId);
+                    toast.success(message || "Billing submitted successfully");
                 }
             }
             if (status == false) {
@@ -821,7 +819,7 @@ function MultiBillingLayoutContent() {
                             )}
                         </div>
                         <div className="col-12 col-md-3 border-start p-2" style={{ minHeight: 300 }}>
-                            {billingdata.showsummary && <MultiSummary handlesubmit={handleSubmit} />}
+                            {billingdata.showsummary && <MultiSummary handlesubmit={handleSubmit} generatedBillingid={generatedBillingid} />}
                         </div>
                     </div>
                 </div>

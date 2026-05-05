@@ -18,9 +18,10 @@ import { MultiBillingData } from "../../../lib/Multi/MultiTypes";
 interface MultiSummaryProps {
     summaryData?: any;
     handlesubmit?: (data: MultiBillingData) => Promise<any>;
+    generatedBillingid?: string | number;
 }
 
-export default function MultiSummary({ summaryData, handlesubmit }: MultiSummaryProps) {
+export default function MultiSummary({ summaryData, handlesubmit, generatedBillingid }: MultiSummaryProps) {
     const context = useContext(MultiBillingContext);
     if (!context) throw new Error("MultiBillingContext not found");
     const { billingdata, setBillingData } = context;
@@ -96,7 +97,7 @@ export default function MultiSummary({ summaryData, handlesubmit }: MultiSummary
                 </div>
             </div>
 
-            <MultiBillingPageAdditionalInformation handlesubmit={handlesubmit} />
+            <MultiBillingPageAdditionalInformation handlesubmit={handlesubmit} generatedBillingId={generatedBillingid?.toString()} />
         </div>
     );
 }

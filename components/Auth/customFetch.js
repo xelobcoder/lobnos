@@ -77,8 +77,6 @@ export async function  customFetch(endpoint,isLogin=false) {
 		// 	return { error: "Session expired" };
 		// }
 
-		console.log("source", source)
-
 		const { status, message, statusCode } = source;
 		if ((status == 401 || statusCode == 401 || statusCode == 500) && (message.toLowerCase() == "Unauthorized".toLowerCase() || message.toLowerCase() == "Token not Provided".toLowerCase() || message.toLowerCase() == "Token Expired".toLowerCase())) {
 			handleLogout();
