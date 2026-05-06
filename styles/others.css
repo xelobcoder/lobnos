@@ -1040,6 +1040,20 @@ textarea:required:focus:invalid {
   margin-left: 4px;
 }
 
+/* ==================== UTILITY CLASSES ==================== */
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.hover-shadow {
+  transition: box-shadow 0.3s ease;
+}
+
+.hover-shadow:hover {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
 .heightedBorder {
   border-left: 4px solid #0056b3 !important;
   border-end-end-radius: 5px !important;

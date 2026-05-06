@@ -49,6 +49,26 @@ export const ApplicationSettingsLinks: Link[] =
             ]
         },
         {
+            title: "Commission Settings",
+            link: "",
+            icon: <RiMoneyDollarCircleLine />,
+            children: [
+                {
+                    title: "Configurations",
+                    link: "/settings/applicationsettings/commisions-defaults/commissions/configs",
+                },
+                {
+                    title: "Assignments",
+                    link: "/settings/applicationsettings/commisions-defaults/commissions/assignments",
+                },
+                {
+                    title: "Defaults",
+                    link: "/settings/applicationsettings/commisions-defaults",
+                },
+            ]
+
+        },
+        {
             title: "Laboratory",
             link: "",
             icon: <RiTestTubeLine />,
