@@ -14,6 +14,7 @@ export const OrganizationMainLinks: Link[] = [
         link: '/settings/outsource',
         icon: <RiUserStarLine />
     },
+    { title: "Commission Untracked Cases", link: "/organization/untracked-commission-records", icon: <RiUserStarLine /> },
     { title: 'Outsourcing Services', link: '/organization/outsource', icon: <RiUserStarLine /> },
     { title: 'Outsourced Cases Tracking', link: '/organization/outsource/outsourced-cases-tracking', icon: <RiUserStarLine /> }
 ];

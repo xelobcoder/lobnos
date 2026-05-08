@@ -1,695 +1,639 @@
-# Commission Engine - Frontend Integration Guide
+# Commission Configuration Setup Guide - Frontend
 
 ## Overview
 
-The Commission Engine automatically calculates clinician and organization commissions when services are billed and completed. The frontend doesn't need to manually trigger commission calculations—they happen automatically during the billing submission process.
+This guide provides accurate, detailed instructions for setting up and managing commission configurations in the Lobnos Professional Version system. Commission configurations define how commissions are calculated when services are billed.
 
-## What the Frontend Needs to Know
+## Commission Types
 
-### 1. Commission Calculations Are Automatic
+### 1. Percentage Commission
 
-**When services are billed:**
+- **Type**: `"percentage"`
+- **Rate-based**: Commission as percentage of service amount
+- **Required Fields**:
+  - `commission_type`: "percentage"
+  - `percentage_rate`: Number (0-100, e.g., 10.5 = 10.5%)
+  - `effective_from`: Date (activation date)
+  - `is_active`: Boolean
+- **Optional Fields**:
+  - `min_commission`: Minimum commission amount (e.g., 5.00)
+  - `max_commission`: Maximum commission amount (e.g., 200.00)
+  - `period_cap`: Cap per period (e.g., 1000.00)
+  - `period_cap_reset`: "daily" | "weekly" | "monthly" | "quarterly" | "yearly"
+  - `effective_to`: Expiry date
+  - `description`: Notes about this config
 
-- Services are inserted into the database (`dboservices` table)
-- Commission is automatically calculated based on the service amount and assigned configuration
-- Results are stored in the `commission_tracking` table (immutable ledger)
+**Example**: GHₛ150 service × 8% = GHₛ12 commission
 
-**No frontend action needed** for basic commission flow—it all happens server-side.
+### 2. Fixed Commission
 
-### 2. Complete API Reference
+- **Type**: `"fixed"`
+- **Amount-based**: Fixed amount regardless of service value
+- **Required Fields**:
+  - `commission_type`: "fixed"
+  - `fixed_component`: Number (e.g., 50.00)
+  - `effective_from`: Date
+  - `is_active`: Boolean
+- **Optional Fields**: Same as percentage
 
-#### Commission Configurations
+**Example**: Always GHₛ50 per service, regardless of amount
 
-**Create Configuration:**
+### 3. Hybrid Commission
 
-```javascript
-POST /api/v1/commission/configs
-Content-Type: application/json
+- **Type**: `"hybrid"`
+- **Combined**: Percentage + fixed amount
+- **Required Fields**:
+  - `commission_type`: "hybrid"
+  - `percentage_rate`: Number
+  - `fixed_component`: Number
+  - `effective_from`: Date
+  - `is_active`: Boolean
+- **Optional Fields**: Same as percentage
 
+**Example**: (GHₛ150 × 5%) + GHₛ10 = GHₛ17.50 total
+
+### 4. Tiered Commission
+
+- **Type**: `"tiered"`
+- **Range-based**: Different rates for different service amounts
+- **Required Fields**:
+  - `commission_type`: "tiered"
+  - `effective_from`: Date
+  - `is_active`: Boolean
+- **Tier Structure** (separate creation):
+  - `min_amount_inclusive`: Range start (inclusive)
+  - `max_amount_exclusive`: Range end (exclusive, null = unlimited)
+  - `tier_type`: "fixed" | "percentage"
+  - `tier_value`: Commission amount (if fixed) or rate (if percentage)
+  - `sort_order`: Display order (1, 2, 3...)
+
+**Example Tiers**:
+| Service Amount | Tier Type | Value | Commission |
+|---|---|---|---|
+| GHₛ0 - GHₛ100 | fixed | 5 | GHₛ5 |
+| GHₛ100 - GHₛ500 | percentage | 8 | 8% of amount |
+| GHₛ500+ | fixed | 25 | GHₛ25 |
+
+---
+
+## Setup Workflow
+
+### Step 1: Create Commission Configuration
+
+**Endpoint**: `POST /api/v1/commissions/configs`
+
+**Request Body**:
+
+```json
 {
-  "tenantId": 1,
-  "name": "Specialist Doctor Commission",
+  "name": "Lab Services - 8% Commission",
+  "description": "Standard commission for lab services",
   "commission_type": "percentage",
-  "percentage_rate": 10,
-  "fixed_component": null,
-  "min_commission": 5,
-  "max_commission": 500,
-  "period_cap": 1000,
+  "percentage_rate": 8.0,
+  "min_commission": 5.0,
+  "max_commission": 200.0,
+  "period_cap": 2000.0,
   "period_cap_reset": "monthly",
-  "effective_from": "2026-01-01",
-  "effective_to": "2026-12-31",
+  "effective_from": "2024-01-01T00:00:00Z",
+  "effective_to": null,
   "is_active": true
 }
 ```
 
-**Get All Configurations:**
+**Field Validation**:
 
-```javascript
-GET /api/v1/commission/configs?tenantId={tenantId}
-```
+- `name`: Required, unique, max 255 characters
+- `commission_type`: One of "percentage", "fixed", "hybrid", "tiered"
+- `percentage_rate`: Required for percentage/hybrid; 0-100
+- `fixed_component`: Required for fixed/hybrid; positive number
+- `min_commission`: ≤ `max_commission` if both set
+- `period_cap_reset`: Valid only if `period_cap` is set; "daily", "weekly", "monthly", "quarterly", "yearly"
+- `effective_from`: Required, must be valid date
+- `is_active`: Required, boolean
 
-**Get Specific Configuration:**
-
-```javascript
-GET /api/v1/commission/configs/{id}?tenantId={tenantId}
-```
-
-**Update Configuration:**
-
-```javascript
-PUT /api/v1/commission/configs/{id}?tenantId={tenantId}
-```
-
-**Delete Configuration:**
-
-```javascript
-DELETE /api/v1/commission/configs/{id}?tenantId={tenantId}
-```
-
-#### Commission Assignments
-
-**Create Assignment:**
-
-```javascript
-POST /api/v1/commission/assignments
-Content-Type: application/json
-
-{
-  "tenantId": 1,
-  "commission_config_id": 1,
-  "scope_type": "clinician",
-  "scope_id": 42,
-  "service_id": null,
-  "service_category": null,
-  "priority": 100,
-  "assigned_from": "2026-01-01",
-  "assigned_to": "2026-12-31",
-  "is_active": true
-}
-```
-
-**Get Assignments:**
-
-```javascript
-GET /api/v1/commission/assignments?tenantId={tenantId}&commission_config_id={configId}
-```
-
-**Resolve Assignment for Service:**
-
-```javascript
-GET /api/v1/commission/assignments/resolve?tenantId={tenantId}&service_id={serviceId}&clinician_id={clinicianId}&organization_id={orgId}
-```
-
-**Get Specific Assignment:**
-
-```javascript
-GET /api/v1/commission/assignments/{id}?tenantId={tenantId}
-```
-
-**Update Assignment:**
-
-```javascript
-PUT /api/v1/commission/assignments/{id}?tenantId={tenantId}
-```
-
-**Delete Assignment:**
-
-```javascript
-DELETE /api/v1/commission/assignments/{id}?tenantId={tenantId}
-```
-
-#### Commission Tracking
-
-**Get Unpaid Commissions:**
-
-```javascript
-GET /api/v1/commission/tracking/unpaid?tenantId={tenantId}&recipientType=clinician&recipientId={clinicianId}&limit=100
-```
-
-**Get Commission Summary:**
-
-```javascript
-GET /api/v1/commission/tracking/summary?tenantId={tenantId}&recipientType=clinician&recipientId={clinicianId}
-```
-
-**Get Tracking by Status:**
-
-```javascript
-GET /api/v1/commission/tracking/status/{status}?tenantId={tenantId}&recipientType=clinician&recipientId={clinicianId}
-```
-
-**Get Tracking by Recipient:**
-
-```javascript
-GET /api/v1/commission/tracking/recipient?tenantId={tenantId}&recipientType=clinician&recipientId={clinicianId}
-```
-
-**Get Period Total:**
-
-```javascript
-GET /api/v1/commission/tracking/period-total?tenantId={tenantId}&recipientType=clinician&recipientId={clinicianId}&period=monthly
-```
-
-**Get Service Tracking:**
-
-```javascript
-GET /api/v1/commission/tracking/service/{serviceId}?tenantId={tenantId}
-```
-
-**Update Commission Status:**
-
-```javascript
-PUT /api/v1/commission/tracking/{id}/status?tenantId={tenantId}
-Content-Type: application/json
-
-{
-  "status": "approved",
-  "notes": "Approved for payment"
-}
-```
-
-#### Commission Defaults
-
-**Create Default:**
-
-```javascript
-POST /api/v1/commission/defaults
-Content-Type: application/json
-
-{
-  "tenantId": 1,
-  "recipient_type": "clinician",
-  "recipient_id": 99,
-  "commission_config_id": 2,
-  "is_active": true
-}
-```
-
-**Get Default:**
-
-```javascript
-GET /api/v1/commission/defaults?tenantId={tenantId}&recipient_type=clinician&recipient_id={id}
-```
-
-**Get Defaults by Type:**
-
-```javascript
-GET /api/v1/commission/defaults/type/{recipientType}?tenantId={tenantId}
-```
-
-**Update Default:**
-
-```javascript
-PUT /api/v1/commission/defaults/{id}?tenantId={tenantId}
-```
-
-**Delete Default:**
-
-```javascript
-DELETE /api/v1/commission/defaults/{id}?tenantId={tenantId}
-```
-
-## Configuration Management (Admin UI)
-
-### Creating a Commission Configuration
-
-**Endpoint:**
-
-```javascript
-POST /api/v1/commission/configs
-Content-Type: application/json
-
-{
-  "tenantId": 1,
-  "name": "Specialist Doctor Commission",
-  "commission_type": "percentage",
-  "percentage_rate": 10,
-  "fixed_component": null,
-  "min_commission": 5,
-  "max_commission": 500,
-  "period_cap": 1000,
-  "period_cap_reset": "monthly",
-  "effective_from": "2026-01-01",
-  "effective_to": "2026-12-31",
-  "is_active": true
-}
-```
-
-**Response:**
+**Response** (201 Created):
 
 ```json
 {
   "status": "success",
   "statusCode": 201,
-  "message": "Commission configuration created successfully",
+  "message": "Commission configuration created",
   "result": {
     "id": 1,
-    "name": "Specialist Doctor Commission",
+    "name": "Lab Services - 8% Commission",
     "commission_type": "percentage",
+    "percentage_rate": 8.0,
+    "is_active": true,
     ...
   }
 }
 ```
 
-### Creating Tiered Configuration
+### Step 2: Configure Tiers (Tiered Commissions Only)
 
-For amount-based tier commissions (e.g., 5% for < 500 GHS, 8% for 500-1000 GHS):
+**Endpoint**: `POST /api/v1/commissions/configs/{configId}/tiers`
 
-**Endpoint:**
+**Request Body** (for config type "tiered"):
 
-```javascript
-POST /api/v1/commission/configs
-Content-Type: application/json
+```json
+[
+  {
+    "min_amount_inclusive": 0,
+    "max_amount_exclusive": 100,
+    "tier_type": "fixed",
+    "tier_value": 5.0,
+    "sort_order": 1
+  },
+  {
+    "min_amount_inclusive": 100,
+    "max_amount_exclusive": 500,
+    "tier_type": "percentage",
+    "tier_value": 8.0,
+    "sort_order": 2
+  },
+  {
+    "min_amount_inclusive": 500,
+    "max_amount_exclusive": null,
+    "tier_type": "fixed",
+    "tier_value": 25.0,
+    "sort_order": 3
+  }
+]
+```
 
+**Tier Validation Rules**:
+
+- Ranges must NOT overlap
+- `min_amount_inclusive` < `max_amount_exclusive` (unless exclusive is null)
+- `tier_value` > 0
+- `tier_type`: "fixed" = absolute amount, "percentage" = rate percent
+- At least 1 tier required for tiered configs
+- `sort_order` determines processing sequence
+
+**Note**: Tiers are created in batch. Update individual tiers with `PUT /api/v1/commissions/tiers/{tierId}`.
+
+### Step 3: Assign Config to Scopes
+
+Commission configs apply to specific scopes (system-wide, organization, or clinician).
+
+**Endpoint**: `POST /api/v1/commissions/assignments`
+
+**Request Body** (Clinician-specific assignment):
+
+```json
 {
-  "tenantId": 1,
-  "name": "High Volume Sales Commission",
-  "commission_type": "tiered",
-  "min_commission": 10,
-  "max_commission": 1000,
-  "period_cap": 5000,
+  "commission_config_id": 1,
+  "scope_type": "clinician",
+  "scope_id": 42,
+  "service_category": "Haematology",
+  "service_id": null,
+  "priority": 1,
+  "assigned_from": "2024-01-01T00:00:00Z",
+  "assigned_to": null,
+  "is_active": true
+}
+```
+
+**Scope Types**:
+
+- **"system"**: Global default (no scope_id required)
+- **"organization"**: Org-level (scope_id = organization ID)
+- **"clinician"**: Clinician-level (scope_id = clinician ID)
+
+**Service Filtering** (optional):
+
+- Leave both `service_id` and `service_category` null for all services
+- Set `service_category` (e.g., "Haematology") for category-specific
+- Set `service_id` for single service only
+
+**Assignment Validation**:
+
+- `scope_type` required: one of "system", "organization", "clinician"
+- If scope_type is "organization" or "clinician", `scope_id` required
+- `assigned_from` required, must be valid date
+- `priority`: 1-10 (used with specificity for resolution)
+- `assigned_to`: Optional expiry date
+
+### Step 4: Test Configuration
+
+Before activating, test with sample data.
+
+**Endpoint**: `POST /api/v1/commissions/calculate`
+
+**Request Body**:
+
+```json
+{
+  "service_id": 456,
+  "service_amount": 150.0,
+  "service_category": "Haematology",
+  "organization_id": 789,
+  "clinician_id": 42,
+  "completion_date": "2024-01-15T10:00:00Z"
+}
+```
+
+**Response** (200 OK):
+
+```json
+{
+  "final_commission": 12.0,
+  "tracking_id": 9876,
+  "reason": "SUCCESS"
+}
+```
+
+**Error Response**:
+
+```json
+{
+  "final_commission": 0,
+  "reason": "NO_CONFIG",
+  "error": "No assignment found matching criteria"
+}
+```
+
+## Configuration Setup Process
+
+### Step 1: Create Commission Configuration
+
+Use the `CommissionConfigController` to create a new configuration:
+
+```typescript
+POST /api/v1/commissions/configs
+
+Request Body:
+{
+  "name": "Standard Lab Commission",
+  "description": "Commission for standard lab services",
+  "commission_type": "percentage",
+  "percentage_rate": 8.5,
+  "min_commission": 5.00,
+  "max_commission": 200.00,
+  "period_cap": 1000.00,
   "period_cap_reset": "monthly",
-  "tiers": [
+  "is_active": true
+}
+```
+
+**Validation Rules:**
+
+- `name`: Required, unique, max 255 characters
+- `commission_type`: Must be one of: "percentage", "fixed", "hybrid", "tiered"
+- `percentage_rate`: Required for "percentage"/"hybrid", 0-100
+- `fixed_component`: Required for "fixed"/"hybrid", positive number
+- `min_commission`: Must be ≤ `max_commission` if both provided
+- `period_cap_reset`: Must be "daily", "weekly", "monthly", "quarterly", or "yearly" if `period_cap` is set
+
+### Step 2: Configure Tiers (For Tiered Commissions Only)
+
+If `commission_type` is "tiered", create tiers using `CommissionTierController`:
+
+```typescript
+POST /api/v1/commissions/configs/{configId}/tiers
+
+Request Body:
+[
+  {
+    "min_amount": 0,
+    "max_amount": 100,
+    "tier_value": 5.00
+  },
+  {
+    "min_amount": 100,
+    "max_amount": 500,
+    "tier_value": 15.00
+  },
+  {
+    "min_amount": 500,
+    "max_amount": null,
+    "tier_value": 25.00
+  }
+]
+```
+
+**Tier Validation:**
+
+- Tiers must not overlap
+- `min_amount` < `max_amount` (unless `max_amount` is null)
+- `tier_value` must be positive
+- At least one tier required for tiered configurations
+
+### Step 3: Assign Configuration to Entities
+
+Use `CommissionAssignmentController` to assign configurations to clinicians or organizations:
+
+```typescript
+POST /api/v1/commissions/assignments
+
+Request Body:
+{
+  "commission_config_id": 1,
+  "entity_type": "clinician",
+  "entity_id": 123,
+  "priority": 1,
+  "is_active": true,
+  "effective_from": "2024-01-01T00:00:00Z",
+  "effective_to": null
+}
+```
+
+**Assignment Rules:**
+
+- `entity_type`: "clinician" or "organization"
+- `entity_id`: Must exist in the respective table
+- `priority`: Higher number = higher priority (1-10)
+- Multiple assignments allowed per entity, resolved by priority
+
+### Step 4: Test Configuration
+
+Use the commission engine to test calculations:
+
+```typescript
+POST /api/v1/commissions/calculate
+
+Request Body:
+{
+  "service_id": 456,
+  "service_amount": 150.00,
+  "service_category": "lab",
+  "organization_id": 789,
+  "clinician_id": 123,
+  "completion_date": "2024-01-15T10:00:00Z"
+}
+```
+
+---
+
+## Assignment Resolution Algorithm
+
+The system resolves which assignment applies using a **specificity score** system:
+
+### Resolution Priority (by Specificity):
+
+1. **Clinician + Specific Service** (score = 2+3)
+   - Most specific: clinician assignment with service_id
+
+2. **Clinician + Service Category** (score = 2+2)
+   - Clinician assignment matching service category
+
+3. **Clinician + All Services** (score = 2+1)
+   - Clinician assignment with no service filter
+
+4. **Organization + Specific Service** (score = 1+3)
+   - Organization assignment with service_id
+
+5. **Organization + Service Category** (score = 1+2)
+   - Organization assignment matching category
+
+6. **Organization + All Services** (score = 1+1)
+   - Organization assignment with no service filter
+
+7. **System + Specific Service** (score = 0+3)
+   - System-wide with service_id
+
+8. **System + Service Category** (score = 0+2)
+   - System-wide matching category
+
+9. **System + All Services** (score = 0+1)
+   - System-wide fallback
+
+If multiple assignments have same specificity, **higher priority wins**.
+
+---
+
+## Commission Tracking
+
+All commissions are tracked in an immutable ledger.
+
+**Endpoint**: `GET /api/v1/commissions/tracking?recipient_type=clinician&recipient_id=42&status=pending`
+
+**Response**:
+
+```json
+{
+  "status": "success",
+  "result": [
     {
-      "min_amount_inclusive": 0,
-      "max_amount_exclusive": 500,
-      "tier_type": "percentage",
-      "tier_value": 5,
-      "sort_order": 1
-    },
-    {
-      "min_amount_inclusive": 500,
-      "max_amount_exclusive": 1000,
-      "tier_type": "percentage",
-      "tier_value": 8,
-      "sort_order": 2
-    },
-    {
-      "min_amount_inclusive": 1000,
-      "max_amount_exclusive": null,
-      "tier_type": "percentage",
-      "tier_value": 10,
-      "sort_order": 3
+      "id": 9876,
+      "service_id": 456,
+      "service_amount": 150.0,
+      "commission_due": 12.0,
+      "final_commission": 12.0,
+      "status": "pending",
+      "recipient_type": "clinician",
+      "recipient_id": 42,
+      "calculated_at": "2024-01-15T10:00:00Z"
     }
   ]
 }
 ```
 
-### Assigning Commission to Clinician
-
-Assign a specific commission config to a clinician (overrides organization/system defaults):
-
-**Endpoint:**
-
-```javascript
-POST /api/v1/commission/assignments
-Content-Type: application/json
-
-{
-  "tenantId": 1,
-  "commission_config_id": 1,
-  "scope_type": "clinician",
-  "scope_id": 42,
-  "service_id": null,
-  "service_category": null,
-  "priority": 100,
-  "assigned_from": "2026-01-01",
-  "assigned_to": "2026-12-31",
-  "is_active": true
-}
-```
-
-### Assigning Commission to Organization
-
-**Endpoint:**
-
-```javascript
-POST /api/v1/commission/assignments
-Content-Type: application/json
-
-{
-  "tenantId": 1,
-  "commission_config_id": 1,
-  "scope_type": "organization",
-  "scope_id": 5,
-  "service_id": null,
-  "service_category": null,
-  "priority": 50,
-  "assigned_from": "2026-01-01",
-  "assigned_to": "2026-12-31",
-  "is_active": true
-}
-```
-
-### Setting Default Commission (Fallback)
-
-If no explicit assignment exists, use a default commission:
-
-**Endpoint:**
-
-```javascript
-POST /api/v1/commission/defaults
-Content-Type: application/json
-
-{
-  "tenantId": 1,
-  "recipient_type": "clinician",
-  "recipient_id": 99,
-  "commission_config_id": 2,
-  "is_active": true
-}
-```
+**Statuses**: "pending" | "approved" | "paid" | "disputed"
 
 ---
 
-## Resolution Priority (How Commissions Are Determined)
+## Cap System
 
-When a service is billed, the system looks for a matching commission config in this order:
+Commissions can have multiple cap layers applied in order:
 
-```
-1. Clinician-specific assignment (highest priority)
-   └─ Service-specific > Service category > Global service
+### Per-Service Caps
 
-2. Organization assignment (medium priority)
-   └─ Service-specific > Service category > Global service
+- `min_commission`: Guaranteed minimum per service
+- `max_commission`: Maximum allowed per service
 
-3. System-wide assignment (lower priority)
-   └─ Service-specific > Service category > Global service
+### Period Caps
 
-4. Commission Default table (fallback)
-   └─ If no explicit assignment found
+- `period_cap`: Maximum per period (e.g., monthly)
+- `period_cap_reset`: Reset frequency ("daily", "weekly", "monthly", "quarterly", "yearly")
+- Applied after per-service caps
 
-5. No Commission
-   └─ If no default exists, no commission is calculated
-```
+**Example**:
 
-**Example:** If Dr. Kwame has a specific commission config assigned, it will be used instead of the organization's default, even if the organization also has a config assigned.
-
----
-
-## Commission Caps
-
-All commissions are subject to two types of caps:
-
-### Per-Service Caps (Min/Max)
-
-Applied first to each individual service:
-
-- **min_commission**: Minimum amount owed (e.g., 5 GHS)
-- **max_commission**: Maximum amount owed (e.g., 500 GHS)
-
-```
-Raw Commission = 2 GHS
-Min Cap = 5 GHS
-→ Final = 5 GHS (adjusted up to min)
-
-Raw Commission = 600 GHS
-Max Cap = 500 GHS
-→ Final = 500 GHS (adjusted down to max)
-```
-
-### Period Caps (Daily/Weekly/Monthly/Quarterly/Yearly)
-
-Applied after min/max caps to limit total earned in a period:
-
-- **period_cap**: Total limit for the period
-- **period_cap_reset**: When the period resets
-
-```
-Period Cap = 1000 GHS/month
-Already Earned = 950 GHS
-New Commission = 150 GHS
-Proposed Total = 1100 GHS (exceeds cap by 100)
-→ Final = 50 GHS (capped to stay under 1000)
-```
+- Config: 10% rate, min GHₛ5, max GHₛ50, monthly cap GHₛ200
+- Service 1: GHₛ100 → 10% = GHₛ10 → Final: GHₛ10
+- Service 2: GHₛ1000 → 10% = GHₛ100 → Capped to GHₛ50 (max) → Final: GHₛ50
+- Period total: GHₛ60 (under GHₛ200 cap)
 
 ---
 
-## Key Fields in Responses
+## Configuration Lifecycle
 
-### Commission Tracking Record
+### Activate Configuration
 
-```typescript
-{
-  "id": number,                           // Unique tracking ID
-  "service_id": number,                   // Which service generated this
-  "service_amount": number,               // Original service amount
-  "commission_type": string,              // percentage|fixed|tiered|hybrid
-  "percentage_rate_applied": number,      // If percentage-based
-  "fixed_amount_applied": number,         // If fixed-based
-  "commission_due": number,               // Raw calculation (before caps)
-  "min_cap_adjustment": number,           // Min cap adjustment applied
-  "max_cap_adjustment": number,           // Max cap adjustment applied
-  "period_cap_adjustment": number,        // Period cap adjustment applied
-  "final_commission": number,             // After all caps applied
-  "recipient_type": string,               // clinician|organization
-  "recipient_id": number,                 // ID of who earned it
-  "status": string,                       // pending|approved|paid|voided|adjusted
-  "currency": string,                     // GHS
-  "calculated_at": string,                // ISO timestamp
-  "config_id": number,                    // Which config was used
-  "assignment_id": number,                // Which assignment matched (if any)
-}
-```
+- Set `is_active: true`
+- Must have valid `effective_from` date
+- Can restrict with `effective_to` date
 
----
+### Update Configuration
 
-## Common Scenarios
+- `PUT /api/v1/commissions/configs/{id}`
+- Changes apply to new calculations only
+- Historical commissions unchanged
 
-### Scenario 1: View All Unpaid Commissions for a Clinician
+### Deactivate Configuration
 
-```javascript
-// Get clinician's unpaid commissions
-const clinicianId = 42;
-const response = await fetch(
-  `/api/v1/commission/tracking/unpaid?tenantId=${tenantId}&recipientType=clinician&recipientId=${clinicianId}`,
-);
-const unpaidCommissions = await response.json();
+- Set `is_active: false`
+- Existing assignments remain but won't be used
+- Existing tracked commissions preserved
 
-// Display in a table
-unpaidCommissions.result.forEach((commission) => {
-  console.log(
-    `Service ${commission.service_id}: ${commission.final_commission} GHS`,
-  );
-});
-```
+### Delete Configuration
 
-### Scenario 2: Set Up Organization Commission for a Service Category
+- `DELETE /api/v1/commissions/configs/{id}`
+- Only if NO active assignments exist
+- Cascade deletes associated tiers
 
-```javascript
-// 1. First, create a config for "Lab Tests"
-const configResponse = await fetch("/api/v1/commission/configs", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    tenantId: 1,
-    name: "Lab Tests Commission",
-    commission_type: "percentage",
-    percentage_rate: 8,
-    min_commission: 10,
-    max_commission: 200,
-    period_cap: 2000,
-    period_cap_reset: "monthly",
-  }),
-});
-const config = await configResponse.json();
+### Manage Assignments
 
-// 2. Assign it to the organization for "Lab" category
-const assignResponse = await fetch("/api/v1/commission/assignments", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    tenantId: 1,
-    commission_config_id: config.result.id,
-    scope_type: "organization",
-    scope_id: 5,
-    service_category: "Lab",
-    priority: 50,
-    assigned_from: "2026-01-01",
-    is_active: true,
-  }),
-});
-```
-
-### Scenario 3: Override with Clinician-Specific Commission
-
-```javascript
-// Create a higher commission for top performer Dr. Asante
-const configResponse = await fetch("/api/v1/commission/configs", {
-  method: "POST",
-  body: JSON.stringify({
-    tenantId: 1,
-    name: "Dr. Asante Premium",
-    commission_type: "percentage",
-    percentage_rate: 15, // Higher than org default
-    min_commission: 20,
-    max_commission: 500,
-    period_cap: 3000,
-    period_cap_reset: "monthly",
-  }),
-});
-const config = await configResponse.json();
-
-// Assign to clinician (priority 100 > organization priority 50)
-await fetch("/api/v1/commission/assignments", {
-  method: "POST",
-  body: JSON.stringify({
-    tenantId: 1,
-    commission_config_id: config.result.id,
-    scope_type: "clinician",
-    scope_id: 42,
-    priority: 100, // Higher priority overrides org
-    is_active: true,
-  }),
-});
-```
+- **Update**: `PUT /api/v1/commissions/assignments/{id}`
+- **Deactivate**: Set `is_active: false`
+- **Delete**: `DELETE /api/v1/commissions/assignments/{id}`
 
 ---
 
 ## Error Handling
 
-### Invalid Commission Configuration
+### Common Errors
+
+| Error                | Cause                          | Solution                             |
+| -------------------- | ------------------------------ | ------------------------------------ |
+| `CONFIG_NOT_FOUND`   | Invalid configId               | Verify config exists                 |
+| `TIER_OVERLAP`       | Tier ranges overlap            | Adjust min/max values                |
+| `NO_ASSIGNMENT`      | No matching assignment         | Create assignment for scope          |
+| `INVALID_SCOPE_TYPE` | Scope type not recognized      | Use: system, organization, clinician |
+| `MISSING_SCOPE_ID`   | Org/clinician scope without ID | Provide scope_id                     |
+| `TIER_MISMATCH`      | Tiered config without tiers    | Create tiers first                   |
+| `INVALID_DATE_RANGE` | effective_from > effective_to  | Fix date order                       |
+
+### Example Error Response
 
 ```json
 {
   "status": "error",
   "statusCode": 400,
-  "message": "Invalid commission configuration",
-  "errors": [
-    "For percentage commission type, 'percentage_rate' is required",
-    "min_commission (50) must be less than max_commission (25)"
-  ]
-}
-```
-
-### Missing Configuration for Service
-
-```json
-{
-  "status": "error",
-  "statusCode": 400,
-  "message": "No commission configuration found for service",
-  "context": {
-    "service_id": 5,
-    "clinician_id": 42,
-    "organization_id": 5,
-    "reason": "No assignments match the service, and no default exists"
-  }
-}
-```
-
-### Database Error
-
-```json
-{
-  "status": "error",
-  "statusCode": 500,
-  "message": "Database error during commission calculation",
-  "details": "Cannot connect to tenant database"
+  "message": "Tier ranges overlap: Tier 1 and Tier 2",
+  "code": "TIER_OVERLAP"
 }
 ```
 
 ---
 
-## Testing Commission Calculations
+## Frontend Integration Checklist
 
-### Use Postman or cURL
-
-**1. Create a test configuration:**
-
-```bash
-curl -X POST http://localhost:5000/api/v1/commission/configs \
-  -H "Content-Type: application/json" \
-  -H "Cookie: pls-prime-tenant-session=YOUR_TOKEN" \
-  -d '{
-    "tenantId": 1,
-    "name": "Test Commission",
-    "commission_type": "percentage",
-    "percentage_rate": 10,
-    "min_commission": 5,
-    "max_commission": 100
-  }'
-```
-
-**2. Assign to a clinician:**
-
-```bash
-curl -X POST http://localhost:5000/api/v1/commission/assignments \
-  -H "Content-Type: application/json" \
-  -H "Cookie: pls-prime-tenant-session=YOUR_TOKEN" \
-  -d '{
-    "tenantId": 1,
-    "commission_config_id": 1,
-    "scope_type": "clinician",
-    "scope_id": 42,
-    "priority": 100,
-    "is_active": true
-  }'
-```
-
-**3. Bill a service and check commission tracking:**
-
-```bash
-# Bill a service (this triggers commission calculation automatically)
-curl -X POST http://localhost:5000/api/v1/billing/submit \
-  ... billing payload ...
-
-# Check if commission was calculated
-curl -X GET http://localhost:5000/api/v1/commission/tracking/service/5?tenantId=1 \
-  -H "Cookie: pls-prime-tenant-session=YOUR_TOKEN"
-```
+- [ ] Create commission config (all 4 types)
+- [ ] Create tiers for tiered config
+- [ ] Assign to clinician scope
+- [ ] Assign to organization scope
+- [ ] Assign to system scope
+- [ ] Test with various service amounts
+- [ ] Verify caps are applied
+- [ ] Check period cap resets
+- [ ] Test assignment resolution (specificity)
+- [ ] Verify tracking records created
+- [ ] Handle error cases
+- [ ] Display commission calculations to users
+- [ ] Allow commission updates/status changes
 
 ---
 
-## Troubleshooting
+## Best Practices
 
-### Zero Commission on Service
+1. **Naming**: Use clear, descriptive config names with rates (e.g., "Lab - 8% Monthly Cap")
+2. **Testing**: Always test configs with real service amounts before activation
+3. **Effective Dates**: Use consistent date ranges across related configs
+4. **Documentation**: Document why configs exist (e.g., contract terms, clinician agreements)
+5. **Scope Hierarchy**: Define system defaults first, then org/clinician overrides
+6. **Service Categories**: Keep category names consistent with billing system
+7. **Monitoring**: Regularly review tracking records for anomalies
+8. **Versioning**: Create new configs for rate changes rather than modifying active ones
 
-**Check these in order:**
+## Commission Resolution Logic
 
-1. **Service amount is 0 or null** → Commission can't be calculated
-2. **No config assigned** → Check if assignment exists or default is set
-3. **Commission below minimum cap** → Check if raw commission < min_commission
-4. **Period cap reached** → Check commission tracking for month total
-5. **Config not active** → Check if effective_from/effective_to window is valid
+### Assignment Resolution Priority:
 
-**Debug endpoint:**
+1. **Exact Match**: Clinician + Service Category
+2. **Organization Fallback**: Organization + Service Category
+3. **Default Configuration**: If no assignment found
 
+### Cap Application Order:
+
+1. **Per-Service Caps**: Min/Max commission per service
+2. **Period Caps**: Total commission limits per period
+3. **Final Calculation**: Apply all caps in sequence
+
+## Configuration Management
+
+### Updating Configurations
+
+- Use `PUT /api/v1/commissions/configs/{id}` to update
+- Tiers can be updated separately
+- Changes affect future calculations only (historical data preserved)
+
+### Deactivating Configurations
+
+- Set `is_active: false` to deactivate
+- Existing assignments remain but won't be used for new calculations
+- Reactivate by setting `is_active: true`
+
+### Deleting Configurations
+
+- Only allowed if no active assignments exist
+- Use `DELETE /api/v1/commissions/configs/{id}`
+- Associated tiers and tracking records are cascade deleted
+
+## Error Handling
+
+### Common Configuration Errors:
+
+- `INVALID_COMMISSION_TYPE`: Commission type not recognized
+- `MISSING_REQUIRED_FIELD`: Required field missing based on type
+- `INVALID_PERCENTAGE_RATE`: Percentage outside 0-100 range
+- `TIER_OVERLAP`: Tiers have overlapping ranges
+- `CONFIG_NOT_FOUND`: Configuration ID doesn't exist
+- `ASSIGNMENT_CONFLICT`: Multiple assignments with same priority
+
+### Validation in Code:
+
+```typescript
+import { CommissionValidator } from "./utils/CommissionValidator";
+
+// Validate configuration
+const errors = CommissionValidator.validateConfig(configData);
+if (errors.length > 0) {
+  // Handle validation errors
+}
+
+// Validate assignment
+const assignmentErrors = CommissionValidator.validateAssignment(assignmentData);
 ```
-GET /api/v1/commission/tracking/service/{serviceId}?tenantId={tenantId}
-```
 
-### Unexpected Commission Amount
+## API Reference
 
-**Check these:**
+### Configuration Endpoints:
 
-1. **Caps applied** → Review min_cap_adjustment, max_cap_adjustment, period_cap_adjustment
-2. **Wrong config** → Verify which assignment was matched (check assignment_id in response)
-3. **Tiered calculation** → If tiered, verify correct tier was selected
-4. **Period reset** → Check if period_cap_reset matches expected period
+- `POST /api/v1/commissions/configs` - Create config
+- `GET /api/v1/commissions/configs` - List configs
+- `GET /api/v1/commissions/configs/{id}` - Get config
+- `PUT /api/v1/commissions/configs/{id}` - Update config
+- `DELETE /api/v1/commissions/configs/{id}` - Delete config
 
----
+### Tier Endpoints:
 
-## Frontend Checklist
+- `POST /api/v1/commissions/configs/{configId}/tiers` - Create tiers
+- `GET /api/v1/commissions/configs/{configId}/tiers` - Get tiers
+- `PUT /api/v1/commissions/tiers/{tierId}` - Update tier
+- `DELETE /api/v1/commissions/tiers/{tierId}` - Delete tier
 
-- [ ] Display commission summary in clinician dashboard
-- [ ] Show unpaid commissions list
-- [ ] Create admin panel for commission configs
-- [ ] Add commission assignment UI
-- [ ] Display per-service commission breakdown
-- [ ] Show period caps and remaining balance
-- [ ] Handle commission errors gracefully
-- [ ] Show commission history/ledger
-- [ ] Implement commission payment approval workflow
+### Assignment Endpoints:
 
----
+- `POST /api/v1/commissions/assignments` - Create assignment
+- `GET /api/v1/commissions/assignments` - List assignments
+- `GET /api/v1/commissions/assignments/{id}` - Get assignment
+- `PUT /api/v1/commissions/assignments/{id}` - Update assignment
+- `DELETE /api/v1/commissions/assignments/{id}` - Delete assignment
+- `POST /api/v1/commissions/assignments/resolve` - Resolve assignment
 
-## Support
+### Calculation Endpoint:
 
-For issues or questions about commission calculations:
-
-1. Check FLOW_MAP.md for detailed calculation logic
-2. Review commission_tracking records for service
-3. Verify config is active and within validity window
-4. Check assignment resolution priority (clinician > org > system > default)
-5. Contact backend team with service_id and tenant_id for debugging
+- `POST /api/v1/commissions/calculate` - Calculate commission</content>
+  <parameter name="filePath">c:\Programming\PLS-DIFFERENT-VERSIONS\LobnosProfessionalVersion\lobnos-server\src\models\commissions\commission-configuration-guide.md

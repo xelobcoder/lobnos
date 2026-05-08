@@ -20,8 +20,8 @@ export default function SMSLayout({
 			<ApplicationProvider >
 				<MAIN_LAYOUT>
 					<PrimeLayout links={OrganizationMainLinks}>
-					{children}
-				</PrimeLayout>
+						{children}
+					</PrimeLayout>
 				</MAIN_LAYOUT>
 			</ApplicationProvider>
 		</Suspense>

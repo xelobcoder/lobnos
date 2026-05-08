@@ -1,372 +1,509 @@
-'use client'
-import React, { useState, useEffect } from 'react'
-import { toast } from 'react-toastify'
-import { customPost, customFetch } from '../../../../components/Auth/customFetch'
-import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext'
+"use client";
+
+import React, { useEffect, useMemo, useState } from "react";
+import {
+     createCommissionDefault,
+     getCommissionConfigs,
+     getCommissionDefaults,
+     updateCommissionDefault,
+     deleteCommissionDefault,
+     CommissionConfig,
+     CommissionDefault,
+} from "../../../../lib/commission/commissionApi";
+import { formatCommissionType } from "../../../../lib/commission/commissionHelpers";
+import { customFetch } from "../../../../components/Auth/customFetch";
+import { toast } from "react-toastify";
+import { RiRefreshLine, RiLoader4Line } from "@remixicon/react";
+
+const DEFAULT_FORM_STATE = {
+     commission_config_id: "",
+     is_active: true,
+};
+
+type RecipientOption = {
+     id: number;
+     label: string;
+};
 
 export default function CommissionDefaults() {
-     const { applicationsettings } = useApplicationSettings()
-     const [commissions, setCommissions] = useState({
-          organization_type: 'percentage',
-          organization_value: 0,
-          organization_id: null,
-          clinician_type: 'percentage',
-          clinician_value: 0,
-          clinician_id: null
-     })
-     const [loading, setLoading] = useState(true)
-     const [saving, setSaving] = useState(false)
+     const [defaults, setDefaults] = useState<CommissionDefault[]>([]);
+     const [configs, setConfigs] = useState<CommissionConfig[]>([]);
+     const [recipients, setRecipients] = useState<RecipientOption[]>([]);
+     const [selectedRecipientId, setSelectedRecipientId] = useState<number | null>(null);
+     const [formState, setFormState] = useState({ ...DEFAULT_FORM_STATE });
+     const [loading, setLoading] = useState(false);
+     const [loadingRecipients, setLoadingRecipients] = useState(false);
+     const [saving, setSaving] = useState(false);
+     const [editingId, setEditingId] = useState<number | null>(null);
+     const [error, setError] = useState<string | null>(null);
+     const [selectedRecipientType, setSelectedRecipientType] = useState<string>("");
+
+     const tenantId = Number(process.env.TENANTID ?? 3);
+
+     const configMap = useMemo(
+          () =>
+               configs.reduce<Record<number, CommissionConfig>>((map, config) => {
+                    if (config.id) map[config.id] = config;
+                    return map;
+               }, {}),
+          [configs]
+     );
+
+     const getRecipientLabel = (commissionDefault: CommissionDefault) => {
+          if (!commissionDefault.recipient_id || commissionDefault.recipient_id === 0) {
+               return `All ${commissionDefault.recipient_type === "organization" ? "organizations" : "clinicians"}`;
+          }
+
+          const recipient = recipients.find((item) => item.id === commissionDefault.recipient_id);
+          if (recipient) return recipient.label;
+
+          return `${commissionDefault.recipient_type === "organization" ? "Organization" : "Clinician"} #${commissionDefault.recipient_id}`;
+     };
+
+     const loadRecipients = async (recipientType: "clinician" | "organization") => {
+          setLoadingRecipients(true);
+          setError(null);
+          setRecipients([]);
+
+          try {
+               if (recipientType === "clinician") {
+                    const response = await customFetch("clinicians");
+                    const clinicianList = response?.result ?? [];
+                    const options = Array.isArray(clinicianList)
+                         ? clinicianList.map((item: any) => ({
+                              id: Number(item.id),
+                              label:
+                                   `${item.first_name || item.firstname || item.name || ""} ${item.last_name || item.lastname || ""}`.trim() ||
+                                   `Clinician ${item.id}`,
+                         }))
+                         : [];
+                    setRecipients(options);
+               } else {
+                    const response = await customFetch("organization");
+                    const organizationList = response?.organizations ?? response?.result ?? [];
+                    const options = Array.isArray(organizationList)
+                         ? organizationList.map((item: any) => ({
+                              id: Number(item.id),
+                              label: item.name || item.org_name || `Organization ${item.id}`,
+                         }))
+                         : [];
+                    setRecipients(options);
+               }
+          } catch (fetchError) {
+               console.error(fetchError);
+               setRecipients([]);
+               setError("Unable to load recipients for the selected type.");
+          } finally {
+               setLoadingRecipients(false);
+          }
+     };
+
+     const loadConfigs = async () => {
+          try {
+               setLoading(true);
+               setError(null);
+               const configResponse = await getCommissionConfigs(tenantId);
+               if (configResponse?.status === "success") {
+                    setConfigs(configResponse.result || []);
+               } else {
+                    setConfigs([]);
+                    setError(configResponse?.message || "Unable to load commission configurations");
+               }
+          } catch (loadError) {
+               console.error(loadError);
+               setError("An unexpected error occurred while loading commission configurations.");
+          } finally {
+               setLoading(false);
+          }
+     };
+
+     const loadDefaults = async (recipientType: string, recipientId?: number) => {
+          if (!recipientType) {
+               setDefaults([]);
+               setEditingId(null);
+               setFormState({ ...DEFAULT_FORM_STATE });
+               return;
+          }
+
+          try {
+               setLoading(true);
+               setError(null);
+               const defaultsResponse = await getCommissionDefaults(tenantId, recipientType, recipientId);
+               if (defaultsResponse?.status === "success") {
+                    const results = Array.isArray(defaultsResponse.result)
+                         ? defaultsResponse.result
+                         : defaultsResponse.result
+                              ? [defaultsResponse.result]
+                              : [];
+                    setDefaults(results);
+                    const defaultItem = results[0] ?? null;
+                    if (defaultItem && defaultItem.id) {
+                         setEditingId(defaultItem.id);
+                         const active = defaultItem.is_active === 1 || defaultItem.is_active === true;
+                         setFormState({
+                              commission_config_id: defaultItem.commission_config_id.toString(),
+                              is_active: active,
+                         });
+                    } else {
+                         setEditingId(null);
+                         setFormState({ ...DEFAULT_FORM_STATE });
+                    }
+               } else {
+                    setDefaults([]);
+                    setEditingId(null);
+                    setFormState({ ...DEFAULT_FORM_STATE });
+                    setError(defaultsResponse?.message || "Unable to load commission defaults");
+               }
+          } catch (loadError) {
+               console.error(loadError);
+               setDefaults([]);
+               setEditingId(null);
+               setFormState({ ...DEFAULT_FORM_STATE });
+               setError("An unexpected error occurred while loading commission defaults.");
+          } finally {
+               setLoading(false);
+          }
+     };
 
      useEffect(() => {
-          const fetchCommissions = async () => {
-               try {
-                    const response = await customFetch('commission-defaults')
-                    if (response?.status === 'success' && response?.statusCode === 200) {
-                         const defaults = response.result || []
+          loadConfigs();
+          // eslint-disable-next-line react-hooks/exhaustive-deps
+     }, []);
 
-                         // Initialize with defaults
-                         const newCommissions = {
-                              organization_type: 'percentage',
-                              organization_value: 0,
-                              organization_id: null,
-                              clinician_type: 'percentage',
-                              clinician_value: 0,
-                              clinician_id: null
-                         }
-
-                         // Map the array response to state
-                         if (Array.isArray(defaults)) {
-                              defaults.forEach((item: any) => {
-                                   const targetType = item.target_type?.toUpperCase()
-                                   const commissionType = item.commission_type?.toLowerCase() || 'percentage'
-                                   const commissionValue = parseFloat(item.commission_value) || 0
-
-                                   if (targetType === 'ORGANIZATION') {
-                                        newCommissions.organization_type = commissionType
-                                        newCommissions.organization_value = commissionValue
-                                        newCommissions.organization_id = item.id
-                                   } else if (targetType === 'CLINICIAN') {
-                                        newCommissions.clinician_type = commissionType
-                                        newCommissions.clinician_value = commissionValue
-                                        newCommissions.clinician_id = item.id
-                                   }
-                              })
-                         }
-
-                         setCommissions(newCommissions)
-                    }
-               } catch (error) {
-                    console.error('Failed to fetch commissions:', error)
-                    toast.error('Failed to load commission defaults')
-               } finally {
-                    setLoading(false)
-               }
+     useEffect(() => {
+          if (!selectedRecipientType) {
+               setDefaults([]);
+               setRecipients([]);
+               setSelectedRecipientId(null);
+               return;
           }
-          fetchCommissions()
-     }, [])
 
-     const handleSave = async () => {
-          setSaving(true)
+          loadRecipients(selectedRecipientType as "clinician" | "organization");
+          // eslint-disable-next-line react-hooks/exhaustive-deps
+     }, [selectedRecipientType]);
+
+     useEffect(() => {
+          if (selectedRecipientType) {
+               loadDefaults(selectedRecipientType, selectedRecipientId ?? undefined);
+          }
+          // eslint-disable-next-line react-hooks/exhaustive-deps
+     }, [selectedRecipientType, selectedRecipientId]);
+
+     const resetForm = () => {
+          setFormState({ ...DEFAULT_FORM_STATE });
+          setEditingId(null);
+     };
+
+     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+          const target = event.target as HTMLInputElement | HTMLSelectElement;
+          const { name, value, type } = target;
+          const checked = type === "checkbox" ? (target as HTMLInputElement).checked : undefined;
+          setFormState((prev) => ({
+               ...prev,
+               [name]: type === "checkbox" ? checked : value,
+          }));
+     };
+
+     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+          event.preventDefault();
+          setSaving(true);
+          setError(null);
+
+          const recipientType = selectedRecipientType as "clinician" | "organization";
+          const commissionConfigId = Number(formState.commission_config_id);
+
+          if (!recipientType || !commissionConfigId) {
+               toast.error("Please select a recipient type and commission configuration.");
+               setSaving(false);
+               return;
+          }
+
           try {
-               // Prepare request bodies for organization and clinician
-               const orgBody = {
-                    target_type: 'ORGANIZATION',
-                    commission_type: commissions.organization_type.toUpperCase(),
-                    commission_value: commissions.organization_value
-               }
+               const payload = {
+                    tenantId,
+                    recipient_type: recipientType,
+                    recipient_id: selectedRecipientId ?? 0,
+                    commission_config_id: commissionConfigId,
+                    is_active: formState.is_active ? 1 : 0,
+               };
 
-               const clinBody = {
-                    target_type: 'CLINICIAN',
-                    commission_type: commissions.clinician_type.toUpperCase(),
-                    commission_value: commissions.clinician_value
-               }
-
-               let allSuccess = true
-               let errorMessage = ''
-
-               // Save organization commission
-               try {
-                    let orgResponse
-                    if (commissions.organization_id) {
-                         orgResponse = await customPost(
-                              `commission-defaults/${commissions.organization_id}`,
-                              'PUT',
-                              orgBody
-                         )
-                    } else {
-                         orgResponse = await customPost(
-                              'commission-defaults',
-                              'POST',
-                              orgBody
-                         )
-                    }
-
-                    if (orgResponse?.status === 'success') {
-                         // Update organization ID if creating new
-                         if (!commissions.organization_id && orgResponse?.result?.id) {
-                              setCommissions(prev => ({
-                                   ...prev,
-                                   organization_id: orgResponse.result.id
-                              }))
-                         }
-                    } else {
-                         allSuccess = false
-                         errorMessage = orgResponse?.message || 'Failed to save organization commission'
-                    }
-               } catch (error) {
-                    allSuccess = false
-                    errorMessage = 'Error saving organization commission'
-                    console.error(errorMessage, error)
-               }
-
-               // Save clinician commission
-               try {
-                    let clinResponse
-                    if (commissions.clinician_id) {
-                         clinResponse = await customPost(
-                              `commission-defaults/${commissions.clinician_id}`,
-                              'PUT',
-                              clinBody
-                         )
-                    } else {
-                         clinResponse = await customPost(
-                              'commission-defaults',
-                              'POST',
-                              clinBody
-                         )
-                    }
-
-                    if (clinResponse?.status === 'success') {
-                         // Update clinician ID if creating new
-                         if (!commissions.clinician_id && clinResponse?.result?.id) {
-                              setCommissions(prev => ({
-                                   ...prev,
-                                   clinician_id: clinResponse.result.id
-                              }))
-                         }
-                    } else {
-                         allSuccess = false
-                         errorMessage = clinResponse?.message || 'Failed to save clinician commission'
-                    }
-               } catch (error) {
-                    allSuccess = false
-                    errorMessage = 'Error saving clinician commission'
-                    console.error(errorMessage, error)
-               }
-
-               if (allSuccess) {
-                    toast.success('Commission defaults saved successfully', {
-                         position: 'top-right',
-                         autoClose: 2000
-                    })
+               let response;
+               if (editingId) {
+                    response = await updateCommissionDefault(editingId, tenantId, payload);
                } else {
-                    toast.error(errorMessage, { position: 'top-right', autoClose: 2000 })
+                    response = await createCommissionDefault(payload);
                }
-          } catch (error) {
-               console.error('Error saving commissions:', error)
-               toast.error('Error saving commission defaults', {
-                    position: 'top-right',
-                    autoClose: 2000
-               })
-          } finally {
-               setSaving(false)
-          }
-     }
 
-     if (loading) {
-          return (
-               <div className="text-center py-5">
-                    <div className="spinner-border text-primary" role="status">
-                         <span className="visually-hidden">Loading...</span>
-                    </div>
-               </div>
-          )
-     }
+               if (response?.status === "success") {
+                    toast.success(editingId ? "Commission default updated." : "Commission default created.");
+                    resetForm();
+                    const refreshType = selectedRecipientType || payload.recipient_type;
+                    setSelectedRecipientType(refreshType);
+                    loadDefaults(refreshType);
+               } else {
+                    toast.error(response?.message || "Failed to save commission default.");
+               }
+          } catch (submitError) {
+               console.error(submitError);
+               toast.error("Failed to save commission default.");
+          } finally {
+               setSaving(false);
+          }
+     };
+
+     const handleEdit = (commissionDefault: CommissionDefault) => {
+          setEditingId(commissionDefault.id ?? null);
+          setSelectedRecipientType(commissionDefault.recipient_type);
+          setSelectedRecipientId(commissionDefault.recipient_id ?? null);
+          const active = commissionDefault.is_active === 1 || commissionDefault.is_active === true;
+          setFormState({
+               commission_config_id: commissionDefault.commission_config_id.toString(),
+               is_active: active,
+          });
+     };
+
+     const handleToggleActive = async (commissionDefault: CommissionDefault) => {
+          if (!commissionDefault.id) return;
+          try {
+               setSaving(true);
+               const response = await updateCommissionDefault(commissionDefault.id, tenantId, {
+                    is_active: !(commissionDefault.is_active === 1 || commissionDefault.is_active === true),
+               });
+               if (response?.status === "success") {
+                    toast.success("Commission default status updated.");
+                    loadDefaults(selectedRecipientType);
+               } else {
+                    toast.error(response?.message || "Failed to update status.");
+               }
+          } catch (toggleError) {
+               console.error(toggleError);
+               toast.error("Failed to update status.");
+          } finally {
+               setSaving(false);
+          }
+     };
+
+     const handleDelete = async (commissionDefault: CommissionDefault) => {
+          if (!commissionDefault.id) return;
+          const confirmed = window.confirm("Delete this default commission? This cannot be undone.");
+          if (!confirmed) return;
+
+          try {
+               setSaving(true);
+               const response = await deleteCommissionDefault(commissionDefault.id, tenantId);
+               if (response?.status === "success") {
+                    toast.success("Commission default deleted.");
+                    loadDefaults(selectedRecipientType);
+               } else {
+                    toast.error(response?.message || "Failed to delete commission default.");
+               }
+          } catch (deleteError) {
+               console.error(deleteError);
+               toast.error("Failed to delete commission default.");
+          } finally {
+               setSaving(false);
+          }
+     };
 
      return (
-          <div className="container-fluid">
-               <div className="card">
-                    <div className="card-header bg-body-secondary">
-                         <h6 className="mb-0">Default Commission Settings</h6>
-                    </div>
-                    <div className="card-body">
-                         <div className="row g-4">
-                              {/* Organization Commission Section */}
-                              <div className="col-12">
-                                   <h6 className="fw-semibold text-muted mb-3">Organization Commission</h6>
-                                   <div className="row g-3">
-                                        <div className="col-md-6">
-                                             <label className="form-label fw-semibold">Commission Type</label>
-                                             <div className="btn-group w-100" role="group">
-                                                  <input
-                                                       type="radio"
-                                                       className="btn-check"
-                                                       name="org-type"
-                                                       id="org-percentage"
-                                                       value="percentage"
-                                                       checked={commissions.organization_type === 'percentage'}
-                                                       onChange={(e) =>
-                                                            setCommissions(prev => ({
-                                                                 ...prev,
-                                                                 organization_type: e.target.value
-                                                            }))
-                                                       }
-                                                  />
-                                                  <label
-                                                       className="btn btn-outline-primary"
-                                                       htmlFor="org-percentage"
-                                                  >
-                                                       Percentage (%)
-                                                  </label>
+          <div className="container-fluid px-4 py-3">
+               <div className="mb-4">
+                    <h1 className="h3 mb-1">Commission Defaults</h1>
+                    <p className="text-muted">
+                         Manage fallback commission defaults for clinicians and organizations when no explicit assignment applies.
+                    </p>
+               </div>
 
-                                                  <input
-                                                       type="radio"
-                                                       className="btn-check"
-                                                       name="org-type"
-                                                       id="org-fixed"
-                                                       value="fixed"
-                                                       checked={commissions.organization_type === 'fixed'}
-                                                       onChange={(e) =>
-                                                            setCommissions(prev => ({
-                                                                 ...prev,
-                                                                 organization_type: e.target.value
-                                                            }))
-                                                       }
-                                                  />
-                                                  <label
-                                                       className="btn btn-outline-primary"
-                                                       htmlFor="org-fixed"
-                                                  >
-                                                       Fixed (GHS)
-                                                  </label>
-                                             </div>
-                                        </div>
-                                        <div className="col-md-6">
-                                             <label className="form-label fw-semibold">Commission Value</label>
-                                             <div className="input-group">
-                                                  <input
-                                                       className="form-control"
-                                                       type="number"
-                                                       step="0.01"
-                                                       min="0"
-                                                       value={commissions.organization_value}
-                                                       onChange={(e) =>
-                                                            setCommissions(prev => ({
-                                                                 ...prev,
-                                                                 organization_value: parseFloat(e.target.value) || 0
-                                                            }))
-                                                       }
-                                                       placeholder="Enter value"
-                                                  />
-                                                  <span className="input-group-text">
-                                                       {commissions.organization_type === 'percentage' ? '%' : 'GHS'}
-                                                  </span>
-                                             </div>
-                                        </div>
-                                   </div>
+               <div className="row g-3 mb-4">
+                    <div className="col-lg-5">
+                         <div className="card border-0 shadow-sm h-100">
+                              <div className="card-header bg-light py-3">
+                                   <h5 className="mb-0">{editingId ? "Edit Default" : "Create Default"}</h5>
                               </div>
-
-                              {/* Clinician Commission Section */}
-                              <div className="col-12">
-                                   <h6 className="fw-semibold text-muted mb-3">Clinician Commission</h6>
-                                   <div className="row g-3">
-                                        <div className="col-md-6">
-                                             <label className="form-label fw-semibold">Commission Type</label>
-                                             <div className="btn-group w-100" role="group">
-                                                  <input
-                                                       type="radio"
-                                                       className="btn-check"
-                                                       name="clin-type"
-                                                       id="clin-percentage"
-                                                       value="percentage"
-                                                       checked={commissions.clinician_type === 'percentage'}
-                                                       onChange={(e) =>
-                                                            setCommissions(prev => ({
-                                                                 ...prev,
-                                                                 clinician_type: e.target.value
-                                                            }))
-                                                       }
-                                                  />
-                                                  <label
-                                                       className="btn btn-outline-primary"
-                                                       htmlFor="clin-percentage"
-                                                  >
-                                                       Percentage (%)
-                                                  </label>
-
-                                                  <input
-                                                       type="radio"
-                                                       className="btn-check"
-                                                       name="clin-type"
-                                                       id="clin-fixed"
-                                                       value="fixed"
-                                                       checked={commissions.clinician_type === 'fixed'}
-                                                       onChange={(e) =>
-                                                            setCommissions(prev => ({
-                                                                 ...prev,
-                                                                 clinician_type: e.target.value
-                                                            }))
-                                                       }
-                                                  />
-                                                  <label
-                                                       className="btn btn-outline-primary"
-                                                       htmlFor="clin-fixed"
-                                                  >
-                                                       Fixed (GHS)
-                                                  </label>
-                                             </div>
+                              <div className="card-body">
+                                   {error && (
+                                        <div className="alert alert-danger py-2" role="alert">
+                                             {error}
                                         </div>
-                                        <div className="col-md-6">
-                                             <label className="form-label fw-semibold">Commission Value</label>
-                                             <div className="input-group">
-                                                  <input
-                                                       className="form-control"
-                                                       type="number"
-                                                       step="0.01"
-                                                       min="0"
-                                                       value={commissions.clinician_value}
-                                                       onChange={(e) =>
-                                                            setCommissions(prev => ({
-                                                                 ...prev,
-                                                                 clinician_value: parseFloat(e.target.value) || 0
-                                                            }))
-                                                       }
-                                                       placeholder="Enter value"
-                                                  />
-                                                  <span className="input-group-text">
-                                                       {commissions.clinician_type === 'percentage' ? '%' : 'GHS'}
-                                                  </span>
-                                             </div>
+                                   )}
+
+                                   <form onSubmit={handleSubmit}>
+                                        <div className="mb-3">
+                                             <label className="form-label">Recipient Type</label>
+                                             <select
+                                                  className="form-select"
+                                                  value={selectedRecipientType}
+                                                  onChange={(event) => {
+                                                       setSelectedRecipientType(event.target.value);
+                                                       setSelectedRecipientId(null);
+                                                  }}
+                                             >
+                                                  <option value="">Select recipient type</option>
+                                                  <option value="clinician">Clinician</option>
+                                                  <option value="organization">Organization</option>
+                                             </select>
                                         </div>
-                                   </div>
+
+                                        <div className="mb-3">
+                                             <label className="form-label">Recipient</label>
+                                             <select
+                                                  className="form-select"
+                                                  value={selectedRecipientId ?? ""}
+                                                  onChange={(event) => setSelectedRecipientId(event.target.value ? Number(event.target.value) : null)}
+                                                  disabled={!selectedRecipientType || loadingRecipients}
+                                             >
+                                                  <option value="">All {selectedRecipientType === "organization" ? "organizations" : "clinicians"}</option>
+                                                  {recipients.map((recipient) => (
+                                                       <option key={recipient.id} value={recipient.id}>
+                                                            {recipient.label}
+                                                       </option>
+                                                  ))}
+                                             </select>
+                                             {loadingRecipients && (
+                                                  <div className="form-text text-muted">Loading recipients...</div>
+                                             )}
+                                        </div>
+
+                                        <div className="mb-3">
+                                             <label className="form-label">Commission Configuration</label>
+                                             <select
+                                                  name="commission_config_id"
+                                                  value={formState.commission_config_id}
+                                                  onChange={handleInputChange}
+                                                  className="form-select"
+                                                  disabled={!selectedRecipientType}
+                                             >
+                                                  <option value="">Select configuration</option>
+                                                  {configs.map((config) => (
+                                                       <option key={config.id} value={config.id}>
+                                                            {config.name} ({formatCommissionType(config.commission_type)})
+                                                       </option>
+                                                  ))}
+                                             </select>
+                                        </div>
+
+                                        <div className="form-check form-switch mb-3">
+                                             <input
+                                                  className="form-check-input"
+                                                  type="checkbox"
+                                                  id="isActive"
+                                                  name="is_active"
+                                                  checked={formState.is_active}
+                                                  onChange={handleInputChange}
+                                             />
+                                             <label className="form-check-label" htmlFor="isActive">
+                                                  Active
+                                             </label>
+                                        </div>
+
+                                        <div className="d-flex gap-2">
+                                             <button type="submit" className="btn btn-primary" disabled={saving}>
+                                                  {saving ? "Saving..." : editingId ? "Update Default" : "Create Default"}
+                                             </button>
+                                             <button type="button" className="btn btn-outline-secondary" onClick={resetForm} disabled={saving}>
+                                                  Reset
+                                             </button>
+                                        </div>
+                                   </form>
                               </div>
                          </div>
                     </div>
-                    <div className="card-footer bg-body-secondary d-flex justify-content-end gap-2">
-                         <button
-                              type="button"
-                              className="btn btn-outline-secondary"
-                              onClick={() => window.history.back()}
-                         >
-                              Cancel
-                         </button>
-                         <button
-                              type="button"
-                              className="btn btn-primary"
-                              onClick={handleSave}
-                              disabled={saving}
-                         >
-                              {saving ? (
-                                   <>
-                                        <span className="spinner-border spinner-border-sm me-2" role="status"></span>
-                                        Saving...
-                                   </>
-                              ) : (
-                                   'Save Commission Defaults'
-                              )}
-                         </button>
+
+                    <div className="col-lg-7">
+                         <div className="card border-0 shadow-sm h-100">
+                              <div className="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+                                   <div>
+                                        <h5 className="mb-0">Current Defaults</h5>
+                                        <small className="text-muted">{selectedRecipientType ? `${defaults.length} configured fallback defaults` : "Select a recipient type to load defaults"}</small>
+                                   </div>
+                                   <button className="btn btn-sm btn-outline-secondary" onClick={() => loadDefaults(selectedRecipientType, selectedRecipientId ?? undefined)} disabled={loading || saving || !selectedRecipientType}>
+                                        <RiRefreshLine size={16} className="me-1" /> Refresh
+                                   </button>
+                              </div>
+                              <div className="card-body p-0">
+                                   {loading ? (
+                                        <div className="d-flex flex-column justify-content-center align-items-center p-5">
+                                             <RiLoader4Line size={36} className="animate-spin mb-3 text-primary" />
+                                             <p className="text-muted mb-0">Loading defaults...</p>
+                                        </div>
+                                   ) : !selectedRecipientType ? (
+                                        <div className="p-4 text-center text-muted">
+                                             Select a recipient type above to load commission defaults.
+                                        </div>
+                                   ) : defaults.length === 0 ? (
+                                        <div className="p-4 text-center text-muted">
+                                             No commission defaults configured yet for the selected recipient type.
+                                        </div>
+                                   ) : (
+                                        <div className="table-responsive">
+                                             <table className="table table-sm table-hover mb-0">
+                                                  <thead className="table-light text-start">
+                                                       <tr>
+                                                            <th>#</th>
+                                                            <th>Recipient</th>
+                                                            <th>Config</th>
+                                                            <th>Status</th>
+                                                            <th>Created</th>
+                                                            <th className="text-end">Actions</th>
+                                                       </tr>
+                                                  </thead>
+                                                  <tbody>
+                                                       {defaults.map((item, index) => (
+                                                            <tr key={item.id ?? `${item.recipient_type}-${index}`}>
+                                                                 <td>{index + 1}</td>
+                                                                 <td>
+                                                                      <div className="fw-bold text-capitalize">{item.recipient_type}</div>
+                                                                      <div className="small text-muted">{getRecipientLabel(item)}</div>
+                                                                 </td>
+                                                                 <td>
+                                                                      <div>{item.config?.name || configMap[item.commission_config_id]?.name || `#${item.commission_config_id}`}</div>
+                                                                      <small className="text-muted">
+                                                                           {formatCommissionType(item.config?.commission_type || configMap[item.commission_config_id]?.commission_type || "")}
+                                                                      </small>
+                                                                 </td>
+                                                                 <td>
+                                                                      <span className={`badge ${item.is_active ? "bg-success" : "bg-secondary"}`}>
+                                                                           {item.is_active ? "Active" : "Inactive"}
+                                                                      </span>
+                                                                 </td>
+                                                                 <td>
+                                                                      {item.created_at ? new Date(item.created_at).toLocaleDateString() : "N/A"}
+                                                                 </td>
+                                                                 <td className="text-end">
+                                                                      <div className="d-flex justify-content-end gap-1 flex-wrap">
+                                                                           <button
+                                                                                type="button"
+                                                                                className="btn btn-sm btn-outline-primary"
+                                                                                onClick={() => handleEdit(item)}
+                                                                           >
+                                                                                Edit
+                                                                           </button>
+                                                                           <button
+                                                                                type="button"
+                                                                                className="btn btn-sm btn-outline-success"
+                                                                                onClick={() => handleToggleActive(item)}
+                                                                           >
+                                                                                {item.is_active ? "Disable" : "Enable"}
+                                                                           </button>
+                                                                           <button
+                                                                                type="button"
+                                                                                className="btn btn-sm btn-outline-danger"
+                                                                                onClick={() => handleDelete(item)}
+                                                                           >
+                                                                                Delete
+                                                                           </button>
+                                                                      </div>
+                                                                 </td>
+                                                            </tr>
+                                                       ))}
+                                                  </tbody>
+                                             </table>
+                                        </div>
+                                   )}
+                              </div>
+                         </div>
                     </div>
                </div>
           </div>
-     )
+     );
 }

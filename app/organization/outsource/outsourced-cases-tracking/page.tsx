@@ -1,10 +1,10 @@
 'use client'
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { customFetch, customPost } from "../../../../components/Auth/customFetch";
-import PrimeTable from "../../../../components/accessories/Datatables/PrimeTable";
+import { customFetch, customPost } from "../../../../../../components/Auth/customFetch";
+import PrimeTable from "../../../../../../components/accessories/Datatables/PrimeTable";
 import dayjs from "dayjs";
-import { useApplication } from "../../../../components/Auth/useApplicationContext";
+import { useApplication } from "../../../../../../components/Auth/useApplicationContext";
 
 type OutsourcedCase = {
      tracking_id: number;

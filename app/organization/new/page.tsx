@@ -4,6 +4,6 @@ import OrganizationBasicForm from '../../../components/organization/BasicOrganiz
 
 export default function Index() {
   return (
-    <OrganizationBasicForm  organizationid={null}/>
+    <OrganizationBasicForm organizationid={null} />
   );
 }

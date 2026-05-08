@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { toast } from "react-toastify";
@@ -17,6 +17,7 @@ import {
      formatScopeType,
 } from "../../../lib/commission/commissionHelpers";
 import { useApplicationSettings } from "../../Auth/useApplicationContext";
+import { customFetch } from "../../Auth/customFetch";
 import Loader from "../../isLoading";
 
 interface CommissionAssignmentFormProps {
@@ -24,6 +25,18 @@ interface CommissionAssignmentFormProps {
      onSaved?: (assignment: CommissionAssignment) => void;
      onCancel?: () => void;
 }
+
+type CommissionAssignmentFormValues = {
+     commission_config_id: number;
+     scope_type: "clinician" | "organization" | "system";
+     scope_id?: number;
+     service_id?: number | null;
+     service_category?: string | null;
+     priority: number;
+     assigned_from: string;
+     assigned_to?: string | null;
+     is_active: boolean;
+};
 
 export default function CommissionAssignmentForm({
      assignmentId,
@@ -35,6 +48,8 @@ export default function CommissionAssignmentForm({
      const [saving, setSaving] = useState(false);
      const [configs, setConfigs] = useState<CommissionConfig[]>([]);
      const [loadingConfigs, setLoadingConfigs] = useState(true);
+     const [recipients, setRecipients] = useState<{ id: number; label: string }[]>([]);
+     const [loadingRecipients, setLoadingRecipients] = useState(false);
 
      const {
           control,
@@ -42,18 +57,53 @@ export default function CommissionAssignmentForm({
           handleSubmit,
           setValue,
           formState: { errors },
-     } = useForm<CommissionAssignment>({
+     } = useForm<CommissionAssignmentFormValues>({
           resolver: yupResolver(commissionAssignmentSchema),
           defaultValues: {
                scope_type: "clinician",
-               priority: 100,
+               priority: 1,
                is_active: true,
-               tenantId: applicationsettings?.tenantid || 1,
           },
      });
 
      const tenantId = applicationsettings?.tenantid || 1;
      const scopeType = watch("scope_type");
+
+     const loadRecipients = async (type: "clinician" | "organization") => {
+          setLoadingRecipients(true);
+          setRecipients([]);
+          try {
+               if (type === "clinician") {
+                    const response = await customFetch("clinicians");
+                    const clinicianList = response?.result ?? [];
+                    const options = Array.isArray(clinicianList)
+                         ? clinicianList.map((item: any) => ({
+                              id: Number(item.id),
+                              label:
+                                   `${item.first_name || item.firstname || item.name || ""} ${item.last_name || item.lastname || ""}`.trim() ||
+                                   `Clinician ${item.id}`,
+                         }))
+                         : [];
+                    setRecipients(options);
+               } else {
+                    const response = await customFetch("organization");
+                    const organizationList = response?.organizations ?? response?.result ?? [];
+                    const options = Array.isArray(organizationList)
+                         ? organizationList.map((item: any) => ({
+                              id: Number(item.id),
+                              label: item.name || item.org_name || `Organization ${item.id}`,
+                         }))
+                         : [];
+                    setRecipients(options);
+               }
+          } catch (error) {
+               console.error(error);
+               setRecipients([]);
+               toast.error("Failed to load recipients for this scope type.");
+          } finally {
+               setLoadingRecipients(false);
+          }
+     };
 
      // Load configurations
      useEffect(() => {
@@ -72,7 +122,14 @@ export default function CommissionAssignmentForm({
           fetchConfigs();
      }, [tenantId]);
 
-     // Load existing assignment
+     useEffect(() => {
+          if (scopeType === "clinician" || scopeType === "organization") {
+               loadRecipients(scopeType);
+          } else {
+               setRecipients([]);
+          }
+     }, [scopeType]);
+
      useEffect(() => {
           if (assignmentId) {
                const fetchAssignment = async () => {
@@ -82,12 +139,12 @@ export default function CommissionAssignmentForm({
                               const assignment = response.result;
                               setValue("commission_config_id", assignment.commission_config_id);
                               setValue("scope_type", assignment.scope_type);
-                              setValue("scope_id", assignment.scope_id);
-                              setValue("service_id", assignment.service_id);
-                              setValue("service_category", assignment.service_category);
+                              setValue("scope_id", assignment.scope_id ?? undefined);
+                              setValue("service_id", assignment.service_id ?? undefined);
+                              setValue("service_category", assignment.service_category ?? undefined);
                               setValue("priority", assignment.priority);
-                              setValue("assigned_from", assignment.assigned_from);
-                              setValue("assigned_to", assignment.assigned_to);
+                              setValue("assigned_from", assignment.assigned_from ?? "");
+                              setValue("assigned_to", assignment.assigned_to ?? undefined);
                               setValue("is_active", assignment.is_active);
                          }
                     } catch (error) {
@@ -100,14 +157,21 @@ export default function CommissionAssignmentForm({
           }
      }, [assignmentId, tenantId, setValue]);
 
-     const onSubmit = async (data: CommissionAssignment) => {
+     const onSubmit = async (data: CommissionAssignmentFormValues) => {
           try {
                setSaving(true);
-               data.tenantId = tenantId;
+               const payload: CommissionAssignment = {
+                    ...data,
+                    scope_id: data.scope_type === "system" ? null : data.scope_id ?? null,
+                    service_id: data.service_id ?? null,
+                    service_category: data.service_category ?? undefined,
+                    assigned_to: data.assigned_to ?? undefined,
+                    tenantId,
+               };
 
                const response = assignmentId
-                    ? await updateCommissionAssignment(assignmentId, tenantId, data)
-                    : await createCommissionAssignment(data);
+                    ? await updateCommissionAssignment(assignmentId, tenantId, payload)
+                    : await createCommissionAssignment(payload);
 
                if (response?.status === "success") {
                     toast.success(
@@ -189,6 +253,10 @@ export default function CommissionAssignmentForm({
                                              {...field}
                                              className={`form-select ${errors.scope_type ? "is-invalid" : ""
                                                   }`}
+                                             onChange={(event) => {
+                                                  field.onChange(event);
+                                                  setValue("scope_id", undefined);
+                                             }}
                                         >
                                              <option value="clinician">Clinician</option>
                                              <option value="organization">Organization</option>
@@ -215,20 +283,33 @@ export default function CommissionAssignmentForm({
                          {scopeType !== "system" && (
                               <div className="mb-3">
                                    <label htmlFor="scope_id" className="form-label fw-medium">
-                                        {scopeType === "clinician" ? "Clinician ID" : "Organization ID"}
+                                        {scopeType === "clinician" ? "Clinician" : "Organization"}
                                         <span className="text-danger">*</span>
                                    </label>
                                    <Controller
                                         name="scope_id"
                                         control={control}
                                         render={({ field }) => (
-                                             <input
+                                             <select
                                                   {...field}
-                                                  type="number"
-                                                  className={`form-control ${errors.scope_id ? "is-invalid" : ""
-                                                       }`}
-                                                  placeholder={scopeType === "clinician" ? "e.g., 42" : "e.g., 5"}
-                                             />
+                                                  className={`form-select ${errors.scope_id ? "is-invalid" : ""}`}
+                                                  value={field.value ?? ""}
+                                                  onChange={(event) => {
+                                                       const value = event.target.value;
+                                                       field.onChange(value === "" ? null : Number(value));
+                                                  }}
+                                             >
+                                                  <option value="">Select {scopeType === "clinician" ? "clinician" : "organization"}</option>
+                                                  {loadingRecipients ? (
+                                                       <option value="">Loading recipients...</option>
+                                                  ) : (
+                                                       recipients.map((recipient) => (
+                                                            <option key={recipient.id} value={recipient.id}>
+                                                                 {recipient.label}
+                                                            </option>
+                                                       ))
+                                                  )}
+                                             </select>
                                         )}
                                    />
                                    {errors.scope_id && (
@@ -236,6 +317,9 @@ export default function CommissionAssignmentForm({
                                              {errors.scope_id.message}
                                         </div>
                                    )}
+                                   <small className="text-muted d-block mt-1">
+                                        Select the {scopeType === "clinician" ? "clinician" : "organization"} this assignment should apply to.
+                                   </small>
                               </div>
                          )}
 
@@ -250,10 +334,17 @@ export default function CommissionAssignmentForm({
                                         control={control}
                                         render={({ field }) => (
                                              <input
-                                                  {...field}
                                                   type="number"
                                                   className="form-control"
                                                   placeholder="Leave empty for all services"
+                                                  value={field.value ?? ""}
+                                                  onChange={(event) => {
+                                                       const value = event.target.value;
+                                                       field.onChange(value === "" ? null : Number(value));
+                                                  }}
+                                                  onBlur={field.onBlur}
+                                                  name={field.name}
+                                                  ref={field.ref}
                                              />
                                         )}
                                    />
@@ -271,10 +362,14 @@ export default function CommissionAssignmentForm({
                                         control={control}
                                         render={({ field }) => (
                                              <input
-                                                  {...field}
                                                   type="text"
                                                   className="form-control"
                                                   placeholder="e.g., Lab, Imaging"
+                                                  value={field.value ?? ""}
+                                                  onChange={field.onChange}
+                                                  onBlur={field.onBlur}
+                                                  name={field.name}
+                                                  ref={field.ref}
                                              />
                                         )}
                                    />
@@ -296,9 +391,9 @@ export default function CommissionAssignmentForm({
                                         <input
                                              {...field}
                                              type="number"
-                                             className={`form-control ${errors.priority ? "is-invalid" : ""
-                                                  }`}
-                                             placeholder="1-1000 (higher = more specific)"
+                                             className={`form-control ${errors.priority ? "is-invalid" : ""}`}
+                                             placeholder="1-10 (higher = more specific)"
+                                             value={field.value ?? ""}
                                         />
                                    )}
                               />
@@ -308,8 +403,8 @@ export default function CommissionAssignmentForm({
                                    </div>
                               )}
                               <small className="text-muted d-block mt-1">
-                                   Higher priority overrides lower priority assignments. Clinician assignments
-                                   typically have priority 100+, organization 50+, system-wide 10+.
+                                   Higher priority overrides lower priority assignments. More specific assignments
+                                   should use a higher priority value within the 1-10 range.
                               </small>
                          </div>
 
@@ -317,13 +412,21 @@ export default function CommissionAssignmentForm({
                          <div className="row">
                               <div className="col-md-6 mb-3">
                                    <label htmlFor="assigned_from" className="form-label fw-medium">
-                                        Assigned From
+                                        Assigned From <span className="text-danger">*</span>
                                    </label>
                                    <Controller
                                         name="assigned_from"
                                         control={control}
                                         render={({ field }) => (
-                                             <input {...field} type="date" className="form-control" />
+                                             <input
+                                                  type="date"
+                                                  className="form-control"
+                                                  value={field.value ?? ""}
+                                                  onChange={field.onChange}
+                                                  onBlur={field.onBlur}
+                                                  name={field.name}
+                                                  ref={field.ref}
+                                             />
                                         )}
                                    />
                               </div>
@@ -336,7 +439,15 @@ export default function CommissionAssignmentForm({
                                         name="assigned_to"
                                         control={control}
                                         render={({ field }) => (
-                                             <input {...field} type="date" className="form-control" />
+                                             <input
+                                                  type="date"
+                                                  className="form-control"
+                                                  value={field.value ?? ""}
+                                                  onChange={field.onChange}
+                                                  onBlur={field.onBlur}
+                                                  name={field.name}
+                                                  ref={field.ref}
+                                             />
                                         )}
                                    />
                               </div>
@@ -350,11 +461,11 @@ export default function CommissionAssignmentForm({
                                         control={control}
                                         render={({ field }) => (
                                              <input
-                                                  {...field}
                                                   type="checkbox"
                                                   className="form-check-input"
                                                   id="is_active"
                                                   checked={field.value}
+                                                  onChange={(event) => field.onChange(event.target.checked)}
                                              />
                                         )}
                                    />

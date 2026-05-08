@@ -4,7 +4,7 @@ import ClinicianGeneralSalesChart from '../../../components/Dashboards/Clinician
 
 export default function ClinicianView() {
   const clinicianid = useSearchParams()?.get('clinicianid');
-  
+
   return (
     <ClinicianGeneralSalesChart clinicianid={clinicianid} />
   );

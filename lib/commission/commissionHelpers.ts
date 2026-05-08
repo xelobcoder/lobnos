@@ -18,20 +18,23 @@ export const commissionConfigSchema = yup.object().shape({
      percentage_rate: yup
           .number()
           .typeError("Percentage rate must be a number")
+          .nullable()
           .min(0, "Cannot be negative")
           .max(100, "Cannot exceed 100%")
           .when("commission_type", {
-               is: (type: string) =>
-                    type === "percentage" || type === "hybrid" || type === "tiered",
+               is: (type: string) => type === "percentage" || type === "hybrid",
                then: (schema) => schema.required("Percentage rate is required"),
+               otherwise: (schema) => schema.nullable(),
           }),
      fixed_component: yup
           .number()
           .typeError("Fixed amount must be a number")
+          .nullable()
           .min(0, "Cannot be negative")
           .when("commission_type", {
                is: (type: string) => type === "fixed" || type === "hybrid",
                then: (schema) => schema.required("Fixed amount is required"),
+               otherwise: (schema) => schema.nullable(),
           }),
      min_commission: yup
           .number()
@@ -63,9 +66,9 @@ export const commissionConfigSchema = yup.object().shape({
           "quarterly",
           "yearly",
      ]),
-     effective_from: yup.string(),
-     effective_to: yup.string(),
-     is_active: yup.boolean(),
+     effective_from: yup.string().required("Effective from is required"),
+     effective_to: yup.string().nullable(),
+     is_active: yup.boolean().required("Active status is required"),
 });
 
 export const commissionAssignmentSchema = yup.object().shape({
@@ -83,17 +86,18 @@ export const commissionAssignmentSchema = yup.object().shape({
      scope_id: yup.number().when("scope_type", {
           is: (type: string) => type !== "system",
           then: (schema) => schema.required("Scope ID is required").positive(),
+          otherwise: (schema) => schema.nullable(),
      }),
-     service_id: yup.number(),
-     service_category: yup.string(),
+     service_id: yup.number().nullable(),
+     service_category: yup.string().nullable(),
      priority: yup
           .number()
           .required("Priority is required")
           .min(1, "Priority must be at least 1")
-          .max(1000, "Priority cannot exceed 1000"),
-     assigned_from: yup.string(),
-     assigned_to: yup.string(),
-     is_active: yup.boolean(),
+          .max(10, "Priority cannot exceed 10"),
+     assigned_from: yup.string().required("Assigned from is required"),
+     assigned_to: yup.string().nullable(),
+     is_active: yup.boolean().required("Active status is required"),
 });
 
 export const commissionDefaultSchema = yup.object().shape({
@@ -192,9 +196,9 @@ export function calculateCommissionPreview(
      }
 
      return {
-          raw: parseFloat(raw.toFixed(2)),
-          afterMinCap: parseFloat(afterMinCap.toFixed(2)),
-          afterMaxCap: parseFloat(afterMaxCap.toFixed(2)),
+          raw: parseFloat(raw.toString()),
+          afterMinCap: parseFloat(afterMinCap.toString()),
+          afterMaxCap: parseFloat(afterMaxCap.toString()),
           description: `Service: GHS ${serviceAmount} → Commission: GHS ${afterMaxCap}`,
      };
 }

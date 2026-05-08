@@ -187,11 +187,11 @@ export default function TierBuilder({ tiers, onTiersChange }: TierBuilderProps) 
                                    <tbody>
                                         {tiers.map((tier, index) => (
                                              <tr key={index}>
-                                                  <td>GHS {tier.min_amount_inclusive.toFixed(2)}</td>
+                                                  <td>GHS {tier.min_amount_inclusive}</td>
                                                   <td>
                                                        {tier.max_amount_exclusive === null
                                                             ? "Unlimited"
-                                                            : `GHS ${tier.max_amount_exclusive.toFixed(2)}`}
+                                                            : `GHS ${tier.max_amount_exclusive}`}
                                                   </td>
                                                   <td>
                                                        <span className="badge bg-info">

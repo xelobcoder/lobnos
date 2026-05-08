@@ -98,14 +98,19 @@ export default function CommissionConfigForm({
      const onSubmit = async (data: CommissionConfig) => {
           try {
                setSaving(true);
-               data.tenantId = tenantId;
-               if (data.commission_type === "tiered") {
-                    data.tiers = tiers;
-               }
+               const payload: CommissionConfig = {
+                    ...data,
+                    tenantId,
+                    percentage_rate:
+                         data.commission_type === "tiered" ? null : data.percentage_rate ?? null,
+                    fixed_component:
+                         data.commission_type === "tiered" ? null : data.fixed_component ?? null,
+                    tiers: data.commission_type === "tiered" ? tiers : undefined,
+               };
 
                const response = configId
-                    ? await updateCommissionConfig(configId, tenantId, data)
-                    : await createCommissionConfig(data);
+                    ? await updateCommissionConfig(configId, tenantId, payload)
+                    : await createCommissionConfig(payload);
 
                if (response?.status === "success") {
                     toast.success(
@@ -203,40 +208,38 @@ export default function CommissionConfigForm({
                          </div>
 
                          {/* Commission Type Fields */}
-                         {(commissionType === "percentage" ||
-                              commissionType === "hybrid" ||
-                              commissionType === "tiered") && (
-                                   <div className="mb-3">
-                                        <label htmlFor="percentage_rate" className="form-label fw-medium">
-                                             Percentage Rate (%)
-                                             {commissionType === "percentage" && (
-                                                  <span className="text-danger">*</span>
-                                             )}
-                                        </label>
-                                        <Controller
-                                             name="percentage_rate"
-                                             control={control}
-                                             render={({ field }) => (
-                                                  <div className="input-group">
-                                                       <input
-                                                            {...field}
-                                                            type="number"
-                                                            step="0.01"
-                                                            className={`form-control ${errors.percentage_rate ? "is-invalid" : ""
-                                                                 }`}
-                                                            placeholder="0.00"
-                                                       />
-                                                       <span className="input-group-text">%</span>
-                                                  </div>
-                                             )}
-                                        />
-                                        {errors.percentage_rate && (
-                                             <div className="invalid-feedback d-block">
-                                                  {errors.percentage_rate.message}
+                         {(commissionType === "percentage" || commissionType === "hybrid") && (
+                              <div className="mb-3">
+                                   <label htmlFor="percentage_rate" className="form-label fw-medium">
+                                        Percentage Rate (%)
+                                        {commissionType === "percentage" && (
+                                             <span className="text-danger">*</span>
+                                        )}
+                                   </label>
+                                   <Controller
+                                        name="percentage_rate"
+                                        control={control}
+                                        render={({ field }) => (
+                                             <div className="input-group">
+                                                  <input
+                                                       {...field}
+                                                       type="number"
+                                                       step="0.01"
+                                                       className={`form-control ${errors.percentage_rate ? "is-invalid" : ""
+                                                            }`}
+                                                       placeholder="0.00"
+                                                  />
+                                                  <span className="input-group-text">%</span>
                                              </div>
                                         )}
-                                   </div>
-                              )}
+                                   />
+                                   {errors.percentage_rate && (
+                                        <div className="invalid-feedback d-block">
+                                             {errors.percentage_rate.message}
+                                        </div>
+                                   )}
+                              </div>
+                         )}
 
                          {(commissionType === "fixed" || commissionType === "hybrid") && (
                               <div className="mb-3">

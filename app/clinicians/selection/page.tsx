@@ -1,7 +1,7 @@
 'use client'
 import React from 'react'
 import { useRouter } from 'next/navigation'
-import ClinicianFiltering from '../../../components/accessories/SectorFileringComponents/ClinicianFiltering';
+import ClinicianFiltering from '../../../../components/accessories/SectorFileringComponents/ClinicianFiltering';
 
 export default function ClinicianAnalytics() {
     const router = useRouter();

@@ -54,10 +54,15 @@ export interface CommissionDefault {
      id?: number;
      tenantId: number;
      recipient_type: "clinician" | "organization";
-     recipient_id: number;
+     recipient_id?: number;
      commission_config_id: number;
-     is_active: boolean;
+     is_active: boolean | number;
+     created_at?: string;
+     updated_at?: string;
+     config?: CommissionConfig;
 }
+
+export type CommissionDefaultResponse = CommissionDefault | CommissionDefault[];
 
 // ===================== Commission Tracking Types =====================
 export interface CommissionTracking {
@@ -169,7 +174,7 @@ export async function getCommissionDefaults(
      tenantId: number,
      recipientType?: string,
      recipientId?: number
-): Promise<ApiResponse<CommissionDefault[]>> {
+): Promise<ApiResponse<CommissionDefaultResponse>> {
      let url = `commission/defaults?tenantId=${tenantId}`;
      if (recipientType) url += `&recipient_type=${recipientType}`;
      if (recipientId) url += `&recipient_id=${recipientId}`;
