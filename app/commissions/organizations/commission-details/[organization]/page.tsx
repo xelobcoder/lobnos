@@ -4,12 +4,12 @@ import Link from 'next/link';
 import dayjs from 'dayjs';
 import { Button, Modal, Form } from 'react-bootstrap';
 import { toast } from 'react-toastify';
-import { customFetch, customPost, currencyFormatter } from '../../../../../../components/Auth/customFetch';
-import { useApplication } from '../../../../../../components/Auth/useApplicationContext';
-import DateFilterReusable from '../../../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable';
-import CommissionLineChart from '../../../clinicians/commissions-information/CommissionLineChart';
-import styles from '../../../clinicians/commision-information/CommissionReport.module.css';
+import styles from '../../../../commissions/clinicians/commissions-information/CommissionReport.module.css';
 import { RiAlertLine, RiFileList3Line, RiMoneyDollarCircleLine, RiServiceLine, RiPhoneLine, RiMapPinLine, RiHospitalLine } from '@remixicon/react';
+import { customPost, currencyFormatter,customFetch } from '../../../../../components/Auth/customFetch';
+import { useApplication } from '../../../../../components/Auth/useApplicationContext';
+import DateFilterReusable from '../../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable';
+import CommissionLineChart from '../../../clinicians/commissions-information/CommissionLineChart';
 
 interface CommissionData {
      service_date: string;

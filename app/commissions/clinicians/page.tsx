@@ -1,18 +1,15 @@
 'use client'
 
-
-
-import { useEffect, useState } from "react";
-import { customFetch, customFile, customPost } from "../../../../components/Auth/customFetch";
-import { toast } from 'react-toastify';
-import { RiMoreFill, RiAddLine, RiFileExcel2Line, RiSearchLine } from '@remixicon/react';
-import { useRouter } from "next/navigation";
-import { Button, Dropdown, Modal } from "react-bootstrap";
-import PrimeTable from "../../../../components/accessories/Datatables/PrimeTable";
+import { RiMoreFill, RiSearchLine, RiFileExcel2Line, RiAddLine } from "@remixicon/react";
 import Link from "next/link";
-import { useApplication } from "../../../../components/Auth/useApplicationContext";
-import BasicInformationClinician from "../../../../components/Clinicians/BasicInformationClinician";
-
+import { useRouter } from "next/router";
+import { useState, useEffect } from "react";
+import { Dropdown, Modal, Button } from "react-bootstrap";
+import { toast } from "react-toastify";
+import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
+import { customPost, customFile,customFetch } from "../../../components/Auth/customFetch";
+import { useApplication } from "../../../components/Auth/useApplicationContext";
+import BasicInformationClinician from "../../../components/Clinicians/BasicInformationClinician";
 
 const getClinicianId = (clinician: Clinician) => clinician.id || clinician.clinician_id || 0;
 

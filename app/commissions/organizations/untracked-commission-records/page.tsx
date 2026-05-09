@@ -1,9 +1,9 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import dayjs from "dayjs";
-import PrimeTable from "../../../../../components/accessories/Datatables/PrimeTable";
-import { customFetch, currencyFormatter, customPost } from "../../../../../components/Auth/customFetch";
 import { toast } from "react-toastify";
+import PrimeTable from "../../../../components/accessories/Datatables/PrimeTable";
+import { customPost, currencyFormatter ,customFetch} from "../../../../components/Auth/customFetch";
 
 interface UntrackedService {
      serviceid: number;

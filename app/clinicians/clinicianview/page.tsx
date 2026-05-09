@@ -6,6 +6,9 @@ export default function ClinicianView() {
   const clinicianid = useSearchParams()?.get('clinicianid');
 
   return (
-    <ClinicianGeneralSalesChart clinicianid={clinicianid} />
+  <div>
+    <h1>Still Under Development</h1>
+      {/* <ClinicianGeneralSalesChart clinicianid={clinicianid} /> */}
+  </div>
   );
 }

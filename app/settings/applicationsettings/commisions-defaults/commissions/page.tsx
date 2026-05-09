@@ -123,7 +123,7 @@ export default function CommissionsOverviewPage() {
                                    </p>
                               </div>
                               <div className="col-lg-6">
-                                   <h6 className="fw-bold mb-2">That's It!</h6>
+                                   <h6 className="fw-bold mb-2">Thats It!</h6>
                                    <p className="text-muted small mb-0">
                                         Commissions are automatically calculated whenever services are billed.
                                         View them in clinician dashboards and finance reports.

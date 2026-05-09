@@ -1,11 +1,11 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-import { customFetch, currencyFormatter, customPost } from '../../../../../../components/Auth/customFetch';
-import { Button, Modal, Form } from 'react-bootstrap';
-import PrimeTable from '../../../../../../components/accessories/Datatables/PrimeTable';
-import dayjs from 'dayjs';
 import { RiEditLine } from '@remixicon/react';
+import dayjs from 'dayjs';
+import React, { useState, useEffect } from 'react';
+import { Button, Modal, Form } from 'react-bootstrap';
 import { toast } from 'react-toastify';
+import PrimeTable from '../../../../../components/accessories/Datatables/PrimeTable';
+import { customPost, currencyFormatter,customFetch } from '../../../../../components/Auth/customFetch';
 
 interface CommissionRecord {
      id: number;
