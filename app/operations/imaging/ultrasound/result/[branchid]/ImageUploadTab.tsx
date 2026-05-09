@@ -33,6 +33,38 @@ interface ImageUploadTabProps {
      const [uploadingImages, setUploadingImages] = useState(false);
      const [uploadProgress, setUploadProgress] = useState(0);
 
+     const getImageUrl = (filename: string) => {
+          if (!filename) return '';
+          if (filename.startsWith('http')) return filename;
+          
+          const baseUrl = process.env.NODE_ENV === 'development' 
+               ? process.env.DEVELOPMENT_BASEURL 
+               : process.env.PRODUCTION_BASEURL;
+               
+          return `${baseUrl}ultrasound/images/file/${filename}`;
+     };
+
+     const mapResponseToImages = (data: any[]): UploadedImage[] => {
+          return data.map((item: any) => {
+               if (typeof item === 'string') {
+                    return {
+                         id: Math.random(), // Temporary ID until refresh
+                         name: item,
+                         size: 0,
+                         url: getImageUrl(item),
+                         uploadedAt: new Date().toISOString(),
+                    };
+               }
+               return {
+                    id: item.id,
+                    name: item.filename,
+                    size: 0,
+                    url: getImageUrl(item.filename),
+                    uploadedAt: item.created_at,
+               };
+          });
+     };
+
      const handleFileSelection = async (event: React.ChangeEvent<HTMLInputElement>) => {
           const files = event.target.files;
           if (!files || files.length === 0) return;
@@ -52,7 +84,6 @@ interface ImageUploadTabProps {
           const newSelectedFiles = await Promise.all(filePromises);
           setSelectedFiles(prev => [...prev, ...newSelectedFiles]);
 
-          // Clear the input
           event.target.value = '';
      };
 
@@ -73,43 +104,38 @@ interface ImageUploadTabProps {
           setUploadProgress(0);
 
           try {
-               const uploadPromises = selectedFiles.map(async (selectedFile, index) => {
-                    const formData = new FormData();
-                    formData.append('image', selectedFile.file);
-                    formData.append('ascensionid', ascensionid || '');
-                    formData.append('testid', testid || '');
-                    formData.append('patientid', patientid || '');
-
-                    const response = await customFile('ultrasound/images/upload', formData);
-
-                    return {
-                         id: Date.now() + index,
-                         name: selectedFile.name,
-                         size: selectedFile.size,
-                         url: response.url || selectedFile.preview,
-                         uploadedAt: new Date().toISOString(),
-                    };
+               const formData = new FormData();
+               selectedFiles.forEach(file => {
+                    formData.append('file', file.file);
                });
+               formData.append('ascensionid', ascensionid || '');
+               formData.append('testid', testid || '');
+               formData.append('patientid', patientid || '');
 
-               // Update progress
-               const totalFiles = selectedFiles.length;
-               let completedUploads = 0;
+               const response = await customFile('ultrasound/images/upload', formData);
+               
+               const isSuccess = response.statusCode == 200 || response.statusCode == "200" || response.status === 'success' || (response.message && response.message.includes('successfully'));
+               const resultData = response.result || response.results;
 
-               const progressPromises = uploadPromises.map(async (promise) => {
-                    const result = await promise;
-                    completedUploads++;
-                    setUploadProgress(Math.round((completedUploads / totalFiles) * 100));
-                    return result;
-               });
+               if (isSuccess) {
+                    toast.success(response.message || 'Images uploaded successfully');
+                    
+                    if (resultData && Array.isArray(resultData)) {
+                         setUploadedImages(mapResponseToImages(resultData));
+                         // If we only got strings, refresh to get real IDs
+                         if (resultData.length > 0 && typeof resultData[0] === 'string') {
+                              fetchUploadedImages();
+                         }
+                    } else {
+                         fetchUploadedImages();
+                    }
+               } else {
+                    toast.error(response.message || 'Upload failed');
+                    fetchUploadedImages();
+               }
 
-               const uploadedFiles = await Promise.all(progressPromises);
-
-               // Clean up previews
                selectedFiles.forEach(file => URL.revokeObjectURL(file.preview));
-
-               setUploadedImages(prev => [...prev, ...uploadedFiles]);
                setSelectedFiles([]);
-               toast.success(`${uploadedFiles.length} image(s) uploaded successfully`);
           } catch (error) {
                console.error('Upload failed:', error);
                toast.error('Failed to upload images');
@@ -121,7 +147,7 @@ interface ImageUploadTabProps {
 
      const handleDeleteImage = async (imageId) => {
           try {
-               await customPost('ultrasound/images/delete', 'DELETE', { imageId });
+               await customPost(`ultrasound/images/${imageId}`, 'DELETE', {});
                setUploadedImages(prev => prev.filter(img => img.id !== imageId));
                toast.success('Image deleted successfully');
           } catch (error) {
@@ -133,8 +159,13 @@ interface ImageUploadTabProps {
      const fetchUploadedImages = async () => {
           try {
                const response = await customFetch(`ultrasound/images/${ascensionid}`);
-               if (response && Array.isArray(response)) {
-                    setUploadedImages(response);
+               const isSuccess = response && (response.statusCode == 200 || response.statusCode == "200" || response.status === 'success');
+               const resultData = response?.result || response?.results;
+
+               if (isSuccess && Array.isArray(resultData)) {
+                    setUploadedImages(mapResponseToImages(resultData));
+               } else if (response && Array.isArray(response)) {
+                    setUploadedImages(mapResponseToImages(response));
                }
           } catch (error) {
                console.error('Failed to fetch images:', error);
@@ -149,14 +180,12 @@ interface ImageUploadTabProps {
 
      useEffect(() => {
           return () => {
-               // Cleanup object URLs on unmount
                selectedFiles.forEach(file => URL.revokeObjectURL(file.preview));
           };
      }, [selectedFiles]);
 
      return (
           <div>
-               {/* File Selection Area */}
                <div className="list-group pls-color br-5 mb-3">
                     <div className="list-group-item fw-bold text-uppercase bg-body-secondary pls-color d-flex justify-content-between align-items-center">
                          <span><RiUploadLine className="me-2" />Select Images to Upload</span>
@@ -199,7 +228,6 @@ interface ImageUploadTabProps {
                     </div>
                </div>
 
-               {/* Selected Files Preview */}
                {selectedFiles.length > 0 && (
                     <div className="list-group pls-color br-5 mb-3">
                          <div className="list-group-item fw-bold text-uppercase bg-info text-white">
@@ -239,7 +267,6 @@ interface ImageUploadTabProps {
                     </div>
                )}
 
-               {/* Uploaded Images */}
                <div className="list-group pls-color br-5">
                     <div className="list-group-item fw-bold text-uppercase bg-secondary text-white">
                          <RiImageLine className="me-2" />Uploaded Images ({uploadedImages.length})

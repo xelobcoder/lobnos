@@ -466,7 +466,7 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
                               onClick={() => {
                                    const patientid = row.original.patientid;
                                    const billingid = row.original.billingid;
-                                   window.open(`/operations/laboratory/main/dailyRequest/visit?billingid=${encodeURIComponent(billingid)}&patientid=${encodeURIComponent(patientid)}`, '_blank', 'noopener,noreferrer');
+                                   window.open(`/operations/laboratory/main/dailyRequest/visit?billingid=${encodeURIComponent(billingid)}&patientid=${encodeURIComponent(patientid)}&&isOpenSideBarShow=false`, '_blank', 'noopener,noreferrer');
                               }}
                          >
                               <RiExternalLinkLine size={16} />

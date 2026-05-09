@@ -96,11 +96,11 @@ export const loadRefundData = async (status: "pending" | "completed", employeeid
 
 
 
-export const handleRefundServerSideProcessing = async (values: { count: number; page: number, employeeid: number, status: 'pending' | "completed" }) => {
-	const { count, page, employeeid, status } = values;
+export const handleRefundServerSideProcessing = async (values: { count: number; page: number, employeeid: number, status: 'pending' | "completed",sortby:'ASC' | 'DESC' }) => {
+	const { count, page, employeeid, status,sortby ='DESC' } = values;
 	try {
 		const data = await customFetch(
-			`billing/refund/details/status?status=${status}&&employeeid=${employeeid}&&page=${page}&&count=${count}`
+			`billing/refund/details/status?status=${status}&&employeeid=${employeeid}&&page=${page}&&count=${count}&&sortby=${sortby}`
 		);
 		return { result: data.result, error: false };
 	} catch (err) {

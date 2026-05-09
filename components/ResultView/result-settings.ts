@@ -15,7 +15,7 @@ export interface ResultSettings {
      companyInfo: {
           namefontsize: number;
           color: string;
-          breakname: boolean; 
+          breakname: boolean;
           subnameFontSize?: number;
           subnameColor?: string;
           headerType?: string;
@@ -70,6 +70,7 @@ export interface ResultSettings {
           showTechnique: boolean;
           showDisclaimer: boolean;
           disclaimerText: string;
+          allowUltrasoundImages?: boolean;
      }
 }
 
@@ -145,6 +146,7 @@ export const defaultResultSettings: ResultSettings = {
           showTechnique: true,
           lineHeight: '1.5',
           showDisclaimer: true,
-          disclaimerText: 'This is a sample disclaimer text for ultrasound reports.'
+          disclaimerText: 'This is a sample disclaimer text for ultrasound reports.',
+          allowUltrasoundImages: true
      }
 }

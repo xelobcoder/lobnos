@@ -41,15 +41,16 @@ function exportCommissionDataToPDF(commissionData, startDate, endDate) {
      doc.save(`commission-report-${startDate}-to-${endDate}.pdf`);
 }
 
-import styles from '../../clinicians/commision-information/CommissionReport.module.css';
+import styles from '../../../commissions/clinicians/commissions-information/CommissionReport.module.css';
 import { RiAlertLine, RiFileList3Line, RiMoneyDollarCircleLine, RiServiceLine, RiUserLine } from '@remixicon/react';
 import dayjs from 'dayjs';
-import { currencyFormatter, customFetch } from '../../../../../components/Auth/customFetch';
-import DateFilterReusable from '../../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable';
+import { currencyFormatter ,customFetch} from '../../../../components/Auth/customFetch';
+import DateFilterReusable from '../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable';
+import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
 
 interface CommissionData {
      organization_id: number;
-     organization_name: string;
+     organization_name: string;    
      organization_phone: string;
      service_date: string;
      total_services: number;
@@ -298,7 +299,7 @@ export default function OrganizationPendingCommission() {
                                              },
                                         ];
                                         // Dynamically import PrimeTable to avoid SSR issues
-                                        const PrimeTable = require('../../../components/accessories/Datatables/PrimeTable.js').default;
+                                       
                                         const handleSeverSideProcessing = async ({ page, count, sortby = 'ASC', startDate, endDate }) => {
                                              try {
                                                   const url = `organization/commission/summary?startDate=${startDate}&endDate=${endDate}&page=${page}&count=${count}${sortby ? `&sortby=${sortby}` : ''}`;

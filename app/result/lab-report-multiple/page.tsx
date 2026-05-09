@@ -16,6 +16,7 @@ import { useApplication } from "../../../components/Auth/useApplicationContext";
 import { trackReportView, trackReportPrint } from "../../../lib/printingTracker";
 import DrugsList from "../../../components/Drugs/DrugsList";
 import UseResultEntryScientist from '../../../components/ResutlUI/UseResultEntryFormat';
+import Watermark from "../../../components/ResultView/Watermark";
 import dayjs from "dayjs";
 import { toast } from "react-toastify";
 
@@ -33,9 +34,12 @@ export default function LabReportPrintingMultiple() {
 	const ptid = searchParams?.get('ptid') || '';
 	const testid = searchParams?.get('testid');
 	const csvid = searchParams?.get('csvid');
+	const showWatermarkFromUrl = searchParams?.get('show_watermark') === 'true';
+	const showWatermarkFromSettings = useApplication()?.settings?.show_watermark === 1;
+	const showWatermark = showWatermarkFromUrl || showWatermarkFromSettings;
 
 
-	const url = `result/printout/ascension/multiple/getResult?csvid=${csvid}&&employeeid=${employeeid}&&testid=${testid}&&testname=${test}&tenantId=3&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&target=${target}&password=&&isBrowserPrintout=1&&employeeid=${employeeid}`;
+	const url = `result/printout/ascension/multiple/getResult?csvid=${csvid}&&employeeid=${employeeid}&&testid=${testid}&&testname=${test}&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&target=${target}&password=&&isBrowserPrintout=1&&employeeid=${employeeid}`;
 
 	useEffect(() => {
 		if (billingid && testid && ascensionid && employeeid) {
@@ -155,10 +159,27 @@ export default function LabReportPrintingMultiple() {
 					};
 					await ensureImagesLoaded(resultElement);
 
-					// Hide print-only page headers inside sections while capturing PDF
+					// Hide print-only page headers and watermark overlay while capturing PDF
 					const _markers = Array.from(resultElement.querySelectorAll('.page-header-marker')) as HTMLElement[];
 					const _markerDisplays = _markers.map(el => el.style.display);
 					_markers.forEach(el => { el.style.display = 'none'; });
+
+					const watermarkOverlay = resultElement.querySelector('.watermark-overlay') as HTMLElement;
+					const watermarkDisplay = watermarkOverlay ? watermarkOverlay.style.display : '';
+
+					// Capture watermark once for PDF pages before hiding it
+					let watermarkImgData = '';
+					try {
+						const watermarkEl = document.querySelector('.watermark-seal') as HTMLElement;
+						if (watermarkEl) {
+							const watermarkCanvas = await html2canvas(watermarkEl, { scale: 1, backgroundColor: null, useCORS: true });
+							watermarkImgData = watermarkCanvas.toDataURL('image/png');
+						}
+					} catch (e) {
+						console.error('Failed to capture watermark for PDF', e);
+					}
+
+					if (watermarkOverlay) watermarkOverlay.style.display = 'none';
 
 					const pdf = new jsPDF('p', 'mm', 'a4');
 					const pageWidth = pdf.internal.pageSize.getWidth();
@@ -362,6 +383,13 @@ export default function LabReportPrintingMultiple() {
 					const pageCount = pdf.getNumberOfPages();
 					for (let i = 1; i <= pageCount; i++) {
 						pdf.setPage(i);
+
+						// Add watermark to every page
+						if (watermarkImgData) {
+							const wSize = 120; // mm (Increased from 80)
+							pdf.addImage(watermarkImgData, 'PNG', (pageWidth - wSize) / 2, (pageHeight - wSize) / 2, wSize, wSize);
+						}
+
 						pdf.setTextColor(60, 60, 60);
 						pdf.setFontSize(10);
 						pdf.text(` ${i}`, pageWidth / 2, pageHeight - 14, { align: 'center' });
@@ -382,8 +410,9 @@ export default function LabReportPrintingMultiple() {
 					const blobUrl = URL.createObjectURL(blob);
 					setPdfUrl({ url: blobUrl, filename });
 
-					// Restore markers after capture
+					// Restore markers and watermark after capture
 					_markers.forEach((el, i) => { el.style.display = _markerDisplays[i]; });
+					if (watermarkOverlay) watermarkOverlay.style.display = watermarkDisplay;
 					setPdfLoading(false);
 				} catch (err: any) {
 					console.error(err);
@@ -692,33 +721,39 @@ export default function LabReportPrintingMultiple() {
 								padding: 16,
 								flexDirection: 'column'
 							}}>
-								<div className='result' style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-									<div ref={headerRef} className="screen-header">
-										<MdsCompanyInformation
-											styles={styles}
-											logourl={resultdata.logourl}
-											resultsettings={resultSettings}
-											companyInfo={resultdata.companyInfo}
-										/>
-										<div className={styles.reportTitleBar}
-											style={{
-												backgroundColor: resultSettings?.mainReportHeaderBgColor,
-												color: resultSettings?.mainReportHeaderColor
-											}}
-										>
-											MEDICAL LABORATORY REPORT
-										</div>
-										<MdsPersonalInformation
-											styles={styles}
-											patientInformation={resultdata.patientInformation}
-											referrerFacility={resultdata.test && resultdata.test.length > 0 ? resultdata.test[0].referrerFacility : null}
-											labRef={`${prefix}${resultdata.billingid}`}
-											isBulk={true}
-											resultsettings={resultSettings}
-										/>
+								<div className='result' style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
+								<div ref={headerRef} className="screen-header">
+									<MdsCompanyInformation
+										styles={styles}
+										logourl={resultdata.logourl}
+										resultsettings={resultSettings}
+										companyInfo={resultdata.companyInfo}
+									/>
+									<div className={styles.reportTitleBar}
+										style={{
+											backgroundColor: resultSettings?.mainReportHeaderBgColor,
+											color: resultSettings?.mainReportHeaderColor
+										}}
+									>
+										MEDICAL LABORATORY REPORT
 									</div>
-									<div className="print-content" style={{ flex: 1 }}>
-										{(() => {
+									<MdsPersonalInformation
+										styles={styles}
+										patientInformation={resultdata.patientInformation}
+										referrerFacility={resultdata.test && resultdata.test.length > 0 ? resultdata.test[0].referrerFacility : null}
+										labRef={`${prefix}${resultdata.billingid}`}
+										isBulk={true}
+										resultsettings={resultSettings}
+									/>
+								</div>
+								<div className="print-content" style={{ flex: 1, position: 'relative' }}>
+									{showWatermark && resultdata?.companyInfo?.name && (
+										<Watermark 
+											text={resultdata.companyInfo.name} 
+											subText={resultdata?.patientInformation?.fullpatientid || ptid}
+										/>
+									)}
+									{(() => {
 											const selected = selectedTests.filter(idx => idx >= 0 && idx < resultdata.test.length);
 											let allComments: string[] = [];
 											if (allTestsSelected && resultdata.generalComments) {

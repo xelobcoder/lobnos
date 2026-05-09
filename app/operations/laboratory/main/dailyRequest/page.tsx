@@ -27,14 +27,13 @@ export default function LaboratoryClientList() {
      const [query, setQuery] = React.useState('');
 
      const loadClients = async () => {
-          if (!selectedDay) {
-               alert('Please select a day to load clients.');
+          if (selectedDay === 'all' && !patientid && !billingid) {
+               setClients([]);
+               setError('Please provide a Patient ID or Billing ID to search all records.');
                return;
           }
-
           setLoading(true);
           setError('');
-
           try {
                const response = await customFetch(`operations/overview/folder?date=${selectedDay}&status=${selectedStatus}&&billingid=${billingid || ''}&&patientid=${patientid || ''}`);
 
@@ -146,7 +145,9 @@ export default function LaboratoryClientList() {
 
 
      React.useEffect(() => {
-          loadClients();
+          if (selectedDay !== 'all') {
+               loadClients();
+          }
      }, [selectedDay, selectedStatus]);
 
 
@@ -196,6 +197,7 @@ export default function LaboratoryClientList() {
                               <div style={{ minWidth: 240 }}>
                                    <div className="fw-semibold mb-1" style={{ fontSize: '0.9rem' }}>Day</div>
                                    <select className="form-select form-select-sm" value={selectedDay} onChange={(e) => setSelectedDay(e.target.value)}>
+                                      <option value="all" >All</option>
                                         <optgroup key="curr-month" label={`Current Month: ${today.toLocaleString('default', { month: 'long' })} ${today.getFullYear()}`}>
                                              {currMonthOptions}
                                         </optgroup>
@@ -219,6 +221,7 @@ export default function LaboratoryClientList() {
                               </div>
 
                               <div style={{ minWidth: 260, flex: 1 }}>
+                                   <div className="fw-semibold mb-1" style={{ fontSize: '0.9rem' }}>Patient ID {selectedDay === 'all' && <span className="text-danger">*</span>}</div>
                                    <input
                                         className="form-control form-control-sm"
                                         placeholder="Search patientId"
@@ -228,7 +231,7 @@ export default function LaboratoryClientList() {
                                    />
                               </div>
                               <div style={{ minWidth: 260, flex: 1 }}>
-                                   <div className="fw-semibold mb-1" style={{ fontSize: '0.9rem' }}>Search</div>
+                                   <div className="fw-semibold mb-1" style={{ fontSize: '0.9rem' }}>Billing ID {selectedDay === 'all' && <span className="text-danger">*</span>}</div>
                                    <input type='number'
                                         className="form-control form-control-sm"
                                         placeholder="Search billingId"

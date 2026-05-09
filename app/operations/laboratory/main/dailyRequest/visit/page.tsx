@@ -332,6 +332,9 @@ export default function ClientVisit() {
                                              </div>
                                              <div className="p-3">
                                                   <input
+                                                       type="text"
+                                                       name="testFilterSearch"
+                                                       autoComplete="off"
                                                        className="form-control form-control-sm mb-2"
                                                        placeholder="Search test / ascension / id"
                                                        value={testFilter}

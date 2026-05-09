@@ -178,16 +178,6 @@ export default function RESULT_FOR_PRINTING() {
                             imgHeight
                         );
 
-                        pdf.saveGraphicsState();
-                        pdf.setTextColor(225, 225, 225); // very light gray
-                        pdf.setFontSize(9); // smaller font for low key
-                        pdf.setFont('helvetica', 'normal');
-                        pdf.text('VITALSCAN APPROVED REPORT ', pageWidth / 2, pageHeight / 2, {
-                            angle: 60,
-                            align: 'right',
-                            baseline: 'bottom'
-                        });
-                        pdf.restoreGraphicsState();
                         remainingHeight -= usableHeight;
                         imgY -= usableHeight;
                         pageCount++;

@@ -21,6 +21,7 @@ interface ApplicationSettingsData {
      byPassValidation?: number;
      byPassProcessing?: number;
      patientIdAutoIncrementStart?: number;
+     show_watermark?: number;
 }
 
 interface BillingSettingsTabProps {
@@ -50,6 +51,12 @@ export const BillingSettingsTab: React.FC<BillingSettingsTabProps> = ({ settings
                          label: 'Include Tax',
                          description: 'Automatically include tax calculations in billing',
                          icon: <RiFileListLine size={20} />
+                    },
+                    {
+                         name: 'show_watermark',
+                         label: 'Show Watermark',
+                         description: 'Enable huge centered circular watermark on lab reports',
+                         icon: <RiShieldCheckLine size={20} />
                     },
                     {
                          name: 'withnessRefund',

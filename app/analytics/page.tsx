@@ -61,6 +61,14 @@ const analyticsSections = [
           icon: RiTeamLine,
           color: 'dark',
           badge: null
+     },
+     {
+          title: 'Commission Analytics',
+          description: 'Reporting and analysis of paid commissions across time periods and recipients',
+          icon: RiMoneyDollarCircleLine,
+          path: '/analytics/commissions',
+          color: 'primary',
+          badge: 'New'
      }
 ];
 

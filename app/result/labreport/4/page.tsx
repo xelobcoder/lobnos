@@ -18,6 +18,7 @@ import UseResultEntryScientist from '../../../../components/ResutlUI/UseResultEn
 import { defaultResultSettings, ResultSettings } from '../../../../components/ResultView/result-settings';
 import ResultViewHtmlGeneratorUltrasound from '../../../../components/Auth/ResultViewHtmlGeneratorUltrasound';
 import DrugsList from '../../../../components/Drugs/DrugsList';
+import Watermark from '../../../../components/ResultView/Watermark';
 
 const MDSLancetTemplate: React.FC = () => {
     const app = useApplication();
@@ -40,9 +41,28 @@ const MDSLancetTemplate: React.FC = () => {
     const testid = searchParams?.get('testid');
     const csvid = searchParams?.get('csvid');
     const isScan = searchParams?.get('isScan') === 'true';
+    const showWatermarkFromUrl = searchParams?.get('show_watermark') === 'true';
+    const showWatermarkFromSettings = app?.settings?.show_watermark === 1;
+    const showWatermark = showWatermarkFromUrl || showWatermarkFromSettings;
     const [isReplaceUltrasoundTestname, setIsReplaceUltrasoundTestname] = useState(false);
     const [ultrasoundTestname, setUltrasoundTestname] = useState(test);
-    const url = `result/printout/ascension/getResult?csvid=${csvid}&&employeeid=${employeeid}&&testid=${testid}&&isScan=${isScan}&&testname=${test}&tenantId=3&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&target=${target}&password=&&isBrowserPrintout=1`;
+    const [ultrasoundImages, setUltrasoundImages] = useState<any[]>([]);
+    const url = `result/printout/ascension/getResult?csvid=${csvid}&&employeeid=${employeeid}&&testid=${testid}&&isScan=${isScan}&&testname=${test}&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&target=${target}&password=&&isBrowserPrintout=1`;
+
+    const fetchUltrasoundImages = async () => {
+        if (!ascensionid) return;
+        try {
+            const response = await customFetch(`ultrasound/images/${ascensionid}`);
+            const isSuccess = response && (response.statusCode == 200 || response.statusCode == "200" || response.status === 'success');
+            const resultData = response?.result || response?.results;
+
+            if (isSuccess && Array.isArray(resultData)) {
+                setUltrasoundImages(resultData);
+            }
+        } catch (error) {
+            console.error('Failed to fetch ultrasound images:', error);
+        }
+    };
 
     useEffect(() => {
         if (employeeid && ascensionid && billingid) {
@@ -55,6 +75,10 @@ const MDSLancetTemplate: React.FC = () => {
                     }
                     if (data && data.resultsettings) {
                         setResultSettings(data.resultsettings);
+                        // Fetch images if it's an ultrasound scan and settings allow it
+                        if (isScan && data.resultsettings.ultrasoundSettings?.allowUltrasoundImages) {
+                            fetchUltrasoundImages();
+                        }
                     }
                     setResultData(data)
                     if (ascensionid && employeeid) {
@@ -64,7 +88,7 @@ const MDSLancetTemplate: React.FC = () => {
                 .catch((err) => console.error(err))
                 .finally(() => { setLoader(false); });
         }
-    }, [employeeid, ascensionid, billingid]);
+    }, [employeeid, ascensionid, billingid, isScan]);
 
     useEffect(() => {
         if (!loader && resultdata?.records) {
@@ -109,13 +133,24 @@ const MDSLancetTemplate: React.FC = () => {
             return Promise.all(loadPromises);
         }
 
-        function generatePDF() {
-            // Add a delay to ensure DOM is fully rendered
-            setTimeout(() => {
+        async function generatePDF() {
+            setTimeout(async () => {
                 const resultElement = document.querySelector('.result');
                 if (!resultElement) return;
+                let watermarkImgData = '';
+                const watermarkOverlay = resultElement.querySelector('.watermark-overlay') as HTMLElement;
+                const watermarkDisplay = watermarkOverlay ? watermarkOverlay.style.display : '';
 
-                // Enhanced html2canvas options for better image handling
+                try {
+                    const watermarkEl = document.querySelector('.watermark-seal') as HTMLElement;
+                    if (watermarkEl) {
+                        const watermarkCanvas = await html2canvas(watermarkEl, { scale: 1, backgroundColor: null, useCORS: true });
+                        watermarkImgData = watermarkCanvas.toDataURL('image/png');
+                    }
+                } catch (e) {
+                    console.error('Failed to capture watermark for PDF', e);
+                }
+                if (watermarkOverlay) watermarkOverlay.style.display = 'none';
                 html2canvas(resultElement as HTMLElement, {
                     scale: 2,
                     useCORS: true,
@@ -123,7 +158,6 @@ const MDSLancetTemplate: React.FC = () => {
                     logging: false,
                     imageTimeout: 15000,
                     onclone: (clonedDoc) => {
-                        // Ensure all images in cloned document have proper attributes
                         const clonedImages = clonedDoc.querySelectorAll('img');
                         clonedImages.forEach((img: HTMLImageElement) => {
                             if (img.src.startsWith('http')) {
@@ -157,6 +191,13 @@ const MDSLancetTemplate: React.FC = () => {
                             imgWidth,
                             imgHeight
                         );
+
+                        // Add watermark to every page
+                        if (watermarkImgData) {
+                            const wSize = 120; // mm (Increased from 80)
+                            pdf.addImage(watermarkImgData, 'PNG', (pageWidth - wSize) / 2, (pageHeight - wSize) / 2, wSize, wSize);
+                        }
+
                         pdf.saveGraphicsState();
                         pdf.setTextColor(225, 225, 225);
                         pdf.setFontSize(9);
@@ -184,6 +225,9 @@ const MDSLancetTemplate: React.FC = () => {
                     const blob = pdf.output('blob');
                     const blobUrl = URL.createObjectURL(blob);
                     setPdfUrl({ url: blobUrl, filename });
+
+                    // Restore watermark overlay
+                    if (watermarkOverlay) watermarkOverlay.style.display = watermarkDisplay;
                 });
             }, 500);
         }
@@ -311,6 +355,15 @@ const MDSLancetTemplate: React.FC = () => {
 
     return (
         <>
+            <style jsx global>{`
+                @media print {
+                    body { background: white !important; padding: 10px !important; }
+                    .payslip { border: none !important; }
+                    @page { margin: 0.5cm; }
+                    button { display: none !important; }
+                    .no-browser-print { display: none !important; }
+                }
+            `}</style>
             {isScan && <div className='bg-secondary-subtle p-3 d-flex  justify-content-between no-print'>
                 <div>
                     <label>Replace Ultrasound Scan Report Name </label>
@@ -328,7 +381,7 @@ const MDSLancetTemplate: React.FC = () => {
                         minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'white',
 
                     }}>
-                        <div className='result'>
+                        <div className='result' style={{ position: 'relative' }}>
                             <MdsCompanyInformation
                                 styles={styles}
                                 logourl={resultdata.logourl}
@@ -351,7 +404,13 @@ const MDSLancetTemplate: React.FC = () => {
                                 finalReportDate={resultdata.samplingInformation?.resultEntryEnd}
                                 resultsettings={resultSettings}
                             />
-                            <div style={{ width: '100%', margin: '0' }}>
+                            <div style={{ width: '100%', margin: '0', position: 'relative' }}>
+                                {showWatermark && resultdata?.companyInfo?.name && (
+                                    <Watermark 
+                                        text={resultdata.companyInfo.name} 
+                                        subText={resultdata?.patientInformation?.fullpatientid || ptid}
+                                    />
+                                )}
                                 <section>
                                     {!isScan && <UseCustomResultTemplatingPreview
                                         test={resultdata?.testname}
@@ -365,7 +424,8 @@ const MDSLancetTemplate: React.FC = () => {
                                         test={isReplaceUltrasoundTestname ? ultrasoundTestname : test}
                                         testInfo={resultdata?.testInfo}
                                         resultentry={resultdata?.resultentry}
-                                        records={resultdata?.records} />
+                                        records={resultdata?.records}
+                                        images={ultrasoundImages} />
                                     }
 
                                     {resultdata.hasDrugs && Array.isArray(resultdata.drugList) && resultdata.drugList.length > 0 && <DrugsList hadDrugs={resultdata.hasDrugs} drugList={resultdata.drugList} />}

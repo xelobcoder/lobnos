@@ -248,6 +248,21 @@ export const UltrasoundTab: React.FC<UltrasoundTabProps> = ({ settings, handleCh
                          />
                     </div>
                )}
+
+               <div className="row mt-3">
+                    <div className="col-12">
+                         <div className="form-row grid-reg d-flex align-items-center">
+                              <label className="pls-label mb-0 me-3">Allow Ultrasound Images</label>
+                              <Form.Check
+                                   type="switch"
+                                   id="ultrasoundSettings.allowUltrasoundImages"
+                                   name="ultrasoundSettings.allowUltrasoundImages"
+                                   checked={!!settings.ultrasoundSettings?.allowUltrasoundImages}
+                                   onChange={handleChange}
+                              />
+                         </div>
+                    </div>
+               </div>
           </>
      );
 };

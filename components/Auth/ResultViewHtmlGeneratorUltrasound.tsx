@@ -39,6 +39,7 @@ interface ResultViewHtmlGeneratorUltrasoundProps {
      testInfo?: {
           reportitle?: string;
      };
+     images?: any[];
 }
 
 export default function ResultViewHtmlGeneratorUltrasound({
@@ -47,7 +48,8 @@ export default function ResultViewHtmlGeneratorUltrasound({
      records,
      resultentry,
      testInfo,
-     isResultView = true
+     isResultView = true,
+     images = []
 }: ResultViewHtmlGeneratorUltrasoundProps) {
      if (!Array.isArray(records) || records.length === 0) {
           return (
@@ -63,6 +65,17 @@ export default function ResultViewHtmlGeneratorUltrasound({
           const txt = document.createElement('textarea');
           txt.innerHTML = html;
           return txt.value;
+     };
+
+     const getImageUrl = (filename: string) => {
+          if (!filename) return '';
+          if (filename.startsWith('http')) return filename;
+
+          const baseUrl = process.env.NODE_ENV === 'development'
+               ? process.env.DEVELOPMENT_BASEURL
+               : process.env.PRODUCTION_BASEURL;
+
+          return `${baseUrl}ultrasound/images/file/${filename}`;
      };
 
      return (
@@ -102,6 +115,34 @@ export default function ResultViewHtmlGeneratorUltrasound({
                          </div>
                     )}
                </div>
+
+               {resultsettings?.ultrasoundSettings?.allowUltrasoundImages && images && images.length > 0 && (
+                    <div className="mt-4 ultrasound-images-container no-browser-print">
+                         <div className="row g-4">
+                              {images.map((img, idx) => (
+                                   <div key={idx} className="col-12">
+                                        <div className="p-1 border rounded bg-white">
+                                             <img
+                                                  src={getImageUrl(img.filename)}
+                                                  alt={`Ultrasound Scan ${idx + 1}`}
+                                                  className="img-fluid w-100"
+                                                  style={{
+                                                       minHeight: '500px',
+                                                       width: '100%',
+                                                       objectFit: 'contain',
+                                                       display: 'block'
+                                                  }}
+                                                  crossOrigin="anonymous"
+                                             />
+                                             <div className="small text-center mt-2 text-muted fw-bold">
+                                                  Figure {idx + 1}: {img.filename}
+                                             </div>
+                                        </div>
+                                   </div>
+                              ))}
+                         </div>
+                    </div>
+               )}
 
 
                {resultentry && (

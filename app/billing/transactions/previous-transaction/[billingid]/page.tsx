@@ -158,7 +158,12 @@ export default function PreviousTransactionSummaryPage() {
 
 			const pushResponse = await customPost(`billing/previous/request/refund/update`, 'POST', data);
 			const { status } = pushResponse;
-			status === true ? toast.success("Request for refund submitted successfully") : toast.error("request for refund failed ");
+			if (status === true) {
+				toast.success("Request for refund submitted successfully");
+				await fetchRecords(billingid);
+			} else {
+				toast.error("request for refund failed ");
+			}
 			setRequesting(false);
 		} catch (error) {
 			console.log(error);
@@ -365,6 +370,7 @@ export default function PreviousTransactionSummaryPage() {
 			);
 			if (response?.status) {
 				toast.success(response.message || 'Refund cashed out successfully');
+				await fetchRecords(billingid);
 			} else {
 				toast.error(response.message || 'Failed to cash out refund');
 			}
@@ -420,6 +426,7 @@ export default function PreviousTransactionSummaryPage() {
 			setRefundReason('');
 			setRefundReasonType('');
 			setRefundRequestAmount('');
+			await fetchRecords(billingid);
 		} else {
 			toast.error("request for refund failed ");
 		}
@@ -1017,7 +1024,7 @@ export default function PreviousTransactionSummaryPage() {
 								<table className="table table-striped table-hover text-nowrap mb-0">
 									<thead className="table-light">
 										<tr>
-											<th className="fw-semibold text-start">Service Name</th>
+											<th className="fw-semibold text-start">Service Name(ID)</th>
 											<th className="fw-semibold text-start">Organization</th>
 											<th className="fw-semibold text-start">Clinician</th>
 											<th className="fw-semibold text-start">Service Added On</th>
@@ -1042,7 +1049,7 @@ export default function PreviousTransactionSummaryPage() {
 											const taxes = getServiceTaxes(row);
 											return (
 												<tr key={idx} style={isOutstanding ? { backgroundColor: '#ffe6e6' } : {}}>
-													<td className="text-start">{row.name}</td>
+													<td className="text-start">{row.name}({row.serviceid})</td>
 													<td className="text-start">{row.organizationName || '-'}</td>
 													<td className="text-start">{row.clinicianName || '-'}</td>
 													<td className="text-start">{row.serviceAddedOn ? dayjs(row.serviceAddedOn).format("DD-MM-YYYY HH:mm:ss") : ""}</td>
