@@ -3,11 +3,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Card, Row, Col, Form, Button, Badge, Spinner, Table } from 'react-bootstrap';
-import { 
-    RiMoneyDollarCircleLine, 
-    RiTimeLine, 
-    RiUserSharedLine, 
-    RiBuilding4Line, 
+import {
+    RiMoneyDollarCircleLine,
+    RiTimeLine,
+    RiUserSharedLine,
+    RiBuilding4Line,
     RiCalendarLine,
     RiRefreshLine,
     RiArrowRightUpLine,
@@ -15,17 +15,17 @@ import {
     RiPieChartLine,
     RiInformationLine
 } from '@remixicon/react';
-import { 
-    ResponsiveContainer, 
-    BarChart, 
-    Bar, 
-    LineChart, 
-    Line, 
-    XAxis, 
-    YAxis, 
-    CartesianGrid, 
-    Tooltip, 
-    Legend, 
+import {
+    ResponsiveContainer,
+    BarChart,
+    Bar,
+    LineChart,
+    Line,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    Legend,
     Cell,
     PieChart,
     Pie
@@ -43,12 +43,12 @@ const SHADCN_MUTED_FG = "var(--bs-secondary-color)";
 
 export default function CommissionAnalytics() {
     const app = useApplication();
-    
+
     // State
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [dashboardData, setDashboardData] = useState<any>(null);
-    
+
     // Filters
     const [startDate, setStartDate] = useState(dayjs().subtract(1, 'month').format('YYYY-MM-DD'));
     const [endDate, setEndDate] = useState(dayjs().format('YYYY-MM-DD'));
@@ -58,7 +58,7 @@ export default function CommissionAnalytics() {
     const fetchDashboard = useCallback(async () => {
         setIsLoading(true);
         setError(null);
-        
+
         // Build URL based on filters
         let url = `commission/analytics/dashboard?startDate=${startDate}&endDate=${endDate}&period=${period}`;
         if (recipientType !== 'all') {
@@ -79,18 +79,53 @@ export default function CommissionAnalytics() {
         }
     }, [startDate, endDate, period, recipientType]);
 
+    const handleResetFilters = () => {
+        setStartDate(dayjs().subtract(1, 'month').format('YYYY-MM-DD'));
+        setEndDate(dayjs().format('YYYY-MM-DD'));
+        setPeriod('monthly');
+        setRecipientType('all');
+    };
+
     useEffect(() => {
         fetchDashboard();
     }, [fetchDashboard]);
-
-    if (isLoading && !dashboardData) {
-        return <Loader />;
-    }
 
     const summary = dashboardData?.summary || {};
     const byPeriod = dashboardData?.byPeriod?.data || [];
     const byStatus = dashboardData?.byStatus || [];
     const efficiency = dashboardData?.recipientEfficiency || [];
+
+    // Parse numeric strings to numbers
+    const parsedSummary = {
+        ...summary,
+        totalPaid: parseFloat(summary.totalPaid || 0),
+        totalDue: parseFloat(summary.totalDue || 0),
+        totalWaived: parseFloat(summary.totalWaived || 0),
+        averagePaid: parseFloat(summary.averagePaid || 0),
+        paymentPercentage: parseFloat(summary.paymentPercentage || 0),
+    };
+
+    const parsedByPeriod = byPeriod.map((item: any) => ({
+        ...item,
+        total_paid: parseFloat(item.total_paid || 0),
+        average_paid: parseFloat(item.average_paid || 0),
+        total_waived: parseFloat(item.total_waived || 0),
+        total_due: parseFloat(item.total_due || 0),
+    }));
+
+    const parsedByStatus = byStatus.map((item: any) => ({
+        ...item,
+        totalPaid: parseFloat(item.totalPaid || 0),
+        averagePaid: parseFloat(item.averagePaid || 0),
+    }));
+
+    const parsedEfficiency = efficiency.map((item: any) => ({
+        ...item,
+        totalPaid: parseFloat(item.totalPaid || 0),
+        totalDue: parseFloat(item.totalDue || 0),
+        paymentPercentage: parseFloat(item.paymentPercentage || 0),
+        recipientName: item.recipient_name || '',
+    }));
 
     return (
         <div className="container-fluid p-4 min-vh-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
@@ -105,26 +140,26 @@ export default function CommissionAnalytics() {
                 </div>
                 <div className="d-flex gap-2 align-items-center">
                     <Form.Group className="mb-0">
-                        <Form.Control 
-                            type="date" 
-                            size="sm" 
+                        <Form.Control
+                            type="date"
+                            size="sm"
                             className="border-0 bg-light"
-                            value={startDate} 
-                            onChange={(e) => setStartDate(e.target.value)} 
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
                         />
                     </Form.Group>
                     <RiArrowLeftRightLine size={16} className="text-muted mx-1" />
                     <Form.Group className="mb-0">
-                        <Form.Control 
-                            type="date" 
-                            size="sm" 
+                        <Form.Control
+                            type="date"
+                            size="sm"
                             className="border-0 bg-light"
-                            value={endDate} 
-                            onChange={(e) => setEndDate(e.target.value)} 
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
                         />
                     </Form.Group>
-                    <Form.Select 
-                        size="sm" 
+                    <Form.Select
+                        size="sm"
                         className="w-auto border-0 bg-light"
                         value={period}
                         onChange={(e) => setPeriod(e.target.value)}
@@ -135,8 +170,8 @@ export default function CommissionAnalytics() {
                         <option value="quarterly">Quarterly</option>
                         <option value="yearly">Yearly</option>
                     </Form.Select>
-                    <Form.Select 
-                        size="sm" 
+                    <Form.Select
+                        size="sm"
                         className="w-auto border-0 bg-light"
                         value={recipientType}
                         onChange={(e) => setRecipientType(e.target.value)}
@@ -145,16 +180,21 @@ export default function CommissionAnalytics() {
                         <option value="clinician">Clinicians</option>
                         <option value="organization">Organizations</option>
                     </Form.Select>
-                    <Button 
-                        variant="outline-secondary" 
-                        size="sm" 
+                    <Button
+                        variant="outline-secondary"
+                        size="sm"
                         className="ms-2 border-0"
-                        onClick={fetchDashboard} 
-                        disabled={isLoading}
+                        onClick={fetchDashboard}
                     >
                         <RiRefreshLine size={18} />
-                    </Button>
-                </div>
+                    </Button>                    <Button
+                        variant="outline-secondary"
+                        size="sm"
+                        className="ms-2 border-0"
+                        onClick={handleResetFilters}
+                    >
+                        <RiRefreshLine size={16} className="me-1" /> Clear Filters
+                    </Button>                </div>
             </div>
 
             {error && <div className="alert alert-danger mb-4">{error}</div>}
@@ -167,8 +207,8 @@ export default function CommissionAnalytics() {
                             <RiMoneyDollarCircleLine size={20} className="me-2 text-primary" />
                             <span className="fw-medium text-muted small">Total Paid</span>
                         </div>
-                        <div className="fs-4 fw-bold text-primary">{currencyFormatter.format(summary.totalPaid || 0)}</div>
-                        <div className="small text-muted">{summary.paymentPercentage || 0}% of Due</div>
+                        <div className="fs-4 fw-bold text-primary">{currencyFormatter.format(parsedSummary.totalPaid)}</div>
+                        <div className="small text-muted">{parsedSummary.paymentPercentage.toFixed(2)}% of Due</div>
                     </div>
                 </Col>
                 <Col md={3}>
@@ -177,7 +217,7 @@ export default function CommissionAnalytics() {
                             <RiInformationLine size={20} className="me-2 text-warning" />
                             <span className="fw-medium text-muted small">Total Due</span>
                         </div>
-                        <div className="fs-4 fw-bold text-warning">{currencyFormatter.format(summary.totalDue || 0)}</div>
+                        <div className="fs-4 fw-bold text-warning">{currencyFormatter.format(parsedSummary.totalDue)}</div>
                         <div className="small text-muted">Total commissions due</div>
                     </div>
                 </Col>
@@ -187,7 +227,7 @@ export default function CommissionAnalytics() {
                             <RiPieChartLine size={20} className="me-2 text-info" />
                             <span className="fw-medium text-muted small">Total Waived</span>
                         </div>
-                        <div className="fs-4 fw-bold text-info">{currencyFormatter.format(summary.totalWaived || 0)}</div>
+                        <div className="fs-4 fw-bold text-info">{currencyFormatter.format(parsedSummary.totalWaived)}</div>
                         <div className="small text-muted">Waived portions</div>
                     </div>
                 </Col>
@@ -197,8 +237,8 @@ export default function CommissionAnalytics() {
                             <RiUserSharedLine size={20} className="me-2 text-danger" />
                             <span className="fw-medium text-muted small">Recipients</span>
                         </div>
-                        <div className="fs-4 fw-bold text-danger">{summary.uniqueRecipients || 0}</div>
-                        <div className="small text-muted">{summary.batchCount || 0} batches processed</div>
+                        <div className="fs-4 fw-bold text-danger">{parsedSummary.uniqueRecipients}</div>
+                        <div className="small text-muted">{parsedSummary.batchCount} batches processed</div>
                     </div>
                 </Col>
             </Row>
@@ -213,24 +253,24 @@ export default function CommissionAnalytics() {
                         </h6>
                         <div style={{ height: '350px' }}>
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={byPeriod} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                                <BarChart data={parsedByPeriod} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={SHADCN_BORDER} />
-                                    <XAxis 
-                                        dataKey="period" 
-                                        axisLine={false} 
-                                        tickLine={false} 
-                                        tick={{ fontSize: 12, fill: SHADCN_MUTED_FG }} 
+                                    <XAxis
+                                        dataKey="period"
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fontSize: 12, fill: SHADCN_MUTED_FG }}
                                     />
-                                    <YAxis 
-                                        axisLine={false} 
-                                        tickLine={false} 
+                                    <YAxis
+                                        axisLine={false}
+                                        tickLine={false}
                                         tick={{ fontSize: 12, fill: SHADCN_MUTED_FG }}
                                         tickFormatter={(val) => `GHS ${val}`}
                                     />
-                                    <Tooltip 
+                                    <Tooltip
                                         cursor={{ fill: 'var(--bs-light)' }}
-                                        contentStyle={{ 
-                                            borderRadius: '8px', 
+                                        contentStyle={{
+                                            borderRadius: '8px',
                                             border: `1px solid ${SHADCN_BORDER}`,
                                             backgroundColor: 'var(--bs-body-bg)',
                                             color: 'var(--bs-body-color)'
@@ -257,20 +297,20 @@ export default function CommissionAnalytics() {
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
                                     <Pie
-                                        data={byStatus}
+                                        data={parsedByStatus}
                                         innerRadius={60}
                                         outerRadius={80}
                                         paddingAngle={5}
                                         dataKey="totalPaid"
                                         nameKey="status"
                                     >
-                                        {byStatus.map((entry: any, index: number) => (
+                                        {parsedByStatus.map((entry: any, index: number) => (
                                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                         ))}
                                     </Pie>
-                                    <Tooltip 
-                                        contentStyle={{ 
-                                            borderRadius: '8px', 
+                                    <Tooltip
+                                        contentStyle={{
+                                            borderRadius: '8px',
                                             border: `1px solid ${SHADCN_BORDER}`,
                                             backgroundColor: 'var(--bs-body-bg)',
                                             color: 'var(--bs-body-color)'
@@ -282,7 +322,7 @@ export default function CommissionAnalytics() {
                             </ResponsiveContainer>
                         </div>
                         <div className="mt-4">
-                            {byStatus.map((item: any, index: number) => (
+                            {parsedByStatus.map((item: any, index: number) => (
                                 <div key={index} className="d-flex justify-content-between align-items-center mb-2 small border-bottom pb-2">
                                     <div className="d-flex align-items-center">
                                         <div className="rounded-circle me-2" style={{ width: 8, height: 8, backgroundColor: COLORS[index % COLORS.length] }}></div>
@@ -315,11 +355,11 @@ export default function CommissionAnalytics() {
                         </tr>
                     </thead>
                     <tbody>
-                        {efficiency.slice(0, 10).map((item: any, index: number) => (
+                        {parsedEfficiency.slice(0, 10).map((item: any, index: number) => (
                             <tr key={index} className="align-middle border-bottom">
                                 <td className="px-4 py-3 fw-medium">
                                     {item.recipientType === 'clinician' ? <RiUserSharedLine size={16} className="me-2 text-primary" /> : <RiBuilding4Line size={16} className="me-2 text-info" />}
-                                    Recipient #{item.recipientId}
+                                    {item.recipientName || `Recipient #${item.recipientId}`}
                                 </td>
                                 <td className="text-center">
                                     <Badge bg={item.recipientType === 'clinician' ? 'primary' : 'info'} className="text-capitalize fw-normal bg-opacity-10 text-dark border">
@@ -331,17 +371,17 @@ export default function CommissionAnalytics() {
                                 <td className="text-center">
                                     <div className="d-flex align-items-center justify-content-center gap-2">
                                         <div className="progress flex-grow-1" style={{ height: 6, minWidth: 60, backgroundColor: 'var(--bs-secondary-bg)' }}>
-                                            <div 
-                                                className={`progress-bar bg-${item.paymentPercentage >= 90 ? 'success' : item.paymentPercentage >= 50 ? 'warning' : 'danger'}`} 
+                                            <div
+                                                className={`progress-bar bg-${item.paymentPercentage >= 90 ? 'success' : item.paymentPercentage >= 50 ? 'warning' : 'danger'}`}
                                                 style={{ width: `${item.paymentPercentage}%` }}
                                             ></div>
                                         </div>
-                                        <span className="small fw-bold">{item.paymentPercentage}%</span>
+                                        <span className="small fw-bold">{item.paymentPercentage.toFixed(1)}%</span>
                                     </div>
                                 </td>
                                 <td className="text-center">{item.paymentBatches}</td>
                                 <td className="px-4 text-end">
-                                    <Link 
+                                    <Link
                                         href={`/analytics/commissions/recipient/${item.recipientId}?startDate=${startDate}&endDate=${endDate}&period=${period}&recipientType=${item.recipientType}`}
                                         className="btn btn-link btn-sm p-0 text-decoration-none fw-bold"
                                     >
@@ -352,7 +392,7 @@ export default function CommissionAnalytics() {
                         ))}
                     </tbody>
                 </Table>
-                {efficiency.length === 0 && (
+                {parsedEfficiency.length === 0 && (
                     <div className="text-center py-5 text-muted bg-white">
                         <RiMoneyDollarCircleLine size={48} className="mb-3 opacity-25" />
                         <p>No recipient efficiency data available for this period.</p>

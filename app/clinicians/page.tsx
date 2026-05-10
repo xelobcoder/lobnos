@@ -2,14 +2,14 @@
 
 import { RiMoreFill, RiSearchLine, RiFileExcel2Line, RiAddLine } from "@remixicon/react";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Dropdown, Modal, Button } from "react-bootstrap";
 import { toast } from "react-toastify";
-import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
-import { customPost, customFile,customFetch } from "../../../components/Auth/customFetch";
-import { useApplication } from "../../../components/Auth/useApplicationContext";
-import BasicInformationClinician from "../../../components/Clinicians/BasicInformationClinician";
+import PrimeTable from "../../components/accessories/Datatables/PrimeTable";
+import { customPost, customFile,customFetch } from "../../components/Auth/customFetch";
+import { useApplication } from "../../components/Auth/useApplicationContext";
+import BasicInformationClinician from "../../components/Clinicians/BasicInformationClinician";
 
 const getClinicianId = (clinician: Clinician) => clinician.id || clinician.clinician_id || 0;
 

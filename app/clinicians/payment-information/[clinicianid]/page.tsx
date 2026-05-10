@@ -16,8 +16,8 @@ import {
 } from '@remixicon/react';
 import { useParams } from 'next/navigation';
 import { toast } from 'react-toastify';
-import { customPost,customFetch } from '../../../../../components/Auth/customFetch';
-import { useApplication } from '../../../../../components/Auth/useApplicationContext';
+import { customPost,customFetch } from '../../../../components/Auth/customFetch';
+import { useApplication } from '../../../../components/Auth/useApplicationContext';
 
 
 // Define the Zod schema for validation

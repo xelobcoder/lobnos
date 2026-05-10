@@ -247,7 +247,7 @@ export default function CheckEntityStrategyPage() {
                         {Array.isArray(strategies) && strategies.length > 0
                             &&
                             <div className="mb-4 ">
-                                <div>Step 1: Select a Strategy</div>
+                                <div>Step 1: Select a Billing Module</div>
                                 <div>
                                     <Select
                                         options={strategyOptions}

@@ -181,7 +181,7 @@ export default function BillingStrategyAssignmentForm({ trackId, entity_type }: 
                                 formatOptionLabel={formatOptionLabel}
                                 onChange={(option) => field.onChange(option?.value || null)}
                                 value={strategyOptions.find(o => o.value === field.value) || null}
-                                placeholder="Select a strategy..."
+                                placeholder="Select a billing module ."
                                 noOptionsMessage={() => "No strategies found"}
                             />
                         )}
