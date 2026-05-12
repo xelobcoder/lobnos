@@ -6,7 +6,7 @@ import { Button, Modal, Form } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import styles from '../../../../commissions/clinicians/commissions-information/CommissionReport.module.css';
 import { RiAlertLine, RiFileList3Line, RiMoneyDollarCircleLine, RiServiceLine, RiPhoneLine, RiMapPinLine, RiHospitalLine } from '@remixicon/react';
-import { customPost, currencyFormatter,customFetch } from '../../../../../components/Auth/customFetch';
+import { customPost, currencyFormatter, customFetch } from '../../../../../components/Auth/customFetch';
 import { useApplication } from '../../../../../components/Auth/useApplicationContext';
 import DateFilterReusable from '../../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable';
 import CommissionLineChart from '../../../clinicians/commissions-information/CommissionLineChart';
@@ -42,8 +42,7 @@ async function getOrganizationCommission({ organizationid, startDate, endDate }:
 
 export default function OrganizationCommissionDetails({ params }: { params: { organization: string } }) {
      const today = dayjs().format('YYYY-MM-DD');
-     const defaultStart = dayjs().startOf('year').format('YYYY-MM-DD');
-     const [startDate, setStartDate] = useState(defaultStart);
+     const [startDate, setStartDate] = useState(today);
      const [endDate, setEndDate] = useState(today);
      const [dateFilter, setDateFilter] = useState('This Year');
      const [commissionData, setCommissionData] = useState<CommissionData[]>([]);
@@ -67,9 +66,9 @@ export default function OrganizationCommissionDetails({ params }: { params: { or
           const interval = setInterval(() => {
                loadCommissionData();
                setLastRefreshTime(dayjs().format('HH:mm:ss'));
-          }, 30000); // 30 seconds
+          }, 30000);
           return () => clearInterval(interval);
-     }, [params.organization, startDate, endDate]);
+     }, [params.organization]);
 
      const loadPaymentModes = async () => {
           try {
@@ -89,12 +88,39 @@ export default function OrganizationCommissionDetails({ params }: { params: { or
           setLoading(true);
           setError(null);
           try {
-               const res = await getOrganizationCommission({ organizationid: params.organization, startDate, endDate });
+               // First load with a very broad date range to get all services
+               const broadStart = dayjs().subtract(10, 'year').format('YYYY-MM-DD');
+               const broadEnd = dayjs().add(1, 'year').format('YYYY-MM-DD');
+
+               const res = await getOrganizationCommission({
+                    organizationid: params.organization,
+                    startDate: broadStart,
+                    endDate: broadEnd
+               });
+
                if ((res as any).error) {
                     setError((res as any).error);
                     setCommissionData([]);
                } else {
-                    setCommissionData(res as CommissionData[]);
+                    const data = res as CommissionData[];
+                    setCommissionData(data);
+
+                    // Calculate date range from service dates
+                    if (data.length > 0) {
+                         const serviceDates = data.map(record => dayjs(record.service_date));
+                         const minDate = serviceDates.reduce((min, date) => date.isBefore(min) ? date : min);
+                         const maxDate = serviceDates.reduce((max, date) => date.isAfter(max) ? date : max);
+
+                         if (minDate && maxDate) {
+                              setStartDate(minDate.format('YYYY-MM-DD'));
+                              setEndDate(maxDate.format('YYYY-MM-DD'));
+                         }
+                    } else {
+                         // No data, use current month as fallback
+                         const currentMonth = dayjs().startOf('month');
+                         setStartDate(currentMonth.format('YYYY-MM-DD'));
+                         setEndDate(dayjs().format('YYYY-MM-DD'));
+                    }
                }
                if (paymentModes.length === 0) {
                     const modes = await loadPaymentModes();
@@ -108,9 +134,10 @@ export default function OrganizationCommissionDetails({ params }: { params: { or
           }
      };
 
+     // Initial data load
      useEffect(() => {
           loadCommissionData();
-     }, [params.organization, startDate, endDate]);
+     }, [params.organization]); // Only depend on organization, not dates
 
      const handleDateRangeChange = (start: string, end: string) => {
           setStartDate(start);
@@ -118,9 +145,9 @@ export default function OrganizationCommissionDetails({ params }: { params: { or
      };
 
      const handleResetFilters = () => {
-          setStartDate(defaultStart);
-          setEndDate(today);
           setDateFilter('This Year');
+          // Reset will reload data and recalculate date range from services
+          loadCommissionData();
      };
 
      const handleSelectRecord = (serviceId: number) => {
@@ -262,7 +289,7 @@ export default function OrganizationCommissionDetails({ params }: { params: { or
                     </h1>
                     <div className="d-flex gap-2">
                          <Link
-                              href={`/organization/commission-update/${params.organization}`}
+                              href={`/commissions/organizations/commission-update/${params.organization}`}
                               className="btn btn-outline-primary btn-sm"
                               target="_blank"
                               rel="noopener noreferrer"
@@ -270,7 +297,7 @@ export default function OrganizationCommissionDetails({ params }: { params: { or
                               Update Commission Records
                          </Link>
                          <Link
-                              href={`/organization/commissions-paid/${params.organization}`}
+                              href={`/commissions/organizations/commissions-paid/${params.organization}`}
                               className="btn btn-outline-success btn-sm"
                               target="_blank"
                               rel="noopener noreferrer"

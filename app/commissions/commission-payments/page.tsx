@@ -2,10 +2,10 @@
 import { RiHospitalLine } from '@remixicon/react';
 import dayjs from 'dayjs';
 import React, { useState, useEffect } from 'react';
-import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
-import { currencyFormatter ,customFetch} from '../../../../components/Auth/customFetch';
-import { useApplication } from '../../../../components/Auth/useApplicationContext';
-import DateFilterReusable from '../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable';
+import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
+import { currencyFormatter, customFetch } from '../../../components/Auth/customFetch';
+import { useApplication } from '../../../components/Auth/useApplicationContext';
+import DateFilterReusable from '../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable';
 
 interface PaidCommissionData {
      id: number;
@@ -40,6 +40,7 @@ export default function OrganizationPaidCommissionsPageCombined({ params }: { pa
      const [startDate, setStartDate] = useState(defaultStart);
      const [endDate, setEndDate] = useState(today);
      const [dateFilter, setDateFilter] = useState('This Year');
+     const [recipientType, setRecipientType] = useState<'all' | 'organization' | 'clinician'>('organization');
      const [paidCommissions, setPaidCommissions] = useState<PaidCommissionData[]>([]);
      const [loading, setLoading] = useState(false);
      const [error, setError] = useState<string | null>(null);
@@ -59,11 +60,22 @@ export default function OrganizationPaidCommissionsPageCombined({ params }: { pa
           }
      );
 
+     const buildCommissionUrl = (pageParams = '') => {
+          let url = `commission-payments/commission/batch/information?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}&&employeeid=${encodeURIComponent(employeeid || '')}`;
+          if (recipientType !== 'all') {
+               url += `&recipient_type=${encodeURIComponent(recipientType)}`;
+               if (recipientType === 'organization') {
+                    url += `&recipient_id=${encodeURIComponent(params.organization)}`;
+               }
+          }
+          return `${url}${pageParams}`;
+     };
+
      const fetchPaidCommissions = async () => {
           setLoading(true);
           setError(null);
           try {
-               const url = `commission-payments/commission/batch/information?recipient_type=organization&recipient_id=${encodeURIComponent(params.organization)}&startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}&&employeeid=${encodeURIComponent(employeeid || '')}`;
+               const url = buildCommissionUrl();
                const response = await customFetch(url);
                if (response && (response.success || response.status === true || response.status === 'success')) {
                     setPaidCommissions(Array.isArray(response.data) ? response.data : []);
@@ -80,17 +92,18 @@ export default function OrganizationPaidCommissionsPageCombined({ params }: { pa
 
      useEffect(() => {
           fetchPaidCommissions();
-     }, [params.organization, startDate, endDate]);
+     }, [params.organization, startDate, endDate, recipientType]);
 
      const handleResetFilters = () => {
           setStartDate(defaultStart);
           setEndDate(today);
           setDateFilter('This Year');
+          setRecipientType('organization');
      };
 
      const handleSeverSideProcessing = async (pagination: { page: number; count: number, sortby: "ASC" | "DESC" }) => {
           try {
-               const url = `commission-payments/commission/batch/information?recipient_type=organization&recipient_id=${encodeURIComponent(params.organization)}&startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}&&employeeid=${encodeURIComponent(employeeid || '')}&page=${pagination.page}&count=${pagination.count}${pagination.sortby ? `&sortby=${pagination.sortby || 'DESC'}` : ''}`;
+               const url = buildCommissionUrl(`&page=${pagination.page}&count=${pagination.count}${pagination.sortby ? `&sortby=${pagination.sortby || 'DESC'}` : ''}`);
                const response = await customFetch(url);
                if (response && (response.success || response.status === true || response.status === 'success') && Array.isArray(response.data)) {
                     return { result: response.data, error: false };
@@ -108,7 +121,7 @@ export default function OrganizationPaidCommissionsPageCombined({ params }: { pa
                     <div className="card-body py-3 px-4">
                          <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
                               <div>
-                                   <h1 className="h5 mb-1 d-flex align-items-center"><RiHospitalLine className="me-2" />Organization Paid Commissions</h1>
+                                   <h1 className="h5 mb-1 d-flex align-items-center"><RiHospitalLine className="me-2" />{recipientType === 'organization' ? 'Organization' : recipientType === 'clinician' ? 'Clinician' : 'All'} Paid Commissions</h1>
                               </div>
                               <div className="d-flex flex-column flex-sm-row gap-2 align-items-start align-items-sm-center">
                                    <DateFilterReusable
@@ -118,6 +131,16 @@ export default function OrganizationPaidCommissionsPageCombined({ params }: { pa
                                         label="Filter by"
                                         className="col-12 col-sm-auto"
                                    />
+                                   <select
+                                        className="form-select form-select-sm"
+                                        style={{ width: '180px' }}
+                                        value={recipientType}
+                                        onChange={e => setRecipientType(e.target.value as 'all' | 'organization' | 'clinician')}
+                                   >
+                                        <option value="all">All Recipients</option>
+                                        <option value="organization">Organization</option>
+                                        <option value="clinician">Clinician</option>
+                                   </select>
                                    <button className="btn btn-sm btn-outline-secondary" type="button" onClick={handleResetFilters}>
                                         Reset
                                    </button>

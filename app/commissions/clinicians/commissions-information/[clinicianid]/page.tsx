@@ -6,7 +6,7 @@ import { RiUserLine, RiPhoneLine, RiMoneyDollarCircleLine, RiServiceLine, RiFile
 import dayjs from "dayjs";
 import { Button, Modal, Form } from "react-bootstrap";
 import { toast } from "react-toastify";
-import { customPost, currencyFormatter,customFetch } from "../../../../../components/Auth/customFetch";
+import { customPost, currencyFormatter, customFetch } from "../../../../../components/Auth/customFetch";
 import { useApplication } from "../../../../../components/Auth/useApplicationContext";
 import DateFilterReusable from "../../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 import CommissionLineChart from "../CommissionLineChart";
@@ -45,11 +45,9 @@ async function getClinicianCommission({ clinicianid, startDate, endDate }: { cli
 
 export default function ClinicianCommissionPage({ params }: { params: { clinicianid: string } }) {
 	const today = dayjs().format('YYYY-MM-DD');
-	const currentYear = dayjs().year();
 	const employeeid = useApplication()?.user?.employeeid;
 	const branchid = useApplication()?.branchid;
-	const defaultStart = dayjs(`${currentYear}-01-01`).format('YYYY-MM-DD');
-	const [startDate, setStartDate] = useState(defaultStart);
+	const [startDate, setStartDate] = useState(today);
 	const [endDate, setEndDate] = useState(today);
 	const [dateFilter, setDateFilter] = useState('This Year');
 	const handleDateRangeChange = (start: string, end: string) => {
@@ -57,8 +55,9 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 		setEndDate(end);
 	};
 	const handleResetFilters = () => {
-		setStartDate(defaultStart);
-		setEndDate(today);
+		setDateFilter('This Year');
+		// Reset will reload data and recalculate date range from services
+		loadCommissionData();
 	};
 	const [commissionData, setCommissionData] = useState<CommissionData[]>([]);
 	const [loading, setLoading] = useState(false);
@@ -76,24 +75,9 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 	const [bulkPayType, setBulkPayType] = useState<'paid' | 'payable'>('paid');
 	const [bulkPayMethod, setBulkPayMethod] = useState<number | null>(null);
 
+	// Initial data load
 	useEffect(() => {
-		setLoading(true);
-		setError(null);
-		Promise.all([
-			getClinicianCommission({ clinicianid: params.clinicianid, startDate, endDate }),
-			loadPaymentModes()
-		]).then(([commissionRes, modes]) => {
-			if ((commissionRes as any).error) {
-				setError((commissionRes as any).error);
-				setCommissionData([]);
-			} else {
-				setCommissionData(commissionRes as CommissionData[]);
-			}
-			setPaymentModes(modes || []);
-		}).catch(e => {
-			setError(e.message || 'An unknown error occurred');
-			setCommissionData([]);
-		}).finally(() => setLoading(false));
+		loadCommissionData();
 	}, [params.clinicianid]);
 
 	const loadPaymentModes = async () => {
@@ -111,26 +95,56 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 		}
 	};
 
-	const loadCommissionData = () => {
+	const loadCommissionData = async () => {
 		setLoading(true);
 		setError(null);
-		Promise.all([
-			getClinicianCommission({ clinicianid: params.clinicianid, startDate, endDate }),
-			paymentModes.length === 0 ? loadPaymentModes() : Promise.resolve(paymentModes)
-		]).then(([commissionRes, modes]) => {
+		try {
+			// First load with a very broad date range to get all services
+			const broadStart = dayjs().subtract(10, 'year').format('YYYY-MM-DD');
+			const broadEnd = dayjs().add(1, 'year').format('YYYY-MM-DD');
+
+			const commissionRes = await getClinicianCommission({
+				clinicianid: params.clinicianid,
+				startDate: broadStart,
+				endDate: broadEnd
+			});
+
 			if ((commissionRes as any).error) {
 				setError((commissionRes as any).error);
 				setCommissionData([]);
 			} else {
-				setCommissionData(commissionRes as CommissionData[]);
+				const data = commissionRes as CommissionData[];
+				setCommissionData(data);
+
+				// Calculate date range from service dates
+				if (data.length > 0) {
+					const serviceDates = data.map(record => dayjs(record.service_date));
+					const minDate = serviceDates.reduce((min, date) => date.isBefore(min) ? date : min);
+					const maxDate = serviceDates.reduce((max, date) => date.isAfter(max) ? date : max);
+
+					if (minDate && maxDate) {
+						setStartDate(minDate.format('YYYY-MM-DD'));
+						setEndDate(maxDate.format('YYYY-MM-DD'));
+					}
+				} else {
+					// No data, use current month as fallback
+					const currentMonth = dayjs().startOf('month');
+					setStartDate(currentMonth.format('YYYY-MM-DD'));
+					setEndDate(dayjs().format('YYYY-MM-DD'));
+				}
 			}
-			if (paymentModes.length === 0 && Array.isArray(modes)) {
-				setPaymentModes(modes);
+
+			// Load payment modes if not already loaded
+			if (paymentModes.length === 0) {
+				const modes = await loadPaymentModes();
+				setPaymentModes(modes || []);
 			}
-		}).catch(e => {
-			setError(e.message || 'An unknown error occurred');
+		} catch (err: any) {
+			setError(err.message || 'An unknown error occurred');
 			setCommissionData([]);
-		}).finally(() => setLoading(false));
+		} finally {
+			setLoading(false);
+		}
 	};
 
 	const handleFilter = (start: string, end: string) => {

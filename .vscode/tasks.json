@@ -4,7 +4,7 @@
 		{
 			"label": "Open Split Terminals",
 			"type": "shell",
-			"command": "npm run next",
+			"command": "cd C:\\Programming\\PLS-DIFFERENT-VERSIONS\\LobnosProfessionalVersion\\lobnos-server && npm run next",
 			"problemMatcher": [],
 			"runOptions": {
 				"runOn": "folderOpen"

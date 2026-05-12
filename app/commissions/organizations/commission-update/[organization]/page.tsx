@@ -6,6 +6,7 @@ import { Button, Modal, Form } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import PrimeTable from '../../../../../components/accessories/Datatables/PrimeTable';
 import { customPost, currencyFormatter,customFetch } from '../../../../../components/Auth/customFetch';
+import { useApplication } from '../../../../../components/Auth/useApplicationContext';
 
 interface CommissionRecord {
      id: number;
@@ -50,6 +51,7 @@ export default function OrganizationCommissionUpdatePage({ params }: { params: {
      const [updating, setUpdating] = useState(false);
      const [startDate, setStartDate] = useState(defaultStart);
      const [endDate, setEndDate] = useState(today);
+     const employeeid = useApplication()?.user?.employeeid;
 
      const handleServerSideProcessing = async (pagination: any) => {
           try {
@@ -79,7 +81,7 @@ export default function OrganizationCommissionUpdatePage({ params }: { params: {
           setUpdating(true);
           try {
                const response = await customPost(
-                    `commission-payments/commission/recipient/update-rates/${selectedRecord.id}`,
+                    `commission-payments/commission/recipient/update-rates/${selectedRecord.id}?employeeid=${employeeid}`,
                     'PUT',
                     {
                          recipientType: selectedRecord.recipient_type,
@@ -89,11 +91,10 @@ export default function OrganizationCommissionUpdatePage({ params }: { params: {
                          newCommissionAmount: parseFloat(newRate),
                     }
                );
-               if (response && response.status) {
+               if (response && response.status == true) {
                     toast.success('Commission rate updated successfully');
                     setShowModal(false);
                     setSelectedRecord(null);
-                    // Refresh data
                     const refreshResponse = await handleServerSideProcessing({
                          page: 1,
                          count: 10,

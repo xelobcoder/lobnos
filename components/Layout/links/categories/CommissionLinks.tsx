@@ -7,29 +7,30 @@ export const CommissionLinks: Link[] = [
           link: "/commissions",
           icon: <RiMoneyDollarCircleLine />,
      },
-     {
-          title: "Clinician Commissions Information",
-          link: "/commissions/clinicians/commissions-information",
-          icon: <RiStethoscopeLine />,
-     },
-     {
-          title: "General Commissions Payments Made",
-          link: "/commissions/clinicians/commissions-payments-made",
-          icon: <RiHistoryLine />,
-     },
-     {
-          title: "Organization Commissions Information",
+        {
+          title: "Organization Pending",
           link: "/commissions/organizations/pending-commissions",
           icon: <RiBuilding4Line />,
      },
      {
-          title: "Organization Commissions Payments Made",
-          link: "/commissions/organizations/commission-payments",
+          title: "Clinician Pending",
+          link: "/commissions/clinicians/commissions-information",
+          icon: <RiStethoscopeLine />,
+     },
+     {
+          title: "General Commissions Analytics",
+          link: "/commissions/clinicians/commissions-payments-made",
+          icon: <RiHistoryLine />,
+     },
+  
+     {
+          title: "Commissions Payments",
+          link: "/commissions/commission-payments",
           icon: <RiHistoryLine />,
      },
      {
-          title: "Untracked Commissions",
-          link: "/commissions/organizations/untracked-commission-records",
+          title: "Untracked  Commissions",
+          link: "/commissions/untracked-commission-records",
           icon: <RiTimeLine />,
-     },
+     }
 ];

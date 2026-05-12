@@ -116,6 +116,14 @@ export const AdminRoleLinks = [
           label: 'Incident Reporting',
           category: 'Quality & Compliance',
           description: 'Incident reporting and management system'
+     },
+     {
+          href: '/commissions',
+          icon: <RiMoneyDollarCircleLine size={24} />,
+          text: "Manage sales commissions and compensation",
+          label: 'Commissions',
+          category: 'Finance',
+          description: 'Sales commission management'
      }
 ];
 

@@ -288,7 +288,7 @@ export default function OrganizationPendingCommission() {
                                                   disableSortBy: true,
                                                   Cell: ({ row }) => (
                                                        <a
-                                                            href={`/organization/commission-details/${row.original.organization_id}`}
+                                                            href={`/commissions/organizations/commission-details/${row.original.organization_id}`}
                                                             className='btn btn-primary btn-sm'
                                                             target="_blank"
                                                             rel="noopener noreferrer"

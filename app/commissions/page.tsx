@@ -27,7 +27,7 @@ export default function Page() {
                               <p className="text-muted mb-3">
                                    View, track, and manage all commission records and payments for organizations. Includes untracked services and paid commission history.
                               </p>
-                              <Link href="/commissions/organization" className="btn btn-primary d-flex align-items-center mt-auto">
+                              <Link href="/commissions/organizations/pending-commissions" className="btn btn-primary d-flex align-items-center mt-auto">
                                    Go to Organization Commissions <RiArrowRightLine size={18} className="ms-2" />
                               </Link>
                          </div>
@@ -41,7 +41,7 @@ export default function Page() {
                               <p className="text-muted mb-3">
                                    View, track, and manage all commission records and payments for clinicians. Includes untracked services and paid commission history.
                               </p>
-                              <Link href="/commissions/clinicians" className="btn btn-outline-primary d-flex align-items-center mt-auto">
+                              <Link href="/commissions/clinicians/commissions-information" className="btn btn-outline-primary d-flex align-items-center mt-auto">
                                    Go to Clinician Commissions <RiArrowRightLine size={18} className="ms-2" />
                               </Link>
                          </div>

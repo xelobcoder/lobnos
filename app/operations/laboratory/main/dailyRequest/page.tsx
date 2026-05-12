@@ -154,7 +154,7 @@ export default function LaboratoryClientList() {
 
      const openFolder = (patientid: number, billingid: number) => {
           if (!patientid || !billingid) return;
-          router.push(`/operations/laboratory/main/dailyRequest/visit?patientid=${patientid}&billingid=${billingid}&&isOpenSideBarShow=false`);
+          window.open(`/operations/laboratory/main/dailyRequest/visit?patientid=${patientid}&billingid=${billingid}&&isOpenSideBarShow=false`,'_blank');
      }
 
      const filteredClients = React.useMemo(() => {

@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 import { useState, useEffect, useMemo } from "react";
 import { Button, Dropdown, Modal } from "react-bootstrap";
 import { BarChart, CartesianGrid, XAxis, YAxis, Legend, Bar, LineChart, Line, AreaChart, Area, ResponsiveContainer, Tooltip as RechartsTooltip } from "recharts";
-import { currencyFormatter ,customFetch} from "../../../../components/Auth/customFetch";
+import { currencyFormatter, customFetch } from "../../../../components/Auth/customFetch";
 import DateFilterReusable from "../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 
 
@@ -533,15 +533,9 @@ export default function PaidCommissionsPaymentMadePage() {
                                                   <td className="py-2">{record.created_by_username}</td>
                                                   <td className="py-2">{record.recipient_name}</td>
                                                   <td className="py-2">
-                                                       <Dropdown>
-                                                            <Dropdown.Toggle as={Button} variant="outline-secondary" size="sm">
-                                                                 Actions
-                                                            </Dropdown.Toggle>
-                                                            <Dropdown.Menu>
-                                                                 <Dropdown.Item onClick={() => handleConvertToExpense(record)}>Convert to Expense</Dropdown.Item>
-                                                                 <Dropdown.Item onClick={() => handleViewBreakdown(record)}>View Breakdown</Dropdown.Item>
-                                                            </Dropdown.Menu>
-                                                       </Dropdown>
+                                                       <Button variant="primary" size="sm" onClick={() => handleViewBreakdown(record)}>
+                                                            View Breakdown
+                                                       </Button>
                                                   </td>
                                              </tr>
                                         ))}
@@ -658,32 +652,35 @@ export default function PaidCommissionsPaymentMadePage() {
                                                   <table className="table table-sm table-striped">
                                                        <thead className="table-light">
                                                             <tr>
+                                                                 <th>Recipient ID</th>
                                                                  <th>Service ID</th>
                                                                  <th>Commission Due</th>
                                                                  <th>Amount Allocated</th>
                                                                  <th>Waived Amount</th>
-                                                                 <th>Commission %</th>
+                                                                 <th>Final Commission</th>
+                                                                 <th>Commission Rate</th>
                                                                  <th>Status</th>
-                                                                 <th>Type</th>
-                                                                 <th>Recipient ID</th>
+                                                                 <th>Commission Type</th>
                                                                  <th>Date</th>
                                                             </tr>
                                                        </thead>
                                                        <tbody>
                                                             {breakdownData.map((item: any, index: number) => (
                                                                  <tr key={index}>
+                                                                      <td>{item.recipient_id || 'N/A'}</td>
                                                                       <td>{item.serviceid || 'N/A'}</td>
                                                                       <td>{currencyFormatter.format(Number(item.commission_due || 0))}</td>
                                                                       <td>{currencyFormatter.format(Number(item.amount_allocated || 0))}</td>
                                                                       <td>{currencyFormatter.format(Number(item.waived_amount || 0))}</td>
-                                                                      <td>{item.commission_percentage || 'N/A'}%</td>
+                                                                      <td>{currencyFormatter.format(Number(item.final_commission || item.commission_due || 0))}</td>
+                                                                      <td>{item.percentage_rate_applied ? `${item.percentage_rate_applied}%` : 'N/A'}</td>
                                                                       <td>
                                                                            <span className={`badge ${item.status === 'paid' ? 'bg-success' : item.status === 'pending' ? 'bg-warning' : item.status === 'partial' ? 'bg-info' : 'bg-secondary'}`}>
                                                                                 {item.status || 'N/A'}
                                                                            </span>
                                                                       </td>
-                                                                      <td>{item.type || 'N/A'}</td>
-                                                                      <td>{item.recipient_id || 'N/A'}</td>
+                                                                      <td>{item.commission_type || item.type || 'N/A'}</td>
+                                                                   
                                                                       <td>{item.created_at ? dayjs(item.created_at).format('DD/MM/YYYY') : 'N/A'}</td>
                                                                  </tr>
                                                             ))}
@@ -692,6 +689,7 @@ export default function PaidCommissionsPaymentMadePage() {
                                                                  <td>{currencyFormatter.format(breakdownData.reduce((sum, item) => sum + Number(item.commission_due || 0), 0))}</td>
                                                                  <td>{currencyFormatter.format(breakdownData.reduce((sum, item) => sum + Number(item.amount_allocated || 0), 0))}</td>
                                                                  <td>{currencyFormatter.format(breakdownData.reduce((sum, item) => sum + Number(item.waived_amount || 0), 0))}</td>
+                                                                 <td>{currencyFormatter.format(breakdownData.reduce((sum, item) => sum + Number(item.final_commission || item.commission_due || 0), 0))}</td>
                                                                  <td></td>
                                                                  <td></td>
                                                                  <td></td>
