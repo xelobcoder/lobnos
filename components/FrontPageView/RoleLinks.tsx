@@ -10,6 +10,14 @@ export const AdminRoleLinks = [
           description: 'Patient registration, billing management, and payment processing'
      },
      {
+          href: "/billing/sales/branches",
+          icon: <RiMoneyDollarCircleLine size={24} />,
+          text: "Manage sales and billing across multiple branches",
+          label: 'Daily Sales',
+          category: 'Core Operations',
+          description: 'Sales and billing management for multiple branches'
+     },
+     {
           href: '/operations/laboratory',
           icon: <RiTestTubeLine size={24} />,
           text: "Streamline laboratory test processing and result management",
@@ -136,6 +144,14 @@ export const FrontdeskRoleLinks = [
           label: 'Registration & Billing',
           category: 'Core Operations',
           description: 'Patient registration and payment processing'
+     },
+      {
+          href: "/billing/sales/branches",
+          icon: <RiMoneyDollarCircleLine size={24} />,
+          text: "Manage sales and billing across multiple branches",
+          label: 'Daily Sales',
+          category: 'Core Operations',
+          description: 'Sales and billing management for multiple branches'
      },
      {
           href: '/appointments',

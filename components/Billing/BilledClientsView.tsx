@@ -471,7 +471,7 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 								{isAdmin && datequery.from && datequery.to && (
 									<button
 										className="btn btn-primary btn-sm"
-										onClick={() => router.push(`${plsEncryption(branchid.toString())}/day-transaction-break-down?date=${datequery.from}&&from=${datequery.from}&&end=${datequery.to}`)}
+										onClick={() => window.open(`${plsEncryption(branchid.toString())}/day-transaction-break-down?date=${datequery.from}&&from=${datequery.from}&&end=${datequery.to}&isOpenSideBarShow=false`)}
 									>
 										BreakDown
 									</button>

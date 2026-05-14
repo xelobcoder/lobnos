@@ -238,6 +238,82 @@
     margin: 0.25rem 0;
 }
 
+.layoutGrid {
+    display: grid;
+    grid-template-columns: minmax(250px, 320px) 1fr;
+    gap: 1.5rem;
+}
+
+.sectionNav {
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    position: sticky;
+    top: 1rem;
+    align-self: start;
+}
+
+.navHeader {
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--bs-border-color);
+    margin-bottom: 1rem;
+}
+
+.sectionNavList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.5rem;
+}
+
+.sectionNavItem {}
+
+.sectionNavButton {
+    width: 100%;
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid transparent;
+    border-radius: 0.625rem;
+    background: transparent;
+    color: var(--bs-body-color);
+    padding: 0.85rem 1rem;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    cursor: pointer;
+}
+
+.sectionNavButton:hover,
+.sectionNavButton:focus {
+    background: var(--bs-tertiary-bg);
+    border-color: var(--bs-border-color);
+    outline: none;
+}
+
+.sectionNavButtonActive {
+    background: var(--bs-primary-bg-subtle);
+    border-color: var(--bs-primary);
+}
+
+.sectionContent {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+@media (max-width: 991px) {
+    .layoutGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .sectionNav {
+        position: static;
+        top: auto;
+    }
+}
+
 /* Professional enhancements */
 .sectionDivider {
     height: 1px;

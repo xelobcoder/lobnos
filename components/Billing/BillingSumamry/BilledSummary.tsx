@@ -180,7 +180,7 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 					)}
 				</div>
 			</div>
-			{isVisible && isAdmin && (
+			{isVisible && (
 				<>
 					{/* Desktop Card View */}
 					<div className="d-none d-md-flex flex-column gap-3">
