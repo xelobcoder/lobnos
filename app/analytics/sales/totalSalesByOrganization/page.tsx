@@ -48,23 +48,29 @@ const getInitialDates = () => {
 interface OrganizationSalesAPIEntry {
     organizationId: number;
     status: string;
-    totalCost: string;
+    gross_revenue: string;
     name: string;
-    actual_revenue: string;
-    accrued_revenue: string;
-    total_discount: string;
-    total_amount_refunded: string;
+    cash_collected: string;
+    earned_revenue: string;
+    discount: string;
+    total_refunded: string;
+    organization_services_count: number;
+    nhis_services_count: number;
+    total_services_rendered: number;
 }
 
 interface ChartDataEntry {
     organizationId: number;
     status: string;
     name: string;
-    totalCost: number;
-    actual_revenue: number;
-    accrued_revenue: number;
-    total_discount: number;
-    total_amount_refunded: number;
+    gross_revenue: number;
+    cash_collected: number;
+    earned_revenue: number;
+    discount: number;
+    total_refunded: number;
+    organization_services_count: number;
+    nhis_services_count: number;
+    total_services_rendered: number;
 }
 
 export default function TotalSalesByOrganization() {
@@ -113,12 +119,15 @@ export default function TotalSalesByOrganization() {
                     organizationId: item.organizationId,
                     status: item.status,
                     name: item.name || "Unknown Organization",
-                    totalCost: parseFloat(item.totalCost) || 0,
-                    actual_revenue: parseFloat(item.actual_revenue) || 0,
-                    accrued_revenue: parseFloat(item.accrued_revenue) || 0,
-                    total_discount: parseFloat(item.total_discount) || 0,
-                    total_amount_refunded: parseFloat(item.total_amount_refunded) || 0,
-                })).sort((a, b) => b.accrued_revenue - a.accrued_revenue);
+                    gross_revenue: parseFloat(item.gross_revenue) || 0,
+                    cash_collected: parseFloat(item.cash_collected) || 0,
+                    earned_revenue: parseFloat(item.earned_revenue) || 0,
+                    discount: parseFloat(item.discount) || 0,
+                    total_refunded: parseFloat(item.total_refunded) || 0,
+                    organization_services_count: item.organization_services_count || 0,
+                    nhis_services_count: item.nhis_services_count || 0,
+                    total_services_rendered: item.total_services_rendered || 0,
+                })).sort((a, b) => b.earned_revenue - a.earned_revenue);
                 setData(formattedData);
             } else {
                 setData([]);
@@ -163,7 +172,7 @@ export default function TotalSalesByOrganization() {
         window.open(`/analytics/sales/organizations/${organization.organizationId}`, '_blank');
     };
 
-    const totalPayableOverall = data.reduce((sum, entry) => sum + entry.accrued_revenue, 0);
+    const totalPayableOverall = data.reduce((sum, entry) => sum + entry.earned_revenue, 0);
 
     const CustomTooltipContent = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
@@ -181,28 +190,34 @@ export default function TotalSalesByOrganization() {
                 >
                     <div className="mb-2 fw-medium" style={{ color: COLOR_TOOLTIP_FG }}>{label}</div>
                     <div className="mb-1">
-                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Actual Revenue</span>
+                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Cash Collected</span>
                         <span className="fw-bold d-block" style={{ color: 'oklch(0.6 0.15 142)' }}>
-                            {currencyFormatter.format(currentData.actual_revenue)}
+                            {currencyFormatter.format(currentData.cash_collected)}
                         </span>
                     </div>
                     <div className="mb-1">
-                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Accrued Revenue</span>
+                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Earned Revenue</span>
                         <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>
-                            {currencyFormatter.format(currentData.accrued_revenue)}
+                            {currencyFormatter.format(currentData.earned_revenue)}
                         </span>
                     </div>
                     <div className="mb-1">
-                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Total Cost</span>
+                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Gross Revenue</span>
                         <span className="fw-bold d-block">
-                            {currencyFormatter.format(currentData.totalCost)}
+                            {currencyFormatter.format(currentData.gross_revenue)}
+                        </span>
+                    </div>
+                    <div className="mt-2 pt-1 border-top" style={{ borderColor: COLOR_BORDER }}>
+                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Services Rendered</span>
+                        <span className="fw-bold d-block" style={{ color: COLOR_TOOLTIP_FG }}>
+                            {currentData.total_services_rendered}
                         </span>
                     </div>
                     {totalPayableOverall > 0 && (
-                        <div className="mt-2 pt-1 border-top" style={{ borderColor: COLOR_BORDER }}>
+                        <div className="mt-1">
                             <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Revenue Share</span>
                             <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>
-                                {((currentData.accrued_revenue / totalPayableOverall) * 100).toFixed(1)}%
+                                {((currentData.earned_revenue / totalPayableOverall) * 100).toFixed(1)}%
                             </span>
                         </div>
                     )}
@@ -292,18 +307,18 @@ export default function TotalSalesByOrganization() {
                                 wrapperStyle={{ fontSize: '12px', color: COLOR_TEXT_MUTED, paddingBottom: '10px' }}
                             />
                             <Bar
-                                dataKey="actual_revenue"
+                                dataKey="cash_collected"
                                 fill="oklch(0.6 0.15 142)"
                                 radius={[4, 4, 0, 0]}
                                 maxBarSize={50}
-                                name="Actual Revenue"
+                                name="Cash Collected"
                             />
                             <Bar
-                                dataKey="accrued_revenue"
+                                dataKey="earned_revenue"
                                 fill={COLOR_ACCENT}
                                 radius={[4, 4, 0, 0]}
                                 maxBarSize={50}
-                                name="Accrued Revenue"
+                                name="Earned Revenue"
                             />
                         </BarChart>
                     </ResponsiveContainer>
@@ -327,8 +342,8 @@ export default function TotalSalesByOrganization() {
                             />
                             <Line
                                 type="monotone"
-                                dataKey="totalCost"
-                                name="Total Cost"
+                                dataKey="gross_revenue"
+                                name="Gross Revenue"
                                 stroke="oklch(0.6 0.15 142)"
                                 strokeWidth={2}
                                 dot={{ r: 3, strokeWidth: 1, fill: "oklch(0.6 0.15 142)" }}
@@ -336,8 +351,8 @@ export default function TotalSalesByOrganization() {
                             />
                             <Line
                                 type="monotone"
-                                dataKey="actual_revenue"
-                                name="Actual Revenue"
+                                dataKey="cash_collected"
+                                name="Cash Collected"
                                 stroke="oklch(0.7 0.2 20)"
                                 strokeWidth={2}
                                 dot={{ r: 3, strokeWidth: 1, fill: "oklch(0.7 0.2 20)" }}
@@ -345,8 +360,8 @@ export default function TotalSalesByOrganization() {
                             />
                             <Line
                                 type="monotone"
-                                dataKey="accrued_revenue"
-                                name="Net Payable"
+                                dataKey="earned_revenue"
+                                name="Earned Revenue"
                                 stroke={COLOR_ACCENT}
                                 strokeWidth={3}
                                 dot={{ r: 4, strokeWidth: 2, fill: COLOR_ACCENT }}
@@ -354,7 +369,7 @@ export default function TotalSalesByOrganization() {
                             />
                             <Line
                                 type="monotone"
-                                dataKey="total_discount"
+                                dataKey="discount"
                                 name="Discount"
                                 stroke="oklch(0.5 0.1 25)"
                                 strokeWidth={2}
@@ -401,8 +416,8 @@ export default function TotalSalesByOrganization() {
                             />
                             <Area
                                 type="monotone"
-                                dataKey="totalCost"
-                                name="Total Cost"
+                                dataKey="gross_revenue"
+                                name="Gross Revenue"
                                 stroke="oklch(0.6 0.15 142)"
                                 fill="url(#colorTotalCost)"
                                 strokeWidth={2}
@@ -410,8 +425,8 @@ export default function TotalSalesByOrganization() {
                             />
                             <Area
                                 type="monotone"
-                                dataKey="actual_revenue"
-                                name="Actual Revenue"
+                                dataKey="cash_collected"
+                                name="Cash Collected"
                                 stroke="oklch(0.7 0.2 20)"
                                 fill="url(#colorTotalPaid)"
                                 strokeWidth={2}
@@ -419,8 +434,8 @@ export default function TotalSalesByOrganization() {
                             />
                             <Area
                                 type="monotone"
-                                dataKey="accrued_revenue"
-                                name="Net Payable"
+                                dataKey="earned_revenue"
+                                name="Earned Revenue"
                                 stroke={COLOR_ACCENT}
                                 fill="url(#colorTotalPayable)"
                                 strokeWidth={2}
@@ -428,7 +443,7 @@ export default function TotalSalesByOrganization() {
                             />
                             <Area
                                 type="monotone"
-                                dataKey="total_discount"
+                                dataKey="discount"
                                 name="Discount"
                                 stroke="oklch(0.5 0.1 25)"
                                 fill="url(#colorTotalDiscount)"
@@ -532,11 +547,14 @@ export default function TotalSalesByOrganization() {
                             <thead className="sticky-top bg-body-tertiary">
                                 <tr>
                                     <th scope="col" className="py-2">Organization Name</th>
-                                    <th scope="col" className="py-2">Total Cost</th>
-                                    <th scope="col" className="py-2">Actual Revenue</th>
-                                    <th scope="col" className="py-2">Accrued Revenue</th>
+                                    <th scope="col" className="py-2">Gross Revenue</th>
+                                    <th scope="col" className="py-2">Cash Collected</th>
+                                    <th scope="col" className="py-2">Earned Revenue</th>
                                     <th scope="col" className="py-2">Discount</th>
                                     <th scope="col" className="py-2">Refunded</th>
+                                    <th scope="col" className="py-2 text-center">Org. Services</th>
+                                    <th scope="col" className="py-2 text-center">NHIS Services</th>
+                                    <th scope="col" className="py-2 text-center">Total Services</th>
                                     <th scope="col" className="py-2">% of Total</th>
                                 </tr>
                             </thead>
@@ -554,13 +572,16 @@ export default function TotalSalesByOrganization() {
                                                 <IconView />
                                             </button>
                                         </td>
-                                        <td className="py-2">{currencyFormatter.format(entry.totalCost)}</td>
-                                        <td className="py-2">{entry.actual_revenue ? currencyFormatter.format(entry.actual_revenue) : '-'}</td>
-                                        <td className="py-2 fw-medium">{currencyFormatter.format(entry.accrued_revenue)}</td>
-                                        <td className="py-2">{currencyFormatter.format(entry.total_discount)}</td>
-                                        <td className="py-2">{currencyFormatter.format(entry.total_amount_refunded)}</td>
+                                        <td className="py-2">{currencyFormatter.format(entry.gross_revenue)}</td>
+                                        <td className="py-2">{entry.cash_collected ? currencyFormatter.format(entry.cash_collected) : '-'}</td>
+                                        <td className="py-2 fw-medium">{currencyFormatter.format(entry.earned_revenue)}</td>
+                                        <td className="py-2">{currencyFormatter.format(entry.discount)}</td>
+                                        <td className="py-2">{currencyFormatter.format(entry.total_refunded)}</td>
+                                        <td className="py-2 text-center">{entry.organization_services_count}</td>
+                                        <td className="py-2 text-center">{entry.nhis_services_count}</td>
+                                        <td className="py-2 text-center fw-medium">{entry.total_services_rendered}</td>
                                         <td className="py-2 text-muted">
-                                            {totalPayableOverall > 0 ? ((entry.accrued_revenue / totalPayableOverall) * 100).toFixed(1) : '0.0'}%
+                                            {totalPayableOverall > 0 ? ((entry.earned_revenue / totalPayableOverall) * 100).toFixed(1) : '0.0'}%
                                         </td>
                                     </tr>
                                 ))}
@@ -568,11 +589,14 @@ export default function TotalSalesByOrganization() {
                             <tfoot className="fw-bold border-top">
                                 <tr>
                                     <td className="py-2">Total</td>
-                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalCost, 0))}</td>
-                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.actual_revenue, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.gross_revenue, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.cash_collected, 0))}</td>
                                     <td className="py-2">{currencyFormatter.format(totalPayableOverall)}</td>
-                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.total_discount, 0))}</td>
-                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.total_amount_refunded, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.discount, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.total_refunded, 0))}</td>
+                                    <td className="py-2 text-center">{data.reduce((sum, entry) => sum + entry.organization_services_count, 0)}</td>
+                                    <td className="py-2 text-center">{data.reduce((sum, entry) => sum + entry.nhis_services_count, 0)}</td>
+                                    <td className="py-2 text-center">{data.reduce((sum, entry) => sum + entry.total_services_rendered, 0)}</td>
                                     <td className="py-2">100.0%</td>
                                 </tr>
                             </tfoot>

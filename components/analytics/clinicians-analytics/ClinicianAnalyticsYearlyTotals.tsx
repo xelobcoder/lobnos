@@ -104,7 +104,7 @@ const ClinicianAnalyticsYearlyComparison: React.FC<ClinicianAnalyticsYearlyCompa
     return (
         <div className="container-fluid px-0">
             <div className="d-flex justify-content-between align-items-center mb-3">
-                <div className="d-flex align-items-center gap-3">
+                {/* <div className="d-flex align-items-center gap-3">
                     <h2 className="fs-4 fw-bold mb-0 pls-label">Yearly Comparison</h2>
                     <button
                         onClick={() => router.push(`/clinician/analytics/detailed/${clinicianId}`)}
@@ -131,7 +131,7 @@ const ClinicianAnalyticsYearlyComparison: React.FC<ClinicianAnalyticsYearlyCompa
                             <path d="M5 12h14M12 5l7 7-7 7" />
                         </svg>
                     </button>
-                </div>
+                </div> */}
                 <div style={{ width: '200px' }}>
                     <Select
                         options={metricOptions}

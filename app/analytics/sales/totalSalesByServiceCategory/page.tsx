@@ -42,20 +42,20 @@ const PIE_CHART_COLORS = [
 interface ServiceCategoryAPIEntry {
     branchid: number;
     serviceCategory: string;
-    totalCost: string;
-    totalPaid: string;
-    totalPayable: string;
-    totalDiscount: string;
-    totalRefunded: string;
+    gross_revenue: string;
+    cash_collected: string;
+    earned_revenue: string;
+    discount: string;
+    total_refunded: string;
 }
 
 interface ChartDataEntry {
     name: string;
-    totalCost: number;
-    totalPaid: number;
-    totalPayable: number;
-    totalDiscount: number;
-    totalRefunded: number;
+    gross_revenue: number;
+    cash_collected: number;
+    earned_revenue: number;
+    discount: number;
+    total_refunded: number;
     branchid: number;
 }
 
@@ -103,38 +103,38 @@ export default function TotalSalesByServiceCategory() {
             const response: ServiceCategoryAPIEntry[] = await customFetch(url);
 
             if (response && Array.isArray(response)) {
-                const groupedData: { [key: string]: { totalCost: number; totalPaid: number; totalPayable: number; totalDiscount: number; totalRefunded: number; branchid: number } } = {};
+                const groupedData: { [key: string]: { gross_revenue: number; cash_collected: number; earned_revenue: number; discount: number; total_refunded: number; branchid: number } } = {};
 
                 response.forEach(item => {
                     const categoryName = item.serviceCategory || "Uncategorized";
                     if (!groupedData[categoryName]) {
                         groupedData[categoryName] = {
-                            totalCost: 0,
-                            totalPaid: 0,
-                            totalPayable: 0,
-                            totalDiscount: 0,
-                            totalRefunded: 0,
+                            gross_revenue: 0,
+                            cash_collected: 0,
+                            earned_revenue: 0,
+                            discount: 0,
+                            total_refunded: 0,
                             branchid: item.branchid
                         };
                     }
-                    groupedData[categoryName].totalCost += parseFloat(item.totalCost) || 0;
-                    groupedData[categoryName].totalPaid += parseFloat(item.totalPaid) || 0;
-                    groupedData[categoryName].totalPayable += parseFloat(item.totalPayable) || 0;
-                    groupedData[categoryName].totalDiscount += parseFloat(item.totalDiscount) || 0;
-                    groupedData[categoryName].totalRefunded += parseFloat(item.totalRefunded) || 0;
+                    groupedData[categoryName].gross_revenue += parseFloat(item.gross_revenue) || 0;
+                    groupedData[categoryName].cash_collected += parseFloat(item.cash_collected) || 0;
+                    groupedData[categoryName].earned_revenue += parseFloat(item.earned_revenue) || 0;
+                    groupedData[categoryName].discount += parseFloat(item.discount) || 0;
+                    groupedData[categoryName].total_refunded += parseFloat(item.total_refunded) || 0;
                 });
 
                 const formattedData = Object.entries(groupedData)
                     .map(([name, values]) => ({
                         name,
-                        totalCost: values.totalCost,
-                        totalPaid: values.totalPaid,
-                        totalPayable: values.totalPayable,
-                        totalDiscount: values.totalDiscount,
-                        totalRefunded: values.totalRefunded,
+                        gross_revenue: values.gross_revenue,
+                        cash_collected: values.cash_collected,
+                        earned_revenue: values.earned_revenue,
+                        discount: values.discount,
+                        total_refunded: values.total_refunded,
                         branchid: values.branchid
                     }))
-                    .sort((a, b) => b.totalPayable - a.totalPayable);
+                    .sort((a, b) => b.earned_revenue - a.earned_revenue);
                 setData(formattedData);
             } else {
                 setData([]);
@@ -172,7 +172,7 @@ export default function TotalSalesByServiceCategory() {
         fetchData(startDate, endDate);
     };
 
-    const totalPayableOverall = data.reduce((sum, entry) => sum + entry.totalPayable, 0);
+    const totalPayableOverall = data.reduce((sum, entry) => sum + entry.earned_revenue, 0);
 
     const CustomTooltipContent = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
@@ -184,28 +184,28 @@ export default function TotalSalesByServiceCategory() {
                 <div className="rounded-lg border p-2 shadow-sm" style={{ backgroundColor: COLOR_TOOLTIP_BG, borderColor: COLOR_BORDER, color: COLOR_TOOLTIP_FG, minWidth: '220px', fontSize: '0.8rem' }}>
                     <div className="mb-2 fw-medium" style={{ color: COLOR_TOOLTIP_FG }}>{name}</div>
                     <div className="mb-1">
-                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Net Payable</span>
+                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Earned Revenue</span>
                         <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>
-                            {currencyFormatter.format(currentData.totalPayable)}
+                            {currencyFormatter.format(currentData.earned_revenue)}
                         </span>
                     </div>
                     <div className="mb-1">
-                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Amount Paid</span>
+                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Cash Collected</span>
                         <span className="fw-bold d-block" style={{ color: 'oklch(0.6 0.15 142)' }}>
-                            {currencyFormatter.format(currentData.totalPaid)}
+                            {currencyFormatter.format(currentData.cash_collected)}
                         </span>
                     </div>
                     <div className="mb-1">
-                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Total Cost</span>
+                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Gross Revenue</span>
                         <span className="fw-bold d-block">
-                            {currencyFormatter.format(currentData.totalCost)}
+                            {currencyFormatter.format(currentData.gross_revenue)}
                         </span>
                     </div>
                     {totalPayableOverall > 0 && (
                         <div className="mt-2 pt-1 border-top" style={{ borderColor: COLOR_BORDER }}>
                             <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Share of Total</span>
                             <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>
-                                {((currentData.totalPayable / totalPayableOverall) * 100).toFixed(1)}%
+                                {((currentData.earned_revenue / totalPayableOverall) * 100).toFixed(1)}%
                             </span>
                         </div>
                     )}
@@ -242,7 +242,7 @@ export default function TotalSalesByServiceCategory() {
                 <div style={{ width: '100%', height: chartHeight }}>
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
-                            <Pie data={data} dataKey="totalPayable" nameKey="name" cx="50%" cy="50%" outerRadius={Math.min(window.innerWidth / 4.5, 140)} labelLine={false} label={renderCustomizedPieLabel} >
+                            <Pie data={data} dataKey="earned_revenue" nameKey="name" cx="50%" cy="50%" outerRadius={Math.min(window.innerWidth / 4.5, 140)} labelLine={false} label={renderCustomizedPieLabel} >
                                 {data.map((entry, index) => (<Cell key={`cell-${index}`} fill={PIE_CHART_COLORS[index % PIE_CHART_COLORS.length]} />))}
                             </Pie>
                             <Tooltip content={<CustomTooltipContent />} />
@@ -264,7 +264,7 @@ export default function TotalSalesByServiceCategory() {
                             <XAxis dataKey="name" angle={angleXAxis ? -45 : 0} textAnchor={angleXAxis ? "end" : "middle"} height={angleXAxis ? 100 : 60} interval={0} tick={{ fontSize: 10, fill: COLOR_TEXT_MUTED }} axisLine={{ stroke: COLOR_BORDER }} tickLine={{ stroke: COLOR_BORDER }} />
                             <YAxis tickFormatter={(value) => currencyFormatter.format(value)} tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }} axisLine={false} tickLine={false} width={90} />
                             <Tooltip content={<CustomTooltipContent />} cursor={{ fill: COLOR_HOVER }} />
-                            <Bar dataKey="totalPayable" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={40} />
+                            <Bar dataKey="earned_revenue" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={40} />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
@@ -313,9 +313,9 @@ export default function TotalSalesByServiceCategory() {
                             <thead className="sticky-top bg-body-tertiary">
                                 <tr>
                                     <th scope="col" className="py-2">Service Category</th>
-                                    <th scope="col" className="py-2 text-end">Total Cost</th>
-                                    <th scope="col" className="py-2 text-end">Amount Paid</th>
-                                    <th scope="col" className="py-2 text-end">Net Payable</th>
+                                    <th scope="col" className="py-2 text-end">Gross Revenue</th>
+                                    <th scope="col" className="py-2 text-end">Cash Collected</th>
+                                    <th scope="col" className="py-2 text-end">Earned Revenue</th>
                                     <th scope="col" className="py-2 text-end">Discount</th>
                                     <th scope="col" className="py-2 text-end">Refunded</th>
                                     <th scope="col" className="py-2 text-end">% of Total</th>
@@ -325,13 +325,13 @@ export default function TotalSalesByServiceCategory() {
                                 {data.map((entry, index) => (
                                     <tr key={entry.name + index}>
                                         <td className="py-2">{entry.name}</td>
-                                        <td className="py-2 text-end">{currencyFormatter.format(entry.totalCost)}</td>
-                                        <td className="py-2 text-end">{entry.totalPaid ? currencyFormatter.format(entry.totalPaid) : '-'}</td>
-                                        <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.totalPayable)}</td>
-                                        <td className="py-2 text-end">{currencyFormatter.format(entry.totalDiscount)}</td>
-                                        <td className="py-2 text-end">{currencyFormatter.format(entry.totalRefunded)}</td>
+                                        <td className="py-2 text-end">{currencyFormatter.format(entry.gross_revenue)}</td>
+                                        <td className="py-2 text-end">{entry.cash_collected ? currencyFormatter.format(entry.cash_collected) : '-'}</td>
+                                        <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.earned_revenue)}</td>
+                                        <td className="py-2 text-end">{currencyFormatter.format(entry.discount)}</td>
+                                        <td className="py-2 text-end">{currencyFormatter.format(entry.total_refunded)}</td>
                                         <td className="py-2 text-end text-muted">
-                                            {totalPayableOverall > 0 ? ((entry.totalPayable / totalPayableOverall) * 100).toFixed(1) : '0.0'}%
+                                            {totalPayableOverall > 0 ? ((entry.earned_revenue / totalPayableOverall) * 100).toFixed(1) : '0.0'}%
                                         </td>
                                     </tr>
                                 ))}
@@ -339,11 +339,11 @@ export default function TotalSalesByServiceCategory() {
                             <tfoot className="fw-bold border-top">
                                 <tr>
                                     <td className="py-2">Total</td>
-                                    <td className="py-2 text-end">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalCost, 0))}</td>
-                                    <td className="py-2 text-end">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalPaid, 0))}</td>
+                                    <td className="py-2 text-end">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.gross_revenue, 0))}</td>
+                                    <td className="py-2 text-end">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.cash_collected, 0))}</td>
                                     <td className="py-2 text-end">{currencyFormatter.format(totalPayableOverall)}</td>
-                                    <td className="py-2 text-end">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalDiscount, 0))}</td>
-                                    <td className="py-2 text-end">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalRefunded, 0))}</td>
+                                    <td className="py-2 text-end">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.discount, 0))}</td>
+                                    <td className="py-2 text-end">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.total_refunded, 0))}</td>
                                     <td className="py-2 text-end">100.0%</td>
                                 </tr>
                             </tfoot>

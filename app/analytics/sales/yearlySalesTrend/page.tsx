@@ -43,26 +43,26 @@ const PIE_CHART_COLORS = [
 
 interface YearlySalesAPIEntry {
     year: number;
-    totalCost: string;
-    actual_revenue: string;
-    accrued_revenue: string;
-    total_discount: string;
-    totalRefunded: string;
-    total_expenses: string;
-    net_revenue: string;
-    outstanding_debt: string;
+    gross_revenue: string;
+    cash_collected: string;
+    earned_revenue: string;
+    discount: string;
+    total_refunded: string;
+    expenses_paid: string;
+    net_operating_cash: string;
+    outstanding: string;
 }
 
 interface ChartDataEntry {
     year: string;
-    totalCost: number;
-    actual_revenue: number;
-    accrued_revenue: number;
-    total_discount: number;
-    totalRefunded: number;
-    total_expenses: number;
-    net_revenue: number;
-    outstanding_debt: number;
+    gross_revenue: number;
+    cash_collected: number;
+    earned_revenue: number;
+    discount: number;
+    total_refunded: number;
+    expenses_paid: number;
+    net_operating_cash: number;
+    outstanding: number;
 }
 
 export default function YearlySalesTrend() {
@@ -70,7 +70,7 @@ export default function YearlySalesTrend() {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [view, setView] = useState<"pie" | "bar" | "line" | "area">("bar");
-    const [pieMetric, setPieMetric] = useState<"totalCost" | "accrued_revenue" | "actual_revenue" | "total_expenses" | "net_revenue" | "outstanding_debt" | "total_discount" | "totalRefunded">("accrued_revenue");
+    const [pieMetric, setPieMetric] = useState<"gross_revenue" | "earned_revenue" | "cash_collected" | "expenses_paid" | "net_operating_cash" | "outstanding" | "discount" | "total_refunded">("earned_revenue");
 
     const { branchid, user } = useApplicationSettings().applicationsettings || {};
     const employeeid = user?.employeeid;
@@ -97,12 +97,14 @@ export default function YearlySalesTrend() {
             if (response && Array.isArray(response)) {
                 const formattedData = response.map((item) => ({
                     year: String(item.year || "N/A"),
-                    totalCost: parseFloat(item.totalCost) || 0,
-                    actual_revenue: parseFloat(item.actual_revenue) || 0,
-                    accrued_revenue: parseFloat(item.accrued_revenue) || 0,
-                    total_discount: parseFloat(item.total_discount) || 0,
-                    totalRefunded: parseFloat(item.totalRefunded) || 0, total_expenses: parseFloat(item.total_expenses) || 0, net_revenue: parseFloat(item.net_revenue) || 0,
-                    outstanding_debt: parseFloat(item.outstanding_debt) || 0,
+                    gross_revenue: parseFloat(item.gross_revenue) || 0,
+                    cash_collected: parseFloat(item.cash_collected) || 0,
+                    earned_revenue: parseFloat(item.earned_revenue) || 0,
+                    discount: parseFloat(item.discount) || 0,
+                    total_refunded: parseFloat(item.total_refunded) || 0,
+                    expenses_paid: parseFloat(item.expenses_paid) || 0,
+                    net_operating_cash: parseFloat(item.net_operating_cash) || 0,
+                    outstanding: parseFloat(item.outstanding) || 0,
                 })).sort((a, b) => parseInt(b.year) - parseInt(a.year));
                 setData(formattedData);
                 if (formattedData.length === 0) {
@@ -140,16 +142,16 @@ export default function YearlySalesTrend() {
 
     const overallSummary = useMemo(() => {
         return data.reduce((acc, curr) => {
-            acc.totalCost += curr.totalCost;
-            acc.actual_revenue += curr.actual_revenue;
-            acc.accrued_revenue += curr.accrued_revenue;
-            acc.total_discount += curr.total_discount;
-            acc.totalRefunded += curr.totalRefunded;
-            acc.total_expenses += curr.total_expenses;
-            acc.net_revenue += curr.net_revenue;
-            acc.outstanding_debt += curr.outstanding_debt;
+            acc.gross_revenue += curr.gross_revenue;
+            acc.cash_collected += curr.cash_collected;
+            acc.earned_revenue += curr.earned_revenue;
+            acc.discount += curr.discount;
+            acc.total_refunded += curr.total_refunded;
+            acc.expenses_paid += curr.expenses_paid;
+            acc.net_operating_cash += curr.net_operating_cash;
+            acc.outstanding += curr.outstanding;
             return acc;
-        }, { totalCost: 0, actual_revenue: 0, accrued_revenue: 0, total_discount: 0, totalRefunded: 0, total_expenses: 0, net_revenue: 0, outstanding_debt: 0 });
+        }, { gross_revenue: 0, cash_collected: 0, earned_revenue: 0, discount: 0, total_refunded: 0, expenses_paid: 0, net_operating_cash: 0, outstanding: 0 });
     }, [data]);
 
     const CustomTooltip = ({ active, payload, label }: any) => {
@@ -174,7 +176,7 @@ export default function YearlySalesTrend() {
                     {payload.map((pld: any, index: number) => {
                         const actualDataKey = view === 'pie' ? pieMetric : pld.dataKey;
                         const totalForMetric = overallSummary[actualDataKey as keyof typeof overallSummary] || 0;
-                        const showPercentage = totalForMetric > 0 && (view === 'pie' || pld.dataKey === "totalCost");
+                        const showPercentage = totalForMetric > 0 && (view === 'pie' || pld.dataKey === "gross_revenue");
 
                         return (
                             <div key={index} className="mt-1">
@@ -266,11 +268,11 @@ export default function YearlySalesTrend() {
         const ChartComponent = view === "bar" ? BarChart : view === "line" ? LineChart : AreaChart;
 
         const elements = [
-            { dataKey: "totalCost", name: "Total Cost", color: COLOR_ACCENT, fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalCost)" : undefined },
-            { dataKey: "actual_revenue", name: "Actual Revenue", color: 'oklch(0.6 0.15 142)', fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalPaid)" : undefined },
-            { dataKey: "accrued_revenue", name: "Accrued Revenue", color: COLOR_PAYABLE, fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalPayable)" : undefined },
-            { dataKey: "total_discount", name: "Total Discount", color: COLOR_DISCOUNT, fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalDiscount)" : undefined },
-            { dataKey: "totalRefunded", name: "Refunded", color: 'oklch(0.7 0.2 20)', fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalRefunded)" : undefined },
+            { dataKey: "gross_revenue", name: "Gross Revenue", color: COLOR_ACCENT, fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalCost)" : undefined },
+            { dataKey: "cash_collected", name: "Cash Collected", color: 'oklch(0.6 0.15 142)', fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalPaid)" : undefined },
+            { dataKey: "earned_revenue", name: "Earned Revenue", color: COLOR_PAYABLE, fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalPayable)" : undefined },
+            { dataKey: "discount", name: "Discount", color: COLOR_DISCOUNT, fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalDiscount)" : undefined },
+            { dataKey: "total_refunded", name: "Refunded", color: 'oklch(0.7 0.2 20)', fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalRefunded)" : undefined },
         ];
 
         return (
@@ -393,14 +395,14 @@ export default function YearlySalesTrend() {
     ];
 
     const pieMetricOptions = [
-        { value: "totalCost" as const, label: "Total Cost" },
-        { value: "accrued_revenue" as const, label: "Accrued Revenue" },
-        { value: "actual_revenue" as const, label: "Actual Revenue" },
-        { value: "total_expenses" as const, label: "Total Expenses" },
-        { value: "net_revenue" as const, label: "Net Revenue" },
-        { value: "outstanding_debt" as const, label: "Outstanding Debt" },
-        { value: "total_discount" as const, label: "Total Discount" },
-        { value: "totalRefunded" as const, label: "Refunded" },
+        { value: "gross_revenue" as const, label: "Gross Revenue" },
+        { value: "earned_revenue" as const, label: "Earned Revenue" },
+        { value: "cash_collected" as const, label: "Cash Collected" },
+        { value: "expenses_paid" as const, label: "Expenses Paid" },
+        { value: "net_operating_cash" as const, label: "Net Operating Cash" },
+        { value: "outstanding" as const, label: "Outstanding" },
+        { value: "discount" as const, label: "Discount" },
+        { value: "total_refunded" as const, label: "Refunded" },
     ];
 
     return (
@@ -476,23 +478,23 @@ export default function YearlySalesTrend() {
                             <thead className="sticky-top bg-body-tertiary">
                                 <tr>
                                     <th scope="col" className="py-2">Year</th>
-                                    <th scope="col" className="py-2 text-start">Total Cost</th>
-                                    <th scope="col" className="py-2 text-start">Total Discount</th>
-                                    <th scope="col" className="py-2 text-start">Outstanding Debt</th>
+                                    <th scope="col" className="py-2 text-start">Gross Revenue</th>
+                                    <th scope="col" className="py-2 text-start">Discount</th>
+                                    <th scope="col" className="py-2 text-start">Outstanding</th>
                                     <th scope="col" className="py-2 text-start">Refunded</th>
-                                    <th scope="col" className="py-2 text-start">Accrued Revenue</th>
-                                    <th scope="col" className="py-2 text-start">Actual Revenue</th>
-                                    <th scope="col" className="py-2 text-start fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>Total Expenses</th>
-                                    <th scope="col" className="py-2 text-start fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>Net Revenue</th>
+                                    <th scope="col" className="py-2 text-start">Earned Revenue</th>
+                                    <th scope="col" className="py-2 text-start">Cash Collected</th>
+                                    <th scope="col" className="py-2 text-start fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>Expenses Paid</th>
+                                    <th scope="col" className="py-2 text-start fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>Net Operating Cash</th>
                                     <th scope="col" className="py-2 text-start">Expense Change</th>
                                     <th scope="col" className="py-2 text-start">Sales Change</th>
-                                    <th scope="col" className="py-2 text-start">Net Revenue Change</th>
+                                    <th scope="col" className="py-2 text-start">Net Cash Change</th>
                                     <th scope="col" className="py-2 text-start">% of Total</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {data.map((entry, index) => {
-                                    const percentageOfTotal = overallSummary.accrued_revenue > 0 ? ((entry.accrued_revenue / overallSummary.accrued_revenue) * 100).toFixed(1) : '0.0';
+                                    const percentageOfTotal = overallSummary.earned_revenue > 0 ? ((entry.earned_revenue / overallSummary.earned_revenue) * 100).toFixed(1) : '0.0';
 
                                     // Calculate changes from previous year
                                     let salesChange = '-';
@@ -502,27 +504,27 @@ export default function YearlySalesTrend() {
                                     if (index > 0) {
                                         const prevEntry = data[index - 1];
 
-                                        // Sales change (accrued_revenue)
-                                        if (prevEntry.accrued_revenue === 0 && entry.accrued_revenue > 0) {
+                                        // Sales change (earned_revenue)
+                                        if (prevEntry.earned_revenue === 0 && entry.earned_revenue > 0) {
                                             salesChange = 'New';
-                                        } else if (prevEntry.accrued_revenue > 0) {
-                                            const change = ((entry.accrued_revenue - prevEntry.accrued_revenue) / prevEntry.accrued_revenue) * 100;
+                                        } else if (prevEntry.earned_revenue > 0) {
+                                            const change = ((entry.earned_revenue - prevEntry.earned_revenue) / prevEntry.earned_revenue) * 100;
                                             salesChange = change.toFixed(1) + '%';
                                         }
 
                                         // Net revenue change
-                                        if (prevEntry.net_revenue === 0 && entry.net_revenue > 0) {
+                                        if (prevEntry.net_operating_cash === 0 && entry.net_operating_cash > 0) {
                                             netRevenueChange = 'New';
-                                        } else if (prevEntry.net_revenue > 0) {
-                                            const change = ((entry.net_revenue - prevEntry.net_revenue) / prevEntry.net_revenue) * 100;
+                                        } else if (prevEntry.net_operating_cash > 0) {
+                                            const change = ((entry.net_operating_cash - prevEntry.net_operating_cash) / prevEntry.net_operating_cash) * 100;
                                             netRevenueChange = change.toFixed(1) + '%';
                                         }
 
                                         // Expense change
-                                        if (prevEntry.total_expenses === 0 && entry.total_expenses > 0) {
+                                        if (prevEntry.expenses_paid === 0 && entry.expenses_paid > 0) {
                                             expenseChange = 'New';
-                                        } else if (prevEntry.total_expenses > 0) {
-                                            const change = ((entry.total_expenses - prevEntry.total_expenses) / prevEntry.total_expenses) * 100;
+                                        } else if (prevEntry.expenses_paid > 0) {
+                                            const change = ((entry.expenses_paid - prevEntry.expenses_paid) / prevEntry.expenses_paid) * 100;
                                             expenseChange = change.toFixed(1) + '%';
                                         }
                                     }
@@ -530,14 +532,14 @@ export default function YearlySalesTrend() {
                                     return (
                                         <tr key={entry.year}>
                                             <td className="py-2 fw-medium">{entry.year}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.totalCost)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.total_discount)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.outstanding_debt)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.totalRefunded)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.accrued_revenue)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.actual_revenue)}</td>
-                                            <td className="py-2 fw-medium fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>{currencyFormatter.format(entry.total_expenses)}</td>
-                                            <td className="py-2 fw-medium fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>{currencyFormatter.format(entry.net_revenue)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.gross_revenue)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.discount)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.outstanding)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.total_refunded)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.earned_revenue)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.cash_collected)}</td>
+                                            <td className="py-2 fw-medium fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>{currencyFormatter.format(entry.expenses_paid)}</td>
+                                            <td className="py-2 fw-medium fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>{currencyFormatter.format(entry.net_operating_cash)}</td>
                                             <td className={`py-2 fw-medium ${expenseChange !== '-' && expenseChange !== 'New' && parseFloat(expenseChange) >= 0 ? 'text-success' : expenseChange !== '-' && expenseChange !== 'New' ? 'text-danger' : ''}`}>
                                                 {expenseChange}
                                             </td>
@@ -555,14 +557,14 @@ export default function YearlySalesTrend() {
                             <tfoot className="fw-bold border-top">
                                 <tr>
                                     <td className="py-2 fw-medium">Total</td>
-                                    <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.totalCost)}</td>
-                                    <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.total_discount)}</td>
-                                    <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.outstanding_debt)}</td>
-                                    <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.totalRefunded)}</td>
-                                    <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.accrued_revenue)}</td>
-                                    <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.actual_revenue)}</td>
-                                    <td className="py-2 fw-medium fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>{currencyFormatter.format(overallSummary.total_expenses)}</td>
-                                    <td className="py-2 fw-medium fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>{currencyFormatter.format(overallSummary.net_revenue)}</td>
+                                    <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.gross_revenue)}</td>
+                                    <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.discount)}</td>
+                                    <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.outstanding)}</td>
+                                    <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.total_refunded)}</td>
+                                    <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.earned_revenue)}</td>
+                                    <td className="py-2 fw-medium">{currencyFormatter.format(overallSummary.cash_collected)}</td>
+                                    <td className="py-2 fw-medium fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>{currencyFormatter.format(overallSummary.expenses_paid)}</td>
+                                    <td className="py-2 fw-medium fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>{currencyFormatter.format(overallSummary.net_operating_cash)}</td>
                                     <td className="py-2 fw-medium text-muted">-</td>
                                     <td className="py-2 fw-medium text-muted">-</td>
                                     <td className="py-2 fw-medium text-muted">-</td>

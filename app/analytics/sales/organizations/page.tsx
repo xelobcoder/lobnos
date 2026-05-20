@@ -23,11 +23,11 @@ interface OrganizationEntry {
      organizationId: number;
      name: string;
      status: string;
-     totalCost: string;
-     actual_revenue: string;
-     accrued_revenue: string;
-     total_discount: string;
-     total_amount_refunded: string;
+     gross_revenue: string;
+     cash_collected: string;
+     earned_revenue: string;
+     discount: string;
+     total_refunded: string;
      created_date?: string;
      contact_info?: string;
      address?: string;
@@ -38,7 +38,7 @@ interface OrganizationStats {
      activeOrganizations: number;
      inactiveOrganizations: number;
      totalRevenue: number;
-     totalCost: number;
+     gross_revenue: number;
      averageRevenue: number;
 }
 
@@ -72,8 +72,8 @@ export default function OrganizationsAnalytics() {
                     setOrganizations(response);
 
                     // Calculate stats
-                    const totalRevenue = response.reduce((sum, org) => sum + parseFloat(org.actual_revenue || '0'), 0);
-                    const totalCost = response.reduce((sum, org) => sum + parseFloat(org.totalCost || '0'), 0);
+                    const totalRevenue = response.reduce((sum, org) => sum + parseFloat(org.cash_collected || '0'), 0);
+                    const gross_revenue = response.reduce((sum, org) => sum + parseFloat(org.gross_revenue || '0'), 0);
                     const activeOrgs = response.filter(org => org.status === 'active').length;
 
                     setStats({
@@ -81,7 +81,7 @@ export default function OrganizationsAnalytics() {
                          activeOrganizations: activeOrgs,
                          inactiveOrganizations: response.length - activeOrgs,
                          totalRevenue,
-                         totalCost,
+                         gross_revenue,
                          averageRevenue: response.length > 0 ? totalRevenue / response.length : 0
                     });
                } else {
@@ -104,7 +104,7 @@ export default function OrganizationsAnalytics() {
      }, [fetchOrganizations, employeeid]);
 
      const handleViewDetails = (organization: OrganizationEntry) => {
-          alert(`Organization Details for ${organization.name}:\n\nStatus: ${organization.status}\nTotal Cost: ${currencyFormatter.format(parseFloat(organization.totalCost))}\nActual Revenue: ${currencyFormatter.format(parseFloat(organization.actual_revenue))}\nAccrued Revenue: ${currencyFormatter.format(parseFloat(organization.accrued_revenue))}\nDiscount: ${currencyFormatter.format(parseFloat(organization.total_discount))}\nRefunded: ${currencyFormatter.format(parseFloat(organization.total_amount_refunded))}`);
+          alert(`Organization Details for ${organization.name}:\n\nStatus: ${organization.status}\nGross Revenue: ${currencyFormatter.format(parseFloat(organization.gross_revenue))}\nCash Collected: ${currencyFormatter.format(parseFloat(organization.cash_collected))}\nEarned Revenue: ${currencyFormatter.format(parseFloat(organization.earned_revenue))}\nDiscount: ${currencyFormatter.format(parseFloat(organization.discount))}\nRefunded: ${currencyFormatter.format(parseFloat(organization.total_refunded))}`);
      };
 
      const filteredOrganizations = organizations.filter(org => {
@@ -228,9 +228,9 @@ export default function OrganizationsAnalytics() {
                                              <tr>
                                                   <th className="py-3 px-4">Organization</th>
                                                   <th className="py-3 px-4">Status</th>
-                                                  <th className="py-3 px-4 text-end">Total Cost</th>
-                                                  <th className="py-3 px-4 text-end">Actual Revenue</th>
-                                                  <th className="py-3 px-4 text-end">Accrued Revenue</th>
+                                                  <th className="py-3 px-4 text-end">Gross Revenue</th>
+                                                  <th className="py-3 px-4 text-end">Cash Collected</th>
+                                                  <th className="py-3 px-4 text-end">Earned Revenue</th>
                                                   <th className="py-3 px-4 text-end">Discount</th>
                                                   <th className="py-3 px-4 text-end">Refunded</th>
                                                   <th className="py-3 px-4">Actions</th>
@@ -252,11 +252,11 @@ export default function OrganizationsAnalytics() {
                                                                  {org.status === 'active' ? <><IconActive /> Active</> : <><IconInactive /> Inactive</>}
                                                             </span>
                                                        </td>
-                                                       <td className="py-3 px-4 text-end">{currencyFormatter.format(parseFloat(org.totalCost))}</td>
-                                                       <td className="py-3 px-4 text-end">{currencyFormatter.format(parseFloat(org.actual_revenue))}</td>
-                                                       <td className="py-3 px-4 text-end fw-medium">{currencyFormatter.format(parseFloat(org.accrued_revenue))}</td>
-                                                       <td className="py-3 px-4 text-end">{currencyFormatter.format(parseFloat(org.total_discount))}</td>
-                                                       <td className="py-3 px-4 text-end">{currencyFormatter.format(parseFloat(org.total_amount_refunded))}</td>
+                                                       <td className="py-3 px-4 text-end">{currencyFormatter.format(parseFloat(org.gross_revenue))}</td>
+                                                       <td className="py-3 px-4 text-end">{currencyFormatter.format(parseFloat(org.cash_collected))}</td>
+                                                       <td className="py-3 px-4 text-end fw-medium">{currencyFormatter.format(parseFloat(org.earned_revenue))}</td>
+                                                       <td className="py-3 px-4 text-end">{currencyFormatter.format(parseFloat(org.discount))}</td>
+                                                       <td className="py-3 px-4 text-end">{currencyFormatter.format(parseFloat(org.total_refunded))}</td>
                                                        <td className="py-3 px-4">
                                                             <button
                                                                  className="btn btn-sm btn-outline-primary"

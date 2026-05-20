@@ -49,7 +49,11 @@ interface ApplicationSettingsData {
 	byPassSampleValidation: number,
 	byPassValidation: number,
 	byPassProcessing: number,
-	allowPrintingUnpaid: number
+	allowPrintingUnpaid: number,
+	isCommissionEarnedOnClinicianBilling: number,
+	isCommissionEarnedOnOrganizationalBilling: number,
+	isCommissionEarnedOnNHISBilling: number,
+	isCommissionEarnedOnPHISBilling: number
 }
 
 export default function ApplicationSettings() {
@@ -173,7 +177,11 @@ export default function ApplicationSettings() {
 						byPassSampleValidation: 0,
 						byPassValidation: 0,
 						byPassProcessing: 0,
-						allowResultEnteringUpaid: 0
+						allowResultEnteringUpaid: 0,
+						isCommissionEarnedOnClinicianBilling: 1,
+						isCommissionEarnedOnOrganizationalBilling: 1,
+						isCommissionEarnedOnNHISBilling: 0,
+						isCommissionEarnedOnPHISBilling: 0
 					});
 				}
 			} else {

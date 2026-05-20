@@ -24,14 +24,14 @@ import dayjs from "dayjs";
 
 interface SalesDataEntry {
     date: string;
-    totalCost: number;
-    actual_revenue: number;
-    accrued_revenue: number;
-    total_discount: number;
-    totalRefunded: number;
-    total_expenses: number;
-    net_revenue: number;
-    outstanding_debt: number;
+    gross_revenue: number;
+    cash_collected: number;
+    earned_revenue: number;
+    discount: number;
+    total_refunded: number;
+    expenses_paid: number;
+    net_operating_cash: number;
+    outstanding: number;
     changeFromPreviousDay: number | null; // Calculated field
     expenseChangeFromPrevious: number | null;
     salesChangeFromPrevious: number | null;
@@ -45,17 +45,17 @@ const COLOR_TOOLTIP_BG = 'var(--bs-body-bg)';
 const COLOR_TOOLTIP_FG = 'var(--bs-body-color)';
 const COLOR_GREEN_TEXT = 'var(--bs-success)';
 const COLOR_RED_TEXT = 'var(--bs-danger)';
-const COLOR_SECONDARY = '#2563eb'; // Blue for actual_revenue
-const COLOR_TERTIARY = '#7c3aed'; // Purple for total_discount
-const COLOR_EXPENSES = '#dc2626'; // Red for total_expenses
-const COLOR_NET_REVENUE = '#198754'; // Green for net_revenue
+const COLOR_SECONDARY = '#2563eb'; // Blue for cash_collected
+const COLOR_TERTIARY = '#7c3aed'; // Purple for discount
+const COLOR_EXPENSES = '#dc2626'; // Red for expenses_paid
+const COLOR_NET_REVENUE = '#198754'; // Green for net_operating_cash
 
 const METRICS_CONFIG = [
-    { key: "actual_revenue", name: "Actual Revenue", color: COLOR_SECONDARY },
-    { key: "accrued_revenue", name: "Accrued Revenue", color: COLOR_ACCENT },
-    { key: "total_discount", name: "Total Discount", color: COLOR_TERTIARY },
-    { key: "total_expenses", name: "Total Expenses", color: COLOR_EXPENSES },
-    { key: "net_revenue", name: "Net Revenue", color: COLOR_NET_REVENUE },
+    { key: "cash_collected", name: "Cash Collected", color: COLOR_SECONDARY },
+    { key: "earned_revenue", name: "Earned Revenue", color: COLOR_ACCENT },
+    { key: "discount", name: "Discount", color: COLOR_TERTIARY },
+    { key: "expenses_paid", name: "Expenses Paid", color: COLOR_EXPENSES },
+    { key: "net_operating_cash", name: "Net Operating Cash", color: COLOR_NET_REVENUE },
 ];
 
 
@@ -66,11 +66,11 @@ export default function DailySalesTrend() {
     const [view, setView] = useState<"line" | "bar" | "area">("line");
     const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
     const [enabledMetrics, setEnabledMetrics] = useState<Set<string>>(new Set([
-        "actual_revenue",
-        "accrued_revenue",
-        "total_discount",
-        "total_expenses",
-        "net_revenue"
+        "cash_collected",
+        "earned_revenue",
+        "discount",
+        "expenses_paid",
+        "net_operating_cash"
     ]));
 
     const { branchid, user } = useApplicationSettings().applicationsettings || {};
@@ -128,14 +128,14 @@ export default function DailySalesTrend() {
                 const formattedData = response.map((item: any) => {
                     const formatted = {
                         date: item.date,
-                        totalCost: parseFloat(item.totalCost) || 0,
-                        actual_revenue: parseFloat(item.actual_revenue) || 0,
-                        accrued_revenue: parseFloat(item.accrued_revenue) || 0,
-                        total_discount: parseFloat(item.total_discount) || 0,
-                        totalRefunded: parseFloat(item.totalRefunded) || 0,
-                        total_expenses: parseFloat(item.total_expenses) || 0,
-                        net_revenue: parseFloat(item.net_revenue) || 0,
-                        outstanding_debt: parseFloat(item.outstanding_debt) || 0,
+                        gross_revenue: parseFloat(item.gross_revenue) || 0,
+                        cash_collected: parseFloat(item.cash_collected) || 0,
+                        earned_revenue: parseFloat(item.earned_revenue) || 0,
+                        discount: parseFloat(item.discount) || 0,
+                        total_refunded: parseFloat(item.total_refunded) || 0,
+                        expenses_paid: parseFloat(item.expenses_paid) || 0,
+                        net_operating_cash: parseFloat(item.net_operating_cash) || 0,
+                        outstanding: parseFloat(item.outstanding) || 0,
                         changeFromPreviousDay: null,
                         expenseChangeFromPrevious: null,
                         salesChangeFromPrevious: null,
@@ -146,10 +146,10 @@ export default function DailySalesTrend() {
                 for (let i = 0; i < formattedData.length - 1; i++) {
                     const current = formattedData[i];
                     const previous = formattedData[i + 1];
-                    (formattedData[i] as any).changeFromPreviousDay = current.net_revenue - previous.net_revenue;
-                    (formattedData[i] as any).expenseChangeFromPrevious = current.total_expenses - previous.total_expenses;
-                    (formattedData[i] as any).salesChangeFromPrevious = current.accrued_revenue - previous.accrued_revenue;
-                    (formattedData[i] as any).netRevenueChangeFromPrevious = current.net_revenue - previous.net_revenue;
+                    (formattedData[i] as any).changeFromPreviousDay = current.net_operating_cash - previous.net_operating_cash;
+                    (formattedData[i] as any).expenseChangeFromPrevious = current.expenses_paid - previous.expenses_paid;
+                    (formattedData[i] as any).salesChangeFromPrevious = current.earned_revenue - previous.earned_revenue;
+                    (formattedData[i] as any).netRevenueChangeFromPrevious = current.net_operating_cash - previous.net_operating_cash;
                 }
 
                 setData(formattedData);
@@ -209,7 +209,7 @@ export default function DailySalesTrend() {
         window.open(link, "_blank");
     };
 
-    const totalPositiveRevenue = useMemo(() => data.reduce((sum, entry) => entry.net_revenue > 0 ? sum + entry.net_revenue : sum, 0), [data]);
+    const totalPositiveRevenue = useMemo(() => data.reduce((sum, entry) => entry.net_operating_cash > 0 ? sum + entry.net_operating_cash : sum, 0), [data]);
 
     const formatDateForDisplay = (dateString: string) => {
         return dayjs(dateString).format('MMM D');
@@ -531,18 +531,18 @@ export default function DailySalesTrend() {
                             <thead className="sticky-top bg-body-tertiary">
                                 <tr>
                                     <th scope="col" className="py-2">Date</th>
-                                    <th scope="col" className="py-2">Total Cost</th>
+                                    <th scope="col" className="py-2">Gross Revenue</th>
                                     <th scope="col" className="py-2">Discount</th>
                                     <th scope="col" className="py-2">Outstanding</th>
                                     <th scope="col" className="py-2">Refunded</th>
-                                    <th scope="col" className="py-2">Accrued <span className="d-print-none">Revenue</span></th>
-                                    <th scope="col" className="py-2">Actual <span className="d-print-none">Revenue</span></th>
-                                    <th scope="col" className="py-2 fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>Expenses</th>
-                                    <th scope="col" className="py-2 fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>Net Revenue</th>
+                                    <th scope="col" className="py-2">Earned Revenue</th>
+                                    <th scope="col" className="py-2">Cash Collected</th>
+                                    <th scope="col" className="py-2 fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>Expenses Paid</th>
+                                    <th scope="col" className="py-2 fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>Net Operating Cash</th>
                                     <th scope="col" className="py-2">Expense Change</th>
                                     <th scope="col" className="py-2">Sales Change</th>
-                                    <th scope="col" className="py-2">Net Revenue Change</th>
-                                    <th scope="col" className="py-2" title="it represent % of net revenue for that period sales">% </th>
+                                    <th scope="col" className="py-2">Net Cash Change</th>
+                                    <th scope="col" className="py-2" title="it represent % of net cash surplus for that period sales">% </th>
                                     <th scope="col" className="py-2 d-print-none">Actions</th>
                                 </tr>
                             </thead>
@@ -551,18 +551,18 @@ export default function DailySalesTrend() {
                                     const expenseChange = entry.expenseChangeFromPrevious;
                                     const salesChange = entry.salesChangeFromPrevious;
                                     const netRevenueChange = entry.netRevenueChangeFromPrevious;
-                                    const percentageOfTotal = entry.net_revenue > 0 && totalPositiveRevenue > 0 ? ((entry.net_revenue / totalPositiveRevenue) * 100).toFixed(1) : '0.0';
+                                    const percentageOfTotal = entry.net_operating_cash > 0 && totalPositiveRevenue > 0 ? ((entry.net_operating_cash / totalPositiveRevenue) * 100).toFixed(1) : '0.0';
                                     return (
                                         <tr key={entry.date}>
                                             <td className="py-2">{formatDateForTable(entry.date)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.totalCost)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.total_discount)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.outstanding_debt)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.totalRefunded)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.accrued_revenue)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.actual_revenue)}</td>
-                                            <td className="py-2 fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>{currencyFormatter.format(entry.total_expenses)}</td>
-                                            <td className="py-2 fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>{currencyFormatter.format(entry.net_revenue)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.gross_revenue)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.discount)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.outstanding)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.total_refunded)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.earned_revenue)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.cash_collected)}</td>
+                                            <td className="py-2 fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>{currencyFormatter.format(entry.expenses_paid)}</td>
+                                            <td className="py-2 fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>{currencyFormatter.format(entry.net_operating_cash)}</td>
                                             <td className={`py-2 ${expenseChange !== null ? (expenseChange >= 0 ? 'text-danger' : 'text-success') : 'text-muted'}`}>
                                                 {expenseChange !== null ? (
                                                     <>
@@ -609,14 +609,14 @@ export default function DailySalesTrend() {
                                 })}
                                 <tr className="fw-bold border-top">
                                     <td className="py-2">Total</td>
-                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalCost, 0))}</td>
-                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.total_discount, 0))}</td>
-                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.outstanding_debt, 0))}</td>
-                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalRefunded, 0))}</td>
-                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.accrued_revenue, 0))}</td>
-                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.actual_revenue, 0))}</td>
-                                    <td className="py-2 fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.total_expenses, 0))}</td>
-                                    <td className="py-2 fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.net_revenue, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.gross_revenue, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.discount, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.outstanding, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.total_refunded, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.earned_revenue, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.cash_collected, 0))}</td>
+                                    <td className="py-2 fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.expenses_paid, 0))}</td>
+                                    <td className="py-2 fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.net_operating_cash, 0))}</td>
                                     <td className="py-2 text-muted">-</td>
                                     <td className="py-2 text-muted">-</td>
                                     <td className="py-2 text-muted">-</td>

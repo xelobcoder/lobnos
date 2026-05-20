@@ -159,7 +159,7 @@ const ClinicianAnalyticsMonthlyTotals: React.FC<ClinicianAnalyticsMonthlyTotalsP
                                     classNamePrefix="react-select"
                                 />
                             </div>
-                            <button
+                            {/* <button
                                 onClick={() => router.push(`/clinician/analytics/insights/${clinicianId}?year=${selectedYear.value}`)}
                                 className="btn btn-sm btn-primary d-flex align-items-center gap-2"
                                 style={{
@@ -183,7 +183,7 @@ const ClinicianAnalyticsMonthlyTotals: React.FC<ClinicianAnalyticsMonthlyTotalsP
                                 >
                                     <path d="M5 12h14M12 5l7 7-7 7" />
                                 </svg>
-                            </button>
+                            </button> */}
                         </div>
                     </div>
                 </div>

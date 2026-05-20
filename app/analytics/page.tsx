@@ -69,6 +69,14 @@ const analyticsSections = [
           path: '/analytics/commissions',
           color: 'primary',
           badge: 'New'
+     },
+     {
+          title: "Clincians Analytics",
+          description: "Analysis of clinician performance and activity",
+          icon: RiUserHeartLine,
+          path: '/analytics/clinicians',
+          color: 'info',
+          badge: 'New'
      }
 ];
 

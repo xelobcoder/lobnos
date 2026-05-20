@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Dropdown } from "react-bootstrap";
 import { RiEdit2Line, RiFileAddLine, RiDeleteBinLine, RiPrinterLine, RiRefund2Line, RiFileList2Line, RiMore2Line, RiEyeLine, RiMoneyDollarCircleLine } from '@remixicon/react';
-import { currencyFormatter, customFetch } from "../Auth/customFetch";
+import { currencyFormatter, customFetch, customPost } from "../Auth/customFetch";
 import { plsEncryption } from "../../lib/encryption";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Modal, Button, Form } from "react-bootstrap";
@@ -174,6 +174,17 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 	}
 
 
+
+	const handleVoidTransaction = async (data) => {
+		const billingid = data?.billingid;
+		if (!billingid) return;
+		const voidTransactionResponse = await customPost(`billing/management/void/${billingid}`, 'POST', {
+			employeeid
+		});
+		console.log(voidTransactionResponse);
+	}
+
+
 	const coreColumns = [
 		{
 			Header: "Date", accessor: "billedon", Cell: ({ value, row }) => {
@@ -246,6 +257,12 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 									href={`/billing/transactions/previous-transaction/${row.original.billingid}`}
 								>
 									<RiFileList2Line size={16} /> View Transactions Details
+								</Dropdown.Item>
+								<Dropdown.Item
+									className="d-flex align-items-center gap-2 py-2 px-3"
+									onClick={(ev) => { handleVoidTransaction(row.original) }}
+								>
+									<RiFileList2Line size={16} /> Void Transaction
 								</Dropdown.Item>
 								<Dropdown.Item
 									className="d-flex align-items-center gap-2 py-2 px-3"

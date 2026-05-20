@@ -28,27 +28,27 @@ const COLOR_TOOLTIP_FG = 'var(--bs-body-color)';
 
 interface WeeklySalesAPIEntry {
     week: number;
-    totalCost: string;
-    actual_revenue: string;
-    accrued_revenue: string;
-    total_discount: string;
-    totalRefunded: string;
-    total_expenses: string;
-    net_revenue: string;
-    outstanding_debt: string;
+    gross_revenue: string;
+    cash_collected: string;
+    earned_revenue: string;
+    discount: string;
+    total_refunded: string;
+    expenses_paid: string;
+    net_operating_cash: string;
+    outstanding: string;
     changeFromPreviousWeek?: number | null; // Calculated field
 }
 
 interface ChartDataEntry {
     week: string;
-    totalCost: number;
-    actual_revenue: number;
-    accrued_revenue: number;
-    total_discount: number;
-    totalRefunded: number;
-    total_expenses: number;
-    net_revenue: number;
-    outstanding_debt: number;
+    gross_revenue: number;
+    cash_collected: number;
+    earned_revenue: number;
+    discount: number;
+    total_refunded: number;
+    expenses_paid: number;
+    net_operating_cash: number;
+    outstanding: number;
     changeFromPreviousWeek: number | null;
     salesChangeFromPrevious: number | null;
     expenseChangeFromPrevious: number | null;
@@ -88,32 +88,32 @@ export default function WeeklySalesTrend() {
                 // Debug: Check for invalid week values
                 const invalidWeeks = response.filter(item => typeof item.week !== 'number' || item.week < 0 || item.week === null || item.week === undefined);
                 if (invalidWeeks.length > 0) {
-                    console.warn('WeeklySalesTrend: Found records with invalid week values:', invalidWeeks.map(item => ({ week: item.week, net_revenue: item.net_revenue })));
+                    console.warn('WeeklySalesTrend: Found records with invalid week values:', invalidWeeks.map(item => ({ week: item.week, net_operating_cash: item.net_operating_cash })));
                 }
 
                 const sortedData = response.map((item) => ({
                     week: (typeof item.week === 'number' && item.week >= 0) ? String(item.week) : "N/A",
-                    totalCost: parseFloat(item.totalCost) || 0,
-                    actual_revenue: parseFloat(item.actual_revenue) || 0,
-                    accrued_revenue: parseFloat(item.accrued_revenue) || 0,
-                    total_discount: parseFloat(item.total_discount) || 0,
-                    totalRefunded: parseFloat(item.totalRefunded) || 0,
-                    total_expenses: parseFloat(item.total_expenses) || 0,
-                    net_revenue: parseFloat(item.net_revenue) || 0,
-                    outstanding_debt: parseFloat(item.outstanding_debt) || 0,
+                    gross_revenue: parseFloat(item.gross_revenue) || 0,
+                    cash_collected: parseFloat(item.cash_collected) || 0,
+                    earned_revenue: parseFloat(item.earned_revenue) || 0,
+                    discount: parseFloat(item.discount) || 0,
+                    total_refunded: parseFloat(item.total_refunded) || 0,
+                    expenses_paid: parseFloat(item.expenses_paid) || 0,
+                    net_operating_cash: parseFloat(item.net_operating_cash) || 0,
+                    outstanding: parseFloat(item.outstanding) || 0,
                 })).sort((a, b) => parseInt(a.week) - parseInt(b.week));
 
                 // Calculate percentage change from previous week
                 const formattedData = sortedData.map((item, index) => ({
                     ...item,
-                    changeFromPreviousWeek: index > 0 && sortedData[index - 1].net_revenue !== 0
-                        ? ((item.net_revenue - sortedData[index - 1].net_revenue) / sortedData[index - 1].net_revenue) * 100
+                    changeFromPreviousWeek: index > 0 && sortedData[index - 1].net_operating_cash !== 0
+                        ? ((item.net_operating_cash - sortedData[index - 1].net_operating_cash) / sortedData[index - 1].net_operating_cash) * 100
                         : null,
-                    salesChangeFromPrevious: index > 0 && sortedData[index - 1].accrued_revenue !== 0
-                        ? ((item.accrued_revenue - sortedData[index - 1].accrued_revenue) / sortedData[index - 1].accrued_revenue) * 100
+                    salesChangeFromPrevious: index > 0 && sortedData[index - 1].earned_revenue !== 0
+                        ? ((item.earned_revenue - sortedData[index - 1].earned_revenue) / sortedData[index - 1].earned_revenue) * 100
                         : null,
-                    expenseChangeFromPrevious: index > 0 && sortedData[index - 1].total_expenses !== 0
-                        ? ((item.total_expenses - sortedData[index - 1].total_expenses) / sortedData[index - 1].total_expenses) * 100
+                    expenseChangeFromPrevious: index > 0 && sortedData[index - 1].expenses_paid !== 0
+                        ? ((item.expenses_paid - sortedData[index - 1].expenses_paid) / sortedData[index - 1].expenses_paid) * 100
                         : null,
                 }));
 
@@ -151,20 +151,20 @@ export default function WeeklySalesTrend() {
 
     const overallSummary = useMemo(() => {
         return data.reduce((acc, curr) => {
-            acc.totalCost += curr.totalCost;
-            acc.actual_revenue += curr.actual_revenue;
-            acc.accrued_revenue += curr.accrued_revenue;
-            acc.total_discount += curr.total_discount;
-            acc.totalRefunded += curr.totalRefunded;
-            acc.total_expenses += curr.total_expenses;
-            acc.net_revenue += curr.net_revenue;
-            acc.outstanding_debt += curr.outstanding_debt;
+            acc.gross_revenue += curr.gross_revenue;
+            acc.cash_collected += curr.cash_collected;
+            acc.earned_revenue += curr.earned_revenue;
+            acc.discount += curr.discount;
+            acc.total_refunded += curr.total_refunded;
+            acc.expenses_paid += curr.expenses_paid;
+            acc.net_operating_cash += curr.net_operating_cash;
+            acc.outstanding += curr.outstanding;
             return acc;
-        }, { totalCost: 0, actual_revenue: 0, accrued_revenue: 0, total_discount: 0, totalRefunded: 0, total_expenses: 0, net_revenue: 0, outstanding_debt: 0 });
+        }, { gross_revenue: 0, cash_collected: 0, earned_revenue: 0, discount: 0, total_refunded: 0, expenses_paid: 0, net_operating_cash: 0, outstanding: 0 });
     }, [data]);
 
     const totalPositiveRevenue = useMemo(() => {
-        return data.reduce((sum, entry) => sum + (entry.net_revenue > 0 ? entry.net_revenue : 0), 0);
+        return data.reduce((sum, entry) => sum + (entry.net_operating_cash > 0 ? entry.net_operating_cash : 0), 0);
     }, [data]);
 
     const CustomTooltip = ({ active, payload, label }: any) => {
@@ -191,7 +191,7 @@ export default function WeeklySalesTrend() {
                             <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>{pld.name}</span>
                             <span className="fw-bold d-block" style={{ color: pld.color || pld.payload?.fill || COLOR_ACCENT }}>
                                 {currencyFormatter.format(pld.value)}
-                                {overallSummary.totalCost > 0 && pld.dataKey === "totalCost" && ` (${((pld.value / overallSummary.totalCost) * 100).toFixed(1)}%)`}
+                                {overallSummary.gross_revenue > 0 && pld.dataKey === "gross_revenue" && ` (${((pld.value / overallSummary.gross_revenue) * 100).toFixed(1)}%)`}
                             </span>
                         </div>
                     ))}
@@ -234,12 +234,12 @@ export default function WeeklySalesTrend() {
         const ChartComponent = view === "bar" ? BarChart : view === "line" ? LineChart : AreaChart;
 
         const elements = [
-            { dataKey: "totalCost", name: "Total Cost", color: COLOR_ACCENT, fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalCost)" : undefined },
-            { dataKey: "actual_revenue", name: "Actual Revenue", color: 'oklch(0.6 0.15 142)', fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalPaid)" : undefined },
-            { dataKey: "accrued_revenue", name: "Accrued Revenue", color: COLOR_PAYABLE, fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalPayable)" : undefined },
-            { dataKey: "total_discount", name: "Total Discount", color: COLOR_DISCOUNT, fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalDiscount)" : undefined },
-            { dataKey: "totalRefunded", name: "Refunded", color: 'oklch(0.7 0.2 20)', fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalRefunded)" : undefined },
-            { dataKey: "total_expenses", name: "Total Expenses", color: 'oklch(0.5 0.15 280)', fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalExpenses)" : undefined },
+            { dataKey: "gross_revenue", name: "Gross Revenue", color: COLOR_ACCENT, fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalCost)" : undefined },
+            { dataKey: "cash_collected", name: "Cash Collected", color: 'oklch(0.6 0.15 142)', fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalPaid)" : undefined },
+            { dataKey: "earned_revenue", name: "Earned Revenue", color: COLOR_PAYABLE, fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalPayable)" : undefined },
+            { dataKey: "discount", name: "Discount", color: COLOR_DISCOUNT, fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalDiscount)" : undefined },
+            { dataKey: "total_refunded", name: "Refunded", color: 'oklch(0.7 0.2 20)', fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalRefunded)" : undefined },
+            { dataKey: "expenses_paid", name: "Expenses Paid", color: 'oklch(0.5 0.15 280)', fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalExpenses)" : undefined },
         ];
 
         return (
@@ -420,17 +420,17 @@ export default function WeeklySalesTrend() {
                             <thead className="sticky-top bg-body-tertiary">
                                 <tr>
                                     <th scope="col" className="py-2">Week</th>
-                                    <th scope="col" className="py-2">Total Cost</th>
+                                    <th scope="col" className="py-2">Gross Revenue</th>
                                     <th scope="col" className="py-2">Discount</th>
                                     <th scope="col" className="py-2">Outstanding</th>
                                     <th scope="col" className="py-2">Refunded</th>
-                                    <th scope="col" className="py-2">Accrued <span className="d-print-none">Revenue</span></th>
-                                    <th scope="col" className="py-2">Actual <span className="d-print-none">Revenue</span></th>
-                                    <th scope="col" className="py-2 fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>Expenses</th>
-                                    <th scope="col" className="py-2 fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>Net Revenue</th>
+                                    <th scope="col" className="py-2">Earned <span className="d-print-none">Revenue</span></th>
+                                    <th scope="col" className="py-2">Cash <span className="d-print-none">Collected</span></th>
+                                    <th scope="col" className="py-2 fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>Expenses Paid</th>
+                                    <th scope="col" className="py-2 fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>Net Operating Cash</th>
                                     <th scope="col" className="py-2">Expense Change</th>
                                     <th scope="col" className="py-2">Sales Change</th>
-                                    <th scope="col" className="py-2">Net Revenue Change</th>
+                                    <th scope="col" className="py-2">Net Cash Change</th>
                                     <th scope="col" className="py-2" title="it represent % of net revenue for that period sales">% </th>
                                 </tr>
                             </thead>
@@ -439,18 +439,18 @@ export default function WeeklySalesTrend() {
                                     const salesChange = entry.salesChangeFromPrevious;
                                     const netRevenueChange = entry.changeFromPreviousWeek;
                                     const expenseChange = entry.expenseChangeFromPrevious;
-                                    const percentageOfTotal = entry.net_revenue > 0 && totalPositiveRevenue > 0 ? ((entry.net_revenue / totalPositiveRevenue) * 100).toFixed(1) : '0.0';
+                                    const percentageOfTotal = entry.net_operating_cash > 0 && totalPositiveRevenue > 0 ? ((entry.net_operating_cash / totalPositiveRevenue) * 100).toFixed(1) : '0.0';
                                     return (
                                         <tr key={entry.week}>
                                             <td className="py-2 fw-medium">{entry.week}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.totalCost)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.total_discount)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.outstanding_debt)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.totalRefunded)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.accrued_revenue)}</td>
-                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.actual_revenue)}</td>
-                                            <td className="py-2 fw-medium fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>{currencyFormatter.format(entry.total_expenses)}</td>
-                                            <td className="py-2 fw-medium fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>{currencyFormatter.format(entry.net_revenue)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.gross_revenue)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.discount)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.outstanding)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.total_refunded)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.earned_revenue)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.cash_collected)}</td>
+                                            <td className="py-2 fw-medium fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>{currencyFormatter.format(entry.expenses_paid)}</td>
+                                            <td className="py-2 fw-medium fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>{currencyFormatter.format(entry.net_operating_cash)}</td>
                                             <td className={`py-2 ${expenseChange !== null ? (expenseChange >= 0 ? 'text-danger' : 'text-success') : 'text-muted'}`}>
                                                 {expenseChange !== null ? (
                                                     <>
@@ -487,14 +487,14 @@ export default function WeeklySalesTrend() {
                                 })}
                                 <tr className="fw-bold border-top">
                                     <td className="py-2">Total</td>
-                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalCost, 0))}</td>
-                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.total_discount, 0))}</td>
-                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.outstanding_debt, 0))}</td>
-                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalRefunded, 0))}</td>
-                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.accrued_revenue, 0))}</td>
-                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.actual_revenue, 0))}</td>
-                                    <td className="py-2 fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.total_expenses, 0))}</td>
-                                    <td className="py-2 fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.net_revenue, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.gross_revenue, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.discount, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.outstanding, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.total_refunded, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.earned_revenue, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.cash_collected, 0))}</td>
+                                    <td className="py-2 fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.expenses_paid, 0))}</td>
+                                    <td className="py-2 fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.net_operating_cash, 0))}</td>
                                     <td className="py-2 text-muted">-</td>
                                     <td className="py-2 text-muted">-</td>
                                     <td className="py-2 text-muted">-</td>

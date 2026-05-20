@@ -40,20 +40,20 @@ const COLOR_TOOLTIP_FG = 'var(--bs-body-color)'; const getInitialDates = () => {
 
 interface OutsourcedStatusAPIEntry {
     isoutsourced: 0 | 1;
-    totalCost: string;
-    totalPaid: string;
-    totalPayable: string;
-    totalDiscount: string;
-    totalRefunded: string;
+    gross_revenue: string;
+    cash_collected: string;
+    earned_revenue: string;
+    discount: string;
+    total_refunded: string;
 }
 
 interface ChartDataEntry {
     name: string;
-    totalCost: number;
-    totalPaid: number;
-    totalPayable: number;
-    totalDiscount: number;
-    totalRefunded: number;
+    gross_revenue: number;
+    cash_collected: number;
+    earned_revenue: number;
+    discount: number;
+    total_refunded: number;
     isoutsourced: 0 | 1;
 }
 
@@ -113,24 +113,24 @@ export default function TotalSalesByOutsourcedStatus() {
                 const mappedData: ChartDataEntry[] = [
                     {
                         name: "Not Outsourced",
-                        totalCost: parseFloat(notOutsourcedEntry?.totalCost || "0") || 0,
-                        totalPaid: parseFloat(notOutsourcedEntry?.totalPaid || "0") || 0,
-                        totalPayable: parseFloat(notOutsourcedEntry?.totalPayable || "0") || 0,
-                        totalDiscount: parseFloat(notOutsourcedEntry?.totalDiscount || "0") || 0,
-                        totalRefunded: parseFloat(notOutsourcedEntry?.totalRefunded || "0") || 0,
+                        gross_revenue: parseFloat(notOutsourcedEntry?.gross_revenue || "0") || 0,
+                        cash_collected: parseFloat(notOutsourcedEntry?.cash_collected || "0") || 0,
+                        earned_revenue: parseFloat(notOutsourcedEntry?.earned_revenue || "0") || 0,
+                        discount: parseFloat(notOutsourcedEntry?.discount || "0") || 0,
+                        total_refunded: parseFloat(notOutsourcedEntry?.total_refunded || "0") || 0,
                         isoutsourced: 0,
                     },
                     {
                         name: "Outsourced",
-                        totalCost: parseFloat(outsourcedEntry?.totalCost || "0") || 0,
-                        totalPaid: parseFloat(outsourcedEntry?.totalPaid || "0") || 0,
-                        totalPayable: parseFloat(outsourcedEntry?.totalPayable || "0") || 0,
-                        totalDiscount: parseFloat(outsourcedEntry?.totalDiscount || "0") || 0,
-                        totalRefunded: parseFloat(outsourcedEntry?.totalRefunded || "0") || 0,
+                        gross_revenue: parseFloat(outsourcedEntry?.gross_revenue || "0") || 0,
+                        cash_collected: parseFloat(outsourcedEntry?.cash_collected || "0") || 0,
+                        earned_revenue: parseFloat(outsourcedEntry?.earned_revenue || "0") || 0,
+                        discount: parseFloat(outsourcedEntry?.discount || "0") || 0,
+                        total_refunded: parseFloat(outsourcedEntry?.total_refunded || "0") || 0,
                         isoutsourced: 1,
                     },
                 ];
-                setData(mappedData.filter(d => d.totalPayable > 0)); // Only show if payable > 0
+                setData(mappedData.filter(d => d.earned_revenue > 0)); // Only show if earned revenue > 0
             } else {
                 setData([]);
                 setError((response as any)?.message || "Failed to fetch data or data is in an unexpected format.");
@@ -157,7 +157,7 @@ export default function TotalSalesByOutsourcedStatus() {
         }
     };
 
-    const totalPayableOverall = data.reduce((sum, entry) => sum + entry.totalPayable, 0);
+    const totalPayableOverall = data.reduce((sum, entry) => sum + entry.earned_revenue, 0);
 
     const CustomTooltipContent = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
@@ -175,28 +175,28 @@ export default function TotalSalesByOutsourcedStatus() {
                 >
                     <div className="mb-2 fw-medium" style={{ color: COLOR_TOOLTIP_FG }}>{label}</div>
                     <div className="mb-1">
-                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Net Payable</span>
+                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Earned Revenue</span>
                         <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>
-                            {currencyFormatter.format(currentData.totalPayable)}
+                            {currencyFormatter.format(currentData.earned_revenue)}
                         </span>
                     </div>
                     <div className="mb-1">
-                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Amount Paid</span>
+                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Cash Collected</span>
                         <span className="fw-bold d-block" style={{ color: 'oklch(0.6 0.15 142)' }}>
-                            {currencyFormatter.format(currentData.totalPaid)}
+                            {currencyFormatter.format(currentData.cash_collected)}
                         </span>
                     </div>
                     <div className="mb-1">
-                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Total Cost</span>
+                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Gross Revenue</span>
                         <span className="fw-bold d-block">
-                            {currencyFormatter.format(currentData.totalCost)}
+                            {currencyFormatter.format(currentData.gross_revenue)}
                         </span>
                     </div>
                     {totalPayableOverall > 0 && (
                         <div className="mt-2 pt-1 border-top" style={{ borderColor: COLOR_BORDER }}>
                             <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Share of Total</span>
                             <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>
-                                {((currentData.totalPayable / totalPayableOverall) * 100).toFixed(1)}%
+                                {((currentData.earned_revenue / totalPayableOverall) * 100).toFixed(1)}%
                             </span>
                         </div>
                     )}
@@ -287,7 +287,7 @@ export default function TotalSalesByOutsourcedStatus() {
                                 label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                                 outerRadius={120}
                                 fill="#8884d8"
-                                dataKey="totalPayable"
+                                dataKey="earned_revenue"
                                 nameKey="name"
                             >
                                 {data.map((entry, index) => (
@@ -295,7 +295,7 @@ export default function TotalSalesByOutsourcedStatus() {
                                 ))}
                             </Pie>
                             <Tooltip
-                                formatter={(value: number) => [currencyFormatter.format(value), 'Total Payable']}
+                                formatter={(value: number) => [currencyFormatter.format(value), 'Earned Revenue']}
                                 labelFormatter={(label) => `${label}`}
                             />
                         </PieChart>
@@ -313,11 +313,11 @@ export default function TotalSalesByOutsourcedStatus() {
                         <YAxis {...yAxisProps} />
                         <Tooltip {...tooltipProps} />
                         <Bar
-                            dataKey="totalPayable"
+                            dataKey="earned_revenue"
                             fill={COLOR_ACCENT}
                             radius={[4, 4, 0, 0]}
                             maxBarSize={80}
-                            name="Total Payable"
+                            name="Earned Revenue"
                         />
                     </BarChart>
                 </ResponsiveContainer>
@@ -391,9 +391,9 @@ export default function TotalSalesByOutsourcedStatus() {
                             <thead className="sticky-top bg-body-tertiary">
                                 <tr>
                                     <th scope="col" className="py-2">Status</th>
-                                    <th scope="col" className="py-2 text-end">Total Cost</th>
-                                    <th scope="col" className="py-2 text-end">Amount Paid</th>
-                                    <th scope="col" className="py-2 text-end">Net Payable</th>
+                                    <th scope="col" className="py-2 text-end">Gross Revenue</th>
+                                    <th scope="col" className="py-2 text-end">Cash Collected</th>
+                                    <th scope="col" className="py-2 text-end">Earned Revenue</th>
                                     <th scope="col" className="py-2 text-end">Discount</th>
                                     <th scope="col" className="py-2 text-end">% of Total</th>
                                 </tr>
@@ -402,12 +402,12 @@ export default function TotalSalesByOutsourcedStatus() {
                                 {data.map((entry, index) => (
                                     <tr key={entry.name + index}>
                                         <td className="py-2">{entry.name}</td>
-                                        <td className="py-2 text-end">{currencyFormatter.format(entry.totalCost)}</td>
-                                        <td className="py-2 text-end">{entry.totalPaid ? currencyFormatter.format(entry.totalPaid) : '-'}</td>
-                                        <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.totalPayable)}</td>
-                                        <td className="py-2 text-end">{currencyFormatter.format(entry.totalDiscount)}</td>
+                                        <td className="py-2 text-end">{currencyFormatter.format(entry.gross_revenue)}</td>
+                                        <td className="py-2 text-end">{entry.cash_collected ? currencyFormatter.format(entry.cash_collected) : '-'}</td>
+                                        <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.earned_revenue)}</td>
+                                        <td className="py-2 text-end">{currencyFormatter.format(entry.discount)}</td>
                                         <td className="py-2 text-end text-muted">
-                                            {totalPayableOverall > 0 ? ((entry.totalPayable / totalPayableOverall) * 100).toFixed(1) : '0.0'}%
+                                            {totalPayableOverall > 0 ? ((entry.earned_revenue / totalPayableOverall) * 100).toFixed(1) : '0.0'}%
                                         </td>
                                     </tr>
                                 ))}
@@ -415,10 +415,10 @@ export default function TotalSalesByOutsourcedStatus() {
                             <tfoot className="fw-bold border-top">
                                 <tr>
                                     <td className="py-2">Total</td>
-                                    <td className="py-2 text-end">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalCost, 0))}</td>
-                                    <td className="py-2 text-end">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalPaid, 0))}</td>
+                                    <td className="py-2 text-end">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.gross_revenue, 0))}</td>
+                                    <td className="py-2 text-end">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.cash_collected, 0))}</td>
                                     <td className="py-2 text-end">{currencyFormatter.format(totalPayableOverall)}</td>
-                                    <td className="py-2 text-end">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalDiscount, 0))}</td>
+                                    <td className="py-2 text-end">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.discount, 0))}</td>
                                     <td className="py-2 text-end">100.0%</td>
                                 </tr>
                             </tfoot>

@@ -63,7 +63,6 @@ export default function RecipientCommissionDetails() {
         const url = `commission/analytics/recipient/${recipientId}?startDate=${startDate}&endDate=${endDate}&period=${period}&recipientType=${recipientType}`;
         
         try {
-            // Fetch recipient info (name, etc.) if not already fetched
             if (!recipientInfo) {
                 const infoUrl = recipientType === 'clinician' 
                     ? `clinicians/getclinician?id=${recipientId}`

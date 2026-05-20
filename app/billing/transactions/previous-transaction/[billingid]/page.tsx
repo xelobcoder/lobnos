@@ -1085,6 +1085,11 @@ export default function PreviousTransactionSummaryPage() {
 																	Refund
 																</Button>
 															)}
+															{
+																<Button>
+																	Void 
+																</Button>
+															}
 															{row.isRefundInitiated === 1 && row.isRefundApproved === 1 && (row.isRefundCompleted !== 1) && (
 																<Button size="sm" variant="success" onClick={() => handleCashOutRefund(row)}>
 																	Cash Out

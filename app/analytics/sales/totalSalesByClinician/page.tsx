@@ -6,12 +6,14 @@ import {
     ResponsiveContainer,
     BarChart,
     Bar,
+    Cell,
     XAxis,
     YAxis,
     CartesianGrid,
     Tooltip,
 } from "recharts";
-import { RiCalendarEventLine, RiRefreshLine, RiPlayLine } from "@remixicon/react";
+import { RiRefreshLine, RiPlayLine } from "@remixicon/react";
+import DateFilterReusable from "../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
 
 const IconChart = () => <span style={{ fontSize: '1.2rem', color: SHADCN_PRIMARY, marginRight: '0.5rem' }}>📊</span>;
@@ -27,22 +29,30 @@ const SHADCN_CARD_BG = "#FFFFFF";
 const SHADCN_MUTED_BG = "#F8FAFC";
 const SHADCN_TOOLTIP_BG = "#FFFFFF";
 const SHADCN_TOOLTIP_FG = "#0F172A";
+const COLOR_HIGHEST_PAID = "oklch(0.646 0.222 41.116)";
+const COLOR_LOWEST_PAID = "#F97316";
 
 interface ClinicianSalesAPIEntry {
     clinicianId: number;
-    name: string;
-    totalCost: string;
-    totalPaid: string;
-    totalPayable: string;
-    totalDiscount: string;
-    totalRefunded: string;
+    status: string;
+    totalServicesRendered: number;
+    gross_revenue: string;
+    cash_collected: string;
+    earned_revenue: string;
+    discount: string;
+    total_refunded: string;
+    clinician_name: string;
 }
 
 interface ChartDataEntry {
+    clinicianId: number;
     name: string;
-    totalPayable: number;
-    totalCost: number;
-    totalPaid: number;
+    totalServicesRendered: number;
+    earned_revenue: number;
+    gross_revenue: number;
+    cash_collected: number;
+    discount: number;
+    total_refunded: number;
     profit: number;
     collectionRate: number;
 }
@@ -67,10 +77,10 @@ export default function TotalSalesByClinician() {
     const initialDates = getInitialDates();
     const [startDate, setStartDate] = useState<string>(initialDates.startDate);
     const [endDate, setEndDate] = useState<string>(initialDates.endDate);
+    const [dateFilter, setDateFilter] = useState<string>("");
 
     const fetchData = useCallback(async (fetchStartDate: string, fetchEndDate: string, currentEmployeeId?: number) => {
         if (!currentEmployeeId) {
-            setError("Employee ID is not available. Please log in again.");
             setData([]);
             setLoading(false);
             return;
@@ -99,17 +109,23 @@ export default function TotalSalesByClinician() {
             }
 
             const formattedData = fetchedData.map((item) => {
-                const totalPayable = parseFloat(item.totalPayable) || 0;
-                const totalCost = parseFloat(item.totalCost) || 0;
-                const totalPaid = parseFloat(item.totalPaid) || 0;
-                const profit = totalPayable - totalCost;
-                const collectionRate = totalPayable > 0 ? (totalPaid / totalPayable) * 100 : 0;
+                const earned_revenue = parseFloat(item.earned_revenue) || 0;
+                const gross_revenue = parseFloat(item.gross_revenue) || 0;
+                const cash_collected = parseFloat(item.cash_collected) || 0;
+                const discount = parseFloat(item.discount) || 0;
+                const total_refunded = parseFloat(item.total_refunded) || 0;
+                const profit = earned_revenue - gross_revenue;
+                const collectionRate = earned_revenue > 0 ? (cash_collected / earned_revenue) * 100 : 0;
 
                 return {
-                    name: item.name === "Unknown" ? "Lab Direct Cases" : item.name,
-                    totalPayable,
-                    totalCost,
-                    totalPaid,
+                    clinicianId: item.clinicianId,
+                    name: item.clinician_name === "Unknown" ? "Lab Direct Cases" : item.clinician_name,
+                    totalServicesRendered: item.totalServicesRendered,
+                    earned_revenue,
+                    gross_revenue,
+                    cash_collected,
+                    discount,
+                    total_refunded,
                     profit,
                     collectionRate,
                 };
@@ -138,10 +154,16 @@ export default function TotalSalesByClinician() {
 
     const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => setStartDate(e.target.value);
     const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => setEndDate(e.target.value);
+    const handleLoadData = () => {
+        if (employeeid) {
+            fetchData(startDate, endDate, employeeid);
+        }
+    };
     const handleResetFilters = () => {
         const { startDate: defaultStartDate, endDate: defaultEndDate } = getInitialDates();
         setStartDate(defaultStartDate);
         setEndDate(defaultEndDate);
+        setDateFilter("");
         // Load data with default dates
         if (employeeid) {
             fetchData(defaultStartDate, defaultEndDate, employeeid);
@@ -184,52 +206,145 @@ export default function TotalSalesByClinician() {
         const angleXAxis = numDataPoints > 6;
         const bottomMargin = angleXAxis ? 70 : 30;
 
+        const summary = data.reduce(
+            (totals, item) => {
+                totals.services += item.totalServicesRendered;
+                totals.gross_revenue += item.gross_revenue;
+                totals.cash_collected += item.cash_collected;
+                totals.earned_revenue += item.earned_revenue;
+                totals.discount += item.discount;
+                totals.total_refunded += item.total_refunded;
+                return totals;
+            },
+            {
+                services: 0,
+                gross_revenue: 0,
+                cash_collected: 0,
+                earned_revenue: 0,
+                discount: 0,
+                total_refunded: 0,
+            }
+        );
+
+        const totalPaidValues = data.map((item) => item.cash_collected);
+        const maxPaid = Math.max(...totalPaidValues);
+        const minPaid = Math.min(...totalPaidValues);
+
         return (
-            <ResponsiveContainer width="100%" height={350}>
-                <BarChart data={data} margin={{ top: 5, right: 15, left: 10, bottom: bottomMargin }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={SHADCN_BORDER} vertical={false} />
-                    <XAxis
-                        dataKey="name"
-                        angle={angleXAxis ? -40 : 0}
-                        textAnchor={angleXAxis ? "end" : "middle"}
-                        height={angleXAxis ? 80 : 40}
-                        interval={0}
-                        tick={{ fontSize: 11, fill: SHADCN_MUTED_FOREGROUND }}
-                        axisLine={{ stroke: SHADCN_BORDER }}
-                        tickLine={{ stroke: SHADCN_BORDER }}
-                    />
-                    <YAxis
-                        tickFormatter={(value: number) => currencyFormatter.format(value)}
-                        tick={{ fontSize: 11, fill: SHADCN_MUTED_FOREGROUND }}
-                        axisLine={false}
-                        tickLine={false}
-                        width={90}
-                    />
-                    <Tooltip
-                        formatter={(value: number, name: string) => {
-                            if (name === 'totalPayable') return [currencyFormatter.format(value), 'Total Payable'];
-                            return [value, name];
-                        }}
-                        cursor={{ fill: `${SHADCN_PRIMARY}20` }}
-                        contentStyle={{
-                            backgroundColor: SHADCN_TOOLTIP_BG,
-                            color: SHADCN_TOOLTIP_FG,
-                            borderRadius: '0.375rem',
-                            border: `1px solid ${SHADCN_BORDER}`,
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                            fontSize: '0.8rem',
-                            padding: '0.5rem 0.75rem'
-                        }}
-                        labelStyle={{ marginBottom: '0.25rem', fontWeight: '500' }}
-                    />
-                    <Bar
-                        dataKey="totalPayable"
-                        fill={SHADCN_PRIMARY}
-                        radius={[4, 4, 0, 0]}
-                        maxBarSize={60}
-                    />
-                </BarChart>
-            </ResponsiveContainer>
+            <>
+                <ResponsiveContainer width="100%" height={350}>
+                    <BarChart data={data} margin={{ top: 5, right: 15, left: 10, bottom: bottomMargin }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke={SHADCN_BORDER} vertical={false} />
+                        <XAxis
+                            dataKey="name"
+                            angle={angleXAxis ? -40 : 0}
+                            textAnchor={angleXAxis ? "end" : "middle"}
+                            height={angleXAxis ? 80 : 40}
+                            interval={0}
+                            tick={{ fontSize: 11, fill: SHADCN_MUTED_FOREGROUND }}
+                            axisLine={{ stroke: SHADCN_BORDER }}
+                            tickLine={{ stroke: SHADCN_BORDER }}
+                        />
+                        <YAxis
+                            tickFormatter={(value: number) => currencyFormatter.format(value)}
+                            tick={{ fontSize: 11, fill: SHADCN_MUTED_FOREGROUND }}
+                            axisLine={false}
+                            tickLine={false}
+                            width={90}
+                        />
+                        <Tooltip
+                            formatter={(value: number, name: string) => {
+                                if (name === 'cash_collected') return [currencyFormatter.format(value), 'Cash Collected'];
+                                return [value, name];
+                            }}
+                            cursor={{ fill: `${SHADCN_PRIMARY}20` }}
+                            contentStyle={{
+                                backgroundColor: SHADCN_TOOLTIP_BG,
+                                color: SHADCN_TOOLTIP_FG,
+                                borderRadius: '0.375rem',
+                                border: `1px solid ${SHADCN_BORDER}`,
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                fontSize: '0.8rem',
+                                padding: '0.5rem 0.75rem'
+                            }}
+                            labelStyle={{ marginBottom: '0.25rem', fontWeight: '500' }}
+                        />
+                        <Bar
+                            dataKey="cash_collected"
+                            radius={[4, 4, 0, 0]}
+                            maxBarSize={60}
+                        >
+                            {data.map((item) => (
+                                <Cell
+                                    key={`cell-${item.clinicianId}`}
+                                    fill={
+                                        item.cash_collected === maxPaid
+                                            ? COLOR_HIGHEST_PAID
+                                            : item.cash_collected === minPaid
+                                                ? COLOR_LOWEST_PAID
+                                                : SHADCN_PRIMARY
+                                    }
+                                />
+                            ))}
+                        </Bar>
+                    </BarChart>
+                </ResponsiveContainer>
+
+                <div className="table-responsive mt-4">
+                    <p className="small text-muted mb-2">
+                        Table reflects clinician sales revenue for the selected period. These are service sales totals, not commission payouts.
+                    </p>
+                    <table className="table table-sm table-hover table-striped small text-start">
+                        <thead className="sticky-top bg-body-tertiary">
+                            <tr>
+                                <th>Clinician</th>
+                                <th className="text-end">Services</th>
+                                <th className="text-end">Gross Revenue</th>
+                                <th className="text-end">Cash Collected</th>
+                                <th className="text-end">Earned Revenue</th>
+                                <th className="text-end">Discount</th>
+                                <th className="text-end">Refunded</th>
+                                <th className="text-end">Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {data.map((item) => {
+                                const detailUrl = `/analytics/sales/clinician-services?clinicianId=${item.clinicianId}&startDate=${startDate}&endDate=${endDate}`;
+                                return (
+                                    <tr key={`${item.clinicianId}-${item.name}`}>
+                                        <td>{item.name}</td>
+                                        <td className="text-end">{item.totalServicesRendered}</td>
+                                        <td className="text-end">{currencyFormatter.format(item.gross_revenue)}</td>
+                                        <td className="text-end">{currencyFormatter.format(item.cash_collected)}</td>
+                                        <td className="text-end">{currencyFormatter.format(item.earned_revenue)}</td>
+                                        <td className="text-end">{currencyFormatter.format(item.discount)}</td>
+                                        <td className="text-end">{currencyFormatter.format(item.total_refunded)}</td>
+                                        <td className="text-end">
+                                            <button
+                                                type="button"
+                                                className="btn  btn-outline-primary"
+                                                onClick={() => window.open(detailUrl, '_blank')}
+                                            >
+                                                VIEW DETAILS <br /> BREAKDOWN
+                                            </button>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                            <tr className="fw-semibold border-top">
+                                <td>Total</td>
+                                <td className="text-end">{summary.services}</td>
+                                <td className="text-end">{currencyFormatter.format(summary.gross_revenue)}</td>
+                                <td className="text-end">{currencyFormatter.format(summary.cash_collected)}</td>
+                                <td className="text-end">{currencyFormatter.format(summary.earned_revenue)}</td>
+                                <td className="text-end">{currencyFormatter.format(summary.discount)}</td>
+                                <td className="text-end">{currencyFormatter.format(summary.total_refunded)}</td>
+                                <td />
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </>
         );
     };
 
@@ -247,24 +362,30 @@ export default function TotalSalesByClinician() {
                 }}
             >
                 <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
-                    <h2 className="fs-6 fw-semibold text-body-emphasis mb-3 mb-md-0 d-flex align-items-center">
-                        <IconChart />
-                        Total Sales by Clinician
-                    </h2>
-                    <div className="d-flex align-items-center gap-2">
-                        <div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
-                            <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: SHADCN_BORDER, paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
-                                <RiCalendarEventLine size={16} className="text-muted" style={{ color: SHADCN_MUTED_FOREGROUND }} />
-                            </span>
-                            <input id="startDateTSC" type="date" className="form-control shadow-none border-start-0" value={startDate} onChange={handleStartDateChange} aria-label="Start Date" style={{ fontSize: '0.875rem', borderColor: SHADCN_BORDER, paddingLeft: '0.3rem' }} />
-                        </div>
-                        <div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
-                            <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: SHADCN_BORDER, paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
-                                <RiCalendarEventLine size={16} className="text-muted" style={{ color: SHADCN_MUTED_FOREGROUND }} />
-                            </span>
-                            <input id="endDateTSC" type="date" className="form-control shadow-none border-start-0" value={endDate} onChange={handleEndDateChange} min={startDate} aria-label="End Date" style={{ fontSize: '0.875rem', borderColor: SHADCN_BORDER, paddingLeft: '0.3rem' }} />
-                        </div>
-                        <button onClick={() => fetchData(startDate, endDate)} className="btn btn-sm btn-primary d-flex align-items-center" type="button" aria-label="Load data" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
+                    <div>
+                        <h2 className="fs-6 fw-semibold text-body-emphasis mb-1 d-flex align-items-center">
+                            <IconChart />
+                            Total Sales by Clinician
+                        </h2>
+                        <p className="small text-muted mb-0">
+                            Shows revenue generated by clinicians from services rendered, not commission payments to clinicians.
+                        </p>
+                    </div>
+                    <div className="d-flex align-items-center gap-2 flex-wrap">
+                        <DateFilterReusable
+                            value={dateFilter}
+                            onChange={setDateFilter}
+                            onDateRangeChange={(newStartDate, newEndDate) => {
+                                setStartDate(newStartDate);
+                                setEndDate(newEndDate);
+                                if (employeeid) {
+                                    fetchData(newStartDate, newEndDate, employeeid);
+                                }
+                            }}
+                            label="Filter by"
+                            className="w-auto"
+                        />
+                        <button onClick={handleLoadData} className="btn btn-sm btn-primary d-flex align-items-center" type="button" aria-label="Load data" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
                             <RiPlayLine size={16} className="me-1" /> Load
                         </button>
                         <button onClick={handleResetFilters} className="btn btn-sm btn-outline-secondary d-flex align-items-center" type="button" aria-label="Reset date filters" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>

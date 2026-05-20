@@ -690,7 +690,7 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                     </>
                 );
             case 'departmentSegregation':
-                return <DepartmentSegregation departmentSegregation={departmentSegregationData} />;
+                return <DepartmentSegregation departmentSegregation={departmentSegregationData as any} />;
             case 'testsTransactions':
                 return <DailyTestsTransactions aggregatedTestData={aggregatedTestData} ultrasoundTests={ultrasoundTests} labTests={labTests as unknown as any[]} />;
             case 'moneyCollection':

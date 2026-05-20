@@ -14,6 +14,7 @@ export type AnalyticCardProps = {
 
 
 const cardColors = {
+    totalCost: { bg: "#dc2626", icon: "#10b981" },
     billedClients: { bg: "#4f46e5", icon: "#6366f1" },
     totalSales: { bg: "#059669", icon: "#0ea5e9" },
     amountPaid: { bg: "#dc2626", icon: "#10b981" },
@@ -113,6 +114,15 @@ export default function ExecutiveSummary({
 
                         <div className="flex-fill" style={{ height: '150px' }}>
                             <AnalyticCard
+                                title="Total Cost"
+                                value={Number(aggregatedSnapshot.totalCost || 0)}
+                                Icon={RiBankCardLine}
+                                bgColor={cardColors.outstanding.bg}
+                                iconColor={cardColors.outstanding.icon}
+                            />
+                        </div>
+                        <div className="flex-fill" style={{ height: '150px' }}>
+                            <AnalyticCard
                                 title="Outstanding Debt"
                                 value={Number(aggregatedSnapshot.outstanding_debt || 0)}
                                 Icon={RiBankCardLine}
@@ -162,7 +172,7 @@ export default function ExecutiveSummary({
 
                         <div className="flex-fill" style={{ height: '150px' }}>
                             <AnalyticCard
-                                title="Total Expenses Payments "
+                                title="Expenses Payments "
                                 value={Number(dailyCeoSnapshot[0]?.total_expense_payments || 0)}
                                 Icon={RiCashLine}
                                 bgColor={cardColors.expenses.bg}

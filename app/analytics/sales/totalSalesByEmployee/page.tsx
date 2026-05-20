@@ -59,11 +59,11 @@ interface EmployeeSalesAPIEntry {
     employeeid: number;
     status: string;
     totalServicesRendered: number;
-    totalCost: string;
-    actual_revenue: string;
-    accrued_revenue: string;
-    total_discount: string;
-    total_amount_refunded: string;
+    gross_revenue: string;
+    cash_collected: string;
+    earned_revenue: string;
+    discount: string;
+    total_refunded: string;
     username: string;
 }
 
@@ -72,11 +72,11 @@ interface ChartDataEntry {
     username: string;
     status: string;
     totalServicesRendered: number;
-    totalCost: number;
-    actual_revenue: number;
-    accrued_revenue: number;
-    total_discount: number;
-    total_amount_refunded: number;
+    gross_revenue: number;
+    cash_collected: number;
+    earned_revenue: number;
+    discount: number;
+    total_refunded: number;
 }
 
 const getInitialDates = () => {
@@ -138,12 +138,12 @@ export default function TotalSalesByEmployee() {
                     username: item.username || "Unknown Employee",
                     status: item.status,
                     totalServicesRendered: item.totalServicesRendered || 0,
-                    totalCost: parseFloat(item.totalCost) || 0,
-                    actual_revenue: parseFloat(item.actual_revenue) || 0,
-                    accrued_revenue: parseFloat(item.accrued_revenue) || 0,
-                    total_discount: parseFloat(item.total_discount) || 0,
-                    total_amount_refunded: parseFloat(item.total_amount_refunded) || 0,
-                })).sort((a, b) => b.accrued_revenue - a.accrued_revenue);
+                    gross_revenue: parseFloat(item.gross_revenue) || 0,
+                    cash_collected: parseFloat(item.cash_collected) || 0,
+                    earned_revenue: parseFloat(item.earned_revenue) || 0,
+                    discount: parseFloat(item.discount) || 0,
+                    total_refunded: parseFloat(item.total_refunded) || 0,
+                })).sort((a, b) => b.earned_revenue - a.earned_revenue);
                 setData(formattedData);
             } else {
                 setData([]);
@@ -181,30 +181,30 @@ export default function TotalSalesByEmployee() {
         window.open(`/analytics/sales/employee/${employeeId}`);
     };
 
-    const totalAccruedRevenueOverall = data.reduce((sum, entry) => sum + entry.accrued_revenue, 0);
+    const totalAccruedRevenueOverall = data.reduce((sum, entry) => sum + entry.earned_revenue, 0);
 
     const processedData = data.map((entry) => ({
         employeeId: entry.employeeid,
         employeeName: entry.username,
-        actual_revenue: entry.actual_revenue,
-        accrued_revenue: entry.accrued_revenue,
-        totalCost: entry.totalCost,
-        total_discount: entry.total_discount,
-        total_amount_refunded: entry.total_amount_refunded,
-        collectionRate: entry.accrued_revenue > 0 ? (entry.actual_revenue / entry.accrued_revenue) * 100 : 0,
-        percentageOfTotal: totalAccruedRevenueOverall > 0 ? (entry.accrued_revenue / totalAccruedRevenueOverall) * 100 : 0,
+        cash_collected: entry.cash_collected,
+        earned_revenue: entry.earned_revenue,
+        gross_revenue: entry.gross_revenue,
+        discount: entry.discount,
+        total_refunded: entry.total_refunded,
+        collectionRate: entry.earned_revenue > 0 ? (entry.cash_collected / entry.earned_revenue) * 100 : 0,
+        percentageOfTotal: totalAccruedRevenueOverall > 0 ? (entry.earned_revenue / totalAccruedRevenueOverall) * 100 : 0,
     }));
 
     const overallSummary = processedData.reduce(
         (acc, employee) => ({
-            actual_revenue: acc.actual_revenue + employee.actual_revenue,
-            accrued_revenue: acc.accrued_revenue + employee.accrued_revenue,
-            totalCost: acc.totalCost + employee.totalCost,
-            total_discount: acc.total_discount + employee.total_discount,
-            total_amount_refunded: acc.total_amount_refunded + employee.total_amount_refunded,
-            collectionRate: processedData.length > 0 ? (acc.actual_revenue + employee.actual_revenue) / (acc.accrued_revenue + employee.accrued_revenue) * 100 : 0,
+            cash_collected: acc.cash_collected + employee.cash_collected,
+            earned_revenue: acc.earned_revenue + employee.earned_revenue,
+            gross_revenue: acc.gross_revenue + employee.gross_revenue,
+            discount: acc.discount + employee.discount,
+            total_refunded: acc.total_refunded + employee.total_refunded,
+            collectionRate: processedData.length > 0 ? (acc.cash_collected + employee.cash_collected) / (acc.earned_revenue + employee.earned_revenue) * 100 : 0,
         }),
-        { actual_revenue: 0, accrued_revenue: 0, totalCost: 0, total_discount: 0, total_amount_refunded: 0, collectionRate: 0 }
+        { cash_collected: 0, earned_revenue: 0, gross_revenue: 0, discount: 0, total_refunded: 0, collectionRate: 0 }
     );
 
     const CustomTooltipContent = ({ active, payload, label }: any) => {
@@ -294,7 +294,7 @@ export default function TotalSalesByEmployee() {
                         <PieChart>
                             <Pie
                                 data={data}
-                                dataKey="accrued_revenue"
+                                dataKey="earned_revenue"
                                 nameKey="username"
                                 cx="50%"
                                 cy="50%"
@@ -349,7 +349,7 @@ export default function TotalSalesByEmployee() {
                             />
                             <Tooltip content={<CustomTooltipContent />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                             <Bar
-                                dataKey="accrued_revenue"
+                                dataKey="earned_revenue"
                                 fill={COLOR_ACCENT}
                                 radius={[4, 4, 0, 0]}
                                 maxBarSize={50}
@@ -449,9 +449,9 @@ export default function TotalSalesByEmployee() {
                             <thead className="sticky-top bg-body-tertiary">
                                 <tr>
                                     <th scope="col" className="py-2">Employee Name</th>
-                                    <th scope="col" className="py-2">Actual <span className="d-print-none">Revenue</span></th>
-                                    <th scope="col" className="py-2">Accrued <span className="d-print-none">Revenue</span></th>
-                                    <th scope="col" className="py-2">Total <span className="d-print-none">Cost</span></th>
+                                    <th scope="col" className="py-2">Cash <span className="d-print-none">Collected</span></th>
+                                    <th scope="col" className="py-2">Earned <span className="d-print-none">Revenue</span></th>
+                                    <th scope="col" className="py-2">Gross <span className="d-print-none">Revenue</span></th>
                                     <th scope="col" className="py-2">Total <span className="d-print-none">Discount</span></th>
                                     <th scope="col" className="py-2">Total <span className="d-print-none">Refunded</span></th>
                                     <th scope="col" className="py-2">Collection <span className="d-print-none">Rate</span></th>
@@ -462,11 +462,11 @@ export default function TotalSalesByEmployee() {
                                 {processedData.map((employee, index) => (
                                     <tr key={employee.employeeName + index}>
                                         <td className="py-2"><IconEye onClick={() => handleEmployeeClick(employee.employeeId.toString())} />{employee.employeeName}</td>
-                                        <td className="py-2">{currencyFormatter.format(employee.actual_revenue)}</td>
-                                        <td className="py-2">{currencyFormatter.format(employee.accrued_revenue)}</td>
-                                        <td className="py-2">{currencyFormatter.format(employee.totalCost)}</td>
-                                        <td className="py-2">{currencyFormatter.format(employee.total_discount)}</td>
-                                        <td className="py-2">{currencyFormatter.format(employee.total_amount_refunded)}</td>
+                                        <td className="py-2">{currencyFormatter.format(employee.cash_collected)}</td>
+                                        <td className="py-2">{currencyFormatter.format(employee.earned_revenue)}</td>
+                                        <td className="py-2">{currencyFormatter.format(employee.gross_revenue)}</td>
+                                        <td className="py-2">{currencyFormatter.format(employee.discount)}</td>
+                                        <td className="py-2">{currencyFormatter.format(employee.total_refunded)}</td>
                                         <td className="py-2">{employee.collectionRate.toFixed(1)}%</td>
                                         <td className="py-2">{employee.percentageOfTotal.toFixed(1)}%</td>
                                     </tr>
@@ -475,11 +475,11 @@ export default function TotalSalesByEmployee() {
                             <tfoot className="fw-bold border-top">
                                 <tr>
                                     <td className="py-2">Total</td>
-                                    <td className="py-2">{currencyFormatter.format(overallSummary.actual_revenue)}</td>
-                                    <td className="py-2">{currencyFormatter.format(overallSummary.accrued_revenue)}</td>
-                                    <td className="py-2">{currencyFormatter.format(overallSummary.totalCost)}</td>
-                                    <td className="py-2">{currencyFormatter.format(overallSummary.total_discount)}</td>
-                                    <td className="py-2">{currencyFormatter.format(overallSummary.total_amount_refunded)}</td>
+                                    <td className="py-2">{currencyFormatter.format(overallSummary.cash_collected)}</td>
+                                    <td className="py-2">{currencyFormatter.format(overallSummary.earned_revenue)}</td>
+                                    <td className="py-2">{currencyFormatter.format(overallSummary.gross_revenue)}</td>
+                                    <td className="py-2">{currencyFormatter.format(overallSummary.discount)}</td>
+                                    <td className="py-2">{currencyFormatter.format(overallSummary.total_refunded)}</td>
                                     <td className="py-2">{overallSummary.collectionRate.toFixed(1)}%</td>
                                     <td className="py-2">100.0%</td>
                                 </tr>

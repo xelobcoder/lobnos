@@ -102,7 +102,7 @@ export default function CommissionConfigForm({
                     ...data,
                     tenantId,
                     percentage_rate:
-                         data.commission_type === "tiered" ? null : data.percentage_rate ?? null,
+                         data.commission_type === "tiered" || data.commission_type === "fixed" ? null : data.percentage_rate ?? null,
                     fixed_component:
                          data.commission_type === "tiered" ? null : data.fixed_component ?? null,
                     tiers: data.commission_type === "tiered" ? tiers : undefined,

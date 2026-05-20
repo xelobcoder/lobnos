@@ -24,26 +24,26 @@ import { RiLineChartLine, RiBarChartBoxLine, RiBubbleChartLine, RiPieChartLine, 
 
 interface MonthlySalesAPIEntry {
 	month: string;
-	totalCost: string;
-	actual_revenue: string | null;
-	accrued_revenue: string;
-	total_discount: string;
-	totalRefunded: string;
-	total_expenses: string;
-	net_revenue: string;
-	outstanding_debt: string;
+	gross_revenue: string;
+	cash_collected: string | null;
+	earned_revenue: string;
+	discount: string;
+	total_refunded: string;
+	expenses_paid: string;
+	net_operating_cash: string;
+	outstanding: string;
 }
 
 interface ChartDataEntry {
 	month: string;
-	totalCost: number;
-	actual_revenue: number;
-	accrued_revenue: number;
-	total_discount: number;
-	totalRefunded: number;
-	total_expenses: number;
-	net_revenue: number;
-	outstanding_debt: number;
+	gross_revenue: number;
+	cash_collected: number;
+	earned_revenue: number;
+	discount: number;
+	total_refunded: number;
+	expenses_paid: number;
+	net_operating_cash: number;
+	outstanding: number;
 }
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
@@ -76,7 +76,7 @@ export default function MonthlySalesTrend() {
 	const [error, setError] = useState<string | null>(null);
 	const [view, setView] = useState<"pie" | "bar" | "line" | "area">("bar");
 
-	const [pieMetric, setPieMetric] = useState<"totalCost" | "accrued_revenue" | "actual_revenue" | "total_expenses" | "net_revenue" | "outstanding_debt" | "total_discount" | "totalRefunded">("accrued_revenue");
+	const [pieMetric, setPieMetric] = useState<"gross_revenue" | "earned_revenue" | "cash_collected" | "expenses_paid" | "net_operating_cash" | "outstanding" | "discount" | "total_refunded">("earned_revenue");
 
 	const { branchid, user } = useApplicationSettings().applicationsettings || {};
 	const employeeid = user?.employeeid;
@@ -121,14 +121,14 @@ export default function MonthlySalesTrend() {
 			if (response && Array.isArray(response)) {
 				const formattedData = response.map((item: MonthlySalesAPIEntry) => ({
 					month: item.month,
-					totalCost: parseFloat(item.totalCost) || 0,
-					actual_revenue: item.actual_revenue ? parseFloat(item.actual_revenue) : 0,
-					accrued_revenue: parseFloat(item.accrued_revenue) || 0,
-					total_discount: parseFloat(item.total_discount) || 0,
-					totalRefunded: parseFloat(item.totalRefunded) || 0,
-					total_expenses: parseFloat(item.total_expenses) || 0,
-					net_revenue: parseFloat(item.net_revenue) || 0,
-					outstanding_debt: parseFloat(item.outstanding_debt) || 0,
+					gross_revenue: parseFloat(item.gross_revenue) || 0,
+					cash_collected: item.cash_collected ? parseFloat(item.cash_collected) : 0,
+					earned_revenue: parseFloat(item.earned_revenue) || 0,
+					discount: parseFloat(item.discount) || 0,
+					total_refunded: parseFloat(item.total_refunded) || 0,
+					expenses_paid: parseFloat(item.expenses_paid) || 0,
+					net_operating_cash: parseFloat(item.net_operating_cash) || 0,
+					outstanding: parseFloat(item.outstanding) || 0,
 				})).sort((a, b) => (monthOrder[a.month] || 0) - (monthOrder[b.month] || 0));
 				setData(formattedData);
 				if (formattedData.length === 0) {
@@ -165,16 +165,16 @@ export default function MonthlySalesTrend() {
 
 	const overallSummary = useMemo(() => {
 		return data.reduce((acc, curr) => {
-			acc.totalCost += curr.totalCost;
-			acc.actual_revenue += curr.actual_revenue;
-			acc.accrued_revenue += curr.accrued_revenue;
-			acc.total_discount += curr.total_discount;
-			acc.totalRefunded += curr.totalRefunded;
-			acc.total_expenses += curr.total_expenses;
-			acc.net_revenue += curr.net_revenue;
-			acc.outstanding_debt += curr.outstanding_debt;
+			acc.gross_revenue += curr.gross_revenue;
+			acc.cash_collected += curr.cash_collected;
+			acc.earned_revenue += curr.earned_revenue;
+			acc.discount += curr.discount;
+			acc.total_refunded += curr.total_refunded;
+			acc.expenses_paid += curr.expenses_paid;
+			acc.net_operating_cash += curr.net_operating_cash;
+			acc.outstanding += curr.outstanding;
 			return acc;
-		}, { totalCost: 0, actual_revenue: 0, accrued_revenue: 0, total_discount: 0, totalRefunded: 0, total_expenses: 0, net_revenue: 0, outstanding_debt: 0 });
+		}, { gross_revenue: 0, cash_collected: 0, earned_revenue: 0, discount: 0, total_refunded: 0, expenses_paid: 0, net_operating_cash: 0, outstanding: 0 });
 	}, [data]);
 
 	const CustomTooltip = ({ active, payload, label }: any) => {
@@ -209,7 +209,7 @@ export default function MonthlySalesTrend() {
 					{payload.map((pld: any, index: number) => {
 						const actualDataKey = view === 'pie' ? pieMetric : pld.dataKey;
 						const totalForMetric = overallSummary[actualDataKey as keyof typeof overallSummary] || 0;
-						const showPercentage = totalForMetric > 0 && (view === 'pie' || pld.dataKey === "totalCost");
+						const showPercentage = totalForMetric > 0 && (view === 'pie' || pld.dataKey === "gross_revenue");
 
 						return (
 							<div key={index} className="mt-1">
@@ -319,14 +319,14 @@ export default function MonthlySalesTrend() {
 		const ChartComponent = view === "bar" ? BarChart : view === "line" ? LineChart : AreaChart;
 
 		const elements = [
-			{ dataKey: "totalCost", name: "Total Cost", color: COLOR_ACCENT, fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalCost)" : undefined },
-			{ dataKey: "actual_revenue", name: "Actual Revenue", color: 'oklch(0.6 0.15 142)', fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalPaid)" : undefined },
-			{ dataKey: "accrued_revenue", name: "Accrued Revenue", color: COLOR_PAYABLE, fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalPayable)" : undefined },
-			{ dataKey: "total_discount", name: "Total Discount", color: COLOR_DISCOUNT, fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalDiscount)" : undefined },
-			{ dataKey: "totalRefunded", name: "Refunded", color: 'oklch(0.7 0.2 20)', fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalRefunded)" : undefined },
-			{ dataKey: "total_expenses", name: "Total Expenses", color: 'oklch(0.5 0.15 280)', fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalExpenses)" : undefined },
-			{ dataKey: "net_revenue", name: "Net Revenue", color: 'oklch(0.8 0.1 120)', fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorNetRevenue)" : undefined },
-			{ dataKey: "outstanding_debt", name: "Outstanding Debt", color: 'oklch(0.398 0.07 227.392)', fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorOutstandingDebt)" : undefined },
+			{ dataKey: "gross_revenue", name: "Gross Revenue", color: COLOR_ACCENT, fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalCost)" : undefined },
+			{ dataKey: "cash_collected", name: "Cash Collected", color: 'oklch(0.6 0.15 142)', fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalPaid)" : undefined },
+			{ dataKey: "earned_revenue", name: "Earned Revenue", color: COLOR_PAYABLE, fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalPayable)" : undefined },
+			{ dataKey: "discount", name: "Discount", color: COLOR_DISCOUNT, fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalDiscount)" : undefined },
+			{ dataKey: "total_refunded", name: "Refunded", color: 'oklch(0.7 0.2 20)', fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalRefunded)" : undefined },
+			{ dataKey: "expenses_paid", name: "Expenses Paid", color: 'oklch(0.5 0.15 280)', fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalExpenses)" : undefined },
+			{ dataKey: "net_operating_cash", name: "Net Operating Cash", color: 'oklch(0.8 0.1 120)', fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorNetRevenue)" : undefined },
+			{ dataKey: "outstanding", name: "Outstanding", color: 'oklch(0.398 0.07 227.392)', fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorOutstandingDebt)" : undefined },
 		];
 
 		return (
@@ -458,34 +458,34 @@ export default function MonthlySalesTrend() {
 	];
 
 	const pieMetricOptions = [
-		{ value: "totalCost" as const, label: "Total Cost", color: COLOR_ACCENT },
-		{ value: "accrued_revenue" as const, label: "Accrued Revenue", color: COLOR_PAYABLE },
-		{ value: "actual_revenue" as const, label: "Actual Revenue", color: 'oklch(0.6 0.15 142)' },
-		{ value: "total_expenses" as const, label: "Total Expenses", color: 'oklch(0.5 0.15 280)' },
-		{ value: "net_revenue" as const, label: "Net Revenue", color: 'oklch(0.8 0.1 120)' },
-		{ value: "outstanding_debt" as const, label: "Outstanding Debt", color: 'oklch(0.398 0.07 227.392)' },
-		{ value: "total_discount" as const, label: "Total Discount", color: COLOR_DISCOUNT },
-		{ value: "totalRefunded" as const, label: "Refunded", color: 'oklch(0.7 0.2 20)' },
+		{ value: "gross_revenue" as const, label: "Gross Revenue", color: COLOR_ACCENT },
+		{ value: "earned_revenue" as const, label: "Earned Revenue", color: COLOR_PAYABLE },
+		{ value: "cash_collected" as const, label: "Cash Collected", color: 'oklch(0.6 0.15 142)' },
+		{ value: "expenses_paid" as const, label: "Expenses Paid", color: 'oklch(0.5 0.15 280)' },
+		{ value: "net_operating_cash" as const, label: "Net Operating Cash", color: 'oklch(0.8 0.1 120)' },
+		{ value: "outstanding" as const, label: "Outstanding", color: 'oklch(0.398 0.07 227.392)' },
+		{ value: "discount" as const, label: "Discount", color: COLOR_DISCOUNT },
+		{ value: "total_refunded" as const, label: "Refunded", color: 'oklch(0.7 0.2 20)' },
 	];
 
 	const generateReport = () => {
 		if (data.length === 0) return null;
 
-		const peakSalesMonth = data.reduce((prev, current) => (prev.accrued_revenue > current.accrued_revenue) ? prev : current, data[0]);
-		const lowestSalesMonth = data.reduce((prev, current) => (prev.accrued_revenue < current.accrued_revenue) ? prev : current, data[0]);
+		const peakSalesMonth = data.reduce((prev, current) => (prev.earned_revenue > current.earned_revenue) ? prev : current, data[0]);
+		const lowestSalesMonth = data.reduce((prev, current) => (prev.earned_revenue < current.earned_revenue) ? prev : current, data[0]);
 
-		const averageRevenue = overallSummary.accrued_revenue / data.length;
-		const discountImpact = overallSummary.totalCost > 0 ? (overallSummary.total_discount / overallSummary.totalCost) * 100 : 0;
-		const refundRate = overallSummary.totalCost > 0 ? (overallSummary.totalRefunded / overallSummary.totalCost) * 100 : 0;
-		const paymentRate = overallSummary.accrued_revenue > 0 ? (overallSummary.actual_revenue / overallSummary.accrued_revenue) * 100 : 0;
+		const averageRevenue = overallSummary.earned_revenue / data.length;
+		const discountImpact = overallSummary.gross_revenue > 0 ? (overallSummary.discount / overallSummary.gross_revenue) * 100 : 0;
+		const refundRate = overallSummary.gross_revenue > 0 ? (overallSummary.total_refunded / overallSummary.gross_revenue) * 100 : 0;
+		const paymentRate = overallSummary.earned_revenue > 0 ? (overallSummary.cash_collected / overallSummary.earned_revenue) * 100 : 0;
 
 		// Calculate year-over-year growth if possible
 		const currentYearData = data.filter(d => new Date(d.month + ' 1, ' + new Date().getFullYear()).getFullYear() === new Date().getFullYear());
 		const previousYearData = data.filter(d => new Date(d.month + ' 1, ' + (new Date().getFullYear() - 1)).getFullYear() === new Date().getFullYear() - 1);
 
 		const yoyGrowth = currentYearData.length > 0 && previousYearData.length > 0
-			? ((currentYearData.reduce((sum, curr) => sum + curr.accrued_revenue, 0) /
-				previousYearData.reduce((sum, curr) => sum + curr.accrued_revenue, 0)) - 1) * 100
+			? ((currentYearData.reduce((sum, curr) => sum + curr.earned_revenue, 0) /
+				previousYearData.reduce((sum, curr) => sum + curr.earned_revenue, 0)) - 1) * 100
 			: null;
 
 		return (
@@ -501,33 +501,33 @@ export default function MonthlySalesTrend() {
 						<div className="row g-4 mb-4">
 							<div className="col-md-3">
 								<div className="p-3 bg-white rounded-3 shadow-sm h-100">
-									<div className="text-muted small mb-1">Total Accrued Revenue</div>
+									<div className="text-muted small mb-1">Total Earned Revenue</div>
 									<div className="h5 mb-0" style={{ color: COLOR_ACCENT }}>
-										{currencyFormatter.format(overallSummary.accrued_revenue)}
+										{currencyFormatter.format(overallSummary.earned_revenue)}
 									</div>
 								</div>
 							</div>
 							<div className="col-md-3">
 								<div className="p-3 bg-white rounded-3 shadow-sm h-100">
-									<div className="text-muted small mb-1">Net Revenue</div>
+									<div className="text-muted small mb-1">Net Operating Cash</div>
 									<div className="h5 mb-0" style={{ color: 'oklch(0.8 0.1 120)' }}>
-										{currencyFormatter.format(overallSummary.net_revenue)}
+										{currencyFormatter.format(overallSummary.net_operating_cash)}
 									</div>
 								</div>
 							</div>
 							<div className="col-md-3">
 								<div className="p-3 bg-white rounded-3 shadow-sm h-100">
-									<div className="text-muted small mb-1">Total Expenses</div>
+									<div className="text-muted small mb-1">Total Expenses Paid</div>
 									<div className="h5 mb-0 text-danger">
-										{currencyFormatter.format(overallSummary.total_expenses)}
+										{currencyFormatter.format(overallSummary.expenses_paid)}
 									</div>
 								</div>
 							</div>
 							<div className="col-md-3">
 								<div className="p-3 bg-white rounded-3 shadow-sm h-100">
-									<div className="text-muted small mb-1">Outstanding Debt</div>
+									<div className="text-muted small mb-1">Outstanding</div>
 									<div className="h5 mb-0 text-warning">
-										{currencyFormatter.format(overallSummary.outstanding_debt)}
+										{currencyFormatter.format(overallSummary.outstanding)}
 									</div>
 								</div>
 							</div>
@@ -545,7 +545,7 @@ export default function MonthlySalesTrend() {
 									<div className="d-flex justify-content-between align-items-center">
 										<span className="text-muted small">Amount</span>
 										<span className="fw-medium text-success">
-											{currencyFormatter.format(peakSalesMonth.accrued_revenue)}
+											{currencyFormatter.format(peakSalesMonth.earned_revenue)}
 										</span>
 									</div>
 								</div>
@@ -560,7 +560,7 @@ export default function MonthlySalesTrend() {
 									<div className="d-flex justify-content-between align-items-center">
 										<span className="text-muted small">Amount</span>
 										<span className="fw-medium text-danger">
-											{currencyFormatter.format(lowestSalesMonth.accrued_revenue)}
+											{currencyFormatter.format(lowestSalesMonth.earned_revenue)}
 										</span>
 									</div>
 								</div>
@@ -589,13 +589,13 @@ export default function MonthlySalesTrend() {
 										<small>Low payment rate ({paymentRate.toFixed(1)}%) may indicate collection issues</small>
 									</li>
 								)}
-								{peakSalesMonth.accrued_revenue > averageRevenue * 1.5 && (
+								{peakSalesMonth.earned_revenue > averageRevenue * 1.5 && (
 									<li className="d-flex align-items-center gap-2 mb-2 text-success">
 										<RiLineChartLine size={18} />
 										<small>Significant peak in {peakSalesMonth.month} - analyze success factors</small>
 									</li>
 								)}
-								{lowestSalesMonth.accrued_revenue < averageRevenue * 0.5 && (
+								{lowestSalesMonth.earned_revenue < averageRevenue * 0.5 && (
 									<li className="d-flex align-items-center gap-2 mb-2 text-danger">
 										<RiErrorWarningLine size={18} />
 										<small>Notable dip in {lowestSalesMonth.month} - investigate causes</small>
@@ -688,23 +688,23 @@ export default function MonthlySalesTrend() {
 							<thead className="sticky-top bg-body-tertiary">
 								<tr>
 									<th scope="col" className="py-2">Month</th>
-									<th scope="col" className="py-2 text-start">Total Cost</th>
-									<th scope="col" className="py-2 text-start">Accrued Revenue</th>
-									<th scope="col" className="py-2 text-start">Actual Revenue</th>
-									<th scope="col" className="py-2 text-start">Outstanding Debt</th>
-									<th scope="col" className="py-2 text-start">Total Discount</th>
+									<th scope="col" className="py-2 text-start">Gross Revenue</th>
+									<th scope="col" className="py-2 text-start">Earned Revenue</th>
+									<th scope="col" className="py-2 text-start">Cash Collected</th>
+									<th scope="col" className="py-2 text-start">Outstanding</th>
+									<th scope="col" className="py-2 text-start">Discount</th>
 									<th scope="col" className="py-2 text-start">Refunded</th>
-									<th scope="col" className="py-2 text-start fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>Total Expenses</th>
-									<th scope="col" className="py-2 text-start fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>Net Revenue</th>
+									<th scope="col" className="py-2 text-start fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>Expenses Paid</th>
+									<th scope="col" className="py-2 text-start fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>Net Operating Cash</th>
 									<th scope="col" className="py-2 text-start">Sales Change</th>
-									<th scope="col" className="py-2 text-start">Net Revenue Change</th>
+									<th scope="col" className="py-2 text-start">Net Cash Change</th>
 									<th scope="col" className="py-2 text-start">Expense Change</th>
 									<th scope="col" className="py-2 text-start">% of Total</th>
 								</tr>
 							</thead>
 							<tbody>
 								{data.map((entry, index) => {
-									const percentageOfTotal = overallSummary.accrued_revenue > 0 ? ((entry.accrued_revenue / overallSummary.accrued_revenue) * 100).toFixed(1) : '0.0';
+									const percentageOfTotal = overallSummary.earned_revenue > 0 ? ((entry.earned_revenue / overallSummary.earned_revenue) * 100).toFixed(1) : '0.0';
 
 									// Calculate changes from previous month
 									let salesChange = '-';
@@ -714,31 +714,31 @@ export default function MonthlySalesTrend() {
 									if (index > 0) {
 										const prevEntry = data[index - 1];
 
-										// Sales change (accrued_revenue)
-										if (prevEntry.accrued_revenue === 0 && entry.accrued_revenue > 0) {
+										// Sales change (earned_revenue)
+										if (prevEntry.earned_revenue === 0 && entry.earned_revenue > 0) {
 											salesChange = 'New';
-										} else if (prevEntry.accrued_revenue > 0) {
-											const change = ((entry.accrued_revenue - prevEntry.accrued_revenue) / prevEntry.accrued_revenue) * 100;
+										} else if (prevEntry.earned_revenue > 0) {
+											const change = ((entry.earned_revenue - prevEntry.earned_revenue) / prevEntry.earned_revenue) * 100;
 											salesChange = `${change >= 0 ? '+' : ''}${change.toFixed(1)}%`;
 										} else {
 											salesChange = '0.0%';
 										}
 
 										// Net Revenue change
-										if (prevEntry.net_revenue === 0 && entry.net_revenue > 0) {
+										if (prevEntry.net_operating_cash === 0 && entry.net_operating_cash > 0) {
 											netRevenueChange = 'New';
-										} else if (prevEntry.net_revenue > 0) {
-											const change = ((entry.net_revenue - prevEntry.net_revenue) / prevEntry.net_revenue) * 100;
+										} else if (prevEntry.net_operating_cash > 0) {
+											const change = ((entry.net_operating_cash - prevEntry.net_operating_cash) / prevEntry.net_operating_cash) * 100;
 											netRevenueChange = `${change >= 0 ? '+' : ''}${change.toFixed(1)}%`;
 										} else {
 											netRevenueChange = '0.0%';
 										}
 
 										// Expense change
-										if (prevEntry.total_expenses === 0 && entry.total_expenses > 0) {
+										if (prevEntry.expenses_paid === 0 && entry.expenses_paid > 0) {
 											expenseChange = 'New';
-										} else if (prevEntry.total_expenses > 0) {
-											const change = ((entry.total_expenses - prevEntry.total_expenses) / prevEntry.total_expenses) * 100;
+										} else if (prevEntry.expenses_paid > 0) {
+											const change = ((entry.expenses_paid - prevEntry.expenses_paid) / prevEntry.expenses_paid) * 100;
 											expenseChange = `${change >= 0 ? '+' : ''}${change.toFixed(1)}%`;
 										} else {
 											expenseChange = '0.0%';
@@ -748,14 +748,14 @@ export default function MonthlySalesTrend() {
 									return (
 										<tr key={entry.month}>
 											<td className="py-2">{entry.month}</td>
-											<td className="py-2 text-start">{currencyFormatter.format(entry.totalCost)}</td>
-											<td className="py-2 text-start fw-medium">{currencyFormatter.format(entry.accrued_revenue)}</td>
-											<td className="py-2 text-start">{entry.actual_revenue >= 0 ? currencyFormatter.format(entry.actual_revenue) : '-'}</td>
-											<td className="py-2 text-start">{currencyFormatter.format(entry.outstanding_debt)}</td>
-											<td className="py-2 text-start">{currencyFormatter.format(entry.total_discount)}</td>
-											<td className="py-2 text-start">{currencyFormatter.format(entry.totalRefunded)}</td>
-											<td className="py-2 text-start fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>{currencyFormatter.format(entry.total_expenses)}</td>
-											<td className="py-2 text-start fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>{currencyFormatter.format(entry.net_revenue)}</td>
+											<td className="py-2 text-start">{currencyFormatter.format(entry.gross_revenue)}</td>
+											<td className="py-2 text-start fw-medium">{currencyFormatter.format(entry.earned_revenue)}</td>
+											<td className="py-2 text-start">{entry.cash_collected >= 0 ? currencyFormatter.format(entry.cash_collected) : '-'}</td>
+											<td className="py-2 text-start">{currencyFormatter.format(entry.outstanding)}</td>
+											<td className="py-2 text-start">{currencyFormatter.format(entry.discount)}</td>
+											<td className="py-2 text-start">{currencyFormatter.format(entry.total_refunded)}</td>
+											<td className="py-2 text-start fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>{currencyFormatter.format(entry.expenses_paid)}</td>
+											<td className="py-2 text-start fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>{currencyFormatter.format(entry.net_operating_cash)}</td>
 											<td className="py-2 text-start small" style={{ color: salesChange === 'New' || (salesChange !== '-' && !salesChange.startsWith('-')) ? '#28a745' : '#dc3545' }}>
 												{salesChange}
 											</td>
@@ -773,14 +773,14 @@ export default function MonthlySalesTrend() {
 							<tfoot>
 								<tr className="fw-bold border-top">
 									<td className="py-2">Total</td>
-									<td className="py-2 text-start">{currencyFormatter.format(overallSummary.totalCost)}</td>
-									<td className="py-2 text-start">{currencyFormatter.format(overallSummary.accrued_revenue)}</td>
-									<td className="py-2 text-start">{currencyFormatter.format(overallSummary.actual_revenue)}</td>
-									<td className="py-2 text-start">{currencyFormatter.format(overallSummary.outstanding_debt)}</td>
-									<td className="py-2 text-start">{currencyFormatter.format(overallSummary.total_discount)}</td>
-									<td className="py-2 text-start">{currencyFormatter.format(overallSummary.totalRefunded)}</td>
-									<td className="py-2 text-start fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>{currencyFormatter.format(overallSummary.total_expenses)}</td>
-									<td className="py-2 text-start fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>{currencyFormatter.format(overallSummary.net_revenue)}</td>
+									<td className="py-2 text-start">{currencyFormatter.format(overallSummary.gross_revenue)}</td>
+									<td className="py-2 text-start">{currencyFormatter.format(overallSummary.earned_revenue)}</td>
+									<td className="py-2 text-start">{currencyFormatter.format(overallSummary.cash_collected)}</td>
+									<td className="py-2 text-start">{currencyFormatter.format(overallSummary.outstanding)}</td>
+									<td className="py-2 text-start">{currencyFormatter.format(overallSummary.discount)}</td>
+									<td className="py-2 text-start">{currencyFormatter.format(overallSummary.total_refunded)}</td>
+									<td className="py-2 text-start fw-bold text-dark" style={{ backgroundColor: '#f8d7da' }}>{currencyFormatter.format(overallSummary.expenses_paid)}</td>
+									<td className="py-2 text-start fw-bold text-dark" style={{ backgroundColor: '#d4edda' }}>{currencyFormatter.format(overallSummary.net_operating_cash)}</td>
 									<td className="py-2 text-start">-</td>
 									<td className="py-2 text-start">-</td>
 									<td className="py-2 text-start">-</td>

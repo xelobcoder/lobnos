@@ -42,7 +42,6 @@ export async function GET(request: NextRequest) {
 
           const data = await response.json()
           const { message, statusCode, status } = data;
-          console.log(data);
           if (status != true) {
                return new Response(
                     JSON.stringify({ error: message, redirect: '/authentications/login' }),

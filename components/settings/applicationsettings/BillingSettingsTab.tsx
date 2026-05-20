@@ -197,6 +197,38 @@ export const BillingSettingsTab: React.FC<BillingSettingsTabProps> = ({ settings
                          icon: <RiMoneyDollarCircleLine size={20} />
                     }
                ]
+          },
+          {
+               title: 'Commission Settings',
+               icon: <RiMoneyDollarCircleLine size={24} />,
+               color: "#db2777",
+               description: "Configure commission calculation rules and settings",
+               settings: [
+                    {
+                         name: "isCommissionEarnedOnClinicianBilling",
+                         label: 'Is Commission Earned on Clinician Billing',
+                         description: 'Determine if commissions are earned on clinician billings',
+                         icon: <RiMoneyDollarCircleLine size={20} />
+                    },
+                    {
+                         name: "isCommissionEarnedOnOrganizationalBilling",
+                         label: 'Is Commission Earned on Organizational Billing',
+                         description: 'Determine if commissions are earned on organizational billings',
+                         icon: <RiMoneyDollarCircleLine size={20} />
+                    },
+                    {
+                         name: "isCommissionEarnedOnNHISBilling",
+                         label: 'Is Commission Earned on NHIS Billing',
+                         description: 'Determine if commissions are earned on NHIS billings',
+                         icon: <RiMoneyDollarCircleLine size={20} />
+                    },
+                    {
+                         name: "isCommissionEarnedOnPHISBilling",
+                         label: 'Is Commission Earned on PHIS Billing',
+                         description: 'Determine if commissions are earned on PHIS billings',
+                         icon: <RiMoneyDollarCircleLine size={20} />
+                    }
+               ]
           }
      ];
 
