@@ -18,6 +18,7 @@ import {
 import { customFetch, currencyFormatter } from "../../../../components/Auth/customFetch";
 import { useApplication } from "../../../../components/Auth/useApplicationContext";
 import { RiLoader4Line, RiErrorWarningLine, RiInbox2Line, RiShoppingBagLine, RiBarChartBoxLine, RiLineChartLine, RiBubbleChartLine, RiCalendarEventLine, RiRefreshLine, RiPrinterLine, RiEyeLine } from "@remixicon/react";
+import DateFilterReusable from "../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 import dayjs from 'dayjs';
 
 // Color variables to match sales chart
@@ -36,7 +37,7 @@ interface TopExpenseMerchant {
      merchant_id: number;
      merchant_name: string;
      expense_date: string;
-     total_amount: string;
+     expenses_paid: string;
      expense_count: number;
 }
 
@@ -67,6 +68,7 @@ export default function TopExpenseMerchants() {
      const [branches, setBranches] = useState<any[]>([]);
      const [branchid, setBranchid] = useState<number | null>(null);
      const [chartType, setChartType] = useState<"bar" | "line" | "area">("bar");
+     const [dateFilter, setDateFilter] = useState<string>("This Year");
      const [showDetailsModal, setShowDetailsModal] = useState(false);
      const [selectedMerchant, setSelectedMerchant] = useState<string>("");
      const [merchantPayments, setMerchantPayments] = useState<MerchantPaymentDetail[]>([]);
@@ -84,9 +86,8 @@ export default function TopExpenseMerchants() {
           try {
                const endpoint = `expenses/analytics/trends/merchant?branchid=${branchid}${startDate ? `&startDate=${startDate}` : ''}${endDate ? `&endDate=${endDate}` : ''}`;
                const response = await customFetch(endpoint);
-               const { data } = response;
-               if (response && data && Array.isArray(data)) {
-                    setData(data);
+               if (response && response.status === "success" && Array.isArray(response.data)) {
+                    setData(response.data);
                } else {
                     setError("Invalid data format received");
                }
@@ -95,6 +96,11 @@ export default function TopExpenseMerchants() {
           } finally {
                setLoading(false);
           }
+     };
+
+     const handleDateRangeChange = (newStartDate: string, newEndDate: string) => {
+          setStartDate(newStartDate);
+          setEndDate(newEndDate);
      };
 
      useEffect(() => {
@@ -114,16 +120,16 @@ export default function TopExpenseMerchants() {
           if (branchid) {
                fetchData();
           }
-     }, [branchid]);
+     }, [branchid, startDate, endDate]);
 
-     const totalAmountSum = data.reduce((sum, entry) => sum + parseFloat(entry.total_amount), 0);
+     const totalAmountSum = data.reduce((sum, entry) => sum + parseFloat(entry.expenses_paid), 0);
      const totalExpenseCount = data.reduce((sum, entry) => sum + entry.expense_count, 0);
 
      // Prepare data for the chart
      const chartData = useMemo(() =>
           data.map(item => ({
                ...item,
-               total_amount: parseFloat(item.total_amount),
+               total_amount: parseFloat(item.expenses_paid),
                merchant_name: item.merchant_name
           })), [data]);
 
@@ -172,7 +178,7 @@ export default function TopExpenseMerchants() {
                               <span className="fw-bold d-block" style={{ color: COLOR_TOOLTIP_FG }}>{entry.merchant_name}</span>
                          </div>
                          <div className="mb-1">
-                              <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Total Amount</span>
+                              <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Expenses Paid</span>
                               <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>
                                    {currencyFormatter.format(entry.total_amount)} ({percentageOfTotal}%)
                               </span>
@@ -437,7 +443,7 @@ export default function TopExpenseMerchants() {
                                                   <tr>
                                                        <th scope="col" className="py-2 text-start">#</th>
                                                        <th scope="col" className="py-2 text-start">Merchant Name</th>
-                                                       <th scope="col" className="py-2 text-start">Total Amount</th>
+                                                       <th scope="col" className="py-2 text-start">Expense Paid</th>
                                                        <th scope="col" className="py-2 text-start">Expense Count</th>
                                                        <th scope="col" className="py-2 text-start">Actions</th>
                                                   </tr>
@@ -447,7 +453,7 @@ export default function TopExpenseMerchants() {
                                                        <tr key={`${merchant.merchant_name}-${idx}`}>
                                                             <td className="py-2 text-start fw-medium">{idx + 1}</td>
                                                             <td className="py-2 text-start fw-medium">{merchant.merchant_name}</td>
-                                                            <td className="py-2 text-start fw-medium">{currencyFormatter.format(parseFloat(merchant.total_amount))}</td>
+                                                            <td className="py-2 text-start fw-medium">{currencyFormatter.format(parseFloat(merchant.expenses_paid))}</td>
                                                             <td className="py-2 text-start">{merchant.expense_count}</td>
                                                             <td className="py-2 text-start">
                                                                  <button className="btn btn-sm btn-outline-primary" onClick={() => openDetailsModal(merchant)}>

@@ -17,7 +17,8 @@ import {
 } from "recharts";
 import { customFetch } from "../../../../components/Auth/customFetch";
 import { useApplication } from "../../../../components/Auth/useApplicationContext";
-import { RiBarChartBoxLine, RiLineChartLine, RiBubbleChartLine, RiErrorWarningLine, RiLoader4Line, RiInbox2Line } from "@remixicon/react";
+import { RiBarChartBoxLine, RiLineChartLine, RiBubbleChartLine, RiErrorWarningLine, RiLoader4Line, RiInbox2Line, RiRefreshLine } from "@remixicon/react";
+import DateFilterReusable from "../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
 const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
@@ -26,9 +27,12 @@ const COLOR_TOOLTIP_BG = 'var(--bs-body-bg)';
 const COLOR_TOOLTIP_FG = 'var(--bs-body-color)';
 
 interface BranchMonthlyExpense {
+    expense_month: number;
+    expense_year: number;
+    expenses_paid: string;
+    expense_count: number;
+    avg_expense_amount: string;
     branch_name: string;
-    month: string; // "YYYY-MM"
-    total_spent: string;
 }
 
 const currencyFormatter = new Intl.NumberFormat(undefined, { style: "currency", currency: "GHS", maximumFractionDigits: 2 });
@@ -45,18 +49,33 @@ export default function BranchMonthlyExpenses() {
         return d.toISOString().slice(0, 10);
     });
     const [endDate, setEndDate] = useState(() => new Date().toISOString().slice(0, 10));
+    const [dateFilter, setDateFilter] = useState<string>('last 12 months');
 
     const { branchid } = useApplication();
+
+    const handleResetFilters = () => {
+        const d = new Date();
+        d.setMonth(d.getMonth() - 11);
+        setStartDate(d.toISOString().slice(0, 10));
+        setEndDate(new Date().toISOString().slice(0, 10));
+        setDateFilter('last 12 months');
+    };
+
+    const handleDateRangeChange = (newStartDate: string, newEndDate: string) => {
+        setStartDate(newStartDate);
+        setEndDate(newEndDate);
+    };
 
     // Fetch only when branchid changes or when user clicks "Load Data"
     const fetchData = async () => {
         setLoading(true);
         setError(null);
         try {
-            const endpoint = `expenses-analytics/branch-monthly-expenses?branchid=${branchid}&&startDate=${startDate}&&endDate=${endDate}`;
+            const endpoint = `expenses/analytics/branch-monthly?branchid=${branchid}&startDate=${startDate}&endDate=${endDate}`;
             const response = await customFetch(endpoint);
-            if (response && Array.isArray(response)) {
-                setData(response);
+            const { data } = response;
+            if (response && Array.isArray(data)) {
+                setData(data);
             } else {
                 setError("Invalid data format received");
             }
@@ -67,19 +86,19 @@ export default function BranchMonthlyExpenses() {
         }
     };
 
-    // Only auto-fetch on mount or branchid change
+    // Only auto-fetch on mount or branchid/date change
     useEffect(() => {
         if (branchid) {
             fetchData();
         }
         // eslint-disable-next-line
-    }, [branchid]);
+    }, [branchid, startDate, endDate]);
 
     const chartData = useMemo(() =>
         data.map(item => ({
             ...item,
-            total_spent: parseFloat(item.total_spent),
-            monthLabel: new Date(item.month + "-01").toLocaleString(undefined, { year: "numeric", month: "short" })
+            total_spent: parseFloat(item.expenses_paid),
+            monthLabel: new Date(item.expense_year, item.expense_month - 1).toLocaleString(undefined, { year: "numeric", month: "short" })
         })), [data]);
 
     const totalSpentSum = useMemo(() => chartData.reduce((sum, entry) => sum + entry.total_spent, 0), [chartData]);
@@ -103,7 +122,7 @@ export default function BranchMonthlyExpenses() {
                         <span className="fw-bold d-block" style={{ color: COLOR_TOOLTIP_FG }}>{entry.monthLabel}</span>
                     </div>
                     <div className="mb-1">
-                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Spent</span>
+                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Expenses Paid</span>
                         <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>
                             {currencyFormatter.format(entry.total_spent)} ({percentageOfTotal}%)
                         </span>
@@ -156,7 +175,7 @@ export default function BranchMonthlyExpenses() {
                     <YAxis {...yAxisProps} />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                     <Legend {...legendProps} />
-                    <Bar dataKey="total_spent" name="Total Spent" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={40} />
+                    <Bar dataKey="total_spent" name="Expenses Paid" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={40} />
                 </BarChart>
             );
         }
@@ -168,7 +187,7 @@ export default function BranchMonthlyExpenses() {
                     <YAxis {...yAxisProps} />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                     <Legend {...legendProps} />
-                    <Line type="monotone" dataKey="total_spent" name="Total Spent" stroke={COLOR_ACCENT} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
+                    <Line type="monotone" dataKey="total_spent" name="Expenses Paid" stroke={COLOR_ACCENT} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
                 </LineChart>
             );
         }
@@ -185,7 +204,7 @@ export default function BranchMonthlyExpenses() {
                 <YAxis {...yAxisProps} />
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                 <Legend {...legendProps} />
-                <Area type="monotone" dataKey="total_spent" name="Total Spent" stroke={COLOR_ACCENT} fill="url(#colorTotalSpentFill)" strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
+                <Area type="monotone" dataKey="total_spent" name="Expenses Paid" stroke={COLOR_ACCENT} fill="url(#colorTotalSpentFill)" strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
             </AreaChart>
         );
     };
@@ -219,30 +238,27 @@ export default function BranchMonthlyExpenses() {
                     </div>
                 </div>
                 {/* Date filters and Load Data button */}
-                <div className="mt-3 d-flex flex-wrap gap-3 align-items-end">
-                    <div>
-                        <label className="me-2">Start Date:</label>
-                        <input
-                            type="date"
-                            className="form-control"
-                            value={startDate}
-                            onChange={e => setStartDate(e.target.value)}
-                            style={{ minWidth: 140 }}
-                        />
-                    </div>
-                    <div>
-                        <label className="me-2">End Date:</label>
-                        <input
-                            type="date"
-                            className="form-control"
-                            value={endDate}
-                            onChange={e => setEndDate(e.target.value)}
-                            style={{ minWidth: 140 }}
+                <div className="mt-3 d-flex flex-wrap gap-2 align-items-center">
+                    <div style={{ minWidth: '240px' }}>
+                        <DateFilterReusable
+                            value={dateFilter}
+                            onChange={setDateFilter}
+                            onDateRangeChange={handleDateRangeChange}
+                            label="Period"
+                            className="w-100"
                         />
                     </div>
                     <button
-                        className="btn btn-primary ms-2 d-flex align-items-center gap-1 px-2 py-1 btn-sm"
-                        style={{ backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT, minWidth: 70, fontWeight: 500, fontSize: '0.85rem', boxShadow: '0 2px 8px 0 rgba(0,0,0,0.03)' }}
+                        onClick={handleResetFilters}
+                        className="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
+                        style={{ height: '38px' }}
+                        type="button"
+                    >
+                        <RiRefreshLine size={16} /> Reset
+                    </button>
+                    <button
+                        className="btn btn-primary d-flex align-items-center gap-1 px-3 py-1 btn-sm"
+                        style={{ backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT, height: '38px', fontWeight: 500 }}
                         onClick={fetchData}
                         disabled={loading}
                     >
@@ -290,7 +306,7 @@ export default function BranchMonthlyExpenses() {
                                 <tr>
                                     <th scope="col" className="py-2">Month</th>
                                     <th scope="col" className="py-2">Branch</th>
-                                    <th scope="col" className="py-2 text-end">Total Spent</th>
+                                    <th scope="col" className="py-2 text-end">Expenses Paid</th>
                                     <th scope="col" className="py-2 text-end">% of Total</th>
                                 </tr>
                             </thead>

@@ -22,7 +22,9 @@ import { RiBarChartBoxLine, RiLineChartLine, RiBubbleChartLine, RiErrorWarningLi
 interface MonthlyData {
     month: number;
     total_rows: number;
-    total_cost: string;
+    gross_revenue: string;
+    earned_revenue: string;
+    total_tax: string;
 }
 
 interface ClinicianAnalyticsMonthlyTotalsProps {
@@ -111,17 +113,21 @@ const ClinicianAnalyticsMonthlyTotals: React.FC<ClinicianAnalyticsMonthlyTotalsP
 
     const chartData = monthlyData.map(item => ({
         month: monthNames[item.month - 1],
-        cost: parseFloat(item.total_cost),
+        grossRevenue: parseFloat(item.gross_revenue),
+        earnedRevenue: parseFloat(item.earned_revenue),
+        tax: parseFloat(item.total_tax),
         cases: item.total_rows,
     }));
 
     // Calculate summary statistics
     const totalCases = monthlyData.reduce((sum, item) => sum + item.total_rows, 0);
-    const totalCost = monthlyData.reduce((sum, item) => sum + parseFloat(item.total_cost), 0);
-    const averageCostPerCase = totalCases > 0 ? totalCost / totalCases : 0;
+    const totalGrossRevenue = monthlyData.reduce((sum, item) => sum + parseFloat(item.gross_revenue), 0);
+    const totalEarnedRevenue = monthlyData.reduce((sum, item) => sum + parseFloat(item.earned_revenue), 0);
+    const totalTax = monthlyData.reduce((sum, item) => sum + parseFloat(item.total_tax), 0);
+    const averageRevenuePerCase = totalCases > 0 ? totalGrossRevenue / totalCases : 0;
     const peakMonth = monthlyData.reduce((max, item) =>
-        parseFloat(item.total_cost) > parseFloat(max.total_cost) ? item : max,
-        monthlyData[0] || { month: 0, total_cost: '0', total_rows: 0 }
+        parseFloat(item.gross_revenue) > parseFloat(max.gross_revenue) ? item : max,
+        monthlyData[0] || { month: 0, gross_revenue: '0', earned_revenue: '0', total_tax: '0', total_rows: 0 }
     );
     const peakMonthName = peakMonth ? monthNames[peakMonth.month - 1] : 'N/A';
 
@@ -131,7 +137,7 @@ const ClinicianAnalyticsMonthlyTotals: React.FC<ClinicianAnalyticsMonthlyTotalsP
                 <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
                     <h2 className="fs-6 fw-semibold text-body-emphasis mb-3 mb-lg-0 d-flex align-items-center">
                         <RiBarChartBoxLine size={22} style={{ color: 'oklch(0.646 0.222 41.116)' }} className="me-2 flex-shrink-0" />
-                        Monthly Cases and Cost Analysis
+                        Monthly Cases and Revenue Analysis
                     </h2>
                     <div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
                         <div className="btn-group btn-group-sm" role="group" aria-label="Chart type">
@@ -208,15 +214,15 @@ const ClinicianAnalyticsMonthlyTotals: React.FC<ClinicianAnalyticsMonthlyTotalsP
                     </div>
                     <div className="col-md-3">
                         <div className="p-3 bg-white rounded-3 shadow-sm h-100">
-                            <div className="text-muted small mb-1">Total Revenue</div>
-                            <div className="h5 mb-0 text-success">{currencyFormatter.format(totalCost)}</div>
+                            <div className="text-muted small mb-1">Gross Referral</div>
+                            <div className="h5 mb-0 text-success">{currencyFormatter.format(totalGrossRevenue)}</div>
                             <div className="small text-muted">This year</div>
                         </div>
                     </div>
                     <div className="col-md-3">
                         <div className="p-3 bg-white rounded-3 shadow-sm h-100">
-                            <div className="text-muted small mb-1">Avg Cost per Case</div>
-                            <div className="h5 mb-0 text-info">{currencyFormatter.format(averageCostPerCase)}</div>
+                            <div className="text-muted small mb-1">Earned Referral</div>
+                            <div className="h5 mb-0 text-info">{currencyFormatter.format(totalEarnedRevenue)}</div>
                             <div className="small text-muted">This year</div>
                         </div>
                     </div>
@@ -224,9 +230,15 @@ const ClinicianAnalyticsMonthlyTotals: React.FC<ClinicianAnalyticsMonthlyTotalsP
                         <div className="p-3 bg-white rounded-3 shadow-sm h-100">
                             <div className="text-muted small mb-1">Peak Month</div>
                             <div className="h5 mb-0 text-warning">{peakMonthName}</div>
-                            <div className="small text-muted">{currencyFormatter.format(parseFloat(peakMonth?.total_cost || '0'))}</div>
+                            <div className="small text-muted">{currencyFormatter.format(parseFloat(peakMonth?.gross_revenue || '0'))} (Gross Referral)</div>
                         </div>
                     </div>
+                </div>
+
+                <div className="mb-4">
+                    <small className="text-muted" style={{ fontSize: '0.85rem' }}>
+                        <strong>Note:</strong> These figures represent the total revenue generated from services referred by the clinician (Referral Revenue). This does <strong>not</strong> represent commissions earned by or paid to the clinician.
+                    </small>
                 </div>
 
                 {/* Chart */}
@@ -262,7 +274,7 @@ const ClinicianAnalyticsMonthlyTotals: React.FC<ClinicianAnalyticsMonthlyTotalsP
                                     tickLine={{ stroke: 'var(--bs-border-color)' }}
                                     tick={{ fill: 'var(--bs-body-color)', fontWeight: 500 }}
                                     label={{
-                                        value: 'Total Cost (₵)',
+                                        value: 'Revenue (₵)',
                                         angle: -90,
                                         position: 'insideLeft',
                                         style: {
@@ -299,12 +311,10 @@ const ClinicianAnalyticsMonthlyTotals: React.FC<ClinicianAnalyticsMonthlyTotalsP
                                     }}
                                 />
                                 <Tooltip
-                                    formatter={(value: number, name: string) => [
-                                        name === 'cost'
-                                            ? currencyFormatter.format(value)
-                                            : value,
-                                        name === 'cost' ? 'Total Cost' : 'Cases'
-                                    ]}
+                                    formatter={(value: number, name: string) => {
+                                        if (name === 'cases') return [value, 'Cases'];
+                                        return [currencyFormatter.format(value), name];
+                                    }}
                                     labelStyle={{ color: 'black', fontSize: '12px' }}
                                     contentStyle={{ fontSize: '12px' }}
                                 />
@@ -313,11 +323,25 @@ const ClinicianAnalyticsMonthlyTotals: React.FC<ClinicianAnalyticsMonthlyTotalsP
                                 />
                                 <Bar
                                     yAxisId="left"
-                                    dataKey="cost"
-                                    name="Total Cost"
+                                    dataKey="grossRevenue"
+                                    name="Gross Referral"
                                     fill="oklch(0.646 0.222 41.116)"
                                     radius={[4, 4, 0, 0]}
                                 />
+                                <Bar
+                                     yAxisId="left"
+                                     dataKey="earnedRevenue"
+                                     name="Earned Referral"
+                                     fill="oklch(0.6 0.2 250)"
+                                     radius={[4, 4, 0, 0]}
+                                 />
+                                 <Bar
+                                     yAxisId="left"
+                                     dataKey="tax"
+                                     name="Total Tax"
+                                     fill="oklch(0.627 0.265 14.47)"
+                                     radius={[4, 4, 0, 0]}
+                                 />
                                 <Bar
                                     yAxisId="right"
                                     dataKey="cases"
@@ -355,7 +379,7 @@ const ClinicianAnalyticsMonthlyTotals: React.FC<ClinicianAnalyticsMonthlyTotalsP
                                     tickLine={{ stroke: 'var(--bs-border-color)' }}
                                     tick={{ fill: 'var(--bs-body-color)', fontWeight: 500 }}
                                     label={{
-                                        value: 'Total Cost (₵)',
+                                        value: 'Revenue (₵)',
                                         angle: -90,
                                         position: 'insideLeft',
                                         style: {
@@ -392,12 +416,10 @@ const ClinicianAnalyticsMonthlyTotals: React.FC<ClinicianAnalyticsMonthlyTotalsP
                                     }}
                                 />
                                 <Tooltip
-                                    formatter={(value: number, name: string) => [
-                                        name === 'cost'
-                                            ? currencyFormatter.format(value)
-                                            : value,
-                                        name === 'cost' ? 'Total Cost' : 'Cases'
-                                    ]}
+                                    formatter={(value: number, name: string) => {
+                                        if (name === 'cases') return [value, 'Cases'];
+                                        return [currencyFormatter.format(value), name];
+                                    }}
                                     labelStyle={{ color: 'black', fontSize: '12px' }}
                                     contentStyle={{ fontSize: '12px' }}
                                 />
@@ -407,12 +429,30 @@ const ClinicianAnalyticsMonthlyTotals: React.FC<ClinicianAnalyticsMonthlyTotalsP
                                 <Line
                                     yAxisId="left"
                                     type="monotone"
-                                    dataKey="cost"
-                                    name="Total Cost"
+                                    dataKey="grossRevenue"
+                                    name="Gross Referral"
                                     stroke="oklch(0.646 0.222 41.116)"
                                     strokeWidth={3}
                                     dot={{ fill: 'oklch(0.646 0.222 41.116)', strokeWidth: 2, r: 4 }}
                                 />
+                                <Line
+                                     yAxisId="left"
+                                     type="monotone"
+                                     dataKey="earnedRevenue"
+                                     name="Earned Referral"
+                                     stroke="oklch(0.6 0.2 250)"
+                                     strokeWidth={3}
+                                     dot={{ fill: 'oklch(0.6 0.2 250)', strokeWidth: 2, r: 4 }}
+                                 />
+                                 <Line
+                                     yAxisId="left"
+                                     type="monotone"
+                                     dataKey="tax"
+                                     name="Total Tax"
+                                     stroke="oklch(0.627 0.265 14.47)"
+                                     strokeWidth={3}
+                                     dot={{ fill: 'oklch(0.627 0.265 14.47)', strokeWidth: 2, r: 4 }}
+                                 />
                                 <Line
                                     yAxisId="right"
                                     type="monotone"
@@ -452,7 +492,7 @@ const ClinicianAnalyticsMonthlyTotals: React.FC<ClinicianAnalyticsMonthlyTotalsP
                                     tickLine={{ stroke: 'var(--bs-border-color)' }}
                                     tick={{ fill: 'var(--bs-body-color)', fontWeight: 500 }}
                                     label={{
-                                        value: 'Total Cost (₵)',
+                                        value: 'Revenue (₵)',
                                         angle: -90,
                                         position: 'insideLeft',
                                         style: {
@@ -489,12 +529,10 @@ const ClinicianAnalyticsMonthlyTotals: React.FC<ClinicianAnalyticsMonthlyTotalsP
                                     }}
                                 />
                                 <Tooltip
-                                    formatter={(value: number, name: string) => [
-                                        name === 'cost'
-                                            ? currencyFormatter.format(value)
-                                            : value,
-                                        name === 'cost' ? 'Total Cost' : 'Cases'
-                                    ]}
+                                    formatter={(value: number, name: string) => {
+                                        if (name === 'cases') return [value, 'Cases'];
+                                        return [currencyFormatter.format(value), name];
+                                    }}
                                     labelStyle={{ color: 'black', fontSize: '12px' }}
                                     contentStyle={{ fontSize: '12px' }}
                                 />
@@ -504,13 +542,33 @@ const ClinicianAnalyticsMonthlyTotals: React.FC<ClinicianAnalyticsMonthlyTotalsP
                                 <Area
                                     yAxisId="left"
                                     type="monotone"
-                                    dataKey="cost"
-                                    name="Total Cost"
+                                    dataKey="grossRevenue"
+                                    name="Gross Referral"
                                     stackId="1"
                                     stroke="oklch(0.646 0.222 41.116)"
                                     fill="oklch(0.646 0.222 41.116)"
                                     fillOpacity={0.6}
                                 />
+                                <Area
+                                     yAxisId="left"
+                                     type="monotone"
+                                     dataKey="earnedRevenue"
+                                     name="Earned Referral"
+                                     stackId="1"
+                                     stroke="oklch(0.6 0.2 250)"
+                                     fill="oklch(0.6 0.2 250)"
+                                     fillOpacity={0.6}
+                                 />
+                                 <Area
+                                     yAxisId="left"
+                                     type="monotone"
+                                     dataKey="tax"
+                                     name="Total Tax"
+                                     stackId="1"
+                                     stroke="oklch(0.627 0.265 14.47)"
+                                     fill="oklch(0.627 0.265 14.47)"
+                                     fillOpacity={0.6}
+                                 />
                                 <Area
                                     yAxisId="right"
                                     type="monotone"

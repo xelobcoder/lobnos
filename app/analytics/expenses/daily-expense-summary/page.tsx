@@ -16,7 +16,7 @@ const COLOR_TOOLTIP_FG = 'var(--bs-body-color)';
 
 interface DailyExpenseData {
     expense_date: string;
-    total_expenses: string;
+    expenses_paid: string;
     expense_count: number;
     avg_expense_amount: string;
     unique_employees: number;
@@ -101,7 +101,7 @@ export default function DailyExpenseSummary() {
 
     const chartData = data.map(item => ({
         ...item,
-        total_amount: parseFloat(item.total_expenses),
+        total_amount: parseFloat(item.expenses_paid),
         average_amount: parseFloat(item.avg_expense_amount),
         dateLabel: dayjs(item.expense_date).format('DD-MM-YYYY HH:mm:ss')
     }));
@@ -128,7 +128,7 @@ export default function DailyExpenseSummary() {
                         <span className="fw-bold d-block">{entry.dateLabel}</span>
                     </div>
                     <div className="mb-1">
-                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Total Amount</span>
+                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Expenses Paid</span>
                         <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>{currencyFormatter.format(entry.total_amount)}</span>
                     </div>
                     <div className="mb-1">
@@ -187,7 +187,7 @@ export default function DailyExpenseSummary() {
                     <YAxis {...yAxisProps} />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                     <Legend {...legendProps} />
-                    <Bar dataKey="total_amount" name="Total Amount" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={40} />
+                    <Bar dataKey="total_amount" name="Expenses Paid" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={40} />
                 </BarChart>
             );
         }
@@ -199,7 +199,7 @@ export default function DailyExpenseSummary() {
                     <YAxis {...yAxisProps} />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                     <Legend {...legendProps} />
-                    <Line type="monotone" dataKey="total_amount" name="Total Amount" stroke={COLOR_ACCENT} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
+                    <Line type="monotone" dataKey="total_amount" name="Expenses Paid" stroke={COLOR_ACCENT} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
                 </LineChart>
             );
         }
@@ -216,7 +216,7 @@ export default function DailyExpenseSummary() {
                 <YAxis {...yAxisProps} />
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                 <Legend {...legendProps} />
-                <Area type="monotone" dataKey="total_amount" name="Total Amount" stroke={COLOR_ACCENT} fill="url(#colorTotalSpentFill)" strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
+                <Area type="monotone" dataKey="total_amount" name="Expenses Paid" stroke={COLOR_ACCENT} fill="url(#colorTotalSpentFill)" strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
             </AreaChart>
         );
     };
@@ -325,7 +325,7 @@ export default function DailyExpenseSummary() {
                             <thead className="sticky-top bg-body-tertiary">
                                 <tr>
                                     <th scope="col" className="py-2 text-start">Date</th>
-                                    <th scope="col" className="py-2 text-start">Total Amount</th>
+                                    <th scope="col" className="py-2 text-start">Expenses Paid</th>
                                     <th scope="col" className="py-2 text-start">Expense Count</th>
                                     <th scope="col" className="py-2 text-start">Employees</th>
                                     <th scope="col" className="py-2 text-start">Merchants</th>

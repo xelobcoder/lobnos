@@ -35,11 +35,11 @@ const COLOR_OTHER = 'oklch(0.6 0.118 184.704)';
 const COLOR_LABEL_ON_BAR = 'oklch(0.98 0.01 0)'; // A very light color for text on dark bars
 
 interface MonthlyCaseSummary {
-	period: string; // format "YYYY-MM"
+	period: string;
 	total_clinician_cases: number;
 	clinicians_total_cases: number;
-	clinicians_revenue_generated: string;
-	clinician_revenue_generated: string;
+	earned_revenue: string;
+	clinician_earned_revenue: string;
 	percentage_revenue: string;
 }
 
@@ -47,8 +47,8 @@ interface ChartDataPoint {
 	month: string;  // Formatted month name (e.g., "Jan")
 	totalClinicianCases: number;
 	cliniciansTotalCases: number;
-	cliniciansRevenueGenerated: number;
-	clinicianRevenueGenerated: number;
+	earnedRevenue: number;
+	clinicianEarnedRevenue: number;
 	percentageRevenue: number;
 }
 
@@ -106,8 +106,8 @@ const ClinicianAnalyticsCaseSummaryMonthly: React.FC<ClinicianAnalyticsCaseSumma
 							month: monthNames[monthNum],
 							totalClinicianCases: item.total_clinician_cases || 0,
 							cliniciansTotalCases: item.clinicians_total_cases || 0,
-							cliniciansRevenueGenerated: item.clinicians_revenue_generated ? parseFloat(item.clinicians_revenue_generated) : 0,
-							clinicianRevenueGenerated: item.clinician_revenue_generated ? parseFloat(item.clinician_revenue_generated) : 0,
+							earnedRevenue: item.earned_revenue ? parseFloat(item.earned_revenue) : 0,
+							clinicianEarnedRevenue: item.clinician_earned_revenue ? parseFloat(item.clinician_earned_revenue) : 0,
 							percentageRevenue: item.percentage_revenue ? parseFloat(item.percentage_revenue) : 0
 						};
 					});
@@ -140,10 +140,10 @@ const ClinicianAnalyticsCaseSummaryMonthly: React.FC<ClinicianAnalyticsCaseSumma
 							All Clinicians Cases: <strong>{data.cliniciansTotalCases || 0}</strong>
 						</p>
 						<p className="mb-1 text-body-secondary">
-							All Clinicians Revenue: <strong>{data.cliniciansRevenueGenerated ? currencyFormatter.format(data.cliniciansRevenueGenerated) : '-'}</strong>
+							Total Referral Revenue: <strong>{data.earnedRevenue ? currencyFormatter.format(data.earnedRevenue) : '-'}</strong>
 						</p>
 						<p className="mb-1 text-body-secondary">
-							This Clinician Revenue: <strong>{data.clinicianRevenueGenerated ? currencyFormatter.format(data.clinicianRevenueGenerated) : '-'}</strong>
+							Clinician Referral Revenue: <strong>{data.clinicianEarnedRevenue ? currencyFormatter.format(data.clinicianEarnedRevenue) : '-'}</strong>
 						</p>
 						<p className="mb-1 text-body-secondary">
 							Revenue %: <strong>{data.percentageRevenue ? data.percentageRevenue.toFixed(2) : '0.00'}%</strong>
@@ -182,6 +182,11 @@ const ClinicianAnalyticsCaseSummaryMonthly: React.FC<ClinicianAnalyticsCaseSumma
 
 		return (
 			<>
+				<div className="mb-3">
+					<small className="text-muted" style={{ fontSize: '0.85rem' }}>
+						<strong>Note:</strong> These figures represent the total revenue generated from services referred by the clinician (Referral Revenue). This does <strong>not</strong> represent commissions earned by or paid to the clinician.
+					</small>
+				</div>
 				<div className="d-flex justify-content-end gap-2 mb-3">
 					<button
 						onClick={() => setChartType('bar')}
@@ -308,8 +313,8 @@ const ClinicianAnalyticsCaseSummaryMonthly: React.FC<ClinicianAnalyticsCaseSumma
 								<th>Month</th>
 								<th className="text-end">This Clinician Cases</th>
 								<th className="text-end">All Clinicians Cases</th>
-								<th className="text-end">All Clinicians Revenue</th>
-								<th className="text-end">This Clinician Revenue</th>
+								<th className="text-end">Total Referral Revenue</th>
+								<th className="text-end">Clinician Referral Revenue</th>
 								<th className="text-end">Revenue %</th>
 							</tr>
 						</thead>
@@ -319,8 +324,8 @@ const ClinicianAnalyticsCaseSummaryMonthly: React.FC<ClinicianAnalyticsCaseSumma
 									<td>{row.month}</td>
 									<td className="text-end">{(row.totalClinicianCases || 0).toLocaleString()}</td>
 									<td className="text-end">{(row.cliniciansTotalCases || 0).toLocaleString()}</td>
-									<td className="text-end">{row.cliniciansRevenueGenerated ? currencyFormatter.format(row.cliniciansRevenueGenerated) : '-'}</td>
-									<td className="text-end">{row.clinicianRevenueGenerated ? currencyFormatter.format(row.clinicianRevenueGenerated) : '-'}</td>
+									<td className="text-end">{row.earnedRevenue ? currencyFormatter.format(row.earnedRevenue) : '-'}</td>
+									<td className="text-end">{row.clinicianEarnedRevenue ? currencyFormatter.format(row.clinicianEarnedRevenue) : '-'}</td>
 									<td className="text-end">{row.percentageRevenue ? row.percentageRevenue.toFixed(2) : '0.00'}%</td>
 								</tr>
 							))}

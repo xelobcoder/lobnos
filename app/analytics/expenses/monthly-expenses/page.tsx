@@ -19,21 +19,21 @@ import { customFetch, currencyFormatter } from "../../../../components/Auth/cust
 import { useApplication } from "../../../../components/Auth/useApplicationContext";
 import { RiBarChartBoxLine, RiLineChartLine, RiBubbleChartLine, RiErrorWarningLine, RiLoader4Line, RiInbox2Line, RiCalendarEventLine, RiRefreshLine } from "@remixicon/react";
 
-// Color variables to match sales chart
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)'; // Primary chart color
+
+const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)'; 
 const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
 const COLOR_BORDER = 'var(--bs-border-color)';
 const COLOR_TOOLTIP_BG = 'var(--bs-body-bg)';
 const COLOR_TOOLTIP_FG = 'var(--bs-body-color)';
 const COLOR_GREEN_TEXT = 'var(--bs-success)';
 const COLOR_RED_TEXT = 'var(--bs-danger)';
-const COLOR_SECONDARY = '#2563eb'; // Blue
-const COLOR_TERTIARY = '#ea580c'; // Orange
-const COLOR_EXPENSES = '#dc2626'; // Red
+const COLOR_SECONDARY = '#2563eb'; 
+const COLOR_TERTIARY = '#ea580c';
+const COLOR_EXPENSES = '#dc2626'; 
 
 interface ExpenseData {
     expense_month: number;
-    total_expenses: string;
+    expenses_paid: string;
     expense_count: number;
     avg_expense_amount: string;
     unique_employees: number;
@@ -79,7 +79,7 @@ export default function MonthlyExpensesByBranch() {
     const chartData = useMemo(() =>
         data.map(item => ({
             ...item,
-            total_amount: parseFloat(item.total_expenses),
+            total_amount: parseFloat(item.expenses_paid),
             average_amount: parseFloat(item.avg_expense_amount),
             monthLabel: new Date(year, item.expense_month - 1).toLocaleString('default', { month: 'short', year: 'numeric' })
         })), [data, year]);
@@ -105,7 +105,7 @@ export default function MonthlyExpensesByBranch() {
                         <span className="fw-bold d-block" style={{ color: COLOR_TOOLTIP_FG }}>{entry.monthLabel}</span>
                     </div>
                     <div className="mb-1">
-                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Total Amount</span>
+                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Expenses Paid</span>
                         <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>
                             {currencyFormatter.format(entry.total_amount)} ({percentageOfTotal}%)
                         </span>
@@ -162,7 +162,7 @@ export default function MonthlyExpensesByBranch() {
                     <YAxis {...yAxisProps} />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                     <Legend {...legendProps} />
-                    <Bar dataKey="total_amount" name="Total Amount" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={40} />
+                    <Bar dataKey="total_amount" name="Expenses Paid" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={40} />
                 </BarChart>
             );
         }
@@ -174,7 +174,7 @@ export default function MonthlyExpensesByBranch() {
                     <YAxis {...yAxisProps} />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                     <Legend {...legendProps} />
-                    <Line type="monotone" dataKey="total_amount" name="Total Amount" stroke={COLOR_ACCENT} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
+                    <Line type="monotone" dataKey="total_amount" name="Expenses Paid" stroke={COLOR_ACCENT} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
                 </LineChart>
             );
         }
@@ -191,7 +191,7 @@ export default function MonthlyExpensesByBranch() {
                 <YAxis {...yAxisProps} />
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                 <Legend {...legendProps} />
-                <Area type="monotone" dataKey="total_amount" name="Total Amount" stroke={COLOR_ACCENT} fill="url(#colorTotalSpentFill)" strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
+                <Area type="monotone" dataKey="total_amount" name="Expenses Paid" stroke={COLOR_ACCENT} fill="url(#colorTotalSpentFill)" strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
             </AreaChart>
         );
     };
@@ -298,7 +298,7 @@ export default function MonthlyExpensesByBranch() {
                             <thead className="sticky-top bg-body-tertiary">
                                 <tr>
                                     <th scope="col" className="py-2">Month</th>
-                                    <th scope="col" className="py-2 text-end">Total Amount</th>
+                                    <th scope="col" className="py-2 text-end">Expenses Paid</th>
                                     <th scope="col" className="py-2 text-end">Expense Count</th>
                                     <th scope="col" className="py-2 text-end">Avg Amount</th>
                                     <th scope="col" className="py-2 text-end">Employees</th>

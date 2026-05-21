@@ -14,7 +14,7 @@ const COLOR_PREVIOUS = 'oklch(0.553 0.196 25.59)';
 
 interface PeriodComparison {
     period: string;
-    total_expenses: string;
+    expenses_paid: string;
     expense_count: number;
     avg_expense_amount: string;
 }
@@ -95,8 +95,8 @@ export default function ExpenseComparisonByPeriod() {
 
     const chartData = [
         {
-            label: 'Current\nTotal',
-            value: parseFloat(currentPeriod?.total_expenses || '0'),
+            label: 'Current\nPaid',
+            value: parseFloat(currentPeriod?.expenses_paid || '0'),
             type: 'total',
             color: COLOR_CURRENT
         },
@@ -107,8 +107,8 @@ export default function ExpenseComparisonByPeriod() {
             color: COLOR_PREVIOUS
         },
         {
-            label: 'Previous\nTotal',
-            value: parseFloat(previousPeriod?.total_expenses || '0'),
+            label: 'Previous\nPaid',
+            value: parseFloat(previousPeriod?.expenses_paid || '0'),
             type: 'total',
             color: COLOR_CURRENT
         },
@@ -132,9 +132,9 @@ export default function ExpenseComparisonByPeriod() {
                         <span className="fw-bold d-block" style={{ color: 'var(--bs-body-color)' }}>{label}</span>
                     </div>
                     <div className="mb-1">
-                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Value</span>
+                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>{data.type === 'count' ? 'Quantity' : 'Expenses Paid'}</span>
                         <span className="fw-bold d-block" style={{ color: data.color }}>
-                            {data.type === 'count' ? data.value : currencyFormatter.format(data.value)}
+                            {data.type === 'count' ? data.value.toLocaleString() : currencyFormatter.format(data.value)}
                         </span>
                     </div>
                 </div>
@@ -304,6 +304,10 @@ export default function ExpenseComparisonByPeriod() {
                                 align="right"
                                 iconType="circle"
                                 iconSize={8}
+                                payload={[
+                                    { value: 'Expenses Paid', type: 'circle', id: 'ID01', color: COLOR_CURRENT },
+                                    { value: 'Expense Count', type: 'circle', id: 'ID02', color: COLOR_PREVIOUS }
+                                ]}
                                 wrapperStyle={{ fontSize: '13px', color: 'var(--bs-body-color)', paddingBottom: '15px' }}
                             />
                             <Bar

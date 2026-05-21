@@ -5,6 +5,7 @@ import { customFetch, currencyFormatter } from "../../../../components/Auth/cust
 import { useApplication } from "../../../../components/Auth/useApplicationContext";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, AreaChart, Area } from "recharts";
 import { RiBarChartBoxLine, RiLineChartLine, RiBubbleChartLine, RiLoader4Line, RiErrorWarningLine, RiInbox2Line, RiCalendarEventLine, RiRefreshLine } from "@remixicon/react";
+import DateFilterReusable from "../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
 const COLOR_BORDER = 'var(--bs-border-color)';
@@ -14,7 +15,7 @@ const COLOR_TOOLTIP_FG = 'var(--bs-body-color)';
 
 interface TopExpenseCategory {
     category_name: string;
-    total_amount: string;
+    expenses_paid: string;
     expense_count: number;
     avg_amount: string;
 }
@@ -34,6 +35,7 @@ export default function TopExpenseCategories() {
     });
     const [branches, setBranches] = useState<any[]>([]);
     const [chartType, setChartType] = useState<"line" | "bar" | "area">("line");
+    const [dateFilter, setDateFilter] = useState<string>("This Year");
     const { user } = useApplication();
 
     const fetchData = async () => {
@@ -43,9 +45,8 @@ export default function TopExpenseCategories() {
         try {
             const endpoint = `expenses/analytics/top-categories?branchid=${branchid}${startDate ? `&startDate=${startDate}` : ''}${endDate ? `&endDate=${endDate}` : ''}`;
             const response = await customFetch(endpoint);
-            const responseData = response?.data;
-            if (response && Array.isArray(responseData)) {
-                setData(responseData);
+            if (response && response.status === "success" && Array.isArray(response.data)) {
+                setData(response.data);
             } else {
                 setError("Invalid data format received");
             }
@@ -60,6 +61,12 @@ export default function TopExpenseCategories() {
         const currentYear = new Date().getFullYear();
         setStartDate(`${currentYear}-01-01`);
         setEndDate(`${currentYear}-12-31`);
+        setDateFilter("This Year");
+    };
+
+    const handleDateRangeChange = (newStartDate: string, newEndDate: string) => {
+        setStartDate(newStartDate);
+        setEndDate(newEndDate);
     };
 
     useEffect(() => {
@@ -84,12 +91,13 @@ export default function TopExpenseCategories() {
 
     const chartData = data.map(item => ({
         ...item,
-        total_amount: parseFloat(item.total_amount),
+        total_amount: parseFloat(item.expenses_paid),
         average_amount: parseFloat(item.avg_amount),
         category_name: item.category_name
     }));
 
     const totalAmountSum = chartData.reduce((sum, entry) => sum + entry.total_amount, 0);
+    const totalExpenseCount = chartData.reduce((sum, entry) => sum + entry.expense_count, 0);
 
     const renderChart = (): React.ReactElement => {
         const commonProps = {
@@ -133,7 +141,7 @@ export default function TopExpenseCategories() {
                     <YAxis {...yAxisProps} />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                     <Legend {...legendProps} />
-                    <Bar dataKey="total_amount" name="Total Amount" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={30} />
+                    <Bar dataKey="total_amount" name="Expenses Paid" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={30} />
                 </BarChart>
             );
         }
@@ -146,7 +154,7 @@ export default function TopExpenseCategories() {
                     <YAxis {...yAxisProps} />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                     <Legend {...legendProps} />
-                    <Line type="monotone" dataKey="total_amount" name="Total Amount" stroke={COLOR_ACCENT} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
+                    <Line type="monotone" dataKey="total_amount" name="Expenses Paid" stroke={COLOR_ACCENT} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
                 </LineChart>
             );
         }
@@ -168,7 +176,7 @@ export default function TopExpenseCategories() {
                     <Area
                         type="monotone"
                         dataKey="total_amount"
-                        name="Total Amount"
+                        name="Expenses Paid"
                         stroke={COLOR_ACCENT}
                         fill="url(#colorTotalSpentFill)"
                         strokeWidth={2}
@@ -187,7 +195,7 @@ export default function TopExpenseCategories() {
                 <YAxis {...yAxisProps} />
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                 <Legend {...legendProps} />
-                <Bar dataKey="total_amount" name="Total Amount" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={30} />
+                <Bar dataKey="total_amount" name="Expenses Paid" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={30} />
             </BarChart>
         );
     };
@@ -217,7 +225,7 @@ export default function TopExpenseCategories() {
                         <span className="fw-bold d-block">{entry.category_name}</span>
                     </div>
                     <div className="mb-1">
-                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Total Amount</span>
+                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Expenses Paid</span>
                         <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>{currencyFormatter.format(entry.total_amount)}</span>
                     </div>
                     <div className="mb-1">
@@ -271,19 +279,16 @@ export default function TopExpenseCategories() {
                                 ))}
                             </select>
                         </div>
-                        <div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
-                            <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: COLOR_BORDER, paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
-                                <RiCalendarEventLine size={16} className="text-muted" style={{ color: COLOR_TEXT_MUTED }} />
-                            </span>
-                            <input id="startDateTEC" type="date" className="form-control shadow-none border-start-0" value={startDate} onChange={e => setStartDate(e.target.value)} aria-label="Start Date" style={{ fontSize: '0.875rem', borderColor: COLOR_BORDER, paddingLeft: '0.3rem' }} />
+                        <div style={{ minWidth: '240px' }}>
+                            <DateFilterReusable
+                                value={dateFilter}
+                                onChange={setDateFilter}
+                                onDateRangeChange={handleDateRangeChange}
+                                label="Period"
+                                className="w-100"
+                            />
                         </div>
-                        <div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
-                            <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: COLOR_BORDER, paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
-                                <RiCalendarEventLine size={16} className="text-muted" style={{ color: COLOR_TEXT_MUTED }} />
-                            </span>
-                            <input id="endDateTEC" type="date" className="form-control shadow-none border-start-0" value={endDate} onChange={e => setEndDate(e.target.value)} aria-label="End Date" style={{ fontSize: '0.875rem', borderColor: COLOR_BORDER, paddingLeft: '0.3rem' }} />
-                        </div>
-                        <button onClick={handleResetFilters} className="btn btn-sm btn-outline-secondary d-flex align-items-center" type="button" aria-label="Reset date filters" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
+                        <button onClick={handleResetFilters} className="btn btn-sm btn-outline-secondary d-flex align-items-center" type="button" aria-label="Reset date filters" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem', height: '38px' }}>
                             <RiRefreshLine size={16} className="me-1" /> Reset
                         </button>
                     </div>
@@ -335,7 +340,7 @@ export default function TopExpenseCategories() {
                             <thead className="sticky-top bg-body-tertiary">
                                 <tr>
                                     <th scope="col" className="py-2 text-start">Category</th>
-                                    <th scope="col" className="py-2 text-start">Total Amount</th>
+                                    <th scope="col" className="py-2 text-start">Expenses Paid</th>
                                     <th scope="col" className="py-2 text-start">Expense Count</th>
                                     <th scope="col" className="py-2 text-start">Average</th>
                                 </tr>
@@ -354,7 +359,7 @@ export default function TopExpenseCategories() {
                                 <tr className="fw-bold border-top">
                                     <td className="py-2 text-start">Total</td>
                                     <td className="py-2 text-start">{currencyFormatter.format(totalAmountSum)}</td>
-                                    <td className="py-2 text-start">{chartData.reduce((sum, entry) => sum + entry.expense_count, 0)}</td>
+                                    <td className="py-2 text-start">{totalExpenseCount}</td>
                                     <td className="py-2 text-start">-</td>
                                 </tr>
                             </tfoot>

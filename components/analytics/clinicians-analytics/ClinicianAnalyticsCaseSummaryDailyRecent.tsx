@@ -16,11 +16,9 @@ interface DailyCaseSummary {
 	year: number;
 	clinician_cases: number;
 	total_cases: number;
-	clinician_total_payable?: number | null;
-	percentage_clinician_cases?: string;
-	clinician_revenue_generated?: string;
-	clinicians_revenue_generated?: string;
-	percentage_revenue?: string;
+	earned_revenue: string;
+	total_earned_revenue: string;
+	percentage_revenue: string;
 }
 
 interface ClinicianAnalyticsCaseSummaryDailyProps {
@@ -121,10 +119,8 @@ const ClinicianAnalyticsCaseSummaryDaily: React.FC<ClinicianAnalyticsCaseSummary
 		clinicianCases: Number(item.clinician_cases) || 0,
 		otherCases: Math.max(0, (Number(item.total_cases) || 0) - (Number(item.clinician_cases) || 0)),
 		totalCases: Number(item.total_cases) || 0,
-		percentage: parseFloat(item.percentage_clinician_cases || item.percentage_revenue || '0') || 0,
-		clinicianPayable: item.clinician_total_payable !== null ? Number(item.clinician_total_payable) : null,
-		clinicianRevenue: item.clinician_revenue_generated ? parseFloat(item.clinician_revenue_generated) : 0,
-		cliniciansRevenue: item.clinicians_revenue_generated ? parseFloat(item.clinicians_revenue_generated) : 0,
+		clinicianEarnedRevenue: item.earned_revenue ? parseFloat(item.earned_revenue) : 0,
+		totalEarnedRevenue: item.total_earned_revenue ? parseFloat(item.total_earned_revenue) : 0,
 		percentageRevenue: item.percentage_revenue ? parseFloat(item.percentage_revenue) : 0,
 	}));
 
@@ -136,13 +132,13 @@ const ClinicianAnalyticsCaseSummaryDaily: React.FC<ClinicianAnalyticsCaseSummary
 
 		return (
 			<div className="rounded-lg border p-2 shadow-sm" style={{ backgroundColor: SHADCN_TOOLTIP_BG, borderColor: SHADCN_BORDER, color: SHADCN_TOOLTIP_FG, minWidth: '200px', fontSize: '0.8rem' }}>
-				<div className="mb-1 fw-semibold" style={{ color: SHADCN_FOREGROUND }}>{label} ({entry?.percentage.toFixed(1)}% of Total)</div>
+				<div className="mb-1 fw-semibold" style={{ color: SHADCN_FOREGROUND }}>{label}</div>
 				{Array.isArray(payload) && payload.length > 0 && payload.map((pld, index) => (
 					<div key={index} className="d-flex align-items-center my-1">
 						<span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: pld.stroke || pld.fill, marginRight: '8px' }}></span>
 						<span style={{ color: SHADCN_MUTED_FOREGROUND }}>{pld.name}: </span>
 						<span className="fw-medium ms-1" style={{ color: pld.stroke || pld.fill }}>
-							{(pld.dataKey === 'clinicianPayable' || pld.dataKey === 'clinicianRevenue' || pld.dataKey === 'cliniciansRevenue') && typeof pld.value === 'number' && pld.value !== null
+							{(pld.dataKey === 'clinicianEarnedRevenue' || pld.dataKey === 'totalEarnedRevenue') && typeof pld.value === 'number'
 								? currencyFormatter.format(pld.value)
 								: pld.value}
 						</span>
@@ -150,17 +146,17 @@ const ClinicianAnalyticsCaseSummaryDaily: React.FC<ClinicianAnalyticsCaseSummary
 				))}
 				{entry && (
 					<div className="mt-2 pt-2 border-top">
-						<div className="d-flex justify-content-between">
-							<span style={{ color: SHADCN_MUTED_FOREGROUND }}>Clinician Revenue:</span>
-							<span className="fw-medium">{entry.clinicianRevenue ? currencyFormatter.format(entry.clinicianRevenue) : '-'}</span>
+						<div className="d-flex justify-content-between gap-3">
+							<span style={{ color: SHADCN_MUTED_FOREGROUND }}>Clinician Referral:</span>
+							<span className="fw-medium">{currencyFormatter.format(entry.clinicianEarnedRevenue)}</span>
 						</div>
-						<div className="d-flex justify-content-between">
-							<span style={{ color: SHADCN_MUTED_FOREGROUND }}>Total Revenue:</span>
-							<span className="fw-medium">{entry.cliniciansRevenue ? currencyFormatter.format(entry.cliniciansRevenue) : '-'}</span>
+						<div className="d-flex justify-content-between gap-3">
+							<span style={{ color: SHADCN_MUTED_FOREGROUND }}>Total Referral:</span>
+							<span className="fw-medium">{currencyFormatter.format(entry.totalEarnedRevenue)}</span>
 						</div>
-						<div className="d-flex justify-content-between">
+						<div className="d-flex justify-content-between gap-3">
 							<span style={{ color: SHADCN_MUTED_FOREGROUND }}>Revenue %:</span>
-							<span className="fw-medium">{entry.percentageRevenue ? entry.percentageRevenue.toFixed(2) + '%' : '0.00%'}</span>
+							<span className="fw-medium">{entry.percentageRevenue.toFixed(2)}%</span>
 						</div>
 					</div>
 				)}
@@ -185,6 +181,11 @@ const ClinicianAnalyticsCaseSummaryDaily: React.FC<ClinicianAnalyticsCaseSummary
 					<InsightCard Icon={RiNumbersLine} title="Avg. Clinician Cases/Day" value={insights.avgClinicianCases} variantColor={SHADCN_PRIMARY} />
 					<InsightCard Icon={RiCalendarLine} title="Peak Day (Clinician Cases)" value={`${insights.peakDay} (${insights.peakValue})`} variantColor={SHADCN_SECONDARY} isCurrency={false} />
 					<InsightCard Icon={RiBarChartHorizontalLine} title="Overall Trend" value={insights.trend} variantColor={insights.trend === "Upward" ? SHADCN_TERTIARY : insights.trend === "Downward" ? "oklch(0.68 0.22 15)" : SHADCN_MUTED_FOREGROUND} isCurrency={false} />
+				</div>
+				<div className="mb-4">
+					<small className="text-muted" style={{ fontSize: '0.85rem' }}>
+						<strong>Note:</strong> These figures represent the total revenue generated from services referred by the clinician (Referral Revenue). This does <strong>not</strong> represent commissions earned by or paid to the clinician.
+					</small>
 				</div>
 				<div style={{ height: "400px" }}> {/* Adjusted chart height slightly */}
 					<ResponsiveContainer width="100%" height="100%">
@@ -217,7 +218,7 @@ const ClinicianAnalyticsCaseSummaryDaily: React.FC<ClinicianAnalyticsCaseSummary
 								<Area type="monotone" dataKey="totalCases" name="Total Cases" stroke={SHADCN_TERTIARY} strokeWidth={2} fill="url(#gradientTotal)" />
 								<Area type="monotone" dataKey="otherCases" name="Other Cases" stroke={SHADCN_SECONDARY} strokeWidth={2} fill="url(#gradientOther)" />
 								<Area type="monotone" dataKey="clinicianCases" name="Clinician Cases" stroke={SHADCN_PRIMARY} strokeWidth={2.5} fill="url(#gradientClinician)" />
-								<Area type="monotone" dataKey="clinicianRevenue" name="Clinician Revenue" stroke={SHADCN_PAYABLE} strokeWidth={2} fill="url(#gradientPayable)" yAxisId="right" />
+								<Area type="monotone" dataKey="clinicianEarnedRevenue" name="Clinician Referral" stroke={SHADCN_PAYABLE} strokeWidth={2} fill="url(#gradientPayable)" yAxisId="right" />
 							</AreaChart>
 						) : (
 							<LineChart data={chartData} margin={{ top: 5, right: 15, left: 5, bottom: 60 }}>
@@ -235,7 +236,7 @@ const ClinicianAnalyticsCaseSummaryDaily: React.FC<ClinicianAnalyticsCaseSummary
 								<Line type="monotone" dataKey="clinicianCases" name="Clinician Cases" stroke={SHADCN_PRIMARY} strokeWidth={2.5} dot={{ r: 3, strokeWidth: 1.5, fill: SHADCN_PRIMARY }} activeDot={{ r: 6, fill: SHADCN_PRIMARY, stroke: SHADCN_CARD_BG, strokeWidth: 2 }} />
 								<Line type="monotone" dataKey="otherCases" name="Other Cases" stroke={SHADCN_SECONDARY} strokeWidth={2} dot={{ r: 3, strokeWidth: 1.5, fill: SHADCN_SECONDARY }} activeDot={{ r: 6, fill: SHADCN_SECONDARY, stroke: SHADCN_CARD_BG, strokeWidth: 2 }} />
 								<Line type="monotone" dataKey="totalCases" name="Total Cases" stroke={SHADCN_TERTIARY} strokeWidth={2} dot={{ r: 3, strokeWidth: 1.5, fill: SHADCN_TERTIARY }} activeDot={{ r: 6, fill: SHADCN_TERTIARY, stroke: SHADCN_CARD_BG, strokeWidth: 2 }} />
-								<Line type="monotone" dataKey="clinicianRevenue" name="Clinician Revenue" stroke={SHADCN_PAYABLE} strokeWidth={2} dot={{ r: 3, strokeWidth: 1.5, fill: SHADCN_PAYABLE }} activeDot={{ r: 6, fill: SHADCN_PAYABLE, stroke: SHADCN_CARD_BG, strokeWidth: 2 }} yAxisId="right" />
+								<Line type="monotone" dataKey="clinicianEarnedRevenue" name="Clinician Referral" stroke={SHADCN_PAYABLE} strokeWidth={2} dot={{ r: 3, strokeWidth: 1.5, fill: SHADCN_PAYABLE }} activeDot={{ r: 6, fill: SHADCN_PAYABLE, stroke: SHADCN_CARD_BG, strokeWidth: 2 }} yAxisId="right" />
 							</LineChart>
 						)}
 					</ResponsiveContainer>
@@ -250,9 +251,8 @@ const ClinicianAnalyticsCaseSummaryDaily: React.FC<ClinicianAnalyticsCaseSummary
 									<th className="text-center">Clinician Cases</th>
 									<th className="text-center">Total Cases</th>
 									<th className="text-center">Other Cases</th>
-									<th className="text-center">% Cases</th>
-									<th className="text-center">Clinician Revenue</th>
-									<th className="text-center">Total Revenue</th>
+									<th className="text-center">Clinician Referral Revenue</th>
+									<th className="text-center">Total Referral Revenue</th>
 									<th className="text-center">Revenue %</th>
 								</tr>
 							</thead>
@@ -280,7 +280,7 @@ const ClinicianAnalyticsCaseSummaryDaily: React.FC<ClinicianAnalyticsCaseSummary
 										return [
 											showMonthHeader ? (
 												<tr key={`month-${monthYear}`} className="table-warning analytics-table-small">
-													<td colSpan={8} className="fw-bold text-dark text-uppercase text-center fs-6 py-2">
+													<td colSpan={7} className="fw-bold text-dark text-uppercase text-center fs-6 py-2">
 														{monthYear}
 													</td>
 												</tr>
@@ -290,17 +290,14 @@ const ClinicianAnalyticsCaseSummaryDaily: React.FC<ClinicianAnalyticsCaseSummary
 												<td className="text-center fw-semibold text-primary">{row.clinicianCases}</td>
 												<td className="text-center fw-semibold text-info">{row.totalCases}</td>
 												<td className="text-center fw-semibold text-warning">{row.otherCases}</td>
-												<td className={`text-center fw-semibold ${row.percentage >= 50 ? 'text-success' : 'text-danger'}`}>
-													{row.percentage.toFixed(1)}%
-												</td>
 												<td className="text-end fw-semibold text-success" style={{ fontFamily: 'monospace' }}>
-													{row.clinicianRevenue ? currencyFormatter.format(row.clinicianRevenue) : '-'}
+													{currencyFormatter.format(row.clinicianEarnedRevenue)}
 												</td>
 												<td className="text-end fw-semibold text-info" style={{ fontFamily: 'monospace' }}>
-													{row.cliniciansRevenue ? currencyFormatter.format(row.cliniciansRevenue) : '-'}
+													{currencyFormatter.format(row.totalEarnedRevenue)}
 												</td>
 												<td className={`text-center fw-semibold ${row.percentageRevenue >= 50 ? 'text-success' : 'text-danger'}`}>
-													{row.percentageRevenue ? row.percentageRevenue.toFixed(1) + '%' : '0.0%'}
+													{row.percentageRevenue.toFixed(2)}%
 												</td>
 											</tr>
 										];

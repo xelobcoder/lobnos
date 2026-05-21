@@ -24,7 +24,8 @@ import {
     RiCalculatorLine,
     RiCalendarEventLine,
     RiErrorWarningLine,
-    RiPhoneLine
+    RiPhoneLine,
+    RiCloseCircleLine
 } from '@remixicon/react';
 
 
@@ -111,10 +112,11 @@ export const AnalyticsLinks: Link[] = [
             { title: 'Daily Sales Trend', link: '/analytics/sales/dailySalesTrend', icon: <RiCalendarLine /> },
             { title: 'Monthly Sales Trend', link: '/analytics/sales/monthlySalesTrend', icon: <RiCalendarLine /> },
             { title: 'Sales By Week And Branch', link: '/analytics/sales/salesByWeekAndBranch', icon: <RiBuildingLine /> },
-            { title: 'Total Sales By Employee', link: '/analytics/sales/totalSalesByEmployee', icon: <RiUserLine /> },
-            { title: 'Total Sales By Organization', link: '/analytics/sales/totalSalesByOrganization', icon: <RiBuildingLine /> },
-            { title: 'Total Sales By Outsourced Status', link: '/analytics/sales/totalSalesByOutsourcedStatus', icon: <RiPriceTag3Line /> },
-            { title: 'Total Sales By Service Category', link: '/analytics/sales/totalSalesByServiceCategory', icon: <RiPriceTag3Line /> },
+            { title: ' Sales By Employee', link: '/analytics/sales/totalSalesByEmployee', icon: <RiUserLine /> },
+            { title: 'Sales By Clinician', link: '/analytics/sales/totalSalesByClinician', icon: <RiUserLine /> },
+            { title: 'Sales By Organization', link: '/analytics/sales/totalSalesByOrganization', icon: <RiBuildingLine /> },
+            { title: ' Sales By Outsourced Status', link: '/analytics/sales/totalSalesByOutsourcedStatus', icon: <RiPriceTag3Line /> },
+            { title: ' Sales By Service Category', link: '/analytics/sales/totalSalesByServiceCategory', icon: <RiPriceTag3Line /> },
             { title: 'Weekly Sales Trend', link: '/analytics/sales/weeklySalesTrend', icon: <RiCalendarLine /> },
             { title: 'Yearly Sales Trend', link: '/analytics/sales/yearlySalesTrend', icon: <RiCalendarLine /> }
         ]
@@ -203,6 +205,11 @@ export const AnalyticsLinks: Link[] = [
                 title: 'Expense Growth Rate',
                 link: '/analytics/expenses/expense-growth-rate',
                 icon: <RiLineChartLine />
+            },
+            {
+                title: 'Rejected Expenses',
+                link: '/analytics/expenses/rejected',
+                icon: <RiCloseCircleLine />
             }
         ]
     },

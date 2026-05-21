@@ -26,28 +26,43 @@ const DATE_FILTER_GROUPS = (labelText: string) => ({
           { value: 'last 21 days', label: 'Last 21 Days' },
      ],
      'Monthly': [
-          { value: 'This Month', label: 'This Month (MTD)' },
-          { value: 'last month', label: 'Last Month' },
-          { value: 'last 30 Days', label: 'Last 30 Days' },
-          { value: 'last 2 months', label: 'Last 2 Months' },
-          { value: 'last 3 months', label: 'Last 3 Months' },
-          { value: 'last 60 Days', label: 'Last 60 Days' },
-          { value: 'last 90 Days', label: 'Last 90 Days' },
-     ],
-     'Quarterly': [
-          { value: 'this quarter', label: 'This Quarter (QTD)' },
-          { value: 'last quarter', label: 'Last Quarter' },
-          { value: 'last 2 quarters', label: 'Last 2 Quarters' },
-     ],
-     'Yearly': [
-          { value: 'This Year', label: 'This Year (YTD)' },
-          { value: 'last Year', label: 'Last Year' },
-          { value: 'last 2 years', label: 'Last 2 Years' },
-          { value: 'last 3 years', label: 'Last 3 Years' },
-          { value: 'last 6 months', label: 'Last 6 Months' },
-          { value: 'last 12 months', label: 'Last 12 Months' },
-          { value: 'last 365 Days', label: 'Last 365 Days' },
-     ],
+               { value: 'This Month', label: 'This Month (MTD)' },
+               { value: 'last month', label: 'Last Month' },
+               { value: 'last 30 Days', label: 'Last 30 Days' },
+               { value: 'last 2 months', label: 'Last 2 Months' },
+               { value: 'last 3 months', label: 'Last 3 Months' },
+               { value: 'last 4 months', label: 'Last 4 Months' },
+               { value: 'last 5 months', label: 'Last 5 Months' },
+               { value: 'last 6 months', label: 'Last 6 Months' },
+               { value: 'last 7 months', label: 'Last 7 Months' },
+               { value: 'last 8 months', label: 'Last 8 Months' },
+               { value: 'last 9 months', label: 'Last 9 Months' },
+               { value: 'last 10 months', label: 'Last 10 Months' },
+               { value: 'last 11 months', label: 'Last 11 Months' },
+               { value: 'last 60 Days', label: 'Last 60 Days' },
+               { value: 'last 90 Days', label: 'Last 90 Days' },
+               { value: 'last 180 Days', label: 'Last 180 Days' },
+               { value: 'last 270 Days', label: 'Last 270 Days' },
+          ],
+          'Quarterly': [
+               { value: 'this quarter', label: 'This Quarter (QTD)' },
+               { value: 'last quarter', label: 'Last Quarter' },
+               { value: 'last 2 quarters', label: 'Last 2 Quarters' },
+               { value: 'last 3 quarters', label: 'Last 3 Quarters' },
+               { value: 'last 4 quarters', label: 'Last 4 Quarters' },
+          ],
+          'Yearly': [
+               { value: 'This Year', label: 'This Year (YTD)' },
+               { value: 'last Year', label: 'Last Year' },
+               { value: 'last 2 years', label: 'Last 2 Years' },
+               { value: 'last 3 years', label: 'Last 3 Years' },
+               { value: 'last 4 years', label: 'Last 4 Years' },
+               { value: 'last 5 years', label: 'Last 5 Years' },
+               { value: 'last 12 months', label: 'Last 12 Months' },
+               { value: 'last 18 months', label: 'Last 18 Months' },
+               { value: 'last 24 months', label: 'Last 24 Months' },
+               { value: 'last 365 Days', label: 'Last 365 Days' },
+          ],
      'Fiscal': [
           { value: 'This Fiscal Year', label: 'This Fiscal Year' },
           { value: 'Last Fiscal Year', label: 'Last Fiscal Year' },
@@ -121,12 +136,64 @@ const calculateDateRange = (filterValue: string) => {
                startDate = dayjs().subtract(90, 'days').format('YYYY-MM-DD');
                endDate = dayjs().format('YYYY-MM-DD');
                break;
+          case 'last 180 Days':
+               startDate = dayjs().subtract(180, 'days').format('YYYY-MM-DD');
+               endDate = dayjs().format('YYYY-MM-DD');
+               break;
+          case 'last 270 Days':
+               startDate = dayjs().subtract(270, 'days').format('YYYY-MM-DD');
+               endDate = dayjs().format('YYYY-MM-DD');
+               break;
           case 'last 2 months':
                startDate = dayjs().subtract(2, 'months').format('YYYY-MM-DD');
                endDate = dayjs().format('YYYY-MM-DD');
                break;
           case 'last 3 months':
                startDate = dayjs().subtract(3, 'months').format('YYYY-MM-DD');
+               endDate = dayjs().format('YYYY-MM-DD');
+               break;
+          case 'last 4 months':
+               startDate = dayjs().subtract(4, 'months').format('YYYY-MM-DD');
+               endDate = dayjs().format('YYYY-MM-DD');
+               break;
+          case 'last 5 months':
+               startDate = dayjs().subtract(5, 'months').format('YYYY-MM-DD');
+               endDate = dayjs().format('YYYY-MM-DD');
+               break;
+          case 'last 6 months':
+               startDate = dayjs().subtract(6, 'months').format('YYYY-MM-DD');
+               endDate = dayjs().format('YYYY-MM-DD');
+               break;
+          case 'last 7 months':
+               startDate = dayjs().subtract(7, 'months').format('YYYY-MM-DD');
+               endDate = dayjs().format('YYYY-MM-DD');
+               break;
+          case 'last 8 months':
+               startDate = dayjs().subtract(8, 'months').format('YYYY-MM-DD');
+               endDate = dayjs().format('YYYY-MM-DD');
+               break;
+          case 'last 9 months':
+               startDate = dayjs().subtract(9, 'months').format('YYYY-MM-DD');
+               endDate = dayjs().format('YYYY-MM-DD');
+               break;
+          case 'last 10 months':
+               startDate = dayjs().subtract(10, 'months').format('YYYY-MM-DD');
+               endDate = dayjs().format('YYYY-MM-DD');
+               break;
+          case 'last 11 months':
+               startDate = dayjs().subtract(11, 'months').format('YYYY-MM-DD');
+               endDate = dayjs().format('YYYY-MM-DD');
+               break;
+          case 'last 12 months':
+               startDate = dayjs().subtract(12, 'months').format('YYYY-MM-DD');
+               endDate = dayjs().format('YYYY-MM-DD');
+               break;
+          case 'last 18 months':
+               startDate = dayjs().subtract(18, 'months').format('YYYY-MM-DD');
+               endDate = dayjs().format('YYYY-MM-DD');
+               break;
+          case 'last 24 months':
+               startDate = dayjs().subtract(24, 'months').format('YYYY-MM-DD');
                endDate = dayjs().format('YYYY-MM-DD');
                break;
           case 'last 365 Days':
@@ -139,6 +206,14 @@ const calculateDateRange = (filterValue: string) => {
                break;
           case 'last 3 years':
                startDate = dayjs().subtract(3, 'years').format('YYYY-MM-DD');
+               endDate = dayjs().format('YYYY-MM-DD');
+               break;
+          case 'last 4 years':
+               startDate = dayjs().subtract(4, 'years').format('YYYY-MM-DD');
+               endDate = dayjs().format('YYYY-MM-DD');
+               break;
+          case 'last 5 years':
+               startDate = dayjs().subtract(5, 'years').format('YYYY-MM-DD');
                endDate = dayjs().format('YYYY-MM-DD');
                break;
           case 'This Fiscal Year':
@@ -169,11 +244,11 @@ const calculateDateRange = (filterValue: string) => {
                startDate = dayjs().subtract(6, 'months').format('YYYY-MM-DD');
                endDate = dayjs().format('YYYY-MM-DD');
                break;
-          case 'last 6 months':
-               startDate = dayjs().subtract(6, 'months').format('YYYY-MM-DD');
+          case 'last 3 quarters':
+               startDate = dayjs().subtract(9, 'months').format('YYYY-MM-DD');
                endDate = dayjs().format('YYYY-MM-DD');
                break;
-          case 'last 12 months':
+          case 'last 4 quarters':
                startDate = dayjs().subtract(12, 'months').format('YYYY-MM-DD');
                endDate = dayjs().format('YYYY-MM-DD');
                break;

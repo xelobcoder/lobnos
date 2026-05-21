@@ -24,17 +24,17 @@ interface DailyCaseChange {
 	year?: number;
 	month?: string;
 	clinician_cases: number;
-	clinician_accrual_revenue: string;
-	clinician_actual_revenue: string;
-	clinician_outstanding_debt: string;
+	clinicians_earned_revenue: string;
+	clinicians_cash_collected: string;
+	clinicians_outstanding: string;
 	previous_day_cases: number | null;
-	previous_day_accrual_revenue: string | null;
-	previous_day_actual_revenue: string | null;
-	previous_day_outstanding_debt: string | null;
+	previous_day_earned_revenue: string | null;
+	previous_day_cash_collected: string | null;
+	previous_day_outstanding: string | null;
 	percentage_change: string;
-	percentage_accrual_revenue_change: string;
-	percentage_actual_revenue_change: string;
-	percentage_outstanding_debt_change: string;
+	percentage_earned_revenue_change: string;
+	percentage_cash_collected_change: string;
+	percentage_outstanding_change: string;
 }
 
 interface MonthlyCaseChange {
@@ -42,17 +42,17 @@ interface MonthlyCaseChange {
 	year?: number;
 	date?: string;
 	clinician_cases: number;
-	clinician_accrual_revenue: string;
-	clinician_actual_revenue: string;
-	clinician_outstanding_debt: string;
+	clinicians_earned_revenue: string;
+	clinicians_cash_collected: string;
+	clinicians_outstanding: string;
 	previous_month_cases: number | null;
-	previous_month_accrual_revenue: string | null;
-	previous_month_actual_revenue: string | null;
-	previous_month_outstanding_debt: string | null;
+	previous_month_earned_revenue: string | null;
+	previous_month_cash_collected: string | null;
+	previous_month_outstanding: string | null;
 	percentage_change: string;
-	percentage_accrual_revenue_change: string;
-	percentage_actual_revenue_change: string;
-	percentage_outstanding_debt_change: string;
+	percentage_earned_revenue_change: string;
+	percentage_cash_collected_change: string;
+	percentage_outstanding_change: string;
 }
 
 interface YearlyCaseChange {
@@ -60,17 +60,17 @@ interface YearlyCaseChange {
 	month?: string;
 	date?: string;
 	clinician_cases: number;
-	clinician_accrual_revenue: string;
-	clinician_actual_revenue: string;
-	clinician_outstanding_debt: string;
+	clinicians_earned_revenue: string;
+	clinicians_cash_collected: string;
+	clinicians_outstanding: string;
 	previous_year_cases: number | null;
-	previous_year_accrual_revenue: string | null;
-	previous_year_actual_revenue: string | null;
-	previous_year_outstanding_debt: string | null;
+	previous_year_earned_revenue: string | null;
+	previous_year_cash_collected: string | null;
+	previous_year_outstanding: string | null;
 	percentage_change: string;
-	percentage_accrual_revenue_change: string;
-	percentage_actual_revenue_change: string;
-	percentage_outstanding_debt_change: string;
+	percentage_earned_revenue_change: string;
+	percentage_cash_collected_change: string;
+	percentage_outstanding_change: string;
 }
 
 type CaseData = DailyCaseChange | MonthlyCaseChange | YearlyCaseChange;
@@ -86,19 +86,17 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 	if (!active || !payload || !payload.length) return null;
 	const data = payload[0].payload;
 	const percentageChange = parseFloat(data.percentage_change);
-	const percentageAccrualChange = parseFloat(data.percentage_accrual_revenue_change);
-	const percentageActualChange = parseFloat(data.percentage_actual_revenue_change);
-	const percentageDebtChange = parseFloat(data.percentage_outstanding_debt_change);
+	const percentageEarnedChange = parseFloat(data.percentage_earned_revenue_change);
+	const percentageCashChange = parseFloat(data.percentage_cash_collected_change);
+	const percentageOutstandingChange = parseFloat(data.percentage_outstanding_change);
 	// Revenue fields
-	const accrualRevenue = data.clinician_accrual_revenue ?? null;
-	const actualRevenue = data.clinician_actual_revenue ?? null;
-	const outstandingDebt = data.clinician_outstanding_debt ?? null;
-	const allAccrualRevenue = data.clinicians_accrual_revenue ?? null;
-	const allActualRevenue = data.clinicians_actual_revenue ?? null;
-	const allOutstandingDebt = data.clinicians_outstanding_debt ?? null;
-	const prevAccrualRevenue = data.previous_day_accrual_revenue ?? data.previous_month_accrual_revenue ?? data.previous_year_accrual_revenue ?? null;
-	const prevActualRevenue = data.previous_day_actual_revenue ?? data.previous_month_actual_revenue ?? data.previous_year_actual_revenue ?? null;
-	const prevOutstandingDebt = data.previous_day_outstanding_debt ?? data.previous_month_outstanding_debt ?? data.previous_year_outstanding_debt ?? null;
+	const earnedRevenue = data.clinicians_earned_revenue ?? null;
+	const cashCollected = data.clinicians_cash_collected ?? null;
+	const outstanding = data.clinicians_outstanding ?? null;
+
+	const prevEarnedRevenue = data.previous_day_earned_revenue ?? data.previous_month_earned_revenue ?? data.previous_year_earned_revenue ?? null;
+	const prevCashCollected = data.previous_day_cash_collected ?? data.previous_month_cash_collected ?? data.previous_year_cash_collected ?? null;
+	const prevOutstanding = data.previous_day_outstanding ?? data.previous_month_outstanding ?? data.previous_year_outstanding ?? null;
 
 	// Format revenue as currency
 	const formatCurrency = (val: string | null) => {
@@ -111,17 +109,17 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 			<div className="mb-2 fw-semibold" style={{ color: COLOR_TOOLTIP_FG }}>{moment(label).format('MMMM D, YYYY')}</div>
 			<div className="d-flex flex-column gap-1">
 				<div>Cases: <span className="fw-semibold">{data.clinician_cases}</span></div>
-				<div>Accrual Revenue: <span className="fw-semibold">{formatCurrency(accrualRevenue)}</span></div>
-				<div>Actual Revenue: <span className="fw-semibold">{formatCurrency(actualRevenue)}</span></div>
-				<div>Outstanding Debt: <span className="fw-semibold">{formatCurrency(outstandingDebt)}</span></div>
+				<div>Clinician Referral Revenue: <span className="fw-semibold">{formatCurrency(earnedRevenue)}</span></div>
+				<div>Cash Collected: <span className="fw-semibold">{formatCurrency(cashCollected)}</span></div>
+				<div>Outstanding: <span className="fw-semibold">{formatCurrency(outstanding)}</span></div>
 				<div>Previous Cases: <span className="fw-semibold">{data.previous_day_cases ?? data.previous_month_cases ?? data.previous_year_cases ?? '-'}</span></div>
-				<div>Previous Accrual: <span className="fw-semibold">{formatCurrency(prevAccrualRevenue)}</span></div>
-				<div>Previous Actual: <span className="fw-semibold">{formatCurrency(prevActualRevenue)}</span></div>
-				<div>Previous Debt: <span className="fw-semibold">{formatCurrency(prevOutstandingDebt)}</span></div>
+				<div>Previous Referral Revenue: <span className="fw-semibold">{formatCurrency(prevEarnedRevenue)}</span></div>
+				<div>Previous Cash: <span className="fw-semibold">{formatCurrency(prevCashCollected)}</span></div>
+				<div>Previous Outstanding: <span className="fw-semibold">{formatCurrency(prevOutstanding)}</span></div>
 				<div className={`fw-semibold ${percentageChange > 0 ? 'text-success' : percentageChange < 0 ? 'text-danger' : 'text-muted'}`}>Cases Change: {percentageChange === 0 ? '-' : `${percentageChange.toFixed(1)}%`}</div>
-				<div className={`fw-semibold ${percentageAccrualChange > 0 ? 'text-success' : percentageAccrualChange < 0 ? 'text-danger' : 'text-muted'}`}>Accrual Change: {percentageAccrualChange === 0 ? '-' : `${percentageAccrualChange.toFixed(1)}%`}</div>
-				<div className={`fw-semibold ${percentageActualChange > 0 ? 'text-success' : percentageActualChange < 0 ? 'text-danger' : 'text-muted'}`}>Actual Change: {percentageActualChange === 0 ? '-' : `${percentageActualChange.toFixed(1)}%`}</div>
-				<div className={`fw-semibold ${percentageDebtChange > 0 ? 'text-success' : percentageDebtChange < 0 ? 'text-danger' : 'text-muted'}`}>Debt Change: {percentageDebtChange === 0 ? '-' : `${percentageDebtChange.toFixed(1)}%`}</div>
+				<div className={`fw-semibold ${percentageEarnedChange > 0 ? 'text-success' : percentageEarnedChange < 0 ? 'text-danger' : 'text-muted'}`}>Referral Change: {percentageEarnedChange === 0 ? '-' : `${percentageEarnedChange.toFixed(1)}%`}</div>
+				<div className={`fw-semibold ${percentageCashChange > 0 ? 'text-success' : percentageCashChange < 0 ? 'text-danger' : 'text-muted'}`}>Cash Change: {percentageCashChange === 0 ? '-' : `${percentageCashChange.toFixed(1)}%`}</div>
+				<div className={`fw-semibold ${percentageOutstandingChange > 0 ? 'text-success' : percentageOutstandingChange < 0 ? 'text-danger' : 'text-muted'}`}>Outstanding Change: {percentageOutstandingChange === 0 ? '-' : `${percentageOutstandingChange.toFixed(1)}%`}</div>
 			</div>
 		</div>
 	);
@@ -218,7 +216,7 @@ const ClinicianAnalyticsDailyCaseChange: React.FC<ClinicianAnalyticsDailyCaseCha
 	// Transform data for chart rendering
 	const chartData = caseData.map(item => ({
 		...item,
-		clinician_accrual_revenue: parseFloat(item.clinician_accrual_revenue || '0'),
+		clinicians_earned_revenue: parseFloat(item.clinicians_earned_revenue || '0'),
 		displayLabel: timePeriod === 'yearly'
 			? (item as any).year
 			: timePeriod === 'monthly'
@@ -298,10 +296,10 @@ const ClinicianAnalyticsDailyCaseChange: React.FC<ClinicianAnalyticsDailyCaseCha
 						<Card.Body className="p-4">
 							<div className="mb-3">
 								<small className="text-muted" style={{ fontSize: '0.85rem' }}>
-									<strong>Note:</strong> These figures represent cases referred by the clinician.
-									<strong>Accrual Revenue</strong> is the amount supposed to be paid by the client,
-									<strong>Actual Revenue</strong> is the amount paid by the client, and
-									<strong> Outstanding Debt</strong> is the unpaid amount.
+									<strong>Note:</strong> These figures represent the total revenue generated from services referred by the clinician (Referral Revenue). This does <strong>not</strong> represent commissions earned by or paid to the clinician.
+									<strong> Clinician Referral Revenue</strong> is the revenue generated by the clinician's cases,
+									<strong> Cash Collected</strong> is the actual payments received, and
+									<strong> Outstanding</strong> is the unpaid balance.
 								</small>
 							</div>
 							<div style={{ height: CARD_HEIGHT }}>
@@ -340,12 +338,12 @@ const ClinicianAnalyticsDailyCaseChange: React.FC<ClinicianAnalyticsDailyCaseCha
 												<Legend />
 												<Area
 													type="monotone"
-													dataKey="clinician_accrual_revenue"
+													dataKey="clinicians_earned_revenue"
 													stroke={COLOR_SECONDARY}
 													fillOpacity={0.6}
 													fill="url(#colorRevenue)"
 													strokeWidth={3}
-													name="Accrual Revenue"
+													name="Referral Revenue"
 												/>
 											</AreaChart>
 										) : chartType === 'line' ? (
@@ -367,10 +365,10 @@ const ClinicianAnalyticsDailyCaseChange: React.FC<ClinicianAnalyticsDailyCaseCha
 												<Legend />
 												<Line
 													type="monotone"
-													dataKey="clinician_accrual_revenue"
+													dataKey="clinicians_earned_revenue"
 													stroke={COLOR_SECONDARY}
 													strokeWidth={3}
-													name="Accrual Revenue"
+													name="Referral Revenue"
 													dot={{ r: 4 }}
 												/>
 											</LineChart>
@@ -392,9 +390,9 @@ const ClinicianAnalyticsDailyCaseChange: React.FC<ClinicianAnalyticsDailyCaseCha
 												<Tooltip content={<CustomTooltip />} />
 												<Legend />
 												<Bar
-													dataKey="clinician_accrual_revenue"
+													dataKey="clinicians_earned_revenue"
 													fill={COLOR_SECONDARY}
-													name="Accrual Revenue"
+													name="Referral Revenue"
 												/>
 											</BarChart>
 										)}
@@ -420,24 +418,24 @@ const ClinicianAnalyticsDailyCaseChange: React.FC<ClinicianAnalyticsDailyCaseCha
 									<tr>
 										<th className="text-center py-3">{timePeriod === 'yearly' ? 'Year' : timePeriod === 'monthly' ? 'Month' : 'Date'}</th>
 										<th className="text-center py-3">Cases</th>
-										<th className="text-center py-3">Accrual Revenue</th>
-										<th className="text-center py-3">Actual Revenue</th>
-										<th className="text-center py-3">Outstanding Debt</th>
+										<th className="text-center py-3">Referral Revenue</th>
+										<th className="text-center py-3">Cash Collected</th>
+										<th className="text-center py-3">Outstanding</th>
 										<th className="text-center py-3">Previous {timePeriod === 'yearly' ? 'Year' : timePeriod === 'monthly' ? 'Month' : 'Day'} Cases</th>
-										<th className="text-center py-3">Previous Accrual</th>
+										<th className="text-center py-3">Previous Referral</th>
 										<th className="text-center py-3">Change</th>
-										<th className="text-center py-3">Accrual Change</th>
+										<th className="text-center py-3">Referral Change</th>
 									</tr>
 								</thead>
 								<tbody>
 									{caseData.map((item: any, index) => {
 										const percentageChange = parseFloat(item.percentage_change);
-										const percentageAccrualChange = parseFloat(item.percentage_accrual_revenue_change);
+										const percentageEarnedChange = parseFloat(item.percentage_earned_revenue_change);
 										// Revenue fields
-										const accrualRevenue = item.clinician_accrual_revenue ?? null;
-										const actualRevenue = item.clinician_actual_revenue ?? null;
-										const outstandingDebt = item.clinician_outstanding_debt ?? null;
-										const prevAccrualRevenue = item.previous_year_accrual_revenue ?? item.previous_month_accrual_revenue ?? item.previous_day_accrual_revenue ?? null;
+										const earnedRevenue = item.clinicians_earned_revenue ?? null;
+										const cashCollected = item.clinicians_cash_collected ?? null;
+										const outstanding = item.clinicians_outstanding ?? null;
+										const prevEarnedRevenue = item.previous_year_earned_revenue ?? item.previous_month_earned_revenue ?? item.previous_day_earned_revenue ?? null;
 										// Format revenue as currency
 										const formatCurrency = (val: string | null) => {
 											if (!val || isNaN(Number(val))) return '-';
@@ -454,9 +452,9 @@ const ClinicianAnalyticsDailyCaseChange: React.FC<ClinicianAnalyticsDailyCaseCha
 													}
 												</td>
 												<td className="text-center fw-semibold text-primary">{item.clinician_cases}</td>
-												<td className="text-end fw-semibold" style={{ fontFamily: 'monospace', color: COLOR_ACCENT }}>{formatCurrency(accrualRevenue)}</td>
-												<td className="text-end fw-semibold" style={{ fontFamily: 'monospace', color: COLOR_SECONDARY }}>{formatCurrency(actualRevenue)}</td>
-												<td className="text-end fw-semibold" style={{ fontFamily: 'monospace', color: COLOR_TEXT_MUTED }}>{formatCurrency(outstandingDebt)}</td>
+												<td className="text-end fw-semibold" style={{ fontFamily: 'monospace', color: COLOR_ACCENT }}>{formatCurrency(earnedRevenue)}</td>
+												<td className="text-end fw-semibold" style={{ fontFamily: 'monospace', color: COLOR_SECONDARY }}>{formatCurrency(cashCollected)}</td>
+												<td className="text-end fw-semibold" style={{ fontFamily: 'monospace', color: COLOR_TEXT_MUTED }}>{formatCurrency(outstanding)}</td>
 												<td className="text-center text-muted">
 													{timePeriod === 'yearly'
 														? item.previous_year_cases ?? '-'
@@ -465,15 +463,15 @@ const ClinicianAnalyticsDailyCaseChange: React.FC<ClinicianAnalyticsDailyCaseCha
 															: item.previous_day_cases ?? '-'
 													}
 												</td>
-												<td className="text-end text-muted" style={{ fontFamily: 'monospace' }}>{formatCurrency(prevAccrualRevenue)}</td>
+												<td className="text-end text-muted" style={{ fontFamily: 'monospace' }}>{formatCurrency(prevEarnedRevenue)}</td>
 												<td className="text-center">
 													<span className={`${percentageChange > 0 ? 'text-success' : percentageChange < 0 ? 'text-danger' : 'text-muted'}`}>
 														{percentageChange === 0 ? '-' : `${percentageChange.toFixed(1)}%`}
 													</span>
 												</td>
 												<td className="text-center">
-													<span className={`${percentageAccrualChange > 0 ? 'text-success' : percentageAccrualChange < 0 ? 'text-danger' : 'text-muted'}`}>
-														{percentageAccrualChange === 0 ? '-' : `${percentageAccrualChange.toFixed(1)}%`}
+													<span className={`${percentageEarnedChange > 0 ? 'text-success' : percentageEarnedChange < 0 ? 'text-danger' : 'text-muted'}`}>
+														{percentageEarnedChange === 0 ? '-' : `${percentageEarnedChange.toFixed(1)}%`}
 													</span>
 												</td>
 											</tr>

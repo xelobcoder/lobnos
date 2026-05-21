@@ -15,7 +15,8 @@ import {
   RiFileListLine,
   RiArrowRightLine,
   RiCalendarEventLine,
-  RiBarChartBoxLine
+  RiBarChartBoxLine,
+  RiCloseCircleLine
 } from '@remixicon/react';
 
 const expenseAnalyticsSections = [
@@ -138,6 +139,14 @@ const expenseAnalyticsSections = [
     path: '/analytics/expenses/comparison-by-period',
     color: 'primary',
     badge: 'Compare'
+  },
+  {
+    title: 'Rejected Expenses',
+    description: 'Overview of rejected expense claims and amounts',
+    icon: RiCloseCircleLine,
+    path: '/analytics/expenses/rejected',
+    color: 'danger',
+    badge: 'Rejected'
   }
 ];
 

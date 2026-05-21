@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { customFetch, currencyFormatter } from "../../../../components/Auth/customFetch";
 import { useApplication } from "../../../../components/Auth/useApplicationContext";
 import { RiLoader4Line, RiErrorWarningLine, RiInbox2Line, RiUserLine, RiBarChartBoxLine, RiCalendarEventLine, RiRefreshLine, RiPrinterLine, RiLineChartLine, RiBubbleChartLine } from "@remixicon/react";
+import DateFilterReusable from "../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 import {
      ResponsiveContainer,
      BarChart,
@@ -27,7 +28,7 @@ const COLOR_TOOLTIP_FG = 'var(--bs-body-color)';
 
 interface TopExpenseEmployee {
      employee_name: string;
-     total_amount: string;
+     expenses_paid: string;
      expense_count: number;
 }
 
@@ -47,6 +48,7 @@ export default function TopExpenseEmployees() {
      const [branches, setBranches] = useState<any[]>([]);
      const [branchid, setBranchid] = useState<number | null>(null);
      const [chartType, setChartType] = useState<"line" | "bar" | "area">("line");
+     const [dateFilter, setDateFilter] = useState<string>("This Year");
      const { user } = useApplication();
 
      const fetchData = async () => {
@@ -56,7 +58,7 @@ export default function TopExpenseEmployees() {
           try {
                const endpoint = `expenses/analytics/trends/employee?branchid=${branchid}${startDate ? `&startDate=${startDate}` : ''}${endDate ? `&endDate=${endDate}` : ''}`;
                const response = await customFetch(endpoint);
-               if (response && response.data && Array.isArray(response.data)) {
+               if (response && response.status === "success" && Array.isArray(response.data)) {
                     setData(response.data);
                } else {
                     setError("Invalid data format received");
@@ -70,8 +72,14 @@ export default function TopExpenseEmployees() {
 
      const handleResetFilters = () => {
           const now = new Date();
-          setStartDate(new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10));
-          setEndDate(new Date().toISOString().slice(0, 10));
+          setStartDate(new Date(now.getFullYear(), 0, 1).toISOString().slice(0, 10));
+          setEndDate(new Date(now.getFullYear(), 11, 31).toISOString().slice(0, 10));
+          setDateFilter("This Year");
+     };
+
+     const handleDateRangeChange = (newStartDate: string, newEndDate: string) => {
+          setStartDate(newStartDate);
+          setEndDate(newEndDate);
      };
 
      useEffect(() => {
@@ -93,12 +101,13 @@ export default function TopExpenseEmployees() {
           }
      }, [branchid, startDate, endDate]);
 
-     const totalAmountSum = data.reduce((sum, entry) => sum + parseFloat(entry.total_amount), 0);
+     const totalAmountSum = data.reduce((sum, entry) => sum + parseFloat(entry.expenses_paid), 0);
      const totalExpenseCount = data.reduce((sum, entry) => sum + entry.expense_count, 0);
 
      const chartData = data.map(item => ({
           ...item,
-          total_amount: parseFloat(item.total_amount),
+          total_amount: parseFloat(item.expenses_paid),
+          expense_count: item.expense_count,
           employee_name: item.employee_name
      }));
 
@@ -143,64 +152,64 @@ export default function TopExpenseEmployees() {
                          <XAxis {...xAxisProps} />
                          <YAxis {...yAxisProps} />
                          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
-                         <Legend {...legendProps} />
-                         <Bar dataKey="total_amount" name="Total Amount" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={30} />
-                    </BarChart>
-               );
-          }
+                    <Legend {...legendProps} />
+                    <Bar dataKey="total_amount" name="Expenses Paid" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={30} />
+               </BarChart>
+          );
+     }
 
-          if (chartType === "line") {
-               return (
-                    <LineChart {...commonProps}>
-                         <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
-                         <XAxis {...xAxisProps} />
-                         <YAxis {...yAxisProps} />
-                         <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
-                         <Legend {...legendProps} />
-                         <Line type="monotone" dataKey="total_amount" name="Total Amount" stroke={COLOR_ACCENT} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
-                    </LineChart>
-               );
-          }
-
-          if (chartType === "area") {
-               return (
-                    <AreaChart {...commonProps}>
-                         <defs>
-                              <linearGradient id="colorTotalSpentFill" x1="0" y1="0" x2="0" y2="1">
-                                   <stop offset="5%" stopColor={COLOR_ACCENT} stopOpacity={0.5} />
-                                   <stop offset="95%" stopColor={COLOR_ACCENT} stopOpacity={0.05} />
-                              </linearGradient>
-                         </defs>
-                         <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
-                         <XAxis {...xAxisProps} />
-                         <YAxis {...yAxisProps} />
-                         <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
-                         <Legend {...legendProps} />
-                         <Area
-                              type="monotone"
-                              dataKey="total_amount"
-                              name="Total Amount"
-                              stroke={COLOR_ACCENT}
-                              fill="url(#colorTotalSpentFill)"
-                              strokeWidth={2}
-                              dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }}
-                              activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }}
-                         />
-                    </AreaChart>
-               );
-          }
-
-          // Default fallback to bar chart
+     if (chartType === "line") {
           return (
-               <BarChart {...commonProps}>
+               <LineChart {...commonProps}>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
                     <XAxis {...xAxisProps} />
                     <YAxis {...yAxisProps} />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                     <Legend {...legendProps} />
-                    <Bar dataKey="total_amount" name="Total Amount" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={30} />
-               </BarChart>
+                    <Line type="monotone" dataKey="total_amount" name="Expenses Paid" stroke={COLOR_ACCENT} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
+               </LineChart>
           );
+     }
+
+     if (chartType === "area") {
+          return (
+               <AreaChart {...commonProps}>
+                    <defs>
+                         <linearGradient id="colorTotalSpentFill" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor={COLOR_ACCENT} stopOpacity={0.5} />
+                              <stop offset="95%" stopColor={COLOR_ACCENT} stopOpacity={0.05} />
+                         </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
+                    <XAxis {...xAxisProps} />
+                    <YAxis {...yAxisProps} />
+                    <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
+                    <Legend {...legendProps} />
+                    <Area
+                         type="monotone"
+                         dataKey="total_amount"
+                         name="Expenses Paid"
+                         stroke={COLOR_ACCENT}
+                         fill="url(#colorTotalSpentFill)"
+                         strokeWidth={2}
+                         dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }}
+                         activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }}
+                    />
+               </AreaChart>
+          );
+     }
+
+     // Default fallback to bar chart
+     return (
+          <BarChart {...commonProps}>
+               <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
+               <XAxis {...xAxisProps} />
+               <YAxis {...yAxisProps} />
+               <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
+               <Legend {...legendProps} />
+               <Bar dataKey="total_amount" name="Expenses Paid" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={30} />
+          </BarChart>
+     );
      };
 
      const viewButtons = [
@@ -228,7 +237,7 @@ export default function TopExpenseEmployees() {
                               <span className="fw-bold d-block">{entry.employee_name}</span>
                          </div>
                          <div className="mb-1">
-                              <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Total Amount</span>
+                              <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Expenses Paid</span>
                               <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>{currencyFormatter.format(entry.total_amount)}</span>
                          </div>
                          <div>
@@ -278,19 +287,16 @@ export default function TopExpenseEmployees() {
                                         ))}
                                    </select>
                               </div>
-                              <div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
-                                   <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: COLOR_BORDER, paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
-                                        <RiCalendarEventLine size={16} className="text-muted" style={{ color: COLOR_TEXT_MUTED }} />
-                                   </span>
-                                   <input id="startDateTEE" type="date" className="form-control shadow-none border-start-0" value={startDate} onChange={e => setStartDate(e.target.value)} aria-label="Start Date" style={{ fontSize: '0.875rem', borderColor: COLOR_BORDER, paddingLeft: '0.3rem' }} />
+                              <div style={{ minWidth: '240px' }}>
+                                   <DateFilterReusable
+                                        value={dateFilter}
+                                        onChange={setDateFilter}
+                                        onDateRangeChange={handleDateRangeChange}
+                                        label="Period"
+                                        className="w-100"
+                                   />
                               </div>
-                              <div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
-                                   <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: COLOR_BORDER, paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
-                                        <RiCalendarEventLine size={16} className="text-muted" style={{ color: COLOR_TEXT_MUTED }} />
-                                   </span>
-                                   <input id="endDateTEE" type="date" className="form-control shadow-none border-start-0" value={endDate} onChange={e => setEndDate(e.target.value)} aria-label="End Date" style={{ fontSize: '0.875rem', borderColor: COLOR_BORDER, paddingLeft: '0.3rem' }} />
-                              </div>
-                              <button onClick={handleResetFilters} className="btn btn-sm btn-outline-secondary d-flex align-items-center" type="button" aria-label="Reset date filters" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
+                              <button onClick={handleResetFilters} className="btn btn-sm btn-outline-secondary d-flex align-items-center" type="button" aria-label="Reset date filters" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem', height: '38px' }}>
                                    <RiRefreshLine size={16} className="me-1" /> Reset
                               </button>
                          </div>
@@ -345,16 +351,16 @@ export default function TopExpenseEmployees() {
                                              <tr>
                                                   <th scope="col" className="py-2 text-start">#</th>
                                                   <th scope="col" className="py-2 text-start">Employee Name</th>
-                                                  <th scope="col" className="py-2 text-start">Total Amount</th>
+                                                  <th scope="col" className="py-2 text-start">Expenses Paid</th>
                                                   <th scope="col" className="py-2 text-start">Expense Count</th>
                                              </tr>
                                         </thead>
                                         <tbody>
-                                             {data.map((employee, idx) => (
+                                             {chartData.map((employee, idx) => (
                                                   <tr key={`${employee.employee_name}-${idx}`}>
                                                        <td className="py-2 text-start fw-medium">{idx + 1}</td>
                                                        <td className="py-2 text-start fw-medium">{employee.employee_name}</td>
-                                                       <td className="py-2 text-start fw-medium">{currencyFormatter.format(parseFloat(employee.total_amount))}</td>
+                                                       <td className="py-2 text-start fw-medium">{currencyFormatter.format(employee.total_amount)}</td>
                                                        <td className="py-2 text-start">{employee.expense_count}</td>
                                                   </tr>
                                              ))}

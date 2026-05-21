@@ -12,7 +12,7 @@ const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
 
 interface YearlyExpenseData {
     expense_year: number;
-    total_expenses: string;
+    expenses_paid: string;
     expense_count: number;
     avg_expense_amount: string;
     unique_employees: number;
@@ -21,7 +21,7 @@ interface YearlyExpenseData {
 
 interface MonthlyExpenseData {
     expense_month: number;
-    total_expenses: string;
+    expenses_paid: string;
     expense_count: number;
     avg_expense_amount: string;
     unique_employees: number;
@@ -29,7 +29,7 @@ interface MonthlyExpenseData {
 
 interface DailyExpenseData {
     expense_date: string;
-    total_expenses: string;
+    expenses_paid: string;
     expense_count: number;
     avg_expense_amount: string;
     unique_employees: number;
@@ -220,7 +220,7 @@ export default function YearlyExpenseSummary() {
 
     const chartData = data.map(item => ({
         ...item,
-        total_amount: parseFloat(item.total_expenses),
+        total_amount: parseFloat(item.expenses_paid),
         average_amount: parseFloat(item.avg_expense_amount),
         yearLabel: item.expense_year.toString()
     }));
@@ -247,7 +247,7 @@ export default function YearlyExpenseSummary() {
                         <span className="fw-bold d-block">{entry.yearLabel}</span>
                     </div>
                     <div className="mb-1">
-                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Total Amount</span>
+                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Expenses Paid</span>
                         <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>{currencyFormatter.format(entry.total_amount)}</span>
                     </div>
                     <div className="mb-1">
@@ -309,7 +309,7 @@ export default function YearlyExpenseSummary() {
                     <YAxis {...yAxisProps} />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                     <Legend {...legendProps} />
-                    <Bar dataKey="total_amount" name="Total Amount" fill={COLOR_ACCENT} radius={[8, 8, 0, 0]} maxBarSize={40} />
+                    <Bar dataKey="total_amount" name="Expenses Paid" fill={COLOR_ACCENT} radius={[8, 8, 0, 0]} maxBarSize={40} />
                 </BarChart>
             );
         }
@@ -321,7 +321,7 @@ export default function YearlyExpenseSummary() {
                     <YAxis {...yAxisProps} />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                     <Legend {...legendProps} />
-                    <Line type="monotone" dataKey="total_amount" name="Total Amount" stroke={COLOR_ACCENT} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: 'var(--bs-body-bg)' }} />
+                    <Line type="monotone" dataKey="total_amount" name="Expenses Paid" stroke={COLOR_ACCENT} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: 'var(--bs-body-bg)' }} />
                 </LineChart>
             );
         }
@@ -338,7 +338,7 @@ export default function YearlyExpenseSummary() {
                 <YAxis {...yAxisProps} />
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                 <Legend {...legendProps} />
-                <Area type="monotone" dataKey="total_amount" name="Total Amount" stroke={COLOR_ACCENT} fill="url(#colorTotalAmountFill)" strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: 'var(--bs-body-bg)' }} />
+                <Area type="monotone" dataKey="total_amount" name="Expenses Paid" stroke={COLOR_ACCENT} fill="url(#colorTotalAmountFill)" strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: 'var(--bs-body-bg)' }} />
             </AreaChart>
         );
     };
@@ -431,7 +431,7 @@ export default function YearlyExpenseSummary() {
                                 <tr>
                                     <th scope="col" className="py-2 text-start fw-bold">#</th>
                                     <th scope="col" className="py-2 text-start fw-bold">Year</th>
-                                    <th scope="col" className="py-2 text-start fw-bold">Total Amount</th>
+                                    <th scope="col" className="py-2 text-start fw-bold">Expenses Paid</th>
                                     <th scope="col" className="py-2 text-start fw-bold">Expense Count</th>
                                     <th scope="col" className="py-2 text-start fw-bold">Average Amount</th>
                                     <th scope="col" className="py-2 text-start fw-bold">Unique Employees</th>
@@ -482,7 +482,7 @@ export default function YearlyExpenseSummary() {
                                                                     <thead>
                                                                         <tr className="border-bottom">
                                                                             <th className="py-2 text-start fw-bold">Month</th>
-                                                                            <th className="py-2 text-start fw-bold">Total Amount</th>
+                                                                            <th className="py-2 text-start fw-bold">Expenses Paid</th>
                                                                             <th className="py-2 text-start fw-bold">Expense Count</th>
                                                                             <th className="py-2 text-start fw-bold">Average Amount</th>
                                                                             <th className="py-2 text-start fw-bold">Unique Employees</th>
@@ -498,7 +498,7 @@ export default function YearlyExpenseSummary() {
                                                                                         <td className="py-1 text-start">
                                                                                             {new Date(entry.expense_year, monthData.expense_month - 1).toLocaleString('default', { month: 'long' })}
                                                                                         </td>
-                                                                                        <td className="py-1 text-start">{currencyFormatter.format(parseFloat(monthData.total_expenses))}</td>
+                                                                                        <td className="py-1 text-start">{currencyFormatter.format(parseFloat(monthData.expenses_paid))}</td>
                                                                                         <td className="py-1 text-start">{monthData.expense_count}</td>
                                                                                         <td className="py-1 text-start">{currencyFormatter.format(parseFloat(monthData.avg_expense_amount))}</td>
                                                                                         <td className="py-1 text-start">{monthData.unique_employees}</td>
@@ -534,7 +534,7 @@ export default function YearlyExpenseSummary() {
                                                                                                                 <thead>
                                                                                                                     <tr className="border-bottom">
                                                                                                                         <th className="py-1 text-start fw-bold">Date</th>
-                                                                                                                        <th className="py-1 text-start fw-bold">Total Amount</th>
+                                                                                                                        <th className="py-1 text-start fw-bold">Expenses Paid</th>
                                                                                                                         <th className="py-1 text-start fw-bold">Expense Count</th>
                                                                                                                         <th className="py-1 text-start fw-bold">Average Amount</th>
                                                                                                                         <th className="py-1 text-start fw-bold">Unique Employees</th>
@@ -550,7 +550,7 @@ export default function YearlyExpenseSummary() {
                                                                                                                                 <td className="py-1 text-start">
                                                                                                                                     {formattedDate}
                                                                                                                                 </td>
-                                                                                                                                <td className="py-1 text-start">{currencyFormatter.format(parseFloat(dayData.total_expenses))}</td>
+                                                                                                                                <td className="py-1 text-start">{currencyFormatter.format(parseFloat(dayData.expenses_paid))}</td>
                                                                                                                                 <td className="py-1 text-start">{dayData.expense_count}</td>
                                                                                                                                 <td className="py-1 text-start">{currencyFormatter.format(parseFloat(dayData.avg_expense_amount))}</td>
                                                                                                                                 <td className="py-1 text-start">{dayData.unique_employees}</td>

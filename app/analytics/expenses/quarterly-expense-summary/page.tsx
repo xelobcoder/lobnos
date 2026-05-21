@@ -12,7 +12,7 @@ const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
 
 interface QuarterlyExpenseData {
      expense_quarter: number;
-     total_expenses: string;
+     expenses_paid: string;
      expense_count: number;
      avg_expense_amount: string;
      unique_employees: number;
@@ -34,7 +34,7 @@ export default function QuarterlyExpenseSummary() {
           setLoading(true);
           setError(null);
           try {
-               const endpoint = `expenses/analytics/quarterly?branchid=${branchid}&year=${year}`;
+               const endpoint = `expenses/analytics/quarterly?branchid=${branchid}&year=${year}&&employeeid=${employeeid}`;
                const response = await customFetch(endpoint);
                if (response && response.status === 'success' && response.data && Array.isArray(response.data)) {
                     setData(response.data);
@@ -61,7 +61,7 @@ export default function QuarterlyExpenseSummary() {
 
      const chartData = data.map(item => ({
           ...item,
-          total_amount: parseFloat(item.total_expenses),
+          total_amount: parseFloat(item.expenses_paid),
           average_amount: parseFloat(item.avg_expense_amount),
           quarterLabel: getQuarterLabel(year, item.expense_quarter),
           unique_employees: item.unique_employees
@@ -89,7 +89,7 @@ export default function QuarterlyExpenseSummary() {
                               <span className="fw-bold d-block">{entry.quarterLabel}</span>
                          </div>
                          <div className="mb-1">
-                              <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Total Amount</span>
+                              <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Expenses Paid</span>
                               <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>{currencyFormatter.format(entry.total_amount)}</span>
                          </div>
                          <div className="mb-1">
