@@ -11,7 +11,7 @@ export const commissionConfigSchema = yup.object().shape({
      commission_type: yup
           .string()
           .oneOf(
-               ["percentage", "fixed", "tiered", "hybrid"],
+               ["percentage", "fixed", "tiered", "hybrid", "sliding_scale"],
                "Invalid commission type"
           )
           .required("Commission type is required"),
@@ -22,8 +22,19 @@ export const commissionConfigSchema = yup.object().shape({
           .min(0, "Cannot be negative")
           .max(100, "Cannot exceed 100%")
           .when("commission_type", {
-               is: (type: string) => type === "percentage" || type === "hybrid",
+               is: (type: string) => type === "percentage" || type === "hybrid" || type === "sliding_scale",
                then: (schema) => schema.required("Percentage rate is required"),
+               otherwise: (schema) => schema.nullable(),
+          }),
+     sliding_max_percentage: yup
+          .number()
+          .typeError("Maximum percentage rate must be a number")
+          .nullable()
+          .min(0, "Cannot be negative")
+          .max(100, "Cannot exceed 100%")
+          .when("commission_type", {
+               is: "sliding_scale",
+               then: (schema) => schema.required("Maximum percentage rate is required"),
                otherwise: (schema) => schema.nullable(),
           }),
      fixed_component: yup
@@ -39,10 +50,12 @@ export const commissionConfigSchema = yup.object().shape({
      min_commission: yup
           .number()
           .typeError("Minimum commission must be a number")
+          .nullable()
           .min(0, "Cannot be negative"),
      max_commission: yup
           .number()
           .typeError("Maximum commission must be a number")
+          .nullable()
           .min(0, "Cannot be negative")
           .test(
                "max-greater-than-min",
@@ -58,6 +71,7 @@ export const commissionConfigSchema = yup.object().shape({
      period_cap: yup
           .number()
           .typeError("Period cap must be a number")
+          .nullable()
           .min(0, "Cannot be negative"),
      period_cap_reset: yup.string().oneOf([
           "daily",
@@ -83,11 +97,8 @@ export const commissionAssignmentSchema = yup.object().shape({
                "Invalid scope type"
           )
           .required("Scope type is required"),
-     scope_id: yup.number().when("scope_type", {
-          is: (type: string) => type !== "system",
-          then: (schema) => schema.required("Scope ID is required").positive(),
-          otherwise: (schema) => schema.nullable(),
-     }),
+     scope_id: yup.number().nullable(),
+     scope_ids: yup.array().of(yup.number()).nullable(),
      service_id: yup.number().nullable(),
      service_category: yup.string().nullable(),
      priority: yup
@@ -124,6 +135,7 @@ export function formatCommissionType(type: string): string {
           fixed: "Fixed Amount",
           tiered: "Tiered",
           hybrid: "Hybrid (% + Fixed)",
+          sliding_scale: "Sliding Scale",
      };
      return typeMap[type] || type;
 }
@@ -149,6 +161,7 @@ export function getCommissionTypeDescription(type: string): string {
           fixed: "Fixed commission amount for all services",
           tiered: "Different rates based on service amount tiers",
           hybrid: "Combine percentage and fixed components",
+          sliding_scale: "Performance-based rates that increase when targets are met",
      };
      return descriptions[type] || "";
 }
@@ -175,7 +188,7 @@ export function calculateCommissionPreview(
 
      let raw = 0;
 
-     if (config.commission_type === "percentage") {
+     if (config.commission_type === "percentage" || config.commission_type === "sliding_scale") {
           raw = serviceAmount * ((config.percentage_rate || 0) / 100);
      } else if (config.commission_type === "fixed") {
           raw = config.fixed_component || 0;

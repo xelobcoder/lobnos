@@ -19,17 +19,17 @@ export interface CommissionTier {
 
 export interface CommissionConfig {
      id?: number;
-     tenantId: number;
      name: string;
-     commission_type: "percentage" | "fixed" | "tiered" | "hybrid";
-     percentage_rate?: number;
-     fixed_component?: number;
-     min_commission?: number;
-     max_commission?: number;
-     period_cap?: number;
+     commission_type: "percentage" | "fixed" | "tiered" | "hybrid" | "sliding_scale";
+     percentage_rate?: number | null;
+     sliding_max_percentage?: number | null;
+     fixed_component?: number | null;
+     min_commission?: number | null;
+     max_commission?: number | null;
+     period_cap?: number | null;
      period_cap_reset?: "daily" | "weekly" | "monthly" | "quarterly" | "yearly";
-     effective_from?: string;
-     effective_to?: string;
+     effective_from: string;
+     effective_to?: string | null;
      is_active: boolean;
      tiers?: CommissionTier[];
 }
@@ -37,22 +37,31 @@ export interface CommissionConfig {
 // ===================== Commission Assignment Types =====================
 export interface CommissionAssignment {
      id?: number;
-     tenantId: number;
      commission_config_id: number;
      scope_type: "clinician" | "organization" | "system";
      scope_id: number | null;
+     recipient_name?: string;
      service_id?: number | null;
      service_category?: string | null;
      priority: number;
      assigned_from?: string;
      assigned_to?: string;
-     is_active: boolean;
+     is_active: boolean | number;
+}
+
+export interface CommissionAssignmentParams {
+     page: number;
+     count: number;
+     filterType?: string;
+     filterName?: string;
+     status?: string;
+     commission_config_id?: number;
+     sortby?: "ASC" | "DESC";
 }
 
 // ===================== Commission Default Types =====================
 export interface CommissionDefault {
      id?: number;
-     tenantId: number;
      recipient_type: "clinician" | "organization";
      recipient_id?: number;
      commission_config_id: number;
@@ -93,74 +102,69 @@ export async function createCommissionConfig(
      return customPost("commission/configs", "POST", config);
 }
 
-export async function getCommissionConfigs(
-     tenantId: number
-): Promise<ApiResponse<CommissionConfig[]>> {
-     return customFetch(`commission/configs?tenantId=${tenantId}`);
+export async function getCommissionConfigs(): Promise<ApiResponse<CommissionConfig[]>> {
+     return customFetch(`commission/configs`);
 }
 
 export async function getCommissionConfig(
-     id: number,
-     tenantId: number
+     id: number
 ): Promise<ApiResponse<CommissionConfig>> {
-     return customFetch(`commission/configs/${id}?tenantId=${tenantId}`);
+     return customFetch(`commission/configs/${id}`);
 }
 
 export async function updateCommissionConfig(
      id: number,
-     tenantId: number,
      config: Partial<CommissionConfig>
 ): Promise<ApiResponse<CommissionConfig>> {
-     return customPost(`commission/configs/${id}?tenantId=${tenantId}`, "PUT", config);
+     return customPost(`commission/configs/${id}`, "PUT", config);
 }
 
 export async function deleteCommissionConfig(
-     id: number,
-     tenantId: number
+     id: number
 ): Promise<ApiResponse<any>> {
-     return customPost(`commission/configs/${id}?tenantId=${tenantId}`, "DELETE", {});
+     return customPost(`commission/configs/${id}`, "DELETE", {});
 }
 
 // ===================== Commission Assignment API =====================
 export async function createCommissionAssignment(
-     assignment: CommissionAssignment
-): Promise<ApiResponse<CommissionAssignment>> {
+     assignment: CommissionAssignment | CommissionAssignment[]
+): Promise<ApiResponse<CommissionAssignment | CommissionAssignment[]>> {
      return customPost("commission/assignments", "POST", assignment);
 }
 
 export async function getCommissionAssignments(
-     tenantId: number,
-     configId?: number
+     params: CommissionAssignmentParams
 ): Promise<ApiResponse<CommissionAssignment[]>> {
-     let url = `commission/assignments?tenantId=${tenantId}`;
-     if (configId) url += `&commission_config_id=${configId}`;
+     const { page, count, filterType, filterName, status, commission_config_id, sortby = "DESC" } = params;
+     let url = `commission/assignments?page=${page}&count=${count}&sortby=${sortby}`;
+     if (filterType && filterType !== "all") url += `&filterType=${filterType}`;
+     if (filterName) url += `&filterName=${encodeURIComponent(filterName)}`;
+     if (status && status !== "all") url += `&status=${status}`;
+     if (commission_config_id) url += `&commission_config_id=${commission_config_id}`;
      return customFetch(url);
 }
 
 export async function getCommissionAssignment(
-     id: number,
-     tenantId: number
+     id: number
 ): Promise<ApiResponse<CommissionAssignment>> {
-     return customFetch(`commission/assignments/${id}?tenantId=${tenantId}`);
+     return customFetch(`commission/assignments/${id}`);
 }
 
 export async function updateCommissionAssignment(
      id: number,
-     tenantId: number,
      assignment: Partial<CommissionAssignment>
 ): Promise<ApiResponse<CommissionAssignment>> {
      return customPost(
-          `commission/assignments/${id}?tenantId=${tenantId}`,
+          `commission/assignments/${id}`,
           "PUT",
           assignment
      );
 }
 
 export async function deleteCommissionAssignment(
-     id: number,
-     tenantId: number
+     id: number
 ): Promise<ApiResponse<any>> {
-     return customPost(`commission/assignments/${id}?tenantId=${tenantId}`, "DELETE", {});
+     return customPost(`commission/assignments/${id}`, "DELETE", {});
 }
 
 // ===================== Commission Default API =====================
@@ -171,82 +175,74 @@ export async function createCommissionDefault(
 }
 
 export async function getCommissionDefaults(
-     tenantId: number,
      recipientType?: string,
      recipientId?: number
 ): Promise<ApiResponse<CommissionDefaultResponse>> {
-     let url = `commission/defaults?tenantId=${tenantId}`;
+     let url = `commission/defaults?`;
      if (recipientType) url += `&recipient_type=${recipientType}`;
      if (recipientId) url += `&recipient_id=${recipientId}`;
      return customFetch(url);
 }
 
 export async function getCommissionDefault(
-     id: number,
-     tenantId: number
+     id: number
 ): Promise<ApiResponse<CommissionDefault>> {
-     return customFetch(`commission/defaults/${id}?tenantId=${tenantId}`);
+     return customFetch(`commission/defaults/${id}`);
 }
 
 export async function updateCommissionDefault(
      id: number,
-     tenantId: number,
      defaultConfig: Partial<CommissionDefault>
 ): Promise<ApiResponse<CommissionDefault>> {
      return customPost(
-          `commission/defaults/${id}?tenantId=${tenantId}`,
+          `commission/defaults/${id}`,
           "PUT",
           defaultConfig
      );
 }
 
 export async function deleteCommissionDefault(
-     id: number,
-     tenantId: number
+     id: number
 ): Promise<ApiResponse<any>> {
-     return customPost(`commission/defaults/${id}?tenantId=${tenantId}`, "DELETE", {});
+     return customPost(`commission/defaults/${id}`, "DELETE", {});
 }
 
 // ===================== Commission Tracking API =====================
 export async function getUnpaidCommissions(
-     tenantId: number,
      recipientType: string,
      recipientId: number,
      limit: number = 100
 ): Promise<ApiResponse<CommissionTracking[]>> {
      return customFetch(
-          `commission/tracking/unpaid?tenantId=${tenantId}&recipientType=${recipientType}&recipientId=${recipientId}&limit=${limit}`
+          `commission/tracking/unpaid?recipientType=${recipientType}&recipientId=${recipientId}&limit=${limit}`
      );
 }
 
 export async function getCommissionSummary(
-     tenantId: number,
      recipientType: string,
      recipientId: number
 ): Promise<ApiResponse<any>> {
      return customFetch(
-          `commission/tracking/summary?tenantId=${tenantId}&recipientType=${recipientType}&recipientId=${recipientId}`
+          `commission/tracking/summary?recipientType=${recipientType}&recipientId=${recipientId}`
      );
 }
 
 export async function getCommissionByStatus(
-     tenantId: number,
      status: string,
      recipientType: string,
      recipientId: number
 ): Promise<ApiResponse<CommissionTracking[]>> {
      return customFetch(
-          `commission/tracking/status/${status}?tenantId=${tenantId}&recipientType=${recipientType}&recipientId=${recipientId}`
+          `commission/tracking/status/${status}?recipientType=${recipientType}&recipientId=${recipientId}`
      );
 }
 
 export async function updateCommissionStatus(
      id: number,
-     tenantId: number,
      status: string,
      notes?: string
 ): Promise<ApiResponse<CommissionTracking>> {
-     return customPost(`commission/tracking/${id}/status?tenantId=${tenantId}`, "PUT", {
+     return customPost(`commission/tracking/${id}/status`, "PUT", {
           status,
           notes,
      });

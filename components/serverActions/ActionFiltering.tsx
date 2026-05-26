@@ -3,8 +3,7 @@ import { loadOptions } from "../../lib/appointment";
 import { customFetch, customPost } from "../Auth/customFetch"
 import { plsEncryption } from "../../lib/encryption";
 import { formatDate } from "../operations/Laboratory/Lib";
-
-
+import { CommissionAssignmentParams, getCommissionAssignments } from "../../lib/commission/commissionApi";
 
 export async function filteringDatabaseTables(target: string, filtering: string, column: string, limit: number) {
 	try {
@@ -164,14 +163,13 @@ export const getPhelobotomy = async (page: number, count: number) => {
 
 export const handleSeverSideProcessingPhelobotomy = async (pagination) => {
 	try {
-		const { filter, page, count, start_date, end_date, sortby = "DESC" } = pagination;
-		const { result } = await customFetch(`test/ascension/pendingCases?count=${count}&&page=${page}&&filter=${filter}&&start_date=${start_date}&&end_date=${end_date}&&sortby=${sortby}`);
+		const { filter, page, count, _dateFrom, _dateEnd, sortby = "DESC" } = pagination;
+		const { result } = await customFetch(`test/ascension/pendingCases?count=${count}&&page=${page}&&filter=${filter}&&start_date=${_dateFrom}&&end_date=${_dateEnd}&&sortby=${sortby}`);
 		if (Array.isArray(result)) {
 			return { result, err: false };
 		}
 		return { result: [], err: false };
 	} catch (error) {
-		console.error(error);
 		return { result: [], err: true };
 	}
 }
@@ -594,6 +592,19 @@ export const handleSessionGatheringServer = async (pagination: { page: number, c
 		}
 	} catch (error) {
 		console.error('Error fetching sessions:', error);
+		return { result: [], error: true };
+	}
+}
+
+export const handleServerSideCommissionAssignments = async (params: CommissionAssignmentParams) => {
+	try {
+		const response = await getCommissionAssignments(params);
+		if (response?.status === "success") {
+			return { result: response.result || [], error: false };
+		}
+		return { result: [], error: false };
+	} catch (error) {
+		console.error("Error fetching commission assignments:", error);
 		return { result: [], error: true };
 	}
 }

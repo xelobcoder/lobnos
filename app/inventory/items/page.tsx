@@ -139,9 +139,8 @@ export default function InventoryItemsPage() {
           try {
                setLoading(true);
                setError(null);
-               const response = await customFetch(`inventory/items?branchid=${branchid}&employeeid=${employeeid}`);
+               const response = await customFetch(`inventory/items?branchid=${branchid}&employeeid=${employeeid}&&page=1&&count=10`);
                if (response.success) {
-                    // Transform API data to match interface
                     const transformedData = (response.data || []).map((item: any) => ({
                          ...item,
                          currentStock: item.current_stock,

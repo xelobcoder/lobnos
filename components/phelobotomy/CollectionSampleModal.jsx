@@ -137,7 +137,15 @@ export default function CollectionSampleModal({
 					</thead>
 					<tbody>
 						{testCollection.map((item, index) => <ReceivedCollectionModalTableTr
-							updateCollectionStatus={updateCollectionStatus} toast={toast} key={index} multipleSelected={multipleSelected} toggleMultipleSelection={toggleMultipleSelection} item={item} updateCollectionAfterStatusChange={updateCollectionAfterStatusChange} />)}
+							updateCollectionStatus={updateCollectionStatus} 
+							toast={toast} 
+							key={index} 
+							multipleSelected={multipleSelected} 
+							toggleMultipleSelection={toggleMultipleSelection} 
+							item={item} 
+							updateCollectionAfterStatusChange={updateCollectionAfterStatusChange}
+							handleSampleMessageChange={handleSampleMessageChange}
+						/>)}
 						<tr>
 							<td colSpan={7} className="text-center py-2">
 								<div className="text-muted small">

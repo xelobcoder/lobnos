@@ -24,21 +24,18 @@ export default function CommissionConfigList({
      onDelete,
      refreshTrigger,
 }: CommissionConfigListProps) {
-     const { applicationsettings } = useApplicationSettings();
      const [configs, setConfigs] = useState<CommissionConfig[]>([]);
      const [loading, setLoading] = useState(true);
      const [deleting, setDeleting] = useState<number | null>(null);
 
-     const tenantId = applicationsettings?.tenantid || 1;
-
      useEffect(() => {
           fetchConfigs();
-     }, [tenantId, refreshTrigger]);
+     }, [refreshTrigger]);
 
      const fetchConfigs = async () => {
           try {
                setLoading(true);
-               const response = await getCommissionConfigs(tenantId);
+               const response = await getCommissionConfigs();
                if (response?.status === "success") {
                     setConfigs(response.result || []);
                }
@@ -57,7 +54,7 @@ export default function CommissionConfigList({
 
           try {
                setDeleting(id);
-               const response = await deleteCommissionConfig(id, tenantId);
+               const response = await deleteCommissionConfig(id);
                if (response?.status === "success") {
                     toast.success("Configuration deleted successfully");
                     setConfigs(configs.filter((c) => c.id !== id));
@@ -123,6 +120,11 @@ export default function CommissionConfigList({
                                              {config.commission_type === "hybrid" && (
                                                   <span>
                                                        {config.percentage_rate}% + {formatCurrency(config.fixed_component || 0)}
+                                                  </span>
+                                             )}
+                                             {config.commission_type === "sliding_scale" && (
+                                                  <span>
+                                                       {config.percentage_rate}% - {config.sliding_max_percentage}%
                                                   </span>
                                              )}
                                         </td>

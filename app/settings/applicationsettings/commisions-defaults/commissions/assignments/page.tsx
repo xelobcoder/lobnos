@@ -1,15 +1,22 @@
+
 "use client";
 
 import React, { useState } from "react";
 import CommissionAssignmentForm from "../../../../../../components/Commission/Admin/CommissionAssignmentForm";
 import CommissionAssignmentList from "../../../../../../components/Commission/Admin/CommissionAssignmentList";
 import { CommissionAssignment } from "../../../../../../lib/commission/commissionApi";
+import { RiSearchLine } from "@remixicon/react";
 
 export default function CommissionAssignmentsPage() {
      const [editingAssignment, setEditingAssignment] =
           useState<CommissionAssignment | null>(null);
      const [showForm, setShowForm] = useState(false);
      const [refreshKey, setRefreshKey] = useState(0);
+
+     const [filterType, setFilterType] = useState("all");
+     const [filterName, setFilterName] = useState("");
+     const [status, setStatus] = useState("all");
+     const [searchTrigger, setSearchTrigger] = useState(0);
 
      const handleAssignmentSaved = (assignment: CommissionAssignment) => {
           setEditingAssignment(null);
@@ -29,6 +36,10 @@ export default function CommissionAssignmentsPage() {
 
      const handleDelete = () => {
           setRefreshKey((prev) => prev + 1);
+     };
+
+     const handleSearch = () => {
+          setSearchTrigger((prev) => prev + 1);
      };
 
      return (
@@ -63,6 +74,62 @@ export default function CommissionAssignmentsPage() {
                     </div>
                )}
 
+               <div className="card mb-4">
+                    <div className="card-header bg-light py-3">
+                         <h5 className="mb-0">Search & Filters</h5>
+                    </div>
+                    <div className="card-body">
+                         <div className="row g-3 align-items-end">
+                              <div className="col-md-3">
+                                   <label className="form-label small fw-medium">Filter by Type</label>
+                                   <select
+                                        className="form-select"
+                                        value={filterType}
+                                        onChange={(e) => setFilterType(e.target.value)}
+                                   >
+                                        <option value="all">All Scopes</option>
+                                        <option value="clinician">Clinicians</option>
+                                        <option value="organization">Organizations</option>
+                                        <option value="system">System-wide</option>
+                                   </select>
+                              </div>
+                              <div className="col-md-3">
+                                   <label className="form-label small fw-medium">Recipient Name</label>
+                                   <input
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="Search by name..."
+                                        value={filterName}
+                                        onChange={(e) => setFilterName(e.target.value)}
+                                        onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                                   />
+                              </div>
+                              <div className="col-md-3">
+                                   <label className="form-label small fw-medium">Filter by Status</label>
+                                   <select
+                                        className="form-select"
+                                        value={status}
+                                        onChange={(e) => setStatus(e.target.value)}
+                                   >
+                                        <option value="all">All Statuses</option>
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Inactive</option>
+                                        <option value="expired">Expired</option>
+                                   </select>
+                              </div>
+                              <div className="col-md-3">
+                                   <button
+                                        className="btn btn-dark w-100 d-flex align-items-center justify-content-center gap-2"
+                                        onClick={handleSearch}
+                                   >
+                                        <RiSearchLine size={20} />
+                                        <span>SEARCH DATABASE</span>
+                                   </button>
+                              </div>
+                         </div>
+                    </div>
+               </div>
+
                <div className="card">
                     <div className="card-header bg-light py-3">
                          <h5 className="mb-0">Active Assignments</h5>
@@ -71,7 +138,10 @@ export default function CommissionAssignmentsPage() {
                          <CommissionAssignmentList
                               onEdit={handleEdit}
                               onDelete={handleDelete}
-                              refreshTrigger={refreshKey}
+                              refreshTrigger={refreshKey + searchTrigger}
+                              filterType={filterType}
+                              filterName={filterName}
+                              status={status}
                          />
                     </div>
                </div>

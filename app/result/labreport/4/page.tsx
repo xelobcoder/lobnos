@@ -65,6 +65,14 @@ const MDSLancetTemplate: React.FC = () => {
     };
 
     useEffect(() => {
+        if (resultdata?.testInfo?.reportitle && isScan) {
+            setUltrasoundTestname(resultdata.testInfo.reportitle);
+        } else if (test) {
+            setUltrasoundTestname(test);
+        }
+    }, [resultdata, isScan, test]);
+
+    useEffect(() => {
         if (employeeid && ascensionid && billingid) {
             setLoader(true);
             customFetch(url)
@@ -164,6 +172,8 @@ const MDSLancetTemplate: React.FC = () => {
                                 img.crossOrigin = 'anonymous';
                             }
                         });
+                        const footerToHide = clonedDoc.querySelector('.pdf-hide-footer') as HTMLElement;
+                        if (footerToHide) footerToHide.style.display = 'none';
                     }
                 }).then(canvas => {
                     const imgData = canvas.toDataURL('image/png');
@@ -205,11 +215,11 @@ const MDSLancetTemplate: React.FC = () => {
                         pdf.restoreGraphicsState();
                         pdf.setTextColor(60, 60, 60);
                         pdf.setFontSize(10);
-                        pdf.text(` ${pageNum}`, pageWidth / 2, pageHeight - 14, { align: 'center' });
+                        pdf.text(`${pageNum}`, pageWidth / 2, pageHeight - 12, { align: 'center' });
                         pdf.setFontSize(8);
                         pdf.setTextColor(65, 105, 225);
                         const copyright = `Software by leonides intell,PLS v0.0.1 copyright @${new Date().getFullYear()}. Tell: 0249434803 || 0595964565`;
-                        pdf.text(copyright, pageWidth / 2, pageHeight - 6, { align: 'center' });
+                        pdf.text(copyright, pageWidth / 2, pageHeight - 7, { align: 'center' });
                         pageNum++;
                         remainingHeight -= usableHeight;
                         imgY -= usableHeight;
@@ -413,7 +423,7 @@ const MDSLancetTemplate: React.FC = () => {
                                 )}
                                 <section>
                                     {!isScan && <UseCustomResultTemplatingPreview
-                                        test={resultdata?.testname}
+                                        test={resultdata?.testInfo?.reportitle || resultdata?.testname || test}
                                         records={resultdata?.records}
                                         resultsettings={resultSettings}
                                         isScan={isScan}
@@ -421,7 +431,7 @@ const MDSLancetTemplate: React.FC = () => {
                                         testdetailcategory={resultdata.testdetailcategory}
                                     />}
                                     {isScan && <ResultViewHtmlGeneratorUltrasound resultsettings={resultdata.resultsettings}
-                                        test={isReplaceUltrasoundTestname ? ultrasoundTestname : test}
+                                        test={isReplaceUltrasoundTestname ? ultrasoundTestname : (resultdata?.testInfo?.reportitle || test)}
                                         testInfo={resultdata?.testInfo}
                                         resultentry={resultdata?.resultentry}
                                         records={resultdata?.records}
@@ -475,11 +485,13 @@ const MDSLancetTemplate: React.FC = () => {
                                     )}
                                     <span className="text-muted d-flex justify-content-center text-sm">******End of Report ******</span>
                                     {!isScan && resultSettings.includeLimitations && <UseDisclaimer disclaimer={resultSettings.limitations} />}
+                                    <div className="mt-5 pdf-hide-footer">
+                                        <VersionFooter />
+                                    </div>
                                 </section>
                             </div>
                         </div>
-                        <footer >
-                            <VersionFooter />
+                        <footer>
                             <div className={styles.pageNumber}>
                                 <span className="pageNumber"></span>
                             </div>

@@ -115,7 +115,7 @@ export default function ExecutiveSummary({
                         <div className="flex-fill" style={{ height: '150px' }}>
                             <AnalyticCard
                                 title="Total Cost"
-                                value={Number(aggregatedSnapshot.totalCost || 0)}
+                                value={Number(aggregatedSnapshot.gross_revenue || 0)}
                                 Icon={RiBankCardLine}
                                 bgColor={cardColors.outstanding.bg}
                                 iconColor={cardColors.outstanding.icon}
@@ -124,7 +124,7 @@ export default function ExecutiveSummary({
                         <div className="flex-fill" style={{ height: '150px' }}>
                             <AnalyticCard
                                 title="Outstanding Debt"
-                                value={Number(aggregatedSnapshot.outstanding_debt || 0)}
+                                value={Number(aggregatedSnapshot.outstanding || 0)}
                                 Icon={RiBankCardLine}
                                 bgColor={cardColors.outstanding.bg}
                                 iconColor={cardColors.outstanding.icon}
@@ -133,7 +133,7 @@ export default function ExecutiveSummary({
                         <div className="flex-fill" style={{ height: '150px' }}>
                             <AnalyticCard
                                 title="Total Discounts"
-                                value={Number(aggregatedSnapshot.total_discount || 0)}
+                                value={Number(aggregatedSnapshot.discount || 0)}
                                 Icon={RiCashLine}
                                 bgColor={cardColors.expenses.bg}
                                 iconColor={cardColors.expenses.icon}
@@ -142,7 +142,7 @@ export default function ExecutiveSummary({
                         <div className="flex-fill" style={{ height: '150px' }}>
                             <AnalyticCard
                                 title="Total Refunds"
-                                value={Number(aggregatedSnapshot.total_refunds || 0)}
+                                value={Number(aggregatedSnapshot.total_refunded || 0)}
                                 Icon={RiCashLine}
                                 bgColor={cardColors.pendingDebts.bg}
                                 iconColor={cardColors.pendingDebts.icon}
@@ -154,7 +154,7 @@ export default function ExecutiveSummary({
                         <div className="flex-fill" style={{ height: '150px' }}>
                             <AnalyticCard
                                 title="Accrued Revenue"
-                                value={Number(aggregatedSnapshot.accrued_revenue || 0)}
+                                value={Number(aggregatedSnapshot.earned_revenue || 0)}
                                 Icon={RiLineChartLine}
                                 bgColor={cardColors.discount.bg}
                                 iconColor={cardColors.discount.icon}
@@ -163,7 +163,7 @@ export default function ExecutiveSummary({
                         <div className="flex-fill" style={{ height: '150px' }}>
                             <AnalyticCard
                                 title="Actual Revenue "
-                                value={Number(aggregatedSnapshot.actual_revenue || 0)}
+                                value={Number(aggregatedSnapshot.cash_collected || 0)}
                                 Icon={RiHandCoinLine}
                                 bgColor={cardColors.amountPaid.bg}
                                 iconColor={cardColors.amountPaid.icon}
@@ -173,7 +173,7 @@ export default function ExecutiveSummary({
                         <div className="flex-fill" style={{ height: '150px' }}>
                             <AnalyticCard
                                 title="Expenses Payments "
-                                value={Number(dailyCeoSnapshot[0]?.total_expense_payments || 0)}
+                                value={Number(dailyCeoSnapshot[0]?.expenses_paid || 0)}
                                 Icon={RiCashLine}
                                 bgColor={cardColors.expenses.bg}
                                 iconColor={cardColors.expenses.icon}
@@ -183,7 +183,7 @@ export default function ExecutiveSummary({
                         <div className="flex-fill" style={{ height: '150px' }}>
                             <AnalyticCard
                                 title="Net Revenue"
-                                value={Number(aggregatedSnapshot.net_revenue || 0)}
+                                value={Number(aggregatedSnapshot.net_operating_cash || 0)}
                                 Icon={RiMoneyDollarCircleLine}
                                 bgColor={cardColors.totalSales.bg}
                                 iconColor={cardColors.totalSales.icon}

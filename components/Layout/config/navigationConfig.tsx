@@ -15,16 +15,9 @@ import {
     RiErrorWarningLine,
     RiFileTextLine,
     RiFlaskLine,
-    RiFileList3Line,
-    RiStethoscopeLine,
-    RiUserHeartLine,
-    RiMedicineBottleLine,
     RiShoppingCart2Line,
-    RiFileChartLine,
     RiSettings3Line,
-    RiTruckLine,
     RiWalletLine,
-    RiShoppingBagLine,
     RiBoxingLine
 } from '@remixicon/react';
 

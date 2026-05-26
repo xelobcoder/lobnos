@@ -29,7 +29,6 @@ export default function AllPendingRequestsPage() {
      const [loading, setLoading] = useState(true);
      const [error, setError] = useState<string | null>(null);
      const { user } = useApplication();
-     const employeeid = user?.employeeid;
 
      useEffect(() => {
           const fetchData = async () => {
@@ -51,16 +50,10 @@ export default function AllPendingRequestsPage() {
           fetchData();
      }, []);
 
-     const getStatusBadgeClass = (status: string) => {
-          const normalizedStatus = status.toLowerCase();
-          if (normalizedStatus === 'pending') return 'bg-warning';
-          if (normalizedStatus === 'paid') return 'bg-success';
-          return 'bg-secondary';
-     };
 
-     const handleCollectSample = (date: string) => {
+     const handleCollectSample = (billingid: string|number) => {
           window.open(
-               `/operations/phelobotomy/pending-samples-collection?start_date=${dayjs(date).format("YYYY-MM-DD")}&end_date=${dayjs(date).format("YYYY-MM-DD")}`,
+               `/operations/phelobotomy/pending-samples-collection?billingid=${billingid}`,
                '_blank'
           );
      };
@@ -140,7 +133,7 @@ export default function AllPendingRequestsPage() {
                                              <td className="py-3 text-start">
                                                   <button
                                                        className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
-                                                       onClick={() => handleCollectSample(request.date)}
+                                                       onClick={() => handleCollectSample(request.billingid)}
                                                   >
                                                        <RiTestTubeLine size={16} />
                                                        <span>Collect Sample</span>

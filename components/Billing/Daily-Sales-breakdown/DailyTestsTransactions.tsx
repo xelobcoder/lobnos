@@ -21,11 +21,11 @@ export default function DailyTestsTransactions({ aggregatedTestData ,ultrasoundT
     const summarizeTests = (tests: any[]) => tests.reduce((summary, test) => {
         summary.total_cost += Number(test.total_cost) || 0;
         summary.total_count += Number(test.test_count) || 0;
-        summary.total_payable += Number(test.accrued_revenue) || 0;
-        summary.total_paid += Number(test.actual_revenue) || 0;
+        summary.total_payable += Number(test.earned_revenue) || 0;
+        summary.total_paid += Number(test.cash_collected) || 0;
         summary.total_discount += Number(test.total_discount) || 0;
         summary.total_outstanding += Number(test.total_outstanding) || 0;
-        summary.total_refunds += Number(test.total_refunds) || 0;
+        summary.total_refunds += Number(test.total_refunded) || 0;
         return summary;
     }, {
         total_cost: 0,
@@ -101,10 +101,10 @@ export default function DailyTestsTransactions({ aggregatedTestData ,ultrasoundT
                                                 </td>
                                                 <td className="text-start">{test.test_count}</td>
                                                 <td className="text-start">
-                                                    {currencyFormatter.format(Number(test.accrued_revenue))}
+                                                    {currencyFormatter.format(Number(test.earned_revenue))}
                                                 </td>
                                                 <td className="text-start">
-                                                    {currencyFormatter.format(Number(test.actual_revenue))}
+                                                    {currencyFormatter.format(Number(test.cash_collected))}
                                                 </td>
                                                 <td className="text-start">
                                                     {currencyFormatter.format(Number(test.total_discount))}
@@ -113,7 +113,7 @@ export default function DailyTestsTransactions({ aggregatedTestData ,ultrasoundT
                                                     {currencyFormatter.format(Number(test.total_outstanding))}
                                                 </td>
                                                 <td className="text-start">
-                                                    {currencyFormatter.format(Number(test.total_refunds))}
+                                                    {currencyFormatter.format(Number(test.total_refunded))}
                                                 </td>
                                             </tr>
                                         ))}
@@ -161,10 +161,10 @@ export default function DailyTestsTransactions({ aggregatedTestData ,ultrasoundT
                                                             </td>
                                                             <td className="text-start">{test.test_count}</td>
                                                             <td className="text-start">
-                                                                {currencyFormatter.format(Number(test.accrued_revenue))}
+                                                                {currencyFormatter.format(Number(test.earned_revenue))}
                                                             </td>
                                                             <td className="text-start">
-                                                                {currencyFormatter.format(Number(test.actual_revenue))}
+                                                                {currencyFormatter.format(Number(test.cash_collected))}
                                                             </td>
                                                             <td className="text-start">
                                                                 {currencyFormatter.format(Number(test.total_discount))}
@@ -173,7 +173,7 @@ export default function DailyTestsTransactions({ aggregatedTestData ,ultrasoundT
                                                                 {currencyFormatter.format(Number(test.total_outstanding))}
                                                             </td>
                                                             <td className="text-start">
-                                                                {currencyFormatter.format(Number(test.total_refunds))}
+                                                                {currencyFormatter.format(Number(test.total_refunded))}
                                                             </td>
                                                         </tr>
                                                     ))}

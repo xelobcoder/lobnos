@@ -15,17 +15,25 @@ import {
     Cell,
 } from 'recharts';
 import styles from '../../app/billing/sales/branches/[branchid]/day-transaction-break-down/FinancialSummary.module.css';
-import { RiBuildingLine, RiWalletLine } from '@remixicon/react';
+import {
+    RiBuildingLine,
+    RiWalletLine,
+    RiLineChartLine,
+    RiHandCoinLine,
+    RiBankCardLine,
+    RiCashLine,
+    RiTestTubeLine,
+} from '@remixicon/react';
 import { currencyFormatter } from '../Auth/customFetch';
 
 interface BranchData {
     branchid: number;
-    accrued_revenue: string;
-    actual_revenue: string;
-    total_discount: string;
-    total_outstanding: string;
+    earned_revenue: string;
+    cash_collected: string;
+    discount: string;
+    outstanding: string;
     total_tests: number;
-    total_refunds: string;
+    total_refunded: string;
     branchname: string;
 }
 
@@ -35,9 +43,22 @@ interface ModeData {
     total_amount: string;
 }
 
+interface DailySnapshot {
+    gross_revenue: string;
+    cash_collected: string;
+    earned_revenue: string;
+    discount: string;
+    outstanding: string;
+    total_refunded: string;
+    expenses_paid: string;
+    total_tests_conducted: number;
+    net_operating_cash: string;
+}
+
 interface FinancialChartsProps {
     branchesData: BranchData[];
     modesData: ModeData[];
+    dailySnapshot?: DailySnapshot;
 }
 
 
@@ -54,11 +75,56 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF', '#FF1943'];
 
+const StatCard = ({ label, value, icon, color = '#2563eb' }: { label: string; value: string | number; icon: React.ReactNode; color?: string }) => (
+    <div className={styles.card} style={{ padding: '1rem', borderLeft: `4px solid ${color}` }}>
+        <div className="d-flex align-items-center gap-3">
+            <div style={{ color, fontSize: '1.5rem', opacity: 0.8 }}>
+                {icon}
+            </div>
+            <div>
+                <p className="text-muted small mb-0">{label}</p>
+                <h3 className="h5 mb-0 fw-bold">{value}</h3>
+            </div>
+        </div>
+    </div>
+);
+
+export function CEODailySnapshot({ data }: { data: DailySnapshot }) {
+    return (
+        <div className="row g-3 mb-4">
+            <div className="col-12 col-sm-6 col-md-4 col-lg-3">
+                <StatCard label="Gross Revenue" value={currencyFormatter.format(Number(data.gross_revenue))} icon={<RiLineChartLine />} color="#0088FE" />
+            </div>
+            <div className="col-12 col-sm-6 col-md-4 col-lg-3">
+                <StatCard label="Cash Collected" value={currencyFormatter.format(Number(data.cash_collected))} icon={<RiHandCoinLine />} color="#00C49F" />
+            </div>
+            <div className="col-12 col-sm-6 col-md-4 col-lg-3">
+                <StatCard label="Earned Revenue" value={currencyFormatter.format(Number(data.earned_revenue))} icon={<RiLineChartLine />} color="#FFBB28" />
+            </div>
+            <div className="col-12 col-sm-6 col-md-4 col-lg-3">
+                <StatCard label="Net Operating Cash" value={currencyFormatter.format(Number(data.net_operating_cash))} icon={<RiCashLine />} color="#FF8042" />
+            </div>
+            <div className="col-12 col-sm-6 col-md-4 col-lg-3">
+                <StatCard label="Outstanding" value={currencyFormatter.format(Number(data.outstanding))} icon={<RiBankCardLine />} color="#AF19FF" />
+            </div>
+            <div className="col-12 col-sm-6 col-md-4 col-lg-3">
+                <StatCard label="Total Refunded" value={currencyFormatter.format(Number(data.total_refunded))} icon={<RiCashLine />} color="#FF1943" />
+            </div>
+            <div className="col-12 col-sm-6 col-md-4 col-lg-3">
+                <StatCard label="Expenses Paid" value={currencyFormatter.format(Number(data.expenses_paid))} icon={<RiHandCoinLine />} color="#dc2626" />
+            </div>
+            <div className="col-12 col-sm-6 col-md-4 col-lg-3">
+                <StatCard label="Tests Conducted" value={data.total_tests_conducted} icon={<RiTestTubeLine />} color="#2563eb" />
+            </div>
+        </div>
+    );
+}
+
 export function CEOFinancialCharts({ branchesData, modesData }: FinancialChartsProps) {
     const processedBranchData = useMemo(() =>
         branchesData.map(branch => ({
             ...branch,
-            revenue: parseFloat(branch.actual_revenue),
+            revenue: parseFloat(branch.earned_revenue),
         })), [branchesData]);
 
     const processedModesData = useMemo(() =>

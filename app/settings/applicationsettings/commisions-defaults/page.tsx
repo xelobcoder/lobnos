@@ -102,7 +102,7 @@ export default function CommissionDefaults() {
           try {
                setLoading(true);
                setError(null);
-               const configResponse = await getCommissionConfigs(tenantId);
+               const configResponse = await getCommissionConfigs();
                if (configResponse?.status === "success") {
                     setConfigs(configResponse.result || []);
                } else {
@@ -128,7 +128,7 @@ export default function CommissionDefaults() {
           try {
                setLoading(true);
                setError(null);
-               const defaultsResponse = await getCommissionDefaults(tenantId, recipientType, recipientId);
+               const defaultsResponse = await getCommissionDefaults(recipientType, recipientId);
                if (defaultsResponse?.status === "success") {
                     const results = Array.isArray(defaultsResponse.result)
                          ? defaultsResponse.result
@@ -229,7 +229,7 @@ export default function CommissionDefaults() {
 
                let response;
                if (editingId) {
-                    response = await updateCommissionDefault(editingId, tenantId, payload);
+                    response = await updateCommissionDefault(editingId,  payload);
                } else {
                     response = await createCommissionDefault(payload);
                }
@@ -266,7 +266,7 @@ export default function CommissionDefaults() {
           if (!commissionDefault.id) return;
           try {
                setSaving(true);
-               const response = await updateCommissionDefault(commissionDefault.id, tenantId, {
+               const response = await updateCommissionDefault(commissionDefault.id, {
                     is_active: !(commissionDefault.is_active === 1 || commissionDefault.is_active === true),
                });
                if (response?.status === "success") {
@@ -290,7 +290,7 @@ export default function CommissionDefaults() {
 
           try {
                setSaving(true);
-               const response = await deleteCommissionDefault(commissionDefault.id, tenantId);
+               const response = await deleteCommissionDefault(commissionDefault.id);
                if (response?.status === "success") {
                     toast.success("Commission default deleted.");
                     loadDefaults(selectedRecipientType);

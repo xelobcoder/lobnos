@@ -32,7 +32,6 @@ export default function CommissionConfigForm({
      onSaved,
      onCancel,
 }: CommissionConfigFormProps) {
-     const { applicationsettings } = useApplicationSettings();
      const [loading, setLoading] = useState(configId ? true : false);
      const [saving, setSaving] = useState(false);
      const [serviceAmount, setServiceAmount] = useState(100);
@@ -48,31 +47,33 @@ export default function CommissionConfigForm({
      } = useForm<CommissionConfig>({
           resolver: yupResolver(commissionConfigSchema),
           defaultValues: {
+               name: "",
                commission_type: "percentage",
                percentage_rate: 10,
+               sliding_max_percentage: 15,
                min_commission: 0,
                max_commission: 1000,
                period_cap: 5000,
                period_cap_reset: "monthly",
+               effective_from: new Date().toISOString().split("T")[0],
                is_active: true,
-               tenantId: applicationsettings?.tenantid || 1,
           },
      });
 
      const commissionType = watch("commission_type");
-     const tenantId = applicationsettings?.tenantid || 1;
 
      // Load existing config
      useEffect(() => {
           if (configId) {
                const fetchConfig = async () => {
                     try {
-                         const response = await getCommissionConfig(configId, tenantId);
+                         const response = await getCommissionConfig(configId);
                          if (response?.status === "success") {
                               const config = response.result;
                               setValue("name", config.name);
                               setValue("commission_type", config.commission_type);
                               setValue("percentage_rate", config.percentage_rate);
+                              setValue("sliding_max_percentage", config.sliding_max_percentage);
                               setValue("fixed_component", config.fixed_component);
                               setValue("min_commission", config.min_commission);
                               setValue("max_commission", config.max_commission);
@@ -93,23 +94,24 @@ export default function CommissionConfigForm({
                };
                fetchConfig();
           }
-     }, [configId, tenantId, setValue]);
+     }, [configId, setValue]);
 
      const onSubmit = async (data: CommissionConfig) => {
           try {
                setSaving(true);
                const payload: CommissionConfig = {
                     ...data,
-                    tenantId,
                     percentage_rate:
                          data.commission_type === "tiered" || data.commission_type === "fixed" ? null : data.percentage_rate ?? null,
+                    sliding_max_percentage:
+                         data.commission_type === "sliding_scale" ? data.sliding_max_percentage ?? null : null,
                     fixed_component:
-                         data.commission_type === "tiered" ? null : data.fixed_component ?? null,
+                         data.commission_type === "tiered" || data.commission_type === "sliding_scale" ? null : data.fixed_component ?? null,
                     tiers: data.commission_type === "tiered" ? tiers : undefined,
                };
 
                const response = configId
-                    ? await updateCommissionConfig(configId, tenantId, payload)
+                    ? await updateCommissionConfig(configId, payload)
                     : await createCommissionConfig(payload);
 
                if (response?.status === "success") {
@@ -137,7 +139,6 @@ export default function CommissionConfigForm({
 
      const currentConfig: CommissionConfig = {
           commission_type: commissionType,
-          tenantId,
           name: "",
           is_active: true,
      };
@@ -145,6 +146,7 @@ export default function CommissionConfigForm({
      const preview = calculateCommissionPreview(serviceAmount, {
           ...currentConfig,
           percentage_rate: watch("percentage_rate"),
+          sliding_max_percentage: watch("sliding_max_percentage"),
           fixed_component: watch("fixed_component"),
           min_commission: watch("min_commission"),
           max_commission: watch("max_commission"),
@@ -194,6 +196,7 @@ export default function CommissionConfigForm({
                                              <option value="fixed">Fixed Amount</option>
                                              <option value="tiered">Tiered</option>
                                              <option value="hybrid">Hybrid (% + Fixed)</option>
+                                             <option value="sliding_scale">Sliding Scale</option>
                                         </select>
                                    )}
                               />
@@ -208,11 +211,11 @@ export default function CommissionConfigForm({
                          </div>
 
                          {/* Commission Type Fields */}
-                         {(commissionType === "percentage" || commissionType === "hybrid") && (
+                         {(commissionType === "percentage" || commissionType === "hybrid" || commissionType === "sliding_scale") && (
                               <div className="mb-3">
                                    <label htmlFor="percentage_rate" className="form-label fw-medium">
-                                        Percentage Rate (%)
-                                        {commissionType === "percentage" && (
+                                        {commissionType === "sliding_scale" ? "Base Percentage Rate (%)" : "Percentage Rate (%)"}
+                                        {(commissionType === "percentage" || commissionType === "sliding_scale") && (
                                              <span className="text-danger">*</span>
                                         )}
                                    </label>
@@ -238,6 +241,39 @@ export default function CommissionConfigForm({
                                              {errors.percentage_rate.message}
                                         </div>
                                    )}
+                              </div>
+                         )}
+
+                         {commissionType === "sliding_scale" && (
+                              <div className="mb-3">
+                                   <label htmlFor="sliding_max_percentage" className="form-label fw-medium">
+                                        Maximum Percentage Rate (%) <span className="text-danger">*</span>
+                                   </label>
+                                   <Controller
+                                        name="sliding_max_percentage"
+                                        control={control}
+                                        render={({ field }) => (
+                                             <div className="input-group">
+                                                  <input
+                                                       {...field}
+                                                       type="number"
+                                                       step="0.01"
+                                                       className={`form-control ${errors.sliding_max_percentage ? "is-invalid" : ""
+                                                            }`}
+                                                       placeholder="0.00"
+                                                  />
+                                                  <span className="input-group-text">%</span>
+                                             </div>
+                                        )}
+                                   />
+                                   {errors.sliding_max_percentage && (
+                                        <div className="invalid-feedback d-block">
+                                             {errors.sliding_max_percentage.message}
+                                        </div>
+                                   )}
+                                   <small className="text-muted">
+                                        The rate will increase up to this maximum if performance improves.
+                                   </small>
                               </div>
                          )}
 
@@ -409,6 +445,11 @@ export default function CommissionConfigForm({
                                              </select>
                                         )}
                                    />
+                                   {commissionType === "sliding_scale" && (
+                                        <small className="text-muted d-block mt-1">
+                                             This defines the period used to compare performance improvement.
+                                        </small>
+                                   )}
                               </div>
                          </div>
 

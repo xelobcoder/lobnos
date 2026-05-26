@@ -4,7 +4,14 @@ import { calculateTimeUsed, customPost } from "../Auth/customFetch";
 import moment from "moment/moment";
 import { RiPlayCircleLine, RiCheckDoubleLine, RiPlayFill, RiStopFill } from '@remixicon/react';
 
-export default function ReceivedCollectionModalTableTr({ item, toggleMultipleSelection, multipleSelected, toast, updateCollectionStatus }) {
+export default function ReceivedCollectionModalTableTr({ 
+    item, 
+    toggleMultipleSelection, 
+    multipleSelected, 
+    toast, 
+    updateCollectionStatus,
+    handleSampleMessageChange 
+}) {
     const [isCollectionLoading, setIsCollectionLoading] = useState(false);
     const [isCompletedLoading, setIsCompletedLoading] = useState(false);
 
@@ -54,13 +61,13 @@ export default function ReceivedCollectionModalTableTr({ item, toggleMultipleSel
             <td style={{ width: '20%' }}>
                 <div className="d-flex flex-column">
                     <span className={item.sampletype === "serum" ? "text-warning" : item.sampletype === "blood" ? "text-danger" : "text-dark"}>
-                        {item.sampletype}
+                      Sample Type:  {item.sampletype}
                     </span>
                     <span>
-                        {item.qty_required} {item.unit}
+                        QTY: {item.qty_required} {item.unit}
                     </span>
                     <span>
-                        {item.sample_container}
+                       Sample Container: {item.sample_container || <span className=" text-sm  text-danger">Kindly set sample container in the test panel</span>}
                     </span>
                 </div>
             </td>

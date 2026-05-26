@@ -146,6 +146,7 @@ export default function AssessmentRenderingView({
                         <th className="text-capitalize column-bordered">Test</th>
                         <th className="text-capitalize column-bordered">Sample</th>
                         <th className="text-capitalize column-bordered">Sample Status</th>
+                                    <th className="text-capitalize column-bordered">Sample Container</th>
                         <th className="text-capitalize column-bordered">Validation Status</th>
                         <th className="text-capitalize column-bordered">Rejection Status</th>
                         <th className="text-capitalize column-bordered">Actions</th>
@@ -173,7 +174,8 @@ export default function AssessmentRenderingView({
                                     )}
                                 </span>
                             </td>
-                            <td className="column-bordered">{item.sample}</td>
+                            <td className="column-bordered">{item.sampleType || 'NA'}</td>
+                                <td className="column-bordered">{item.sampleContainerName || 'NA'}</td>
                             <td className="column-bordered text-capitalize">
                                 {item.collection == "true" ? "Collected" : "N/A"}
                             </td>

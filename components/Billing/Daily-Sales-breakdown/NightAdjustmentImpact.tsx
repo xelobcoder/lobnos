@@ -4,7 +4,7 @@ import { currencyFormatter } from '../../Auth/customFetch'
 
 interface DailyNightAdjustmentImpact {
      report_date: string;
-     accrued_revenue: string;
+     earned_revenue: string;
      total_night_adjustment_payable: string;
      total_normal_payable: string;
      night_adjustment_cases_count: number;
@@ -33,7 +33,7 @@ export default function NightAdjustmentImpact({ dailyNightAdjustmentImpact }: { 
                               <thead className="table-light">
                                    <tr>
                                         <th className="text-start">Report Date</th>
-                                        <th className="text-start">Accrued Revenue(total payable)</th>
+                                        <th className="text-start">Earned Revenue(total payable)</th>
                                         <th className="text-start">Total Night Adjustment Payable</th>
                                         <th className="text-start">Total Normal Payable</th>
                                         <th className="text-start">Night Adjustment Cases</th>
@@ -45,7 +45,7 @@ export default function NightAdjustmentImpact({ dailyNightAdjustmentImpact }: { 
                                    {dailyNightAdjustmentImpact.map((adjustment, index) => (
                                         <tr key={index}>
                                              <td className="text-start">{new Date(adjustment.report_date).toLocaleDateString()}</td>
-                                             <td className="text-start">{currencyFormatter.format(Number(adjustment.accrued_revenue))}</td>
+                                             <td className="text-start">{currencyFormatter.format(Number(adjustment.earned_revenue))}</td>
                                              <td className="text-start">{currencyFormatter.format(Number(adjustment.total_night_adjustment_payable))}</td>
                                              <td className="text-start">{currencyFormatter.format(Number(adjustment.total_normal_payable))}</td>
                                              <td className="text-start">{adjustment.night_adjustment_cases_count}</td>

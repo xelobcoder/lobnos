@@ -100,6 +100,11 @@ export default function ListTable({ data, handleCollectSample, filter, selectedI
 			),
 		},
 		{
+			Header:"PatientId/BillID",
+			accessor: 'patientid',
+			Cell: ({row}) => <div>{row.original.patientid}({row.original.billingid})</div>
+		},
+		{
 			Header: "Date",
 			accessor: "date",
 			Cell: ({ value }) => dayjs(value).format('DD-MM-YYYY HH:mm:ss'),
@@ -108,7 +113,7 @@ export default function ListTable({ data, handleCollectSample, filter, selectedI
 		{ Header: "Age", accessor: "age" },
 		{ Header: "Gender", accessor: "gender" },
 		{
-			Header: "Urgency",
+			Header: "Payment Status",
 			accessor: "clientstatus",
 			Cell: ({ value }) => (
 				value === "urgent" ? (

@@ -20,17 +20,20 @@ import {
 
 import { currencyFormatter,customFetch } from '../Auth/customFetch';
 import { useApplication } from '../Auth/useApplicationContext';
-import { CEOFinancialCharts } from './CeoSnapShot';
+import { CEOFinancialCharts, CEODailySnapshot } from './CeoSnapShot';
 import { CeoClinicianSalesChart } from './ClinicianSalesChartCeo';
 
 
 interface DailyCeoSnapshot {
-    totalCost: string;
-    actual_revenue: string;
-    accrued_revenue: string;
-    total_discount: string;
-    outstanding_debt: string;
-    total_refunds: string;
+    gross_revenue: string;
+    cash_collected: string;
+    earned_revenue: string;
+    discount: string;
+    outstanding: string;
+    total_refunded: string;
+    expenses_paid: string;
+    total_tests_conducted: number;
+    net_operating_cash: string;
 }
 
 interface ServiceStatusCounts {
@@ -62,18 +65,18 @@ interface OrganizationCommission {
 
 interface TopPerformingBranch {
     branchid: number;
-    accrued_revenue: string;
-    actual_revenue: string;
-    total_discount: string;
-    total_outstanding: string;
+    earned_revenue: string;
+    cash_collected: string;
+    discount: string;
+    outstanding: string;
     total_tests: number;
-    total_refunds: string;
+    total_refunded: string;
     branchname: string;
 }
 
 interface DailyNightAdjustmentImpact {
     report_date: string;
-    accrued_revenue: string;
+    earned_revenue: string;
     total_night_adjustment_payable: string;
     total_normal_payable: string;
     night_adjustment_cases_count: number;
@@ -88,12 +91,13 @@ interface DailyTestTransaction {
     serviceCategory: string;
     test_panel_name: string | null;
     test_count: number;
-    accrued_revenue: string;
-    actual_revenue: string;
-    total_discount: string;
-    total_outstanding: string;
-    total_cost: string;
-    total_refunds: string;
+    earned_revenue: string;
+    cash_collected: string;
+    discount: string;
+    outstanding: string;
+    department: string | null;
+    gross_revenue: string;
+    total_refunded: string;
 }
 
 interface PaymentModeBreakdown {
@@ -124,7 +128,7 @@ interface AllExpenseCategory {
 
 interface ExpenseApprovalStatusSummary {
     status: string;
-    count: number;
+    expense_count: number;
     total_amount: string;
 }
 
@@ -401,19 +405,25 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
 
     // Calculate aggregated totals from all daily snapshots
     const aggregatedSnapshot = dailyCeoSnapshot.reduce((acc, snapshot) => ({
-        totalCost: (Number(acc.totalCost || 0) + Number(snapshot.totalCost || 0)).toString(),
-        actual_revenue: (Number(acc.actual_revenue || 0) + Number(snapshot.actual_revenue || 0)).toString(),
-        accrued_revenue: (Number(acc.accrued_revenue || 0) + Number(snapshot.accrued_revenue || 0)).toString(),
-        outstanding_debt: (Number(acc.outstanding_debt || 0) + Number(snapshot.outstanding_debt || 0)).toString(),
-        total_discount: (Number(acc.total_discount || 0) + Number(snapshot.total_discount || 0)).toString(),
-        total_refunds: (Number(acc.total_refunds || 0) + Number(snapshot.total_refunds || 0)).toString(),
+        gross_revenue: (Number(acc.gross_revenue || 0) + Number(snapshot.gross_revenue || 0)).toString(),
+        cash_collected: (Number(acc.cash_collected || 0) + Number(snapshot.cash_collected || 0)).toString(),
+        earned_revenue: (Number(acc.earned_revenue || 0) + Number(snapshot.earned_revenue || 0)).toString(),
+        discount: (Number(acc.discount || 0) + Number(snapshot.discount || 0)).toString(),
+        outstanding: (Number(acc.outstanding || 0) + Number(snapshot.outstanding || 0)).toString(),
+        total_refunded: (Number(acc.total_refunded || 0) + Number(snapshot.total_refunded || 0)).toString(),
+        expenses_paid: (Number(acc.expenses_paid || 0) + Number(snapshot.expenses_paid || 0)).toString(),
+        total_tests_conducted: Number(acc.total_tests_conducted || 0) + Number(snapshot.total_tests_conducted || 0),
+        net_operating_cash: (Number(acc.net_operating_cash || 0) + Number(snapshot.net_operating_cash || 0)).toString(),
     }), {
-        totalCost: '0',
-        actual_revenue: '0',
-        accrued_revenue: '0',
-        outstanding_debt: '0',
-        total_discount: '0',
-        total_refunds: '0',
+        gross_revenue: '0',
+        cash_collected: '0',
+        earned_revenue: '0',
+        discount: '0',
+        outstanding: '0',
+        total_refunded: '0',
+        expenses_paid: '0',
+        total_tests_conducted: 0,
+        net_operating_cash: '0',
     });
 
     const serviceStatus = serviceStatusCounts[0] || {};
@@ -545,22 +555,31 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                         <Card title="Executive Summary" icon={<RiPieChartLine />}>
                             <div className="row g-3">
                                 <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                                    <Stat label="Total Cost" value={currencyFormatter.format(Number(aggregatedSnapshot.totalCost || 0))} icon={<RiLineChartLine />} />
+                                    <Stat label="Gross Revenue" value={currencyFormatter.format(Number(aggregatedSnapshot.gross_revenue || 0))} icon={<RiLineChartLine />} />
                                 </div>
                                 <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                                    <Stat label="Accrued Revenue(total payable)" value={currencyFormatter.format(Number(aggregatedSnapshot.accrued_revenue || 0))} icon={<RiLineChartLine />} />
+                                    <Stat label="Cash Collected" value={currencyFormatter.format(Number(aggregatedSnapshot.cash_collected || 0))} icon={<RiHandCoinLine />} />
                                 </div>
                                 <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                                    <Stat label="Actual Revenue(paid amount)" value={currencyFormatter.format(Number(aggregatedSnapshot.actual_revenue || 0))} icon={<RiHandCoinLine />} />
+                                    <Stat label="Earned Revenue" value={currencyFormatter.format(Number(aggregatedSnapshot.earned_revenue || 0))} icon={<RiLineChartLine />} />
                                 </div>
                                 <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                                    <Stat label="Outstanding Debt" value={currencyFormatter.format(Number(aggregatedSnapshot.outstanding_debt || 0))} icon={<RiBankCardLine />} />
+                                    <Stat label="Outstanding" value={currencyFormatter.format(Number(aggregatedSnapshot.outstanding || 0))} icon={<RiBankCardLine />} />
                                 </div>
                                 <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                                    <Stat label="Total Discounts" value={currencyFormatter.format(Number(aggregatedSnapshot.total_discount || 0))} icon={<RiCashLine />} />
+                                    <Stat label="Total Discounts" value={currencyFormatter.format(Number(aggregatedSnapshot.discount || 0))} icon={<RiCashLine />} />
                                 </div>
                                 <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
-                                    <Stat label="Total Refunds" value={currencyFormatter.format(Number(aggregatedSnapshot.total_refunds || 0))} icon={<RiCashLine />} />
+                                    <Stat label="Total Refunds" value={currencyFormatter.format(Number(aggregatedSnapshot.total_refunded || 0))} icon={<RiCashLine />} />
+                                </div>
+                                <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
+                                    <Stat label="Expenses Paid" value={currencyFormatter.format(Number(aggregatedSnapshot.expenses_paid || 0))} icon={<RiHandCoinLine />} />
+                                </div>
+                                <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
+                                    <Stat label="Net Operating Cash" value={currencyFormatter.format(Number(aggregatedSnapshot.net_operating_cash || 0))} icon={<RiCashLine />} />
+                                </div>
+                                <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
+                                    <Stat label="Tests Conducted" value={aggregatedSnapshot.total_tests_conducted || 0} icon={<RiTestTubeLine />} />
                                 </div>
                                 <div className="col-12 col-sm-6 col-md-4 col-lg-2 col-xl-2">
                                     <Stat label="Active Services" value={serviceStatus.active_services || 0} icon={<RiFileList3Line />} />
@@ -579,7 +598,7 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                                 </div>
                             </div>
                         </Card>
-
+                        <CEODailySnapshot data={aggregatedSnapshot} />
                         <CEOFinancialCharts branchesData={branchesData} modesData={modesData} />
                     </div>
                 )}
@@ -592,34 +611,46 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                                     <table className="table table-sm table-hover table-striped small">
                                         <thead className="table-light">
                                             <tr>
-                                                <th className="text-start">Total Cost</th>
-                                                <th className="text-start">Accrued Revenue(total payable)</th>
-                                                <th className="text-start">Actual Revenue(paid amount)</th>
-                                                <th className="text-start">Outstanding Debt</th>
-                                                <th className="text-start">Total Discount</th>
-                                                <th className="text-start">Total Refunds</th>
+                                                <th className="text-start">Gross Revenue</th>
+                                                <th className="text-start">Cash Collected</th>
+                                                <th className="text-start">Earned Revenue</th>
+                                                <th className="text-start">Discount</th>
+                                                <th className="text-start">Outstanding</th>
+                                                <th className="text-start">Total Refunded</th>
+                                                <th className="text-start">Expenses Paid</th>
+                                                <th className="text-start">Net Operating Cash</th>
+                                                <th className="text-start">Tests</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {Array.isArray(dailyCeoSnapshot) && dailyCeoSnapshot.length > 0 && dailyCeoSnapshot.map((daily: DailyCeoSnapshot, index: number) => (
                                                 <tr key={index}>
                                                     <td className="text-start">
-                                                        {currencyFormatter.format(Number(daily.totalCost))}
+                                                        {currencyFormatter.format(Number(daily.gross_revenue))}
                                                     </td>
                                                     <td className="text-start">
-                                                        {currencyFormatter.format(Number(daily.accrued_revenue))}
+                                                        {currencyFormatter.format(Number(daily.cash_collected))}
                                                     </td>
                                                     <td className="text-start">
-                                                        {currencyFormatter.format(Number(daily.actual_revenue))}
+                                                        {currencyFormatter.format(Number(daily.earned_revenue))}
                                                     </td>
                                                     <td className="text-start">
-                                                        {currencyFormatter.format(Number(daily.outstanding_debt))}
+                                                        {currencyFormatter.format(Number(daily.discount))}
                                                     </td>
                                                     <td className="text-start">
-                                                        {currencyFormatter.format(Number(daily.total_discount))}
+                                                        {currencyFormatter.format(Number(daily.outstanding))}
                                                     </td>
                                                     <td className="text-start">
-                                                        {currencyFormatter.format(Number(daily.total_refunds))}
+                                                        {currencyFormatter.format(Number(daily.total_refunded))}
+                                                    </td>
+                                                    <td className="text-start">
+                                                        {currencyFormatter.format(Number(daily.expenses_paid))}
+                                                    </td>
+                                                    <td className="text-start">
+                                                        {currencyFormatter.format(Number(daily.net_operating_cash))}
+                                                    </td>
+                                                    <td className="text-start">
+                                                        {daily.total_tests_conducted}
                                                     </td>
                                                 </tr>
                                             ))}
@@ -643,7 +674,7 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                                         <thead className="table-light">
                                             <tr>
                                                 <th className="text-start">Report Date</th>
-                                                <th className="text-start">Accrued Revenue(total payable)</th>
+                                                <th className="text-start">Earned Revenue</th>
                                                 <th className="text-start">Total Night Adjustment Payable</th>
                                                 <th className="text-start">Total Normal Payable</th>
                                                 <th className="text-start">Night Adjustment Cases</th>
@@ -658,7 +689,7 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                                                         {new Date(adjustment.report_date).toLocaleDateString()}
                                                     </td>
                                                     <td className="text-start">
-                                                        {currencyFormatter.format(Number(adjustment.accrued_revenue))}
+                                                        {currencyFormatter.format(Number(adjustment.earned_revenue))}
                                                     </td>
                                                     <td className="text-start">
                                                         {currencyFormatter.format(Number(adjustment.total_night_adjustment_payable))}
@@ -832,7 +863,7 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                                         <thead className="table-light">
                                             <tr>
                                                 <th className="text-start">Period</th>
-                                                <th className="text-start">Total Expenses</th>
+                                                <th className="text-start">Expenses Paid</th>
                                                 <th className="text-start">Expense Count</th>
                                             </tr>
                                         </thead>
@@ -1100,12 +1131,13 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                                                 <th className="text-start">Test Name</th>
                                                 <th className="text-start">Category</th>
                                                 <th className="text-start">Count</th>
-                                                <th className="text-start">Accrued Revenue(total payable)</th>
-                                                <th className="text-start">Actual Revenue(paid amount)</th>
-                                                <th className="text-start">Total Cost</th>
+                                                <th className="text-start">Gross Revenue</th>
+                                                <th className="text-start">Cash Collected</th>
+                                                <th className="text-start">Earned Revenue</th>
                                                 <th className="text-start">Discount</th>
                                                 <th className="text-start">Outstanding</th>
                                                 <th className="text-start">Refunds</th>
+                                                <th className="text-start">Department</th>
                                                 <th className="text-start">Added On</th>
                                             </tr>
                                         </thead>
@@ -1118,22 +1150,25 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                                                         <span className="badge bg-primary">{test.test_count}</span>
                                                     </td>
                                                     <td className="text-start">
-                                                        {currencyFormatter.format(Number(test.accrued_revenue))}
+                                                        {currencyFormatter.format(Number(test.gross_revenue))}
                                                     </td>
                                                     <td className="text-start">
-                                                        {currencyFormatter.format(Number(test.actual_revenue))}
+                                                        {currencyFormatter.format(Number(test.cash_collected))}
                                                     </td>
                                                     <td className="text-start">
-                                                        {currencyFormatter.format(Number(test.total_cost))}
+                                                        {currencyFormatter.format(Number(test.earned_revenue))}
                                                     </td>
                                                     <td className="text-start">
-                                                        {currencyFormatter.format(Number(test.total_discount))}
+                                                        {currencyFormatter.format(Number(test.discount))}
                                                     </td>
                                                     <td className="text-start">
-                                                        {currencyFormatter.format(Number(test.total_outstanding))}
+                                                        {currencyFormatter.format(Number(test.outstanding))}
                                                     </td>
                                                     <td className="text-start">
-                                                        {currencyFormatter.format(Number(test.total_refunds))}
+                                                        {currencyFormatter.format(Number(test.total_refunded))}
+                                                    </td>
+                                                    <td className="text-start">
+                                                        {test.department || 'N/A'}
                                                     </td>
                                                     <td className="text-start">
                                                         {new Date(test.serviceAddedOn).toLocaleTimeString()}
@@ -1157,10 +1192,10 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                                     <table className="table table-sm table-hover table-striped small">
                                         <thead className="table-light">
                                             <tr>
-                                                <th className="text-start">Payment Date</th>
                                                 <th className="text-start">Employee</th>
                                                 <th className="text-start">Transactions</th>
-                                                <th className="text-start">Total Amount</th>
+                                                <th className="text-start">Cash Collected</th>
+                                                <th className="text-start">Last Payment Date</th>
                                             </tr>
                                         </thead>
                                         <tbody>

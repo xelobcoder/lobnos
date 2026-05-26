@@ -19,22 +19,22 @@ interface DepartmentSegregationDetail {
     test_name: string;
     total_cost: number;
     total_count: number;
-    total_accrued_revenue: number;
-    total_actual_revenue: number;
+    total_earned_revenue: number;
+    total_cash_collected: number;
     total_discount: number;
     total_outstanding: number;
-    total_refunds: number;
+    total_refunded: number;
 }
 
 interface DepartmentSegregationItem {
     department: string;
     total_cost: number;
     total_count: number;
-    total_accrued_revenue: number;
-    total_actual_revenue: number;
+    total_earned_revenue: number;
+    total_cash_collected: number;
     total_discount: number;
     total_outstanding: number;
-    total_refunds: number;
+    total_refunded: number;
     breakdown: DepartmentSegregationDetail[];
 }
 
@@ -59,11 +59,11 @@ export default function DepartmentSegregation({ departmentSegregation }: { depar
                                         </div>
                                         <div className="border rounded px-3 py-2 bg-white" style={{ minWidth: '170px' }}>
                                             <div className="small text-secondary fw-semibold">Total Paid</div>
-                                            <div className="fs-6 fw-bold text-body-emphasis">{currencyFormatter.format(department.total_actual_revenue)}</div>
+                                            <div className="fs-6 fw-bold text-body-emphasis">{currencyFormatter.format(department.total_cash_collected)}</div>
                                         </div>
                                         <div className="border rounded px-3 py-2 bg-white" style={{ minWidth: '170px' }}>
                                             <div className="small text-secondary fw-semibold">Total Refunds</div>
-                                            <div className="fs-6 fw-bold text-body-emphasis">{currencyFormatter.format(department.total_refunds)}</div>
+                                            <div className="fs-6 fw-bold text-body-emphasis">{currencyFormatter.format(department.total_refunded)}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -89,11 +89,11 @@ export default function DepartmentSegregation({ departmentSegregation }: { depar
                                                 <td className="text-start fw-semibold">{item.test_name}</td>
                                                 <td className="text-start  text-body-emphasis">{currencyFormatter.format(item.total_cost)}</td>
                                                 <td className="text-start  text-body-emphasis">{item.total_count}</td>
-                                                <td className="text-start  text-body-emphasis">{currencyFormatter.format(item.total_accrued_revenue)}</td>
-                                                <td className="text-start  text-body-emphasis">{currencyFormatter.format(item.total_actual_revenue)}</td>
+                                                <td className="text-start  text-body-emphasis">{currencyFormatter.format(item.total_earned_revenue)}</td>
+                                                <td className="text-start  text-body-emphasis">{currencyFormatter.format(item.total_cash_collected)}</td>
                                                 <td className="text-start  text-body-emphasis">{currencyFormatter.format(item.total_discount)}</td>
                                                 <td className="text-start  text-body-emphasis">{currencyFormatter.format(item.total_outstanding)}</td>
-                                                <td className="text-start  text-body-emphasis">{currencyFormatter.format(item.total_refunds)}</td>
+                                                <td className="text-start  text-body-emphasis">{currencyFormatter.format(item.total_refunded)}</td>
                                             </tr>
                                         ))}
                                     </tbody>

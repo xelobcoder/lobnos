@@ -137,6 +137,23 @@ export default function MultiBillingHeader({
                         className="mb-0 flex-shrink-0"
                         aria-label="Show Promo Code"
                     />
+                     <Form.Check
+                        type="checkbox"
+                        label="Use Different billing date"
+                        checked={!!billingdata.isBilledAgaintsDate}
+                        onChange={e => {
+                            setBillingData(prev => ({ ...prev, isBilledAgaintsDate: e.target.checked}));
+                        }}
+                        className="mb-0 flex-shrink-0"
+                        aria-label="Show Promo Code"
+                    />
+                    {
+                        billingdata.isBilledAgaintsDate && <input type="date" 
+                          onChange={(ev) =>  {
+                              setBillingData(prev => ({ ...prev, billedagaints : ev.target.value}));
+                          }  }
+                        value={billingdata.billedagaints} />
+                    }
                     {/* Promo Code Verified Badge */}
                     {billingdata.showPromoCode && billingdata.promoVerifySuccess === true && (
                         <span className="badge bg-success ms-2 text-sm" style={{ fontSize: '0.55em', fontWeight: 500 }}>Promo Verified</span>
@@ -188,6 +205,8 @@ export default function MultiBillingHeader({
                             })()}</b></span>
                         </span>
                     )}
+
+                    
 
                     <Button variant="outline-danger" size="sm" title='reset transaction' onClick={onReset}>
                         <RiResetLeftFill size={20} />

@@ -1,27 +1,17 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { currencyFormatter, customFetch } from '../../../../../../components/Auth/customFetch';
+import { customFetch } from '../../../../../../components/Auth/customFetch';
 import styles from './FinancialSummary.module.css';
 import {
     RiAlertLine,
-    RiBankCardLine,
-    RiBarChartGroupedLine,
-    RiBuildingLine,
     RiCalendarLine,
-    RiCashLine,
-    RiFileList3Line,
-    RiGroupLine,
-    RiHandCoinLine,
-    RiLineChartLine,
-    RiMoneyDollarCircleLine,
-    RiTestTubeLine,
-    RiPieChartLine,
     RiDashboardLine,
 } from '@remixicon/react';
 import { CEOFinancialCharts } from '../../../../../../components/Billing/CeoSnapShot';
 import { CeoClinicianSalesChart } from '../../../../../../components/Billing/ClinicianSalesChartCeo';
 import { useApplication } from '../../../../../../components/Auth/useApplicationContext';
+import DateFilterReusable from '../../../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable';
 import ExecutiveSummary from '../../../../../../components/Billing/Daily-Sales-breakdown/ExecutiveSummary';
 import EmployeeMoneyCollection from '../../../../../../components/Billing/Daily-Sales-breakdown/EmployeeMoneyCollection';
 import DailyTestsTransactions from '../../../../../../components/Billing/Daily-Sales-breakdown/DailyTestsTransactions';
@@ -40,15 +30,15 @@ import ExpenseApprovalStatusSummary from '../../../../../../components/Billing/D
 import TotalReimbursedPaidSummary from '../../../../../../components/Billing/Daily-Sales-breakdown/TotalReimbursedPaidSummary';
 
 interface DailyCeoSnapshot {
-    totalCost: string;
-    actual_revenue: string;
-    accrued_revenue: string;
-    total_discount: string;
-    outstanding_debt: string;
-    total_refunds: string;
-    total_expense_payments: string;
+    gross_revenue: string;
+    cash_collected: string;
+    earned_revenue: string;
+    discount: string;
+    outstanding: string;
+    total_refunded: string;
+    expenses_paid: string;
     total_tests_conducted: number;
-    net_revenue: string;
+    net_operating_cash: string;
 }
 
 interface ServiceStatusCounts {
@@ -80,18 +70,18 @@ interface OrganizationCommission {
 
 interface TopPerformingBranch {
     branchid: number;
-    accrued_revenue: string;
-    actual_revenue: string;
-    total_discount: string;
-    total_outstanding: string;
+    earned_revenue: string;
+    cash_collected: string;
+    discount: string;
+    outstanding: string;
     total_tests: number;
-    total_refunds: string;
+    total_refunded: string;
     branchname: string;
 }
 
 interface DailyNightAdjustmentImpact {
     report_date: string;
-    accrued_revenue: string;
+    earned_revenue: string;
     total_night_adjustment_payable: string;
     total_normal_payable: string;
     night_adjustment_cases_count: number;
@@ -106,13 +96,13 @@ interface DailyTestTransaction {
     serviceCategory: string;
     test_panel_name: string | null;
     test_count: number;
-    accrued_revenue: string;
-    department: string;
-    actual_revenue: string;
-    total_discount: string;
-    total_outstanding: string;
-    total_cost: string;
-    total_refunds: string;
+    earned_revenue: string;
+    cash_collected: string;
+    discount: string;
+    outstanding: string;
+    department: string | null;
+    gross_revenue: string;
+    total_refunded: string;
 }
 
 interface PaymentModeBreakdown {
@@ -145,22 +135,22 @@ interface DepartmentSegregationDetail {
     test_name: string;
     total_cost: number;
     total_count: number;
-    total_accrued_revenue: number;
-    total_actual_revenue: number;
+    total_earned_revenue: number;
+    total_cash_collected: number;
     total_discount: number;
     total_outstanding: number;
-    total_refunds: number;
+    total_refunded: number;
 }
 
 interface DepartmentSegregation {
     department: string;
     total_cost: number;
     total_count: number;
-    total_accrued_revenue: number;
-    total_actual_revenue: number;
+    total_earned_revenue: number;
+    total_cash_collected: number;
     total_discount: number;
     total_outstanding: number;
-    total_refunds: number;
+    total_refunded: number;
     breakdown: DepartmentSegregationDetail[];
 }
 
@@ -523,15 +513,15 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
 
     // Calculate aggregated totals from all daily snapshots
     const aggregatedSnapshot = dailyCeoSnapshot.length > 0 ? dailyCeoSnapshot[0] : {
-        totalCost: '0',
-        actual_revenue: '0',
-        accrued_revenue: '0',
-        outstanding_debt: '0',
-        total_discount: '0',
-        total_refunds: '0',
-        total_expense_payments: '0',
+        gross_revenue: '0',
+        cash_collected: '0',
+        earned_revenue: '0',
+        outstanding: '0',
+        discount: '0',
+        total_refunded: '0',
+        expenses_paid: '0',
         total_tests_conducted: 0,
-        net_revenue: '0',
+        net_operating_cash: '0',
     };
 
     // Aggregate test transactions by test name and category
@@ -543,20 +533,20 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                 serviceCategory: test.serviceCategory,
                 total_cost: 0,
                 test_count: 0,
-                accrued_revenue: 0,
-                actual_revenue: 0,
+                earned_revenue: 0,
+                cash_collected: 0,
                 total_discount: 0,
                 total_outstanding: 0,
-                total_refunds: 0,
+                total_refunded: 0,
             };
         }
-        acc[key].total_cost += Number(test.total_cost) || 0;
+        acc[key].total_cost += Number(test.gross_revenue) || 0;
         acc[key].test_count += Number(test.test_count) || 0;
-        acc[key].accrued_revenue += Number(test.accrued_revenue) || 0;
-        acc[key].actual_revenue += Number(test.actual_revenue) || 0;
-        acc[key].total_discount += Number(test.total_discount) || 0;
-        acc[key].total_outstanding += Number(test.total_outstanding) || 0;
-        acc[key].total_refunds += Number(test.total_refunds) || 0;
+        acc[key].earned_revenue += Number(test.earned_revenue) || 0;
+        acc[key].cash_collected += Number(test.cash_collected) || 0;
+        acc[key].total_discount += Number(test.discount) || 0;
+        acc[key].total_outstanding += Number(test.outstanding) || 0;
+        acc[key].total_refunded += Number(test.total_refunded) || 0;
         return acc;
     }, {} as Record<string, any>);
 
@@ -597,22 +587,22 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                     department,
                     total_cost: 0,
                     total_count: 0,
-                    total_accrued_revenue: 0,
-                    total_actual_revenue: 0,
+                    total_earned_revenue: 0,
+                    total_cash_collected: 0,
                     total_discount: 0,
                     total_outstanding: 0,
-                    total_refunds: 0,
+                    total_refunded: 0,
                     breakdown: [],
                 };
             }
 
-            acc[department].total_cost += Number(test.total_cost) || 0;
+            acc[department].total_cost += Number(test.gross_revenue) || 0;
             acc[department].total_count += Number(test.test_count) || 0;
-            acc[department].total_accrued_revenue += Number(test.accrued_revenue) || 0;
-            acc[department].total_actual_revenue += Number(test.actual_revenue) || 0;
-            acc[department].total_discount += Number(test.total_discount) || 0;
-            acc[department].total_outstanding += Number(test.total_outstanding) || 0;
-            acc[department].total_refunds += Number(test.total_refunds) || 0;
+            acc[department].total_earned_revenue += Number(test.earned_revenue) || 0;
+            acc[department].total_cash_collected += Number(test.cash_collected) || 0;
+            acc[department].total_discount += Number(test.discount) || 0;
+            acc[department].total_outstanding += Number(test.outstanding) || 0;
+            acc[department].total_refunded += Number(test.total_refunded) || 0;
 
             const existingTest = acc[department].breakdown.find((item) => item.test_name === testName);
             if (!existingTest) {
@@ -620,23 +610,23 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                     test_name: testName,
                     total_cost: 0,
                     total_count: 0,
-                    total_accrued_revenue: 0,
-                    total_actual_revenue: 0,
+                    total_earned_revenue: 0,
+                    total_cash_collected: 0,
                     total_discount: 0,
                     total_outstanding: 0,
-                    total_refunds: 0,
+                    total_refunded: 0,
                 });
             }
 
             const testBreakdown = acc[department].breakdown.find((item) => item.test_name === testName);
             if (testBreakdown) {
-                testBreakdown.total_cost += Number(test.total_cost) || 0;
+                testBreakdown.total_cost += Number(test.gross_revenue) || 0;
                 testBreakdown.total_count += Number(test.test_count) || 0;
-                testBreakdown.total_accrued_revenue += Number(test.accrued_revenue) || 0;
-                testBreakdown.total_actual_revenue += Number(test.actual_revenue) || 0;
-                testBreakdown.total_discount += Number(test.total_discount) || 0;
-                testBreakdown.total_outstanding += Number(test.total_outstanding) || 0;
-                testBreakdown.total_refunds += Number(test.total_refunds) || 0;
+                testBreakdown.total_earned_revenue += Number(test.earned_revenue) || 0;
+                testBreakdown.total_cash_collected += Number(test.cash_collected) || 0;
+                testBreakdown.total_discount += Number(test.discount) || 0;
+                testBreakdown.total_outstanding += Number(test.outstanding) || 0;
+                testBreakdown.total_refunded += Number(test.total_refunded) || 0;
             }
 
             return acc;

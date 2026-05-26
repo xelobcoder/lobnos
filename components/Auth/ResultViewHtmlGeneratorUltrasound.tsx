@@ -90,7 +90,7 @@ export default function ResultViewHtmlGeneratorUltrasound({
                          fontSize: resultsettings?.ultrasoundSettings?.fontSize || resultsettings?.testnameFontSize || '14px',
                          fontFamily: resultsettings?.ultrasoundSettings?.fontFamily || resultsettings?.fontfamily || 'Arial'
                     }}>
-                         {testInfo && testInfo?.reportitle ? testInfo?.reportitle : test}
+                         {test}
                     </span>
                </h5>
 

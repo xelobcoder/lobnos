@@ -14,11 +14,10 @@ import {
 } from "../../../lib/commission/commissionApi";
 import {
      commissionAssignmentSchema,
-     formatScopeType,
 } from "../../../lib/commission/commissionHelpers";
-import { useApplicationSettings } from "../../Auth/useApplicationContext";
 import { customFetch } from "../../Auth/customFetch";
 import Loader from "../../isLoading";
+import { RiArrowRightSLine, RiCloseLine, RiCheckLine } from "@remixicon/react";
 
 interface CommissionAssignmentFormProps {
      assignmentId?: number;
@@ -30,6 +29,7 @@ type CommissionAssignmentFormValues = {
      commission_config_id: number;
      scope_type: "clinician" | "organization" | "system";
      scope_id?: number;
+     scope_ids?: number[];
      service_id?: number | null;
      service_category?: string | null;
      priority: number;
@@ -43,13 +43,13 @@ export default function CommissionAssignmentForm({
      onSaved,
      onCancel,
 }: CommissionAssignmentFormProps) {
-     const { applicationsettings } = useApplicationSettings();
      const [loading, setLoading] = useState(assignmentId ? true : false);
      const [saving, setSaving] = useState(false);
      const [configs, setConfigs] = useState<CommissionConfig[]>([]);
      const [loadingConfigs, setLoadingConfigs] = useState(true);
      const [recipients, setRecipients] = useState<{ id: number; label: string }[]>([]);
      const [loadingRecipients, setLoadingRecipients] = useState(false);
+     const [availableSearch, setAvailableSearch] = useState("");
 
      const {
           control,
@@ -58,23 +58,50 @@ export default function CommissionAssignmentForm({
           setValue,
           formState: { errors },
      } = useForm<CommissionAssignmentFormValues>({
-          resolver: yupResolver(commissionAssignmentSchema),
+          resolver: yupResolver(commissionAssignmentSchema) as any,
           defaultValues: {
                scope_type: "clinician",
                priority: 1,
                is_active: true,
+               scope_ids: [],
           },
      });
 
-     const tenantId = applicationsettings?.tenantid || 1;
      const scopeType = watch("scope_type");
+     const selectedIds = watch("scope_ids") || [];
+
+     const availableRecipients = recipients.filter(
+          (r) => !selectedIds.includes(r.id) &&
+               r.label.toLowerCase().includes(availableSearch.toLowerCase())
+     );
+
+     const selectedRecipients = recipients.filter((r) => selectedIds.includes(r.id));
+
+     const handleAddRecipient = (id: number) => {
+          setValue("scope_ids", [...selectedIds, id]);
+     };
+
+     const handleRemoveRecipient = (id: number) => {
+          setValue("scope_ids", selectedIds.filter((selectedId) => selectedId !== id));
+     };
+
+     const handleAddAll = () => {
+          const newIds = [...selectedIds, ...availableRecipients.map(r => r.id)];
+          setValue("scope_ids", newIds);
+     };
+
+     const handleRemoveAll = () => {
+          setValue("scope_ids", []);
+     };
 
      const loadRecipients = async (type: "clinician" | "organization") => {
           setLoadingRecipients(true);
           setRecipients([]);
           try {
+               let url = type === "clinician" ? "clinicians" : "organization";
+               const response = await customFetch(url);
+
                if (type === "clinician") {
-                    const response = await customFetch("clinicians");
                     const clinicianList = response?.result ?? [];
                     const options = Array.isArray(clinicianList)
                          ? clinicianList.map((item: any) => ({
@@ -86,7 +113,6 @@ export default function CommissionAssignmentForm({
                          : [];
                     setRecipients(options);
                } else {
-                    const response = await customFetch("organization");
                     const organizationList = response?.organizations ?? response?.result ?? [];
                     const options = Array.isArray(organizationList)
                          ? organizationList.map((item: any) => ({
@@ -109,7 +135,7 @@ export default function CommissionAssignmentForm({
      useEffect(() => {
           const fetchConfigs = async () => {
                try {
-                    const response = await getCommissionConfigs(tenantId);
+                    const response = await getCommissionConfigs();
                     if (response?.status === "success") {
                          setConfigs(response.result || []);
                     }
@@ -120,7 +146,7 @@ export default function CommissionAssignmentForm({
                }
           };
           fetchConfigs();
-     }, [tenantId]);
+     }, []);
 
      useEffect(() => {
           if (scopeType === "clinician" || scopeType === "organization") {
@@ -134,7 +160,7 @@ export default function CommissionAssignmentForm({
           if (assignmentId) {
                const fetchAssignment = async () => {
                     try {
-                         const response = await getCommissionAssignment(assignmentId, tenantId);
+                         const response = await getCommissionAssignment(assignmentId);
                          if (response?.status === "success") {
                               const assignment = response.result;
                               setValue("commission_config_id", assignment.commission_config_id);
@@ -145,7 +171,7 @@ export default function CommissionAssignmentForm({
                               setValue("priority", assignment.priority);
                               setValue("assigned_from", assignment.assigned_from ?? "");
                               setValue("assigned_to", assignment.assigned_to ?? undefined);
-                              setValue("is_active", assignment.is_active);
+                              setValue("is_active", Boolean(assignment.is_active));
                          }
                     } catch (error) {
                          toast.error("Failed to load assignment");
@@ -155,35 +181,62 @@ export default function CommissionAssignmentForm({
                };
                fetchAssignment();
           }
-     }, [assignmentId, tenantId, setValue]);
+     }, [assignmentId, setValue]);
 
      const onSubmit = async (data: CommissionAssignmentFormValues) => {
           try {
                setSaving(true);
-               const payload: CommissionAssignment = {
-                    ...data,
-                    scope_id: data.scope_type === "system" ? null : data.scope_id ?? null,
-                    service_id: data.service_id ?? null,
-                    service_category: data.service_category ?? undefined,
-                    assigned_to: data.assigned_to ?? undefined,
-                    tenantId,
-               };
 
-               const response = assignmentId
-                    ? await updateCommissionAssignment(assignmentId, tenantId, payload)
-                    : await createCommissionAssignment(payload);
-
-               if (response?.status === "success") {
-                    toast.success(
-                         assignmentId
-                              ? "Assignment updated successfully"
-                              : "Assignment created successfully"
-                    );
-                    if (onSaved) {
-                         onSaved(response.result);
+               if (assignmentId) {
+                    const payload: CommissionAssignment = {
+                         ...data,
+                         scope_id: data.scope_type === "system" ? null : data.scope_id ?? null,
+                         service_id: data.service_id ?? null,
+                         service_category: data.service_category ?? undefined,
+                         assigned_to: data.assigned_to ?? undefined,
+                    };
+                    const response = await updateCommissionAssignment(assignmentId, payload);
+                    if (response?.status === "success") {
+                         toast.success("Assignment updated successfully");
+                         if (onSaved) onSaved(response.result as CommissionAssignment);
+                    } else {
+                         toast.error(response?.message || "Failed to save assignment");
                     }
                } else {
-                    toast.error(response?.message || "Failed to save assignment");
+                    if (data.scope_type !== "system" && data.scope_ids && data.scope_ids.length > 0) {
+                         const payloads: CommissionAssignment[] = data.scope_ids.map((id) => {
+                              const { scope_ids, ...rest } = data;
+                              return {
+                                   ...rest,
+                                   scope_id: id,
+                                   service_id: data.service_id ?? null,
+                                   service_category: data.service_category ?? undefined,
+                                   assigned_to: data.assigned_to ?? undefined,
+                              };
+                         });
+                         const response = await createCommissionAssignment(payloads);
+                         if (response?.status === "success") {
+                              toast.success("Batch assignments created successfully");
+                              if (onSaved) onSaved(response.result as CommissionAssignment);
+                         } else {
+                              toast.error(response?.message || "Failed to save assignments");
+                         }
+                    } else {
+                         const payload: CommissionAssignment = {
+                              ...data,
+                              scope_id: data.scope_type === "system" ? null : data.scope_id ?? null,
+                              service_id: data.service_id ?? null,
+                              service_category: data.service_category ?? undefined,
+                              assigned_to: data.assigned_to ?? undefined,
+                         };
+                         const response = await createCommissionAssignment(payload);
+                         if (response?.status === "success") {
+                              toast.success("Assignment created successfully");
+                              if (onSaved) onSaved(response.result as CommissionAssignment);
+                         } else {
+                              toast.error(response?.message || "Failed to save assignment");
+                         }
+                    }
                }
           } catch (error: any) {
                toast.error(error?.message || "An error occurred");
@@ -209,7 +262,7 @@ export default function CommissionAssignmentForm({
      return (
           <div className="card">
                <div className="card-body">
-                    <form onSubmit={handleSubmit(onSubmit)}>
+                    <form onSubmit={handleSubmit(onSubmit as any)}>
                          {/* Commission Config */}
                          <div className="mb-3">
                               <label htmlFor="commission_config_id" className="form-label fw-medium">
@@ -256,6 +309,7 @@ export default function CommissionAssignmentForm({
                                              onChange={(event) => {
                                                   field.onChange(event);
                                                   setValue("scope_id", undefined);
+                                                  setValue("scope_ids", []);
                                              }}
                                         >
                                              <option value="clinician">Clinician</option>
@@ -269,57 +323,135 @@ export default function CommissionAssignmentForm({
                                         {errors.scope_type.message}
                                    </div>
                               )}
-                              <small className="text-muted d-block mt-1">
-                                   {scopeType === "clinician" &&
-                                        "Assign to a specific clinician"}
-                                   {scopeType === "organization" &&
-                                        "Assign to an entire organization"}
-                                   {scopeType === "system" &&
-                                        "Apply to all clinicians system-wide"}
-                              </small>
                          </div>
 
                          {/* Scope ID (for clinician/organization) */}
                          {scopeType !== "system" && (
-                              <div className="mb-3">
-                                   <label htmlFor="scope_id" className="form-label fw-medium">
-                                        {scopeType === "clinician" ? "Clinician" : "Organization"}
-                                        <span className="text-danger">*</span>
-                                   </label>
-                                   <Controller
-                                        name="scope_id"
-                                        control={control}
-                                        render={({ field }) => (
-                                             <select
-                                                  {...field}
-                                                  className={`form-select ${errors.scope_id ? "is-invalid" : ""}`}
-                                                  value={field.value ?? ""}
-                                                  onChange={(event) => {
-                                                       const value = event.target.value;
-                                                       field.onChange(value === "" ? null : Number(value));
-                                                  }}
-                                             >
-                                                  <option value="">Select {scopeType === "clinician" ? "clinician" : "organization"}</option>
-                                                  {loadingRecipients ? (
-                                                       <option value="">Loading recipients...</option>
-                                                  ) : (
-                                                       recipients.map((recipient) => (
-                                                            <option key={recipient.id} value={recipient.id}>
-                                                                 {recipient.label}
-                                                            </option>
-                                                       ))
-                                                  )}
-                                             </select>
-                                        )}
-                                   />
-                                   {errors.scope_id && (
-                                        <div className="invalid-feedback d-block">
-                                             {errors.scope_id.message}
+                              <div className="mb-4">
+                                   <div className="d-flex justify-content-between align-items-center mb-2">
+                                        <label className="form-label fw-medium mb-0">
+                                             {assignmentId ? "Confirm Selection" : `Select ${scopeType === "clinician" ? "Clinicians" : "Organizations"}`}
+                                             <span className="text-danger">*</span>
+                                        </label>
+                                   </div>
+
+                                   {assignmentId ? (
+                                        <Controller
+                                             name="scope_id"
+                                             control={control}
+                                             render={({ field }) => (
+                                                  <select
+                                                       {...field}
+                                                       className={`form-select ${errors.scope_id ? "is-invalid" : ""}`}
+                                                       value={field.value ?? ""}
+                                                       onChange={(event) => {
+                                                            const value = event.target.value;
+                                                            field.onChange(value === "" ? null : Number(value));
+                                                       }}
+                                                  >
+                                                       <option value="">Select {scopeType === "clinician" ? "clinician" : "organization"}</option>
+                                                       {loadingRecipients ? (
+                                                            <option value="">Loading...</option>
+                                                       ) : (
+                                                            recipients.map((recipient) => (
+                                                                 <option key={recipient.id} value={recipient.id}>
+                                                                      {recipient.label}
+                                                                 </option>
+                                                            ))
+                                                       )}
+                                                  </select>
+                                             )}
+                                        />
+                                   ) : (
+                                        <div className="row g-3">
+                                             {/* Available List */}
+                                             <div className="col-md-6">
+                                                  <div className="card h-100 border shadow-none">
+                                                       <div className="card-header bg-light py-2 px-3 d-flex justify-content-between align-items-center">
+                                                            <span className="small fw-bold text-uppercase">Available</span>
+                                                            <button
+                                                                 type="button"
+                                                                 className="btn btn-link btn-sm p-0 text-decoration-none small"
+                                                                 onClick={handleAddAll}
+                                                                 disabled={availableRecipients.length === 0}
+                                                            >
+                                                                 Add All
+                                                            </button>
+                                                       </div>
+                                                       <div className="p-2 border-bottom bg-light">
+                                                            <input
+                                                                 type="text"
+                                                                 className="form-control form-control-sm"
+                                                                 placeholder="Search available..."
+                                                                 value={availableSearch}
+                                                                 onChange={(e) => setAvailableSearch(e.target.value)}
+                                                            />
+                                                       </div>
+                                                       <div className="list-group list-group-flush overflow-auto" style={{ maxHeight: "250px", minHeight: "200px" }}>
+                                                            {loadingRecipients ? (
+                                                                 <div className="p-3 text-center small text-muted">Loading...</div>
+                                                            ) : availableRecipients.length === 0 ? (
+                                                                 <div className="p-3 text-center small text-muted">No recipients available.</div>
+                                                            ) : (
+                                                                 availableRecipients.map((recipient) => (
+                                                                      <button
+                                                                           key={recipient.id}
+                                                                           type="button"
+                                                                           className="list-group-item list-group-item-action py-2 px-3 small d-flex justify-content-between align-items-center"
+                                                                           onClick={() => handleAddRecipient(recipient.id)}
+                                                                      >
+                                                                           {recipient.label}
+                                                                           <RiArrowRightSLine size={16} className="text-muted" />
+                                                                      </button>
+                                                                 ))
+                                                            )}
+                                                       </div>
+                                                  </div>
+                                             </div>
+
+                                             {/* Selected List */}
+                                             <div className="col-md-6">
+                                                  <div className="card h-100 border shadow-none">
+                                                       <div className="card-header bg-light py-2 px-3 d-flex justify-content-between align-items-center">
+                                                            <span className="small fw-bold text-uppercase">Selected ({selectedIds.length})</span>
+                                                            <button
+                                                                 type="button"
+                                                                 className="btn btn-link btn-sm p-0 text-decoration-none small text-danger"
+                                                                 onClick={handleRemoveAll}
+                                                                 disabled={selectedIds.length === 0}
+                                                            >
+                                                                 Clear All
+                                                            </button>
+                                                       </div>
+                                                       <div className="list-group list-group-flush overflow-auto" style={{ maxHeight: "250px", minHeight: "200px" }}>
+                                                            {selectedRecipients.length === 0 ? (
+                                                                 <div className="p-3 text-center small text-muted italic">Nothing selected yet</div>
+                                                            ) : (
+                                                                 selectedRecipients.map((recipient) => (
+                                                                      <button
+                                                                           key={recipient.id}
+                                                                           type="button"
+                                                                           className="list-group-item list-group-item-action py-2 px-3 small d-flex justify-content-between align-items-center bg-light"
+                                                                           onClick={() => handleRemoveRecipient(recipient.id)}
+                                                                      >
+                                                                           <span className="d-flex align-items-center">
+                                                                                <RiCheckLine size={16} className="text-success me-2" />
+                                                                                {recipient.label}
+                                                                           </span>
+                                                                           <RiCloseLine size={16} className="text-danger" />
+                                                                      </button>
+                                                                 ))
+                                                            )}
+                                                       </div>
+                                                  </div>
+                                             </div>
                                         </div>
                                    )}
-                                   <small className="text-muted d-block mt-1">
-                                        Select the {scopeType === "clinician" ? "clinician" : "organization"} this assignment should apply to.
-                                   </small>
+                                   {(errors.scope_id || errors.scope_ids) && (
+                                        <div className="text-danger small mt-2">
+                                             {errors.scope_id?.message || errors.scope_ids?.message}
+                                        </div>
+                                   )}
                               </div>
                          )}
 

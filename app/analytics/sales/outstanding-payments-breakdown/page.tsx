@@ -5,6 +5,7 @@ import dayjs from "dayjs";
 import { useState, useEffect } from "react";
 import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
 import { customFetch } from "../../../../components/Auth/customFetch";
+import DateFilterReusable from "../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 
 interface OutstandingResponse {
      allOutstandings: Array<{ total_outstanding: string | null }>;
@@ -67,18 +68,18 @@ interface OutstandingResponse {
 }
 
 export default function OutstandingPaymentsBreakDown() {
-     const defaultstartdate = dayjs().subtract(12, "months").format("YYYY-MM-DD");
-     const defaultenddate = dayjs().format("YYYY-MM-DD");
+     const defaultstartdate = dayjs().startOf("month").format("YYYY-MM-DD");
+     const defaultenddate = dayjs().endOf("month").format("YYYY-MM-DD");
      const [data, setData] = useState<OutstandingResponse | null>(null);
      const [loading, setLoading] = useState(false);
      const [error, setError] = useState<string | null>(null);
      const [startDate, setStartDate] = useState(defaultstartdate);
      const [endDate, setEndDate] = useState(defaultenddate);
+     const [dateFilter, setDateFilter] = useState("");
 
      const { applicationsettings } = useApplicationSettings();
      const { user } = applicationsettings || {};
 
-     // Format currency helper
      const formatCurrency = (value: string | number | undefined | null): string => {
           if (value === null || value === undefined) return "GHS 0.00";
           const num = typeof value === "string" ? parseFloat(value) : value;
@@ -97,7 +98,7 @@ export default function OutstandingPaymentsBreakDown() {
           setError(null);
 
           try {
-               const endpoint = `outstanding/report/combined?startdate=${startDate}&enddate=${endDate}&employeeid=${user.employeeid}`;
+               const endpoint = `outstanding/report/combined?startdate=${startDate}&enddate=${endDate}&employeeid=${user.employeeid}&tenantId=${user.tenantid}`;
                const response = await customFetch(endpoint);
                if (response?.result) {
                     setData(response.result);
@@ -114,19 +115,12 @@ export default function OutstandingPaymentsBreakDown() {
 
      useEffect(() => {
           fetchOutstandingData();
-     }, [user?.employeeid]);
+     }, [user?.employeeid, startDate, endDate]);
 
      const handleResetFilters = () => {
-          setStartDate(dayjs().subtract(3, "months").format("YYYY-MM-DD"));
-          setEndDate(dayjs().format("YYYY-MM-DD"));
-     };
-
-     const handleDateChange = (type: "start" | "end", value: string) => {
-          if (type === "start") {
-               setStartDate(value);
-          } else {
-               setEndDate(value);
-          }
+          setStartDate(dayjs().startOf("month").format("YYYY-MM-DD"));
+          setEndDate(dayjs().endOf("month").format("YYYY-MM-DD"));
+          setDateFilter("");
      };
 
      const COLOR_ACCENT = "oklch(0.646 0.222 41.116)";
@@ -158,42 +152,16 @@ export default function OutstandingPaymentsBreakDown() {
 
                               {/* Date Filters */}
                               <div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2 mt-2 mt-lg-0">
-                                   <div
-                                        className="input-group input-group-sm"
-                                        style={{ flexBasis: "160px", minWidth: "150px" }}
-                                   >
-                                        <span
-                                             className="input-group-text bg-transparent border-end-0"
-                                             style={{ borderColor: COLOR_BORDER }}
-                                        >
-                                             <RiCalendarEventLine size={16} className="text-muted" />
-                                        </span>
-                                        <input
-                                             type="date"
-                                             className="form-control shadow-none border-start-0"
-                                             value={startDate}
-                                             onChange={(e) => handleDateChange("start", e.target.value)}
-                                             style={{ borderColor: COLOR_BORDER }}
-                                        />
-                                   </div>
-
-                                   <div
-                                        className="input-group input-group-sm"
-                                        style={{ flexBasis: "160px", minWidth: "150px" }}
-                                   >
-                                        <span
-                                             className="input-group-text bg-transparent border-end-0"
-                                             style={{ borderColor: COLOR_BORDER }}
-                                        >
-                                             <RiCalendarEventLine size={16} className="text-muted" />
-                                        </span>
-                                        <input
-                                             type="date"
-                                             className="form-control shadow-none border-start-0"
-                                             value={endDate}
-                                             onChange={(e) => handleDateChange("end", e.target.value)}
-                                             min={startDate}
-                                             style={{ borderColor: COLOR_BORDER }}
+                                   <div style={{ minWidth: '250px' }}>
+                                        <DateFilterReusable
+                                             value={dateFilter}
+                                             onChange={setDateFilter}
+                                             onDateRangeChange={(start, end) => {
+                                                  setStartDate(start);
+                                                  setEndDate(end);
+                                             }}
+                                             label="Date Range Filter"
+                                             className="w-100"
                                         />
                                    </div>
 
@@ -203,7 +171,7 @@ export default function OutstandingPaymentsBreakDown() {
                                         disabled={loading}
                                    >
                                         <RiRefreshLine size={16} className="me-1" />
-                                        {loading ? "Loading..." : "Apply"}
+                                        {loading ? "Loading..." : "Refresh"}
                                    </button>
 
                                    <button
@@ -382,7 +350,7 @@ export default function OutstandingPaymentsBreakDown() {
                                                                            <td className="text-start">
                                                                                 <button
                                                                                      className="btn btn-sm btn-outline-primary"
-                                                                                     onClick={() => alert(`Details for ${item.serviceCategory}`)}
+                                                                                     onClick={() => window.open(`outstanding-payments-breakdown/category-details?category=${encodeURIComponent(item.serviceCategory)}&startdate=${startDate}&enddate=${endDate}&&isOpenSideBarShow=false`, '_blank')}
                                                                                 >
                                                                                      View Details
                                                                                 </button>

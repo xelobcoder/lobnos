@@ -187,31 +187,39 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 
 	const coreColumns = [
 		{
-			Header: "Date", accessor: "billedon", Cell: ({ value, row }) => {
+			Header: "Date", accessor: "billedon", title: "Date of Transaction", Cell: ({ value, row }) => {
 				const formatted = value ? dayjs(value).format('MM/DD/YYYY HH:mm:ss') : '';
-				return row.original.isFirstOfDay ? <span style={{ backgroundColor: 'red', color: 'white', padding: '2px 4px', borderRadius: '4px' }}>{formatted}</span> : <span>{formatted}</span>;
+				return row.original.isFirstOfDay ? <span style={{ backgroundColor: 'red', color: 'white', padding: '2px 4px', borderRadius: '4px' }}>{formatted}	<br/>(First of the day)</span> : <span>{formatted}</span>;
 			}
 		},
 		{
 			Header: "Billed By",
 			accessor: "salesperson",
+			title: "Employee who processed the bill",
 			Cell: ({ value }) => value ? <span>{value}</span> : <span className="text-muted">-</span>
 		},
-		{ Header: "Client Name", accessor: "fullname", Cell: ({ row }) => <div className="d-flex flex-column"><span className="fw-semibold">{row.original.fullname}</span><span className="text-muted small">{row.original.fullpatientid}</span></div> },
-		{ Header: "Bill Id", accessor: "billingid" },
-		{
-			Header: "Billing Source", accessor: "billingSource",
+		{ 
+			Header: "Client Name", 
+			accessor: "fullname", 
+			title: "Full name of the client",
+			Cell: ({ row }) => (
+				<div className="d-flex flex-column">
+					<span className="fw-semibold">{row.original.fullname}</span>
+					<span className="text-muted small">{row.original.fullpatientid}</span>
+				</div>
+			) 
 		},
-		{ Header: "Amt Payable", accessor: "payable", Cell: ({ value }) => <div>{currencyFormatter.format(Number(value) || 0)}</div> },
-		{ Header: "Total Cost", accessor: "totalcost", Cell: ({ value }) => <div>{currencyFormatter.format(Number(value) || 0)}</div> },
-		{ Header: "Amount Paid", accessor: "paid", Cell: ({ value }) => <div>{currencyFormatter.format(Number(value) || 0)}</div> },
-		{ Header: "Outstanding", accessor: "outstanding", Cell: ({ value }) => (<div><span className={Number(value) > 0 ? "text-danger" : "text-primary"}>{currencyFormatter.format(Number(value) || 0)}</span></div>) },
-		{ Header: "Discount", accessor: "discount", Cell: ({ value }) => <div>{currencyFormatter.format(Number(value) || 0)}</div> },
-		{ Header: "Amt Refunded", accessor: "totalrefunded", Cell: ({ value }) => <div>{currencyFormatter.format(Number(value) || 0)}</div> },
-		{ Header: "Balance", accessor: "balance", Cell: ({ value }) => <div>{currencyFormatter.format(Number(value) || 0)}</div> },
-		{ Header: "surcharge", accessor: "surcharges", Cell: ({ value }) => <div>{currencyFormatter.format(Number(value) || 0)}</div> },
-		{ Header: "Status", accessor: "status", Cell: ({ value }) => value ? <span className={value === 'pending' ? 'text-warning' : 'text-success'}>{value}</span> : <span className="text-muted">-</span> },
-		{ Header: "write off", accessor: "writeoff", Cell: ({ value }) => <div>{currencyFormatter.format(Number(value) || 0)}</div> },
+		{ Header: "BID", accessor: "billingid", title: "Billing ID", Cell: ({ value }) => <div className="text-center">{value}</div> },
+		{ Header: "TC", accessor: "totalcost", title: "Total Cost", Cell: ({ value }) => <div>{(Number(value) || 0).toFixed(2)}</div> },
+		{ Header: "DS", accessor: "discount", title: "Discount Amount", Cell: ({ value }) => <div>{(Number(value) || 0).toFixed(2)}</div> },
+		{ Header: "RF", accessor: "totalrefunded", title: "Total Refunded", Cell: ({ value }) => <div>{(Number(value) || 0).toFixed(2)}</div> },
+		{ Header: "AP", accessor: "payable", title: "Amount Payable", Cell: ({ value }) => <div>{(Number(value) || 0).toFixed(2)}</div> },
+		{ Header: "PD", accessor: "paid", title: "Amount Paid", Cell: ({ value }) => <div>{(Number(value) || 0).toFixed(2)}</div> },
+		{ Header: "OS", accessor: "outstanding", title: "Outstanding Balance", Cell: ({ value }) => (<div><span className={Number(value) > 0 ? "text-danger" : "text-primary"}>{(Number(value) || 0).toFixed(2)}</span></div>) },
+		{ Header: "BL", accessor: "balance", title: "Account Balance", Cell: ({ value }) => <div>{(Number(value) || 0).toFixed(2)}</div> },
+		{ Header: "SC", accessor: "surcharges", title: "Surcharge Amount", Cell: ({ value }) => <div>{(Number(value) || 0).toFixed(2)}</div> },
+		{ Header: "WO", accessor: "writeoff", title: "Write Off Amount", Cell: ({ value }) => <div>{(Number(value) || 0).toFixed(2)}</div> },
+		{ Header: "Status", accessor: "status", title: "Payment Status", Cell: ({ value }) => value ? <span className={value === 'pending' ? 'text-warning' : 'text-success'}>{value}</span> : <span className="text-muted">-</span> },
 		{
 			Header: "Actions",
 			accessor: "actions",
@@ -253,8 +261,8 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 								</Dropdown.Item>
 								<Dropdown.Divider />
 								<Dropdown.Item
+								onClick={(ev) => {window.open(`/billing/transactions/previous-transaction/${row.original.billingid}?isOpenSideBarShow=false`,'_blank')}}
 									className="d-flex align-items-center gap-2 py-2 px-3"
-									href={`/billing/transactions/previous-transaction/${row.original.billingid}`}
 								>
 									<RiFileList2Line size={16} /> View Transactions Details
 								</Dropdown.Item>
@@ -276,7 +284,7 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 										<Dropdown.Divider />
 										<Dropdown.Item
 											className="d-flex align-items-center gap-2 py-2 px-3 text-success fw-semibold"
-											href={`/billing/cash-collection?patientid=${plsEncryption(row.original.patientid.toString())}&&billingid=${row.original.billingid}&&paymentstatus=pending`}
+											onClick={() =>  { window.open(`/billing/cash-collection?patientid=${plsEncryption(row.original.patientid.toString())}&&billingid=${row.original.billingid}&&paymentstatus=pending&&isOpenSideBarShow=false`,'_blank')}}
 										>
 											<RiRefund2Line size={16} /> Settle Bill
 										</Dropdown.Item>
@@ -504,10 +512,23 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 				) : viewMode === 'sales' ? (
 					isAdmin ? (
 						useSimpleView ? <div className="table-responsive" style={{ minHeight: '60vh' }}>
-							<table className="table table-striped table-hover text-nowrap">
+							<div className="px-4 py-2 bg-light border-bottom mb-2 d-flex flex-wrap gap-3 small text-muted">
+								<div className="d-flex gap-2"><strong>Amounts in GHS</strong></div>
+								<div className="d-flex gap-2"><strong>BID:</strong> Billing ID</div>
+								<div className="d-flex gap-2"><strong>TC:</strong> Total Cost</div>
+								<div className="d-flex gap-2"><strong>DS:</strong> Discount</div>
+								<div className="d-flex gap-2"><strong>RF:</strong> Refunded</div>
+								<div className="d-flex gap-2"><strong>AP:</strong> Amt Payable</div>
+								<div className="d-flex gap-2"><strong>PD:</strong> Amt Paid</div>
+								<div className="d-flex gap-2"><strong>OS:</strong> Outstanding</div>
+								<div className="d-flex gap-2"><strong>BL:</strong> Balance</div>
+								<div className="d-flex gap-2"><strong>SC:</strong> Surcharge</div>
+								<div className="d-flex gap-2"><strong>WO:</strong> Write Off</div>
+							</div>
+							<table className="table table-striped table-hover table-bordered text-nowrap">
 								<thead>
 									<tr>
-										{coreColumns.map(col => <th key={col.accessor}>{col.Header}</th>)}
+										{coreColumns.map(col => <th key={col.accessor} className="border-start border-end" title={col.title}>{col.Header}</th>)}
 									</tr>
 								</thead>
 								<tbody>
@@ -516,7 +537,13 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 											{coreColumns.map(col => {
 												const value = row[col.accessor];
 												const cellContent = col.Cell ? col.Cell({ value, row: { original: row } }) : value;
-												return <td key={col.accessor}>{cellContent}</td>;
+												let bgColorClass = '';
+												if (col.accessor === 'paid') {
+													bgColorClass = 'bg-success-subtle';
+												} else if ((col.accessor === 'totalrefunded' || col.accessor === 'outstanding') && Number(value) > 0) {
+													bgColorClass = 'bg-danger-subtle';
+												}
+												return <td key={col.accessor} className={`border-start border-end ${bgColorClass}`} title={col.title}>{cellContent}</td>;
 											})}
 										</tr>
 									))}
@@ -530,10 +557,23 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 							handleSeverSideProcessing={handleSeverSideProcessing}
 						/>
 					) : <div className="table-responsive" style={{ minHeight: '50vh' }}>
-						<table className="table table-striped table-hover text-nowrap">
+						<div className="px-4 py-2 bg-light border-bottom mb-2 d-flex flex-wrap gap-3 small text-muted">
+							<div className="d-flex gap-2"><strong>Amounts in GHS</strong></div>
+							<div className="d-flex gap-2"><strong>BID:</strong> Billing ID</div>
+							<div className="d-flex gap-2"><strong>TC:</strong> Total Cost</div>
+							<div className="d-flex gap-2"><strong>DS:</strong> Discount</div>
+							<div className="d-flex gap-2"><strong>RF:</strong> Refunded</div>
+							<div className="d-flex gap-2"><strong>AP:</strong> Amt Payable</div>
+							<div className="d-flex gap-2"><strong>PD:</strong> Amt Paid</div>
+							<div className="d-flex gap-2"><strong>OS:</strong> Outstanding</div>
+							<div className="d-flex gap-2"><strong>BL:</strong> Balance</div>
+							<div className="d-flex gap-2"><strong>SC:</strong> Surcharge</div>
+							<div className="d-flex gap-2"><strong>WO:</strong> Write Off</div>
+						</div>
+						<table className="table table-striped table-hover table-bordered text-nowrap">
 							<thead>
 								<tr>
-									{coreColumns.map(col => <th key={col.accessor}>{col.Header}</th>)}
+									{coreColumns.map(col => <th key={col.accessor} className="border-start border-end" title={col.title}>{col.Header}</th>)}
 								</tr>
 							</thead>
 							<tbody>
@@ -542,7 +582,13 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 										{coreColumns.map(col => {
 											const value = row[col.accessor];
 											const cellContent = col.Cell ? col.Cell({ value, row: { original: row } }) : value;
-											return <td key={col.accessor}>{cellContent}</td>;
+											let bgColorClass = '';
+											if (col.accessor === 'paid') {
+												bgColorClass = 'bg-success-subtle';
+											} else if ((col.accessor === 'totalrefunded' || col.accessor === 'outstanding') && Number(value) > 0) {
+												bgColorClass = 'bg-danger-subtle';
+											}
+											return <td key={col.accessor} className={`border-start border-end ${bgColorClass}`} title={col.title}>{cellContent}</td>;
 										})}
 									</tr>
 								))}

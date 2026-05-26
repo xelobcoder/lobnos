@@ -118,7 +118,8 @@ export const AnalyticsLinks: Link[] = [
             { title: ' Sales By Outsourced Status', link: '/analytics/sales/totalSalesByOutsourcedStatus', icon: <RiPriceTag3Line /> },
             { title: ' Sales By Service Category', link: '/analytics/sales/totalSalesByServiceCategory', icon: <RiPriceTag3Line /> },
             { title: 'Weekly Sales Trend', link: '/analytics/sales/weeklySalesTrend', icon: <RiCalendarLine /> },
-            { title: 'Yearly Sales Trend', link: '/analytics/sales/yearlySalesTrend', icon: <RiCalendarLine /> }
+            { title: 'Yearly Sales Trend', link: '/analytics/sales/yearlySalesTrend', icon: <RiCalendarLine /> },
+        {title:"Outstanding Breakdown",link:"/analytics/sales/outstanding-payments-breakdown", icon: <RiCalendarLine /> }
         ]
     },
     {

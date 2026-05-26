@@ -268,7 +268,7 @@ export default function SampleAssessmentModal({
 				toast.success(message);
 
 				if (multiMode) {
-					// Add current item to processed items
+		
 					const newProcessedItems = [...processedItems, currentBillingId];
 					setProcessedItems(newProcessedItems);
 

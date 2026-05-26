@@ -46,6 +46,7 @@ export interface ServicesListItem {
     nightAdjustmentValue: number;
     nightAdjustmentMode: string;
     nightAdjustmentStartTime: string;
+    billedagaints: Date | null,
     nightAdjustmentEndTime: string;
 }
 
@@ -56,8 +57,8 @@ export interface MultiBillingData {
     specialCode?: string;
     billingid?: string | number;
     billingSource: number;
-    claimscheckcode?:number;
-    nhisnumber?:number;
+    claimscheckcode?: number;
+    nhisnumber?: number;
     outstanding?: number;
     totalTestAmountPayable: number;
     showsummary?: boolean;
@@ -112,6 +113,7 @@ export interface MultiBillingData {
     adjustmentReason?: string;
     relatedBillingId?: number | string;
     promoCode: number | null;
+    billedagaints: Date | null;
     promoDiscount?: number;
     testList?: TestCartItem[];
     payments?: Array<{ mode: string | number; amount: number }>;
@@ -154,6 +156,7 @@ export interface MultiBillingData {
     insuranceid: number | null;
     promoVerifyLoading?: boolean;
     billingIdVerified?: boolean;
+    isBilledAgaintsDate: boolean;
     resultDeliveryMode?: string;
     result_delivery: any;
     resultDeliveryDetail?: string;
@@ -163,8 +166,9 @@ export const defaultMultiBillingData: MultiBillingData = {
     billingSource: 1,
     isPackageUsed: false,
     subtotal: 0,
-    insuranceid:0,
+    insuranceid: 0,
     promoId: null,
+    billedagaints: null,
     totaldiscount: 0,
     isAdjustment: 0,
     result_delivery: null,
@@ -177,6 +181,7 @@ export const defaultMultiBillingData: MultiBillingData = {
     amountPayable: 0,
     paid: 0,
     balance: 0,
+    isBilledAgaintsDate:false,
     cart: [],
     servicesList: [],
     paymentModes: [],

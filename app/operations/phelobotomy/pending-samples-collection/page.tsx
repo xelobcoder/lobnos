@@ -2,11 +2,10 @@
 import React, { useEffect, useState } from 'react';
 import { customFetch } from '../../../../components/Auth/customFetch';
 import PhelobotomyMainPageClientModule from '../../../../components/phelobotomy/ReceiveLabSampleModal/PhelobotomyMainPageClientModule';
-import { Container, Alert, Button, Spinner, Card, Offcanvas } from 'react-bootstrap';
-import { RiTestTubeLine, RiCalendarEventLine, RiSearchLine, RiRefreshLine, RiFilterOffLine, RiFilterLine } from '@remixicon/react';
+import { Alert, Button, Spinner } from 'react-bootstrap';
+import { RiTestTubeLine, RiSearchLine, RiRefreshLine, RiFilterOffLine } from '@remixicon/react';
 import { useSearchParams } from 'next/navigation';
 import dayjs from 'dayjs';
-import { handleDateRangeSelection } from '../../../../components/operations/Laboratory/AscensionFilteringComponent';
 import DateFilterReusable from '../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable';
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
@@ -49,6 +48,7 @@ export default function PagePhelobotomy() {
 
     const handleClearFilters = () => {
         setFilter('');
+        setDateFilter('');
         setSelectedDate({
             _dateFrom: '',
             _dateEnd: ''
@@ -58,7 +58,7 @@ export default function PagePhelobotomy() {
     return (
         <div className="container-fluid px-4 py-3">
             <div className="row g-3 align-items-end mb-4">
-                <div className="col-12 col-md-auto" style={{ minWidth: '200px' }}>
+                <div className="col-12 col-md-auto" style={{ minWidth: '250px' }}>
                     <DateFilterReusable
                         value={dateFilter}
                         onChange={setDateFilter}
@@ -68,36 +68,8 @@ export default function PagePhelobotomy() {
                                 _dateEnd: endDate
                             });
                         }}
-                        label="Filter by"
+                        label="Date Range Filter"
                         className="w-100"
-                    />
-                </div>
-                <div className="col-12 col-md-auto">
-                    <label htmlFor="start-date" className="form-label fw-medium" style={{ color: COLOR_TEXT_MUTED }}>
-                        <RiCalendarEventLine size={16} className="me-1" />
-                        Start Date
-                    </label>
-                    <input
-                        type="date"
-                        id="start-date"
-                        className="form-control shadow-none"
-                        style={{ borderColor: COLOR_BORDER }}
-                        value={selectedDate._dateFrom}
-                        onChange={e => setSelectedDate({ ...selectedDate, _dateFrom: e.target.value })}
-                    />
-                </div>
-                <div className="col-12 col-md-auto">
-                    <label htmlFor="end-date" className="form-label fw-medium" style={{ color: COLOR_TEXT_MUTED }}>
-                        <RiCalendarEventLine size={16} className="me-1" />
-                        End Date
-                    </label>
-                    <input
-                        type="date"
-                        id="end-date"
-                        className="form-control shadow-none"
-                        style={{ borderColor: COLOR_BORDER }}
-                        value={selectedDate._dateEnd}
-                        onChange={e => setSelectedDate({ ...selectedDate, _dateEnd: e.target.value })}
                     />
                 </div>
                 <div className="col-12 col-md">

@@ -83,7 +83,7 @@ export default function UseCustomResultTemplatingPreview({ test, records, isResu
 				<h5 className="text-uppercase ui text-center border-bottom border-2 border-light"
 					style={{ backgroundColor: resultsettings?.testnameBackgroundColor || 'royalblue', color: resultsettings?.testnameColor || 'black' }}>
 					<span className="text-uppercase" style={{ fontSize: resultsettings?.testnameFontSize || '14px' }}>
-						{testInfo && testInfo?.reportitle ? testInfo?.reportitle : test}
+						{test}
 					</span>
 				</h5>
 				<div className="ultrasound-content mt-3" style={{
