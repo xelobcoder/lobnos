@@ -30,8 +30,8 @@ function exportCommissionDataToPDF(commissionData, startDate, endDate) {
                record.clinician_name,
                record.clinician_phone,
                record.total_services,
-               (typeof currencyFormatter !== 'undefined' ? currencyFormatter.format(Number(record.total_payable)) : record.total_payable),
-               (typeof currencyFormatter !== 'undefined' ? currencyFormatter.format(Number(record.total_paid)) : record.total_paid),
+               (typeof currencyFormatter !== 'undefined' ? currencyFormatter.format(Number(record.earned_revenue)) : record.earned_revenue),
+               (typeof currencyFormatter !== 'undefined' ? currencyFormatter.format(Number(record.cash_collected)) : record.cash_collected),
                (typeof currencyFormatter !== 'undefined' ? currencyFormatter.format(Number(record.commission_earned_total)) : record.commission_earned_total),
           ]),
           styles: { fontSize: 12, font: 'times', fontStyle: 'bold' },
@@ -66,14 +66,11 @@ interface CommissionData {
      clinician_id: number;
      clinician_name: string;
      clinician_phone: string;
-     occupation: string;
      organization: number;
      total_services: number;
-     total_payable: string;
-     total_paid: string;
-     commission_percent: number;
-     commission_earned_by_amount_payable: string;
-     commission_earned_by_paid_amount: string;
+     earned_revenue: string;
+     cash_collected: string;
+     commission_earned_total: string;
 }
 
 interface ApiResponse {
@@ -174,10 +171,10 @@ export default function CliniciansCommission() {
 
 
      // Calculate summary statistics
-     // Use commission_earned_by_paid_amount as the total commission earned field
-     const totalCommissionEarned = commissionData.reduce((sum, item) => sum + Number(item.commission_earned_by_paid_amount), 0);
-     const totalServiceValue = commissionData.reduce((sum, item) => sum + Number(item.total_payable), 0);
-     const totalPaidAmount = commissionData.reduce((sum, item) => sum + Number(item.total_paid), 0);
+     // Use commission_earned_total as the total commission earned field
+     const totalCommissionEarned = commissionData.reduce((sum, item) => sum + Number(item.commission_earned_total), 0);
+     const totalServiceValue = commissionData.reduce((sum, item) => sum + Number(item.earned_revenue), 0);
+     const totalPaidAmount = commissionData.reduce((sum, item) => sum + Number(item.cash_collected), 0);
      const totalServices = commissionData.reduce((sum, item) => sum + item.total_services, 0);
      const uniqueClinicians = new Set(commissionData.map(item => item.clinician_id)).size;
 
@@ -188,15 +185,14 @@ export default function CliniciansCommission() {
                acc[key] = {
                     clinician_name: item.clinician_name,
                     clinician_phone: item.clinician_phone,
-                    occupation: item.occupation,
-                    total_commission_earned_by_paid_amount: 0,
+                    total_commission_earned_total: 0,
                     total_value: 0,
                     total_services: 0,
                     records: 0
                };
           }
-          acc[key].total_commission_earned_by_paid_amount += Number(item.commission_earned_by_paid_amount);
-          acc[key].total_value += Number(item.total_payable);
+          acc[key].total_commission_earned_total += Number(item.commission_earned_total);
+          acc[key].total_value += Number(item.earned_revenue);
           acc[key].total_services += item.total_services;
           acc[key].records += 1;
           return acc;
@@ -290,12 +286,12 @@ export default function CliniciansCommission() {
                                              },
                                              {
                                                   Header: 'Total Payable for services',
-                                                  accessor: 'total_payable',
+                                                  accessor: 'earned_revenue',
                                                   Cell: ({ value }) => currencyFormatter.format(Number(value)),
                                              },
                                              {
                                                   Header: 'Total Paid for services',
-                                                  accessor: 'total_paid',
+                                                  accessor: 'cash_collected',
                                                   Cell: ({ value }) => currencyFormatter.format(Number(value)),
                                              },
                                              {

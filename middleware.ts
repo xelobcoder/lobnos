@@ -84,7 +84,7 @@ export async function middleware(request: NextRequest) {
             }
 
             // Handle storekeeper access
-            if (!["admin", "manager"].includes(role.toString().toLowerCase().trim())) {
+            if (!["admin", "manager","accountant"].includes(role.toString().toLowerCase().trim())) {
 
                 const restrictedPaths = [
                     '/settings',
@@ -122,7 +122,7 @@ export async function middleware(request: NextRequest) {
             }
 
             // Redirect /billing/expenses to /billing/expenses/expenselist for admin
-            if (['admin', 'manager'].includes(role.toString().toLowerCase().trim()) &&
+            if (['admin', 'manager','accountant'].includes(role.toString().toLowerCase().trim()) &&
                 currentPath === '/billing/expenses'
             ) { return NextResponse.redirect(new URL('/billing/expenses/expenselist', request.url)); }
 

@@ -7,7 +7,7 @@ import PreviewPatientInformation from '../../../../../../components/petientsComp
 import { customFetch } from '../../../../../../components/Auth/customFetch'
 import { useApplicationSettings } from '../../../../../../components/Auth/useApplicationContext'
 import ResultEntryComponent from '../../../../../../components/operations/ViewTwoResultEntry/ResultEntryComponent'
-import { RiCheckLine, RiInformationLine, RiMailLine, RiPhoneLine, RiPrinterLine, RiRefreshLine, RiTruckLine, RiWhatsappLine, RiFileTextLine } from '@remixicon/react';
+import { RiCheckLine, RiInformationLine, RiMailLine, RiPhoneLine, RiPrinterLine, RiRefreshLine, RiTruckLine, RiWhatsappLine, RiFileTextLine, RiSendPlaneLine } from '@remixicon/react';
 import {
      BulkResultValidationWorkflowModal,
      SingleTestCollectionWorkflowModal,
@@ -96,6 +96,7 @@ export default function ClientVisit() {
      const employeeid = applicationsettings?.user?.employeeid || '';
      const [testAscensions, setTestAscensions] = useState<TestAscension[]>([]);
      const [loading, setLoading] = useState<boolean>(false);
+     const [refreshing, setRefreshing] = useState<boolean>(false);
      const [error, setError] = useState<string>('');
      const [selectedAscensionId, setSelectedAscensionId] = useState<number | null>(null);
      const [testFilter, setTestFilter] = useState('');
@@ -157,15 +158,27 @@ export default function ClientVisit() {
           window.open(url, "_blank", "noopener,noreferrer");
      };
 
+     const handleSendSMS = (item: TestAscension) => {
+          if (!patientid) return;
+          const { testid, ascension_id, billingid } = item;
+          const url = `/communications/sms/laboratory-lifecycle-events/sends?testid=${encodeURIComponent(testid)}&patientid=${encodeURIComponent(patientid)}&ascensionid=${encodeURIComponent(ascension_id)}&billingid=${encodeURIComponent(billingid)}`;
+          window.open(url, "_blank", "noopener,noreferrer");
+     };
 
-     const loadTestTransactions = async () => {
+
+     const loadTestTransactions = async (silent = false) => {
           if (!billingid) return;
-          setLoading(true);
+
+          if (silent || testAscensions.length > 0) {
+               setRefreshing(true);
+          } else {
+               setLoading(true);
+          }
           setError('');
 
           try {
                const response = await customFetch(`operations/overview/folder/open/transaction?billingid=${billingid}`);
-               const { statusCode, result, message } = await response;
+               const { statusCode, result, message } = response;
                if (statusCode === 200 && Array.isArray(result)) {
                     setTestAscensions(result);
                } else {
@@ -177,6 +190,7 @@ export default function ClientVisit() {
                setError('Failed to load test transactions.');
           } finally {
                setLoading(false);
+               setRefreshing(false);
           }
      }
 
@@ -268,23 +282,37 @@ export default function ClientVisit() {
                                                   </button>
                                              )}
                                              {allResultsValidated && validatedAscensionIds ? (
-                                                  <button
-                                                       className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
-                                                       onClick={() => window.open(`/operations/laboratory/validated?ascensionid=${validatedAscensionIds}&isOpenSideBarShow=false`, '_blank', 'noopener,noreferrer')}
-                                                       title="Print validated results"
-                                                  >
-                                                       <RiPrinterLine size={16} />
-                                                       <span>Print validated</span>
-                                                  </button>
+                                                  <>
+                                                       <button
+                                                            className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
+                                                            onClick={() => window.open(`/operations/laboratory/validated?ascensionid=${validatedAscensionIds}&isOpenSideBarShow=false`, '_blank', 'noopener,noreferrer')}
+                                                            title="Print validated results"
+                                                       >
+                                                            <RiPrinterLine size={16} />
+                                                            <span>Print validated</span>
+                                                       </button>
+                                                       <button
+                                                            className="btn btn-sm btn-outline-info d-inline-flex align-items-center gap-1"
+                                                            onClick={() => {
+                                                                 const item = selectedItem || testAscensions[0];
+                                                                 if (item) handleSendSMS(item);
+                                                            }}
+                                                            title="Send completed SMS for this billing"
+                                                       >
+                                                            <RiSendPlaneLine size={16} />
+                                                            <span>Send SMS</span>
+                                                       </button>
+                                                  </>
                                              ) : null}
                                         </div>
                                         <button
                                              className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1"
-                                             onClick={loadTestTransactions}
+                                             onClick={() => loadTestTransactions()}
                                              title="Refresh test transactions"
+                                             disabled={refreshing}
                                         >
-                                             <RiRefreshLine size={16} />
-                                             <span>Refresh</span>
+                                             <RiRefreshLine size={16} className={refreshing ? 'animate-spin' : ''} />
+                                             <span>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
                                         </button>
                                    </div>
 
@@ -422,7 +450,7 @@ export default function ClientVisit() {
                                                                       resultEntryStart: selectedItem.resultEntryStart,
                                                                       resultEntryEnd: selectedItem.resultEntryEnd,
                                                                  }}
-                                                                 onSaved={loadTestTransactions}
+                                                                 onSaved={() => loadTestTransactions(true)}
                                                                  onNavigate={(url: string) => {
                                                                       if (url.includes('billingid=')) return setWorkflow('bulkResultValidation');
                                                                       return setWorkflow('resultValidation');
@@ -560,12 +588,21 @@ export default function ClientVisit() {
 
                                                                  {
                                                                       selectedItem.isapproved == 1 ? (
-                                                                           <button
-                                                                                className="btn btn-sm btn-outline-primary"
-                                                                                onClick={() => setWorkflow('resultDelivery')}
-                                                                           >
-                                                                                Record Result Delivery
-                                                                           </button>
+                                                                           <>
+                                                                                <button
+                                                                                     className="btn btn-sm btn-outline-primary"
+                                                                                     onClick={() => setWorkflow('resultDelivery')}
+                                                                                >
+                                                                                     Record Result Delivery
+                                                                                </button>
+                                                                                <button
+                                                                                     className="btn btn-sm btn-outline-info d-flex align-items-center justify-content-center gap-1"
+                                                                                     onClick={() => handleSendSMS(selectedItem)}
+                                                                                >
+                                                                                     <RiSendPlaneLine size={16} />
+                                                                                     Send Completed SMS
+                                                                                </button>
+                                                                           </>
                                                                       ) : (
                                                                            <button className="btn btn-sm btn-outline-secondary" disabled>
                                                                                 Record Result Delivery
@@ -586,8 +623,8 @@ export default function ClientVisit() {
                     <>
                          <SingleTestCollectionWorkflowModal
                               show={workflow === 'collection'}
-                              onHide={() => { setWorkflow(null); loadTestTransactions(); }}
-                              onSuccess={loadTestTransactions}
+                              onHide={() => { setWorkflow(null); }}
+                              onSuccess={(shouldClose = true) => { loadTestTransactions(true); if (shouldClose) setWorkflow(null); }}
                               test={{
                                    billingid: selectedItem.billingid,
                                    patientid,
@@ -601,8 +638,8 @@ export default function ClientVisit() {
                          />
                          <SingleTestSampleValidationWorkflowModal
                               show={workflow === 'sampleValidation'}
-                              onHide={() => { setWorkflow(null); loadTestTransactions(); }}
-                              onSuccess={loadTestTransactions}
+                              onHide={() => { setWorkflow(null); }}
+                              onSuccess={(shouldClose = true) => { loadTestTransactions(true); if (shouldClose) setWorkflow(null); }}
                               test={{
                                    billingid: selectedItem.billingid,
                                    patientid,
@@ -617,8 +654,8 @@ export default function ClientVisit() {
                          />
                          <SingleTestProcessingWorkflowModal
                               show={workflow === 'processing'}
-                              onHide={() => { setWorkflow(null); loadTestTransactions(); }}
-                              onSuccess={loadTestTransactions}
+                              onHide={() => { setWorkflow(null); }}
+                              onSuccess={(shouldClose = true) => { loadTestTransactions(true); if (shouldClose) setWorkflow(null); }}
                               test={{
                                    billingid: selectedItem.billingid,
                                    patientid,
@@ -632,8 +669,8 @@ export default function ClientVisit() {
                          />
                          <SingleTestResultValidationWorkflowModal
                               show={workflow === 'resultValidation'}
-                              onHide={() => { setWorkflow(null); loadTestTransactions(); }}
-                              onSuccess={loadTestTransactions}
+                              onHide={() => { setWorkflow(null); }}
+                              onSuccess={(shouldClose = true) => { loadTestTransactions(true); if (shouldClose) setWorkflow(null); }}
                               test={{
                                    billingid: selectedItem.billingid,
                                    patientid,
@@ -652,22 +689,22 @@ export default function ClientVisit() {
                               employeeid={employeeid}
                               workflow={'resultDelivery'}
                               show={workflow === 'resultDelivery'}
-                              onHide={() => { setWorkflow(null); loadTestTransactions(); }}
-                              onSuccess={loadTestTransactions}
+                              onHide={() => { setWorkflow(null); }}
+                              onSuccess={(shouldClose = true) => { loadTestTransactions(true); if (shouldClose) setWorkflow(null); }}
 
-                         />
-                         <BulkResultValidationWorkflowModal
-                              show={workflow === 'bulkResultValidation'}
-                              onHide={() => { setWorkflow(null); loadTestTransactions(); }}
-                              onSuccess={loadTestTransactions}
-                              billingid={selectedItem.billingid}
-                              patientid={patientid}
-                              tests={testAscensions
-                                   .filter(t => Boolean(t.resultEntryStart && t.resultEntryEnd) && t.isapproved !== 1)
-                                   .map(t => ({ ascensionid: t.ascension_id, testid: t.testid, testname: t.test_name }))}
                          />
                     </>
                ) : null}
+               <BulkResultValidationWorkflowModal
+                    show={workflow === 'bulkResultValidation'}
+                    onHide={() => { setWorkflow(null); }}
+                    onSuccess={(shouldClose = true) => { loadTestTransactions(true); if (shouldClose) setWorkflow(null); }}
+                    billingid={Number(billingid)}
+                    patientid={patientid || ''}
+                    tests={testAscensions
+                         .filter(t => Boolean(t.resultEntryStart && t.resultEntryEnd) && t.isapproved !== 1)
+                         .map(t => ({ ascensionid: t.ascension_id, testid: t.testid, testname: t.test_name }))}
+               />
                <style jsx>{`
                     .visitTestList {
                          max-height: 70vh;

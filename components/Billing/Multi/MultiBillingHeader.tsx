@@ -145,14 +145,21 @@ export default function MultiBillingHeader({
                             setBillingData(prev => ({ ...prev, isBilledAgaintsDate: e.target.checked}));
                         }}
                         className="mb-0 flex-shrink-0"
-                        aria-label="Show Promo Code"
+                        aria-label="Use Different billing date"
                     />
                     {
-                        billingdata.isBilledAgaintsDate && <input type="date" 
-                          onChange={(ev) =>  {
-                              setBillingData(prev => ({ ...prev, billedagaints : ev.target.value}));
-                          }  }
-                        value={billingdata.billedagaints} />
+                        billingdata.isBilledAgaintsDate && (
+                            <Form.Control
+                                type="date"
+                                size="sm"
+                                style={{ width: '150px', height: 32 }}
+                                onChange={(ev) => {
+                                    setBillingData(prev => ({ ...prev, billedagaints: ev.target.value }));
+                                }}
+                                value={billingdata.billedagaints || ''}
+                                className="ms-1"
+                            />
+                        )
                     }
                     {/* Promo Code Verified Badge */}
                     {billingdata.showPromoCode && billingdata.promoVerifySuccess === true && (

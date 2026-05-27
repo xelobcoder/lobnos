@@ -9,7 +9,7 @@ type Props = {
 	onHide: () => void;
 	employeeid: number;
 	item: any;
-	onSuccess: () => void;
+	onSuccess: (shouldClose?: boolean) => void;
 	workflow: string;
 };
 
