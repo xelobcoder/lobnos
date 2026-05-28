@@ -412,9 +412,11 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
                id: 'selection',
                accessor: 'billingid',
                Cell: ({ row }) => {
-                    const allTestIds = row.original.tests.map(t => t.ascensionid);
-                    const isAllSelected = allTestIds.every(id => selectedRows.has(id));
-                    const isSomeSelected = allTestIds.some(id => selectedRows.has(id));
+                    console.log('Row data for selection:', row.original);
+                    const tests = Array.isArray(row.original.tests) ? row.original.tests : [];
+                    const allTestIds = tests.map(t => t?.ascensionid).filter(Boolean);
+                    const isAllSelected = allTestIds.length > 0 && allTestIds.every(id => selectedRows.has(id));
+                    const isSomeSelected = allTestIds.length > 0 && allTestIds.some(id => selectedRows.has(id));
 
                     return (
                          <div className="d-flex align-items-center">
