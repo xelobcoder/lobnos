@@ -20,7 +20,9 @@ const fontFamilies = [
      'Garamond, serif',
      'Courier New, Courier, monospace',
      'Brush Script MT, cursive',
+     'Lexend, sans-serif',
      'Lexend Deca, Helvetica, Arial, sans-serif',
+     'Candara, Calibri, Segoe, Segoe UI, Optima, Arial, sans-serif',
      'Cambria, Georgia, serif',
      'Ralleway, Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
 ];

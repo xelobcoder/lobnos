@@ -5,7 +5,7 @@ import '../node_modules/react-toastify/dist/ReactToastify.min.css';
 import '../node_modules/react-datepicker/dist/react-datepicker.min.css'
 import PrimeToast from "../components/accessories/PrimeToast";
 import { ThemeProvider } from '../components/ThemeProvider';
-import { Inter, Roboto, Barlow, Rajdhani, Raleway, Roboto_Condensed, Poppins, Montserrat, Open_Sans, Lato, Lexend } from 'next/font/google';
+import { Inter, Roboto, Barlow, Rajdhani, Raleway, Roboto_Condensed, Poppins, Montserrat, Open_Sans, Lato, Lexend, Lexend_Deca, Mulish, Quicksand } from 'next/font/google';
 
 const inter = Inter({
      subsets: ['latin'],
@@ -81,6 +81,25 @@ const lexend = Lexend({
      display: 'swap',
 });
 
+const lexendDeca = Lexend_Deca({
+     weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
+     subsets: ['latin'],
+     variable: '--font-lexend-deca',
+     display: 'swap',
+});
+
+const mulish = Mulish({
+     subsets: ['latin'],
+     variable: '--font-mulish',
+     display: 'swap',
+});
+
+const quicksand = Quicksand({
+     subsets: ['latin'],
+     variable: '--font-quicksand',
+     display: 'swap',
+});
+
 
 
 
@@ -91,7 +110,7 @@ export default function SRootLayout({
 }) {
 
      return (
-          <html lang="en" className={`${inter.variable} ${roboto.variable} ${barlow.variable} ${rajdhani.variable} ${raleway.variable} ${robotoCondensed.variable} ${poppins.variable} ${montserrat.variable} ${openSans.variable} ${lato.variable} ${lexend.variable}`} style={{ '--font-candara': 'Candara, sans-serif' } as React.CSSProperties}>
+          <html lang="en" className={`${inter.variable} ${roboto.variable} ${barlow.variable} ${rajdhani.variable} ${raleway.variable} ${robotoCondensed.variable} ${poppins.variable} ${montserrat.variable} ${openSans.variable} ${lato.variable} ${lexend.variable} ${lexendDeca.variable} ${mulish.variable} ${quicksand.variable}`} style={{ '--font-candara': 'Candara, sans-serif' } as React.CSSProperties}>
                <head></head>
                <body className={inter.className}>
                     <ThemeProvider>
