@@ -21,13 +21,14 @@ import { useLaboratoryContext } from "./LaboratoryStagesContext";
 import { ListGroup, Dropdown, Tabs, Tab } from 'react-bootstrap';
 import { useMediaQuery } from 'react-responsive';
 import Loader from '../../accessories/Loader';
-import { customFetch, generateRandomTextAndNumbers } from '../../Auth/customFetch';
+import { generateRandomTextAndNumbers } from '../../Auth/customFetch';
 import { handleServerSideProcessingAscensionData } from '../../serverActions/ActionFiltering';
 import { RiAlertLine, RiExternalLinkLine, RiFileTextLine, RiInformationLine, RiMailLine, RiMoreLine, RiPhoneLine, RiTimeLine, RiTruckLine, RiUser3Line, RiWhatsappLine } from '@remixicon/react';
 import { useApplication } from '../../Auth/useApplicationContext';
 import PrimeTable from '../../accessories/Datatables/PrimeTable';
 import dayjs from 'dayjs';
 import SingleWorkFlowResultDeliveryModal from './singleWorkFlowDeliveryResult';
+import BulkWorkFlowResultDeliveryModal from './bulkWorkFlowDeliveryResult';
 
 const normalizeDeliveryMode = (mode) => {
      const raw = (mode ?? '').toString().trim();
@@ -192,6 +193,8 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
      const allowPrintingUnpaid = settings?.allowPrintingUnpaid;
      const [showDeliveryModal, setShowDeliveryModal] = useState(false);
      const [selectedDeliveryItem, setSelectedDeliveryItem] = useState(null);
+     const [selectedRows, setSelectedRows] = useState(new Set());
+     const [showBulkDeliveryModal, setShowBulkDeliveryModal] = useState(false);
 
      const viewResultHandler = (item, multiple = false) => {
           const { testid, name, patientid, ascensionid, billingid } = item;
@@ -239,6 +242,32 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
      const EmailSvg = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path fill="none" d="M0 0h24v24H0z"></path><path d="M3 3H21C21.5523 3 22 3.44772 22 4V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V4C2 3.44772 2.44772 3 3 3ZM20 7.23792L12.0718 14.338L4 7.21594V19H20V7.23792ZM4.51146 5L12.0619 11.662L19.501 5H4.51146Z"></path></svg>;
 
      const columns = [
+          {
+               Header: ({ column }) => (
+                    <div className="d-flex align-items-center">
+                         <input
+                              type="checkbox"
+                              className="form-check-input"
+                              checked={collection.length > 0 && selectedRows.size === collection.length}
+                              onChange={handleSelectAll}
+                         />
+                    </div>
+               ),
+               id: 'selection',
+               accessor: 'ascensionid',
+               Cell: ({ row }) => (
+                    <div className="d-flex align-items-center">
+                         <input
+                              type="checkbox"
+                              className="form-check-input"
+                              checked={selectedRows.has(row.original.ascensionid)}
+                              onChange={() => handleRowSelection(row.original.ascensionid)}
+                         />
+                    </div>
+               ),
+               width: 40,
+               disableSortBy: true,
+          },
           {
                Header: 'Full Name',
                accessor: 'fullname',
@@ -359,6 +388,61 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
 
      // Columns for grouped view
      const groupedColumns = [
+          {
+               Header: ({ column }) => (
+                    <div className="d-flex align-items-center">
+                         <input
+                              type="checkbox"
+                              className="form-check-input"
+                              checked={groupedData.length > 0 && selectedRows.size >= groupedData.length}
+                              onChange={() => {
+                                   if (selectedRows.size >= groupedData.length) {
+                                        setSelectedRows(new Set());
+                                   } else {
+                                        const allIds = new Set();
+                                        groupedData.forEach(g => {
+                                             g.tests.forEach(t => allIds.add(t.ascensionid));
+                                        });
+                                        setSelectedRows(allIds);
+                                   }
+                              }}
+                         />
+                    </div>
+               ),
+               id: 'selection',
+               accessor: 'billingid',
+               Cell: ({ row }) => {
+                    const allTestIds = row.original.tests.map(t => t.ascensionid);
+                    const isAllSelected = allTestIds.every(id => selectedRows.has(id));
+                    const isSomeSelected = allTestIds.some(id => selectedRows.has(id));
+
+                    return (
+                         <div className="d-flex align-items-center">
+                              <input
+                                   type="checkbox"
+                                   className="form-check-input"
+                                   checked={isAllSelected}
+                                   ref={el => {
+                                        if (el) el.indeterminate = isSomeSelected && !isAllSelected;
+                                   }}
+                                   onChange={() => {
+                                        setSelectedRows(prev => {
+                                             const newSet = new Set(prev);
+                                             if (isAllSelected) {
+                                                  allTestIds.forEach(id => newSet.delete(id));
+                                             } else {
+                                                  allTestIds.forEach(id => newSet.add(id));
+                                             }
+                                             return newSet;
+                                        });
+                                   }}
+                              />
+                         </div>
+                    );
+               },
+               width: 40,
+               disableSortBy: true,
+          },
           {
                Header: 'Full Name',
                accessor: 'fullname',
@@ -512,8 +596,51 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
 
 
      if (isLoading) return <Loader />
+
+     const handleRowSelection = (ascensionid) => {
+          setSelectedRows(prev => {
+               const newSet = new Set(prev);
+               if (newSet.has(ascensionid)) {
+                    newSet.delete(ascensionid);
+               } else {
+                    newSet.add(ascensionid);
+               }
+               return newSet;
+          });
+     };
+
+     const handleSelectAll = () => {
+          if (selectedRows.size === collection.length) {
+               setSelectedRows(new Set());
+          } else {
+               setSelectedRows(new Set(collection.map(item => item.ascensionid)));
+          }
+     };
+
+     const handleBulkDeliveryUpdate = () => {
+          if (selectedRows.size === 0) {
+               alert("Please select at least one item");
+               return;
+          }
+          setShowBulkDeliveryModal(true);
+     };
+
      return (
           <div>
+               {showBulkDeliveryModal && (
+                    <BulkWorkFlowResultDeliveryModal
+                         show={showBulkDeliveryModal}
+                         onHide={() => setShowBulkDeliveryModal(false)}
+                         employeeid={Number(employeeid)}
+                         items={collection.filter(item => selectedRows.has(item.ascensionid))}
+                         onSuccess={async () => {
+                              setSelectedRows(new Set());
+                              if (typeof _getAscensionData === 'function') {
+                                   await _getAscensionData('VALIDATED', employeeid, branchid, {});
+                              }
+                         }}
+                    />
+               )}
                {selectedDeliveryItem ? (
                     <SingleWorkFlowResultDeliveryModal
                          key={String(selectedDeliveryItem.ascension_id ?? selectedDeliveryItem.ascensionid ?? '')}
@@ -544,6 +671,25 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
                          <Tab eventKey="ungrouped" title={`Individual Records (${!groupByPatient ? collection.length : 0})`} />
                     </Tabs>
                ) : null}
+
+               <div className="d-flex justify-content-between align-items-center mb-3">
+                    <div className="d-flex gap-2">
+                         {selectedRows.size > 0 && (
+                              <button
+                                   className="btn btn-primary btn-sm d-flex align-items-center gap-2"
+                                   onClick={handleBulkDeliveryUpdate}
+                              >
+                                   <RiTruckLine size={18} />
+                                   <span>Bulk Update Delivery ({selectedRows.size})</span>
+                              </button>
+                         )}
+                    </div>
+                    {selectedRows.size > 0 && (
+                         <div className="text-muted small">
+                              {selectedRows.size} items selected
+                         </div>
+                    )}
+               </div>
 
                {isClient && (isMobile ? (
                     <MobileDataDisplay data={groupedData} handleResult={viewResultHandler} />

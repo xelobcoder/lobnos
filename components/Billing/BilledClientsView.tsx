@@ -66,8 +66,9 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 		from: pquery.from || '', to: pquery.to || ''
 	});
 
-	const role = useApplication()?.user;
-	const isAdmin = role?.role === 'admin' || role?.role === 'superadmin';
+	const user = useApplication()?.user;
+	const userRole = user?.role?.toLowerCase();
+	const isAdmin = userRole === 'admin' || userRole === 'superadmin' || userRole === 'accountant' || userRole === 'manager' || userRole === 'super-admin';
 
 
 	useEffect(() => {
@@ -466,42 +467,44 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 									<RiTableLine size={16} className="me-1 align-text-bottom" /> Simple Table
 								</button>
 							</div>}
-							<div className="d-flex align-items-center gap-2 mt-2 mt-sm-0">
-								<div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
-									<span className="input-group-text bg-transparent border-end-0" style={{ borderColor: 'var(--bs-border-color)' }}>
-										<RiCalendarEventLine size={16} className="text-muted" />
-									</span>
-									<input type="date" className="form-control shadow-none border-start-0" value={datequery.from} onChange={(ev) => setDatequery({ ...datequery, from: ev.target.value })} />
-								</div>
-								<div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
-									<span className="input-group-text bg-transparent border-end-0" style={{ borderColor: 'var(--bs-border-color)' }}>
-										<RiCalendarEventLine size={16} className="text-muted" />
-									</span>
-									<input type="date" className="form-control shadow-none border-start-0" value={datequery.to} onChange={(ev) => setDatequery({ ...datequery, to: ev.target.value })} min={datequery.from} />
-								</div>
-								<button
-									className="btn btn-outline-secondary btn-sm d-flex align-items-center"
-									onClick={() => {
-										console.log("Search button clicked with dates:", datequery);
-										handleDatePicker({
-											branchid,
-											date: datequery.from,
-											from: datequery.from,
-											to: datequery.to
-										}, router);
-									}}
-								>
-									<RiSearchLine size={16} className="me-1" /> Search
-								</button>
-								{isAdmin && datequery.from && datequery.to && (
+							{isAdmin && (
+								<div className="d-flex align-items-center gap-2 mt-2 mt-sm-0">
+									<div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
+										<span className="input-group-text bg-transparent border-end-0" style={{ borderColor: 'var(--bs-border-color)' }}>
+											<RiCalendarEventLine size={16} className="text-muted" />
+										</span>
+										<input type="date" className="form-control shadow-none border-start-0" value={datequery.from} onChange={(ev) => setDatequery({ ...datequery, from: ev.target.value })} />
+									</div>
+									<div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
+										<span className="input-group-text bg-transparent border-end-0" style={{ borderColor: 'var(--bs-border-color)' }}>
+											<RiCalendarEventLine size={16} className="text-muted" />
+										</span>
+										<input type="date" className="form-control shadow-none border-start-0" value={datequery.to} onChange={(ev) => setDatequery({ ...datequery, to: ev.target.value })} min={datequery.from} />
+									</div>
 									<button
-										className="btn btn-primary btn-sm"
-										onClick={() => window.open(`${plsEncryption(branchid.toString())}/day-transaction-break-down?date=${datequery.from}&&from=${datequery.from}&&end=${datequery.to}&isOpenSideBarShow=false`)}
+										className="btn btn-outline-secondary btn-sm d-flex align-items-center"
+										onClick={() => {
+											console.log("Search button clicked with dates:", datequery);
+											handleDatePicker({
+												branchid,
+												date: datequery.from,
+												from: datequery.from,
+												to: datequery.to
+											}, router);
+										}}
 									>
-										BreakDown
+										<RiSearchLine size={16} className="me-1" /> Search
 									</button>
-								)}
-							</div>
+									{datequery.from && datequery.to && (
+										<button
+											className="btn btn-primary btn-sm"
+											onClick={() => window.open(`${plsEncryption(branchid.toString())}/day-transaction-break-down?date=${datequery.from}&&from=${datequery.from}&&end=${datequery.to}&isOpenSideBarShow=false`)}
+										>
+											BreakDown
+										</button>
+									)}
+								</div>
+							)}
 						</div>
 					</div>
 				</div>

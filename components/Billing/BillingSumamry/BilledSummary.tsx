@@ -120,7 +120,7 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 	const [branch, setBranch] = useState<Branch | null>(null);
 	const [isVisible, setIsVisible] = useState<boolean>(true);
 	const role = useApplication()?.user?.role;
-	const isAdmin = role === "admin" || role === "manager";
+	const isAdmin = role === "admin" || role === "manager" 
 
 	useEffect(() => {
 		if (summary) {

@@ -5,6 +5,7 @@ import { plsDecryption } from "../../../../../lib/encryption";
 import { customFetch } from "../../../../../components/Auth/customFetch";
 import Link from "next/link";
 import BilledClientsView from "../../../../../components/Billing/BilledClientsView";
+import { useApplication } from "../../../../../components/Auth/useApplicationContext";
 
 export default function DailySalesViewCustomerRepresentative({ params, searchParams }: {
 	params: {
@@ -15,6 +16,9 @@ export default function DailySalesViewCustomerRepresentative({ params, searchPar
 		to?: string
 	}
 }) {
+	const { user } = useApplication();
+	const role = user?.role?.toLowerCase();
+	const isAdminOrAccountant = role === "admin" || role === "accountant" || role === "superadmin";
 	const [transactions, setTransactions] = useState<any[]>([]);
 	const [summary, setSummary] = useState<any>(undefined);
 	const [expensesPaymentMade, setExpensesPaymentMade] = useState<any[]>([]);
@@ -80,7 +84,7 @@ export default function DailySalesViewCustomerRepresentative({ params, searchPar
 
 	return (
 		<div>
-			{branchIdState && <BilledSummary branchid={branchIdState} from={from} to={to} summary={summary} />}
+			{isAdminOrAccountant && branchIdState && <BilledSummary branchid={branchIdState} from={from} to={to} summary={summary} />}
 			<BilledClientsView data={transactions ? transactions : []} branchid={branchIdState} expensesPaymentMade={expensesPaymentMade} isLoading={isLoading} />
 		</div>
 	);

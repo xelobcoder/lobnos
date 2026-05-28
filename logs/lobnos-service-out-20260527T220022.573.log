@@ -1,0 +1,32 @@
+> Ready on http://localhost:2377
+{
+  status: true,
+  accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImhhbXphdGlpZnU0NUBnbWFpbC5jb20iLCJpYXQiOjE3Nzk5MTkyMjEsImV4cCI6MTc3OTkzMDAyMX0.F_7XPgjAdfFLCzKiXQtSyREO-ol7mvA4BubwDyNhOY0',
+  user: {
+    role: 'admin',
+    employeeid: 3,
+    username: 'TIIFU HAMZA ',
+    email: 'hamzatiifu45@gmail.com'
+  },
+  email: 'hamzatiifu45@gmail.com',
+  browserInfo: {
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36 Edg/148.0.0.0',
+    platform: 'Win32',
+    device: 'computer',
+    connectionType: '4g',
+    deviceMemory: 16,
+    language: 'en-US',
+    languages: [ 'en-US', 'en' ],
+    vendor: 'Google Inc.',
+    hardwareConcurrency: 8,
+    cookieEnabled: true,
+    online: false,
+    product: 'Gecko',
+    appVersion: '5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36 Edg/148.0.0.0',
+    appName: 'Netscape',
+    maxTouchPoints: 0
+  },
+  sessionExpiryTime: 1779940821698,
+  loginsessionId: '49356316-f8e1-49e3-bcd9-ac97f8188625',
+  settings: { allowScientistToRegisterClient: 1 }
+} Reponse

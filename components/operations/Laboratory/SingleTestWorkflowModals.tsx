@@ -1,19 +1,14 @@
 "use client"
 import React, { useEffect, useMemo, useState } from "react";
-import { Modal, Button, Form, Spinner, ListGroup } from "react-bootstrap";
+import { Modal, Button, Form, Spinner } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { customFetch, customPost, validatePin } from "../../Auth/customFetch";
 import { useApplicationSettings } from "../../Auth/useApplicationContext";
-// @ts-ignore
-import UseCustomResultTemplating from "../../ResutlUI/useCustomResultTemplating";
-// @ts-ignore
-import UseResultCommentSingle from "../../ResutlUI/useResultCommentSingle";
-import PreviewPatientInformation from "../../petientsComponent/PreviewPatientInformation";
 
 type WorkflowBaseProps = {
   show: boolean;
   onHide: () => void;
-  onSuccess?: (shouldClose?: boolean) => void;
+  onSuccess?: () => void;
 };
 
 type TestContext = {
@@ -153,7 +148,7 @@ export function SingleTestCollectionWorkflowModal({
         toast.success(stage === "collectionStartDate" ? "Collection started" : "Collection completed");
         if (stage === "collectionStartDate") setStartAt(value);
         if (stage === "collectionEndDate") setEndAt(value);
-        if (onSuccess) onSuccess(stage === "collectionEndDate");
+        if (onSuccess) onSuccess();
       } else {
         toast.error(res?.message || "Failed to update collection");
       }
@@ -430,7 +425,7 @@ export function SingleTestProcessingWorkflowModal({
         toast.success(stage === "processingStartDate" ? "Processing started" : "Processing completed");
         if (stage === "processingStartDate") setStartAt(value);
         if (stage === "processingEndDate") setEndAt(value);
-        if (onSuccess) onSuccess(stage === "processingEndDate");
+        if (onSuccess) onSuccess();
       } else {
         toast.error(res?.message || "Failed to update processing");
       }
@@ -558,39 +553,16 @@ export function SingleTestResultValidationWorkflowModal({
   };
 
   return (
-    <Modal show={show} onHide={onHide} size="xl" backdrop="static" dialogClassName="pls-modal-top">
+    <Modal show={show} onHide={onHide} size="lg" backdrop="static" dialogClassName="pls-modal-top">
       <Modal.Header closeButton className="bg-body-tertiary">
         <Modal.Title>Result Validation</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <PreviewPatientInformation patientid={test.patientid} />
-        <div className="mb-1 fw-semibold mt-3">{test.testname}</div>
+        <div className="mb-1 fw-semibold">{test.testname}</div>
         <div className="text-muted" style={{ fontSize: "0.9rem" }}>
           Ascension: {test.ascensionid} • Test: {test.testid} • Billing: {test.billingid}
         </div>
         <hr />
-
-        <div style={{ overflowX: 'auto' }} className="my-3">
-          <UseCustomResultTemplating
-            isResultView={false}
-            testid={test.testid}
-            patientid={test.patientid}
-            test={test.testname || ""}
-            billingid={test.billingid}
-          />
-        </div>
-
-        <ListGroup className="my-3">
-          <ListGroup.Item className="bg-secondary-subtle fw-bold">Comments</ListGroup.Item>
-          <ListGroup.Item>
-            <UseResultCommentSingle
-              patientid={test.patientid}
-              testid={test.testid}
-              billingid={test.billingid}
-            />
-          </ListGroup.Item>
-        </ListGroup>
-
         <StageTimeline
           title="Result Validation Timeline"
           steps={[
@@ -697,42 +669,22 @@ export function BulkResultValidationWorkflowModal({
   };
 
   return (
-    <Modal show={show} onHide={onHide} size="xl" backdrop="static" dialogClassName="pls-modal-top">
+    <Modal show={show} onHide={onHide} size="lg" backdrop="static" dialogClassName="pls-modal-top">
       <Modal.Header closeButton className="bg-body-tertiary">
         <Modal.Title>Validate All Results (Billing {billingid})</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <PreviewPatientInformation patientid={patientid} />
-        <div className="text-muted mt-3" style={{ fontSize: "0.9rem" }}>
-          {pendingAscensions.length} test(s) to validate
+        <div className="text-muted" style={{ fontSize: "0.9rem" }}>
+          {pendingAscensions.length} test(s)
         </div>
-        <hr />
-        <div className="mt-2" style={{ maxHeight: '60vh', overflowY: "auto" }}>
-          {pendingAscensions.map((t, idx) => (
-            <div key={t.ascensionid} className="mb-4 p-3 border rounded">
-              <h6 className="mb-3 fw-bold"><strong>{idx + 1}.</strong> {t.testname} (Asc {t.ascensionid})</h6>
-              <div style={{ overflowX: 'auto' }} className="my-3">
-                <UseCustomResultTemplating
-                  isResultView={false}
-                  testid={t.testid}
-                  patientid={patientid}
-                  test={t.testname || ""}
-                  billingid={billingid}
-                />
-              </div>
-              <ListGroup className="my-2">
-                <ListGroup.Item className="bg-secondary-subtle fw-bold">Comments</ListGroup.Item>
-                <ListGroup.Item>
-                  <UseResultCommentSingle
-                    patientid={patientid}
-                    testid={t.testid}
-                    billingid={billingid}
-                  />
-                </ListGroup.Item>
-              </ListGroup>
-              {idx < pendingAscensions.length - 1 && <hr className="my-4" />}
-            </div>
-          ))}
+        <div className="mt-2" style={{ maxHeight: 240, overflowY: "auto" }}>
+          <ul className="mb-0">
+            {pendingAscensions.map((t) => (
+              <li key={t.ascensionid}>
+                {t.testname} (Asc {t.ascensionid})
+              </li>
+            ))}
+          </ul>
         </div>
         <hr />
         <Form.Check

@@ -16,6 +16,7 @@ import {
      SingleTestSampleValidationWorkflowModal
 } from '../../../../../../components/operations/Laboratory/SingleTestWorkflowModals'
 import SingleWorkFlowResultDeliveryModal from '../../../../../../components/operations/Laboratory/singleWorkFlowDeliveryResult';
+import BulkWorkFlowResultDeliveryModal from '../../../../../../components/operations/Laboratory/bulkWorkFlowDeliveryResult';
 
 // Formats a date string as "10th May, 2026 [Sat] @10:00 PM"
 function formatFullDate(dateString?: string) {
@@ -101,7 +102,7 @@ export default function ClientVisit() {
      const [selectedAscensionId, setSelectedAscensionId] = useState<number | null>(null);
      const [testFilter, setTestFilter] = useState('');
      const [entryTokensByAscensionId, setEntryTokensByAscensionId] = useState<Record<number, { csvid: string; ptid: string }>>({});
-     const [workflow, setWorkflow] = useState<null | 'collection' | 'sampleValidation' | 'processing' | 'resultDelivery' | 'resultValidation' | 'bulkResultValidation'>(null);
+     const [workflow, setWorkflow] = useState<null | 'collection' | 'sampleValidation' | 'processing' | 'resultDelivery' | 'bulkResultDelivery' | 'resultValidation' | 'bulkResultValidation'>(null);
 
      const allResultsCompleted =
           Array.isArray(testAscensions) &&
@@ -301,6 +302,14 @@ export default function ClientVisit() {
                                                        >
                                                             <RiSendPlaneLine size={16} />
                                                             <span>Send SMS</span>
+                                                       </button>
+                                                       <button
+                                                            className="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1"
+                                                            onClick={() => setWorkflow('bulkResultDelivery')}
+                                                            title="Record bulk delivery for all validated tests"
+                                                       >
+                                                            <RiTruckLine size={16} />
+                                                            <span>Bulk Delivery</span>
                                                        </button>
                                                   </>
                                              ) : null}
@@ -655,7 +664,10 @@ export default function ClientVisit() {
                          <SingleTestProcessingWorkflowModal
                               show={workflow === 'processing'}
                               onHide={() => { setWorkflow(null); }}
-                              onSuccess={(shouldClose = true) => { loadTestTransactions(true); if (shouldClose) setWorkflow(null); }}
+                              onSuccess={(shouldClose = true) => { 
+                                   loadTestTransactions(true); if (shouldClose) {
+                                        setWorkflow(null);
+                                   } }}
                               test={{
                                    billingid: selectedItem.billingid,
                                    patientid,
@@ -695,6 +707,13 @@ export default function ClientVisit() {
                          />
                     </>
                ) : null}
+               <BulkWorkFlowResultDeliveryModal
+                    show={workflow === 'bulkResultDelivery'}
+                    onHide={() => { setWorkflow(null); }}
+                    onSuccess={() => { loadTestTransactions(true); setWorkflow(null); }}
+                    employeeid={Number(employeeid)}
+                    items={testAscensions.filter(t => t.isapproved === 1 || (t.result_validation_stage || '').toLowerCase().includes('validated'))}
+               />
                <BulkResultValidationWorkflowModal
                     show={workflow === 'bulkResultValidation'}
                     onHide={() => { setWorkflow(null); }}

@@ -16,8 +16,6 @@ interface BillingOption {
 
 export default function BillingTypeSelection() {
 	const [selectedBillingSource, setSelectedBillingSource] = useState<BillingOption | null>(null);
-	const [isBackdating, setIsBackdating] = useState(false);
-	const [backdate, setBackdate] = useState(new Date().toISOString().split('T')[0]);
 	const [showAddClinicianModal, setShowAddClinicianModal] = useState(false);
 	const [showAddOrgModal, setShowAddOrgModal] = useState(false);
 	const [showCheckClinicianModal, setShowCheckClinicianModal] = useState(false);
