@@ -14,7 +14,7 @@ import { useApplication } from "../../Auth/useApplicationContext";
 
 
 export default function AscentionCompletedTable({ employeeid, branchid }) {
-	const { isLoading, collection, queryParams, setCollection, category='grouped' } = useLaboratoryContext();
+	const { isLoading, collection, queryParams, setCollection, category = 'grouped' } = useLaboratoryContext();
 	const [groupByPatient, setGroupByPatient] = useState(category === 'grouped');
 	const [showModal, setShowModal] = useState(false);
 	const [selectedGroupTests, setSelectedGroupTests] = useState(null);
@@ -106,7 +106,7 @@ export default function AscentionCompletedTable({ employeeid, branchid }) {
 					size="sm"
 					disabled={!allowResultEnteringUpaid && row.original.paymentstatus !== 'paid'}
 					className="p-1"
-					onClick={() => PrepareResultEntryHeader(row.original, false, branchid,false)}
+					onClick={() => PrepareResultEntryHeader(row.original, false, branchid, false)}
 				>
 					<RiCheckLine size={16} className="me-2" /> Enter result
 				</Button>
@@ -196,10 +196,11 @@ export default function AscentionCompletedTable({ employeeid, branchid }) {
 
 
 	const validatePinUser = async () => {
-		const { status, message } = await validatePin(employeeid, pin);
-		setIsPinValid(status);
-		if (!status) {
-			alert(message || "Invalid PIN. Please try again.");
+		const response = await validatePin(employeeid, pin);
+		const isValid = response?.status === true;
+		setIsPinValid(isValid);
+		if (!isValid) {
+			alert(response?.message || "Invalid PIN. Please try again.");
 		}
 	}
 

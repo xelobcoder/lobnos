@@ -75,10 +75,10 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
                               setValidatingSpinner(false);
                               return;
                          }
-                         const { status, message } = await validatePin(employeeid, pinValue);
-                         if (status == false) {
+                         const response = await validatePin(employeeid, pinValue);
+                         if (response?.status !== true) {
+                              toast.error(response?.message || 'PIN validation failed');
                               setIsPinValidated(false);
-                              toast.error(message || 'PIN validation failed');
                               setValidatingSpinner(false);
                               return;
                          }

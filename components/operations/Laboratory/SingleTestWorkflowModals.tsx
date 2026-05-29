@@ -531,7 +531,7 @@ export function SingleTestResultValidationWorkflowModal({
       if (pinOnResultValidation) {
         if (!pin) return toast.error("PIN is required");
         const vr = await validatePin(employeeid, pin);
-        if (vr?.status == false) return toast.error(vr?.message || "Invalid PIN");
+        if (vr?.status !== true) return toast.error(vr?.message || "Invalid PIN");
       }
 
       const payload = { username: patientName, employeeid, ascensionid: test.ascensionid };
@@ -644,7 +644,7 @@ export function BulkResultValidationWorkflowModal({
       if (pinOnResultValidation) {
         if (!pin) return toast.error("PIN is required");
         const vr = await validatePin(employeeid, pin);
-        if (vr?.status == false) return toast.error(vr?.message || "Invalid PIN");
+        if (vr?.status !== true) return toast.error(vr?.message || "Invalid PIN");
       }
 
       const payloadBase = { username: patientName, employeeid };

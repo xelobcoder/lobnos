@@ -124,8 +124,8 @@ export default function EnterResultUltrasound() {
 			// Validate PIN if required
 			if (isPinUsed) {
 				const validation = await validatePin(user?.employeeid, pin);
-				if (!validation.status) {
-					toast.error(validation.message || "Invalid PIN");
+				if (validation?.status !== true) {
+					toast.error(validation?.message || "Invalid PIN");
 					return;
 				}
 			}
@@ -338,7 +338,7 @@ export default function EnterResultUltrasound() {
 						<div className="col-12 col-lg-3">
 							<div className="px-3 py-2 border-bottom bg-body-tertiary d-flex align-items-center justify-content-between">
 								<div className="fw-semibold">Controls</div>
-							
+
 								<button className="btn btn-sm btn-outline-secondary" onClick={fetchTemplates} disabled={isTemplateLoading}>
 									Refresh
 								</button>
@@ -358,7 +358,7 @@ export default function EnterResultUltrasound() {
 											styles={reactSelectCustomStyles}
 											placeholder="Select a Template"
 											defaultInputValue=''
-											
+
 											autoFocus={false}
 											className='pls-color'
 											value={selectedTemplate || ''}
