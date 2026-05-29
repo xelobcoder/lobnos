@@ -109,7 +109,7 @@ export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
 				}
 				const response = await validatePin(employeeid, effectivePin);
 				const { status, message } = response;
-				if (status == "error" || status == "invalid" || status == "false") return toast.error(message || "Invalid PIN");
+				if (status == "error" || status == "invalid" || status == "false" || status == false) return toast.error(message || "Invalid PIN");
 			}
 
 			setIsSaving(true);
