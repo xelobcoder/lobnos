@@ -63,6 +63,12 @@ export const BillingSettingsTab: React.FC<BillingSettingsTabProps> = ({ settings
                          label: 'Witness Refund',
                          description: 'Enable refund processing with witness verification',
                          icon: <RiUserSharedLine size={20} />
+                    }, 
+                    {
+                         name: 'makepdfprintingcompulsory',
+                         label: 'Make PDF Printing Compulsory',
+                         description: 'Require bills to be printed in PDF format for record-keeping',
+                         icon: <RiFileListLine size={20} />
                     }
                ]
           },

@@ -25,6 +25,7 @@ export default function LabReportPrintingMultiple() {
 	const [resultdata, setResultData] = useState<any>(null);
 	const prefix = useApplication()?.settings?.billingidPrefix || '';
 	const employeeid = useApplication()?.user?.employeeid;
+	const makepdfprintingcompulsory = useApplication()?.settings?.makepdfprintingcompulsory === 1;
 	const [resultSettings, setResultSettings] = useState<ResultSettings>(defaultResultSettings);
 	const searchParams = useSearchParams();
 	const billingid = searchParams?.get('csvid') || '';
@@ -181,7 +182,7 @@ export default function LabReportPrintingMultiple() {
 
 					if (watermarkOverlay) watermarkOverlay.style.display = 'none';
 
-					const pdf = new jsPDF('p', 'mm', 'a4');
+					const pdf = new jsPDF('p', 'mm', 'a4',true);
 					const pageWidth = pdf.internal.pageSize.getWidth();
 					const pageHeight = pdf.internal.pageSize.getHeight();
 					const margin = 10;
@@ -666,12 +667,13 @@ export default function LabReportPrintingMultiple() {
 								>
 									Deselect All
 								</button>
-								<button
-									className="no-print"
-									onClick={async () => {
-										if (employeeid) {
-											const ids = getSelectedAscensionIds();
-											await Promise.all(ids.map((id) => trackReportPrint(String(id), employeeid)));
+								{!makepdfprintingcompulsory && (
+									<button
+										className="no-print"
+										onClick={async () => {
+											if (employeeid) {
+												const ids = getSelectedAscensionIds();
+												await Promise.all(ids.map((id) => trackReportPrint(String(id), employeeid)));
 										}
 										computePrintPageStarters();
 										setTimeout(() => window.print(), 50);
@@ -679,11 +681,14 @@ export default function LabReportPrintingMultiple() {
 									style={{ marginTop: 12, padding: '6px 16px', borderRadius: 4, border: '1px solid #28a745', background: '#28a745', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 16 }}
 								>
 									Print
-								</button>
+								</button>)}
 								<button
 									className="no-print"
 									disabled={!pdfUrl || pdfLoading || !!pdfError}
-									onClick={() => setShowPdfControls(true)}
+									onClick={() => {
+										setShowPdfControls(true)
+										setShowPdf(true);
+									}}
 									title="Press Ctrl+P to download PDF"
 									style={{
 										marginTop: 12,
@@ -697,7 +702,7 @@ export default function LabReportPrintingMultiple() {
 										fontSize: 16
 									}}
 								>
-									{pdfLoading ? 'Generating PDF...' : pdfError ? 'PDF Error' : 'PDF Options'}
+									{pdfLoading ? 'Generating PDF...' : pdfError ? 'PDF Error' : 'PDF PRINTING'}
 								</button>
 								{pdfError && (
 									<span style={{ color: 'red', fontSize: 12, marginTop: 4 }}>{pdfError}</span>

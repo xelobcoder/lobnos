@@ -24,7 +24,11 @@ const MDSLancetTemplate: React.FC = () => {
     const app = useApplication();
     const employeeid = app?.user?.employeeid;
     const prefixText = app?.settings?.billingidPrefix || '';
-    console.log("Prefix Text:", prefixText);
+    const makepdfprintingcompulsory = (() => {
+        const value = app?.settings?.makepdfprintingcompulsory;
+        return value === 1 || value === '1' ||
+            value === 'compulory' || value === 'compulsory';
+    })();
     const [loader, setLoader] = useState(false);
     const [resultdata, setResultData] = useState<any>(null);
     const [resultSettings, setResultSettings] = useState<ResultSettings>(defaultResultSettings);
@@ -152,7 +156,7 @@ const MDSLancetTemplate: React.FC = () => {
                 try {
                     const watermarkEl = document.querySelector('.watermark-seal') as HTMLElement;
                     if (watermarkEl) {
-                        const watermarkCanvas = await html2canvas(watermarkEl, { scale: 1, backgroundColor: null, useCORS: true });
+                        const watermarkCanvas = await html2canvas(watermarkEl, { scale: 2, backgroundColor: null, useCORS: true });
                         watermarkImgData = watermarkCanvas.toDataURL('image/png');
                     }
                 } catch (e) {
@@ -176,8 +180,8 @@ const MDSLancetTemplate: React.FC = () => {
                         if (footerToHide) footerToHide.style.display = 'none';
                     }
                 }).then(canvas => {
-                    const imgData = canvas.toDataURL('image/png');
-                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    const imgData = canvas.toDataURL('image/png',0.75);
+                    const pdf = new jsPDF('p', 'mm', 'a4',true);
                     const pageWidth = pdf.internal.pageSize.getWidth();
                     const pageHeight = pdf.internal.pageSize.getHeight();
                     const margin = 10;
@@ -242,6 +246,13 @@ const MDSLancetTemplate: React.FC = () => {
             }, 500);
         }
     }, [loader, resultdata]);
+
+    useEffect(() => {
+        if (makepdfprintingcompulsory && pdfUrl) {
+            setShowPdfControls(true);
+            setShowPdf(true);
+        }
+    }, [makepdfprintingcompulsory, pdfUrl]);
 
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
@@ -416,8 +427,8 @@ const MDSLancetTemplate: React.FC = () => {
                             />
                             <div style={{ width: '100%', margin: '0', position: 'relative' }}>
                                 {showWatermark && resultdata?.companyInfo?.name && (
-                                    <Watermark 
-                                        text={resultdata.companyInfo.name} 
+                                    <Watermark
+                                        text={resultdata.companyInfo.name}
                                         subText={resultdata?.patientInformation?.fullpatientid || ptid}
                                     />
                                 )}
@@ -497,33 +508,34 @@ const MDSLancetTemplate: React.FC = () => {
                             </div>
                         </footer>
                     </div>
-                    <button
-                        className="no-print"
-                        style={{
-                            position: 'absolute',
-                            top: 16,
-                            left: 16,
-                            zIndex: 10000,
-                            background: '#28a745',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: 4,
-                            padding: '8px 16px',
-                            fontWeight: 'bold',
-                            cursor: 'pointer',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
-                        }}
-                        onClick={async () => {
-                            if (ascensionid && employeeid) {
-                                await trackReportPrint(ascensionid, employeeid);
-                            }
-                            window.print();
-                        }}
-                    >
-                        Print Report
-                    </button>
+                    {!makepdfprintingcompulsory && (
+                        <button
+                            className="no-print"
+                            style={{
+                                position: 'absolute',
+                                top: 16,
+                                left: 16,
+                                zIndex: 10000,
+                                background: '#28a745',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: 4,
+                                padding: '8px 16px',
+                                fontWeight: 'bold',
+                                cursor: 'pointer',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+                            }}
+                            onClick={async () => {
+                                if (ascensionid && employeeid) {
+                                    await trackReportPrint(ascensionid, employeeid);
+                                }
+                                window.print();
+                            }}
+                        >
+                            Print Report
+                        </button>)}
 
-                    {pdfUrl && (
+                    {!makepdfprintingcompulsory && pdfUrl && (
                         <button
                             className='printing-button no-print'
                             onClick={() => setShowPdfControls(true)}

@@ -13,7 +13,6 @@ import { RiFileTextLine, RiImageLine, RiHistoryLine, RiFileList2Line } from '@re
 import AccessHistoryTab from './AccessHistoryTab';
 import AccessRequestForm from './AccessRequestForm';
 import ImageUploadTab from './ImageUploadTab';
-import { plsEncryption } from '../../../../../../lib/encryption';
 const MARKDOWN_EDITOR = dynamic(() => import('../../../../../../components/accessories/markdownEditor'), { ssr: false });
 
 
@@ -330,12 +329,7 @@ export default function EnterResultUltrasound() {
 												</div>
 											</div>
 										))}
-										<div className="list-group pls-color br-5">
-											<div className="list-group-item fw-bold text-uppercase bg-body-secondary pls-color">Impression</div>
-											<div className="list-group-item">
-												<MARKDOWN_EDITOR updatedata={(ev, data) => setImpression(data)} initialData={impression || "Impression Here"} />
-											</div>
-										</div>
+
 									</div>
 								)}
 							</div>
@@ -344,9 +338,11 @@ export default function EnterResultUltrasound() {
 						<div className="col-12 col-lg-3">
 							<div className="px-3 py-2 border-bottom bg-body-tertiary d-flex align-items-center justify-content-between">
 								<div className="fw-semibold">Controls</div>
+							
 								<button className="btn btn-sm btn-outline-secondary" onClick={fetchTemplates} disabled={isTemplateLoading}>
 									Refresh
 								</button>
+
 							</div>
 							<div className="p-3">
 								{activeSection === 'result' ? (
@@ -362,10 +358,12 @@ export default function EnterResultUltrasound() {
 											styles={reactSelectCustomStyles}
 											placeholder="Select a Template"
 											defaultInputValue=''
+											
 											autoFocus={false}
 											className='pls-color'
 											value={selectedTemplate || ''}
 											isClearable
+											tabIndex={4}
 											isDisabled={isTemplateLoading}
 										/>
 										{isTemplateLoading ? (
@@ -395,6 +393,17 @@ export default function EnterResultUltrasound() {
 											disabled={submitting || isTemplateLoading}
 										>
 											{submitting ? "Submitting..." : "Save Result"}
+										</button>
+
+										<button
+											className="btn btn-primary w-100 mt-3"
+											onClick={(ev) => {
+												const billing_id = `${generateRandomTextAndNumbers(70)}${billingid}`;
+												const patientid_id = `${generateRandomTextAndNumbers(50)}${patientid}`;
+												window.open(`/result/labreport/4?isScan=true&&csvid=${billing_id}&&ptid=${patientid_id}&&target=70,50&&ascensionId=${ascensionid}&&testname=${testname}&&testid=${testid}&&isUltrasound=true&&isMultiple=false&&password&&is_password_encrypted=false&isOpenSideBarShow=false`, "_blank");
+											}}
+										>
+											Print Report
 										</button>
 									</>
 								) : (

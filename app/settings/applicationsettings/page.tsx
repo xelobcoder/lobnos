@@ -50,10 +50,12 @@ interface ApplicationSettingsData {
 	byPassValidation: number,
 	byPassProcessing: number,
 	allowPrintingUnpaid: number,
+	makepdfprintingcompulsory: number,
 	isCommissionEarnedOnClinicianBilling: number,
 	isCommissionEarnedOnOrganizationalBilling: number,
 	isCommissionEarnedOnNHISBilling: number,
-	isCommissionEarnedOnPHISBilling: number
+	isCommissionEarnedOnPHISBilling: number,
+	ageVariationLimits: string | null
 }
 
 export default function ApplicationSettings() {
@@ -66,7 +68,9 @@ export default function ApplicationSettings() {
 	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [success, setSuccess] = useState(false);
-
+	const [newGroupName, setNewGroupName] = useState('');
+	const [newGroupMin, setNewGroupMin] = useState<string>('');
+	const [newGroupMax, setNewGroupMax] = useState<string>('');
 
 	useEffect(() => {
 		fetchSettings();
@@ -141,10 +145,16 @@ export default function ApplicationSettings() {
 			const response = await customFetch('applicationsettings');
 			if (response?.status === 'success' && response?.statusCode === 200) {
 				if (response.result) {
+					const ageVariationLimits = response.result.ageVariationLimits
+						? (typeof response.result.ageVariationLimits === 'string'
+							? response.result.ageVariationLimits
+							: JSON.stringify(response.result.ageVariationLimits))
+						: null;
 					setSettings({
 						...response.result,
 						regioncode: response.result.regioncode ? response.result.regioncode.toString() : '',
 						districtcode: response.result.districtcode ? response.result.districtcode.toString() : '',
+						ageVariationLimits,
 					});
 				} else {
 					setSettings({
@@ -178,10 +188,17 @@ export default function ApplicationSettings() {
 						byPassValidation: 0,
 						byPassProcessing: 0,
 						allowResultEnteringUpaid: 0,
+						ageVariationLimits: JSON.stringify({
+							neonates: { minAge: 0, maxAge: 28, specifier: 'days' },
+							children: { minAge: 1, maxAge: 12, specifier: 'years' },
+							adolescents: { minAge: 13, maxAge: 17, specifier: 'years' },
+							adults: { minAge: 18, maxAge: 64, specifier: 'years' }
+						}),
 						isCommissionEarnedOnClinicianBilling: 1,
 						isCommissionEarnedOnOrganizationalBilling: 1,
 						isCommissionEarnedOnNHISBilling: 0,
-						isCommissionEarnedOnPHISBilling: 0
+						isCommissionEarnedOnPHISBilling: 0,
+						makepdfprintingcompulsory: 0
 					});
 				}
 			} else {
@@ -227,6 +244,140 @@ export default function ApplicationSettings() {
 		});
 	};
 
+	// Helpers to manage ageVariationLimits JSON stored as string|null
+	const parseAgeVariation = () => {
+		try {
+			if (!settings?.ageVariationLimits) return null;
+			return typeof settings.ageVariationLimits === 'string'
+				? JSON.parse(settings.ageVariationLimits)
+				: settings.ageVariationLimits;
+		} catch (err) {
+			return null;
+		}
+	};
+
+	const updateAgeMin = (group: string, minAgeValue: number) => {
+		setSettings(prev => {
+			if (!prev) return prev;
+			const obj = parseAgeVariation() || {
+				neonates: { minAge: 0, maxAge: 28, specifier: 'days' },
+				children: { minAge: 1, maxAge: 12, specifier: 'years' },
+				adolescents: { minAge: 13, maxAge: 17, specifier: 'years' },
+				adults: { minAge: 18, maxAge: 64, specifier: 'years' }
+			};
+			if (!obj[group]) obj[group] = { minAge: minAgeValue, maxAge: 0, specifier: 'years' };
+			obj[group].minAge = Number(minAgeValue) || 0;
+			return { ...prev, ageVariationLimits: JSON.stringify(obj) };
+		});
+	};
+
+	const updateAgeMax = (group: string, maxAgeValue: number) => {
+		setSettings(prev => {
+			if (!prev) return prev;
+			const obj = parseAgeVariation() || {
+				neonates: { minAge: 0, maxAge: 28, specifier: 'days' },
+				children: { minAge: 1, maxAge: 12, specifier: 'years' },
+				adolescents: { minAge: 13, maxAge: 17, specifier: 'years' },
+				adults: { minAge: 18, maxAge: 64, specifier: 'years' }
+			};
+			if (!obj[group]) obj[group] = { minAge: 0, maxAge: maxAgeValue, specifier: 'years' };
+			obj[group].maxAge = Number(maxAgeValue) || 0;
+			return { ...prev, ageVariationLimits: JSON.stringify(obj) };
+		});
+	};
+
+	const removeAgeGroup = (group: string) => {
+		if (!confirm(`Remove '${group}' age group? This cannot be undone.`)) return;
+		setSettings(prev => {
+			if (!prev) return prev;
+			const obj = parseAgeVariation() || {};
+			if (obj[group]) delete obj[group];
+			const keys = Object.keys(obj);
+			return { ...prev, ageVariationLimits: keys.length ? JSON.stringify(obj) : null };
+		});
+	};
+
+	const addAgeGroup = () => {
+		const name = newGroupName.trim();
+		if (!name) {
+			setError('Age group name is required');
+			return;
+		}
+		const min = Number(newGroupMin);
+		const max = Number(newGroupMax);
+		if (Number.isNaN(min) || Number.isNaN(max)) {
+			setError('Min and max age must be valid numbers');
+			return;
+		}
+		if (min > max) {
+			setError('Min age cannot be greater than max age');
+			return;
+		}
+		setSettings(prev => {
+			if (!prev) return prev;
+			const obj = parseAgeVariation() || {};
+			if (obj[name]) {
+				setError(`Age group '${name}' already exists`);
+				return prev;
+			}
+			obj[name] = { minAge: min, maxAge: max, specifier: 'years' };
+			return {
+				...prev,
+				ageVariationLimits: JSON.stringify(obj)
+			};
+		});
+		setNewGroupName('');
+		setNewGroupMin('');
+		setNewGroupMax('');
+		setError(null);
+	};
+
+	// specifier is fixed to 'years' for editable groups (children/adolescents/adults)
+
+	// Validation: ensure min<=max and no overlaps across groups (convert to days)
+	const toDays = (value: number, specifier: string) => {
+		if (specifier === 'days') return Number(value) || 0;
+		if (specifier === 'months') return (Number(value) || 0) * 30;
+		// years
+		return (Number(value) || 0) * 365;
+	};
+
+	const validateAgeVariation = (): { valid: boolean; message?: string } => {
+		const obj = parseAgeVariation() as Record<string, any> | null;
+		if (!obj) return { valid: true };
+		const entries = Object.entries(obj).map(([name, entry]: [string, any]) => {
+			const min = Number(entry.minAge ?? 0);
+			const max = Number(entry.maxAge ?? 0);
+			const spec = entry.specifier || 'years';
+			return {
+				name,
+				min,
+				max,
+				spec,
+				minDays: toDays(min, spec),
+				maxDays: toDays(max, spec)
+			};
+		});
+		const lowercased = entries.map(e => e.name.toLowerCase());
+		for (let i = 0; i < lowercased.length; i += 1) {
+			if (lowercased.indexOf(lowercased[i]) !== i) {
+				return { valid: false, message: `Duplicate age group name '${entries[i].name}'` };
+			}
+		}
+		for (const entry of entries) {
+			if (entry.min > entry.max) {
+				return { valid: false, message: `${entry.name}: minAge cannot be greater than maxAge` };
+			}
+		}
+		entries.sort((a, b) => a.minDays - b.minDays);
+		for (let i = 1; i < entries.length; i += 1) {
+			if (entries[i].minDays <= entries[i - 1].maxDays) {
+				return { valid: false, message: `Age group ${entries[i].name} overlaps with previous group ${entries[i - 1].name}` };
+			}
+		}
+		return { valid: true };
+	};
+
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -247,6 +398,14 @@ export default function ApplicationSettings() {
 		try {
 			setSaving(true);
 			setError(null);
+
+			// Validate age variation limits before submit
+			const validation = validateAgeVariation();
+			if (!validation.valid) {
+				setError(validation.message || 'Invalid age variation limits');
+				setSaving(false);
+				return;
+			}
 			const response = await customPost('applicationsettings', 'POST', payload);
 			if (response?.status === 'success' && response?.statusCode === 200) {
 				setSuccess(true);
@@ -305,7 +464,7 @@ export default function ApplicationSettings() {
 								onChange={handleChange}
 							>
 								<option value="">Select font</option>
-								{availableFonts.map(font => (
+								{Array.isArray(availableFonts) && availableFonts.map(font => (
 									<option key={font.value} value={font.value}>{font.name}</option>
 								))}
 							</Form.Select>
@@ -327,6 +486,110 @@ export default function ApplicationSettings() {
 					</div>
 				</div>
 				<BillingSettingsTab settings={settings} handleChange={handleChange} />
+				<div className="card-body border mt-3 bg-white br-5 p-3 ">
+					<div className='fw-bold'>Age Variation Limits</div>
+					<div className="">
+						<p className="text-muted small">Edit minimum ages for age groups. Values are saved as JSON.</p>
+						<table className="table table-sm">
+							<thead>
+								<tr>
+									<th>Group</th>
+									<th>Min Age</th>
+									<th>Max Age</th>
+									<th>Specifier</th>
+								</tr>
+							</thead>
+							<tbody>
+								{(() => {
+									const obj = parseAgeVariation() || {
+										neonates: { minAge: 0, maxAge: 28, specifier: 'days' },
+										children: { minAge: 1, maxAge: 12, specifier: 'years' },
+										adolescents: { minAge: 13, maxAge: 17, specifier: 'years' },
+										adults: { minAge: 18, maxAge: 64, specifier: 'years' }
+									};
+									const order = ['children', 'adolescents', 'adults'];
+									const visible = [
+										...order.filter(g => obj[g] !== undefined),
+										...Object.keys(obj).filter(g => !order.includes(g) && g !== 'neonates')
+									];
+									return visible.map(group => (
+										<tr key={group}>
+											<td className="align-middle text-capitalize">
+												{group}
+												{group === 'adolescents' && (
+													<button type="button" className="btn btn-sm btn-outline-danger ms-2" onClick={() => { removeAgeGroup(group); setError(null); }}>
+														Remove
+													</button>
+												)}
+											</td>
+											<td>
+												<input
+													type="number"
+													min={0}
+													className="form-control form-control-sm"
+													value={obj[group]?.minAge ?? ''}
+													onChange={(e) => { updateAgeMin(group, Number(e.target.value)); setError(null); }}
+												/>
+											</td>
+											<td>
+												<input
+													type="number"
+													min={0}
+													className="form-control form-control-sm"
+													value={obj[group]?.maxAge ?? ''}
+													onChange={(e) => { updateAgeMax(group, Number(e.target.value)); setError(null); }}
+												/>
+											</td>
+											<td className="align-middle">years</td>
+										</tr>
+									));
+								})()}
+							</tbody>
+						</table>
+						<div className="mt-3">
+							<div className="row g-2 align-items-end">
+								<div className="col-md-3">
+									<label className="form-label">New group name</label>
+									<input
+										type="text"
+										className="form-control"
+										value={newGroupName}
+										onChange={(e) => setNewGroupName(e.target.value)}
+									/>
+								</div>
+								<div className="col-md-2">
+									<label className="form-label">Min age</label>
+									<input
+										type="number"
+										min={0}
+										className="form-control"
+										value={newGroupMin}
+										onChange={(e) => setNewGroupMin(e.target.value)}
+									/>
+								</div>
+								<div className="col-md-2">
+									<label className="form-label">Max age</label>
+									<input
+										type="number"
+										min={0}
+										className="form-control"
+										value={newGroupMax}
+										onChange={(e) => setNewGroupMax(e.target.value)}
+									/>
+								</div>
+								<div className="col-md-2">
+									<label className="form-label">Specifier</label>
+									<div className="form-control bg-light">years</div>
+								</div>
+								<div className="col-md-3 d-grid">
+									<button type="button" className="btn btn-primary" onClick={addAgeGroup}>
+										Add age group
+									</button>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
 			</Form>
 		</div>
 	);
