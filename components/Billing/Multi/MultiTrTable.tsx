@@ -42,6 +42,14 @@ export default function MultiTrTable() {
                     organizationType: org.organizationType
                 }));
                 setOutSourcedCompanies(selectedOrgs);
+                if (selectedOrgs.length === 1) {
+                    const org = selectedOrgs[0];
+                    setSelectedOutsource({
+                        value: org.outsourceid,
+                        label: org.name,
+                        organization: org
+                    });
+                }
             } catch (error) {
                 setLoadingOutsource(false);
             } finally {
@@ -104,11 +112,19 @@ export default function MultiTrTable() {
     const displayOutsourcingChoicingOptions = () => {
         if (loadingOutsource && selected?.isoutsourced == 1) return <div>Loading test outsourcings organizations ....</div>;
         else if (OutsourcingCompaniesList.length > 0 && !loadingOutsource && selected?.isoutsourced == 1) {
+            if (OutsourcingCompaniesList.length === 1) {
+                return (
+                    <div style={{ padding: "10px", backgroundColor: "#f0f0f0", borderRadius: "4px" }}>
+                        <strong>{selectedOutsource?.label || OutsourcingCompaniesList[0].name}</strong>
+                    </div>
+                );
+            }
             return (<div >
                 <Select
                     className="react-select-container"
                     classNamePrefix="react-select"
                     options={options}
+                    value={selectedOutsource}
                     onChange={handleSelectChange}
                     placeholder="Select outsouring org"
                 />
@@ -163,9 +179,9 @@ export default function MultiTrTable() {
             <td></td>
             <td >
                 <select
-                 value={selected?.userAdjustmentType || ''} 
-                style={{ border: "1px solid lightgray", padding: "10px", borderRadius: '5px' }} 
-                onChange={(ev) => { setSelected({ ...selected, userAdjustmentType: ev.target.value }) }}>
+                    value={selected?.userAdjustmentType || ''}
+                    style={{ border: "1px solid lightgray", padding: "10px", borderRadius: '5px' }}
+                    onChange={(ev) => { setSelected({ ...selected, userAdjustmentType: ev.target.value }) }}>
                     <option value="">Select Adjustment Type</option>
                     <option value='surcharge'>surcharge</option>
                     <option value='discount'>discount</option>
@@ -176,7 +192,7 @@ export default function MultiTrTable() {
                 <input
                     onChange={(ev) => { handleDiscount(ev) }}
                     disabled={!allowCrmDiscount}
-                    value ={selected?.discount ?? ''}
+                    value={selected?.discount ?? ''}
                     className="custom-input" type="number" step={0.1} max={selected != null ? selected.discountedValue : ''} />
             </td>
             <td>

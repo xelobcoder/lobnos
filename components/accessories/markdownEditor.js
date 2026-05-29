@@ -211,7 +211,7 @@ export default function MARKDOWN_EDITOR(props) {
                 .ck.ck-editor__main > .ck-editor__editable h4,
                 .ck.ck-editor__main > .ck-editor__editable h5,
                 .ck.ck-editor__main > .ck-editor__editable h6 {
-                    margin: 0.5em 0 !important;
+                    // margin: 0.5em 0 !important;
                 }
                 /* Toolbar wrapping */
                 .ck.ck-toolbar {
