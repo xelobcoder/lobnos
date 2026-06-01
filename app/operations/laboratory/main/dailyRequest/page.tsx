@@ -2,6 +2,7 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { customFetch } from '../../../../../components/Auth/customFetch';
+import DateFilterReusable from '../../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable';
 
 interface ClientFolderItem {
      patientid: number;
@@ -16,26 +17,36 @@ interface ClientFolderItem {
 
 export default function LaboratoryClientList() {
      const router = useRouter();
-     const today = new Date();
-     const [selectedDay, setSelectedDay] = React.useState<string>(today.toISOString().slice(0, 10));
+     const todayDate = new Date().toISOString().slice(0, 10);
      const [selectedStatus, setSelectedStatus] = React.useState<string>('pending');
-     const [patientid, setPatientId] = React.useState<number | null>(null);
-     const [billingid, setBillingId] = React.useState<number | null>(null);
+     const [dateFilter, setDateFilter] = React.useState<string>('Today');
+     const [dateFrom, setDateFrom] = React.useState<string>(todayDate);
+     const [dateTo, setDateTo] = React.useState<string>(todayDate);
+     const [filterCategory, setFilterCategory] = React.useState<{ section: string; value: string }>({ section: '', value: '' });
      const [clients, setClients] = React.useState<ClientFolderItem[]>([]);
      const [loading, setLoading] = React.useState<boolean>(false);
      const [error, setError] = React.useState<string>('');
      const [query, setQuery] = React.useState('');
 
      const loadClients = async () => {
-          if (selectedDay === 'all' && !patientid && !billingid) {
+          if (!dateFrom && !dateTo && !filterCategory.value) {
                setClients([]);
-               setError('Please provide a Patient ID or Billing ID to search all records.');
+               setError('Please provide date range or filter criteria to search records.');
                return;
           }
           setLoading(true);
           setError('');
           try {
-               const response = await customFetch(`operations/overview/folder?date=${selectedDay}&status=${selectedStatus}&&billingid=${billingid || ''}&&patientid=${patientid || ''}`);
+               let url = `operations/overview/folder?status=${selectedStatus}`;
+
+               if (dateFrom) url += `&_dateFrom=${dateFrom}`;
+               if (dateTo) url += `&_dateEnd=${dateTo}`;
+
+               if (filterCategory.section && filterCategory.value) {
+                    url += `&${filterCategory.section}=${filterCategory.value}`;
+               }
+
+               const response = await customFetch(url);
 
                if (response?.statusCode === 200 && Array.isArray(response.result)) {
                     setClients(response.result);
@@ -53,6 +64,68 @@ export default function LaboratoryClientList() {
                setLoading(false);
           }
      };
+
+     const updateDateValues = (values: [string, string]) => {
+          const [start, end] = values;
+          setDateFrom(start);
+          setDateTo(end);
+     };
+
+     const handleSettingCategory = (section: string, value: string) => {
+          setFilterCategory({ section, value });
+     };
+
+     const handleResetFilters = () => {
+          setDateFilter('');
+          setDateFrom('');
+          setDateTo('');
+          setFilterCategory({ section: '', value: '' });
+          setSelectedStatus('pending');
+          setClients([]);
+          setQuery('');
+          setError('');
+     };
+
+     const handleFilterByLabTest = () => {
+          const popup = window.open(
+               `/labtestfilter?employeeid=0&&branchid=0`,
+               "LabTestFilter",
+               "width=600,height=450,resizable=no,scrollbars=yes"
+          );
+
+          if (popup) {
+               popup.focus();
+          }
+     };
+
+     React.useEffect(() => {
+          const listener = (event: MessageEvent) => {
+               if (event.data?.type === "TEST_PANEL_SELECTED") {
+                    if (event.data.payload && event.data.payload.id) {
+                         handleSettingCategory("testname", event.data.payload.id);
+                    }
+               }
+          };
+
+          window.addEventListener("message", listener);
+          return () => window.removeEventListener("message", listener);
+     }, []);
+
+     React.useEffect(() => {
+          const handleKeyDown = (event: KeyboardEvent) => {
+               if (event.key === 'Enter') {
+                    event.preventDefault();
+                    loadClients();
+               }
+          };
+
+          window.addEventListener("keydown", handleKeyDown);
+          return () => window.removeEventListener("keydown", handleKeyDown);
+     }, [dateFrom, dateTo, filterCategory, selectedStatus]);
+
+     React.useEffect(() => {
+          loadClients();
+     }, []);
 
      const getStageTextClass = (stage: string) => {
           const normalized = (stage || '').trim().toLowerCase();
@@ -105,56 +178,15 @@ export default function LaboratoryClientList() {
           return counts;
      };
 
-     const daysElapsed = today.getDate();
+     const today = new Date();
      const day = today.getDate();
      const month = today.toLocaleString('default', { month: 'long' });
      const year = today.getFullYear();
      const weekday = today.toLocaleString('default', { weekday: 'short' });
 
-     // Current month days up to today (desc)
-     const currMonthOptions: React.ReactElement[] = [];
-     for (let i = daysElapsed; i >= 1; i--) {
-          const date = new Date(today.getFullYear(), today.getMonth(), i);
-          const dayNum = i;
-          const monthName = date.toLocaleString('default', { month: 'long' });
-          const yearNum = date.getFullYear();
-          const weekday = date.toLocaleString('default', { weekday: 'short' });
-          const isoDate = date.toISOString().slice(0, 10);
-          currMonthOptions.push(
-               <option key={`curr-${dayNum}`} value={isoDate}>{dayNum} - {monthName} {yearNum} [{weekday}]</option>
-          );
-     }
-     // Previous month last 15 days (desc)
-     const prevMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-     const prevMonthYear = prevMonth.getFullYear();
-     const prevMonthNum = prevMonth.getMonth();
-     const prevMonthDays = new Date(prevMonthYear, prevMonthNum + 1, 0).getDate();
-     const prevMonthName = prevMonth.toLocaleString('default', { month: 'long' });
-     const prevMonthOptions: React.ReactElement[] = [];
-     for (let i = prevMonthDays; i >= Math.max(1, prevMonthDays - 14); i--) {
-          const date = new Date(prevMonthYear, prevMonthNum, i);
-          const dayNum = i;
-          const yearNum = date.getFullYear();
-          const weekday = date.toLocaleString('default', { weekday: 'short' });
-          const isoDate = date.toISOString().slice(0, 10);
-          prevMonthOptions.push(
-               <option key={`prev-${dayNum}`} value={isoDate}>{dayNum} - {prevMonthName} {yearNum} [{weekday}]</option>
-          );
-     }
-
-
-
-     React.useEffect(() => {
-          if (selectedDay !== 'all') {
-               loadClients();
-          }
-     }, [selectedDay, selectedStatus]);
-
-
-
      const openFolder = (patientid: number, billingid: number) => {
           if (!patientid || !billingid) return;
-          window.open(`/operations/laboratory/main/dailyRequest/visit?patientid=${patientid}&billingid=${billingid}&&isOpenSideBarShow=false`,'_blank');
+          window.open(`/operations/laboratory/main/dailyRequest/visit?patientid=${patientid}&billingid=${billingid}&&isOpenSideBarShow=false`, '_blank');
      }
 
      const filteredClients = React.useMemo(() => {
@@ -193,26 +225,60 @@ export default function LaboratoryClientList() {
 
                <div className="card">
                     <div className="card-body">
-                         <div className="d-flex flex-wrap align-items-end gap-3">
-                              <div style={{ minWidth: 240 }}>
-                                   <div className="fw-semibold mb-1" style={{ fontSize: '0.9rem' }}>Day</div>
-                                   <select className="form-select form-select-sm" value={selectedDay} onChange={(e) => setSelectedDay(e.target.value)}>
-                                      <option value="all" >All</option>
-                                        <optgroup key="curr-month" label={`Current Month: ${today.toLocaleString('default', { month: 'long' })} ${today.getFullYear()}`}>
-                                             {currMonthOptions}
-                                        </optgroup>
-                                        <optgroup key="prev-month" label={`Previous Month: ${prevMonthName} ${prevMonthYear}`}>
-                                             {prevMonthOptions}
-                                        </optgroup>
+                         <div className="d-flex align-items-center gap-2 flex-nowrap" style={{ overflowX: 'auto', paddingBottom: '0.25rem' }}>
+                              <div style={{ minWidth: 200, flex: '0 0 auto' }}>
+                                   <select
+                                        onChange={(ev) => {
+                                             if (ev.target.value === "none") {
+                                                  handleSettingCategory("none", "");
+                                             } else {
+                                                  handleSettingCategory(ev.target.value, '');
+                                                  if (ev.target.value === "testname") {
+                                                       handleFilterByLabTest();
+                                                  }
+                                             }
+                                        }}
+                                        className="form-select"
+                                        value={filterCategory.section}
+                                        style={{ padding: '0.5rem 0.75rem' }}
+                                   >
+                                        <option value="none">Filter By</option>
+                                        <option value="patientname">Patient Name</option>
+                                        <option value="patientid">Patient ID</option>
+                                        <option value="billingid">Billing ID</option>
+                                        <option value="testname">Laboratory Test</option>
                                    </select>
                               </div>
 
-                              <div style={{ minWidth: 240 }}>
-                                   <div className="fw-semibold mb-1" style={{ fontSize: '0.9rem' }}>Payment Status</div>
+                              <div style={{ minWidth: 220, flex: '0 0 auto' }}>
+                                   <input
+                                        className="form-control"
+                                        value={filterCategory.value}
+                                        onChange={(ev) => handleSettingCategory(filterCategory.section, ev.target.value)}
+                                        placeholder="Enter value"
+                                        style={{ padding: '0.5rem 0.75rem' }}
+                                   />
+                              </div>
+
+                              <div style={{ minWidth: 220, flex: '0 0 auto' }}>
+                                   <DateFilterReusable
+                                        value={dateFilter}
+                                        onChange={setDateFilter}
+                                        onDateRangeChange={(startDate, endDate) => {
+                                             setDateFrom(startDate);
+                                             setDateTo(endDate);
+                                        }}
+                                        label="Date Range"
+                                        className=""
+                                   />
+                              </div>
+
+                              <div style={{ minWidth: 220, flex: '0 0 auto' }}>
                                    <select
-                                        className="form-select form-select-sm"
+                                        className="form-select"
                                         value={selectedStatus}
-                                        onChange={(e) => setSelectedStatus(e.target.value)}
+                                        onChange={(ev) => setSelectedStatus(ev.target.value)}
+                                        style={{ padding: '0.5rem 0.75rem' }}
                                    >
                                         <option value="pending">Pending</option>
                                         <option value="partial">Partial</option>
@@ -220,32 +286,34 @@ export default function LaboratoryClientList() {
                                    </select>
                               </div>
 
-                              <div style={{ minWidth: 260, flex: 1 }}>
-                                   <div className="fw-semibold mb-1" style={{ fontSize: '0.9rem' }}>Patient ID {selectedDay === 'all' && <span className="text-danger">*</span>}</div>
-                                   <input
-                                        className="form-control form-control-sm"
-                                        placeholder="Search patientId"
-                                        value={patientid !== null ? patientid : ''}
-                                        type='number'
-                                        onChange={(ev) => { setPatientId(ev.target.value === '' ? null : parseInt(ev.target.value)) }}
-                                   />
-                              </div>
-                              <div style={{ minWidth: 260, flex: 1 }}>
-                                   <div className="fw-semibold mb-1" style={{ fontSize: '0.9rem' }}>Billing ID {selectedDay === 'all' && <span className="text-danger">*</span>}</div>
-                                   <input type='number'
-                                        className="form-control form-control-sm"
-                                        placeholder="Search billingId"
-                                        value={billingid !== null ? billingid : ''}
-                                        onChange={(ev) => { setBillingId(ev.target.value === '' ? null : parseInt(ev.target.value)) }}
-                                   />
-                              </div>
-                              {/* SE */}
+                              <div style={{ flex: '1 1 auto' }} />
 
-                              <div className="ms-auto d-flex gap-2">
-                                   <button className="btn btn-sm btn-outline-secondary" onClick={loadClients} disabled={loading}>
-                                        Refresh
-                                   </button>
-                              </div>
+                              <button
+                                   onClick={loadClients}
+                                   className="btn btn-primary d-flex align-items-center gap-2"
+                                   disabled={loading}
+                                   title="Load"
+                                   style={{ flex: '0 0 auto', padding: '0.5rem 1rem', whiteSpace: 'nowrap' }}
+                              >
+                                   <span>⚙️</span>
+                                   {loading ? 'Loading...' : 'Load'}
+                              </button>
+
+                              <button
+                                   onClick={handleResetFilters}
+                                   className="btn btn-outline-secondary d-flex align-items-center gap-2"
+                                   title="Reset"
+                                   style={{ flex: '0 0 auto', padding: '0.5rem 1rem', whiteSpace: 'nowrap' }}
+                              >
+                                   <span>🔄</span>
+                                   Reset
+                              </button>
+                         </div>
+
+                         <div className="mt-2">
+                              <small className="text-muted">
+                                   <span className="badge bg-info">💡 Tip:</span> Press <kbd>Enter</kbd> key anywhere on this page to load data with your filters
+                              </small>
                          </div>
                     </div>
                </div>

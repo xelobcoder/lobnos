@@ -181,7 +181,6 @@ export const parseDate = (date) => {
 
 export const validatePin = async (employeeid, pin) => {
   try {
-    console.log(pin, typeof pin);
     if (pin && pin.toString().length < 4) {
       return "PIN must be at least 4 digits long";
     }
@@ -191,7 +190,7 @@ export const validatePin = async (employeeid, pin) => {
     const response = await customFetch(url);
     const { status, message } = response;
     if (status && status == "error") {
-      alert(message.toUpperCase || "INVALID PIN");
+      alert(message || "INVALID PIN");
       return;
     }
 
