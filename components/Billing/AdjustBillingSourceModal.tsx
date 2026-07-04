@@ -45,6 +45,16 @@ const AdjustBillingSourceModal: React.FC<AdjustBillingSourceModalProps> = ({
 	const branchid = useApplication().branchid;
 	const employeeId = useApplication()?.user.employeeid;
 
+	React.useEffect(() => {
+		if (show) {
+			setSelectedBillingSource(null);
+			setSelectedEntity(null);
+			setClaimCode("");
+			setPendingAction("");
+			setIsLoading(false);
+		}
+	}, [show]);
+
 	const updateValuesToContext = (value: EntitySeelction, target: 'insurance' | 'organization' | 'clinician') => {
 		if (!value) return;
 		setSelectedEntity({ entity_type: target, entity_id: value.id });
@@ -62,26 +72,45 @@ const AdjustBillingSourceModal: React.FC<AdjustBillingSourceModalProps> = ({
 	const handleSelectedEntityOrganization = (value: EntitySeelction) => {
 		updateValuesToContext(value, 'organization');
 	};
-
-	// Send data to backend and handle loading state
+	
 	const handleConfirmChange = async () => {
-		if (!selectedEntity || !billingid) return;
+		if (!selectedBillingSource || !billingid) return;
+		
+		if (selectedBillingSource.value > 1) {
+			if (selectedBillingSource.value === 4 && !claimCode) return;
+			if (selectedBillingSource.value !== 4 && !selectedEntity) return;
+		}
+		
 		setIsLoading(true);
 		setPendingAction("");
 		try {
-			const payload = {
-				entity_type: selectedEntity.entity_type,
-				entity_id: selectedEntity.entity_id,
+			const payload: any = {
 				branchid,
 				billingid,
 				employeeId,
 			};
+
+			if (selectedBillingSource.value > 1) {
+				if (selectedEntity) {
+					payload.entity_type = selectedEntity.entity_type;
+					payload.entity_id = selectedEntity.entity_id;
+				}
+				if (selectedBillingSource.value === 4 && claimCode) {
+					payload.claimCode = claimCode;
+				}
+			} else {
+				payload.entity_type = 'walkin';
+				payload.entity_id = 0;
+			}
 
 			const response = await customPost("billing/correction/source", "POST", payload);
 			setPendingAction(response?.message || "Change submitted.");
 			const {success,message} = response;
 			if (success == true){
 				toast.success(message || "Billing source updated successfully.");
+				setTimeout(() => {
+					onContinue();
+				}, 500);
 			} else {
 				toast.error(message || "Failed to update billing source.");
 				setPendingAction("Failed to update billing source.");
@@ -92,7 +121,6 @@ const AdjustBillingSourceModal: React.FC<AdjustBillingSourceModalProps> = ({
 		}
 		setIsLoading(false);
 	};
-
 
 	const handleUrgencyChange = () => { };
 	const urgencyOptions = [];
@@ -109,8 +137,14 @@ const AdjustBillingSourceModal: React.FC<AdjustBillingSourceModalProps> = ({
 		</div>
 	);
 
-
 	console.log("Selected Billing Source:", selectedBillingSource ? selectedBillingSource.value : null);
+
+	const isButtonDisabled = () => {
+		if (!selectedBillingSource || isLoading) return true;
+		if (selectedBillingSource.value === 1) return false;
+		if (selectedBillingSource.value === 4) return !claimCode;
+		return !selectedEntity;
+	};
 
 	return (
 		<Modal show={show} onHide={onClose} backdrop="static" size="lg">
@@ -123,7 +157,11 @@ const AdjustBillingSourceModal: React.FC<AdjustBillingSourceModalProps> = ({
 					<Select
 						options={billingSource}
 						value={selectedBillingSource}
-						onChange={(option) => setSelectedBillingSource(option as BillingSourceOption)}
+						onChange={(option) => {
+							setSelectedBillingSource(option as BillingSourceOption);
+							setSelectedEntity(null);
+							setClaimCode("");
+						}}
 						placeholder="Choose billing source..."
 						isSearchable={false}
 						className="mb-2"
@@ -195,7 +233,7 @@ const AdjustBillingSourceModal: React.FC<AdjustBillingSourceModalProps> = ({
 						{selectedEntity && <div><strong>Entity:</strong> {selectedEntity.entity_type} (ID: {selectedEntity.entity_id})</div>}
 						{claimCode && <div><strong>Claim Code:</strong> {claimCode}</div>}
 						<div className="text-muted small mt-2">On confirmation, this will update the transaction and log the change.</div>
-						{selectedEntity && pendingAction && <div className="alert alert-info mt-2">{pendingAction}</div>}
+						{pendingAction && <div className="alert alert-info mt-2">{pendingAction}</div>}
 					</div>
 				)}
 			</Modal.Body>
@@ -203,7 +241,7 @@ const AdjustBillingSourceModal: React.FC<AdjustBillingSourceModalProps> = ({
 				<Button variant="secondary" onClick={onClose}>
 					Cancel
 				</Button>
-				<Button variant="primary" onClick={handleConfirmChange} disabled={!selectedBillingSource || isLoading}>
+				<Button variant="primary" onClick={handleConfirmChange} disabled={isButtonDisabled()}>
 					{isLoading ? "Saving..." : "Continue"}
 				</Button>
 			</Modal.Footer>

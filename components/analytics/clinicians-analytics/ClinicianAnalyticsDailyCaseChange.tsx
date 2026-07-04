@@ -183,7 +183,7 @@ const ClinicianAnalyticsDailyCaseChange: React.FC<ClinicianAnalyticsDailyCaseCha
 		const period = event.target.value as TimePeriod;
 		setTimePeriod(period);
 		if (period === 'yearly') {
-			setSelectedYear(new Date().getFullYear()); // Reset year when switching to yearly
+			setSelectedYear(new Date().getFullYear()); 
 		}
 	};
 
@@ -223,9 +223,6 @@ const ClinicianAnalyticsDailyCaseChange: React.FC<ClinicianAnalyticsDailyCaseCha
 				? moment({ year: (item as any).year, month: parseInt((item as any).month) - 1 }).format('MMM YYYY')
 				: moment((item as any).date).format('MMM DD, YYYY')
 	}));
-
-	console.log('CaseData:', caseData);
-	console.log('ChartData:', chartData);
 
 	return (
 		<div >

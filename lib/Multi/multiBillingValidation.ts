@@ -187,7 +187,11 @@ export const MultiValidateAndSubmitBillingInformation = async function (
 
         // If backend returns updated billing data, return it for context update
         if (response.status === true || response.status === 'success' || response.success === true) {
-            toast.success(response.message || 'Billing submitted successfully');
+            toast.success(response.message || 'Billing submitted successfully',{
+                position: "top-right",  
+                autoClose: 1000,
+                hideProgressBar: false,
+            });
             return { ...response, updatedBillingData: response.data || response.updatedBillingData || null };
         }
 

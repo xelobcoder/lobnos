@@ -612,7 +612,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           setFreeServiceRequestError('');
 
           try {
-               // Prepare items data
                const requestItems = items.map(item => ({
                     service_id: item.id,
                     service_name: item.name,

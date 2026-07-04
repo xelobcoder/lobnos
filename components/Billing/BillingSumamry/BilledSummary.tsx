@@ -2,24 +2,22 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { customFetch, currencyFormatter } from "../../Auth/customFetch";
-import { RiFileList3Line, RiWalletLine, RiRefund2Line, RiAccountCircleLine, RiCheckboxCircleLine, RiAlarmWarningLine, RiMoneyDollarCircleLine, RiBarChartLine, RiEyeLine, RiEyeOffLine } from "@remixicon/react";
+import { RiFileList3Line, RiWalletLine, RiRefund2Line, RiCheckboxCircleLine, RiAlarmWarningLine, RiMoneyDollarCircleLine, RiBarChartLine, RiEyeLine, RiEyeOffLine, RiCheckLine } from "@remixicon/react";
 import { useApplication } from "../../Auth/useApplicationContext";
 
 const COLOR_BORDER = 'var(--bs-border-color)';
 
 interface Summary {
-	totalTransactionCost: number;
-	totalCost: number;
-	actualRevenue: number;
-	accruedRevenue: number;
-	totalRefunded: number;
-	totalBalance: number;
-	totalDiscount: number;
-	totalOutstanding: number;
-	totalTaxIncurred: number;
-	transactionCount: number;
-	totalExpensePayments?: number;
-	netRevenue?: number;
+	date?: string;
+	gross_revenue: string | number;
+	cash_collected: string | number;
+	earned_revenue: string | number;
+	discount: string | number;
+	total_refunded: string | number;
+	transactioncount?: number;
+	expenses_paid: string | number;
+	net_operating_cash: string | number;
+	outstanding: string | number;
 }
 
 interface Branch {
@@ -34,18 +32,16 @@ interface Branch {
 }
 
 const _default: Summary = {
-	totalTransactionCost: 0,
-	totalCost: 0,
-	actualRevenue: 0,
-	accruedRevenue: 0,
-	totalRefunded: 0,
-	totalBalance: 0,
-	totalDiscount: 0,
-	totalOutstanding: 0,
-	totalTaxIncurred: 0,
-	transactionCount: 0,
-	totalExpensePayments: 0,
-	netRevenue: 0,
+	date: '',
+	gross_revenue: '0.00',
+	cash_collected: '0.00',
+	earned_revenue: '0.00',
+	discount: '0.00',
+	total_refunded: '0.00',
+	transactioncount: 0,
+	expenses_paid: '0.00',
+	net_operating_cash: '0.00',
+	outstanding: '0.00',
 };
 
 export type AnalyticCardProps = {
@@ -98,14 +94,15 @@ const AnalyticCard = ({
 );
 
 const cardColors = {
-	totalCost: { bg: "#4f46e5", icon: "#6366f1" }, // Indigo
-	transactionCount: { bg: "#0891b2", icon: "#06b6d4" }, // Cyan
+	totalCost: { bg: "#4f46e5", icon: "#6366f1" }, 
 	outstanding: { bg: "#ea580c", icon: "#f97316" }, // Orange
 	refunded: { bg: "#be123c", icon: "#e11d48" }, // Crimson
 	expenses: { bg: "#dc2626", icon: "#ef4444" }, // Red
 	accrued: { bg: "#7c3aed", icon: "#8b5cf6" }, // Violet
 	actual: { bg: "#059669", icon: "#10b981" }, // Emerald
 	net: { bg: "#16a34a", icon: "#22c55e" }, // Green
+	discount: { bg: "#f59e0b", icon: "#fbbf24" }, // Amber
+	transactionCount: { bg: "#0891b2", icon: "#06b6d4" }, // Cyan
 };
 
 type PropsQuery = {
@@ -120,11 +117,12 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 	const [branch, setBranch] = useState<Branch | null>(null);
 	const [isVisible, setIsVisible] = useState<boolean>(true);
 	const role = useApplication()?.user?.role;
-	const isAdmin = role === "admin" || role === "manager" 
+	const isAdmin = role === "admin" || role === "manager"
 
 	useEffect(() => {
 		if (summary) {
-			setInternalSummary(summary);
+			const summaryToUse = Array.isArray(summary) ? summary[0] : summary;
+			setInternalSummary(summaryToUse || _default);
 			return;
 		}
 		async function fetchSummary() {
@@ -132,7 +130,9 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 				const data = await customFetch(
 					`summary/daily?branchid=${branchid}&from=${from}&to=${to}`
 				);
-				setInternalSummary(data.summary);
+				if (data && data?.summary && Array.isArray(data.summary) && data.summary.length > 0) {
+					setInternalSummary(data.summary[0]); 
+				}
 				setBranch(data.branch);
 			} catch (err) {
 				toast.error("Something went wrong", {
@@ -162,34 +162,38 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 							</div>
 						)}
 					</div>
-					{isAdmin && (
-						<button
-							className="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2"
-							onClick={() => setIsVisible(!isVisible)}
-						>
-							{isVisible ? (
-								<>
-									<RiEyeOffLine size={16} /> Hide Summary
-								</>
-							) : (
-								<>
-									<RiEyeLine size={16} /> Show Summary
-								</>
-							)}
-						</button>
-					)}
+					<h5 className=" fw-bold">Transactions Count: {Number(internalSummary.transactioncount || 0).toLocaleString()}</h5>
+					<div className="d-flex align-items-center gap-2">
+						
+						{isAdmin && (
+							<button
+								className="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2"
+								onClick={() => setIsVisible(!isVisible)}
+							>
+								{isVisible ? (
+									<>
+										<RiEyeOffLine size={16} /> Hide Summary
+									</>
+								) : (
+									<>
+										<RiEyeLine size={16} /> Show Summary
+									</>
+								)}
+							</button>
+						)}
+					</div>
 				</div>
 			</div>
 			{isVisible && (
 				<>
 					{/* Desktop Card View */}
 					<div className="d-none d-md-flex flex-column gap-3">
-						{/* First Row - 5 Cards */}
+						{/* First Row - 4 Cards */}
 						<div className="row g-3">
 							<div className="col-md-6 col-lg-3">
 								<AnalyticCard
-									title="Total Cost"
-									value={internalSummary.totalCost}
+									title="Gross Revenue"
+									value={Number(internalSummary.gross_revenue)}
 									Icon={RiFileList3Line}
 									bgColor={cardColors.totalCost.bg}
 									iconColor={cardColors.totalCost.icon}
@@ -197,18 +201,17 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 							</div>
 							<div className="col-md-6 col-lg-3">
 								<AnalyticCard
-									title="Tran. Count"
-									value={internalSummary.transactionCount}
-									Icon={RiAccountCircleLine}
-									bgColor={cardColors.transactionCount.bg}
-									iconColor={cardColors.transactionCount.icon}
-									formatAsCurrency={false}
+									title="Cash Collected"
+									value={Number(internalSummary.cash_collected)}
+									Icon={RiWalletLine}
+									bgColor={cardColors.actual.bg}
+									iconColor={cardColors.actual.icon}
 								/>
 							</div>
 							<div className="col-md-6 col-lg-3">
 								<AnalyticCard
-									title="Total Outstanding"
-									value={internalSummary.totalOutstanding}
+									title="Outstanding"
+									value={Number(internalSummary.outstanding)}
 									Icon={RiAlarmWarningLine}
 									bgColor={cardColors.outstanding.bg}
 									iconColor={cardColors.outstanding.icon}
@@ -217,60 +220,52 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 							<div className="col-md-6 col-lg-3">
 								<AnalyticCard
 									title="Total Refunded"
-									value={internalSummary.totalRefunded}
+									value={Number(internalSummary.total_refunded)}
 									Icon={RiRefund2Line}
 									bgColor={cardColors.refunded.bg}
 									iconColor={cardColors.refunded.icon}
 								/>
 							</div>
-
 						</div>
 
-						{/* Second Row - Revenue Cards (Accrued → Actual → Net) */}
+						{/* Second Row - 4 Cards */}
 						<div className="row g-3">
-							{internalSummary.totalExpensePayments !== undefined && (
-								<div className="col-md-6 col-lg-3">
-									<AnalyticCard
-										title="Total Expenses"
-										value={internalSummary.totalExpensePayments}
-										Icon={RiMoneyDollarCircleLine}
-										bgColor={cardColors.expenses.bg}
-										iconColor={cardColors.expenses.icon}
-									/>
-								</div>
-							)}
-
 							<div className="col-md-6 col-lg-3">
 								<AnalyticCard
-									title="Accrued Revenue"
-									value={internalSummary.accruedRevenue}
-									Icon={RiWalletLine}
+									title="Expenses Paid"
+									value={Number(internalSummary.expenses_paid)}
+									Icon={RiMoneyDollarCircleLine}
+									bgColor={cardColors.expenses.bg}
+									iconColor={cardColors.expenses.icon}
+								/>
+							</div>
+							<div className="col-md-6 col-lg-3">
+								<AnalyticCard
+									title="Earned Revenue"
+									value={Number(internalSummary.earned_revenue)}
+									Icon={RiCheckboxCircleLine}
 									bgColor={cardColors.accrued.bg}
 									iconColor={cardColors.accrued.icon}
 								/>
 							</div>
-
 							<div className="col-md-6 col-lg-3">
 								<AnalyticCard
-									title="Actual Revenue"
-									value={internalSummary.actualRevenue}
-									Icon={RiCheckboxCircleLine}
-									bgColor={cardColors.actual.bg}
-									iconColor={cardColors.actual.icon}
+									title="Discount"
+									value={Number(internalSummary.discount)}
+									Icon={RiRefund2Line}
+									bgColor={cardColors.discount.bg}
+									iconColor={cardColors.discount.icon}
 								/>
 							</div>
-							{internalSummary.netRevenue !== undefined && (
-								<div className="col-md-6 col-lg-3">
-									<AnalyticCard
-										title="Net Revenue"
-										value={internalSummary.netRevenue}
-										Icon={RiBarChartLine}
-										bgColor={cardColors.net.bg}
-										iconColor={cardColors.net.icon}
-									/>
-								</div>
-							)}
-
+							<div className="col-md-6 col-lg-3">
+								<AnalyticCard
+									title="Net Operating Cash"
+									value={Number(internalSummary.net_operating_cash)}
+									Icon={RiBarChartLine}
+									bgColor={cardColors.net.bg}
+									iconColor={cardColors.net.icon}
+								/>
+							</div>
 						</div>
 					</div>
 
@@ -292,10 +287,10 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 										>
 											<RiFileList3Line style={{ fontSize: "0.8rem", color: "white" }} />
 										</div>
-										<span className="small fw-medium text-muted">Total Cost</span>
+										<span className="small fw-medium text-muted">Gross Revenue</span>
 									</div>
 									<span className="fw-semibold text-dark small">
-										{currencyFormatter.format(Number(internalSummary.totalCost) || 0)}
+										{currencyFormatter.format(Number(internalSummary.gross_revenue) || 0)}
 									</span>
 								</div>
 							</div>
@@ -313,12 +308,12 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 												height: "24px",
 											}}
 										>
-											<RiCheckboxCircleLine style={{ fontSize: "0.8rem", color: "white" }} />
+											<RiWalletLine style={{ fontSize: "0.8rem", color: "white" }} />
 										</div>
-										<span className="small fw-medium text-muted">Actual Revenue</span>
+										<span className="small fw-medium text-muted">Cash Collected</span>
 									</div>
 									<span className="fw-semibold text-dark small">
-										{currencyFormatter.format(Number(internalSummary.actualRevenue) || 0)}
+										{currencyFormatter.format(Number(internalSummary.cash_collected) || 0)}
 									</span>
 								</div>
 							</div>
@@ -336,12 +331,12 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 												height: "24px",
 											}}
 										>
-											<RiWalletLine style={{ fontSize: "0.8rem", color: "white" }} />
+											<RiCheckboxCircleLine style={{ fontSize: "0.8rem", color: "white" }} />
 										</div>
-										<span className="small fw-medium text-muted">Accrued Revenue</span>
+										<span className="small fw-medium text-muted">Earned Revenue</span>
 									</div>
 									<span className="fw-semibold text-dark small">
-										{currencyFormatter.format(Number(internalSummary.accruedRevenue) || 0)}
+										{currencyFormatter.format(Number(internalSummary.earned_revenue) || 0)}
 									</span>
 								</div>
 							</div>
@@ -361,10 +356,10 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 										>
 											<RiAlarmWarningLine style={{ fontSize: "0.8rem", color: "white" }} />
 										</div>
-										<span className="small fw-medium text-muted">Total Outstanding</span>
+										<span className="small fw-medium text-muted">Outstanding</span>
 									</div>
 									<span className="fw-semibold text-dark small">
-										{currencyFormatter.format(Number(internalSummary.totalOutstanding) || 0)}
+										{currencyFormatter.format(Number(internalSummary.outstanding) || 0)}
 									</span>
 								</div>
 							</div>
@@ -387,60 +382,10 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 										<span className="small fw-medium text-muted">Total Refunded</span>
 									</div>
 									<span className="fw-semibold text-dark small">
-										{currencyFormatter.format(Number(internalSummary.totalRefunded) || 0)}
+										{currencyFormatter.format(Number(internalSummary.total_refunded) || 0)}
 									</span>
 								</div>
 							</div>
-
-							{internalSummary.totalExpensePayments !== undefined && (
-								<div className="list-group-item px-3 py-2 border-0">
-									<div className="d-flex justify-content-between align-items-center">
-										<div className="d-flex align-items-center gap-2">
-											<div
-												className="d-flex align-items-center justify-content-center"
-												style={{
-													background: cardColors.expenses.bg,
-													padding: "4px",
-													borderRadius: "4px",
-													width: "24px",
-													height: "24px",
-												}}
-											>
-												<RiMoneyDollarCircleLine style={{ fontSize: "0.8rem", color: "white" }} />
-											</div>
-											<span className="small fw-medium text-muted">Total Expenses</span>
-										</div>
-										<span className="fw-semibold text-dark small">
-											{currencyFormatter.format(Number(internalSummary.totalExpensePayments) || 0)}
-										</span>
-									</div>
-								</div>
-							)}
-
-							{internalSummary.netRevenue !== undefined && (
-								<div className="list-group-item px-3 py-2 border-0">
-									<div className="d-flex justify-content-between align-items-center">
-										<div className="d-flex align-items-center gap-2">
-											<div
-												className="d-flex align-items-center justify-content-center"
-												style={{
-													background: cardColors.net.bg,
-													padding: "4px",
-													borderRadius: "4px",
-													width: "24px",
-													height: "24px",
-												}}
-											>
-												<RiBarChartLine style={{ fontSize: "0.8rem", color: "white" }} />
-											</div>
-											<span className="small fw-medium text-muted">Net Revenue</span>
-										</div>
-										<span className={`fw-semibold small ${internalSummary.netRevenue >= 0 ? 'text-success' : 'text-danger'}`}>
-											{currencyFormatter.format(Number(internalSummary.netRevenue) || 0)}
-										</span>
-									</div>
-								</div>
-							)}
 
 							<div className="list-group-item px-3 py-2 border-0">
 								<div className="d-flex justify-content-between align-items-center">
@@ -448,19 +393,65 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 										<div
 											className="d-flex align-items-center justify-content-center"
 											style={{
-												background: cardColors.transactionCount.bg,
+												background: cardColors.expenses.bg,
 												padding: "4px",
 												borderRadius: "4px",
 												width: "24px",
 												height: "24px",
 											}}
 										>
-											<RiAccountCircleLine style={{ fontSize: "0.8rem", color: "white" }} />
+											<RiMoneyDollarCircleLine style={{ fontSize: "0.8rem", color: "white" }} />
 										</div>
-										<span className="small fw-medium text-muted">Transaction Count</span>
+										<span className="small fw-medium text-muted">Expenses Paid</span>
 									</div>
 									<span className="fw-semibold text-dark small">
-										{internalSummary.transactionCount.toLocaleString()}
+										{currencyFormatter.format(Number(internalSummary.expenses_paid) || 0)}
+									</span>
+								</div>
+							</div>
+
+							<div className="list-group-item px-3 py-2 border-0">
+								<div className="d-flex justify-content-between align-items-center">
+									<div className="d-flex align-items-center gap-2">
+										<div
+											className="d-flex align-items-center justify-content-center"
+											style={{
+												background: cardColors.discount.bg,
+												padding: "4px",
+												borderRadius: "4px",
+												width: "24px",
+												height: "24px",
+											}}
+										>
+											<RiRefund2Line style={{ fontSize: "0.8rem", color: "white" }} />
+										</div>
+										<span className="small fw-medium text-muted">Discount</span>
+									</div>
+									<span className="fw-semibold text-dark small">
+										{currencyFormatter.format(Number(internalSummary.discount) || 0)}
+									</span>
+								</div>
+							</div>
+
+							<div className="list-group-item px-3 py-2 border-0">
+								<div className="d-flex justify-content-between align-items-center">
+									<div className="d-flex align-items-center gap-2">
+										<div
+											className="d-flex align-items-center justify-content-center"
+											style={{
+												background: cardColors.net.bg,
+												padding: "4px",
+												borderRadius: "4px",
+												width: "24px",
+												height: "24px",
+											}}
+										>
+											<RiBarChartLine style={{ fontSize: "0.8rem", color: "white" }} />
+										</div>
+										<span className="small fw-medium text-muted">Net Operating Cash</span>
+									</div>
+									<span className={`fw-semibold small ${Number(internalSummary.net_operating_cash) >= 0 ? 'text-success' : 'text-danger'}`}>
+										{currencyFormatter.format(Number(internalSummary.net_operating_cash) || 0)}
 									</span>
 								</div>
 							</div>

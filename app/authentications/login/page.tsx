@@ -58,9 +58,9 @@ export default function PrimeLabLoginPage() {
 
 			const { status, accessToken, user ,settings ,sessionExpiryTime, loginsessionId } = backendResponse;
 
-			if (!status) {
+			if (!status || status == false) {
 				setLoginStatus('error');
-				setMessage(backendResponse.error || 'Login failed');
+				setMessage(backendResponse.error || backendResponse.message || 'Login failed');
 				setSubmitting(false);
 				return;
 			}

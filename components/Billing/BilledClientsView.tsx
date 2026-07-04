@@ -27,6 +27,9 @@ interface BilledClientsViewProps {
 	branchid: number | string;
 	expensesPaymentMade?: any[];
 	isLoading?: boolean;
+	datequery?: DateQuery;
+	setDatequery?: React.Dispatch<React.SetStateAction<DateQuery>>;
+	showFilters?: boolean;
 }
 
 interface DateQuery {
@@ -52,9 +55,15 @@ interface RowData {
 
 type ModalType = 'adjust' | 'update' | null;
 
-export default function BilledClientsView({ data, branchid, expensesPaymentMade, isLoading = false }: BilledClientsViewProps) {
-	const [selectedBillingSource, setSelectedBillingSource] = useState<BillingSourceOption | null>(null);
-	const [itemToEdit, setItemToEdit] = useState<any>(null);
+export default function BilledClientsView({ 
+	data, 
+	branchid, 
+	expensesPaymentMade, 
+	isLoading = false, 
+	datequery: propDatequery, 
+	setDatequery: propSetDatequery, 
+	showFilters = true 
+}: BilledClientsViewProps) {
 	const searchParams = useSearchParams();
 	const pquery = useMemo(() => {
 		const from = searchParams?.get('from') || '';
@@ -62,25 +71,39 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 		return { from, to };
 	}, [searchParams]);
 
-	const [datequery, setDatequery] = useState<DateQuery>({
+	// Use internal state if no props are provided
+	const [internalDatequery, setInternalDatequery] = useState<DateQuery>({
 		from: pquery.from || '', to: pquery.to || ''
 	});
+	const datequery = propDatequery || internalDatequery;
+	const setDatequery = propSetDatequery || setInternalDatequery;
 
 	const user = useApplication()?.user;
 	const userRole = user?.role?.toLowerCase();
 	const isAdmin = userRole === 'admin' || userRole === 'superadmin' || userRole === 'accountant' || userRole === 'manager' || userRole === 'super-admin';
 
+	const predefinedReasons = [
+		"Add missing service/test",
+		"Correct service/test details",
+		"Update patient information",
+		"Adjust billing amount",
+		"Add discount",
+		"Apply surcharge",
+		"Other"
+	];
+
+	const [selectedReason, setSelectedReason] = useState("");
+	const [customReason, setCustomReason] = useState("");
 
 	useEffect(() => {
-		if (pquery.from || pquery.to) {
-			setDatequery({
-				from: pquery.from || '',
-				to: pquery.to || ''
-			});
+		// Only use this effect only if we're using internal state
+		if (!propDatequery || !propSetDatequery) {
+			if (pquery.from || pquery.to) {
+				setInternalDatequery({
+					from: pquery.from || '', to: pquery.to || '' });
+			}
 		}
-	}, [pquery]);
-
-
+	}, [pquery.from, pquery.to, propDatequery, propSetDatequery]);
 
 	const { employeeid } = useApplicationSettings().applicationsettings.user;
 	const router = useRouter();
@@ -92,6 +115,7 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 	const [modalRandString, setModalRandString] = useState<string>("");
 	const [modalUserRandInput, setModalUserRandInput] = useState<string>("");
 	const [modalReason, setModalReason] = useState<string>("");
+	const [itemToEdit, setItemToEdit] = useState<any>(null);
 	const [useSimpleView, setUseSimpleView] = useState<boolean>(true);
 	const [viewMode, setViewMode] = useState<'sales' | 'expenses'>('sales');
 	const [showViewMore, setShowViewMore] = useState<boolean>(false);
@@ -99,9 +123,12 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 	const processedData = useMemo(() => {
 		if (!data) return [];
 		const sorted = [...data].sort((a, b) => {
-			const dateA = new Date(a.billedon as string || 0);
-			const dateB = new Date(b.billedon as string || 0);
-			return dateA.getTime() - dateB.getTime();
+			if (a.billedon && b.billedon) {
+				const dateA = new Date(a.billedon as string || 0);
+				const dateB = new Date(b.billedon as string || 0);
+				return dateA.getTime() - dateB.getTime();
+			}
+			return (a.billingid || 0) - (b.billingid || 0);
 		});
 		const seenDates = new Set<string>();
 		return sorted.map(item => {
@@ -111,7 +138,6 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 			return { ...item, isFirstOfDay };
 		});
 	}, [data]);
-
 
 	function generateRandString(): string {
 		return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -135,7 +161,6 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 		label: source.label
 	}));
 
-
 	const formatOptionLabel = (option: BillingSourceOption) => (
 		<span className="d-flex align-items-center gap-2">
 			<span>{option.label}</span>
@@ -146,9 +171,8 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 		setModalType('update');
 		setModalBillingId(billingid);
 		setModalPatientId(patientid);
-		const str = generateRandString();
-		setModalRandString(str);
-		setModalUserRandInput("");
+		setSelectedReason("");
+		setCustomReason("");
 		setModalReason("");
 		setShowModal(true);
 	}
@@ -157,34 +181,64 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 		setShowModal(false);
 	}
 
+	function handleAdjustmentModalContinue(): void {
+		closeModal();
+		window.location.reload();
+	}
+
 	function handleModalSubmit(): void {
-		setShowModal(false);
-		if (!modalBillingId || !modalPatientId || !modalReason) {
-			alert("Please fill all fields before proceeding.");
+		if (!modalBillingId || !modalPatientId) {
+			alert("Missing required data for this action!");
 			return;
 		}
-		const encPatientId = plsEncryption(modalPatientId?.toString());
-		const encReason = encodeURIComponent(modalReason);
+		setShowModal(false);
+		let finalReason = "";
+		if (modalType === 'update') {
+			if (!selectedReason) {
+				alert("Please select a reason for updating the transaction!");
+				setShowModal(true);
+				return;
+			}
+			finalReason = selectedReason;
+			if (selectedReason === "Other" && customReason.trim()) {
+				finalReason = customReason.trim();
+			}
+		} else {
+			finalReason = modalReason;
+		}
+		if (!finalReason) {
+			alert("Please provide a reason for this action!");
+			setShowModal(true);
+			return;
+		}
+		const encPatientId = plsEncryption(modalPatientId.toString());
+		const encReason = encodeURIComponent(finalReason);
 		const adjustmentType = modalType === 'update' ? 'addition' : 'correction';
 		const url = `/billing/patientid/${encPatientId}/multi?billingid=${modalBillingId}&isNewTransaction=0&&isRelatedBilling=1&&adjustmentReason=${encReason}&&adjustmentType=${adjustmentType}&&isAdjustment=1&&employeeid=${employeeid}`;
-		if (modalType === 'adjust') {
-			router.push(url);
-		} else if (modalType === 'update') {
-			router.push(`/billing/patientid/${encPatientId}/multi?billingid=${modalBillingId}&isNewTransaction=0&&isRelatedBilling=1&&adjustmentReason=${encReason}&&adjustmentType=addition&&isAdjustment=1&&employeeid=${employeeid}`);
+		router.push(url);
+	}
+
+	const handleVoidTransaction = async (row) => {
+		const billingid = row?.billingid;
+		if (!billingid) return;
+		const confirmVoid = window.confirm(`Are you sure you want to void transaction #${billingid}? This action cannot be undone.`);
+		if (!confirmVoid) return;
+		try {
+			const voidTransactionResponse = await customPost(`billing/management/void/${billingid}`, 'POST', {
+				employeeid
+			});
+			const {status, statusCode, message} = voidTransactionResponse
+
+			if (status == true && statusCode == 200) {
+				alert(message);
+				window.location.reload()
+			} else {
+				alert(message || 'Voiding transaction failed')
+			}
+		} catch (error) {
+			alert(`Failed to void transaction: ${error.message}`);
 		}
 	}
-
-
-
-	const handleVoidTransaction = async (data) => {
-		const billingid = data?.billingid;
-		if (!billingid) return;
-		const voidTransactionResponse = await customPost(`billing/management/void/${billingid}`, 'POST', {
-			employeeid
-		});
-		console.log(voidTransactionResponse);
-	}
-
 
 	const coreColumns = [
 		{
@@ -197,7 +251,12 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 			Header: "Billed By",
 			accessor: "salesperson",
 			title: "Employee who processed the bill",
-			Cell: ({ value }) => value ? <span>{value}</span> : <span className="text-muted">-</span>
+			Cell: ({ row }) => <div>
+
+				<span>{row.original.salesperson	}</span>
+				<br/>		
+				<span>{row.original.serviceCategory}	</span>
+			</div>
 		},
 		{ 
 			Header: "Client Name", 
@@ -210,17 +269,23 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 				</div>
 			) 
 		},
+		
 		{ Header: "BID", accessor: "billingid", title: "Billing ID", Cell: ({ value }) => <div className="text-center">{value}</div> },
 		{ Header: "TC", accessor: "totalcost", title: "Total Cost", Cell: ({ value }) => <div>{(Number(value) || 0).toFixed(2)}</div> },
 		{ Header: "DS", accessor: "discount", title: "Discount Amount", Cell: ({ value }) => <div>{(Number(value) || 0).toFixed(2)}</div> },
-		{ Header: "RF", accessor: "totalrefunded", title: "Total Refunded", Cell: ({ value }) => <div>{(Number(value) || 0).toFixed(2)}</div> },
-		{ Header: "AP", accessor: "payable", title: "Amount Payable", Cell: ({ value }) => <div>{(Number(value) || 0).toFixed(2)}</div> },
-		{ Header: "PD", accessor: "paid", title: "Amount Paid", Cell: ({ value }) => <div>{(Number(value) || 0).toFixed(2)}</div> },
+		{ Header: "RF", accessor: "totalRefunded", title: "Total Refunded", Cell: ({ value }) => <div>{(Number(value) || 0).toFixed(2)}</div> },
+		{ Header: "AP", accessor: "totalpayable", title: "Amount Payable", Cell: ({ value }) => <div>{(Number(value) || 0).toFixed(2)}</div> },
+		{ Header: "PD", accessor: "paidamount", title: "Amount Paid", Cell: ({ value }) => <div>{(Number(value) || 0).toFixed(2)}</div> },
 		{ Header: "OS", accessor: "outstanding", title: "Outstanding Balance", Cell: ({ value }) => (<div><span className={Number(value) > 0 ? "text-danger" : "text-primary"}>{(Number(value) || 0).toFixed(2)}</span></div>) },
-		{ Header: "BL", accessor: "balance", title: "Account Balance", Cell: ({ value }) => <div>{(Number(value) || 0).toFixed(2)}</div> },
-		{ Header: "SC", accessor: "surcharges", title: "Surcharge Amount", Cell: ({ value }) => <div>{(Number(value) || 0).toFixed(2)}</div> },
+		{ Header: "SC", accessor: "surcharge", title: "Surcharge Amount", Cell: ({ value }) => <div>{(Number(value) || 0).toFixed(2)}</div> },
 		{ Header: "WO", accessor: "writeoff", title: "Write Off Amount", Cell: ({ value }) => <div>{(Number(value) || 0).toFixed(2)}</div> },
-		{ Header: "Status", accessor: "status", title: "Payment Status", Cell: ({ value }) => value ? <span className={value === 'pending' ? 'text-warning' : 'text-success'}>{value}</span> : <span className="text-muted">-</span> },
+		{ Header: "TS", accessor: "status", title: "Transaction Status", Cell: ({ value }) => value ? <span className={value === 'voided' ? 'text-secondary' : value === 'active' ? 'text-success' : 'text-muted'}>{value}</span> : <span className="text-muted">-</span> },
+		{ Header: "PS", accessor: "paymentstatus", title: "Payment Status", Cell: ({ value, row }) => {
+			if (row.original?.status === 'voided') {
+				return <span className="text-secondary">voided</span>;
+			}
+			return value ? <span className={value === 'pending' ? 'text-warning' : value === 'partial' ? 'text-warning' : 'text-success'}>{value}</span> : <span className="text-muted">-</span>;
+		}},
 		{
 			Header: "Actions",
 			accessor: "actions",
@@ -304,9 +369,8 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 		setShowViewMore(true);
 	}
 
-
 	const monetaryFields: string[] = [
-		'payable', 'paid', 'outstanding', 'discount', 'totalrefunded', 'balance', 'totalcost', 'totalTransactionCost', 'amountIncurredDueTax', 'adjustmentamount', 'promoValue', 'currentPayable', 'previousPaid', 'newPayments', 'totalPaid', 'outstandingToWriteOff'
+		'totalpayable', 'paidamount', 'outstanding', 'discount', 'totalRefunded', 'totalcost', 'amountIncurredDueTax', 'surcharge', 'writeoff'
 	];
 
 	const getPaymentStatusRowClass = (row: any): string => {
@@ -316,12 +380,6 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 		return "";
 	};
 
-
-
-
-
-
-
 	return (
 		<div>
 			<Modal show={showModal && modalType === 'update'} onHide={closeModal} centered>
@@ -330,25 +388,27 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 				</Modal.Header>
 				<Modal.Body>
 					<div className="mb-3">
-						<label className="form-label">Type the following code to acknowledge:</label>
-						<div className="mb-2"><strong>{modalRandString}</strong></div>
-						<Form.Control
-							type="text"
-							value={modalUserRandInput}
-							onChange={e => setModalUserRandInput(e.target.value.toUpperCase())}
-							placeholder="Enter the code above"
-							autoFocus
-						/>
-					</div>
-					<div className="mb-3">
 						<label className="form-label">Reason for update:</label>
-						<Form.Control
-							as="textarea"
-							rows={3}
-							value={modalReason}
-							onChange={e => setModalReason(e.target.value)}
-							placeholder={`Provide a reason...`}
-						/>
+						<Form.Select
+							value={selectedReason}
+							onChange={(e) => setSelectedReason(e.target.value)}
+							className="mb-2"
+						>
+							<option value="">Select a reason...</option>
+							{predefinedReasons.map((reason, idx) => (
+								<option key={idx} value={reason}>{reason}</option>
+							))}
+						</Form.Select>
+						{selectedReason === "Other" && (
+							<Form.Control
+								as="textarea"
+								rows={3}
+								placeholder="Enter custom reason..."
+								value={customReason}
+								onChange={(e) => setCustomReason(e.target.value)}
+								autoFocus
+							/>
+						)}
 					</div>
 				</Modal.Body>
 				<Modal.Footer>
@@ -358,7 +418,7 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 					<Button
 						variant="primary"
 						onClick={handleModalSubmit}
-						disabled={modalUserRandInput !== modalRandString || modalReason.trim() === ""}
+						disabled={!selectedReason || (selectedReason === "Other" && !customReason.trim())}
 					>
 						Continue
 					</Button>
@@ -368,7 +428,7 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 			<AdjustBillingSourceModal
 				show={showModal && modalType === 'adjust'}
 				onClose={closeModal}
-				onContinue={handleModalSubmit}
+				onContinue={handleAdjustmentModalContinue}
 				options={options}
 				billingid={modalBillingId}
 			/>
@@ -467,7 +527,7 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 									<RiTableLine size={16} className="me-1 align-text-bottom" /> Simple Table
 								</button>
 							</div>}
-							{isAdmin && (
+							{isAdmin && showFilters && (
 								<div className="d-flex align-items-center gap-2 mt-2 mt-sm-0">
 									<div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
 										<span className="input-group-text bg-transparent border-end-0" style={{ borderColor: 'var(--bs-border-color)' }}>
@@ -524,9 +584,10 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 								<div className="d-flex gap-2"><strong>AP:</strong> Amt Payable</div>
 								<div className="d-flex gap-2"><strong>PD:</strong> Amt Paid</div>
 								<div className="d-flex gap-2"><strong>OS:</strong> Outstanding</div>
-								<div className="d-flex gap-2"><strong>BL:</strong> Balance</div>
 								<div className="d-flex gap-2"><strong>SC:</strong> Surcharge</div>
 								<div className="d-flex gap-2"><strong>WO:</strong> Write Off</div>
+								<div className="d-flex gap-2"><strong>TS:</strong> Transaction Status</div>
+								<div className="d-flex gap-2"><strong>PS:</strong> Payment Status</div>
 							</div>
 							<table className="table table-striped table-hover table-bordered text-nowrap">
 								<thead>
@@ -569,9 +630,10 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 							<div className="d-flex gap-2"><strong>AP:</strong> Amt Payable</div>
 							<div className="d-flex gap-2"><strong>PD:</strong> Amt Paid</div>
 							<div className="d-flex gap-2"><strong>OS:</strong> Outstanding</div>
-							<div className="d-flex gap-2"><strong>BL:</strong> Balance</div>
 							<div className="d-flex gap-2"><strong>SC:</strong> Surcharge</div>
 							<div className="d-flex gap-2"><strong>WO:</strong> Write Off</div>
+							<div className="d-flex gap-2"><strong>TS:</strong> Transaction Status</div>
+							<div className="d-flex gap-2"><strong>PS:</strong> Payment Status</div>
 						</div>
 						<table className="table table-striped table-hover table-bordered text-nowrap">
 							<thead>
@@ -639,9 +701,6 @@ export default function BilledClientsView({ data, branchid, expensesPaymentMade,
 					)
 				)}
 			</div>
-
-
-
 		</div>
 	);
 }

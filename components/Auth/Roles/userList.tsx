@@ -15,7 +15,7 @@ import {
 } from '@remixicon/react';
 
 
-export default function UserList({ users, handleDelete, activateUser, updateRefresh, filters }) {
+export default function UserList({ users, handleDelete, activateUser, updateRefresh, filters ,setCurrentUsers}) {
 	const navigateTo = useRouter();
 
 	const columns = [
@@ -77,7 +77,10 @@ export default function UserList({ users, handleDelete, activateUser, updateRefr
 									Delete
 								</div>
 							</Dropdown.Item>
-							<Dropdown.Item className='pls-color border-bottom-1' onClick={() => activateUser(employeeid, activation, updateRefresh)}>
+							<Dropdown.Item className='pls-color border-bottom-1' onClick={() => {
+								activateUser(employeeid, activation, setCurrentUsers)
+								window.location.reload()
+							}}>
 								<div className="d-flex align-items-center gap-2">
 									<RiToggleLine className="fs-5" />
 									{activation === 1 ? "Deactivate" : "Activate"}

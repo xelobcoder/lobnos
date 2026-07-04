@@ -1020,26 +1020,41 @@ export default function PreviousTransactionSummaryPage() {
 							<h5 className="mb-0 fw-semibold text-body-emphasis">Services Details</h5>
 						</div>
 						<div className="card-body p-0">
+							<div className="px-4 py-2 bg-light border-bottom mb-2 d-flex flex-wrap gap-3 small text-muted">
+								<div className="d-flex gap-2"><strong>Svc Name(ID):</strong> Service Name(ID)</div>
+								<div className="d-flex gap-2"><strong>Org:</strong> Organization</div>
+								<div className="d-flex gap-2"><strong>Clin:</strong> Clinician</div>
+								<div className="d-flex gap-2"><strong>Added On:</strong> Service Added On</div>
+								<div className="d-flex gap-2"><strong>TC:</strong> Total Cost</div>
+								<div className="d-flex gap-2"><strong>TP:</strong> Total Payable</div>
+								<div className="d-flex gap-2"><strong>PD:</strong> Paid Amount</div>
+								<div className="d-flex gap-2"><strong>UA Type:</strong> User Adjustment Type</div>
+								<div className="d-flex gap-2"><strong>UA Val:</strong> User Adjusted Value</div>
+								<div className="d-flex gap-2"><strong>OS:</strong> Outstanding</div>
+								<div className="d-flex gap-2"><strong>Amt Ref:</strong> Amount Refunded</div>
+								<div className="d-flex gap-2"><strong>Tax/Det:</strong> Tax/Details</div>
+								<div className="d-flex gap-2"><strong>Act/Wit:</strong> Actions/Witnesses</div>
+							</div>
 							<div style={{ overflowX: 'auto' }}>
 								<table className="table table-striped table-hover text-nowrap mb-0">
 									<thead className="table-light">
 										<tr>
-											<th className="fw-semibold text-start">Service Name(ID)</th>
-											<th className="fw-semibold text-start">Organization</th>
-											<th className="fw-semibold text-start">Clinician</th>
-											<th className="fw-semibold text-start">Service Added On</th>
+											<th className="fw-semibold text-start">Svc Name(ID)</th>
+											<th className="fw-semibold text-start">Org</th>
+											<th className="fw-semibold text-start">Clin</th>
+											<th className="fw-semibold text-start">Added On</th>
 											<th className="fw-semibold text-start">Cost</th>
-											<th className="fw-semibold text-start">Total Cost</th>
-											<th className="fw-semibold text-start">Total Payable</th>
-											<th className="fw-semibold text-start">Paid Amount</th>
-											<th className='fw-semibold text-start'>User AdjustmentType</th>
-											<th className='fw-semibold text-start'>User Adjusted Value</th>
-											<th className="fw-semibold text-start">Outstanding</th>
+											<th className="fw-semibold text-start">TC</th>
+											<th className="fw-semibold text-start">TP</th>
+											<th className="fw-semibold text-start">PD</th>
+											<th className='fw-semibold text-start'>UA Type</th>
+											<th className='fw-semibold text-start'>UA Val</th>
+											<th className="fw-semibold text-start">OS</th>
 											<th className="fw-semibold text-start">Tax</th>
 											<th className="fw-semibold text-start">Status</th>
-											<th className="fw-semibold text-start">Amount Refunded</th>
-											<th className="fw-semibold text-start">Tax/Details</th>
-											<th className="fw-semibold text-start">Actions/Witnesses</th>
+											<th className="fw-semibold text-start">Amt Ref</th>
+											<th className="fw-semibold text-start">Tax/Det</th>
+											<th className="fw-semibold text-start">Act/Wit</th>
 										</tr>
 									</thead>
 									<tbody>
@@ -1047,6 +1062,18 @@ export default function PreviousTransactionSummaryPage() {
 											const outstanding = Number(row.outstanding) || 0;
 											const isOutstanding = outstanding > 0;
 											const taxes = getServiceTaxes(row);
+											const getStatusClass = (status: string) => {
+												switch (status?.toLowerCase()) {
+													case 'active':
+														return 'text-success fw-semibold';
+													case 'voided':
+														return 'text-secondary fw-semibold';
+													case 'pending':
+														return 'text-warning fw-semibold';
+													default:
+														return 'text-muted fw-semibold';
+												}
+											};
 											return (
 												<tr key={idx} style={isOutstanding ? { backgroundColor: '#ffe6e6' } : {}}>
 													<td className="text-start">{row.name}({row.serviceid})</td>
@@ -1056,13 +1083,13 @@ export default function PreviousTransactionSummaryPage() {
 													<td className="text-start">{currencyFormatter.format(Number(row.cost) || 0)}</td>
 													<td className="text-start">{currencyFormatter.format(Number(row.totalcost) || 0)}</td>
 													<td className="text-start">{currencyFormatter.format(Number(row.totalpayable) || 0)}</td>
-													<td className="text-start">{currencyFormatter.format(Number(row.paidamount) || 0)}</td>
+													<td className="text-start fw-semibold" style={{ backgroundColor: 'rgba(40,167,69,0.15)' }}>{currencyFormatter.format(Number(row.paidamount) || 0)}</td>
 													<td className="text-start">{row.userAdjustmentType || '-'}</td>
 													<td className="text-start">{row.userAdjustedValue !== undefined ? currencyFormatter.format(Number(row.userAdjustedValue) || 0) : '-'}</td>
-													<td className="text-start">{currencyFormatter.format(Number(row.outstanding) || 0)}</td>
+													<td className="text-start fw-semibold" style={{ backgroundColor: isOutstanding ? 'rgba(220,53,69,0.15)' : 'rgba(40,167,69,0.15)' }}>{currencyFormatter.format(Number(row.outstanding) || 0)}</td>
 													<td className="text-start">{currencyFormatter.format(Number(row.amountIncurredDueTax) || 0)}</td>
-													<td className="text-start">{row.status}</td>
-													<td className="text-start">{currencyFormatter.format(Number(row.amountRefunded) || 0)}</td>
+													<td className={`text-start ${getStatusClass(row.status)}`}>{row.status}</td>
+													<td className="text-start fw-semibold" style={{ backgroundColor: 'rgba(111,66,193,0.15)' }}>{currencyFormatter.format(Number(row.amountRefunded) || 0)}</td>
 													<td className="text-start">
 														<Button size="sm" variant="info" onClick={() => {
 															setModalTaxes(taxes);
@@ -1085,11 +1112,7 @@ export default function PreviousTransactionSummaryPage() {
 																	Refund
 																</Button>
 															)}
-															{
-																<Button>
-																	Void 
-																</Button>
-															}
+															
 															{row.isRefundInitiated === 1 && row.isRefundApproved === 1 && (row.isRefundCompleted !== 1) && (
 																<Button size="sm" variant="success" onClick={() => handleCashOutRefund(row)}>
 																	Cash Out

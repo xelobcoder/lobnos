@@ -6,6 +6,10 @@ import { customFetch } from "../../../../../components/Auth/customFetch";
 import Link from "next/link";
 import BilledClientsView from "../../../../../components/Billing/BilledClientsView";
 import { useApplication } from "../../../../../components/Auth/useApplicationContext";
+import { useRouter, useSearchParams } from "next/navigation";
+import { handleDatePicker } from "../../../../../components/serverActions/ActionFiltering";
+import { RiSearchLine, RiCalendarEventLine } from "@remixicon/react";
+import { useApplicationSettings } from "../../../../../components/Auth/useApplicationContext";
 
 export default function DailySalesViewCustomerRepresentative({ params, searchParams }: {
 	params: {
@@ -17,6 +21,7 @@ export default function DailySalesViewCustomerRepresentative({ params, searchPar
 	}
 }) {
 	const { user } = useApplication();
+	const router = useRouter();
 	const role = user?.role?.toLowerCase();
 	const isAdminOrAccountant = role === "admin" || role === "accountant" || role === "superadmin";
 	const [transactions, setTransactions] = useState<any[]>([]);
@@ -25,7 +30,36 @@ export default function DailySalesViewCustomerRepresentative({ params, searchPar
 	const [isLoading, setIsLoading] = useState<boolean>(true);
 	const [branchIdState, setBranchIdState] = useState<string>("");
 	const { branchid } = params;
-	const { from, to } = searchParams;
+	const initialFrom = searchParams.from || "";
+	const initialTo = searchParams.to || "";
+	// datequery for the form inputs (changes as user types)
+	const [datequery, setDatequery] = useState({ from: initialFrom, to: initialTo });
+	// activeQuery for the actual search (only changes when search is clicked or initial load)
+	const [activeQuery, setActiveQuery] = useState({ from: initialFrom, to: initialTo });
+
+	// Sync URL search params with datequery on init/URL change
+	useEffect(() => {
+		setDatequery({
+			from: searchParams.from || '',
+			to: searchParams.to || ''
+		});
+		setActiveQuery({
+			from: searchParams.from || '',
+			to: searchParams.to || ''
+		});
+	}, [searchParams.from, searchParams.to]);
+
+	// Only sync URL when activeQuery changes, not on every input change
+	useEffect(() => {
+		const currentPath = window.location.pathname;
+		const newSearchParams = new URLSearchParams(window.location.search);
+		newSearchParams.delete('from');
+		newSearchParams.delete('to');
+		if (activeQuery.from) newSearchParams.set('from', activeQuery.from);
+		if (activeQuery.to) newSearchParams.set('to', activeQuery.to);
+		const newUrl = `${currentPath}${newSearchParams.toString() ? `?${newSearchParams.toString()}` : ''}`;
+		window.history.replaceState(null, '', newUrl);
+	}, [activeQuery.from, activeQuery.to]);
 
 	useEffect(() => {
 		let decryptedBranchId = "";
@@ -45,12 +79,12 @@ export default function DailySalesViewCustomerRepresentative({ params, searchPar
 			if (!branchIdState) return;
 			setIsLoading(true);
 			let endpoint = "billing/payment/info/client";
-			if (from && to) {
-				endpoint += `?from=${from}&to=${to}`;
-			} else if (from) {
-				endpoint += `?from=${from}`;
-			} else if (to) {
-				endpoint += `?to=${to}`;
+			if (activeQuery.from && activeQuery.to) {
+				endpoint += `?from=${activeQuery.from}&to=${activeQuery.to}`;
+			} else if (activeQuery.from) {
+				endpoint += `?from=${activeQuery.from}`;
+			} else if (activeQuery.to) {
+				endpoint += `?to=${activeQuery.to}`;
 			}
 			endpoint = endpoint + `&&branchid=${branchIdState}&&isloadall=true`;
 			try {
@@ -73,7 +107,19 @@ export default function DailySalesViewCustomerRepresentative({ params, searchPar
 			}
 		}
 		fetchData();
-	}, [branchIdState, from, to]);
+	}, [branchIdState, activeQuery.from, activeQuery.to]);
+
+	const handleSearchClick = () => {
+		// Update activeQuery to trigger fetch
+		setActiveQuery({ from: datequery.from, to: datequery.to });
+		// Also call handleDatePicker if needed for navigation
+		handleDatePicker({
+			branchid: branchIdState,
+			date: datequery.from,
+			from: datequery.from,
+			to: datequery.to
+		}, router);
+	};
 
 	if (!branchIdState) {
 		return <div className="alert alert-info">
@@ -84,8 +130,49 @@ export default function DailySalesViewCustomerRepresentative({ params, searchPar
 
 	return (
 		<div>
-			{isAdminOrAccountant && branchIdState && <BilledSummary branchid={branchIdState} from={from} to={to} summary={summary} />}
-			<BilledClientsView data={transactions ? transactions : []} branchid={branchIdState} expensesPaymentMade={expensesPaymentMade} isLoading={isLoading} />
+			{/* Date Filters at the top */}
+			<div className="d-flex align-items-center gap-2 mt-3 mb-3">
+				<div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
+					<span className="input-group-text bg-transparent border-end-0" style={{ borderColor: 'var(--bs-border-color)' }}>
+						<RiCalendarEventLine size={16} className="text-muted" />
+					</span>
+					<input type="date" className="form-control shadow-none border-start-0" value={datequery.from} onChange={(ev) => setDatequery({ ...datequery, from: ev.target.value })} />
+				</div>
+				<div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
+					<span className="input-group-text bg-transparent border-end-0" style={{ borderColor: 'var(--bs-border-color)' }}>
+						<RiCalendarEventLine size={16} className="text-muted" />
+					</span>
+					<input type="date" className="form-control shadow-none border-start-0" value={datequery.to} onChange={(ev) => setDatequery({ ...datequery, to: ev.target.value })} min={datequery.from} />
+				</div>
+				<button
+					className="btn btn-outline-secondary btn-sm d-flex align-items-center"
+					onClick={handleSearchClick}
+				>
+					<RiSearchLine size={16} className="me-1" /> Search
+				</button>
+				{datequery.from && datequery.to && (
+					<button
+						className="btn btn-primary btn-sm"
+						onClick={() => window.open(`${branchid}/day-transaction-break-down?date=${datequery.from}&&from=${datequery.from}&&end=${datequery.to}&isOpenSideBarShow=false`)}
+					>
+						BreakDown
+					</button>
+				)}
+			</div>
+
+			{/* Summary component below filters */}
+			{isAdminOrAccountant && branchIdState && <BilledSummary branchid={branchIdState} from={activeQuery.from} to={activeQuery.to} summary={summary} />}
+
+			{/* Table component at the bottom */}
+			<BilledClientsView
+				data={transactions ? transactions : []}
+				branchid={branchIdState}
+				expensesPaymentMade={expensesPaymentMade}
+				isLoading={isLoading}
+				datequery={datequery}
+				setDatequery={setDatequery}
+				showFilters={false}
+			/>
 		</div>
 	);
 }

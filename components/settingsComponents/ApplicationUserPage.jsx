@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 
 
 export default function ApplicationUsersPage({ users }) {
+	const [currentUsers,setCurrentUsers] = useState(users||[])
 	const [advanced, setAdvanced] = useState(false);
 	const [filters, setFiltering] = useState({ name: '', role: '', email: "", contact: '' });
 	const router = useRouter();
@@ -55,9 +56,10 @@ export default function ApplicationUsersPage({ users }) {
 			</div>
 
 			<UserList
-				users={users}
+				users={currentUsers}
 				handleDelete={handleDelete}
 				activateUser={activateInstitutionUser}
+				setCurrentUsers
 				updatePage={updatePage}
 				filters={filters}
 				showfiltering={advanced} />

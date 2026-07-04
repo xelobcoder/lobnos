@@ -45,14 +45,6 @@ const salesModules: SalesModule[] = [
 		features: ["Monthly totals", "Trend analysis", "Performance metrics", "Seasonal patterns"]
 	},
 	{
-		title: "Branch Performance",
-		description: "Compare sales across branches",
-		link: "/analytics/sales/totalSalesByBranch",
-		icon: <RiStoreLine size={32} />,
-		color: "#f59e0b",
-		features: ["Branch rankings", "Regional analysis", "Performance metrics", "Growth trends"]
-	},
-	{
 		title: "Employee Sales",
 		description: "Track individual employee performance",
 		link: "/analytics/sales/totalSalesByEmployee",
@@ -75,14 +67,6 @@ const salesModules: SalesModule[] = [
 		icon: <RiBubbleChartLine size={32} />,
 		color: "#06b6d4",
 		features: ["Annual overview", "Year-over-year growth", "Long-term trends", "Performance analysis"]
-	},
-	{
-		title: "Sales by Hour of Day",
-		description: "Analyze sales patterns throughout the day",
-		link: "/analytics/sales/salesbyhourofday",
-		icon: <RiTimeLine size={32} />,
-		color: "#f59e0b",
-		features: ["Hourly breakdown", "Peak hours analysis", "Time-based trends", "Operational insights"]
 	},
 	{
 		title: "Sales by Week and Branch",
@@ -171,14 +155,6 @@ export default function AnalyticsSales() {
 			icon: <RiBubbleChartLine size={32} />,
 			color: "#84cc16",
 			stats: "Annual"
-		},
-		{
-			title: "Hourly Analysis",
-			description: "Sales patterns by hour",
-			link: "/analytics/sales/salesbyhourofday",
-			icon: <RiTimeLine size={32} />,
-			color: "#f59e0b",
-			stats: "Daily"
 		}
 	];
 
@@ -322,7 +298,7 @@ export default function AnalyticsSales() {
 										<div>
 											<h6 className="mb-1">Compare Branches</h6>
 											<p className="small text-muted mb-2">Analyze performance across different branches</p>
-											<Link href="/analytics/sales/totalSalesByBranch" className="small">
+											<Link href="/analytics/sales/salesByWeekAndBranch" className="small">
 												Branch Analysis →
 											</Link>
 										</div>
@@ -352,7 +328,7 @@ export default function AnalyticsSales() {
 									</Link>
 								</div>
 								<div className="col-md-3">
-									<Link href="/analytics/sales/totalSalesByBranch" className="btn btn-outline-info w-100">
+									<Link href="/analytics/sales/salesByWeekAndBranch" className="btn btn-outline-info w-100">
 										<RiStoreLine className="me-1" />
 										Branch Analysis
 									</Link>

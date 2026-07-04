@@ -147,10 +147,7 @@ export default async function PatientBillingPageIndex({
 
 
 		const { result } = await customFetch(`register/personalinformation?patientid=${patientIdDecrypted}`);
-
 		patientBasicInformation = result;
-
-
 		const _vitalInfo = await canIgnoreDebtPaymentAndTax();
 
 		if (_vitalInfo) {
