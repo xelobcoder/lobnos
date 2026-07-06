@@ -732,8 +732,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                                                   <input type="radio" className="btn-check" name="paymentMode" id="paySome" checked={paymentMode === 'items'} onChange={() => setPaymentMode('items')} />
                                                   <label className="btn btn-outline-primary" htmlFor="paySome">Partial Payment</label>
 
-                                                  <input type="radio" className="btn-check" name="paymentMode" id="payFree" checked={paymentMode === 'free'} onChange={() => setPaymentMode('free')} />
-                                                  <label className="btn btn-outline-success" htmlFor="payFree">Free Service</label>
+                                                  {/* <input type="radio" className="btn-check" name="paymentMode" id="payFree" checked={paymentMode === 'free'} onChange={() => setPaymentMode('free')} />
+                                                  <label className="btn btn-outline-success" htmlFor="payFree">Free Service</label> */}
                                              </>
                                         )}
                                    </div>

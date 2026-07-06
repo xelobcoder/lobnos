@@ -1,31 +1,6 @@
-.root { /* Add a local class */
-    --background-color: #f9f9f9;
-    --text-color: #333;
-    --heading-color: #333;
-    --secondary-background-color: #f0f0f0;
-    --secondary-text-color: #777;
-    --card-background-color: white;
-    --border-color: #eee;
-    --icon-color: #999;
-    --error-background-color: #fff;
-}
-
-/* Define variables for dark mode */
-[data-theme="dark"] .root {
-    --background-color: #1e293b; /* Dark blue-gray */
-    --text-color: #cbd5e1; /* Light gray */
-    --heading-color: #f9fafb; /* Off-white */
-    --secondary-background-color: #334155; /* Slightly lighter blue-gray */
-    --secondary-text-color: #94a3b8; /* Medium gray */
-    --card-background-color: #334155; /* Darker blue-gray */
-    --border-color: #475569; /* Darker gray */
-    --icon-color: #94a3b8; /* Medium gray */
-    --error-background-color: #475569; /* Darker gray */
-}
-
 .container {
     padding: 24px;
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
     background-color: #f9f9f9;
     color: #333;
@@ -34,9 +9,16 @@
 
 .header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-    margin-bottom: 24px;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.header h2 {
+    display: flex;
+    align-items: center;
+    margin: 0;
 }
 
 .headerIcon {
@@ -45,45 +27,117 @@
     color: #ff69b4;
 }
 
+.subtitle {
+    margin: 6px 0 0;
+    color: #777;
+    font-size: 0.95rem;
+}
+
 .count {
     background: #f0f0f0;
     padding: 4px 12px;
     border-radius: 16px;
     font-size: 14px;
     color: #777;
+    white-space: nowrap;
+}
+
+.tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.tabButton {
+    border: 1px solid #e5e7eb;
+    background: white;
+    color: #4b5563;
+    padding: 8px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tabButton:hover {
+    border-color: #ff69b4;
+    color: #ff69b4;
+}
+
+.activeTab {
+    background: #ff69b4;
+    border-color: #ff69b4;
+    color: white;
+}
+
+.sectionCard {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.sectionHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.sectionHeader h3 {
+    margin: 0;
+    color: #333;
+    font-size: 1.1rem;
+}
+
+.sectionHeader p {
+    margin: 4px 0 0;
+    color: #777;
+    font-size: 0.9rem;
+}
+
+.sectionCount {
+    background: #f0f0f0;
+    color: #777;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    white-space: nowrap;
 }
 
 .birthdayList {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 24px;
+    gap: 20px;
 }
 
 .birthdayCard {
-    background: white;
+    background: #fcfcfc;
+    border: 1px solid #eee;
     border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s, color 0.3s;
+    padding: 18px;
+    transition: transform 0.2s, box-shadow 0.2s;
     color: #333;
 }
 
 .birthdayCard:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
 }
 
 .cardHeader {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    gap: 12px;
+    margin-bottom: 12px;
 }
 
 .cardHeader h3 {
     margin: 0;
     color: #333;
-    font-size: 1.2rem;
+    font-size: 1.05rem;
 }
 
 .age {
@@ -92,11 +146,35 @@
     padding: 4px 12px;
     border-radius: 12px;
     font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.metaRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.metaBadge {
+    background: #ff69b4;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+}
+
+.metaBadgeSecondary {
+    background: #f0f0f0;
+    color: #555;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.8rem;
 }
 
 .birthdayInfo {
-    margin: 16px 0;
-    padding: 12px 0;
+    margin: 12px 0;
+    padding: 10px 0;
     border-top: 1px solid #eee;
     border-bottom: 1px solid #eee;
 }
@@ -124,7 +202,7 @@
 }
 
 .error {
-    color: #f87171; /* Light red */
+    color: #f87171;
     text-align: center;
     padding: 40px;
     background: #fff;
@@ -133,9 +211,8 @@
 }
 
 .noBirthdays {
-    grid-column: 1 / -1;
     text-align: center;
-    padding: 40px;
+    padding: 32px 20px;
     color: #333;
     background: #f9f9f9;
     border-radius: 12px;

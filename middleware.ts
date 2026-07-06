@@ -50,11 +50,6 @@ export async function middleware(request: NextRequest) {
             // Check CRM access first
             if (currentPath.startsWith("/crm")) {
                 if (!["admin", "manager", "customer service representative", 'scientist', 'sonographer'].includes(role.toString().toLowerCase().trim())) {
-                    // if (role == "sonographer" && settings?.allowScientistToRegisterClient == 0) {
-                    //     return NextResponse.redirect(new URL('/operations/imaging/ultrasound', request.url));
-                    // } else if (role == "scientist" && settings?.allowScientistToRegisterClient == 0) {
-                    //     return NextResponse.redirect(new URL('/operations/laboratory', request.url));
-                    // } else
                          if (role == "storekeeper") {
                         return NextResponse.redirect(new URL('/inventory', request.url));
                     } else {
