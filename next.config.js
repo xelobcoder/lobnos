@@ -18,7 +18,7 @@ const nextConfig = {
       "localhost",
       "localhost:2300",
       "https://api.primelabsys.com:2300",
-      "api.primelabsys.com",
+      "https://api.primelabsys.com",
     ],
   },
   typescript: {
