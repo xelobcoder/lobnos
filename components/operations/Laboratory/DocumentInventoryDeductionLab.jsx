@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Modal } from "react-bootstrap";
-import { fetchTestTemplate } from "../../inventory/LimsConnection/lib";
+import { fetchTestTemplate } from "../../inventory/limsConnection/lib";
 import { customPost, customFetch } from "../../Auth/customFetch";
 import { toast } from "react-toastify";
 import { useApplication } from "../../Auth/useApplicationContext";
