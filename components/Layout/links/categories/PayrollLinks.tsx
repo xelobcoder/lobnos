@@ -136,6 +136,16 @@ export const PayrollLinks: Link[] = [
                     icon: <RiHistoryLine size={18} />
                },
                {
+                    title: "Leave Management",
+                    link: "/human-resource/payroll/leave",
+                    icon: <RiCalendarEventLine size={18} />
+               },
+               {
+                    title: "Other Deductions",
+                    link: "/human-resource/payroll/deductions/other",
+                    icon: <RiFileListLine size={18} />
+               },
+               {
                     title: "YTD Reports",
                     link: "/human-resource/payroll/employee/ytd",
                     icon: <RiFileListLine size={18} />

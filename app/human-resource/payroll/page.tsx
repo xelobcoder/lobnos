@@ -61,6 +61,20 @@ const quickAccessCards: QuickAccessCard[] = [
           link: "/human-resource/payroll/employee/history",
           icon: <RiHistoryLine size={32} />,
           color: "#8b5cf6"
+     },
+     {
+          title: "Leave Management",
+          description: "Submit and review leave requests",
+          link: "/human-resource/payroll/leave",
+          icon: <RiCalendarLine size={32} />,
+          color: "#0f766e"
+     },
+     {
+          title: "Other Deductions",
+          description: "Track employee loan and extra deductions",
+          link: "/human-resource/payroll/deductions/other",
+          icon: <RiFileListLine size={32} />,
+          color: "#b45309"
      }
 ];
 

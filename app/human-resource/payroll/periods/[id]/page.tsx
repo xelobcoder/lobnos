@@ -99,6 +99,11 @@ export default function PayrollPeriodDetailPage() {
      const [totalCount, setTotalCount] = useState(0);
      const [selectedTransaction, setSelectedTransaction] = useState<PayrollTransaction | null>(null);
      const [showTransactionModal, setShowTransactionModal] = useState(false);
+     const [showPayslipModal, setShowPayslipModal] = useState(false);
+     const [payslipPreviewUrl, setPayslipPreviewUrl] = useState<string | null>(null);
+     const [payslipDocRef, setPayslipDocRef] = useState<any>(null);
+     const [payslipFileName, setPayslipFileName] = useState<string>('');
+     const [payslipGenerating, setPayslipGenerating] = useState<number | null>(null);
 
      useEffect(() => {
           if (periodId) {
@@ -201,7 +206,7 @@ export default function PayrollPeriodDetailPage() {
                          payment_date: paymentDate,
                          payment_method: paymentMethod,
                          branchid: applicationsettings?.branchid,
-                         employeeid:user.employeeid
+                         employeeid: user.employeeid
                     }
                );
 
@@ -238,118 +243,263 @@ export default function PayrollPeriodDetailPage() {
           setShowTransactionModal(true);
      };
 
-     const handleDownloadPayslip = (transaction: PayrollTransaction) => {
-          if (!period) return;
-          const doc = new jsPDF();
-          
-          const formatCurrencyForPDF = (value: number | string | null | undefined) => {
-               return currencyFormatter.format(Number(value ?? 0)).replace(/₵/g, 'S');
+     const loadImageAsDataURL = async (url: string): Promise<string | null> => {
+          try {
+               const res = await fetch(url);
+               if (!res.ok) return null;
+               const blob = await res.blob();
+               if (!blob || blob.size === 0) return null;
+               return await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result as string);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+               });
+          } catch {
+               return null;
+          }
+     };
+
+     const generatePayslipDocument = async (transaction: PayrollTransaction) => {
+          if (!period) return null;
+
+          const companyResponse = await customFetch('settings/companyprofile');
+          const company = companyResponse?.result || companyResponse || {};
+
+          const baseUrl = process.env.NODE_ENV === 'development' ? process.env.DEVELOPMENT_BASEURL : process.env.PRODUCTION_BASEURL;
+          const logoDataUrl = baseUrl ? await loadImageAsDataURL(`${baseUrl}settings/companyprofile/images`) : null;
+
+          const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape' });
+          const pageWidth = doc.internal.pageSize.getWidth();
+          const pageHeight = doc.internal.pageSize.getHeight();
+          const margin = 10;
+          let yPos = margin;
+
+          const fmt = (value: number | string | null | undefined) => {
+               const num = Number(value ?? 0);
+               return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num);
           };
-          
-          // Header
-          doc.setFontSize(22);
-          doc.setTextColor(33, 37, 41);
-          doc.text('PAYSLIP', 14, 22);
-          
-          doc.setFontSize(11);
-          doc.setTextColor(108, 117, 125);
-          doc.text(`Period: ${period.period_name}`, 14, 30);
-          doc.text(`Duration: ${formatDate(period.period_start_date)} to ${formatDate(period.period_end_date)}`, 14, 36);
-          
-          // Employee Details Table
-          autoTable(doc, {
-               startY: 45,
-               theme: 'grid',
-               head: [],
-               body: [
-                    ['Employee Name:', transaction.employee_name, 'Role:', transaction.employee_role],
-                    ['Email:', transaction.email || 'N/A', 'Branch:', transaction.branch_name || 'N/A'],
-                    ['Payment Status:', transaction.status.toUpperCase(), 'Payment Method:', transaction.payment_method || 'N/A'],
-               ],
-               styles: { font: 'candara', fontSize: 10, cellPadding: 4, lineColor: [222, 226, 230], lineWidth: 0.1 },
-               columnStyles: {
-                    0: { fontStyle: 'bold', cellWidth: 35, fillColor: [248, 249, 250], textColor: [33, 37, 41] },
-                    1: { cellWidth: 55, textColor: [73, 80, 87] },
-                    2: { fontStyle: 'bold', cellWidth: 35, fillColor: [248, 249, 250], textColor: [33, 37, 41] },
-                    3: { cellWidth: 55, textColor: [73, 80, 87] },
-               }
-          });
 
-          const getFinalY = () => (doc as any).lastAutoTable?.finalY || 80;
-          let currentY = getFinalY() + 10;
+          const headCellStyle = { fontStyle: 'bold' as const, fillColor: [235, 235, 235] as [number, number, number], fontSize: 8, textColor: [0, 0, 0] as [number, number, number] };
+          const valueCellStyle = { fontSize: 8, textColor: [0, 0, 0] as [number, number, number] };
 
-          // Earnings Table
-          doc.setFontSize(14);
-          doc.setTextColor(15, 81, 50); // green-like
-          doc.text('Earnings', 14, currentY);
-          
-          autoTable(doc, {
-               startY: currentY + 5,
-               theme: 'grid',
-               head: [['Description', 'Amount']],
-               body: [
-                    ['Basic Salary', formatCurrencyForPDF(transaction.basic_salary)],
-                    ['Hourly Earnings', formatCurrencyForPDF(transaction.hourly_earnings)],
-                    ['Overtime Earnings', formatCurrencyForPDF(transaction.overtime_earnings)],
-                    ['Commission Earnings', formatCurrencyForPDF(transaction.commission_earnings)],
-                    ['Allowances', formatCurrencyForPDF(transaction.total_allowances)],
-                    ['Bonuses', formatCurrencyForPDF(transaction.total_bonuses)],
-               ],
-               foot: [['Gross Salary', formatCurrencyForPDF(transaction.gross_salary)]],
-               headStyles: { fillColor: [248, 249, 250], textColor: [33, 37, 41] },
-               footStyles: { fillColor: [233, 236, 239], textColor: [15, 81, 50], fontStyle: 'bold' },
-               columnStyles: {
-                    0: { cellWidth: 'auto' },
-                    1: { halign: 'right', cellWidth: 50 },
-               }
-          });
+          // Outer letterhead border box
+          doc.setDrawColor(0, 0, 0);
+          doc.setLineWidth(0.4);
 
-          currentY = getFinalY() + 10;
-
-          // Deductions Table
-          doc.setFontSize(14);
-          doc.setTextColor(132, 32, 41); // red-like
-          doc.text('Deductions', 14, currentY);
-          
-          autoTable(doc, {
-               startY: currentY + 5,
-               theme: 'grid',
-               head: [['Description', 'Amount']],
-               body: [
-                    ['Income Tax', formatCurrencyForPDF(transaction.income_tax)],
-                    ['Employee SSNIT', formatCurrencyForPDF(transaction.employee_ssnit)],
-                    ['Employee Tier 3', formatCurrencyForPDF(transaction.employee_tier3)],
-                    ['NHIS', formatCurrencyForPDF(transaction.nhis)],
-                    ['Other Deductions', formatCurrencyForPDF(transaction.total_other_deductions)],
-               ],
-               foot: [['Total Deductions', formatCurrencyForPDF(transaction.total_deductions)]],
-               headStyles: { fillColor: [248, 249, 250], textColor: [33, 37, 41] },
-               footStyles: { fillColor: [248, 215, 218], textColor: [132, 32, 41], fontStyle: 'bold' },
-               columnStyles: {
-                    0: { cellWidth: 'auto' },
-                    1: { halign: 'right', cellWidth: 50 },
-               }
-          });
-
-          currentY = getFinalY() + 15;
-          if (currentY > 260) {
-               doc.addPage();
-               currentY = 20;
+          if (logoDataUrl) {
+               try { doc.addImage(logoDataUrl, 'PNG', margin, yPos, 18, 18); } catch { /* ignore bad image */ }
           }
 
-          // Net Salary Summary
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(14);
+          doc.setTextColor(0, 0, 0);
+          doc.text((company.name || 'COMPANY NAME').toUpperCase(), pageWidth / 2, yPos + 6, { align: 'center' });
+
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(8);
+          if (company.motto) {
+               doc.text(company.motto, pageWidth / 2, yPos + 11, { align: 'center' });
+          }
+          const addrLine = [
+               company.address,
+               company.phonenumber ? `Tel: 0${company.phonenumber}` : '',
+               company.email
+          ].filter(Boolean).join('   |   ');
+          if (addrLine) {
+               doc.text(addrLine, pageWidth / 2, yPos + 15, { align: 'center' });
+          }
+
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(11);
+          doc.text('PAYSLIP', pageWidth / 2, yPos + 21, { align: 'center' });
+
+          yPos += 26;
+
+          // PARTICULARS GRID
           autoTable(doc, {
-               startY: currentY,
+               startY: yPos,
+               margin: { left: margin, right: margin },
                theme: 'grid',
-               head: [['NET SALARY PAYABLE']],
-               body: [[formatCurrencyForPDF(transaction.net_salary)]],
-               headStyles: { fillColor: [13, 110, 253], halign: 'center', fontSize: 13 },
-               bodyStyles: { fontStyle: 'bold', fontSize: 18, halign: 'center', textColor: [13, 110, 253] }
+               styles: { lineColor: [0, 0, 0], lineWidth: 0.2, cellPadding: 1.5 },
+               body: [
+                    [
+                         { content: 'DATE', styles: headCellStyle }, { content: formatDate(new Date().toISOString()), styles: valueCellStyle },
+                         { content: 'COMPANY', styles: headCellStyle }, { content: company.name || 'N/A', styles: valueCellStyle }
+                    ],
+                    [
+                         { content: 'PERIOD', styles: headCellStyle }, { content: `FROM ${formatDate(period.period_start_date)} TO ${formatDate(period.period_end_date)}`, styles: valueCellStyle },
+                         { content: 'BRANCH', styles: headCellStyle }, { content: transaction.branch_name || 'N/A', styles: valueCellStyle }
+                    ],
+                    [
+                         { content: 'NAME', styles: headCellStyle }, { content: transaction.employee_name, styles: valueCellStyle },
+                         { content: 'STAFF ID', styles: headCellStyle }, { content: String(transaction.employeeid), styles: valueCellStyle }
+                    ],
+                    [
+                         // { content: 'POSITION', styles: headCellStyle }, { content: transaction.employee_role.toUpperCase(), styles: valueCellStyle },
+                         { content: 'STATUS', styles: headCellStyle }, { content: transaction.status.toUpperCase(), styles: valueCellStyle }
+                    ],
+                    [
+                         // { content: 'PAYMENT MODE', styles: headCellStyle }, { content: transaction.payment_method || 'PENDING', styles: valueCellStyle },
+                         { content: 'PAYMENT DATE', styles: headCellStyle }, { content: transaction.payment_date ? formatDate(transaction.payment_date) : 'N/A', styles: valueCellStyle }
+                    ]
+               ],
+               columnStyles: {
+                    0: { cellWidth: 30 },
+                    1: { cellWidth: (pageWidth - margin * 2) / 2 - 30 },
+                    2: { cellWidth: 30 },
+                    3: { cellWidth: (pageWidth - margin * 2) / 2 - 30 }
+               }
           });
 
-          // Save the PDF
+          yPos = (doc as any).lastAutoTable.finalY;
+
+          // TRANSACTION / PAYMENTS & DEDUCTIONS TABLE
+          const monthYear = formatDate(period.period_end_date);
+          const rows: any[] = [];
+          let eIdx = 1;
+          [
+               ['Basic Salary', transaction.basic_salary],
+               ['Hourly Earnings', transaction.hourly_earnings],
+               ['Overtime Earnings', transaction.overtime_earnings],
+               ['Commission', transaction.commission_earnings],
+               ['Allowances', transaction.total_allowances],
+               ['Bonuses', transaction.total_bonuses]
+          ].forEach(([label, value]) => {
+               const num = Number(value ?? 0);
+               if (num > 0) {
+                    rows.push([monthYear, 'EARNING', `E${String(eIdx).padStart(2, '0')}`, label, '-', fmt(num), '']);
+                    eIdx++;
+               }
+          });
+          let dIdx = 1;
+          [
+               ['Income Tax', transaction.income_tax],
+               ['Employee SSNIT', transaction.employee_ssnit],
+               ['Employee Tier 3', transaction.employee_tier3],
+               ['NHIS', transaction.nhis],
+               ['Other Deductions', transaction.total_other_deductions]
+          ].forEach(([label, value]) => {
+               const num = Number(value ?? 0);
+               rows.push([monthYear, 'DEDUCTION', `D${String(dIdx).padStart(2, '0')}`, label, '-', '', fmt(num)]);
+               dIdx++;
+          });
+
+          autoTable(doc, {
+               startY: yPos,
+               margin: { left: margin, right: margin },
+               theme: 'grid',
+               styles: { lineColor: [0, 0, 0], lineWidth: 0.2, fontSize: 7.5, cellPadding: 1.5 },
+               head: [['MONTH/YEAR', 'NATURE', 'CODE', 'DESCRIPTION', 'RATE/HRS', 'PAYMENTS (GHS)', 'DEDUCTIONS (GHS)']],
+               headStyles: { fillColor: [235, 235, 235], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center', fontSize: 7.5 },
+               body: rows,
+               columnStyles: {
+                    0: { cellWidth: 20 },
+                    1: { cellWidth: 22 },
+                    2: { cellWidth: 14 },
+                    3: { cellWidth: 'auto' },
+                    4: { cellWidth: 16, halign: 'center' },
+                    5: { cellWidth: 26, halign: 'right' },
+                    6: { cellWidth: 28, halign: 'right' }
+               },
+               foot: [[
+                    { content: 'TOTALS', colSpan: 5, styles: { halign: 'right', fontStyle: 'bold' } },
+                    { content: fmt(transaction.gross_salary), styles: { halign: 'right', fontStyle: 'bold' } },
+                    { content: fmt(transaction.total_deductions), styles: { halign: 'right', fontStyle: 'bold' } }
+               ]],
+               footStyles: { fillColor: [220, 220, 220], textColor: [0, 0, 0], fontSize: 8 }
+          });
+
+          yPos = (doc as any).lastAutoTable.finalY + 4;
+
+          // SUMMARY GRID
+          autoTable(doc, {
+               startY: yPos,
+               margin: { left: margin, right: margin },
+               theme: 'grid',
+               styles: { lineColor: [0, 0, 0], lineWidth: 0.2, cellPadding: 1.5 },
+               body: [
+                    [
+                         { content: 'GROSS SALARY', styles: headCellStyle }, { content: fmt(transaction.gross_salary), styles: valueCellStyle },
+                         { content: 'TOTAL DEDUCTIONS', styles: headCellStyle }, { content: fmt(transaction.total_deductions), styles: valueCellStyle },
+                         { content: 'EMPLOYER SSNIT', styles: headCellStyle }, { content: fmt(transaction.employer_ssnit), styles: valueCellStyle }
+                    ],
+                    [
+                         // { content: 'DAYS WORKED', styles: headCellStyle }, { content: String(transaction.days_worked ?? 0), styles: valueCellStyle },
+                         // { content: 'HOURS WORKED', styles: headCellStyle }, { content: String(Number(transaction.hours_worked ?? 0)), styles: valueCellStyle },
+                         { content: 'EMPLOYER TIER 3', styles: headCellStyle }, { content: fmt(transaction.employer_tier3), styles: valueCellStyle }
+                    ]
+               ]
+          });
+
+          yPos = (doc as any).lastAutoTable.finalY + 5;
+
+          // NET SALARY HIGHLIGHT BOX
+          const boxHeight = 14;
+          if (yPos + boxHeight > pageHeight - 20) {
+               doc.addPage();
+               yPos = margin;
+          }
+          doc.setFillColor(230, 230, 230);
+          doc.setDrawColor(0, 0, 0);
+          doc.setLineWidth(0.5);
+          doc.rect(margin, yPos, pageWidth - margin * 2, boxHeight, 'FD');
+          doc.setTextColor(0, 0, 0);
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(11);
+          doc.text('NET SALARY PAYABLE', margin + 4, yPos + boxHeight / 2, { baseline: 'middle' });
+          doc.setFontSize(14);
+          doc.text(`GHS ${fmt(transaction.net_salary)}`, pageWidth - margin - 4, yPos + boxHeight / 2, { align: 'right', baseline: 'middle' });
+
+          yPos += boxHeight + 6;
+
+          // FOOTER
+          doc.setTextColor(90, 90, 90);
+          doc.setFont('helvetica', 'italic');
+          doc.setFontSize(6.5);
+          doc.text('This document is system-generated and confidential. Unauthorized disclosure of salary information is prohibited.', pageWidth / 2, pageHeight - 12, { align: 'center', maxWidth: pageWidth - margin * 2 });
+          doc.setFont('helvetica', 'normal');
+          doc.text(`Generated on ${new Date().toLocaleString()}`, margin, pageHeight - 6);
+          doc.text('Page 1 of 1', pageWidth - margin, pageHeight - 6, { align: 'right' });
+          doc.text(`© ${new Date().getFullYear()} ${company.name || 'Company'}. All rights reserved.`, pageWidth / 2, pageHeight - 6, { align: 'center' });
+
           const fileName = `Payslip_${transaction.employee_name.replace(/[^a-zA-Z0-9]/g, '_')}_${period.period_name.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
-          doc.save(fileName);
+          return { doc, fileName };
+     };
+
+     const handlePreviewPayslip = async (transaction: PayrollTransaction) => {
+          setPayslipGenerating(transaction.id);
+          try {
+               const result = await generatePayslipDocument(transaction);
+               if (!result) return;
+               const { doc, fileName } = result;
+               const url = doc.output('bloburl') as unknown as string;
+               setPayslipDocRef(doc);
+               setPayslipFileName(fileName);
+               setPayslipPreviewUrl(url);
+               setShowPayslipModal(true);
+          } catch (error) {
+               console.error('Error generating payslip:', error);
+               alert('Error generating payslip. Please try again.');
+          } finally {
+               setPayslipGenerating(null);
+          }
+     };
+
+     const handleDownloadFromPreview = () => {
+          if (payslipDocRef && payslipFileName) {
+               payslipDocRef.save(payslipFileName);
+          }
+     };
+
+     const closePayslipPreview = () => {
+          if (payslipPreviewUrl) {
+               try { URL.revokeObjectURL(payslipPreviewUrl); } catch { /* ignore */ }
+          }
+          setShowPayslipModal(false);
+          setPayslipPreviewUrl(null);
+          setPayslipDocRef(null);
+          setPayslipFileName('');
      };
 
      const handlePageChange = (page: number) => {
@@ -531,10 +681,15 @@ export default function PayrollPeriodDetailPage() {
                                                             </button>
                                                             <button
                                                                  className="btn btn-sm btn-outline-primary"
-                                                                 title="Download Payslip"
-                                                                 onClick={() => handleDownloadPayslip(txn)}
+                                                                 title="Preview Payslip"
+                                                                 onClick={() => handlePreviewPayslip(txn)}
+                                                                 disabled={payslipGenerating === txn.id}
                                                             >
-                                                                 <RiDownloadLine size={14} />
+                                                                 {payslipGenerating === txn.id ? (
+                                                                      <RiLoader4Line size={14} className="animate-spin" />
+                                                                 ) : (
+                                                                      <RiDownloadLine size={14} />
+                                                                 )}
                                                             </button>
                                                        </div>
                                                   </td>
@@ -916,6 +1071,41 @@ export default function PayrollPeriodDetailPage() {
                                    <div className="modal-footer">
                                         <button type="button" className="btn btn-secondary" onClick={() => setShowTransactionModal(false)}>
                                              Close
+                                        </button>
+                                   </div>
+                              </div>
+                         </div>
+                    </div>
+               )}
+
+               {/* Payslip Preview Modal */}
+               {showPayslipModal && payslipPreviewUrl && (
+                    <div
+                         className="modal show d-block"
+                         tabIndex={-1}
+                         style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+                         onClick={closePayslipPreview}
+                    >
+                         <div className="modal-dialog modal-xl modal-dialog-centered" onClick={(e) => e.stopPropagation()}>
+                              <div className="modal-content" style={{ height: '90vh' }}>
+                                   <div className="modal-header">
+                                        <h5 className="modal-title fw-bold">Payslip Preview</h5>
+                                        <button type="button" className="btn-close" onClick={closePayslipPreview}></button>
+                                   </div>
+                                   <div className="modal-body p-0" style={{ height: 'calc(90vh - 130px)' }}>
+                                        <iframe
+                                             src={payslipPreviewUrl}
+                                             title="Payslip Preview"
+                                             style={{ width: '100%', height: '100%', border: 'none' }}
+                                        />
+                                   </div>
+                                   <div className="modal-footer">
+                                        <button type="button" className="btn btn-secondary" onClick={closePayslipPreview}>
+                                             Close
+                                        </button>
+                                        <button type="button" className="btn btn-primary d-flex align-items-center" onClick={handleDownloadFromPreview}>
+                                             <RiDownloadLine size={16} className="me-1" />
+                                             Download PDF
                                         </button>
                                    </div>
                               </div>

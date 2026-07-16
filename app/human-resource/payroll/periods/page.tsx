@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { customFetch } from '../../../../components/Auth/customFetch';
+import { customFetch, customPost } from '../../../../components/Auth/customFetch';
 import Loader from '../../../../components/isLoading';
 import {
      RiCalendarLine,
@@ -13,7 +13,8 @@ import {
      RiBankCardLine,
      RiLoader4Line,
      RiErrorWarningLine,
-     RiInbox2Line
+     RiInbox2Line,
+     RiDeleteBinLine
 } from '@remixicon/react';
 
 interface PayrollPeriod {
@@ -55,6 +56,8 @@ export default function PayrollPeriodsPage() {
      const [periods, setPeriods] = useState<PayrollPeriod[]>([]);
      const [loading, setLoading] = useState(true);
      const [error, setError] = useState<string | null>(null);
+     const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; period: PayrollPeriod | null }>({ show: false, period: null });
+     const [deleting, setDeleting] = useState(false);
 
      useEffect(() => {
           fetchPeriods();
@@ -74,6 +77,29 @@ export default function PayrollPeriodsPage() {
                setError(err?.message || 'Error fetching payroll periods');
           } finally {
                setLoading(false);
+          }
+     };
+
+     const handleDeleteClick = (period: PayrollPeriod) => {
+          setDeleteConfirm({ show: true, period });
+     };
+
+     const handleConfirmDelete = async () => {
+          if (!deleteConfirm.period) return;
+
+          setDeleting(true);
+          try {
+               const response = await customPost(`payroll/periods/${deleteConfirm.period.id}`, 'DELETE', {});
+               if (response?.status === 'success' && response?.statusCode === 200) {
+                    setPeriods(periods.filter(p => p.id !== deleteConfirm.period!.id));
+                    setDeleteConfirm({ show: false, period: null });
+               } else {
+                    alert('Failed to delete payroll period');
+               }
+          } catch (err: any) {
+               alert(err?.message || 'Error deleting payroll period');
+          } finally {
+               setDeleting(false);
           }
      };
 
@@ -167,18 +193,82 @@ export default function PayrollPeriodsPage() {
                                              </div>
 
                                              <div className="col-md-1 text-end">
-                                                  <Link
-                                                       href={`/human-resource/payroll/periods/${period.id}`}
-                                                       className="btn btn-sm btn-outline-primary"
-                                                       title="View Details"
-                                                  >
-                                                       <RiEyeLine size={16} />
-                                                  </Link>
+                                                  <div className="d-flex gap-2 justify-content-end">
+                                                       <Link
+                                                            href={`/human-resource/payroll/periods/${period.id}`}
+                                                            className="btn btn-sm btn-outline-primary"
+                                                            title="View Details"
+                                                       >
+                                                            <RiEyeLine size={16} />
+                                                       </Link>
+                                                       {period.status === 'draft' && (
+                                                            <button
+                                                                 onClick={() => handleDeleteClick(period)}
+                                                                 className="btn btn-sm btn-outline-danger"
+                                                                 title="Delete Draft Payroll"
+                                                                 disabled={deleting}
+                                                            >
+                                                                 <RiDeleteBinLine size={16} />
+                                                            </button>
+                                                       )}
+                                                  </div>
                                              </div>
                                         </div>
                                    </div>
                               </div>
                          ))}
+                    </div>
+               )}
+
+               {/* Delete Confirmation Modal */}
+               {deleteConfirm.show && deleteConfirm.period && (
+                    <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                         <div className="modal-dialog modal-dialog-centered">
+                              <div className="modal-content">
+                                   <div className="modal-header">
+                                        <h5 className="modal-title fw-bold">Delete Payroll Period</h5>
+                                        <button
+                                             type="button"
+                                             className="btn-close"
+                                             onClick={() => setDeleteConfirm({ show: false, period: null })}
+                                             disabled={deleting}
+                                        ></button>
+                                   </div>
+                                   <div className="modal-body">
+                                        <p className="mb-2">
+                                             Are you sure you want to delete <strong>{deleteConfirm.period.period_name}</strong>?
+                                        </p>
+                                        <p className="text-muted small mb-0">
+                                             This action cannot be undone. Only draft payroll periods can be deleted.
+                                        </p>
+                                   </div>
+                                   <div className="modal-footer">
+                                        <button
+                                             type="button"
+                                             className="btn btn-secondary"
+                                             onClick={() => setDeleteConfirm({ show: false, period: null })}
+                                             disabled={deleting}
+                                        >
+                                             Cancel
+                                        </button>
+                                        <button
+                                             type="button"
+                                             className="btn btn-danger"
+                                             onClick={handleConfirmDelete}
+                                             disabled={deleting}
+                                        >
+                                             {deleting ? (
+                                                  <>
+                                                       <RiLoader4Line size={16} className="animate-spin me-1" style={{ display: 'inline' }} />
+                                                       Deleting...
+                                                  </>
+                                             ) : (
+                                                  'Delete'
+                                             )}
+                                        </button>
+                                   </div>
+                              </div>
+                         </div>
                     </div>
                )}
 
