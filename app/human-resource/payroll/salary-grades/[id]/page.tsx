@@ -20,6 +20,7 @@ interface SalaryGrade {
      id: number;
      grade_name: string;
      grade_level: string;
+     role_name: string | null;
      min_salary: number | null;
      max_salary: number | null;
      description: string | null;
@@ -193,6 +194,15 @@ export default function SalaryGradeDetailPage() {
                                                        <span className="fw-medium text-muted">Grade Level</span>
                                                   </div>
                                                   <h6 className="mb-0">{grade.grade_level}</h6>
+                                             </div>
+                                        </div>
+                                        <div className="col-md-6">
+                                             <div className="border rounded p-3">
+                                                  <div className="d-flex align-items-center mb-2">
+                                                       <RiUserLine size={18} className="text-primary me-2" />
+                                                       <span className="fw-medium text-muted">Mapped Role</span>
+                                                  </div>
+                                                  <h6 className="mb-0">{grade.role_name || 'Unmapped'}</h6>
                                              </div>
                                         </div>
                                         <div className="col-md-6">

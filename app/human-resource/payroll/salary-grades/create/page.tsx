@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -11,7 +11,7 @@ import {
      RiFileTextLine,
      RiErrorWarningLine
 } from '@remixicon/react';
-import { customPost } from '../../../../../components/Auth/customFetch';
+import { customFetch, customPost } from '../../../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../../../components/Auth/useApplicationContext';
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
@@ -23,10 +23,13 @@ export default function CreateSalaryGradePage() {
 
      const [loading, setLoading] = useState(false);
      const [error, setError] = useState<string | null>(null);
+     const [roles, setRoles] = useState<string[]>([]);
+     const [rolesLoading, setRolesLoading] = useState(true);
 
      const [formData, setFormData] = useState({
           grade_name: '',
           grade_level: '',
+          role_name: '',
           min_salary: '',
           max_salary: '',
           description: '',
@@ -35,6 +38,25 @@ export default function CreateSalaryGradePage() {
      });
 
      const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+     useEffect(() => {
+          const fetchRoles = async () => {
+               try {
+                    const response = await customFetch('payroll/salary-grades/roles');
+                    if (response?.status === 'success' && response?.statusCode === 200) {
+                         const result = response.result || [];
+                         const roleNames = result.map((item: any) => (typeof item === 'string' ? item : item.role_name || item.role || item.name)).filter(Boolean);
+                         setRoles(roleNames);
+                    }
+               } catch (err) {
+                    console.error('Error fetching roles:', err);
+               } finally {
+                    setRolesLoading(false);
+               }
+          };
+
+          fetchRoles();
+     }, []);
 
      const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
           const { name, value, type } = e.target;
@@ -101,6 +123,7 @@ export default function CreateSalaryGradePage() {
           try {
                const payload = {
                     ...formData,
+                    role_name: formData.role_name || null,
                     min_salary: formData.min_salary ? parseFloat(formData.min_salary) : null,
                     max_salary: formData.max_salary ? parseFloat(formData.max_salary) : null
                };
@@ -195,6 +218,29 @@ export default function CreateSalaryGradePage() {
                                                   {validationErrors.grade_level && (
                                                        <div className="invalid-feedback">{validationErrors.grade_level}</div>
                                                   )}
+                                             </div>
+
+                                             {/* Role Mapping */}
+                                             <div className="col-md-6">
+                                                  <label htmlFor="role_name" className="form-label fw-medium">
+                                                       Mapped Role
+                                                  </label>
+                                                  <select
+                                                       id="role_name"
+                                                       name="role_name"
+                                                       className="form-select"
+                                                       value={formData.role_name}
+                                                       onChange={handleChange}
+                                                       disabled={rolesLoading}
+                                                  >
+                                                       <option value="">No role mapping</option>
+                                                       {roles.map((role) => (
+                                                            <option key={role} value={role}>
+                                                                 {role}
+                                                            </option>
+                                                       ))}
+                                                  </select>
+                                                  <div className="form-text">Only one active grade should be mapped to a given role.</div>
                                              </div>
 
                                              {/* Minimum Salary */}

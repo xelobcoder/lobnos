@@ -30,6 +30,7 @@ interface OtherDeduction {
      id: number;
      employeeid: number;
      employee_name?: string;
+     deduction_definition_id?: number | null;
      deduction_type: string;
      deduction_name: string;
      amount: number;
@@ -47,6 +48,16 @@ interface OtherDeduction {
      attachments?: string | null;
 }
 
+interface DeductionDefinition {
+     id: number;
+     deduction_code: string;
+     deduction_name: string;
+     default_calculation_method: 'fixed_amount' | 'percentage_of_gross';
+     default_amount: number | null;
+     is_statutory: boolean;
+     is_active: boolean;
+}
+
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
 const DEDUCTION_TYPES = ['loan', 'advance', 'garnishment', 'union_dues', 'insurance', 'cooperative', 'welfare', 'savings', 'disciplinary', 'other'];
 const FREQUENCIES = ['monthly', 'bi-weekly', 'weekly', 'one-time'];
@@ -62,12 +73,14 @@ export default function OtherDeductionsPage() {
      const [employeeDeductions, setEmployeeDeductions] = useState<OtherDeduction[]>([]);
      const [activeDeductions, setActiveDeductions] = useState<OtherDeduction[]>([]);
      const [pendingApprovals, setPendingApprovals] = useState<OtherDeduction[]>([]);
+     const [definitions, setDefinitions] = useState<DeductionDefinition[]>([]);
      const [loading, setLoading] = useState(false);
      const [submitting, setSubmitting] = useState(false);
      const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
      const [error, setError] = useState<string | null>(null);
      const [formData, setFormData] = useState({
           employeeid: '',
+          deduction_definition_id: '',
           deduction_type: 'loan',
           deduction_name: '',
           amount: '',
@@ -97,6 +110,7 @@ export default function OtherDeductionsPage() {
      useEffect(() => {
           fetchEmployees();
           fetchGlobalDeductions();
+          fetchDefinitions();
      }, []);
 
      useEffect(() => {
@@ -149,6 +163,19 @@ export default function OtherDeductionsPage() {
           }
      };
 
+     const fetchDefinitions = async () => {
+          try {
+               const response = await customFetch('payroll/deduction-definitions?activeOnly=true');
+               if (response?.status === 'success' && response?.statusCode === 200) {
+                    setDefinitions(response.result || []);
+               } else {
+                    setDefinitions([]);
+               }
+          } catch {
+               setDefinitions([]);
+          }
+     };
+
      const fetchGlobalDeductions = async () => {
           try {
                const [activeResponse, pendingResponse] = await Promise.all([
@@ -179,6 +206,19 @@ export default function OtherDeductionsPage() {
           }));
      };
 
+     const handleDefinitionSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
+          const definitionId = event.target.value;
+          const definition = definitions.find((item) => String(item.id) === definitionId);
+
+          setFormData((previous) => ({
+               ...previous,
+               deduction_definition_id: definitionId,
+               deduction_type: definition ? definition.deduction_code : previous.deduction_type,
+               deduction_name: definition ? definition.deduction_name : previous.deduction_name,
+               amount: definition?.default_amount !== null && definition?.default_amount !== undefined ? String(definition.default_amount) : previous.amount,
+          }));
+     };
+
      const handleSubmit = async (event: React.FormEvent) => {
           event.preventDefault();
           setSubmitting(true);
@@ -186,10 +226,14 @@ export default function OtherDeductionsPage() {
 
           try {
                const totalAmount = Number(formData.total_amount || formData.amount || 0);
-               const payload = {
+               const usingDefinition = Boolean(formData.deduction_definition_id);
+
+               if (!usingDefinition && !formData.deduction_name.trim()) {
+                    throw new Error('Deduction name is required when not using a deduction definition');
+               }
+
+               const payload: Record<string, unknown> = {
                     employeeid: Number(formData.employeeid),
-                    deduction_type: formData.deduction_type,
-                    deduction_name: formData.deduction_name,
                     amount: Number(formData.amount),
                     is_recurring: formData.is_recurring,
                     frequency: formData.frequency,
@@ -203,11 +247,19 @@ export default function OtherDeductionsPage() {
                     attachments: formData.attachments || null
                };
 
+               if (usingDefinition) {
+                    payload.deduction_definition_id = Number(formData.deduction_definition_id);
+               } else {
+                    payload.deduction_type = formData.deduction_type;
+                    payload.deduction_name = formData.deduction_name;
+               }
+
                const response = await customPost('payroll/deductions/other', 'POST', payload);
 
                if (response?.status === 'success') {
                     setFormData((previous) => ({
                          ...previous,
+                         deduction_definition_id: '',
                          deduction_name: '',
                          amount: '',
                          total_amount: '',
@@ -352,22 +404,39 @@ export default function OtherDeductionsPage() {
                                         </select>
                                    </div>
 
-                                   <div className="row g-3 mb-3">
-                                        <div className="col-md-6">
-                                             <label className="form-label fw-medium">Deduction Type</label>
-                                             <select name="deduction_type" className="form-select" value={formData.deduction_type} onChange={handleChange} required>
-                                                  {DEDUCTION_TYPES.map((type) => (
-                                                       <option key={type} value={type}>
-                                                            {type.replace('_', ' ')}
-                                                       </option>
-                                                  ))}
-                                             </select>
-                                        </div>
-                                        <div className="col-md-6">
-                                             <label className="form-label fw-medium">Deduction Name</label>
-                                             <input name="deduction_name" type="text" className="form-control" value={formData.deduction_name} onChange={handleChange} placeholder="Staff Loan" required />
+                                   <div className="mb-3">
+                                        <label className="form-label fw-medium">Deduction Definition</label>
+                                        <select name="deduction_definition_id" className="form-select" value={formData.deduction_definition_id} onChange={handleDefinitionSelect}>
+                                             <option value="">Use a custom deduction instead</option>
+                                             {definitions.map((definition) => (
+                                                  <option key={definition.id} value={definition.id}>
+                                                       {definition.deduction_name} ({definition.deduction_code})
+                                                  </option>
+                                             ))}
+                                        </select>
+                                        <div className="form-text">
+                                             Pick a reusable definition to auto-fill the type and name, or leave blank to enter a custom deduction.
                                         </div>
                                    </div>
+
+                                   {!formData.deduction_definition_id && (
+                                        <div className="row g-3 mb-3">
+                                             <div className="col-md-6">
+                                                  <label className="form-label fw-medium">Deduction Type</label>
+                                                  <select name="deduction_type" className="form-select" value={formData.deduction_type} onChange={handleChange} required>
+                                                       {DEDUCTION_TYPES.map((type) => (
+                                                            <option key={type} value={type}>
+                                                                 {type.replace('_', ' ')}
+                                                            </option>
+                                                       ))}
+                                                  </select>
+                                             </div>
+                                             <div className="col-md-6">
+                                                  <label className="form-label fw-medium">Deduction Name</label>
+                                                  <input name="deduction_name" type="text" className="form-control" value={formData.deduction_name} onChange={handleChange} placeholder="Staff Loan" required />
+                                             </div>
+                                        </div>
+                                   )}
 
                                    <div className="row g-3 mb-3">
                                         <div className="col-md-4">

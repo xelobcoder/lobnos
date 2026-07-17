@@ -29,7 +29,7 @@ export const WorkflowActions: React.FC<WorkflowActionsProps> = ({
      const canApprove = status === 'calculated';
      const canLock = status === 'approved';
      const canMarkPaid = status === 'locked';
-     const canRecalculate = status === 'calculated' || status === 'approved';
+     const canRecalculate = status !== 'paid';
 
      if (status === 'paid') {
           return (

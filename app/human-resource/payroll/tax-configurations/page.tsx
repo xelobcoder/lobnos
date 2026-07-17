@@ -29,19 +29,11 @@ interface TaxConfiguration {
      tax_year: string;
      country: string;
      tax_bands: TaxBand[];
-     standard_exemption: number;
-     dependent_relief: number;
-     disability_exemption: number;
-     employee_ssnit_rate: number;
-     employer_ssnit_rate: number;
-     tier3_employee_rate: number;
-     tier3_employer_rate: number;
-     ssnit_ceiling: number | null;
-     pension_ceiling: number | null;
      is_active: boolean;
+     created_by: number;
+     created_by_name?: string | null;
      created_at: string;
      updated_at: string;
-     created_by: number;
 }
 
 interface TaxConfigurationSummary {
@@ -274,8 +266,8 @@ export default function TaxConfigurationsPage() {
                                         <th className="text-start">Tax Year</th>
                                         <th className="text-start">Country</th>
                                         <th className="text-start">Tax Bands</th>
-                                        <th className="text-start">SSNIT Rate</th>
                                         <th className="text-center">Status</th>
+                                        <th className="text-start">Created By</th>
                                         <th className="text-center">Actions</th>
                                    </tr>
                               </thead>
@@ -308,12 +300,12 @@ export default function TaxConfigurationsPage() {
                                                   <td className="fw-medium">{config.tax_year}</td>
                                                   <td>{config.country}</td>
                                                   <td>{config.tax_bands.length} bands</td>
-                                                  <td>{config.employee_ssnit_rate}%</td>
                                                   <td className="text-center">
                                                        <span className={`badge ${config.is_active ? 'bg-success' : 'bg-secondary'}`}>
                                                             {config.is_active ? 'Active' : 'Inactive'}
                                                        </span>
                                                   </td>
+                                                  <td>{config.created_by_name || `User ID: ${config.created_by}`}</td>
                                                   <td className="text-center">
                                                        <div className="btn-group btn-group-sm">
                                                             <Link

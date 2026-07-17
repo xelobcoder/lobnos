@@ -126,7 +126,7 @@ export default function DailyOutsourcingAnalytics() {
           setError(null);
           try {
                const branchParam = selectedBranch ? `&branchid=${selectedBranch}` : '';
-               const url = `financials/billing/summary?key=dailyOutsourcedAmount&startDate=${startDate}&endDate=${endDate}${branchParam}`;
+               const url = `financials/billing/summary?key=dailyOutsourcedAmount&startDate=${startDate}&endDate=${endDate}${branchParam}&&employeeid=${employeeid}`;
 
                const response = await customFetch(url);
                if (response && Array.isArray(response)) {

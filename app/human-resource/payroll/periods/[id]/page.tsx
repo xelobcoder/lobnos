@@ -42,6 +42,8 @@ interface PayrollTransaction {
      employeeid: number;
      employee_name: string;
      employee_role: string;
+     employeename?: string;
+     employeerole?: string;
      email: string;
      branch_name: string;
      basic_salary: string | number | null;
@@ -70,12 +72,23 @@ interface PayrollTransaction {
      payment_date: string | null;
      payment_method: string | null;
      payment_reference: string | null;
-     allowances_detail: string;
-     bonuses_detail: string;
-     other_deductions_detail: string;
+     allowances_detail: unknown[];
+     bonuses_detail: unknown[];
+     other_deductions_detail: unknown[];
      created_at: string;
      updated_at: string;
 }
+
+const normalizeTransaction = (txn: any): PayrollTransaction => ({
+     ...txn,
+     employee_name: txn?.employee_name || txn?.employeename || 'Unknown Employee',
+     employee_role: txn?.employee_role || txn?.employeerole || 'N/A',
+     email: txn?.email || 'N/A',
+     branch_name: txn?.branch_name || 'N/A',
+     allowances_detail: Array.isArray(txn?.allowances_detail) ? txn.allowances_detail : [],
+     bonuses_detail: Array.isArray(txn?.bonuses_detail) ? txn.bonuses_detail : [],
+     other_deductions_detail: Array.isArray(txn?.other_deductions_detail) ? txn.other_deductions_detail : []
+});
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
 
@@ -137,7 +150,8 @@ export default function PayrollPeriodDetailPage() {
           try {
                const response = await customFetch(`payroll/periods/${periodId}/transactions?page=${page}&count=${size}`);
                if (response?.status === 'success' && response?.statusCode === 200) {
-                    setTransactions(response.result?.data || []);
+                    const transactionRows = Array.isArray(response.result?.data) ? response.result.data : [];
+                    setTransactions(transactionRows.map(normalizeTransaction));
                     setTotalCount(response.result?.total || 0);
                }
           } catch (err: any) {
@@ -218,6 +232,32 @@ export default function PayrollPeriodDetailPage() {
                }
           } catch (err: any) {
                alert(err?.message || 'Error marking as paid');
+          } finally {
+               setActionLoading(false);
+          }
+     };
+
+     const handleRecalculate = async () => {
+          if (!user?.employeeid) return;
+
+          setActionLoading(true);
+          try {
+               const response = await customPost(
+                    `payroll/periods/${periodId}/recalculate-period`,
+                    'POST',
+                    { recalculated_by: user.employeeid }
+               );
+
+               if (response?.status === 'success') {
+                    await fetchPeriodDetails();
+                    await fetchTransactions(1, pageSize);
+                    setCurrentPage(1);
+                    alert('Payroll period recalculated successfully');
+               } else {
+                    alert(response?.message || 'Failed to recalculate payroll period');
+               }
+          } catch (err: any) {
+               alert(err?.message || 'Error recalculating payroll period');
           } finally {
                setActionLoading(false);
           }
@@ -607,6 +647,7 @@ export default function PayrollPeriodDetailPage() {
                          onApprove={handleApprove}
                          onLock={handleLock}
                          onMarkPaid={openPaymentModal}
+                         onRecalculate={handleRecalculate}
                          loading={actionLoading}
                     />
                </div>

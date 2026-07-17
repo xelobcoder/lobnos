@@ -11,7 +11,10 @@ import {
      RiBankCardLine,
      RiCalendarEventLine,
      RiTimeLine,
-     RiBarChartBoxLine
+     RiBarChartBoxLine,
+     RiStackLine,
+     RiShieldCheckLine,
+     RiAwardLine
 } from '@remixicon/react';
 
 export const PayrollLinks: Link[] = [
@@ -122,6 +125,11 @@ export const PayrollLinks: Link[] = [
                     title: "Create Configuration",
                     link: "/human-resource/payroll/tax-configurations/create",
                     icon: <RiSettings3Line size={18} />
+               },
+               {
+                    title: "Tax Reliefs",
+                    link: "/human-resource/payroll/tax-reliefs",
+                    icon: <RiShieldCheckLine size={18} />
                }
           ]
      },
@@ -144,6 +152,16 @@ export const PayrollLinks: Link[] = [
                     title: "Other Deductions",
                     link: "/human-resource/payroll/deductions/other",
                     icon: <RiFileListLine size={18} />
+               },
+               {
+                    title: "Employee Bonuses",
+                    link: "/human-resource/payroll/bonuses",
+                    icon: <RiAwardLine size={18} />
+               },
+               {
+                    title: "Deduction Definitions",
+                    link: "/human-resource/payroll/deduction-definitions",
+                    icon: <RiStackLine size={18} />
                },
                {
                     title: "YTD Reports",

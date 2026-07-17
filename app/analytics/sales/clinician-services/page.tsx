@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { customFetch, currencyFormatter } from "../../../../components/Auth/customFetch";
 import DateFilterReusable from "../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 import { RiRefreshLine, RiLoader4Line, RiErrorWarningLine, RiInbox2Line } from "@remixicon/react";
+import { useApplication } from "../../../../components/Auth/useApplicationContext";
 
 const SHADCN_PRIMARY = "#3B82F6";
 const SHADCN_FOREGROUND = "#0F172A";
@@ -37,6 +38,7 @@ export default function ClinicianServiceDetailsPage() {
      const clinicianId = searchParams.get("clinicianId");
      const initialStartDate = searchParams.get("startDate") || getDefaultDateRange().startDate;
      const initialEndDate = searchParams.get("endDate") || getDefaultDateRange().endDate;
+     const employeeid = useApplication()?.user?.employeeid;
 
      const [data, setData] = useState<ServiceDetailEntry[]>([]);
      const [loading, setLoading] = useState<boolean>(true);
@@ -71,7 +73,7 @@ export default function ClinicianServiceDetailsPage() {
           setError(null);
 
           try {
-               const url = `financials/billing/summary?key=clinicianServiceDetails&clinicianId=${clinicianId}&startDate=${fetchStartDate}&endDate=${fetchEndDate}`;
+               const url = `financials/billing/summary?key=clinicianServiceDetails&clinicianId=${clinicianId}&startDate=${fetchStartDate}&endDate=${fetchEndDate}&&employeeid=${employeeid}`;
                const response = await customFetch(url);
 
                if (!response || !Array.isArray(response)) {

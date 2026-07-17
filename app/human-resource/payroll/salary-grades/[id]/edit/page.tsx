@@ -18,6 +18,7 @@ interface SalaryGrade {
      id: number;
      grade_name: string;
      grade_level: string;
+     role_name: string | null;
      min_salary: number | null;
      max_salary: number | null;
      description: string | null;
@@ -44,6 +45,7 @@ export default function EditSalaryGradePage() {
      const [formData, setFormData] = useState({
           grade_name: '',
           grade_level: '',
+          role_name: '',
           min_salary: '',
           max_salary: '',
           description: '',
@@ -53,13 +55,31 @@ export default function EditSalaryGradePage() {
 
      const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
      const [salaryGrades, setSalaryGrades] = useState<SalaryGrade[]>([]);
+     const [roles, setRoles] = useState<string[]>([]);
+     const [rolesLoading, setRolesLoading] = useState(true);
 
      const gradeId = params?.id as string;
 
      useEffect(() => {
           fetchSalaryGrade();
           fetchSalaryGrades();
+          fetchRoles();
      }, [gradeId]);
+
+     const fetchRoles = async () => {
+          try {
+               const response = await customFetch('payroll/salary-grades/roles');
+               if (response?.status === 'success' && response?.statusCode === 200) {
+                    const result = response.result || [];
+                    const roleNames = result.map((item: any) => (typeof item === 'string' ? item : item.role_name || item.role || item.name)).filter(Boolean);
+                    setRoles(roleNames);
+               }
+          } catch (err) {
+               console.error('Error fetching roles:', err);
+          } finally {
+               setRolesLoading(false);
+          }
+     };
 
      const fetchSalaryGrade = async () => {
           setFetchLoading(true);
@@ -69,15 +89,20 @@ export default function EditSalaryGradePage() {
                const response = await customFetch(`payroll/salary-grades/${gradeId}`);
 
                if (response?.status === 'success' && response?.statusCode === 200) {
-                    const grade: SalaryGrade = response.result;
+                    const grade = response.result as Partial<SalaryGrade> | undefined;
+                    if (!grade) {
+                         throw new Error('Salary grade data is missing from the response');
+                    }
+
                     setFormData({
-                         grade_name: grade.grade_name,
-                         grade_level: grade.grade_level,
-                         min_salary: grade.min_salary?.toString() || '',
-                         max_salary: grade.max_salary?.toString() || '',
+                         grade_name: grade.grade_name || '',
+                         grade_level: grade.grade_level || '',
+                         role_name: grade.role_name || '',
+                         min_salary: grade.min_salary !== null && grade.min_salary !== undefined ? String(grade.min_salary) : '',
+                         max_salary: grade.max_salary !== null && grade.max_salary !== undefined ? String(grade.max_salary) : '',
                          description: grade.description || '',
-                         currency: grade.currency,
-                         is_active: grade.is_active
+                         currency: grade.currency || 'GHS',
+                         is_active: Boolean(grade.is_active)
                     });
                } else {
                     setError(response?.message || 'Failed to load salary grade');
@@ -166,6 +191,7 @@ export default function EditSalaryGradePage() {
           try {
                const payload = {
                     ...formData,
+                    role_name: formData.role_name || null,
                     min_salary: formData.min_salary ? parseFloat(formData.min_salary) : null,
                     max_salary: formData.max_salary ? parseFloat(formData.max_salary) : null
                };
@@ -305,6 +331,28 @@ export default function EditSalaryGradePage() {
                                                   {validationErrors.grade_level && (
                                                        <div className="invalid-feedback">{validationErrors.grade_level}</div>
                                                   )}
+                                             </div>
+
+                                             {/* Role Mapping */}
+                                             <div className="col-md-6">
+                                                  <label htmlFor="role_name" className="form-label fw-medium">
+                                                       Mapped Role
+                                                  </label>
+                                                  <select
+                                                       id="role_name"
+                                                       name="role_name"
+                                                       className="form-select"
+                                                       value={formData.role_name}
+                                                       onChange={handleChange}
+                                                       disabled={rolesLoading}
+                                                  >
+                                                       <option value="">No role mapping</option>
+                                                       {roles.map((role) => (
+                                                            <option key={role} value={role}>
+                                                                 {role}
+                                                            </option>
+                                                       ))}
+                                                  </select>
                                              </div>
 
                                              {/* Minimum Salary */}

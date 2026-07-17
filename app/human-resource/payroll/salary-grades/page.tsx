@@ -22,6 +22,7 @@ interface SalaryGrade {
      id: number;
      grade_name: string;
      grade_level: string;
+     role_name: string | null;
      min_salary: number | null;
      max_salary: number | null;
      description: string | null;
@@ -114,6 +115,7 @@ export default function SalaryGradesPage() {
                filtered = filtered.filter(grade =>
                     grade.grade_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                     grade.grade_level.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    (grade.role_name && grade.role_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
                     (grade.description && grade.description.toLowerCase().includes(searchTerm.toLowerCase()))
                );
           }
@@ -323,6 +325,7 @@ export default function SalaryGradesPage() {
                                              <tr>
                                                   <th className="border-0 fw-medium">Grade Name</th>
                                                   <th className="border-0 fw-medium">Level</th>
+                                                  <th className="border-0 fw-medium">Role</th>
                                                   <th className="border-0 fw-medium">Salary Range</th>
                                                   <th className="border-0 fw-medium">Currency</th>
                                                   <th className="border-0 fw-medium">Status</th>
@@ -345,6 +348,13 @@ export default function SalaryGradesPage() {
                                                             <span className="badge bg-secondary-subtle text-secondary">
                                                                  {grade.grade_level}
                                                             </span>
+                                                       </td>
+                                                       <td>
+                                                            {grade.role_name ? (
+                                                                 <span className="badge bg-primary-subtle text-primary">{grade.role_name}</span>
+                                                            ) : (
+                                                                 <span className="text-muted small">Unmapped</span>
+                                                            )}
                                                        </td>
                                                        <td>
                                                             {grade.min_salary && grade.max_salary ? (

@@ -51,16 +51,6 @@ All requests require:
       "rate": 25
     }
   ],
-  "standard_exemption": 4908.00,
-  "dependent_relief": 300.00,
-  "disability_exemption": 2000.00,
-  "employee_ssnit_rate": 5.5,
-  "employer_ssnit_rate": 13.0,
-  "tier3_employee_rate": 5.0,
-  "tier3_employer_rate": 5.0,
-  "ssnit_ceiling": 30000.00,
-  "pension_ceiling": 30000.00,
-  "is_active": true,
   "created_by": 1
 }
 ```
