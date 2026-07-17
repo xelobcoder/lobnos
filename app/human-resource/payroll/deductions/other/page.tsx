@@ -9,6 +9,7 @@ import {
      RiArrowLeftLine,
      RiBankCardLine,
      RiCheckboxCircleLine,
+     RiEditLine,
      RiLoader4Line,
      RiSaveLine,
      RiShieldCheckLine,
@@ -62,6 +63,63 @@ const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
 const DEDUCTION_TYPES = ['loan', 'advance', 'garnishment', 'union_dues', 'insurance', 'cooperative', 'welfare', 'savings', 'disciplinary', 'other'];
 const FREQUENCIES = ['monthly', 'bi-weekly', 'weekly', 'one-time'];
 
+const toNumber = (value: unknown): number => {
+     const parsed = Number(value ?? 0);
+     return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const toOptionalNumber = (value: unknown): number | null => {
+     if (value === null || value === undefined || value === '') {
+          return null;
+     }
+     const parsed = Number(value);
+     return Number.isFinite(parsed) ? parsed : null;
+};
+
+const toBoolean = (value: unknown): boolean => value === true || value === 1 || value === '1';
+
+const formatApiDate = (value?: string | null): string => {
+     if (!value) {
+          return 'N/A';
+     }
+     const parsed = new Date(value);
+     if (Number.isNaN(parsed.getTime())) {
+          return value;
+     }
+     return parsed.toLocaleDateString();
+};
+
+const toInputDate = (value?: string | null): string => {
+     if (!value) {
+          return '';
+     }
+     const parsed = new Date(value);
+     if (Number.isNaN(parsed.getTime())) {
+          return value.slice(0, 10);
+     }
+     return parsed.toISOString().split('T')[0];
+};
+
+const normalizeDeduction = (item: any): OtherDeduction => ({
+     ...item,
+     amount: toNumber(item?.amount),
+     is_recurring: toBoolean(item?.is_recurring),
+     total_amount: toOptionalNumber(item?.total_amount),
+     remaining_balance: toOptionalNumber(item?.remaining_balance),
+     deduction_priority: toNumber(item?.deduction_priority),
+     is_active: toBoolean(item?.is_active),
+     approved_by: toOptionalNumber(item?.approved_by)
+});
+
+const getDeductionList = (response: any): OtherDeduction[] => {
+     const rows = Array.isArray(response?.result)
+          ? response.result
+          : Array.isArray(response?.result?.data)
+               ? response.result.data
+               : [];
+     return rows.map(normalizeDeduction);
+};
+
 export default function OtherDeductionsPage() {
      const router = useRouter();
      const { applicationsettings } = useApplicationSettings();
@@ -78,6 +136,7 @@ export default function OtherDeductionsPage() {
      const [submitting, setSubmitting] = useState(false);
      const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
      const [error, setError] = useState<string | null>(null);
+     const [editingDeductionId, setEditingDeductionId] = useState<number | null>(null);
      const [formData, setFormData] = useState({
           employeeid: '',
           deduction_definition_id: '',
@@ -106,6 +165,7 @@ export default function OtherDeductionsPage() {
      const selectedEmployee = employees.find((employee) => employee.employeeid.toString() === selectedEmployeeId);
      const totalEmployeeDeductions = employeeDeductions.reduce((sum, item) => sum + Number(item.amount || 0), 0);
      const monthlyRecurringTotal = employeeDeductions.filter((item) => item.is_recurring).reduce((sum, item) => sum + Number(item.amount || 0), 0);
+     const getEmployeeDisplayName = (deduction: OtherDeduction) => deduction.employee_name || employees.find((employee) => employee.employeeid === deduction.employeeid)?.username || String(deduction.employeeid);
 
      useEffect(() => {
           fetchEmployees();
@@ -151,7 +211,7 @@ export default function OtherDeductionsPage() {
           try {
                const response = await customFetch(`payroll/deductions/other/employee/${employeeId}`);
                if (response?.status === 'success' && response?.statusCode === 200) {
-                    setEmployeeDeductions(response.result || []);
+                    setEmployeeDeductions(getDeductionList(response));
                } else {
                     setEmployeeDeductions([]);
                }
@@ -178,17 +238,23 @@ export default function OtherDeductionsPage() {
 
      const fetchGlobalDeductions = async () => {
           try {
-               const [activeResponse, pendingResponse] = await Promise.all([
-                    customFetch('payroll/deductions/other/active'),
-                    customFetch('payroll/deductions/other/pending-approvals')
-               ]);
+               const activeResponse = await customFetch('payroll/deductions/other/active');
+               const normalizedActive = activeResponse?.status === 'success' && activeResponse?.statusCode === 200
+                    ? getDeductionList(activeResponse)
+                    : [];
 
-               if (activeResponse?.status === 'success' && activeResponse?.statusCode === 200) {
-                    setActiveDeductions(activeResponse.result || []);
-               }
+               setActiveDeductions(normalizedActive);
 
-               if (pendingResponse?.status === 'success' && pendingResponse?.statusCode === 200) {
-                    setPendingApprovals(pendingResponse.result || []);
+               try {
+                    const pendingResponse = await customFetch('payroll/deductions/other/pending-approvals');
+                    if (pendingResponse?.status === 'success' && pendingResponse?.statusCode === 200) {
+                         setPendingApprovals(getDeductionList(pendingResponse));
+                    } else {
+                         setPendingApprovals(normalizedActive.filter((item) => item.approved_by === null || item.approved_by === undefined));
+                    }
+               } catch {
+                    // Fallback when pending-approvals endpoint requires extra params or returns 400.
+                    setPendingApprovals(normalizedActive.filter((item) => item.approved_by === null || item.approved_by === undefined));
                }
           } catch {
                setActiveDeductions([]);
@@ -216,6 +282,50 @@ export default function OtherDeductionsPage() {
                deduction_type: definition ? definition.deduction_code : previous.deduction_type,
                deduction_name: definition ? definition.deduction_name : previous.deduction_name,
                amount: definition?.default_amount !== null && definition?.default_amount !== undefined ? String(definition.default_amount) : previous.amount,
+          }));
+     };
+
+     const resetForm = () => {
+          setEditingDeductionId(null);
+          setFormData((previous) => ({
+               ...previous,
+               deduction_definition_id: '',
+               deduction_type: 'loan',
+               deduction_name: '',
+               amount: '',
+               is_recurring: true,
+               frequency: 'monthly',
+               total_amount: '',
+               remaining_balance: '',
+               deduction_priority: '1',
+               start_date: new Date().toISOString().split('T')[0],
+               end_date: '',
+               is_active: true,
+               remarks: '',
+               attachments: ''
+          }));
+     };
+
+     const handleEdit = (deduction: OtherDeduction) => {
+          setEditingDeductionId(deduction.id);
+          setSelectedEmployeeId(String(deduction.employeeid));
+          setFormData((previous) => ({
+               ...previous,
+               employeeid: String(deduction.employeeid),
+               deduction_definition_id: deduction.deduction_definition_id ? String(deduction.deduction_definition_id) : '',
+               deduction_type: deduction.deduction_type || 'loan',
+               deduction_name: deduction.deduction_name || '',
+               amount: String(deduction.amount ?? ''),
+               is_recurring: Boolean(deduction.is_recurring),
+               frequency: deduction.frequency || 'monthly',
+               total_amount: deduction.total_amount !== null && deduction.total_amount !== undefined ? String(deduction.total_amount) : '',
+               remaining_balance: deduction.remaining_balance !== null && deduction.remaining_balance !== undefined ? String(deduction.remaining_balance) : '',
+               deduction_priority: String(deduction.deduction_priority ?? 1),
+               start_date: toInputDate(deduction.start_date),
+               end_date: toInputDate(deduction.end_date),
+               is_active: Boolean(deduction.is_active),
+               remarks: deduction.remarks || '',
+               attachments: deduction.attachments || ''
           }));
      };
 
@@ -254,30 +364,21 @@ export default function OtherDeductionsPage() {
                     payload.deduction_name = formData.deduction_name;
                }
 
-               const response = await customPost('payroll/deductions/other', 'POST', payload);
+               const response = editingDeductionId
+                    ? await customPost(`payroll/deductions/other/${editingDeductionId}`, 'PUT', payload)
+                    : await customPost('payroll/deductions/other', 'POST', payload);
 
                if (response?.status === 'success') {
-                    setFormData((previous) => ({
-                         ...previous,
-                         deduction_definition_id: '',
-                         deduction_name: '',
-                         amount: '',
-                         total_amount: '',
-                         remaining_balance: '',
-                         deduction_priority: '1',
-                         end_date: '',
-                         remarks: '',
-                         attachments: ''
-                    }));
+                    resetForm();
                     if (selectedEmployeeId) {
                          await fetchEmployeeDeductions(selectedEmployeeId);
                     }
                     await fetchGlobalDeductions();
                } else {
-                    setError(response?.message || 'Failed to create other deduction');
+                    setError(response?.message || `Failed to ${editingDeductionId ? 'update' : 'create'} other deduction`);
                }
           } catch (err: any) {
-               setError(err?.message || 'Error creating deduction');
+               setError(err?.message || `Error trying to ${editingDeductionId ? 'update' : 'create'} deduction`);
           } finally {
                setSubmitting(false);
           }
@@ -310,7 +411,7 @@ export default function OtherDeductionsPage() {
           setActionLoadingId(deductionId);
           setError(null);
           try {
-               const response = await customPost(`payroll/deductions/other/${deductionId}/deactivate`, 'PATCH', {});
+               const response = await customFetch(`payroll/deductions/other/${deductionId}/deactivate`);
 
                if (response?.status === 'success') {
                     await fetchGlobalDeductions();
@@ -390,7 +491,7 @@ export default function OtherDeductionsPage() {
                <div className="row g-4">
                     <div className="col-xl-5">
                          <div className="border rounded p-4 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                              <h5 className="fw-semibold mb-3">Create Other Deduction</h5>
+                              <h5 className="fw-semibold mb-3">{editingDeductionId ? 'Update Other Deduction' : 'Create Other Deduction'}</h5>
                               <form onSubmit={handleSubmit}>
                                    <div className="mb-3">
                                         <label className="form-label fw-medium">Employee</label>
@@ -505,19 +606,26 @@ export default function OtherDeductionsPage() {
                                         <input name="attachments" type="text" className="form-control" value={formData.attachments} onChange={handleChange} placeholder="Optional file path or upload reference" />
                                    </div>
 
-                                   <button type="submit" className="btn btn-primary d-flex align-items-center" disabled={submitting || loading} style={{ backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT }}>
-                                        {submitting ? (
-                                             <>
-                                                  <RiLoader4Line size={18} className="me-1 animate-spin" />
-                                                  Saving...
-                                             </>
-                                        ) : (
-                                             <>
-                                                  <RiSaveLine size={18} className="me-1" />
-                                                  Create Deduction
-                                             </>
+                                   <div className="d-flex gap-2 align-items-center">
+                                        <button type="submit" className="btn btn-primary d-flex align-items-center" disabled={submitting || loading} style={{ backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT }}>
+                                             {submitting ? (
+                                                  <>
+                                                       <RiLoader4Line size={18} className="me-1 animate-spin" />
+                                                       Saving...
+                                                  </>
+                                             ) : (
+                                                  <>
+                                                       <RiSaveLine size={18} className="me-1" />
+                                                       {editingDeductionId ? 'Update Deduction' : 'Create Deduction'}
+                                                  </>
+                                             )}
+                                        </button>
+                                        {editingDeductionId && (
+                                             <button type="button" className="btn btn-outline-secondary" onClick={resetForm}>
+                                                  Cancel Edit
+                                             </button>
                                         )}
-                                   </button>
+                                   </div>
                               </form>
                          </div>
                     </div>
@@ -544,6 +652,10 @@ export default function OtherDeductionsPage() {
                                                   <th className="text-end">Amount</th>
                                                   <th className="text-end">Balance</th>
                                                   <th className="text-start">Frequency</th>
+                                                  <th className="text-start">Start Date</th>
+                                                  <th className="text-start">End Date</th>
+                                                  <th className="text-start">Approved Date</th>
+                                                  <th className="text-start">Approved By</th>
                                                   <th className="text-start">Status</th>
                                                   <th className="text-start">Actions</th>
                                              </tr>
@@ -551,7 +663,7 @@ export default function OtherDeductionsPage() {
                                         <tbody>
                                              {loading ? (
                                                   <tr>
-                                                       <td colSpan={7} className="text-center py-4 text-muted">Loading employee deductions...</td>
+                                                       <td colSpan={11} className="text-center py-4 text-muted">Loading employee deductions...</td>
                                                   </tr>
                                              ) : employeeDeductions.length > 0 ? employeeDeductions.map((deduction) => (
                                                   <tr key={deduction.id}>
@@ -560,6 +672,10 @@ export default function OtherDeductionsPage() {
                                                        <td className="text-end small">{currencyFormatter.format(Number(deduction.amount || 0))}</td>
                                                        <td className="text-end small">{currencyFormatter.format(Number(deduction.remaining_balance ?? deduction.total_amount ?? deduction.amount ?? 0))}</td>
                                                        <td className="text-start small text-capitalize">{deduction.frequency.replace('_', ' ')}</td>
+                                                       <td className="text-start small">{formatApiDate(deduction.start_date)}</td>
+                                                       <td className="text-start small">{formatApiDate(deduction.end_date)}</td>
+                                                       <td className="text-start small">{formatApiDate(deduction.approved_date)}</td>
+                                                       <td className="text-start small">{deduction.approved_by ?? 'N/A'}</td>
                                                        <td className="text-start small text-capitalize">{deduction.is_active ? 'active' : 'inactive'}</td>
                                                        <td className="text-start">
                                                             <div className="d-flex gap-2 flex-wrap">
@@ -568,6 +684,9 @@ export default function OtherDeductionsPage() {
                                                                            {actionLoadingId === deduction.id ? '...' : 'Approve'}
                                                                       </button>
                                                                  ) : null}
+                                                                 <button type="button" className="btn btn-outline-primary btn-sm" onClick={() => handleEdit(deduction)}>
+                                                                      <RiEditLine size={14} />
+                                                                 </button>
                                                                  {deduction.is_active ? (
                                                                       <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => handleDeactivate(deduction.id)} disabled={actionLoadingId === deduction.id}>
                                                                            {actionLoadingId === deduction.id ? '...' : 'Deactivate'}
@@ -578,7 +697,7 @@ export default function OtherDeductionsPage() {
                                                   </tr>
                                              )) : (
                                                   <tr>
-                                                       <td colSpan={7} className="text-center py-4 text-muted">No deductions found for the selected employee.</td>
+                                                       <td colSpan={11} className="text-center py-4 text-muted">No deductions found for the selected employee.</td>
                                                   </tr>
                                              )}
                                         </tbody>
@@ -597,18 +716,24 @@ export default function OtherDeductionsPage() {
                                                             <th className="text-start">Employee</th>
                                                             <th className="text-start">Deduction</th>
                                                             <th className="text-end">Amount</th>
+                                                            <th className="text-start">Start Date</th>
+                                                            <th className="text-start">End Date</th>
+                                                            <th className="text-start">Approved Date</th>
                                                        </tr>
                                                   </thead>
                                                   <tbody>
                                                        {pendingApprovals.length > 0 ? pendingApprovals.slice(0, 5).map((deduction) => (
                                                             <tr key={deduction.id}>
-                                                                 <td className="text-start small">{deduction.employee_name || deduction.employeeid}</td>
+                                                                 <td className="text-start small">{getEmployeeDisplayName(deduction)}</td>
                                                                  <td className="text-start small">{deduction.deduction_name}</td>
                                                                  <td className="text-end small">{currencyFormatter.format(Number(deduction.amount || 0))}</td>
+                                                                 <td className="text-start small">{formatApiDate(deduction.start_date)}</td>
+                                                                 <td className="text-start small">{formatApiDate(deduction.end_date)}</td>
+                                                                 <td className="text-start small">{formatApiDate(deduction.approved_date)}</td>
                                                             </tr>
                                                        )) : (
                                                             <tr>
-                                                                 <td colSpan={3} className="text-center py-4 text-muted">No pending approvals.</td>
+                                                                 <td colSpan={6} className="text-center py-4 text-muted">No pending approvals.</td>
                                                             </tr>
                                                        )}
                                                   </tbody>
@@ -627,18 +752,24 @@ export default function OtherDeductionsPage() {
                                                             <th className="text-start">Employee</th>
                                                             <th className="text-start">Deduction</th>
                                                             <th className="text-end">Balance</th>
+                                                            <th className="text-start">Start Date</th>
+                                                            <th className="text-start">End Date</th>
+                                                            <th className="text-start">Approved Date</th>
                                                        </tr>
                                                   </thead>
                                                   <tbody>
                                                        {activeDeductions.length > 0 ? activeDeductions.slice(0, 5).map((deduction) => (
                                                             <tr key={deduction.id}>
-                                                                 <td className="text-start small">{deduction.employee_name || deduction.employeeid}</td>
+                                                                 <td className="text-start small">{getEmployeeDisplayName(deduction)}</td>
                                                                  <td className="text-start small">{deduction.deduction_name}</td>
                                                                  <td className="text-end small">{currencyFormatter.format(Number(deduction.remaining_balance ?? deduction.amount ?? 0))}</td>
+                                                                 <td className="text-start small">{formatApiDate(deduction.start_date)}</td>
+                                                                 <td className="text-start small">{formatApiDate(deduction.end_date)}</td>
+                                                                 <td className="text-start small">{formatApiDate(deduction.approved_date)}</td>
                                                             </tr>
                                                        )) : (
                                                             <tr>
-                                                                 <td colSpan={3} className="text-center py-4 text-muted">No active deductions found.</td>
+                                                                 <td colSpan={6} className="text-center py-4 text-muted">No active deductions found.</td>
                                                             </tr>
                                                        )}
                                                   </tbody>

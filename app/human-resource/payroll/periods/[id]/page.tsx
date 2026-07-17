@@ -79,6 +79,17 @@ interface PayrollTransaction {
      updated_at: string;
 }
 
+interface PayrollDetailItem {
+     type?: string;
+     name?: string;
+     amount?: number | string;
+     source?: string;
+     calculation_method?: string;
+     is_statutory?: boolean;
+     priority?: number | string;
+     remaining_balance?: number | string;
+}
+
 const normalizeTransaction = (txn: any): PayrollTransaction => ({
      ...txn,
      employee_name: txn?.employee_name || txn?.employeename || 'Unknown Employee',
@@ -89,6 +100,11 @@ const normalizeTransaction = (txn: any): PayrollTransaction => ({
      bonuses_detail: Array.isArray(txn?.bonuses_detail) ? txn.bonuses_detail : [],
      other_deductions_detail: Array.isArray(txn?.other_deductions_detail) ? txn.other_deductions_detail : []
 });
+
+const toNumber = (value: number | string | null | undefined): number => {
+     const parsed = Number(value ?? 0);
+     return Number.isFinite(parsed) ? parsed : 0;
+};
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
 
@@ -209,7 +225,6 @@ export default function PayrollPeriodDetailPage() {
 
      const handleMarkPaid = async (paymentDate: string, paymentMethod: string) => {
           if (!user?.employeeid) return;
-
           setActionLoading(true);
           try {
                const response = await customPost(
@@ -239,15 +254,9 @@ export default function PayrollPeriodDetailPage() {
 
      const handleRecalculate = async () => {
           if (!user?.employeeid) return;
-
           setActionLoading(true);
           try {
-               const response = await customPost(
-                    `payroll/periods/${periodId}/recalculate-period`,
-                    'POST',
-                    { recalculated_by: user.employeeid }
-               );
-
+               const response = await customPost(`payroll/periods/${periodId}/recalculate-period`, 'POST', { recalculated_by: user.employeeid });
                if (response?.status === 'success') {
                     await fetchPeriodDetails();
                     await fetchTransactions(1, pageSize);
@@ -316,9 +325,13 @@ export default function PayrollPeriodDetailPage() {
           let yPos = margin;
 
           const fmt = (value: number | string | null | undefined) => {
-               const num = Number(value ?? 0);
+               const num = toNumber(value);
                return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num);
           };
+
+          const allowancesDetails = (Array.isArray(transaction.allowances_detail) ? transaction.allowances_detail : []) as PayrollDetailItem[];
+          const bonusDetails = (Array.isArray(transaction.bonuses_detail) ? transaction.bonuses_detail : []) as PayrollDetailItem[];
+          const deductionDetails = (Array.isArray(transaction.other_deductions_detail) ? transaction.other_deductions_detail : []) as PayrollDetailItem[];
 
           const headCellStyle = { fontStyle: 'bold' as const, fillColor: [235, 235, 235] as [number, number, number], fontSize: 8, textColor: [0, 0, 0] as [number, number, number] };
           const valueCellStyle = { fontSize: 8, textColor: [0, 0, 0] as [number, number, number] };
@@ -328,7 +341,7 @@ export default function PayrollPeriodDetailPage() {
           doc.setLineWidth(0.4);
 
           if (logoDataUrl) {
-               try { doc.addImage(logoDataUrl, 'PNG', margin, yPos, 18, 18); } catch { /* ignore bad image */ }
+               try { doc.addImage(logoDataUrl, 'PNG', margin, yPos, 18, 18); } catch { }
           }
 
           doc.setFont('helvetica', 'bold');
@@ -406,24 +419,50 @@ export default function PayrollPeriodDetailPage() {
                ['Allowances', transaction.total_allowances],
                ['Bonuses', transaction.total_bonuses]
           ].forEach(([label, value]) => {
-               const num = Number(value ?? 0);
+               const num = toNumber(value);
                if (num > 0) {
                     rows.push([monthYear, 'EARNING', `E${String(eIdx).padStart(2, '0')}`, label, '-', fmt(num), '']);
                     eIdx++;
                }
           });
-          let dIdx = 1;
-          [
-               ['Income Tax', transaction.income_tax],
-               ['Employee SSNIT', transaction.employee_ssnit],
-               ['Employee Tier 3', transaction.employee_tier3],
-               ['NHIS', transaction.nhis],
-               ['Other Deductions', transaction.total_other_deductions]
-          ].forEach(([label, value]) => {
-               const num = Number(value ?? 0);
-               rows.push([monthYear, 'DEDUCTION', `D${String(dIdx).padStart(2, '0')}`, label, '-', '', fmt(num)]);
-               dIdx++;
+
+          allowancesDetails.forEach((entry) => {
+               const amount = toNumber(entry?.amount);
+               if (amount > 0) {
+                    rows.push([monthYear, 'ALLOWANCE', `E${String(eIdx).padStart(2, '0')}`, entry?.name || entry?.type || 'Allowance', '-', fmt(amount), '']);
+                    eIdx++;
+               }
           });
+
+          bonusDetails.forEach((entry) => {
+               const amount = toNumber(entry?.amount);
+               if (amount > 0) {
+                    rows.push([monthYear, 'BONUS', `E${String(eIdx).padStart(2, '0')}`, entry?.name || entry?.type || 'Bonus', '-', fmt(amount), '']);
+                    eIdx++;
+               }
+          });
+
+          let dIdx = 1;
+
+          if (deductionDetails.length > 0) {
+               deductionDetails.forEach((entry) => {
+                    const amount = toNumber(entry?.amount);
+                    rows.push([monthYear, 'DEDUCTION', `D${String(dIdx).padStart(2, '0')}`, entry?.name || entry?.type || 'Deduction', '-', '', fmt(amount)]);
+                    dIdx++;
+               });
+          } else {
+               [
+                    ['Income Tax', transaction.income_tax],
+                    ['Employee SSNIT', transaction.employee_ssnit],
+                    ['Employee Tier 3', transaction.employee_tier3],
+                    ['NHIS', transaction.nhis],
+                    ['Other Deductions', transaction.total_other_deductions]
+               ].forEach(([label, value]) => {
+                    const num = toNumber(value as number | string | null | undefined);
+                    rows.push([monthYear, 'DEDUCTION', `D${String(dIdx).padStart(2, '0')}`, label, '-', '', fmt(num)]);
+                    dIdx++;
+               });
+          }
 
           autoTable(doc, {
                startY: yPos,
@@ -451,6 +490,42 @@ export default function PayrollPeriodDetailPage() {
           });
 
           yPos = (doc as any).lastAutoTable.finalY + 4;
+
+          const deductionMetaRows = deductionDetails
+               .filter(
+                    (entry) =>
+                         entry?.priority !== undefined && entry?.priority !== null ||
+                         entry?.remaining_balance !== undefined && entry?.remaining_balance !== null
+               )
+               .map((entry) => [
+                    entry?.name || entry?.type || 'Deduction',
+                    entry?.source || 'N/A',
+                    entry?.calculation_method || 'N/A',
+                    entry?.is_statutory ? 'Yes' : 'No',
+                    entry?.priority !== undefined && entry?.priority !== null ? String(entry.priority) : '-',
+                    entry?.remaining_balance !== undefined && entry?.remaining_balance !== null ? fmt(entry.remaining_balance) : '-'
+               ]);
+
+          if (deductionMetaRows.length > 0) {
+               autoTable(doc, {
+                    startY: yPos,
+                    margin: { left: margin, right: margin },
+                    theme: 'grid',
+                    styles: { lineColor: [0, 0, 0], lineWidth: 0.2, fontSize: 7, cellPadding: 1.3 },
+                    head: [['Deduction Balance Info', 'Source', 'Method', 'Statutory', 'Priority', 'Balance (GHS)']],
+                    headStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center', fontSize: 7 },
+                    body: deductionMetaRows,
+                    columnStyles: {
+                         0: { cellWidth: 52 },
+                         1: { cellWidth: 24 },
+                         2: { cellWidth: 40 },
+                         3: { cellWidth: 20, halign: 'center' },
+                         4: { cellWidth: 20, halign: 'center' },
+                         5: { cellWidth: 28, halign: 'right' }
+                    }
+               });
+               yPos = (doc as any).lastAutoTable.finalY + 4;
+          }
 
           // SUMMARY GRID
           autoTable(doc, {
