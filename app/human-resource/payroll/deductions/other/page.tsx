@@ -137,6 +137,16 @@ export default function OtherDeductionsPage() {
      const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
      const [error, setError] = useState<string | null>(null);
      const [editingDeductionId, setEditingDeductionId] = useState<number | null>(null);
+     const [editingDeduction, setEditingDeduction] = useState<OtherDeduction | null>(null);
+     const [showDeductionFormModal, setShowDeductionFormModal] = useState(false);
+     const [showLoanAdjustmentModal, setShowLoanAdjustmentModal] = useState(false);
+     const [loanAdjustmentSubmitting, setLoanAdjustmentSubmitting] = useState(false);
+     const [loanAdjustmentSuggestion, setLoanAdjustmentSuggestion] = useState<{ deductionId: number; deductionName: string } | null>(null);
+     const [loanAdjustmentForm, setLoanAdjustmentForm] = useState({
+          adjustment_action: 'decrease_balance',
+          adjustment_amount: '',
+          reason: ''
+     });
      const [formData, setFormData] = useState({
           employeeid: '',
           deduction_definition_id: '',
@@ -166,6 +176,10 @@ export default function OtherDeductionsPage() {
      const totalEmployeeDeductions = employeeDeductions.reduce((sum, item) => sum + Number(item.amount || 0), 0);
      const monthlyRecurringTotal = employeeDeductions.filter((item) => item.is_recurring).reduce((sum, item) => sum + Number(item.amount || 0), 0);
      const getEmployeeDisplayName = (deduction: OtherDeduction) => deduction.employee_name || employees.find((employee) => employee.employeeid === deduction.employeeid)?.username || String(deduction.employeeid);
+     const isRepaymentHistoryConflict = (message?: string) => {
+          if (!message) return false;
+          return /repayment|history|cannot.*balance|manual[_\s-]?adjustment|loan adjustment/i.test(message);
+     };
 
      useEffect(() => {
           fetchEmployees();
@@ -287,6 +301,8 @@ export default function OtherDeductionsPage() {
 
      const resetForm = () => {
           setEditingDeductionId(null);
+          setEditingDeduction(null);
+          setLoanAdjustmentSuggestion(null);
           setFormData((previous) => ({
                ...previous,
                deduction_definition_id: '',
@@ -308,6 +324,9 @@ export default function OtherDeductionsPage() {
 
      const handleEdit = (deduction: OtherDeduction) => {
           setEditingDeductionId(deduction.id);
+          setEditingDeduction(deduction);
+          setLoanAdjustmentSuggestion(null);
+          setShowDeductionFormModal(true);
           setSelectedEmployeeId(String(deduction.employeeid));
           setFormData((previous) => ({
                ...previous,
@@ -327,6 +346,80 @@ export default function OtherDeductionsPage() {
                remarks: deduction.remarks || '',
                attachments: deduction.attachments || ''
           }));
+     };
+
+     const openCreateDeductionModal = () => {
+          resetForm();
+          if (selectedEmployeeId) {
+               setFormData((previous) => ({ ...previous, employeeid: selectedEmployeeId }));
+          }
+          setShowDeductionFormModal(true);
+     };
+
+     const openLoanAdjustmentModal = () => {
+          setLoanAdjustmentForm({
+               adjustment_action: 'decrease_balance',
+               adjustment_amount: '',
+               reason: ''
+          });
+          setShowLoanAdjustmentModal(true);
+     };
+
+     const handleLoanAdjustmentChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+          const { name, value } = event.target;
+          setLoanAdjustmentForm((previous) => ({ ...previous, [name]: value }));
+     };
+
+     const handleLoanAdjustmentSubmit = async (event: React.FormEvent) => {
+          event.preventDefault();
+          if (!loanAdjustmentSuggestion) return;
+
+          const adjustmentAmount = Number(loanAdjustmentForm.adjustment_amount);
+          if (!Number.isFinite(adjustmentAmount) || adjustmentAmount <= 0) {
+               setError('Loan adjustment amount must be a positive number');
+               return;
+          }
+          if (!loanAdjustmentForm.reason.trim()) {
+               setError('Loan adjustment reason is required');
+               return;
+          }
+          if (!user?.employeeid) {
+               setError('Unable to identify adjusting employee');
+               return;
+          }
+
+          setLoanAdjustmentSubmitting(true);
+          setError(null);
+          try {
+               const response = await customPost(
+                    `payroll/deductions/other/${loanAdjustmentSuggestion.deductionId}/loan-adjustment`,
+                    'POST',
+                    {
+                         adjustment_amount: adjustmentAmount,
+                         adjustment_action: loanAdjustmentForm.adjustment_action,
+                         adjusted_by: user.employeeid,
+                         reason: loanAdjustmentForm.reason.trim()
+                    }
+               );
+
+               if (response?.status === 'success' && response?.statusCode === 201) {
+                    const oldBalance = toNumber(response?.result?.old_balance);
+                    const newBalance = toNumber(response?.result?.new_balance);
+                    await fetchGlobalDeductions();
+                    if (selectedEmployeeId) {
+                         await fetchEmployeeDeductions(selectedEmployeeId);
+                    }
+                    setShowLoanAdjustmentModal(false);
+                    setLoanAdjustmentSuggestion(null);
+                    alert(`${loanAdjustmentSuggestion.deductionName}: ${currencyFormatter.format(oldBalance)} -> ${currencyFormatter.format(newBalance)}`);
+               } else {
+                    setError(response?.message || 'Failed to create loan adjustment');
+               }
+          } catch (err: any) {
+               setError(err?.message || 'Error creating loan adjustment');
+          } finally {
+               setLoanAdjustmentSubmitting(false);
+          }
      };
 
      const handleSubmit = async (event: React.FormEvent) => {
@@ -370,15 +463,36 @@ export default function OtherDeductionsPage() {
 
                if (response?.status === 'success') {
                     resetForm();
+                    setShowDeductionFormModal(false);
                     if (selectedEmployeeId) {
                          await fetchEmployeeDeductions(selectedEmployeeId);
                     }
                     await fetchGlobalDeductions();
                } else {
-                    setError(response?.message || `Failed to ${editingDeductionId ? 'update' : 'create'} other deduction`);
+                    const message = response?.message || `Failed to ${editingDeductionId ? 'update' : 'create'} other deduction`;
+                    setError(message);
+
+                    if (editingDeductionId && (editingDeduction?.deduction_type === 'loan' || formData.deduction_type === 'loan') && isRepaymentHistoryConflict(message)) {
+                         setLoanAdjustmentSuggestion({
+                              deductionId: editingDeductionId,
+                              deductionName: editingDeduction?.deduction_name || formData.deduction_name || 'Loan Deduction'
+                         });
+                    } else {
+                         setLoanAdjustmentSuggestion(null);
+                    }
                }
           } catch (err: any) {
-               setError(err?.message || `Error trying to ${editingDeductionId ? 'update' : 'create'} deduction`);
+               const message = err?.message || `Error trying to ${editingDeductionId ? 'update' : 'create'} deduction`;
+               setError(message);
+
+               if (editingDeductionId && (editingDeduction?.deduction_type === 'loan' || formData.deduction_type === 'loan') && isRepaymentHistoryConflict(message)) {
+                    setLoanAdjustmentSuggestion({
+                         deductionId: editingDeductionId,
+                         deductionName: editingDeduction?.deduction_name || formData.deduction_name || 'Loan Deduction'
+                    });
+               } else {
+                    setLoanAdjustmentSuggestion(null);
+               }
           } finally {
                setSubmitting(false);
           }
@@ -430,17 +544,27 @@ export default function OtherDeductionsPage() {
 
      return (
           <div className="container-fluid px-4 py-3">
-               <div className="d-flex align-items-center mb-4">
-                    <button type="button" onClick={() => router.push('/human-resource/payroll')} className="btn btn-outline-secondary btn-sm me-3">
-                         <RiArrowLeftLine size={18} />
-                    </button>
+               <div className="d-flex align-items-center justify-content-between mb-4">
                     <div className="d-flex align-items-center">
-                         <RiBankCardLine size={28} style={{ color: COLOR_ACCENT }} className="me-2" />
-                         <div>
-                              <h1 className="h4 mb-0 fw-bold">Other Deductions</h1>
-                              <p className="text-muted mb-0 small">Manage loans, advances, and other employee deductions</p>
+                         <button type="button" onClick={() => router.push('/human-resource/payroll')} className="btn btn-outline-secondary btn-sm me-3">
+                              <RiArrowLeftLine size={18} />
+                         </button>
+                         <div className="d-flex align-items-center">
+                              <RiBankCardLine size={28} style={{ color: COLOR_ACCENT }} className="me-2" />
+                              <div>
+                                   <h1 className="h4 mb-0 fw-bold">Other Deductions</h1>
+                                   <p className="text-muted mb-0 small">Manage loans, advances, and other employee deductions</p>
+                              </div>
                          </div>
                     </div>
+                    <button
+                         type="button"
+                         className="btn btn-primary"
+                         style={{ backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT }}
+                         onClick={openCreateDeductionModal}
+                    >
+                         Create Deduction
+                    </button>
                </div>
 
                <div className="row g-3 mb-4">
@@ -486,151 +610,23 @@ export default function OtherDeductionsPage() {
                     </div>
                </div>
 
-               {error && <div className="alert alert-danger">{error}</div>}
+               {error && (
+                    <div className="alert alert-danger d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+                         <span>{error}</span>
+                         {loanAdjustmentSuggestion && (
+                              <button
+                                   type="button"
+                                   className="btn btn-sm btn-outline-danger"
+                                   onClick={openLoanAdjustmentModal}
+                              >
+                                   Create Loan Adjustment
+                              </button>
+                         )}
+                    </div>
+               )}
 
                <div className="row g-4">
-                    <div className="col-xl-5">
-                         <div className="border rounded p-4 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                              <h5 className="fw-semibold mb-3">{editingDeductionId ? 'Update Other Deduction' : 'Create Other Deduction'}</h5>
-                              <form onSubmit={handleSubmit}>
-                                   <div className="mb-3">
-                                        <label className="form-label fw-medium">Employee</label>
-                                        <select className="form-select" value={selectedEmployeeId} onChange={(event) => setSelectedEmployeeId(event.target.value)} disabled={employeesLoading} required>
-                                             <option value="">Select employee</option>
-                                             {employees.map((employee) => (
-                                                  <option key={employee.employeeid} value={employee.employeeid}>
-                                                       {employee.username} - {employee.role}
-                                                  </option>
-                                             ))}
-                                        </select>
-                                   </div>
-
-                                   <div className="mb-3">
-                                        <label className="form-label fw-medium">Deduction Definition</label>
-                                        <select name="deduction_definition_id" className="form-select" value={formData.deduction_definition_id} onChange={handleDefinitionSelect}>
-                                             <option value="">Use a custom deduction instead</option>
-                                             {definitions.map((definition) => (
-                                                  <option key={definition.id} value={definition.id}>
-                                                       {definition.deduction_name} ({definition.deduction_code})
-                                                  </option>
-                                             ))}
-                                        </select>
-                                        <div className="form-text">
-                                             Pick a reusable definition to auto-fill the type and name, or leave blank to enter a custom deduction.
-                                        </div>
-                                   </div>
-
-                                   {!formData.deduction_definition_id && (
-                                        <div className="row g-3 mb-3">
-                                             <div className="col-md-6">
-                                                  <label className="form-label fw-medium">Deduction Type</label>
-                                                  <select name="deduction_type" className="form-select" value={formData.deduction_type} onChange={handleChange} required>
-                                                       {DEDUCTION_TYPES.map((type) => (
-                                                            <option key={type} value={type}>
-                                                                 {type.replace('_', ' ')}
-                                                            </option>
-                                                       ))}
-                                                  </select>
-                                             </div>
-                                             <div className="col-md-6">
-                                                  <label className="form-label fw-medium">Deduction Name</label>
-                                                  <input name="deduction_name" type="text" className="form-control" value={formData.deduction_name} onChange={handleChange} placeholder="Staff Loan" required />
-                                             </div>
-                                        </div>
-                                   )}
-
-                                   <div className="row g-3 mb-3">
-                                        <div className="col-md-4">
-                                             <label className="form-label fw-medium">Amount</label>
-                                             <input name="amount" type="number" step="0.01" min="0" className="form-control" value={formData.amount} onChange={handleChange} required />
-                                        </div>
-                                        <div className="col-md-4">
-                                             <label className="form-label fw-medium">Priority</label>
-                                             <input name="deduction_priority" type="number" step="1" min="1" className="form-control" value={formData.deduction_priority} onChange={handleChange} required />
-                                        </div>
-                                        <div className="col-md-4">
-                                             <label className="form-label fw-medium">Start Date</label>
-                                             <input name="start_date" type="date" className="form-control" value={formData.start_date} onChange={handleChange} required />
-                                        </div>
-                                   </div>
-
-                                   <div className="row g-3 mb-3">
-                                        <div className="col-md-6">
-                                             <label className="form-label fw-medium">Frequency</label>
-                                             <select name="frequency" className="form-select" value={formData.frequency} onChange={handleChange}>
-                                                  {FREQUENCIES.map((frequency) => (
-                                                       <option key={frequency} value={frequency}>
-                                                            {frequency}
-                                                       </option>
-                                                  ))}
-                                             </select>
-                                        </div>
-                                        <div className="col-md-6 form-check d-flex align-items-end mb-0">
-                                             <input className="form-check-input me-2" type="checkbox" id="is_recurring" name="is_recurring" checked={formData.is_recurring} onChange={handleChange} />
-                                             <label className="form-check-label" htmlFor="is_recurring">
-                                                  Recurring deduction
-                                             </label>
-                                        </div>
-                                   </div>
-
-                                   <div className="row g-3 mb-3">
-                                        <div className="col-md-6">
-                                             <label className="form-label fw-medium">Total Amount</label>
-                                             <input name="total_amount" type="number" step="0.01" min="0" className="form-control" value={formData.total_amount} onChange={handleChange} placeholder="Required for one-time deductions" />
-                                        </div>
-                                        <div className="col-md-6">
-                                             <label className="form-label fw-medium">Remaining Balance</label>
-                                             <input name="remaining_balance" type="number" step="0.01" min="0" className="form-control" value={formData.remaining_balance} onChange={handleChange} placeholder="Optional; defaults to total amount" />
-                                        </div>
-                                   </div>
-
-                                   <div className="mb-3">
-                                        <label className="form-label fw-medium">End Date</label>
-                                        <input name="end_date" type="date" className="form-control" value={formData.end_date} onChange={handleChange} min={formData.start_date} />
-                                   </div>
-
-                                   <div className="mb-3 form-check">
-                                        <input className="form-check-input" type="checkbox" id="is_active" name="is_active" checked={formData.is_active} onChange={handleChange} />
-                                        <label className="form-check-label" htmlFor="is_active">
-                                             Mark as active
-                                        </label>
-                                   </div>
-
-                                   <div className="mb-3">
-                                        <label className="form-label fw-medium">Remarks</label>
-                                        <textarea name="remarks" className="form-control" rows={3} value={formData.remarks} onChange={handleChange} placeholder="Optional notes for payroll" />
-                                   </div>
-
-                                   <div className="mb-4">
-                                        <label className="form-label fw-medium">Attachments</label>
-                                        <input name="attachments" type="text" className="form-control" value={formData.attachments} onChange={handleChange} placeholder="Optional file path or upload reference" />
-                                   </div>
-
-                                   <div className="d-flex gap-2 align-items-center">
-                                        <button type="submit" className="btn btn-primary d-flex align-items-center" disabled={submitting || loading} style={{ backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT }}>
-                                             {submitting ? (
-                                                  <>
-                                                       <RiLoader4Line size={18} className="me-1 animate-spin" />
-                                                       Saving...
-                                                  </>
-                                             ) : (
-                                                  <>
-                                                       <RiSaveLine size={18} className="me-1" />
-                                                       {editingDeductionId ? 'Update Deduction' : 'Create Deduction'}
-                                                  </>
-                                             )}
-                                        </button>
-                                        {editingDeductionId && (
-                                             <button type="button" className="btn btn-outline-secondary" onClick={resetForm}>
-                                                  Cancel Edit
-                                             </button>
-                                        )}
-                                   </div>
-                              </form>
-                         </div>
-                    </div>
-
-                    <div className="col-xl-7">
+                    <div className="col-12">
                          <div className="border rounded p-4 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <h5 className="fw-semibold mb-3">Employee Deduction Breakdown</h5>
                               <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
@@ -723,7 +719,7 @@ export default function OtherDeductionsPage() {
                                                   </thead>
                                                   <tbody>
                                                        {pendingApprovals.length > 0 ? pendingApprovals.slice(0, 5).map((deduction) => (
-                                                            <tr key={deduction.id}>
+                                                            <tr key={deduction.id} className="pending-approval-row">
                                                                  <td className="text-start small">{getEmployeeDisplayName(deduction)}</td>
                                                                  <td className="text-start small">{deduction.deduction_name}</td>
                                                                  <td className="text-end small">{currencyFormatter.format(Number(deduction.amount || 0))}</td>
@@ -781,9 +777,239 @@ export default function OtherDeductionsPage() {
                     </div>
                </div>
 
+               {showDeductionFormModal && (
+                    <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} onClick={() => !submitting && setShowDeductionFormModal(false)}>
+                         <div className="modal-dialog modal-lg modal-dialog-centered" onClick={(event) => event.stopPropagation()}>
+                              <div className="modal-content">
+                                   <div className="modal-header">
+                                        <h5 className="modal-title fw-bold">{editingDeductionId ? 'Update Other Deduction' : 'Create Other Deduction'}</h5>
+                                        <button type="button" className="btn-close" onClick={() => setShowDeductionFormModal(false)} disabled={submitting}></button>
+                                   </div>
+                                   <form onSubmit={handleSubmit}>
+                                        <div className="modal-body">
+                                             <div className="mb-3">
+                                                  <label className="form-label fw-medium">Employee</label>
+                                                  <select className="form-select" value={selectedEmployeeId} onChange={(event) => setSelectedEmployeeId(event.target.value)} disabled={employeesLoading} required>
+                                                       <option value="">Select employee</option>
+                                                       {employees.map((employee) => (
+                                                            <option key={employee.employeeid} value={employee.employeeid}>
+                                                                 {employee.username} - {employee.role}
+                                                            </option>
+                                                       ))}
+                                                  </select>
+                                             </div>
+
+                                             <div className="mb-3">
+                                                  <label className="form-label fw-medium">Deduction Definition</label>
+                                                  <select name="deduction_definition_id" className="form-select" value={formData.deduction_definition_id} onChange={handleDefinitionSelect}>
+                                                       <option value="">Use a custom deduction instead</option>
+                                                       {definitions.map((definition) => (
+                                                            <option key={definition.id} value={definition.id}>
+                                                                 {definition.deduction_name} ({definition.deduction_code})
+                                                            </option>
+                                                       ))}
+                                                  </select>
+                                                  <div className="form-text">
+                                                       Pick a reusable definition to auto-fill the type and name, or leave blank to enter a custom deduction.
+                                                  </div>
+                                             </div>
+
+                                             {!formData.deduction_definition_id && (
+                                                  <div className="row g-3 mb-3">
+                                                       <div className="col-md-6">
+                                                            <label className="form-label fw-medium">Deduction Type</label>
+                                                            <select name="deduction_type" className="form-select" value={formData.deduction_type} onChange={handleChange} required>
+                                                                 {DEDUCTION_TYPES.map((type) => (
+                                                                      <option key={type} value={type}>
+                                                                           {type.replace('_', ' ')}
+                                                                      </option>
+                                                                 ))}
+                                                            </select>
+                                                       </div>
+                                                       <div className="col-md-6">
+                                                            <label className="form-label fw-medium">Deduction Name</label>
+                                                            <input name="deduction_name" type="text" className="form-control" value={formData.deduction_name} onChange={handleChange} placeholder="Staff Loan" required />
+                                                       </div>
+                                                  </div>
+                                             )}
+
+                                             <div className="row g-3 mb-3">
+                                                  <div className="col-md-4">
+                                                       <label className="form-label fw-medium">Amount</label>
+                                                       <input name="amount" type="number" step="0.01" min="0" className="form-control" value={formData.amount} onChange={handleChange} required />
+                                                  </div>
+                                                  <div className="col-md-4">
+                                                       <label className="form-label fw-medium">Priority</label>
+                                                       <input name="deduction_priority" type="number" step="1" min="1" className="form-control" value={formData.deduction_priority} onChange={handleChange} required />
+                                                  </div>
+                                                  <div className="col-md-4">
+                                                       <label className="form-label fw-medium">Start Date</label>
+                                                       <input name="start_date" type="date" className="form-control" value={formData.start_date} onChange={handleChange} required />
+                                                  </div>
+                                             </div>
+
+                                             <div className="row g-3 mb-3">
+                                                  <div className="col-md-6">
+                                                       <label className="form-label fw-medium">Frequency</label>
+                                                       <select name="frequency" className="form-select" value={formData.frequency} onChange={handleChange}>
+                                                            {FREQUENCIES.map((frequency) => (
+                                                                 <option key={frequency} value={frequency}>
+                                                                      {frequency}
+                                                                 </option>
+                                                            ))}
+                                                       </select>
+                                                  </div>
+                                                  <div className="col-md-6 form-check d-flex align-items-end mb-0">
+                                                       <input className="form-check-input me-2" type="checkbox" id="is_recurring" name="is_recurring" checked={formData.is_recurring} onChange={handleChange} />
+                                                       <label className="form-check-label" htmlFor="is_recurring">
+                                                            Recurring deduction
+                                                       </label>
+                                                  </div>
+                                             </div>
+
+                                             <div className="row g-3 mb-3">
+                                                  <div className="col-md-6">
+                                                       <label className="form-label fw-medium">Total Amount</label>
+                                                       <input name="total_amount" type="number" step="0.01" min="0" className="form-control" value={formData.total_amount} onChange={handleChange} placeholder="Required for one-time deductions" />
+                                                  </div>
+                                                  <div className="col-md-6">
+                                                       <label className="form-label fw-medium">Remaining Balance</label>
+                                                       <input name="remaining_balance" type="number" step="0.01" min="0" className="form-control" value={formData.remaining_balance} onChange={handleChange} placeholder="Optional; defaults to total amount" />
+                                                  </div>
+                                             </div>
+
+                                             <div className="mb-3">
+                                                  <label className="form-label fw-medium">End Date</label>
+                                                  <input name="end_date" type="date" className="form-control" value={formData.end_date} onChange={handleChange} min={formData.start_date} />
+                                             </div>
+
+                                             <div className="mb-3 form-check">
+                                                  <input className="form-check-input" type="checkbox" id="is_active" name="is_active" checked={formData.is_active} onChange={handleChange} />
+                                                  <label className="form-check-label" htmlFor="is_active">
+                                                       Mark as active
+                                                  </label>
+                                             </div>
+
+                                             <div className="mb-3">
+                                                  <label className="form-label fw-medium">Remarks</label>
+                                                  <textarea name="remarks" className="form-control" rows={3} value={formData.remarks} onChange={handleChange} placeholder="Optional notes for payroll" />
+                                             </div>
+
+                                             <div className="mb-1">
+                                                  <label className="form-label fw-medium">Attachments</label>
+                                                  <input name="attachments" type="text" className="form-control" value={formData.attachments} onChange={handleChange} placeholder="Optional file path or upload reference" />
+                                             </div>
+                                        </div>
+                                        <div className="modal-footer">
+                                             <button
+                                                  type="button"
+                                                  className="btn btn-outline-secondary"
+                                                  onClick={() => {
+                                                       setShowDeductionFormModal(false);
+                                                       if (!editingDeductionId) {
+                                                            resetForm();
+                                                       }
+                                                  }}
+                                                  disabled={submitting}
+                                             >
+                                                  Cancel
+                                             </button>
+                                             <button type="submit" className="btn btn-primary d-flex align-items-center" disabled={submitting || loading} style={{ backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT }}>
+                                                  {submitting ? (
+                                                       <>
+                                                            <RiLoader4Line size={18} className="me-1 animate-spin" />
+                                                            Saving...
+                                                       </>
+                                                  ) : (
+                                                       <>
+                                                            <RiSaveLine size={18} className="me-1" />
+                                                            {editingDeductionId ? 'Update Deduction' : 'Create Deduction'}
+                                                       </>
+                                                  )}
+                                             </button>
+                                        </div>
+                                   </form>
+                              </div>
+                         </div>
+                    </div>
+               )}
+
+               {showLoanAdjustmentModal && loanAdjustmentSuggestion && (
+                    <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} onClick={() => !loanAdjustmentSubmitting && setShowLoanAdjustmentModal(false)}>
+                         <div className="modal-dialog modal-dialog-centered" onClick={(event) => event.stopPropagation()}>
+                              <div className="modal-content">
+                                   <div className="modal-header">
+                                        <h5 className="modal-title fw-bold">Create Loan Adjustment</h5>
+                                        <button type="button" className="btn-close" onClick={() => setShowLoanAdjustmentModal(false)} disabled={loanAdjustmentSubmitting}></button>
+                                   </div>
+                                   <form onSubmit={handleLoanAdjustmentSubmit}>
+                                        <div className="modal-body">
+                                             <div className="small text-muted mb-3">
+                                                  {loanAdjustmentSuggestion.deductionName}
+                                             </div>
+
+                                             <div className="mb-3">
+                                                  <label className="form-label fw-medium">Adjustment Action</label>
+                                                  <select
+                                                       className="form-select"
+                                                       name="adjustment_action"
+                                                       value={loanAdjustmentForm.adjustment_action}
+                                                       onChange={handleLoanAdjustmentChange}
+                                                       required
+                                                  >
+                                                       <option value="increase_balance">Increase Balance</option>
+                                                       <option value="decrease_balance">Decrease Balance</option>
+                                                  </select>
+                                             </div>
+
+                                             <div className="mb-3">
+                                                  <label className="form-label fw-medium">Adjustment Amount</label>
+                                                  <input
+                                                       type="number"
+                                                       step="0.01"
+                                                       min="0.01"
+                                                       className="form-control"
+                                                       name="adjustment_amount"
+                                                       value={loanAdjustmentForm.adjustment_amount}
+                                                       onChange={handleLoanAdjustmentChange}
+                                                       required
+                                                  />
+                                             </div>
+
+                                             <div>
+                                                  <label className="form-label fw-medium">Reason</label>
+                                                  <textarea
+                                                       className="form-control"
+                                                       rows={3}
+                                                       name="reason"
+                                                       value={loanAdjustmentForm.reason}
+                                                       onChange={handleLoanAdjustmentChange}
+                                                       placeholder="Reason for the loan balance adjustment"
+                                                       required
+                                                  />
+                                             </div>
+                                        </div>
+                                        <div className="modal-footer">
+                                             <button type="button" className="btn btn-secondary" onClick={() => setShowLoanAdjustmentModal(false)} disabled={loanAdjustmentSubmitting}>
+                                                  Cancel
+                                             </button>
+                                             <button type="submit" className="btn btn-danger" disabled={loanAdjustmentSubmitting}>
+                                                  {loanAdjustmentSubmitting ? 'Submitting...' : 'Submit Adjustment'}
+                                             </button>
+                                        </div>
+                                   </form>
+                              </div>
+                         </div>
+                    </div>
+               )}
+
                <style jsx global>{`
                     .animate-spin {
                          animation: spin 1s linear infinite;
+                    }
+
+                    .pending-approval-row > td {
+                         background-color: var(--bs-danger-bg-subtle) !important;
                     }
 
                     @keyframes spin {

@@ -75,6 +75,13 @@ const quickAccessCards: QuickAccessCard[] = [
           link: "/human-resource/payroll/deductions/other",
           icon: <RiFileListLine size={32} />,
           color: "#b45309"
+     },
+     {
+          title: "Allowances",
+          description: "Manage recurring and one-time allowances",
+          link: "/human-resource/payroll/allowance",
+          icon: <RiBankCardLine size={32} />,
+          color: "#0d9488"
      }
 ];
 

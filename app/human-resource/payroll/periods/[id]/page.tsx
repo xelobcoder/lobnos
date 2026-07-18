@@ -69,10 +69,14 @@ interface PayrollTransaction {
      days_absent: number | null;
      days_leave: number | null;
      status: string;
+     salary_grade_id?: number | null;
+     salary_grade?: string | null;
+     tax_relief?: number | string | null;
      payment_date: string | null;
      payment_method: string | null;
      payment_reference: string | null;
      allowances_detail: unknown[];
+     allowances?: unknown[];
      bonuses_detail: unknown[];
      other_deductions_detail: unknown[];
      created_at: string;
@@ -83,12 +87,37 @@ interface PayrollDetailItem {
      type?: string;
      name?: string;
      amount?: number | string;
+     relief_name?: string;
      source?: string;
      calculation_method?: string;
      is_statutory?: boolean;
+     is_taxable?: boolean | number;
+     taxable_income?: number | string;
+     effective_tax_rate?: number | string;
+     tax_relief_total?: number | string;
+     tax_relief_details?: PayrollDetailItem[];
      priority?: number | string;
      remaining_balance?: number | string;
+     requires_disability?: boolean;
+     relief_amount?: number | string;
 }
+
+const toDetailArray = (value: unknown): PayrollDetailItem[] => {
+     if (Array.isArray(value)) {
+          return value as PayrollDetailItem[];
+     }
+
+     if (typeof value === 'string') {
+          try {
+               const parsed = JSON.parse(value);
+               return Array.isArray(parsed) ? (parsed as PayrollDetailItem[]) : [];
+          } catch {
+               return [];
+          }
+     }
+
+     return [];
+};
 
 const normalizeTransaction = (txn: any): PayrollTransaction => ({
      ...txn,
@@ -96,14 +125,23 @@ const normalizeTransaction = (txn: any): PayrollTransaction => ({
      employee_role: txn?.employee_role || txn?.employeerole || 'N/A',
      email: txn?.email || 'N/A',
      branch_name: txn?.branch_name || 'N/A',
-     allowances_detail: Array.isArray(txn?.allowances_detail) ? txn.allowances_detail : [],
-     bonuses_detail: Array.isArray(txn?.bonuses_detail) ? txn.bonuses_detail : [],
-     other_deductions_detail: Array.isArray(txn?.other_deductions_detail) ? txn.other_deductions_detail : []
+     allowances_detail: toDetailArray(txn?.allowances_detail ?? txn?.allowance_details),
+     allowances: toDetailArray(txn?.allowances),
+     bonuses_detail: toDetailArray(txn?.bonuses_detail ?? txn?.bonuses),
+     other_deductions_detail: toDetailArray(txn?.other_deductions_detail ?? txn?.deductions_detail)
 });
 
 const toNumber = (value: number | string | null | undefined): number => {
      const parsed = Number(value ?? 0);
      return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const formatDisplayLabel = (value: string): string => {
+     return value
+          .replace(/_/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim()
+          .toUpperCase();
 };
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
@@ -335,7 +373,7 @@ export default function PayrollPeriodDetailPage() {
           const baseUrl = process.env.NODE_ENV === 'development' ? process.env.DEVELOPMENT_BASEURL : process.env.PRODUCTION_BASEURL;
           const logoDataUrl = baseUrl ? await loadImageAsDataURL(`${baseUrl}settings/companyprofile/images`) : null;
 
-          const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape',compress:true });
+          const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape', compress: true });
           const pageWidth = doc.internal.pageSize.getWidth();
           const pageHeight = doc.internal.pageSize.getHeight();
           const margin = 10;
@@ -344,6 +382,9 @@ export default function PayrollPeriodDetailPage() {
           const fmt = (value: number | string | null | undefined) => {
                const num = toNumber(value);
                return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num);
+          };
+          const detailLabel = (item: PayrollDetailItem, fallback: string) => {
+               return formatDisplayLabel(String(item?.name || item?.type || fallback));
           };
 
           const allowancesDetails = (Array.isArray(transaction.allowances_detail) ? transaction.allowances_detail : []) as PayrollDetailItem[];
@@ -394,24 +435,20 @@ export default function PayrollPeriodDetailPage() {
                styles: { lineColor: [0, 0, 0], lineWidth: 0.2, cellPadding: 1.5 },
                body: [
                     [
-                         { content: 'DATE', styles: headCellStyle }, { content: formatDate(new Date().toISOString()), styles: valueCellStyle },
-                         { content: 'COMPANY', styles: headCellStyle }, { content: company.name || 'N/A', styles: valueCellStyle }
+                         { content: 'COMPANY', styles: headCellStyle }, { content: company.name || 'N/A', styles: valueCellStyle },
+                         { content: 'BRANCH', styles: headCellStyle }, { content: transaction.branch_name || 'N/A', styles: valueCellStyle }
                     ],
                     [
                          { content: 'PERIOD', styles: headCellStyle }, { content: `FROM ${formatDate(period.period_start_date)} TO ${formatDate(period.period_end_date)}`, styles: valueCellStyle },
-                         { content: 'BRANCH', styles: headCellStyle }, { content: transaction.branch_name || 'N/A', styles: valueCellStyle }
+                         { content: 'PAYMENT DATE', styles: headCellStyle }, { content: transaction.payment_date ? formatDate(transaction.payment_date) : 'N/A', styles: valueCellStyle }
                     ],
                     [
                          { content: 'NAME', styles: headCellStyle }, { content: transaction.employee_name, styles: valueCellStyle },
                          { content: 'STAFF ID', styles: headCellStyle }, { content: String(transaction.employeeid), styles: valueCellStyle }
                     ],
                     [
-                         // { content: 'POSITION', styles: headCellStyle }, { content: transaction.employee_role.toUpperCase(), styles: valueCellStyle },
-                         { content: 'STATUS', styles: headCellStyle }, { content: transaction.status.toUpperCase(), styles: valueCellStyle }
-                    ],
-                    [
-                         // { content: 'PAYMENT MODE', styles: headCellStyle }, { content: transaction.payment_method || 'PENDING', styles: valueCellStyle },
-                         { content: 'PAYMENT DATE', styles: headCellStyle }, { content: transaction.payment_date ? formatDate(transaction.payment_date) : 'N/A', styles: valueCellStyle }
+                         { content: 'SALARY GRADE', styles: headCellStyle }, { content: transaction.salary_grade || 'N/A', styles: valueCellStyle },
+                         { content: 'PAYMENT METHOD', styles: headCellStyle }, { content: transaction.payment_method || 'N/A', styles: valueCellStyle }
                     ]
                ],
                columnStyles: {
@@ -428,13 +465,13 @@ export default function PayrollPeriodDetailPage() {
           const monthYear = formatDate(period.period_end_date);
           const rows: any[] = [];
           let eIdx = 1;
+          const hasAllowanceDetails = allowancesDetails.some((entry) => toNumber(entry?.amount) > 0);
+          const hasBonusDetails = bonusDetails.some((entry) => toNumber(entry?.amount) > 0);
           [
-               ['Basic Salary', transaction.basic_salary],
-               ['Hourly Earnings', transaction.hourly_earnings],
-               ['Overtime Earnings', transaction.overtime_earnings],
-               ['Commission', transaction.commission_earnings],
-               ['Allowances', transaction.total_allowances],
-               ['Bonuses', transaction.total_bonuses]
+               ['BASIC SALARY', transaction.basic_salary],
+               ['HOURLY EARNINGS', transaction.hourly_earnings],
+               ['OVERTIME EARNINGS', transaction.overtime_earnings],
+               ['COMMISSION', transaction.commission_earnings]
           ].forEach(([label, value]) => {
                const num = toNumber(value);
                if (num > 0) {
@@ -443,10 +480,20 @@ export default function PayrollPeriodDetailPage() {
                }
           });
 
+          if (!hasAllowanceDetails && toNumber(transaction.total_allowances) > 0) {
+               rows.push([monthYear, 'ALLOWANCE', `E${String(eIdx).padStart(2, '0')}`, 'ALLOWANCES', '-', fmt(transaction.total_allowances), '', '']);
+               eIdx++;
+          }
+
+          if (!hasBonusDetails && toNumber(transaction.total_bonuses) > 0) {
+               rows.push([monthYear, 'BONUS', `E${String(eIdx).padStart(2, '0')}`, 'BONUSES', '-', fmt(transaction.total_bonuses), '', '']);
+               eIdx++;
+          }
+
           allowancesDetails.forEach((entry) => {
                const amount = toNumber(entry?.amount);
                if (amount > 0) {
-                    rows.push([monthYear, 'ALLOWANCE', `E${String(eIdx).padStart(2, '0')}`, entry?.name || entry?.type || 'Allowance', '-', fmt(amount), '']);
+                    rows.push([monthYear, 'ALLOWANCE', `E${String(eIdx).padStart(2, '0')}`, detailLabel(entry, 'Allowance'), '-', fmt(amount), '', '']);
                     eIdx++;
                }
           });
@@ -454,7 +501,7 @@ export default function PayrollPeriodDetailPage() {
           bonusDetails.forEach((entry) => {
                const amount = toNumber(entry?.amount);
                if (amount > 0) {
-                    rows.push([monthYear, 'BONUS', `E${String(eIdx).padStart(2, '0')}`, entry?.name || entry?.type || 'Bonus', '-', fmt(amount), '']);
+                    rows.push([monthYear, 'BONUS', `E${String(eIdx).padStart(2, '0')}`, detailLabel(entry, 'Bonus'), '-', fmt(amount), '', '']);
                     eIdx++;
                }
           });
@@ -464,85 +511,63 @@ export default function PayrollPeriodDetailPage() {
           if (deductionDetails.length > 0) {
                deductionDetails.forEach((entry) => {
                     const amount = toNumber(entry?.amount);
-                    rows.push([monthYear, 'DEDUCTION', `D${String(dIdx).padStart(2, '0')}`, entry?.name || entry?.type || 'Deduction', '-', '', fmt(amount)]);
+                    rows.push([
+                         monthYear,
+                         'DEDUCTION',
+                         `D${String(dIdx).padStart(2, '0')}`,
+                         detailLabel(entry, 'Deduction'),
+                         '-',
+                         '',
+                         fmt(amount),
+                         entry?.remaining_balance !== undefined && entry?.remaining_balance !== null ? fmt(entry.remaining_balance) : '-'
+                    ]);
                     dIdx++;
                });
           } else {
                [
-                    ['Income Tax', transaction.income_tax],
-                    ['Employee SSNIT', transaction.employee_ssnit],
-                    ['Employee Tier 3', transaction.employee_tier3],
+                    ['INCOME TAX', transaction.income_tax],
+                    ['EMPLOYEE SSNIT', transaction.employee_ssnit],
+                    ['EMPLOYEE TIER 3', transaction.employee_tier3],
                     ['NHIS', transaction.nhis],
-                    ['Other Deductions', transaction.total_other_deductions]
+                    ['OTHER DEDUCTIONS', transaction.total_other_deductions]
                ].forEach(([label, value]) => {
                     const num = toNumber(value as number | string | null | undefined);
-                    rows.push([monthYear, 'DEDUCTION', `D${String(dIdx).padStart(2, '0')}`, label, '-', '', fmt(num)]);
+                    rows.push([monthYear, 'DEDUCTION', `D${String(dIdx).padStart(2, '0')}`, label, '-', '', fmt(num), '-']);
                     dIdx++;
                });
           }
+
+          const totalBalance = deductionDetails.reduce((sum, entry) => sum + toNumber(entry?.remaining_balance), 0);
+          const totalBalanceText = totalBalance > 0 ? fmt(totalBalance) : '-';
 
           autoTable(doc, {
                startY: yPos,
                margin: { left: margin, right: margin },
                theme: 'grid',
                styles: { lineColor: [0, 0, 0], lineWidth: 0.2, fontSize: 7.5, cellPadding: 1.5 },
-               head: [['MONTH/YEAR', 'NATURE', 'CODE', 'DESCRIPTION', 'RATE/HRS', 'PAYMENTS (GHS)', 'DEDUCTIONS (GHS)']],
+               head: [['MONTH/YEAR', 'NATURE', 'CODE', 'DESCRIPTION', 'RATE/HRS', 'PAYMENTS (GHS)', 'DEDUCTIONS (GHS)', 'BALANCE (GHS)']],
                headStyles: { fillColor: [235, 235, 235], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center', fontSize: 7.5 },
                body: rows,
                columnStyles: {
-                    0: { cellWidth: 20 },
-                    1: { cellWidth: 22 },
-                    2: { cellWidth: 14 },
-                    3: { cellWidth: 'auto' },
-                    4: { cellWidth: 16, halign: 'center' },
-                    5: { cellWidth: 26, halign: 'right' },
-                    6: { cellWidth: 28, halign: 'right' }
+                    0: { cellWidth: 25 },
+                    1: { cellWidth: 24 },
+                    2: { cellWidth: 18 },
+                    3: { cellWidth: 105 },
+                    4: { cellWidth: 18, halign: 'center' },
+                    5: { cellWidth: 29, halign: 'right' },
+                    6: { cellWidth: 29, halign: 'right' },
+                    7: { cellWidth: 29, halign: 'right' }
                },
                foot: [[
                     { content: 'TOTALS', colSpan: 5, styles: { halign: 'right', fontStyle: 'bold' } },
                     { content: fmt(transaction.gross_salary), styles: { halign: 'right', fontStyle: 'bold' } },
-                    { content: fmt(transaction.total_deductions), styles: { halign: 'right', fontStyle: 'bold' } }
+                    { content: fmt(transaction.total_deductions), styles: { halign: 'right', fontStyle: 'bold' } },
+                    { content: totalBalanceText, styles: { halign: 'right', fontStyle: 'bold' } }
                ]],
                footStyles: { fillColor: [220, 220, 220], textColor: [0, 0, 0], fontSize: 8 }
           });
 
           yPos = (doc as any).lastAutoTable.finalY + 4;
-
-          const deductionMetaRows = deductionDetails
-               .filter(
-                    (entry) =>
-                         entry?.priority !== undefined && entry?.priority !== null ||
-                         entry?.remaining_balance !== undefined && entry?.remaining_balance !== null
-               )
-               .map((entry) => [
-                    entry?.name || entry?.type || 'Deduction',
-                    entry?.source || 'N/A',
-                    entry?.calculation_method || 'N/A',
-                    entry?.is_statutory ? 'Yes' : 'No',
-                    entry?.priority !== undefined && entry?.priority !== null ? String(entry.priority) : '-',
-                    entry?.remaining_balance !== undefined && entry?.remaining_balance !== null ? fmt(entry.remaining_balance) : '-'
-               ]);
-
-          if (deductionMetaRows.length > 0) {
-               autoTable(doc, {
-                    startY: yPos,
-                    margin: { left: margin, right: margin },
-                    theme: 'grid',
-                    styles: { lineColor: [0, 0, 0], lineWidth: 0.2, fontSize: 7, cellPadding: 1.3 },
-                    head: [['Deduction Balance Info', 'Source', 'Method', 'Statutory', 'Priority', 'Balance (GHS)']],
-                    headStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center', fontSize: 7 },
-                    body: deductionMetaRows,
-                    columnStyles: {
-                         0: { cellWidth: 52 },
-                         1: { cellWidth: 24 },
-                         2: { cellWidth: 40 },
-                         3: { cellWidth: 20, halign: 'center' },
-                         4: { cellWidth: 20, halign: 'center' },
-                         5: { cellWidth: 28, halign: 'right' }
-                    }
-               });
-               yPos = (doc as any).lastAutoTable.finalY + 4;
-          }
 
           // SUMMARY GRID
           autoTable(doc, {
@@ -644,6 +669,26 @@ export default function PayrollPeriodDetailPage() {
      const selectedDeductionDetails = (selectedTransaction && Array.isArray(selectedTransaction.other_deductions_detail)
           ? selectedTransaction.other_deductions_detail
           : []) as PayrollDetailItem[];
+     const selectedAllowanceDetails = (
+          selectedTransaction
+               ? [
+                    ...(Array.isArray(selectedTransaction.allowances_detail) ? selectedTransaction.allowances_detail : []),
+                    ...(Array.isArray(selectedTransaction.allowances) ? selectedTransaction.allowances : [])
+               ]
+               : []
+     ) as PayrollDetailItem[];
+     const selectedAllowanceRows = selectedAllowanceDetails.length > 0
+          ? selectedAllowanceDetails
+          : toNumber(selectedTransaction?.total_allowances) > 0
+               ? [{ name: 'Total Allowances', amount: selectedTransaction?.total_allowances }]
+               : [];
+     const selectedBonusDetails = (selectedTransaction && Array.isArray(selectedTransaction.bonuses_detail)
+          ? selectedTransaction.bonuses_detail
+          : []) as PayrollDetailItem[];
+     const incomeTaxDetail = selectedDeductionDetails.find((item) => item?.type === 'income_tax');
+     const selectedTaxReliefDetails = Array.isArray(incomeTaxDetail?.tax_relief_details)
+          ? incomeTaxDetail.tax_relief_details
+          : [];
 
      if (loading) {
           return (
@@ -1065,6 +1110,41 @@ export default function PayrollPeriodDetailPage() {
                                                        </div>
                                                   </div>
                                              </div>
+
+                                             {(selectedAllowanceRows.length > 0 || selectedBonusDetails.length > 0) && (
+                                                  <div className="mt-3">
+                                                       <div className="table-responsive">
+                                                            <table className="table table-sm table-hover text-start mb-0">
+                                                                 <thead className="table-light">
+                                                                      <tr>
+                                                                           <th className="text-start">Type</th>
+                                                                           <th className="text-start">Name</th>
+                                                                           <th className="text-start">Taxable</th>
+                                                                           <th className="text-end">Amount</th>
+                                                                      </tr>
+                                                                 </thead>
+                                                                 <tbody>
+                                                                      {selectedAllowanceRows.map((item, index) => (
+                                                                           <tr key={`allowance-${index}`}>
+                                                                                <td className="text-start small">Allowance</td>
+                                                                                <td className="text-start small">{item.name || item.type || 'Allowance'}</td>
+                                                                                <td className="text-start small">{item.is_taxable === undefined ? 'N/A' : Number(item.is_taxable) === 1 || item.is_taxable === true ? 'Yes' : 'No'}</td>
+                                                                                <td className="text-end small">{currencyFormatter.format(toNumber(item.amount))}</td>
+                                                                           </tr>
+                                                                      ))}
+                                                                      {selectedBonusDetails.map((item, index) => (
+                                                                           <tr key={`bonus-${index}`}>
+                                                                                <td className="text-start small">Bonus</td>
+                                                                                <td className="text-start small">{item.name || item.type || 'Bonus'}</td>
+                                                                                <td className="text-start small">{item.is_taxable === undefined ? 'N/A' : Number(item.is_taxable) === 1 || item.is_taxable === true ? 'Yes' : 'No'}</td>
+                                                                                <td className="text-end small">{currencyFormatter.format(toNumber(item.amount))}</td>
+                                                                           </tr>
+                                                                      ))}
+                                                                 </tbody>
+                                                            </table>
+                                                       </div>
+                                                  </div>
+                                             )}
                                         </div>
 
                                         {/* Salary Summary */}
@@ -1132,6 +1212,45 @@ export default function PayrollPeriodDetailPage() {
                                                                  <div className="text-muted small mb-1">Other Deductions</div>
                                                                  <div className="fw-bold fs-6">{currencyFormatter.format(Number(selectedTransaction.total_other_deductions ?? 0))}</div>
                                                             </div>
+                                                       </div>
+                                                  </div>
+                                             )}
+
+                                             {selectedTaxReliefDetails.length > 0 && (
+                                                  <div className="mt-3">
+                                                       <div className="border rounded p-3 mb-3" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+                                                            <div className="small text-muted mb-1">Tax Relief Summary</div>
+                                                            <div className="fw-bold">
+                                                                 Total Relief Applied: {currencyFormatter.format(toNumber(incomeTaxDetail?.tax_relief_total ?? selectedTransaction.tax_relief ?? 0))}
+                                                            </div>
+                                                            <div className="small text-muted">
+                                                                 Taxable Income: {currencyFormatter.format(toNumber(incomeTaxDetail?.taxable_income))} | Effective Tax Rate: {toNumber(incomeTaxDetail?.effective_tax_rate).toFixed(2)}%
+                                                            </div>
+                                                       </div>
+
+                                                       <div className="table-responsive">
+                                                            <table className="table table-sm table-hover text-start mb-0">
+                                                                 <thead className="table-light">
+                                                                      <tr>
+                                                                           <th className="text-start">Relief Name</th>
+                                                                           <th className="text-start">Method</th>
+                                                                           <th className="text-end">Configured</th>
+                                                                           <th className="text-end">Applied</th>
+                                                                           <th className="text-start">Disability Required</th>
+                                                                      </tr>
+                                                                 </thead>
+                                                                 <tbody>
+                                                                      {selectedTaxReliefDetails.map((relief, index) => (
+                                                                           <tr key={`relief-${index}`}>
+                                                                                <td className="text-start small">{relief.relief_name || relief.name || 'Tax Relief'}</td>
+                                                                                <td className="text-start small text-capitalize">{relief.calculation_method ? relief.calculation_method.replace(/_/g, ' ') : 'N/A'}</td>
+                                                                                <td className="text-end small">{currencyFormatter.format(toNumber(relief.amount))}</td>
+                                                                                <td className="text-end small">{currencyFormatter.format(toNumber(relief.relief_amount))}</td>
+                                                                                <td className="text-start small">{relief.requires_disability ? 'Yes' : 'No'}</td>
+                                                                           </tr>
+                                                                      ))}
+                                                                 </tbody>
+                                                            </table>
                                                        </div>
                                                   </div>
                                              )}

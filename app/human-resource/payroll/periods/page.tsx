@@ -58,6 +58,7 @@ export default function PayrollPeriodsPage() {
      const [error, setError] = useState<string | null>(null);
      const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; period: PayrollPeriod | null }>({ show: false, period: null });
      const [deleting, setDeleting] = useState(false);
+     const [creatingNext, setCreatingNext] = useState(false);
 
      useEffect(() => {
           fetchPeriods();
@@ -82,6 +83,23 @@ export default function PayrollPeriodsPage() {
 
      const handleDeleteClick = (period: PayrollPeriod) => {
           setDeleteConfirm({ show: true, period });
+     };
+
+     const handleCreateNextPeriod = async () => {
+          setCreatingNext(true);
+          try {
+               const response = await customPost('payroll/periods/create-next', 'POST', {});
+               if (response?.status === 'success' && response?.statusCode === 201 && response?.result?.id) {
+                    await fetchPeriods();
+                    alert(response?.message || 'Next payroll period created successfully');
+               } else {
+                    alert(response?.message || 'Failed to create next payroll period');
+               }
+          } catch (err: any) {
+               alert(err?.message || 'Error creating next payroll period');
+          } finally {
+               setCreatingNext(false);
+          }
      };
 
      const handleConfirmDelete = async () => {
@@ -138,10 +156,30 @@ export default function PayrollPeriodsPage() {
                               <p className="text-muted mb-0 small">Manage monthly payroll cycles</p>
                          </div>
                     </div>
-                    <Link href="/human-resource/payroll/periods/create" className="btn btn-primary d-flex align-items-center">
-                         <RiAddLine size={18} className="me-1" />
-                         Create Period
-                    </Link>
+                    <div className="d-flex gap-2">
+                         <button
+                              type="button"
+                              onClick={handleCreateNextPeriod}
+                              className="btn btn-outline-primary d-flex align-items-center"
+                              disabled={creatingNext}
+                         >
+                              {creatingNext ? (
+                                   <>
+                                        <RiLoader4Line size={16} className="animate-spin me-1" />
+                                        Creating...
+                                   </>
+                              ) : (
+                                   <>
+                                        <RiAddLine size={18} className="me-1" />
+                                        Create Next Period
+                                   </>
+                              )}
+                         </button>
+                         <Link href="/human-resource/payroll/periods/create" className="btn btn-primary d-flex align-items-center">
+                              <RiAddLine size={18} className="me-1" />
+                              Create Period
+                         </Link>
+                    </div>
                </div>
 
                {/* Periods List */}

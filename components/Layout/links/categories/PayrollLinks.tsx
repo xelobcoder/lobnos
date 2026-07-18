@@ -154,6 +154,11 @@ export const PayrollLinks: Link[] = [
                     icon: <RiFileListLine size={18} />
                },
                {
+                    title: "Allowances",
+                    link: "/human-resource/payroll/allowance",
+                    icon: <RiBankCardLine size={18} />
+               },
+               {
                     title: "Employee Bonuses",
                     link: "/human-resource/payroll/bonuses",
                     icon: <RiAwardLine size={18} />
