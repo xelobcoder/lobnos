@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useApplication } from '../../../../../components/Auth/useApplicationContext';
 import Link from 'next/link';
 import { customFetch } from '../../../../../components/Auth/customFetch';
 import {
@@ -26,7 +27,7 @@ interface Compensation {
      employeeid: number;
      employee_name?: string;
      compensation_type: 'salary' | 'hourly' | 'commission' | 'hybrid';
-     salary?: number;
+     basic_salary: string;
      hourly_rate?: number;
      commission_rate?: number;
      payment_frequency: string;
@@ -47,6 +48,7 @@ export default function ActiveCompensationPage() {
      const [searchTerm, setSearchTerm] = useState('');
      const [typeFilter, setTypeFilter] = useState<string>('all');
      const [sortBy, setSortBy] = useState<'employee' | 'salary' | 'date'>('employee');
+     const employeeid = useApplication()?.user?.employeeid;
 
      useEffect(() => {
           fetchActiveCompensations();
@@ -59,8 +61,8 @@ export default function ActiveCompensationPage() {
      const fetchActiveCompensations = async () => {
           setLoading(true);
           try {
-               const response = await customFetch('payroll/compensation/active');
-               if (response?.status === 'success' && response?.statusCode === 200) {
+               const response = await customFetch(`payroll/compensation/payroll/active`);
+               if (response?.status === 'success' && response?.statusCode === 200 && Array.isArray(response.result)) {
                     setCompensations(response.result || []);
                }
           } finally {
@@ -104,13 +106,13 @@ export default function ActiveCompensationPage() {
 
      const getCompensationValue = (comp: Compensation): string => {
           if (comp.compensation_type === 'salary') {
-               return currencyFormatter.format(comp.salary || 0);
+               return currencyFormatter.format(parseFloat(comp.basic_salary) || 0);
           } else if (comp.compensation_type === 'hourly') {
                return `${currencyFormatter.format(comp.hourly_rate || 0)}/hr`;
           } else if (comp.compensation_type === 'commission') {
                return `${(comp.commission_rate || 0).toFixed(1)}%`;
           } else if (comp.compensation_type === 'hybrid') {
-               return `${currencyFormatter.format(comp.salary || 0)} + ${(comp.commission_rate || 0).toFixed(1)}%`;
+               return `${currencyFormatter.format(parseFloat(comp.basic_salary) || 0)} + ${(comp.commission_rate || 0).toFixed(1)}%`;
           }
           return 'N/A';
      };
@@ -119,8 +121,8 @@ export default function ActiveCompensationPage() {
      const totalActive = compensations.length;
      const salaryBased = compensations.filter(c => c.compensation_type === 'salary' || c.compensation_type === 'hybrid').length;
      const totalMonthlyCost = compensations
-          .filter(c => c.payment_frequency === 'monthly' && (c.salary || 0) > 0)
-          .reduce((sum, c) => sum + (c.salary || 0), 0);
+          .filter(c => c.payment_frequency === 'monthly' && (parseFloat(c.basic_salary) || 0) > 0)
+          .reduce((sum, c) => sum + (parseFloat(c.basic_salary) || 0), 0);
 
      if (loading) return <Loader />;
 

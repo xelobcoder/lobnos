@@ -13,6 +13,7 @@ interface WorkflowActionsProps {
      onApprove?: () => void;
      onLock?: () => void;
      onMarkPaid?: () => void;
+     handleRevert?: (targetStatus: 'draft' | 'calculated' | 'approved' | 'locked') => void;
      onRecalculate?: () => void;
      loading?: boolean;
 }
@@ -23,6 +24,7 @@ export const WorkflowActions: React.FC<WorkflowActionsProps> = ({
      onApprove,
      onLock,
      onMarkPaid,
+     handleRevert,
      onRecalculate,
      loading = false
 }) => {
@@ -100,6 +102,32 @@ export const WorkflowActions: React.FC<WorkflowActionsProps> = ({
                          )}
                          Recalculate
                     </button>
+               )}
+
+               {handleRevert && (
+                    <>
+                         <button
+                              className="btn btn-outline-secondary d-flex align-items-center"
+                              onClick={() => handleRevert('draft')}
+                              disabled={loading}
+                         >
+                              Reverse to Draft
+                         </button>
+                         <button
+                              className="btn btn-outline-secondary d-flex align-items-center"
+                              onClick={() => handleRevert('calculated')}
+                              disabled={loading}
+                         >
+                              Reverse to Calculated
+                         </button>
+                         <button
+                              className="btn btn-outline-secondary d-flex align-items-center"
+                              onClick={() => handleRevert('approved')}
+                              disabled={loading}
+                         >
+                              Reverse to Approved
+                         </button>
+                    </>
                )}
           </div>
      );

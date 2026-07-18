@@ -252,6 +252,23 @@ export default function PayrollPeriodDetailPage() {
           }
      };
 
+
+
+     const reversePayrollStatus = async (target_status: string) => {
+          try {
+               const url = `payroll/periods/${periodId}/revert-status`;
+               const response = await customPost(url, 'POST', { target_status: target_status, reverted_by: user?.employeeid });
+               if (response?.status === 'success') {
+                    alert(`Payroll period status reverted to ${target_status} successfully`)
+                    await fetchPeriodDetails();
+               } else {
+                    alert(response?.message || `Failed to revert payroll period status to ${target_status}`);
+               }
+          } catch (err: any) {
+               alert(err?.message || `Error reverting payroll period status to ${target_status}`);
+          }
+     };
+
      const handleRecalculate = async () => {
           if (!user?.employeeid) return;
           setActionLoading(true);
@@ -318,7 +335,7 @@ export default function PayrollPeriodDetailPage() {
           const baseUrl = process.env.NODE_ENV === 'development' ? process.env.DEVELOPMENT_BASEURL : process.env.PRODUCTION_BASEURL;
           const logoDataUrl = baseUrl ? await loadImageAsDataURL(`${baseUrl}settings/companyprofile/images`) : null;
 
-          const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape' });
+          const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape',compress:true });
           const pageWidth = doc.internal.pageSize.getWidth();
           const pageHeight = doc.internal.pageSize.getHeight();
           const margin = 10;
@@ -548,8 +565,6 @@ export default function PayrollPeriodDetailPage() {
           });
 
           yPos = (doc as any).lastAutoTable.finalY + 5;
-
-          // NET SALARY HIGHLIGHT BOX
           const boxHeight = 14;
           if (yPos + boxHeight > pageHeight - 20) {
                doc.addPage();
@@ -594,7 +609,6 @@ export default function PayrollPeriodDetailPage() {
                setPayslipPreviewUrl(url);
                setShowPayslipModal(true);
           } catch (error) {
-               console.error('Error generating payslip:', error);
                alert('Error generating payslip. Please try again.');
           } finally {
                setPayslipGenerating(null);
@@ -626,6 +640,10 @@ export default function PayrollPeriodDetailPage() {
           setPageSize(size);
           setCurrentPage(1); // Reset to first page when changing page size
      };
+
+     const selectedDeductionDetails = (selectedTransaction && Array.isArray(selectedTransaction.other_deductions_detail)
+          ? selectedTransaction.other_deductions_detail
+          : []) as PayrollDetailItem[];
 
      if (loading) {
           return (
@@ -721,6 +739,7 @@ export default function PayrollPeriodDetailPage() {
                          periodId={period.id}
                          onApprove={handleApprove}
                          onLock={handleLock}
+                         handleRevert={reversePayrollStatus}
                          onMarkPaid={openPaymentModal}
                          onRecalculate={handleRecalculate}
                          loading={actionLoading}
@@ -1073,63 +1092,49 @@ export default function PayrollPeriodDetailPage() {
                                         {/* Deductions Breakdown */}
                                         <div className="mb-4">
                                              <h6 className="fw-bold text-danger mb-3">Deductions Breakdown</h6>
-                                             <div className="row g-3">
-                                                  <div className="col-md-4">
-                                                       <div className="border rounded p-3">
-                                                            <div className="text-muted small mb-1">Income Tax</div>
-                                                            <div className="fw-bold fs-6">{currencyFormatter.format(Number(selectedTransaction.income_tax ?? 0))}</div>
+                                             {selectedDeductionDetails.length > 0 ? (
+                                                  <div className="table-responsive">
+                                                       <table className="table table-sm table-hover text-start mb-0">
+                                                            <thead className="table-light">
+                                                                 <tr>
+                                                                      <th className="text-start">Deduction</th>
+                                                                      <th className="text-start">Source</th>
+                                                                      <th className="text-start">Method</th>
+                                                                      <th className="text-start">Statutory</th>
+                                                                      <th className="text-end">Amount</th>
+                                                                      <th className="text-end">Balance</th>
+                                                                 </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                 {selectedDeductionDetails.map((item, index) => (
+                                                                      <tr key={`${item.type || item.name || 'deduction'}-${index}`}>
+                                                                           <td className="text-start small">{item.name || item.type || 'Deduction'}</td>
+                                                                           <td className="text-start small text-capitalize">{item.source ? item.source.replace(/_/g, ' ') : 'N/A'}</td>
+                                                                           <td className="text-start small text-capitalize">{item.calculation_method ? item.calculation_method.replace(/_/g, ' ') : 'N/A'}</td>
+                                                                           <td className="text-start small">{item.is_statutory === undefined ? 'N/A' : item.is_statutory ? 'Yes' : 'No'}</td>
+                                                                           <td className="text-end small">{currencyFormatter.format(toNumber(item.amount))}</td>
+                                                                           <td className="text-end small">{item.remaining_balance !== undefined && item.remaining_balance !== null ? currencyFormatter.format(toNumber(item.remaining_balance)) : '-'}</td>
+                                                                      </tr>
+                                                                 ))}
+                                                            </tbody>
+                                                       </table>
+                                                  </div>
+                                             ) : (
+                                                  <div className="row g-3">
+                                                       <div className="col-md-6">
+                                                            <div className="border rounded p-3">
+                                                                 <div className="text-muted small mb-1">Total Deductions</div>
+                                                                 <div className="fw-bold fs-6">{currencyFormatter.format(Number(selectedTransaction.total_deductions ?? 0))}</div>
+                                                            </div>
+                                                       </div>
+                                                       <div className="col-md-6">
+                                                            <div className="border rounded p-3">
+                                                                 <div className="text-muted small mb-1">Other Deductions</div>
+                                                                 <div className="fw-bold fs-6">{currencyFormatter.format(Number(selectedTransaction.total_other_deductions ?? 0))}</div>
+                                                            </div>
                                                        </div>
                                                   </div>
-                                                  <div className="col-md-4">
-                                                       <div className="border rounded p-3">
-                                                            <div className="text-muted small mb-1">Employee SSNIT</div>
-                                                            <div className="fw-bold fs-6">{currencyFormatter.format(Number(selectedTransaction.employee_ssnit ?? 0))}</div>
-                                                       </div>
-                                                  </div>
-                                                  <div className="col-md-4">
-                                                       <div className="border rounded p-3">
-                                                            <div className="text-muted small mb-1">Employee Tier 3</div>
-                                                            <div className="fw-bold fs-6">{currencyFormatter.format(Number(selectedTransaction.employee_tier3 ?? 0))}</div>
-                                                       </div>
-                                                  </div>
-                                                  <div className="col-md-4">
-                                                       <div className="border rounded p-3">
-                                                            <div className="text-muted small mb-1">NHIS</div>
-                                                            <div className="fw-bold fs-6">{currencyFormatter.format(Number(selectedTransaction.nhis ?? 0))}</div>
-                                                       </div>
-                                                  </div>
-                                                  <div className="col-md-4">
-                                                       <div className="border rounded p-3">
-                                                            <div className="text-muted small mb-1">Other Deductions</div>
-                                                            <div className="fw-bold fs-6">{currencyFormatter.format(Number(selectedTransaction.total_other_deductions ?? 0))}</div>
-                                                       </div>
-                                                  </div>
-                                             </div>
-                                        </div>
-
-                                        {/* Employer Contributions */}
-                                        <div className="mb-4">
-                                             <h6 className="fw-bold text-info mb-3">Employer Contributions</h6>
-                                             <div className="row g-3">
-                                                  <div className="col-md-4">
-                                                       <div className="border rounded p-3">
-                                                            <div className="text-muted small mb-1">Employer SSNIT</div>
-                                                            <div className="fw-bold fs-6">{currencyFormatter.format(Number(selectedTransaction.employer_ssnit ?? 0))}</div>
-                                                       </div>
-                                                  </div>
-                                                  <div className="col-md-4">
-                                                       <div className="border rounded p-3">
-                                                            <div className="text-muted small mb-1">Employer Tier 3</div>
-                                                            <div className="fw-bold fs-6">{currencyFormatter.format(Number(selectedTransaction.employer_tier3 ?? 0))}</div>
-                                                       </div>
-                                                  </div>
-                                                  <div className="col-md-4">
-                                                       <div className="border rounded p-3 bg-info bg-opacity-10">
-                                                            <div className="text-muted small mb-1">Total Employer Cost</div>
-                                                            <div className="fw-bold fs-6 text-info">{currencyFormatter.format(Number(selectedTransaction.employer_cost ?? 0))}</div>
-                                                       </div>
-                                                  </div>
-                                             </div>
+                                             )}
                                         </div>
 
                                         {/* Work Summary */}
