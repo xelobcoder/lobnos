@@ -6,12 +6,21 @@ import styles from './EditButton.module.css';
 const EditButton = ({ patientid, section }) => {
     const router = useRouter();
 
+    const sectionMap: Record<string, string> = {
+        personal: 'personal-information',
+        address: 'addressing-information',
+        emergency: 'emergency-contact',
+        credentials: 'credentials',
+        settings: 'settings',
+    };
+
     const handleEdit = () => {
-        router.push(`/registration?patientid=${patientid}&section=${section}`);
+        const pathSection = sectionMap[section] || 'personal-information';
+        router.push(`/crm/registration/${patientid}/${pathSection}`);
     };
 
     return (
-        <button 
+        <button
             onClick={handleEdit}
             className={styles.editButton}
         >

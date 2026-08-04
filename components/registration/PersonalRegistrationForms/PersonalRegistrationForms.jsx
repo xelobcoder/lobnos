@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Form } from 'react-bootstrap';
 
+// we need to add the emotico of the country flag
 const COUNTRY_CODES_GROUPED = {
     'West Africa': [
         { code: '+233', abbreviation: 'GH', name: 'Ghana' },
@@ -55,51 +56,49 @@ const COUNTRY_CODES_GROUPED = {
 };
 
 const PhoneInputGroup = React.memo(({ label, value, countryCode, setCountryCode, onChange, onBlur, placeholder, maxLength = 10, required = false }) => (
-    <div className="form-group mb-3 mt-3 d-flex align-items-start">
-        <label className=' text-end' style={{ minWidth: '120px', color: 'var(--bs-body-color)', paddingTop: '8px' }}>{label}</label>
-        <div className="ms-3 flex-grow-1">
-            <div className="input-group ">
-                <select
-                    className="form-select form-select-sm custom-select"
-                    style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)', maxWidth: '140px' }}
-                    value={countryCode}
-                    onChange={(e) => setCountryCode(e.target.value)}
-                >
-                    {Object.entries(COUNTRY_CODES_GROUPED).map(([region, countries]) => (
-                        <optgroup key={region} label={region}>
-                            {countries.map(item => (
-                                <option key={item.code} value={item.code}>{item.abbreviation} {item.code}</option>
-                            ))}
-                        </optgroup>
-                    ))}
-                </select>
-                <input
-                    type="tel"
-                    inputMode="tel"
-                    value={value || ''}
-                    onChange={onChange}
-                    onBlur={onBlur}
-                    maxLength={maxLength}
-                    placeholder={placeholder}
-                    className="form-control form-control-sm custom-input"
-                    style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }}
-                    required={required}
-                />
-            </div>
+    <div className="form-group mb-3 mt-3 form-group-responsive phone-input-row">
+        <label style={{ color: 'var(--bs-body-color)' }}>{label}</label>
+        <div className="input-group" style={{ width: '100%', minWidth: 0, alignItems: 'center', flexWrap: 'nowrap' }}>
+            <select
+                className="form-select form-select-sm custom-select phone-code-select"
+                style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }}
+                value={countryCode}
+                onChange={(e) => setCountryCode(e.target.value)}
+            >
+                {Object.entries(COUNTRY_CODES_GROUPED).map(([region, countries]) => (
+                    <optgroup key={region} label={region}>
+                        {countries.map(item => (
+                            <option key={item.code} value={item.code}>{item.abbreviation} {item.code}</option>
+                        ))}
+                    </optgroup>
+                ))}
+            </select>
+            <input
+                type="tel"
+                inputMode="tel"
+                value={value || ''}
+                onChange={onChange}
+                onBlur={onBlur}
+                maxLength={maxLength}
+                placeholder={placeholder}
+                className="form-control form-control-sm custom-input phone-number-input"
+                style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }}
+                required={required}
+            />
         </div>
     </div>
 ));
 
 PhoneInputGroup.displayName = 'PhoneInputGroup';
 
-const PersonalRegistrationForms = ({ fields, designation, setFormData, handleAgeCalculations, data, checkIFNumberisAvailable }) => {
+const PersonalRegistrationForms = ({ designation, setFormData, handleAgeCalculations, data, checkIFNumberisAvailable }) => {
     const [isNumberExist, setIsNumberExist] = useState(false);
     const [mobileCountryCode, setMobileCountryCode] = useState(data?.mobileCountryCode || '+233');
     const [whatsappCountryCode, setWhatsappCountryCode] = useState(data?.whatsappCountryCode || '+233');
     const [relativeCountryCode, setRelativeCountryCode] = useState(data?.relativeCountryCode || '+233');
 
     useEffect(() => {
-        setFormData('mobileownership', isNumberExist ? 'relative' : 'self');
+        setFormData('contact_pointer', isNumberExist ? 'relative' : 'self');
     }, [isNumberExist])
 
     useEffect(() => {
@@ -122,10 +121,10 @@ const PersonalRegistrationForms = ({ fields, designation, setFormData, handleAge
 
     return (
         <div className="registration-form-container" style={{ maxWidth: '600px', margin: '0 auto', padding: '0 15px' }}>
-            <div className="form-group mb-3 mt-3 d-flex align-items-center">
-                <label className='required  text-end' style={{ minWidth: '120px', color: 'var(--bs-body-color)' }}>Designation</label>
+            <div className="form-group mb-3 mt-3 form-group-responsive">
+                <label className='required' style={{ color: 'var(--bs-body-color)' }}>Designation</label>
                 <select
-                    className="form-control custom-select form-control-sm ms-3"
+                    className="form-control custom-select form-control-sm"
                     style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }}
                     value={data?.designation || ''}
                     onChange={(ev) => setFormData('designation', ev.target.value)}
@@ -137,24 +136,24 @@ const PersonalRegistrationForms = ({ fields, designation, setFormData, handleAge
                 </select>
             </div>
 
-            <div className="form-group mb-3 mt-3 d-flex align-items-center">
-                <label className='required  text-end' style={{ minWidth: '120px', color: 'var(--bs-body-color)' }}>First Name</label>
-                <input type="text" placeholder="First Name" value={data.firstname || ''} onChange={(ev) => { setFormData('firstname', ev.target.value) }} className="form-control custom-input form-control-sm ms-3" style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }} required />
+            <div className="form-group mb-3 mt-3 form-group-responsive">
+                <label className='required' style={{ color: 'var(--bs-body-color)' }}>First Name</label>
+                <input type="text" placeholder="First Name" value={data.firstname || ''} onChange={(ev) => { setFormData('firstname', ev.target.value) }} className="form-control custom-input form-control-sm" style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }} required />
             </div>
 
-            <div className="form-group mb-3 mt-3 d-flex align-items-center">
-                <label className='required  text-end' style={{ minWidth: '120px', color: 'var(--bs-body-color)' }}>Last Name</label>
-                <input type="text" placeholder="Last Name" className="form-control form-control-sm ms-3 custom-input" style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }} value={data.lastname || ''} onChange={(ev) => { setFormData('lastname', ev.target.value) }} required />
+            <div className="form-group mb-3 mt-3 form-group-responsive">
+                <label className='required' style={{ color: 'var(--bs-body-color)' }}>Last Name</label>
+                <input type="text" placeholder="Last Name" className="form-control form-control-sm custom-input" style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }} value={data.lastname || ''} onChange={(ev) => { setFormData('lastname', ev.target.value) }} required />
             </div>
 
-            <div className="form-group mb-3 mt-3 d-flex align-items-center">
-                <label className=' text-end' style={{ minWidth: '120px', color: 'var(--bs-body-color)' }}>Middle Name</label>
-                <input type="text" placeholder="Middle Name" className="form-control form-control-sm ms-3 custom-input" style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }} value={data.middlename || ''} onChange={(ev) => { setFormData('middlename', ev.target.value) }} />
+            <div className="form-group mb-3 mt-3 form-group-responsive">
+                <label className='text-end' style={{ color: 'var(--bs-body-color)' }}>Middle Name</label>
+                <input type="text" placeholder="Middle Name" className="form-control form-control-sm custom-input" style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }} value={data.middlename || ''} onChange={(ev) => { setFormData('middlename', ev.target.value) }} />
             </div>
 
-            <div className="form-group mb-3 mt-3 d-flex align-items-start">
-                <label className='  text-end' style={{ minWidth: '120px', color: 'var(--bs-body-color)', paddingTop: '8px' }}>Date Of Birth</label>
-                <div className='row g-2 ms-3 flex-grow-1'>
+            <div className="form-group mb-3 mt-3 form-group-responsive">
+                <label style={{ color: 'var(--bs-body-color)' }}>Date Of Birth</label>
+                <div className='row g-2 flex-grow-1'>
                     <div className="col-lg-2 col-md-4 col-sm-12">
                         <input type="number" className="form-control form-control-sm custom-input" style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }} value={data.days || ''} onChange={(ev) => { setFormData('days', ev.target.value) }} min={1} max={31} placeholder="DD" />
                     </div>
@@ -195,9 +194,9 @@ const PersonalRegistrationForms = ({ fields, designation, setFormData, handleAge
                 </div>
             </div>
 
-            <div className="form-group mb-3 mt-3 d-flex align-items-center">
-                <label className='required  text-end' style={{ minWidth: '120px', color: 'var(--bs-body-color)' }}>Gender</label>
-                <div className="d-flex gap-4 ms-3">
+            <div className="form-group mb-3 mt-3 form-group-responsive">
+                <label className='required' style={{ color: 'var(--bs-body-color)' }}>Gender</label>
+                <div className="d-flex flex-wrap gap-4">
                     <Form.Check type="radio" label="Female" value="female"
                         checked={data.gender === 'female'}
                         onChange={(ev) => { setFormData('gender', 'female') }}
@@ -211,10 +210,10 @@ const PersonalRegistrationForms = ({ fields, designation, setFormData, handleAge
 
             <PhoneInputGroup
                 label="Mobile Number"
-                value={data.mobile || ''}
+                value={data.mobile_number || ''}
                 countryCode={mobileCountryCode}
                 setCountryCode={setMobileCountryCode}
-                onChange={ev => setFormData('mobile', ev.target.value)}
+                onChange={ev => setFormData('mobile_number', ev.target.value)}
                 onBlur={ev => checkIFNumberisAvailable && checkIFNumberisAvailable(ev.target.value, setIsNumberExist)}
                 placeholder="Mobile contact"
                 maxLength={10}
@@ -222,14 +221,14 @@ const PersonalRegistrationForms = ({ fields, designation, setFormData, handleAge
                 required={true}
             />
             {isNumberExist && (
-                <div style={{ marginLeft: '120px', marginTop: '-15px' }} className="mt-2">
+                <div className="form-help-text mt-2">
                     <p className="text-small-danger small">Number is associated with a different client</p>
                     <Form.Check
                         type="switch"
-                        id="contactpointer"
+                        id="contact_pointer"
                         label="Is this person a relative?"
-                        checked={data.contactpointer || data.contactpointer == "relative"}
-                        onChange={ev => setFormData('contactpointer', ev.target.checked)}
+                        checked={data.contact_pointer === 'relative'}
+                        onChange={ev => setFormData('contact_pointer', ev.target.checked ? 'relative' : 'self')}
                     />
                 </div>
             )}
@@ -245,11 +244,11 @@ const PersonalRegistrationForms = ({ fields, designation, setFormData, handleAge
                 minLength={10}
             />
 
-            {(isNumberExist || data.contactpointer) && (
+            {(isNumberExist || data.contact_pointer) && (
                 <>
-                    <div className="form-group mb-3 mt-3 d-flex align-items-center">
-                        <label className=' text-end' style={{ minWidth: '120px', color: 'var(--bs-body-color)' }}>Relative Name</label>
-                        <input type="text" placeholder="Relative's Name" className="form-control form-control-sm ms-3 custom-input" style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }} value={data.relativecontactname || ''} onChange={(ev) => { setFormData('relativecontactname', ev.target.value) }} />
+                    <div className="form-group mb-3 mt-3 form-group-responsive">
+                        <label style={{ color: 'var(--bs-body-color)' }}>Relative Name</label>
+                        <input type="text" placeholder="Relative's Name" className="form-control form-control-sm custom-input" style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }} value={data.relativecontactname || ''} onChange={(ev) => { setFormData('relativecontactname', ev.target.value) }} />
                     </div>
 
                     <PhoneInputGroup
@@ -265,59 +264,59 @@ const PersonalRegistrationForms = ({ fields, designation, setFormData, handleAge
                 </>
             )}
 
-            <div className="form-group mb-3 mt-3 d-flex align-items-center">
-                <label className=' text-end' style={{ minWidth: '120px', color: 'var(--bs-body-color)' }}>Email</label>
+            <div className="form-group mb-3 mt-3 form-group-responsive">
+                <label className='text-end' style={{ color: 'var(--bs-body-color)' }}>Email</label>
                 <input
                     type="email"
                     value={data.email || ''}
                     onChange={ev => setFormData('email', ev.target.value)}
                     placeholder="Email"
-                    className="form-control form-control-sm ms-3 custom-input"
+                    className="form-control form-control-sm custom-input"
                     style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }}
                 />
             </div>
 
-            <div className="form-group mb-3 mt-3 d-flex align-items-center">
-                <label className=' text-end' style={{ minWidth: '120px', color: 'var(--bs-body-color)' }}>Occupation</label>
+            <div className="form-group mb-3 mt-3 form-group-responsive">
+                <label className='text-end' style={{ color: 'var(--bs-body-color)' }}>Occupation</label>
                 <input
                     type="text"
                     value={data.occupation || ''}
                     onChange={ev => setFormData('occupation', ev.target.value)}
                     placeholder="Occupation"
-                    className="form-control form-control-sm ms-3 custom-input"
+                    className="form-control form-control-sm custom-input"
                     style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }}
                 />
             </div>
 
-            <div className="form-group mb-3 mt-3 d-flex align-items-center">
-                <label className=' text-end' style={{ minWidth: '120px', color: 'var(--bs-body-color)' }}>Organization</label>
+            <div className="form-group mb-3 mt-3 form-group-responsive">
+                <label className='text-end' style={{ color: 'var(--bs-body-color)' }}>Organization</label>
                 <input
                     type="text"
-                    value={data.patientOrganization || ''}
-                    onChange={ev => setFormData('patientOrganization', ev.target.value)}
-                    placeholder="Patient Organization"
-                    className="form-control form-control-sm ms-3 custom-input"
+                    value={data.organization || ''}
+                    onChange={ev => setFormData('organization', ev.target.value)}
+                    placeholder="Organization"
+                    className="form-control form-control-sm custom-input"
                     style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }}
                 />
             </div>
 
-            <div className="form-group mb-3 mt-3 d-flex align-items-center">
-                <label className=' text-end' style={{ minWidth: '120px', color: 'var(--bs-body-color)' }}>Marital Status</label>
-                <div className="d-flex gap-4 ms-3">
+            <div className="form-group mb-3 mt-3 form-group-responsive">
+                <label className='text-end' style={{ color: 'var(--bs-body-color)' }}>Marital Status</label>
+                <div className="d-flex flex-wrap gap-4">
                     <Form.Check
                         type="radio"
                         label="Single"
                         value="single"
-                        checked={data.maritalstatus === 'single'}
-                        onChange={ev => setFormData('maritalstatus', 'single')}
+                        checked={data.marital_status === 'single'}
+                        onChange={ev => setFormData('marital_status', 'single')}
                         className="custom-radio"
                     />
                     <Form.Check
                         type="radio"
                         label="Married"
                         value="married"
-                        checked={data.maritalstatus === 'married'}
-                        onChange={ev => setFormData('maritalstatus', 'married')}
+                        checked={data.marital_status === 'married'}
+                        onChange={ev => setFormData('marital_status', 'married')}
                         className="custom-radio"
                     />
                 </div>

@@ -1,61 +1,156 @@
-.stepsIndicator {
-    padding: 1rem 0;
+﻿.updatePageWrapper {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 1rem;
+    padding: 0.75rem;
+    align-items: start;
 }
 
-.stepConnector {
-    height: 2px;
-    width: 60px;
+@media (max-width: 991.98px) {
+    .updatePageWrapper {
+        grid-template-columns: 1fr;
+    }
+}
+
+.sidebar {
+    background: var(--theme-card-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+    min-height: 280px;
+}
+
+.sidebarTitle {
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    color: var(--bs-body-color);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.85rem;
+}
+
+.sidebarMeta {
+    margin-bottom: 0.75rem;
+}
+
+.sidebarMetaStatus {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--bs-secondary-color);
+    margin-bottom: 0.5rem;
+}
+
+.stepProgress {
+    height: 6px;
     background: var(--bs-border-color);
-    margin-top: 16px;
+    border-radius: 999px;
+    overflow: hidden;
 }
 
-.stepNumber {
+.stepProgressFill {
+    height: 100%;
+    background: var(--bs-primary);
+    transition: width 0.25s ease;
+}
+
+@media (max-width: 767.98px) {
+    .sidebar {
+        min-height: auto;
+        padding: 0.7rem;
+    }
+
+    .sidebarTitle {
+        font-size: 0.95rem;
+    }
+
+    .sidebarItem {
+        padding: 0.6rem 0.75rem;
+    }
+
+    .contentArea {
+        padding: 0;
+    }
+
+    .navigationButtons {
+        justify-content: stretch;
+    }
+}
+
+.sidebarNav {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.sidebarItem {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.65rem;
+    align-items: center;
+    width: 100%;
+    text-align: left;
+    padding: 0.65rem 0.8rem;
+    border: none;
+    border-radius: 0.5rem;
+    background: transparent;
+    color: var(--bs-body-color);
+    transition: all 0.2s ease;
+}
+
+.sidebarItem:hover,
+.sidebarItem:focus {
+    background: var(--bs-light);
+}
+
+.activeSidebarItem {
+    background: var(--bs-primary);
+    color: var(--bs-white);
+    font-weight: 600;
+}
+
+.sidebarItemIndex {
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: var(--bs-secondary-bg);
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-weight: 600;
-    font-size: 0.875rem;
+    background: var(--bs-secondary-bg);
     color: var(--bs-body-color);
+    font-size: 0.85rem;
 }
 
-.stepTitle {
-    font-size: 0.75rem;
-    color: var(--bs-secondary-color);
-    white-space: nowrap;
+.contentArea {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
 }
 
-.step.active .stepTitle {
-    color: #0d6efd;
-}
-
-.registrationContent {
+.formContent {
     background: var(--theme-card-bg);
-    padding: 2rem;
-    border-radius: 8px;
-    /* box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); */
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.75rem;
+    padding: 1rem;
+}
+
+.navigationButtons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    flex-wrap: wrap;
 }
 
 .navButton {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    transition: all 0.2s ease;
-    .clickable {
-        cursor: pointer;
-        transition: transform 0.2s;
-    }
-    
-    .clickable:hover {
-        transform: scale(1.05);
-    }
+    transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
 .navButton:disabled {
@@ -66,4 +161,10 @@
 .navButton:not(:disabled):hover {
     background-color: #e9ecef;
     transform: scale(1.05);
+}
+
+.registrationContent {
+    background: var(--theme-card-bg);
+    padding: 1.5rem;
+    border-radius: 0.75rem;
 }

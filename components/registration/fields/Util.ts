@@ -241,7 +241,7 @@ export const ghanaDistricts = {
 };
 
 
-export const designation = ['Mr.', 'Mrs.', 'Miss', 'Ms.', 'Dr.', 'Prof.','Alhaji', 'Alhaja', 'Chief', 'Lady', 'Rev.', 'Fr.', 'Pastor', 'Imam', 'Sheikh', 'Sultan', 'Nana', 'Oba', 'Oga', 'Madam', 'Other'];
+export const designation = ['Mr.', 'Mrs.', 'Miss', 'Ms.', 'Dr.', 'Prof.', 'Alhaji', 'Alhaja', 'Chief', 'Lady', 'Rev.', 'Fr.', 'Pastor', 'Imam', 'Sheikh', 'Sultan', 'Nana', 'Oba', 'Oga', 'Madam', 'Other'];
 
 
 
@@ -264,7 +264,57 @@ export const getRegistrationFields = async (setState, toast) => {
          else return data;
       }
    } catch (err) {
-      if (setState) setState(registration);
+      // if (setState) setState(registration);
       if (toast) { toast.error("something wrong occured", { autoClose: 2000 }) }
    }
 }
+
+
+
+
+export interface RegistrationFields {
+   firstname: string;
+   middlename: string;
+   lastname: string;
+   designation: string;
+   age: string;
+   ageType: string;
+   gender: string;
+   mobileCountryCode: string;
+   whatsappCountryCode: string;
+   relativecontactnumber: string;
+   relativeCountryCode: string;
+   whatAppcontact: string;
+   email: string;
+   marital_status: string;
+   mobile_number: string;
+   contact_pointer: string;
+   years: string;
+   registeredby: string | number;
+   months: string;
+   days: string;
+};
+
+
+export const PatientPersonalInformationFields: RegistrationFields = {
+   firstname: "",
+   middlename: "",
+   lastname: "",
+   designation: "",
+   age: "",
+   ageType: "years",
+   gender: "",
+   mobile_number: "",
+   mobileCountryCode: "+233",
+   whatsappCountryCode: "+233",
+   relativecontactnumber: "",
+   registeredby: "",
+   relativeCountryCode: "+233",
+   whatAppcontact: "",
+   email: "",
+   marital_status: "",
+   contact_pointer: "self",
+   years: "",
+   months: "",
+   days: "",
+};

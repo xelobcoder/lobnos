@@ -64,7 +64,7 @@ const PatientPersonalInformationViewOnly = ({ patientid }) => {
         <div className={styles.container}>
             <div className={styles.header}>
                 <div className={styles.headerTitle}>Personal Information</div>
-                <a href={`/registration?patientid=${patientid}`}
+                <a href={`/crm/registration/${patientid}/personal-information`}
                     className={styles.editButton}>
                     <RiEditLine size={16} />
                 </a>

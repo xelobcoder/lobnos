@@ -13,8 +13,8 @@ const AdditionalPersonalInformation = ({ fields, setFormData, data, checkIFNumbe
     return (
         <div className="registration-form-container">
             {(fields.mobile.visible || fields.whatAppcontact.visible) && (
-                <div className="form-group mb-1 d-flex align-items-start mt-3">
-                    <label className='pls-label fs-6 me-3 fw-bold' style={{ minWidth: '120px', paddingTop: '8px', color: 'var(--bs-body-color)' }}>Contacts</label>
+                <div className="form-group mb-1 mt-3 form-group-responsive">
+                    <label className='pls-label fs-6 fw-bold' style={{ color: 'var(--bs-body-color)' }}>Contacts</label>
                     <div className="flex-grow-1">
                         <div className='row g-3'>
                             {fields.mobile.visible && (
@@ -30,7 +30,7 @@ const AdditionalPersonalInformation = ({ fields, setFormData, data, checkIFNumbe
                                         placeholder="Mobile contact"
                                         className="form-control form-control-sm"
                                         style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }}
-                                        required={fields.mobile.compulsory}
+                              
                                     />
                                     {isNumberExist && (
                                         <div className="mt-2">
@@ -39,9 +39,9 @@ const AdditionalPersonalInformation = ({ fields, setFormData, data, checkIFNumbe
                                                 type="switch"
                                                 id="contactpointer"
                                                 label="Is this person a relative?"
-                                                checked={data.contactpointer || data.contactpointer == "relative"}
-                                                onChange={ev => setFormData('contactpointer', ev.target.checked)}
-                                                required={fields.contactpointer?.compulsory}
+                                                checked={data.contact_pointer === true || data.contact_pointer === 'relative'}
+                                                onChange={ev => setFormData('contact_pointer', ev.target.checked)}
+                                        
                                             />
                                         </div>
                                     )}
@@ -59,7 +59,7 @@ const AdditionalPersonalInformation = ({ fields, setFormData, data, checkIFNumbe
                                         placeholder="WhatsApp contact"
                                         className="form-control form-control-sm"
                                         style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }}
-                                        required={fields.whatAppcontact.compulsory}
+                                    
                                     />
                                 </div>
                             )}
@@ -69,8 +69,8 @@ const AdditionalPersonalInformation = ({ fields, setFormData, data, checkIFNumbe
             )}
 
             {fields.email.visible && (
-                <div className="form-group mb-1 d-flex align-items-center mt-3" >
-                    <label className='pls-label fs-6 me-3 fw-bold' style={{ minWidth: '120px', color: 'var(--bs-body-color)' }}>Email</label>
+                <div className="form-group mb-1 mt-3 form-group-responsive" >
+                    <label className='pls-label fs-6 fw-bold' style={{ color: 'var(--bs-body-color)' }}>Email</label>
                     <div className="flex-grow-1">
                         <input
                             type="email"
@@ -79,15 +79,15 @@ const AdditionalPersonalInformation = ({ fields, setFormData, data, checkIFNumbe
                             placeholder="Email"
                             className="form-control form-control-sm"
                             style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }}
-                            required={fields.email.compulsory}
+                    
                         />
                     </div>
                 </div>
             )}
 
             {fields.occupation.visible && (
-                <div className="form-group mb-1 d-flex align-items-center mt-3">
-                    <label className='pls-label fs-6 me-3 fw-bold' style={{ minWidth: '120px', color: 'var(--bs-body-color)' }}>Occupation</label>
+                <div className="form-group mb-1 mt-3 form-group-responsive">
+                    <label className='pls-label fs-6 fw-bold' style={{ color: 'var(--bs-body-color)' }}>Occupation</label>
                     <div className="flex-grow-1">
                         <input
                             type="text"
@@ -96,15 +96,15 @@ const AdditionalPersonalInformation = ({ fields, setFormData, data, checkIFNumbe
                             placeholder="Occupation"
                             className="form-control form-control-sm"
                             style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }}
-                            required={fields.occupation.compulsory}
+    
                         />
                     </div>
                 </div>
             )}
 
             {fields.patientOrganization.visible && (
-                <div className="form-group mb-1 d-flex align-items-center mt-3">
-                    <label className='pls-label fs-6 me-3 fw-bold' style={{ minWidth: '120px', color: 'var(--bs-body-color)' }}>Organization</label>
+                <div className="form-group mb-1 mt-3 form-group-responsive">
+                    <label className='pls-label fs-6 fw-bold' style={{ color: 'var(--bs-body-color)' }}>Organization</label>
                     <div className="flex-grow-1">
                         <input
                             type="text"
@@ -113,16 +113,16 @@ const AdditionalPersonalInformation = ({ fields, setFormData, data, checkIFNumbe
                             placeholder="Patient Organization"
                             className="form-control form-control-sm"
                             style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }}
-                            required={fields.patientOrganization.compulsory}
+                           
                         />
                     </div>
                 </div>
             )}
 
             {fields.maritalstatus.visible && (
-                <div className="form-group mb-1 d-flex align-items-center mt-3" >
-                    <label className='pls-label fs-6 me-3 fw-bold' style={{ minWidth: '120px', color: 'var(--bs-body-color)' }}>Marital Status</label>
-                    <div className="flex-grow-1 d-flex gap-4">
+                <div className="form-group mb-1 mt-3 form-group-responsive" >
+                    <label className='pls-label fs-6 fw-bold' style={{ color: 'var(--bs-body-color)' }}>Marital Status</label>
+                    <div className="flex-grow-1 d-flex flex-wrap gap-4">
                         <Form.Check
                             type="radio"
                             label="Single"

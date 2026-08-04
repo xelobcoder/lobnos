@@ -36,7 +36,7 @@
     "components/LabTestForms/testrule.jsx",
     "components/phelobotomy/Analytics/TemplatesComponentAnalytics/TestAscensionOverMontOverYear.jsx",
     "v2/primelabsystem/app/customers/index.js",
-    "components/registration/fields/Util.js",
+    "components/registration/fields/Util.ts",
     "app/billing/expenses/category/page.tsx",
     ".next\\dev/types/**/*.ts",
     ".next\\dev/types/**/*.ts"

@@ -1,23 +1,35 @@
 "use client"
 import { useState, useEffect } from "react";
 import Select from "react-select";
-import RenderInput from "./CustomInput";
 import { ghanaDistricts } from "./fields/Util";
 import { submitFormData } from "../Auth/registerclient";
-import { reactSelectCustomStyles } from "../Auth/customFetch";
+import { customPost, reactSelectCustomStyles } from "../Auth/customFetch";
 
 
 export default function Addressing({ defaultData, fields, patientid, toast }) {
 	const [isClient, setClient] = useState(false);
 	const [data, setData] = useState({
-		...defaultData,
 		region: "",
-		districtCode: "",
+		district: "",
 		districtName: "",
 		area: defaultData?.area || "",
 		gpsLocation: defaultData?.gpsLocation || "",
-		address: defaultData?.address || ""
+		address: defaultData?.address || "",
+		patientid: patientid || "",
+		...defaultData,
 	});
+
+	useEffect(() => {
+		setData((prevData) => ({
+			region: "",
+			district: "",
+			districtName: "",
+			area: defaultData?.area || "",
+			gpsLocation: defaultData?.gpsLocation || "",
+			address: defaultData?.address || "",
+			...defaultData,
+		}));
+	}, [defaultData]);
 	const [isloading, setLoading] = useState(false);
 	const [districtOptions, setDistrictOptions] = useState([]);
 	const [regionOptions, setRegionOptions] = useState([]);
@@ -26,7 +38,7 @@ export default function Addressing({ defaultData, fields, patientid, toast }) {
 		setData({
 			...defaultData,
 			region: "",
-			districtCode: "",
+			district: "",
 			districtName: ""
 		});
 		setDistrictOptions([]);
@@ -42,6 +54,30 @@ export default function Addressing({ defaultData, fields, patientid, toast }) {
 		setClient(true);
 	}, []);
 
+
+
+	const handlePatientInformationSave = async () => {
+		try {
+			const requestData = {
+				district: data.district,
+				region: data.region,
+				area: data.area,
+				gpsLocation: data.gpsLocation,
+				address: data.address,
+				patientid: patientid
+			}
+			const response = await customPost(`register/addressinginformation?patientid=${patientid}`, 'PUT', requestData);
+			if (response && Number(response.statusCode) === 200 && response.status === "success") {
+				toast.success("Addressing information saved successfully!");
+			} else {
+				toast.error("Failed to save addressing information.");
+			}
+		} catch (error) {
+			console.error("Error saving addressing information:", error);
+			toast.error("An error occurred while saving addressing information.");
+		}
+	}
+
 	useEffect(() => {
 		if (data.region && ghanaDistricts[data.region]) {
 			const districtOpts = Object.entries(ghanaDistricts[data.region]).map(
@@ -56,141 +92,101 @@ export default function Addressing({ defaultData, fields, patientid, toast }) {
 		}
 	}, [data.region]);
 
-	const selectedDistrict = districtOptions.find(option => option.value === data.districtCode);
+	const selectedDistrict = districtOptions.find(option => option.value === data.district);
 
 	return (
 		<>
 			<section className="col-sm-12 col-md-12 col-lg-6 col-xl-6">
 				{isloading && <div>Loading data.........................</div>}
 				<div>
-					<div className="form-row">
-						<RenderInput
-							visible={fields.region.visible}
-							value={fields.region}
-							displaylabel={true}
-							label="Region"
-							field={
-								isClient && (
-									<Select
-										isDisabled={isloading}
-										options={regionOptions}
-										className="react-select-container"
-										styles={reactSelectCustomStyles}
-										classNamePrefix="react-select"
-										value={regionOptions.find(option => option.value === data.region)}
-										onChange={option => {
-											setData({
-												...data,
-												region: option ? option.value : "",
-												districtCode: "",
-												districtName: ""
-											});
-										}}
-									/>
-								)
+					<div className="form-row mt-2 mb-1 mt-2">
+						{isClient && (
+						<Select
+							isDisabled={isloading}
+							options={regionOptions}
+							className="react-select-container"
+							styles={reactSelectCustomStyles}
+							classNamePrefix="react-select"
+							value={regionOptions.find(option => option.value === data.region)}
+							onChange={option => {
+								setData({
+									...data,
+									region: option ? option.value : "",
+									district: "",
+									districtName: ""
+								});
+							}}
+						/>
+						)}
+					</div>
+					<div className="form-row mt-2 mb-1">
+						{isClient && (
+						<Select
+							isDisabled={isloading || !data.region}
+							options={districtOptions}
+							className="react-select-container"
+							styles={reactSelectCustomStyles}
+							classNamePrefix="react-select"
+							value={selectedDistrict}
+							onChange={option => {
+								setData({
+									...data,
+									district: option ? option.value : "",
+									districtName: option ? option.label : ""
+								});
+							}}
+						/>
+						)}
+					</div>
+					<div className="form-row mt-2 mb-1">
+						<input
+							disabled={isloading}
+							className="custom-input"
+							value={data.area || ""}
+							onChange={e =>
+								setData({
+									...data,
+									area: e.target.value
+								})
 							}
+							placeholder="Area"
+							type="text"
 						/>
 					</div>
-					<div className="form-row">
-						<RenderInput
-							visible={fields.district.visible}
-							value={fields.district}
-							displaylabel={true}
-							label="District"
-							field={
-								isClient && (
-									<Select
-										isDisabled={isloading || !data.region}
-										options={districtOptions}
-										className="react-select-container"
-										styles={reactSelectCustomStyles}
-										classNamePrefix="react-select"
-										value={selectedDistrict}
-										onChange={option => {
-											setData({
-												...data,
-												districtCode: option ? option.value : "",
-												districtName: option ? option.label : ""
-											});
-										}}
-									/>
-								)
+					<div className="form-row mt-2 mb-1">
+						<input
+							disabled={isloading}
+							className="custom-input"
+							value={data.gpsLocation || ""}
+							onChange={e =>
+								setData({
+									...data,
+									gpsLocation: e.target.value
+								})
 							}
+							placeholder="GPS Location"
+							type="text"
 						/>
 					</div>
-					<div className="form-row">
-						<RenderInput
-							visible={fields.area.visible}
-							value={fields.area}
-							displaylabel={true}
-							label="Area"
-							field={
-								<input
-									disabled={isloading}
-									className="custom-input"
-									value={data.area || ""}
-									onChange={e =>
-										setData({
-											...data,
-											area: e.target.value
-										})
-									}
-									placeholder="Area"
-									type="text"
-								/>
-							}
-						/>
-					</div>
-					<div className="form-row">
-						<RenderInput
-							visible={fields.gpsLocation.visible}
-							value={fields.gpsLocation}
-							displaylabel={true}
-							label="GPS Location or Landmark"
-							field={
-								<input
-									disabled={isloading}
-									className="custom-input"
-									value={data.gpsLocation || ""}
-									onChange={e =>
-										setData({
-											...data,
-											gpsLocation: e.target.value
-										})
-									}
-									placeholder="GPS Location"
-									type="text"
-								/>
-							}
-						/>
-					</div>
-					<div className="form-row">
-						<RenderInput
-							visible={fields.address.visible}
-							value={fields.address}
-							displaylabel={true}
-							label="Address"
-							field={
-								<textarea
-									disabled={isloading}
-									id="address"
-									className="form-control"
-									name="address"
-									rows={5}
-									value={data.address || ""}
-									onChange={e => {
-										setData({ ...data, address: e.target.value });
-									}}
-								></textarea>
-							}
-						/>
+					<div className="form-row mt-2 mb-1">
+						<textarea
+							disabled={isloading}
+							id="address"
+							className="form-control"
+							name="address"
+							rows={5}
+							value={data.address || ""}
+							onChange={e => {
+								setData({ ...data, address: e.target.value });
+							}}
+						></textarea>
 					</div>
 				</div>
 				<button
 					disabled={!patientid || isloading}
 					onClick={async () => {
 						setLoading(true);
-						await submitFormData(`register/addressinginformation?patientid=${patientid}`, data, toast);
+						await handlePatientInformationSave();
 						setLoading(false);
 					}}
 					className="btn mt-3 btn-success btn-sm text-capitalize"

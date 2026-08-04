@@ -20,7 +20,7 @@ const CustomersActions = ({ item, callActivation, gotoPrevTrans, toast, router, 
                               <path d="M19 10H20C20.5523 10 21 10.4477 21 11V21C21 21.5523 20.5523 22 20 22H4C3.44772 22 3 21.5523 3 21V11C3 10.4477 3.44772 10 4 10H5V9C5 5.13401 8.13401 2 12 2C15.866 2 19 5.13401 19 9V10ZM5 12V20H19V12H5ZM11 14H13V18H11V14ZM17 10V9C17 6.23858 14.7614 4 12 4C9.23858 4 7 6.23858 7 9V10H17Z"></path>
                          </svg> Deactivate Client
                     </Dropdown.Item>
-                    <Dropdown.Item className='text-capitalize' onClick={() => router.push(`/crm/registration?patientid=${item.patientid}`)}>
+                    <Dropdown.Item className='text-capitalize' onClick={() => router.push(`/crm/registration/${item.patientid}/personal-information`)}>
                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
                               <path d="M14 14.252V16.3414C13.3744 16.1203 12.7013 16 12 16C8.68629 16 6 18.6863 6 22H4C4 17.5817 7.58172 14 12 14C12.6906 14 13.3608 14.0875 14 14.252ZM12 13C8.685 13 6 10.315 6 7C6 3.685 8.685 1 12 1C15.315 1 18 3.685 18 7C18 10.315 15.315 13 12 13ZM12 11C14.21 11 16 9.21 16 7C16 4.79 14.21 3 12 3C9.79 3 8 4.79 8 7C8 9.21 9.79 11 12 11ZM18.5858 17L16.7574 15.1716L18.1716 13.7574L22.4142 18L18.1716 22.2426L16.7574 20.8284L18.5858 19H15V17H18.5858Z"></path>
                          </svg> Update Records
@@ -72,7 +72,7 @@ const CustomersActions = ({ item, callActivation, gotoPrevTrans, toast, router, 
                               <path d="M20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4ZM20 18H4V8L12 13L20 8V18ZM12 11L4 6H20L12 11Z" />
                          </svg> Transactions(Analytics)
                     </Dropdown.Item>
-                       <Dropdown.Item className='text-capitalize' onClick={() => router.push(`/operations/laboratory/patientarchives/${plsEncryption(item.patientid.toString())}?isOpenSideBarShow=false`)}>
+                    <Dropdown.Item className='text-capitalize' onClick={() => router.push(`/operations/laboratory/patientarchives/${plsEncryption(item.patientid.toString())}?isOpenSideBarShow=false`)}>
                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
                               <path d="M20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4ZM20 18H4V8L12 13L20 8V18ZM12 11L4 6H20L12 11Z" />
                          </svg>View Previous Transactions(Test)

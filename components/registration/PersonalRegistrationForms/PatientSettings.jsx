@@ -6,9 +6,9 @@ import { Form } from 'react-bootstrap';
 import Select from 'react-select';
 import { customFetch, reactSelectCustomStyles } from '../../Auth/customFetch';
 
-const PatientSettings = () => {
+const PatientSettings = ({ patientid: passedPatientId }) => {
     const searchParams = useSearchParams();
-    const patientid = searchParams.get('patientid');
+    const patientid = passedPatientId || searchParams.get('patientid');
     const { control, register, watch, setValue } = useFormContext();
     const [loading, setLoading] = useState(true);
     const notifyEnabled = watch('notify', false);
@@ -39,11 +39,11 @@ const PatientSettings = () => {
                 );
                 if (response) {
                     const { mode, notify, method, authenticationMode } = response;
-                    
+
                     const modeValue = modeOptions.find(option => option.value === mode) || null;
                     const methodValue = methodOptions.find(option => option.value === method) || null;
                     const authValue = authModeOptions.find(option => option.value === authenticationMode) || null;
-                    
+
                     setValue('mode', modeValue || '');
                     setValue('notify', notify ? true : false);
                     setValue('method', methodValue || '');
@@ -78,7 +78,7 @@ const PatientSettings = () => {
                     )}
                 />
             </div>
-            
+
             <div className="col-12 mb-3">
                 <Form.Check
                     type="switch"
@@ -120,7 +120,7 @@ const PatientSettings = () => {
                     )}
                 />
             </div>
-            
+
             <div className="col-12 mt-4 text-end">
                 <button type="submit" className="btn btn-sm btn-outline-primary">
                     Save Settings

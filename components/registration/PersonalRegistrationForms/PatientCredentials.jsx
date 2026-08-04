@@ -10,43 +10,43 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 const credentialsSchema = z.object({
-  username: z.string().min(6, "Username must be at least 6 characters"),
-  password: z.string().min(6, "Password must be at least 6 characters")
+    username: z.string().min(6, "Username must be at least 6 characters"),
+    password: z.string().min(6, "Password must be at least 6 characters")
 });
 
-const PatientCredentials = () => {
+const PatientCredentials = ({ patientid: passedPatientId }) => {
     const searchParams = useSearchParams();
-    const patientid = searchParams.get('patientid');
-    
+    const patientid = passedPatientId || searchParams.get('patientid');
+
     const { register, handleSubmit, formState: { errors }, getValues } = useForm({
         resolver: zodResolver(credentialsSchema)
     });
     const [updating, setUpdating] = useState(false);
-    const {employeeid} = useApplicationSettings().applicationsettings.user;
+    const { employeeid } = useApplicationSettings().applicationsettings.user;
 
     const handleUpdateCredentials = async () => {
         try {
             const username = getValues('username');
             const password = getValues('password');
-            
+
             if (!patientid) {
                 toast.error('Patient ID is required');
                 return;
             }
-            
+
             setUpdating(true);
-            
+
             const updateData = {
                 opassword: password,
                 npassword: password,
-                nppassword: password, 
+                nppassword: password,
                 employeeid,
                 patientid,
                 providedUsername: username
             };
-            
+
             const response = await customPost('patients/updatecredentials', 'POST', updateData);
-            
+
             if (response.status === "success") {
                 toast.success('Credentials updated successfully');
             } else {
@@ -98,10 +98,10 @@ const PatientCredentials = () => {
                         <p className="text-danger small mt-1">{errors.password.message}</p>
                     )}
                 </div>
-                
+
                 <div className="col-12 mt-3 text-end">
-                    <button 
-                        type="submit" 
+                    <button
+                        type="submit"
                         className="btn btn-sm btn-outline-primary"
                         disabled={updating}
                     >

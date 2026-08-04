@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react"
 import RenderInput from "./CustomInput"
 import Select from "react-select"
-import { submitFormData } from "../Auth/registerclient"
+import { customPost } from "../Auth/customFetch"
 import { reactSelectCustomStyles } from "../Auth/customFetch"
 
 export default function EmmergencyContactInformation({ defaultData, fields, patientid, toast }) {
@@ -12,6 +12,7 @@ export default function EmmergencyContactInformation({ defaultData, fields, pati
         emmergencyContactNumber: defaultData?.emmergencyContactNumber || '',
         address: defaultData?.address || '',
         occupation: defaultData?.occupation || '',
+        patientid: Number(patientid) || '',
         ...defaultData
     });
 
@@ -26,11 +27,22 @@ export default function EmmergencyContactInformation({ defaultData, fields, pati
         setLoading(false)
     }, [])
 
-    const handleSubmit = async (ev) => {
+    const handlePatientEmmergencyInformationSubmission = async (ev) => {
         ev.preventDefault()
+        const requestData = {
+            emmergencyContactName: data.emmergencyContactName,
+            relationship: data.relationship,
+            emmergencyContactNumber: data.emmergencyContactNumber,
+            address: data.address,
+            occupation: data.occupation,
+            patientid: Number(patientid)
+        }
         try {
             setIsSubmitting(true)
-            await submitFormData(`register/emmergencycontactinformation?patientid=${patientid}`, data, toast)
+            const response = await customPost(`register/emmergencycontactinformation?patientid=${patientid}`,'PUT', requestData)
+            if (response && Number(response.statusCode) === 200 && response.status === "success") {
+                toast.success("Emergency contact information saved successfully", { autoClose: 1000 })
+            }
         } catch (error) {
             toast.error("An error occurred while submitting the form", { autoClose: 1000 })
             console.error("Submission error", error)
@@ -43,8 +55,8 @@ export default function EmmergencyContactInformation({ defaultData, fields, pati
         <div className="col-sm-12 col-md-12 col-lg-6 col-xl-6">
             <div className="form-row">
                 <RenderInput
-                    visible={fields.emmergencyContactName.visible}
-                    value={fields.emmergencyContactName}
+                    visible={fields?.emmergencyContactName?.visible ?? true}
+                    value={fields?.emmergencyContactName ?? {}}
                     label={"Emergency Contact Name"}
                     field={
                         <input
@@ -66,14 +78,14 @@ export default function EmmergencyContactInformation({ defaultData, fields, pati
             </div>
             <div className="form-row">
                 <RenderInput
-                    visible={fields.relationship.visible}
-                    value={fields.relationship}
+                    visible={fields?.relationship?.visible ?? true}
+                    value={fields?.relationship ?? {}}
                     label={"Relationship"}
                     field={
                         <Select
                             isDisabled={isloading}
                             className="react-select-container"
-							styles={reactSelectCustomStyles}
+                            styles={reactSelectCustomStyles}
                             classNamePrefix="react-select"
                             value={
                                 data.relationship
@@ -100,8 +112,8 @@ export default function EmmergencyContactInformation({ defaultData, fields, pati
             </div>
             <div className="form-row">
                 <RenderInput
-                    visible={fields.emmergencyContactNumber.visible}
-                    value={fields.emmergencyContactNumber}
+                    visible={fields?.emmergencyContactNumber?.visible ?? true}
+                    value={fields?.emmergencyContactNumber ?? {}}
                     label={"Emergency Contact Number"}
                     field={
                         <input
@@ -126,8 +138,8 @@ export default function EmmergencyContactInformation({ defaultData, fields, pati
             </div>
             <div className="form-row">
                 <RenderInput
-                    visible={fields.address.visible}
-                    value={fields.address}
+                    visible={fields?.address?.visible ?? true}
+                    value={fields?.address ?? {}}
                     label={"Address"}
                     field={
                         <input
@@ -149,8 +161,8 @@ export default function EmmergencyContactInformation({ defaultData, fields, pati
             </div>
             <div className="form-row">
                 <RenderInput
-                    visible={fields.occupation.visible}
-                    value={fields.occupation}
+                    visible={fields?.occupation?.visible ?? true}
+                    value={fields?.occupation ?? {}}
                     label={"Occupation"}
                     field={
                         <input
@@ -172,7 +184,7 @@ export default function EmmergencyContactInformation({ defaultData, fields, pati
             </div>
             <button
                 disabled={!patientid || isSubmitting}
-                onClick={handleSubmit}
+                onClick={handlePatientEmmergencyInformationSubmission}
                 className="btn mt-3 btn-success btn-sm text-capitalize"
             >
                 {isSubmitting && (

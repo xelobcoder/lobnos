@@ -12,7 +12,7 @@ export default function FilterPage() {
         if (!hasPatientid) return;
         const { patientid } = options;
 
-        router.push(`/registration?patientid=${patientid}`);
+        router.push(`/crm/registration/${patientid}/personal-information`);
     };
 
     return (
@@ -20,9 +20,9 @@ export default function FilterPage() {
             <div className="row">
                 <div className="col-lg-6 col-md-8 col-sm-12 mx-auto">
                     <h2 className="mb-4">Patient Search</h2>
-                    <PatientFiltered 
-                        getSelectedPatient={handlePatientSelect} 
-                        isDisabled={false} 
+                    <PatientFiltered
+                        getSelectedPatient={handlePatientSelect}
+                        isDisabled={false}
                     />
                 </div>
             </div>

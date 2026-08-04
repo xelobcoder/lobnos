@@ -22,6 +22,16 @@
   grid-gap: 10px 10px !important;
 }
 
+@media (max-width: 767.98px) {
+  .grid-reg {
+    grid-template-columns: 1fr !important;
+  }
+
+  .grid-reg>label {
+    width: 100%;
+  }
+}
+
 .grid-20-80 {
   display: grid;
   grid-template-columns: 20% 80% !important;

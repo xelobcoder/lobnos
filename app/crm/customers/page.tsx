@@ -237,22 +237,24 @@ export default function Activator() {
 
     return (
         <div className='p-2'>
-            <div className='row g-2 mb-3'>
-                <div className='col-6'>
+            <div className='row g-2 mb-3 align-items-end'>
+                <div className='col-12 col-md-6'>
                     <PatientFiltered isDisabled={false} getSelectedPatient={filteredPatient} />
                 </div>
-                <div className='col-6 d-flex justify-content-end align-items-end gap-2'>
-                    <button className='btn btn-success ' onClick={handleRegisterNewClient}>+ Register New Client</button>
-                    <button className='btn btn-primary' onClick={() => setShowAdvancedFilter(!showAdvancedFilter)}>Advanced Filtering</button>
-                    <button
-                        className='btn btn-outline-secondary'
-                        onClick={resetFiltering}
-                        disabled={loading}
-                        title="Refresh to get latest data"
-                    >
-                        <RiRefreshLine size={16} className={loading ? 'animate-spin' : ''} style={{ marginRight: '4px' }} />
-                        {loading ? 'Refreshing...' : 'Refresh'}
-                    </button>
+                <div className='col-12 col-md-6'>
+                    <div className='d-flex flex-column flex-sm-row justify-content-md-end align-items-stretch gap-2'>
+                        <button className='btn btn-success w-100 w-sm-auto' onClick={handleRegisterNewClient}>+ Register New Client</button>
+                        <button className='btn btn-primary w-100 w-sm-auto' onClick={() => setShowAdvancedFilter(!showAdvancedFilter)}>Advanced Filtering</button>
+                        <button
+                            className='btn btn-outline-secondary w-100 w-sm-auto'
+                            onClick={resetFiltering}
+                            disabled={loading}
+                            title="Refresh to get latest data"
+                        >
+                            <RiRefreshLine size={16} className={loading ? 'animate-spin' : ''} style={{ marginRight: '4px' }} />
+                            {loading ? 'Refreshing...' : 'Refresh'}
+                        </button>
+                    </div>
                 </div>
             </div>
             {/* advanced Filter */}

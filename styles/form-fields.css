@@ -3,23 +3,139 @@
     padding: 0.5rem;
     border: 1px solid #ccc;
     border-radius: 4px;
-    outline: none ;
+    outline: none;
     max-height: 40px;
     font-size: 1rem;
     transition: border-color 0.3s;
     background-color: var(--bs-body-bg);
     color: var(--bs-body-color);
 }
+
 .custom-select {
     width: 100%;
     padding: 0.5rem;
     border: 1px solid #ccc;
     border-radius: 4px;
-    outline: none ;
+    outline: none;
     max-height: 40px;
     font-size: 1rem;
     background-color: #fff;
     transition: border-color 0.3s;
+}
+
+.form-group-responsive {
+    display: grid;
+    grid-template-columns: 180px minmax(0, 1fr);
+    gap: 0.75rem;
+    align-items: center;
+    width: 100%;
+}
+
+.form-group-responsive label {
+    width: 100%;
+    min-width: auto;
+    justify-self: end;
+    text-align: right;
+    margin-bottom: 0;
+}
+
+.form-group-responsive .form-control,
+.form-group-responsive .custom-input,
+.form-group-responsive .custom-select,
+.form-group-responsive .input-group,
+.form-group-responsive .react-select-container {
+    width: 100%;
+    min-width: 0;
+}
+
+.form-group-responsive .input-group {
+    min-width: 0;
+    display: flex;
+    align-items: stretch;
+}
+
+.form-group-responsive .input-group .form-select,
+.form-group-responsive .input-group .form-control {
+    min-width: 0;
+    height: 40px;
+}
+
+.form-group-responsive .input-group .form-select {
+    flex: 0 0 auto;
+}
+
+.form-group-responsive .input-group .form-control {
+    flex: 1 1 auto;
+}
+
+.phone-input-row {
+    display: grid;
+    grid-template-columns: 180px minmax(0, 1fr);
+    gap: 0.75rem;
+    align-items: center;
+    width: 100%;
+}
+
+.phone-input-row label {
+    justify-self: end;
+    text-align: right;
+}
+
+.phone-input-row .input-group {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+}
+
+.phone-input-row .input-group .form-control,
+.phone-input-row .input-group .form-select {
+    width: auto;
+}
+
+.phone-input-row .phone-code-select {
+    flex: 0 0 140px;
+    min-width: 100px;
+}
+
+.phone-input-row .phone-number-input {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.phone-input-row .phone-code-select,
+.phone-input-row .phone-number-input {
+    height: 40px;
+}
+
+.form-help-text {
+    margin-left: 180px;
+}
+
+@media (max-width: 767.98px) {
+    .form-group-responsive {
+        grid-template-columns: 1fr;
+        align-items: stretch;
+    }
+
+    .form-group-responsive label {
+        width: 100%;
+        min-width: auto;
+        margin-bottom: 0.35rem;
+        text-align: left;
+    }
+
+    .form-help-text {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .form-group-responsive {
+        gap: 0.5rem;
+    }
 }
 
 /* Dark Mode for Form Fields */

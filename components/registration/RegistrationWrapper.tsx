@@ -6,11 +6,10 @@ import { RiArrowLeftSLine, RiArrowRightSLine } from '@remixicon/react';
 interface RegistrationWrapperProps {
     isOnlyRegistration?: boolean;
     formSteps?: ReactElement[];
+    stepLabels?: string[];
 }
 
-export const RegistrationWrapper = ({ isOnlyRegistration = false, formSteps = [] }: RegistrationWrapperProps) => {
-    const allSteps = ['Photo', 'Personal Info', 'Address', 'Emergency Contact', 'Credentials', 'Settings'];
-    const steps = isOnlyRegistration ? ['Personal Info'] : allSteps;
+export const RegistrationWrapper = ({ isOnlyRegistration = false, formSteps = [], stepLabels = [] }: RegistrationWrapperProps) => {
     const [currentStep, setCurrentStep] = useState(0);
     const maxSteps = formSteps.length - 1;
 
@@ -32,49 +31,51 @@ export const RegistrationWrapper = ({ isOnlyRegistration = false, formSteps = []
         }
     };
 
+    if (isOnlyRegistration || formSteps.length <= 1) {
+        return <div className={styles.registrationContent}>{formSteps[0]}</div>;
+    }
+
+    const progressPercent = maxSteps > 0 ? Math.round((currentStep / maxSteps) * 100) : 0;
+
     return (
-        <>
-            <div className={styles.stepsIndicator}>
-                <div className="d-flex flex-column flex-md-row justify-content-between align-items-center px-3 px-md-5">
-                    <div className="d-flex flex-wrap justify-content-center gap-2 mb-3 mb-md-0">
-                        {steps.map((step, index) => (
-                            <React.Fragment key={index}>
-                                <div
-                                    className={`${styles.step} ${currentStep === index ? styles.active : ''} ${styles.clickable}`}
-                                    onClick={() => handleStepClick(index)}
-                                    role="button"
-                                >
-                                    <div className={styles.stepNumber}>{index + 1}</div>
-                                    <div className={`${styles.stepTitle} d-none d-md-block`}>{step}</div>
-                                </div>
-                                {index < steps.length - 1 && (
-                                    <div className={`${styles.stepConnector} d-none d-md-block`}></div>
-                                )}
-                            </React.Fragment>
-                        ))}
+        <div className={styles.updatePageWrapper}>
+            <aside className={styles.sidebar}>
+                <div className={styles.sidebarTitle}>Patient Record Sections</div>
+                <div className={styles.sidebarMeta}>
+                    <div className={styles.sidebarMetaStatus}>
+                        <span>{`Step ${currentStep + 1} of ${stepLabels.length}`}</span>
+                        <span>{`${progressPercent}%`}</span>
                     </div>
-                    <div className="d-flex gap-2">
-                        <button
-                            className={`btn btn-light ${styles.navButton}`}
-                            onClick={prevStep}
-                            disabled={currentStep === 0}
-                        >
-                            <RiArrowLeftSLine size={24} />
-                        </button>
-                        <button
-                            className={`btn btn-light ${styles.navButton}`}
-                            onClick={nextStep}
-                            disabled={currentStep === maxSteps}
-                        >
-                            <RiArrowRightSLine size={24} />
-                        </button>
+                    <div className={styles.stepProgress}>
+                        <div className={styles.stepProgressFill} style={{ width: `${progressPercent}%` }} />
                     </div>
                 </div>
-            </div>
+                <nav className={styles.sidebarNav}>
+                    {stepLabels.map((label, index) => (
+                        <button
+                            key={index}
+                            type="button"
+                            className={`${styles.sidebarItem} ${currentStep === index ? styles.activeSidebarItem : ''}`}
+                            onClick={() => handleStepClick(index)}
+                        >
+                            <span className={styles.sidebarItemIndex}>{index + 1}</span>
+                            <span>{label}</span>
+                        </button>
+                    ))}
+                </nav>
+            </aside>
 
-            <div className={`${styles.registrationContent} px-3 px-md-5`}>
-                {formSteps[currentStep]}
+            <div className={styles.contentArea}>
+                <div className={styles.formContent}>{formSteps[currentStep]}</div>
+                <div className={styles.navigationButtons}>
+                    <button className="btn btn-light" onClick={prevStep} disabled={currentStep === 0}>
+                        <RiArrowLeftSLine size={24} />
+                    </button>
+                    <button className="btn btn-light" onClick={nextStep} disabled={currentStep === maxSteps}>
+                        <RiArrowRightSLine size={24} />
+                    </button>
+                </div>
             </div>
-        </>
+        </div>
     );
 };
