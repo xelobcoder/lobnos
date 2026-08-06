@@ -1,8 +1,22 @@
-'use client';
-import React, { useState, useEffect } from "react";
+﻿'use client';
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import styles from './PrimeLayout.module.css';
-import { RiMenuLine, RiArrowLeftLine, RiArrowRightLine, RiAddLine, RiSubtractLine } from '@remixicon/react';
-import { Dropdown } from 'react-bootstrap';
+import {
+    RiMenuLine,
+    RiArrowLeftLine,
+    RiArrowRightLine,
+    RiApps2Line,
+    RiUser3Line,
+    RiFontSize,
+    RiSettings3Line,
+    RiLogoutBoxRLine,
+    RiMoonLine,
+    RiSunLine,
+    RiCloseLine,
+    RiShieldCheckLine,
+    RiErrorWarningLine,
+    RiTimeLine,
+} from '@remixicon/react';
 import { useApplicationSettings } from "../Auth/useApplicationContext";
 import { Link as LinkType } from "./links/types";
 import { AdminRoleLinks, FrontdeskRoleLinks, LaboratoryScientistRoleLinks, PhelobotomyRoleLinks, SonographerRoleLinks } from "../FrontPageView/RoleLinks";
@@ -22,8 +36,6 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
     const { theme, toggleTheme } = useTheme();
     const router = useRouter();
 
-
-
     const roleViews = {
         "customer service representative": FrontdeskRoleLinks,
         admin: AdminRoleLinks,
@@ -34,303 +46,262 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
     };
 
     const [isQuickLinksCollapsed, setIsQuickLinksCollapsed] = useState<boolean>(false);
-    const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
-    const [isAppsExpanded, setIsAppsExpanded] = useState<boolean>(false);
-    const [isMobile, setIsMobile] = useState<boolean>(false);
     const [isFontSelectorOpen, setIsFontSelectorOpen] = useState<boolean>(false);
+    const [isAppsOpen, setIsAppsOpen] = useState<boolean>(false);
     const roleLinks = roleViews[user.role] || [];
     const employeeid = user?.employeeid || 0;
     const [currentPath, setCurrentPath] = useState<string>("");
-    const isOpenSideBarShow = useSearchParams().get("isOpenSideBarShow") !== "false"; // Default to true
+    const isOpenSideBarShow = useSearchParams().get("isOpenSideBarShow") !== "false";
 
     useEffect(() => {
         setCurrentPath(window.location.pathname);
     }, []);
 
     useEffect(() => {
-        const checkIsMobile = () => {
-            setIsMobile(window.innerWidth < 768);
-        };
-
-        checkIsMobile();
-        window.addEventListener('resize', checkIsMobile);
-
-        return () => window.removeEventListener('resize', checkIsMobile);
-    }, []);
-
-    // Apply saved font preference on mount
-    useEffect(() => {
         const savedFont = getFontPreference();
         applyFontToDocument(savedFont);
     }, []);
 
-    // Redirect to license expired page if license has expired or expires today
     useEffect(() => {
         if (daysToExpiration !== undefined && daysToExpiration !== null && daysToExpiration <= 0) {
             router.push("/authentications/license-expired");
         }
     }, [daysToExpiration, router]);
 
+    useEffect(() => {
+        if (!isAppsOpen) return;
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setIsAppsOpen(false);
+        };
+        document.addEventListener('keydown', onKey);
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.removeEventListener('keydown', onKey);
+            document.body.style.overflow = prev;
+        };
+    }, [isAppsOpen]);
+
     const handleNavigation = (path: string) => {
         if (window.location.pathname !== path) {
             window.location.href = path;
         }
-        // Close mobile sidebar after navigation
         setIsMobileSidebarOpen(false);
+        setIsAppsOpen(false);
     };
 
+    const licenseInfo = useMemo(() => {
+        if (daysToExpiration === undefined || daysToExpiration === null) {
+            return null;
+        }
+        if (daysToExpiration < 0) {
+            return {
+                tone: 'critical' as const,
+                label: 'License expired',
+                detail: 'Renewal required',
+                Icon: RiErrorWarningLine,
+            };
+        }
+        if (daysToExpiration === 0) {
+            return {
+                tone: 'critical' as const,
+                label: 'Expires today',
+                detail: 'License ends today',
+                Icon: RiErrorWarningLine,
+            };
+        }
+        if (daysToExpiration <= 7) {
+            return {
+                tone: 'critical' as const,
+                label: `${daysToExpiration} days left`,
+                detail: 'License expiring soon',
+                Icon: RiErrorWarningLine,
+            };
+        }
+        if (daysToExpiration <= 30) {
+            return {
+                tone: 'warn' as const,
+                label: `${daysToExpiration} days left`,
+                detail: 'License renewal window',
+                Icon: RiTimeLine,
+            };
+        }
+        return {
+            tone: 'ok' as const,
+            label: `${daysToExpiration} days left`,
+            detail: 'License active',
+            Icon: RiShieldCheckLine,
+        };
+    }, [daysToExpiration]);
 
-    const toggleGroup = (groupTitle: string) => {
-        setExpandedGroups(prev => {
-            const newSet = new Set(prev);
-            if (newSet.has(groupTitle)) {
-                newSet.delete(groupTitle);
-            } else {
-                newSet.add(groupTitle);
-            }
-            return newSet;
+    const appsByCategory = useMemo(() => {
+        const map = new Map<string, typeof roleLinks>();
+        roleLinks.forEach((link) => {
+            const cat = (link as { category?: string }).category || 'Applications';
+            if (!map.has(cat)) map.set(cat, []);
+            map.get(cat)!.push(link);
         });
-    };
+        return Array.from(map.entries());
+    }, [roleLinks]);
+
+    const closeApps = useCallback(() => setIsAppsOpen(false), []);
 
     const renderNavItem = (item: LinkType, isChild: boolean = false) => {
         const uniqueKey = item.title.replace(/\s+/g, '-');
         const isActive = currentPath === item.link;
         const hasChildren = item.children && item.children.length > 0;
-        const isExpanded = expandedGroups.has(item.title);
 
         if (hasChildren) {
             return (
                 <div key={uniqueKey} className={styles.navSection}>
-                    <button
-                        className={styles.navGroupButton}
-                        onClick={() => toggleGroup(item.title)}
-                        aria-expanded={isExpanded}
-                    >
-                        {item.icon && <span className={styles.navIcon}>{item.icon}</span>}
-                        <span className={styles.navLabel}>{item.title}</span>
-                        <span className={styles.navExpandIcon}>
-                            {isExpanded ? <RiSubtractLine size={12} /> : <RiAddLine size={12} />}
-                        </span>
-                    </button>
-                    {isExpanded && item.children && (
-                        <div className={styles.navSubmenu}>
+                    <div className={styles.navGroupLabel} title={item.title}>
+                        {item.icon && <span className={styles.navGroupIcon}>{item.icon}</span>}
+                        <span className={styles.navGroupText}>{item.title}</span>
+                    </div>
+                    {item.children && (
+                        <div className={styles.navSubmenu} role="group" aria-label={item.title}>
                             {item.children.map(child => renderNavItem(child, true))}
                         </div>
                     )}
                 </div>
             );
-        } else {
-            const handleClick = () => {
-                handleNavigation(item.link);
-            };
-
-            return (
-                <button
-                    key={uniqueKey}
-                    className={`${styles.navItem} ${isActive ? styles.navItemActive : ''} ${isChild ? styles.navItemChild : ''}`}
-                    onClick={handleClick}
-                    aria-current={isActive ? 'page' : undefined}
-                >
-                    {item.icon && <span className={styles.navIcon}>{item.icon}</span>}
-                    <span className={styles.navLabel}>{item.title}</span>
-                </button>
-            );
         }
+
+        return (
+            <button
+                key={uniqueKey}
+                type="button"
+                className={`${styles.navItem} ${isActive ? styles.navItemActive : ''} ${isChild ? styles.navItemChild : ''}`}
+                onClick={() => handleNavigation(item.link)}
+                aria-current={isActive ? 'page' : undefined}
+                title={item.title}
+            >
+                {item.icon && <span className={styles.navIcon}>{item.icon}</span>}
+                <span className={styles.navLabel}>{item.title}</span>
+            </button>
+        );
     };
-
-
-
 
     return (
         <div className={`${styles.container} ${isQuickLinksCollapsed ? styles.quickLinksCollapsed : styles.quickLinksExpanded} ${isMobileSidebarOpen ? styles.mobileSidebarOpen : ''}`}>
-            {/* Header with PLS Green Background */}
             <header className={styles.darkHeader}>
                 <div className={styles.headerContent}>
-                    {/* Company Info */}
-                    <div className={styles.headerCompany}>
-                        <h2 className={styles.companyName}>
-                            {company}
-                        </h2>
-                    </div>
-
-                    {/* Role Links Dropdown */}
-                    <div className={styles.headerActions}>
-                        <div className="d-none d-md-flex flex-column align-items-end me-2" style={{ lineHeight: '1.2' }}>
-                            <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{user?.username}({user?.role})</span>
-                            {daysToExpiration !== undefined && daysToExpiration !== null && (
-                                <span style={{ fontSize: '0.8rem', color: daysToExpiration <= 7 ? '#dc3545' : daysToExpiration <= 30 ? '#ffc107' : '#28a745' }}>
-                                    {daysToExpiration > 0 ? `${daysToExpiration} days to expiration of license` : daysToExpiration === 0 ? 'Expires today' : 'Expired'}
-                                </span>
-                            )}
-                        </div>
+                    <div className={styles.headerLeft}>
+                        {isOpenSideBarShow && (
+                            <button
+                                type="button"
+                                className={`${styles.sidebarToggleHeader} d-none d-md-inline-flex`}
+                                onClick={() => setIsQuickLinksCollapsed(!isQuickLinksCollapsed)}
+                                title={isQuickLinksCollapsed ? "Expand navigation" : "Collapse navigation"}
+                                aria-label={isQuickLinksCollapsed ? "Expand navigation" : "Collapse navigation"}
+                                aria-expanded={!isQuickLinksCollapsed}
+                            >
+                                {isQuickLinksCollapsed ? <RiArrowRightLine size={18} /> : <RiArrowLeftLine size={18} />}
+                            </button>
+                        )}
                         <button
-                            className={styles.themeToggle}
-                            onClick={toggleTheme}
-                            title={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
-                            aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
-                        >
-                            {theme === 'light' ? '🌙' : '☀️'}
-                        </button>
-                        <button
-                            className={styles.fontSelectorButton}
-                            onClick={() => setIsFontSelectorOpen(true)}
-                            title="Change Font"
-                            aria-label="Change application font"
-                        >
-                            <span>🔤</span>
-                        </button>
-                        <button
+                            type="button"
                             className={styles.mobileMenuButton}
                             onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
                             aria-label="Toggle navigation menu"
                         >
                             <RiMenuLine />
                         </button>
-                        <Dropdown>
-                            <Dropdown.Toggle id="role-links-dropdown" variant="outline-light" className={styles.roleDropdownToggle}>
-                                <RiMenuLine />
-                            </Dropdown.Toggle>
-                            <Dropdown.Menu className={styles.roleDropdownMenu}>
-                                {/* Quick Apps Section */}
-                                <div className={styles.dropdownSection}>
-                                    <div className={styles.dropdownSectionTitle}>Quick Apps</div>
-                                    <div className={styles.dropdownGrid}>
-                                        {roleLinks.map((link, index) => (
-                                            <a
-                                                key={index}
-                                                href={link.href}
-                                                className={styles.dropdownGridItem}
-                                            >
-                                                <span className={styles.dropdownGridIcon}>{link.icon}</span>
-                                                <span className={styles.dropdownGridLabel}>{link.label}</span>
-                                            </a>
-                                        ))}
-                                    </div>
+                        <div className={styles.brandBlock}>
+                            <h2 className={styles.companyName}>{company}</h2>
+                            <span className={`${styles.userInline} d-none d-lg-inline`}>
+                                {user?.username}
+                                <span className={styles.userRoleSep}> · </span>
+                                <span className={styles.userRole}>{user?.role}</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className={styles.headerCenter}>
+                        <button
+                            type="button"
+                            className={styles.appsLauncherBtn}
+                            onClick={() => setIsAppsOpen(true)}
+                            aria-haspopup="dialog"
+                            aria-expanded={isAppsOpen}
+                        >
+                            <RiApps2Line size={18} />
+                            <span className={styles.appsLauncherLabel}>Apps</span>
+                        </button>
+                    </div>
+
+                    <div className={styles.headerActions}>
+                        {licenseInfo && (
+                            <div
+                                className={`${styles.licenseBadge} ${styles[`license_${licenseInfo.tone}`]}`}
+                                title={`${licenseInfo.detail}: ${licenseInfo.label}`}
+                            >
+                                <licenseInfo.Icon size={15} className={styles.licenseBadgeIcon} />
+                                <div className={styles.licenseBadgeText}>
+                                    <span className={styles.licenseBadgeTitle}>License</span>
+                                    <span className={styles.licenseBadgeValue}>{licenseInfo.label}</span>
                                 </div>
+                            </div>
+                        )}
 
-                                <Dropdown.Divider />
-
-                                {/* Account Section */}
-                                <div className={styles.dropdownSection}>
-                                    <div className={styles.dropdownSectionTitle}>Account</div>
-                                    <Dropdown.Item
-                                        onClick={() => setIsFontSelectorOpen(true)}
-                                        className={styles.roleDropdownItem}
-                                    >
-                                        <span className={styles.dropdownIcon}>🔤</span>
-                                        <span>
-                                            <div className={styles.dropdownItemTitle}>Font</div>
-                                            <div className={styles.dropdownItemSubtitle}>Change application font</div>
-                                        </span>
-                                    </Dropdown.Item>
-                                    <Dropdown.Item href="/settings" className={styles.roleDropdownItem}>
-                                        <span className={styles.dropdownIcon}>⚙️</span>
-                                        <span>
-                                            <div className={styles.dropdownItemTitle}>Settings</div>
-                                            <div className={styles.dropdownItemSubtitle}>Preferences & configuration</div>
-                                        </span>
-                                    </Dropdown.Item>
-                                </div>
-
-                                <Dropdown.Divider />
-
-                                {/* Logout */}
-                                <Dropdown.Item href="/authentication/logout" className={`${styles.roleDropdownItem} ${styles.logoutItem}`}>
-                                    <span className={styles.dropdownIcon}>🚪</span>
-                                    Logout
-                                </Dropdown.Item>
-                            </Dropdown.Menu>
-                        </Dropdown>
+                        <div className={styles.headerIconGroup} role="toolbar" aria-label="Account actions">
+                            <button
+                                type="button"
+                                className={styles.headerIconBtn}
+                                onClick={() => handleNavigation(`/human-resource/profile?employeeid=${employeeid}`)}
+                                title="Profile"
+                                aria-label="Open profile"
+                            >
+                                <RiUser3Line size={18} />
+                            </button>
+                            <button
+                                type="button"
+                                className={styles.headerIconBtn}
+                                onClick={() => setIsFontSelectorOpen(true)}
+                                title="Font"
+                                aria-label="Change font"
+                            >
+                                <RiFontSize size={18} />
+                            </button>
+                            <button
+                                type="button"
+                                className={styles.headerIconBtn}
+                                onClick={toggleTheme}
+                                title={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
+                                aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
+                            >
+                                {theme === 'light' ? <RiMoonLine size={18} /> : <RiSunLine size={18} />}
+                            </button>
+                            <button
+                                type="button"
+                                className={styles.headerIconBtn}
+                                onClick={() => handleNavigation('/settings')}
+                                title="Settings"
+                                aria-label="Open settings"
+                            >
+                                <RiSettings3Line size={18} />
+                            </button>
+                            <a
+                                href="/authentication/logout"
+                                className={`${styles.headerIconBtn} ${styles.headerIconLogout}`}
+                                title="Logout"
+                                aria-label="Log out"
+                            >
+                                <RiLogoutBoxRLine size={18} />
+                            </a>
+                        </div>
                     </div>
                 </div>
             </header>
 
-            {/* Two Column Layout: Sidebar + Main Content */}
             <div className={styles.twoColumnLayout} style={!isOpenSideBarShow ? { width: '100%' } : {}}>
-                {/* Mobile Overlay */}
-                {isMobileSidebarOpen && <div className={styles.mobileOverlay} onClick={() => setIsMobileSidebarOpen(false)}></div>}
+                {isMobileSidebarOpen && <div className={styles.mobileOverlay} onClick={() => setIsMobileSidebarOpen(false)} />}
 
-                {/* First Column: Quick Links Sidebar - Only show if isOpenSideBarShow is true */}
                 {isOpenSideBarShow && (
                     <aside className={`${styles.quickLinksSidebar} ${isMobileSidebarOpen ? styles.mobileSidebarVisible : ''}`}>
-                        <div className={styles.sidebarHeader}>
-                            <h3 className={styles.sidebarTitle}>Quick Links</h3>
-                            <button
-                                className={styles.sidebarActionButton}
-                                onClick={() => setIsQuickLinksCollapsed(!isQuickLinksCollapsed)}
-                                title={isQuickLinksCollapsed ? "Expand Quick Links" : "Collapse Quick Links"}
-                            >
-                                {isQuickLinksCollapsed ? <RiArrowRightLine size={16} /> : <RiArrowLeftLine size={16} />}
-                            </button>
-                        </div>
-
-                        <nav className={styles.sidebarNav} aria-label="Quick Links Navigation">
+                        <nav className={styles.sidebarNav} aria-label="Section navigation">
                             {Array.isArray(links) && links.map(item => renderNavItem(item))}
-
-                            {/* Apps Section - Only show on mobile */}
-                            {isMobile && (
-                                <div className={styles.navSection}>
-                                    <button
-                                        className={styles.navGroupButton}
-                                        onClick={() => setIsAppsExpanded(!isAppsExpanded)}
-                                        aria-expanded={isAppsExpanded}
-                                    >
-                                        <span className={styles.navIcon}>📱</span>
-                                        <span className={styles.navLabel}>Apps</span>
-                                        <span className={styles.navExpandIcon}>
-                                            {isAppsExpanded ? <RiSubtractLine size={12} /> : <RiAddLine size={12} />}
-                                        </span>
-                                    </button>
-                                    {isAppsExpanded && (
-                                        <div className={styles.navSubmenu}>
-                                            {roleLinks.map((link, index) => (
-                                                <button
-                                                    key={`app-${index}`}
-                                                    className={`${styles.navItem} ${styles.navItemChild}`}
-                                                    onClick={() => {
-                                                        window.location.href = link.href;
-                                                        setIsMobileSidebarOpen(false);
-                                                    }}
-                                                >
-                                                    <span className={styles.navIcon}>{link.icon}</span>
-                                                    <span className={styles.navLabel}>{link.label}</span>
-                                                </button>
-                                            ))}
-                                            <button
-                                                className={`${styles.navItem} ${styles.navItemChild}`}
-                                                onClick={() => {
-                                                    window.location.href = `/human-resource/profile?employeeid=${employeeid}`;
-                                                    setIsMobileSidebarOpen(false);
-                                                }}
-                                            >
-                                                <span className={styles.navIcon}>👤</span>
-                                                <span className={styles.navLabel}>Profile</span>
-                                            </button>
-                                            <button
-                                                className={`${styles.navItem} ${styles.navItemChild}`}
-                                                onClick={() => {
-                                                    window.location.href = "/settings";
-                                                    setIsMobileSidebarOpen(false);
-                                                }}
-                                            >
-                                                <span className={styles.navIcon}>⚙️</span>
-                                                <span className={styles.navLabel}>Settings</span>
-                                            </button>
-                                            <button
-                                                className={`${styles.navItem} ${styles.navItemChild}`}
-                                                onClick={() => {
-                                                    window.location.href = "/authentication/logout";
-                                                    setIsMobileSidebarOpen(false);
-                                                }}
-                                            >
-                                                <span className={styles.navIcon}>🚪</span>
-                                                <span className={styles.navLabel}>Logout</span>
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
                         </nav>
                     </aside>
                 )}
@@ -340,6 +311,92 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                     </div>
                 </main>
             </div>
+
+            {isAppsOpen && (
+                <div className={styles.appsOverlay} role="presentation" onClick={closeApps}>
+                    <div
+                        className={styles.appsModal}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="apps-launcher-title"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className={styles.appsModalHeader}>
+                            <div className={styles.appsModalHeading}>
+                                <span className={styles.appsModalKicker}>Workspace</span>
+                                <h3 id="apps-launcher-title" className={styles.appsModalTitle}>Applications</h3>
+                                <p className={styles.appsModalSubtitle}>
+                                    Open a module available for your role
+                                    {user?.role ? ` (${user.role})` : ''}.
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                className={styles.appsModalClose}
+                                onClick={closeApps}
+                                aria-label="Close applications"
+                            >
+                                <RiCloseLine size={20} />
+                            </button>
+                        </div>
+
+                        <div className={styles.appsModalBody}>
+                            {appsByCategory.length === 0 ? (
+                                <div className={styles.appsEmpty}>No applications available for this role.</div>
+                            ) : (
+                                appsByCategory.map(([category, items]) => (
+                                    <section key={category} className={styles.appsCategory}>
+                                        <h4 className={styles.appsCategoryTitle}>{category}</h4>
+                                        <div className={styles.appsGrid}>
+                                            {items.map((link, index) => {
+                                                const disabled = Boolean((link as { disabled?: boolean }).disabled);
+                                                const description =
+                                                    (link as { description?: string }).description ||
+                                                    (link as { text?: string }).text ||
+                                                    '';
+                                                const content = (
+                                                    <>
+                                                        <span className={styles.appsTileIcon}>{link.icon}</span>
+                                                        <span className={styles.appsTileBody}>
+                                                            <span className={styles.appsTileLabel}>{link.label}</span>
+                                                            {description ? (
+                                                                <span className={styles.appsTileDesc}>{description}</span>
+                                                            ) : null}
+                                                        </span>
+                                                    </>
+                                                );
+                                                if (disabled) {
+                                                    return (
+                                                        <div
+                                                            key={`${category}-${index}`}
+                                                            className={`${styles.appsTile} ${styles.appsTileDisabled}`}
+                                                            aria-disabled="true"
+                                                            title="Unavailable"
+                                                        >
+                                                            {content}
+                                                        </div>
+                                                    );
+                                                }
+                                                return (
+                                                    <a
+                                                        key={`${category}-${index}`}
+                                                        href={link.href}
+                                                        className={styles.appsTile}
+                                                        onClick={() => setIsAppsOpen(false)}
+                                                    >
+                                                        {content}
+                                                    </a>
+                                                );
+                                            })}
+                                        </div>
+                                    </section>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <FontSelector
                 isOpen={isFontSelectorOpen}
                 onClose={() => setIsFontSelectorOpen(false)}

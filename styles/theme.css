@@ -15,7 +15,7 @@
     --theme-body-bg: #f8f9fa;
     --theme-card-bg: #ffffff;
 
-    --theme-sidebar-width: 280px;
+    --theme-sidebar-width: 248px;
     --theme-border-radius: 8px;
     --theme-font-family: var(--font-raleway), var(--font-inter), 'Helvetica Neue', Arial, sans-serif;
     --bs-body-font-family: var(--theme-font-family);

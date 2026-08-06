@@ -45,7 +45,7 @@ export const getThemeById = (id: string): Theme => {
                cardBg: '#ffffff'
           },
           layout: {
-               sidebarWidth: '280px',
+               sidebarWidth: '248px',
                borderRadius: '8px',
                sidebarStyle: 'modern'
           }
@@ -109,7 +109,7 @@ export const availableFonts = [
      { name: 'Lato', value: "var(--font-lato)" },
      { name: 'Lexend', value: "var(--font-lexend)" },
      { name: 'Candara', value: "var(--font-candara)" },
-     { name: "Segoe", value: "var(--font-segoe)" },
+     { name: "Segoe UI (Prime Table)", value: "var(--font-segoe)" },
      { name: 'Arial', value: "var(--font-arial)" },
      { name: 'Verdana', value: "var(--font-verdana)" },
 ];
