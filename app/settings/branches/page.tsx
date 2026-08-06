@@ -59,12 +59,9 @@ export default function Branches() {
 					branchid: branch.branchid,
 				});
 				const { status, message } = response;
-				if (status === "success") {
-					toast.success(message, { autoClose: 500, position: "top-center" });
-					setBranches((prev) => prev.filter((item) => item.branchid !== index));
-					setTimeout(() => {
-						router.refresh();
-					}, 600);
+				if (status === true || status === "success") {
+					toast.success(message || "Branch deleted successfully")
+					getBranches(setBranches, null, setLoading);
 				} else {
 					toast.error(message, { autoClose: 1000, position: "top-center" });
 				}

@@ -167,9 +167,13 @@ export default function ProcessPayrollPage() {
                     }
                );
 
-               if (response?.status === 'success') {
+               if (response?.status === 'success' && (!response?.result?.errors || response?.result?.errors.length === 0)) {
                     alert(`Payroll processed successfully for ${response.result.processed_count} employees`);
                     router.push(`/human-resource/payroll/periods/${periodId}`);
+               } else if (response?.result?.errors && response.result.errors.length > 0) {
+                    const errors = response.result.errors.map((err: any) => { return JSON.parse(err.error) })
+                    const result = errors.map((err: any) => { return Array.isArray(err) ? err[0]?.message : null });
+                    setError(result.join(","));
                } else {
                     setError(response?.message || 'Failed to process payroll');
                }

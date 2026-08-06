@@ -11,6 +11,338 @@
     color: var(--bs-body-color);
 }
 
+
+
+.registration-form-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.registration-shell {
+    display: block;
+}
+
+.registration-search-block {
+    padding: 1rem 1.15rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: var(--theme-border-radius, 0.5rem);
+    background: var(--theme-card-bg, var(--bs-body-bg));
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.registration-search-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    background: color-mix(in srgb, var(--theme-accent, var(--bs-primary)) 12%, transparent);
+    color: var(--theme-accent, var(--bs-primary));
+}
+
+.registration-search-input .form-control {
+    min-height: 2.75rem;
+}
+
+.registration-form-grid-3 {
+    grid-template-columns: minmax(240px, 0.9fr) 1.4fr 1.4fr;
+    align-items: start;
+    gap: 1rem;
+}
+
+.registration-profile-column {
+    position: sticky;
+    top: 0.5rem;
+}
+
+/* Patient found modal — app font + PLS green theme */
+.patient-found-modal .modal-dialog {
+    max-width: 980px;
+}
+
+.patient-found-modal-top {
+    margin-top: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.patient-found-modal-content,
+.patient-found-modal-content .modal-title,
+.patient-found-modal-content .btn,
+.patient-found-modal-content p,
+.patient-found-modal-content span,
+.patient-found-modal-content div,
+.patient-found-modal-content li {
+    font-family: var(--theme-font-family, var(--bs-body-font-family, inherit)) !important;
+}
+
+.patient-found-modal-content {
+    border: 1px solid var(--bs-border-color);
+    border-radius: var(--theme-border-radius, 8px);
+    background: var(--theme-card-bg, #ffffff);
+    color: var(--bs-body-color);
+    box-shadow: 0 12px 36px rgba(27, 94, 32, 0.12);
+    overflow: hidden;
+}
+
+.patient-found-modal-header {
+    align-items: flex-start;
+    gap: 0.65rem;
+    padding: 0.9rem 1rem 0.7rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--pls-primary, #2e7d32) 18%, var(--bs-border-color));
+    background: linear-gradient(180deg,
+            color-mix(in srgb, var(--pls-primary, #2e7d32) 8%, var(--theme-card-bg, #fff)) 0%,
+            var(--theme-card-bg, #ffffff) 100%);
+}
+
+.patient-found-modal-title-wrap {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    padding-right: 1.25rem;
+}
+
+.patient-found-modal-icon {
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 0.45rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    background: color-mix(in srgb, var(--pls-primary, #2e7d32) 14%, transparent);
+    color: var(--pls-primary, #2e7d32);
+}
+
+.patient-found-modal-title {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--theme-header-text, var(--bs-body-color));
+}
+
+.patient-found-modal-subtitle {
+    margin-top: 0.15rem;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: var(--bs-secondary-color);
+}
+
+.patient-found-count-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.1rem 0.45rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #fff;
+    background: var(--pls-primary, #2e7d32);
+    vertical-align: middle;
+}
+
+.patient-found-modal-body {
+    padding: 0.75rem 0.9rem;
+    max-height: min(68vh, 620px);
+    overflow-y: auto;
+    background: var(--theme-body-bg, #f8f9fa);
+}
+
+.patient-found-table-wrap {
+    border: 1px solid var(--bs-border-color);
+    border-radius: var(--theme-border-radius, 8px);
+    background: var(--theme-card-bg, #fff);
+    overflow: hidden;
+}
+
+.patient-found-table-head {
+    display: grid;
+    grid-template-columns: 1.45fr 1fr 1fr 1fr 0.9fr 1fr;
+    gap: 0.6rem;
+    align-items: center;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--pls-primary-dark, #1b5e20);
+    background: color-mix(in srgb, var(--pls-primary, #2e7d32) 8%, var(--theme-card-bg, #fff));
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+.patient-found-table {
+    margin: 0;
+}
+
+.patient-found-row {
+    display: grid;
+    grid-template-columns: 1.45fr 1fr 1fr 1fr 0.9fr 1fr;
+    gap: 0.6rem;
+    align-items: center;
+    padding: 0.58rem 0.75rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--bs-border-color) 80%, transparent);
+}
+
+.patient-found-row:last-child {
+    border-bottom: 0;
+}
+
+.patient-found-row:hover {
+    background: color-mix(in srgb, var(--pls-primary, #2e7d32) 4%, var(--theme-card-bg, #fff));
+}
+
+.patient-found-col {
+    min-width: 0;
+    font-size: 0.78rem;
+    color: var(--bs-body-color);
+}
+
+.patient-found-col-patient {
+    display: grid;
+    gap: 0.08rem;
+}
+
+.patient-found-name {
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--bs-body-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.patient-found-id {
+    margin-top: 0.08rem;
+    font-size: 0.68rem;
+    line-height: 1.25;
+    color: var(--bs-secondary-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.patient-found-subline {
+    margin-top: 0.08rem;
+    font-size: 0.68rem;
+    line-height: 1.2;
+    color: var(--bs-secondary-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.patient-found-detail {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 0;
+    font-size: 0.76rem;
+    line-height: 1.25;
+    color: var(--bs-body-color);
+}
+
+.patient-found-detail span {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.patient-found-detail-icon {
+    flex: 0 0 auto;
+    color: var(--pls-primary, #2e7d32);
+    opacity: 0.9;
+}
+
+.patient-found-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.35rem;
+}
+
+.patient-found-actions .btn {
+    min-width: 4.6rem;
+
+}
+
+.patient-found-empty {
+    padding: 1.75rem 1rem;
+    text-align: center;
+    font-size: 0.875rem;
+}
+
+.patient-found-modal-footer {
+    border-top: 1px solid var(--bs-border-color);
+    background: var(--theme-card-bg, #ffffff);
+    padding: 0.65rem 1rem 0.8rem;
+}
+
+.patient-found-modal-footer .btn-outline-secondary {
+    border-color: color-mix(in srgb, var(--pls-primary, #2e7d32) 28%, var(--bs-border-color));
+    color: var(--bs-body-color);
+}
+
+.patient-found-modal-footer .btn-outline-secondary:hover {
+    border-color: var(--pls-primary, #2e7d32);
+    color: var(--pls-primary, #2e7d32);
+    background: color-mix(in srgb, var(--pls-primary, #2e7d32) 8%, transparent);
+}
+
+@media (max-width: 991.98px) {
+    .patient-found-table-head {
+        display: none !important;
+    }
+
+    .patient-found-row {
+        grid-template-columns: 1.2fr 1fr 1fr;
+        gap: 0.45rem 0.65rem;
+        align-items: start;
+    }
+
+    .patient-found-col:nth-child(4),
+    .patient-found-col:nth-child(5) {
+        grid-column: span 1;
+    }
+
+    .patient-found-actions {
+        grid-column: 1 / -1;
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .patient-found-row {
+        grid-template-columns: 1fr;
+        gap: 0.32rem;
+        padding: 0.6rem 0.65rem;
+    }
+
+    .patient-found-col,
+    .patient-found-col-patient {
+        font-size: 0.76rem;
+    }
+
+    .patient-found-modal .modal-dialog {
+        max-width: calc(100% - 1rem);
+        margin: 0.5rem auto;
+    }
+}
+
+[data-bs-theme="dark"] .patient-found-modal-content,
+[data-bs-theme="dark"] .patient-found-item,
+[data-bs-theme="dark"] .patient-found-modal-header,
+[data-bs-theme="dark"] .patient-found-modal-footer {
+    background: var(--theme-card-bg, #1e1e1e);
+}
+
+[data-bs-theme="dark"] .patient-found-modal-body {
+    background: var(--theme-body-bg, #151515);
+}
+
+
+
 .custom-select {
     width: 100%;
     padding: 0.5rem;
@@ -115,6 +447,14 @@
 }
 
 @media (max-width: 767.98px) {
+    .registration-form-grid-3 {
+        grid-template-columns: 1fr;
+    }
+
+    .registration-profile-column {
+        position: static;
+    }
+
     .form-group-responsive {
         grid-template-columns: 1fr;
         align-items: stretch;
@@ -163,5 +503,11 @@
 @media (max-width: 576px) {
     .clinician-label {
         min-width: 150px;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1199.98px) {
+    .registration-form-grid-3 {
+        grid-template-columns: 1fr 1fr;
     }
 }

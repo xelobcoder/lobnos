@@ -579,12 +579,12 @@ export default function PayrollPeriodDetailPage() {
                     [
                          { content: 'GROSS SALARY', styles: headCellStyle }, { content: fmt(transaction.gross_salary), styles: valueCellStyle },
                          { content: 'TOTAL DEDUCTIONS', styles: headCellStyle }, { content: fmt(transaction.total_deductions), styles: valueCellStyle },
-                         { content: 'EMPLOYER SSNIT', styles: headCellStyle }, { content: fmt(transaction.employer_ssnit), styles: valueCellStyle }
+                         // { content: 'EMPLOYER SSNIT', styles: headCellStyle }, { content: fmt(transaction.employer_ssnit), styles: valueCellStyle }
                     ],
                     [
                          // { content: 'DAYS WORKED', styles: headCellStyle }, { content: String(transaction.days_worked ?? 0), styles: valueCellStyle },
                          // { content: 'HOURS WORKED', styles: headCellStyle }, { content: String(Number(transaction.hours_worked ?? 0)), styles: valueCellStyle },
-                         { content: 'EMPLOYER TIER 3', styles: headCellStyle }, { content: fmt(transaction.employer_tier3), styles: valueCellStyle }
+                         // { content: 'EMPLOYER TIER 3', styles: headCellStyle }, { content: fmt(transaction.employer_tier3), styles: valueCellStyle }
                     ]
                ]
           });

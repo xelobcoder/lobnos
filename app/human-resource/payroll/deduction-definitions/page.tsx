@@ -24,6 +24,7 @@ interface DeductionDefinition {
      deduction_name: string;
      default_calculation_method: 'fixed_amount' | 'percentage_of_gross';
      default_amount: number | null;
+     application_scope: 'all_employees' | 'specific_employees' | 'specific_roles';
      is_statutory: boolean;
      is_active: boolean;
      created_by?: number | null;
@@ -37,6 +38,7 @@ type DefinitionFormState = {
      default_amount: string;
      is_statutory: boolean;
      is_active: boolean;
+     application_scope: 'all_employees' | 'specific_employees' | 'specific_roles';
 };
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
@@ -49,6 +51,7 @@ const defaultFormState = (): DefinitionFormState => ({
      default_amount: '',
      is_statutory: false,
      is_active: true,
+     application_scope: 'all_employees',
 });
 
 export default function DeductionDefinitionsPage() {
@@ -117,6 +120,7 @@ export default function DeductionDefinitionsPage() {
                default_amount: definition.default_amount !== null && definition.default_amount !== undefined ? String(definition.default_amount) : '',
                is_statutory: Boolean(definition.is_statutory),
                is_active: Boolean(definition.is_active),
+               application_scope: definition.application_scope,
           });
           setEditingId(definition.id);
           setShowModal(true);
@@ -143,6 +147,7 @@ export default function DeductionDefinitionsPage() {
                     default_calculation_method: formData.default_calculation_method,
                     is_statutory: formData.is_statutory,
                     is_active: formData.is_active,
+                    application_scope: formData.application_scope,
                };
 
                if (formData.default_amount.trim()) {
@@ -378,6 +383,14 @@ export default function DeductionDefinitionsPage() {
                                              />
                                         </div>
 
+                                        <div className='mb-3'>
+                                             <label className="form-label fw-medium">Application Scope</label>
+                                             <select name="application_scope" className="form-select" value={formData.application_scope} onChange={handleChange} required>
+                                                  <option value="all_employees">All Employees</option>
+                                                  <option value="specific_employees">Specific Employees</option>
+                                                  <option value="specific_roles">Specific Roles</option>
+                                             </select>
+                                        </div>
                                         <div className="row g-3 mb-3">
                                              <div className="col-md-6">
                                                   <label className="form-label fw-medium">Calculation Method</label>

@@ -20,13 +20,13 @@ type Props = {
 
 const branchSchema = z.object({
 	name: z.string().min(3, 'Branch name must be at least 3 characters'),
-	managerid: z.string().min(1, 'Please select a branch manager'),
+	managerid: z.string().min(1, 'Please select a branch manager').optional().or(z.literal('')),
 	email: z.string().email('Invalid email address'),
 	contact: z.string()
-		.min(10, 'Contact must be 10 digits')
-		.max(10, 'Contact must be 10 digits')
+		.length(10, 'Contact must be 10 digits')
 		.regex(/^\d+$/, 'Contact must contain only numbers'),
-	address: z.string().min(10, 'Address must be at least 10 characters')
+
+	address: z.string().min(10, 'Address must be at least 10 characters').optional().or(z.literal('')),
 });
 
 export default function AddBranchComponent({
@@ -64,36 +64,37 @@ export default function AddBranchComponent({
 			}
 
 			// Prepare data for submission
-			const submitData = isEdit && editdata 
+			const submitData = isEdit && editdata
 				? { ...data, branchid: editdata.branchid }
 				: data;
 
 			const response = await customPost("branches", isEdit ? "PUT" : "POST", submitData);
-			
+
 			// Handle different response formats
 			let isSuccess = false;
 			let responseMessage = '';
-			
+
 			if (isEdit) {
 				// For editing: {"status": true}
 				isSuccess = response.status === true;
 				responseMessage = isSuccess ? "Branch updated successfully!" : "Failed to update branch";
 			} else {
 				// For creating: {"status": "success", "message": "..."}
-				isSuccess = response.status === "success";
+				isSuccess = response.status === "success" || response.status === true;
 				responseMessage = response.message || (isSuccess ? "Branch created successfully!" : "Failed to create branch");
 			}
-			
+
 			if (isSuccess) {
 				toast.success(responseMessage, { autoClose: 500, position: "top-center" });
-				
+
 				const branchData: BranchType = {
 					...data,
 					branchid: isEdit && editdata?.branchid ? editdata.branchid : 0,
 					activation: isEdit && editdata?.activation ? editdata.activation : 1,
-					date: new Date().toISOString()
+					date: new Date().toISOString(),
+					address : data.address || "",
 				};
-				
+
 				update(branchData, responseMessage, "success", isEdit);
 			} else {
 				toast.error(responseMessage, { autoClose: 1000, position: "top-center" });
