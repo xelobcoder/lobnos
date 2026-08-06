@@ -1,7 +1,7 @@
 /* Two-column layout with dark header */
 .container {
     --quick-links-collapsed: 52px;
-    --header-height: 48px;
+    --header-height: 78px;
     --transition-duration: 0.15s;
 
     /* Bootstrap Integration */
@@ -60,13 +60,14 @@
     overflow: hidden;
 }
 
-/* Header — three zones: brand | apps | utilities */
+/* Header — brand / apps / actions */
 .darkHeader {
     height: var(--header-height);
+    min-height: var(--header-height);
     border-bottom: 1px solid var(--theme-header-border);
     display: flex;
     align-items: center;
-    padding: 0 10px 0 8px;
+    padding: 0 16px 0 12px;
     flex-shrink: 0;
     background-color: var(--theme-header-bg);
     color: var(--theme-header-text);
@@ -74,21 +75,22 @@
     position: sticky;
     top: 0;
     box-shadow: none;
+    font-family: var(--font-segoe, "Segoe UI", Tahoma, Geneva, Verdana, sans-serif);
 }
 
 .headerContent {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.4fr) auto minmax(0, 1fr);
     align-items: center;
     width: 100%;
-    gap: 8px;
+    gap: 14px;
     min-width: 0;
 }
 
 .headerLeft {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     min-width: 0;
     justify-self: start;
 }
@@ -104,59 +106,123 @@
 .brandBlock {
     display: flex;
     flex-direction: column;
+    justify-content: center;
     min-width: 0;
-    gap: 1px;
+    gap: 5px;
+    padding: 2px 0 1px;
+}
+
+.companyRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
 }
 
 .companyName {
-    font-size: 0.875rem;
+    font-size: 1.2rem;
     font-weight: 600;
     color: var(--theme-header-text);
     margin: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
+    letter-spacing: 0;
+    text-transform: none;
+    line-height: 1.05;
+    max-width: min(520px, 50vw);
+}
+
+.sessionMeta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    min-width: 0;
     line-height: 1.2;
 }
 
-.userInline {
-    font-size: 0.72rem;
+.sessionUser {
+    font-size: 0.86rem;
     font-weight: 500;
     color: var(--theme-header-text);
-    opacity: 0.78;
+    opacity: 0.96;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 280px;
-    text-transform: none;
-    letter-spacing: 0;
+    max-width: min(340px, 40vw);
 }
 
-.userRoleSep {
-    opacity: 0.55;
-}
-
-.userRole {
+.userRoleInline {
+    margin-left: 2px;
     font-weight: 500;
+    opacity: 0.92;
+}
+
+.licenseInline {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+    padding: 3px 8px;
+    border: 1px solid var(--theme-header-border);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--theme-header-text) 6%, transparent);
+    color: var(--theme-header-text);
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    margin-right: 6px;
+}
+
+.licenseInlineIcon {
+    flex-shrink: 0;
     opacity: 0.9;
-    text-transform: capitalize;
+}
+
+.licenseInlineLabel {
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    opacity: 0.88;
+}
+
+.licenseInlineValue {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.license_ok .licenseInlineIcon,
+.license_ok .licenseInlineValue {
+    color: inherit;
+}
+
+.license_warn .licenseInlineIcon,
+.license_warn .licenseInlineValue {
+    color: var(--bs-warning);
+}
+
+.license_critical .licenseInlineIcon,
+.license_critical .licenseInlineValue {
+    color: var(--bs-danger);
 }
 
 .sidebarToggleHeader {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     border: 1px solid var(--theme-header-border);
     background: transparent;
-    border-radius: 3px;
+    border-radius: 4px;
     color: var(--theme-header-text);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     flex-shrink: 0;
-    opacity: 0.85;
+    opacity: 0.88;
     padding: 0;
 }
 
@@ -174,87 +240,18 @@
     justify-self: end;
 }
 
-/* Clear license status chip */
-.licenseBadge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    min-height: 28px;
-    padding: 2px 8px 2px 6px;
-    border-radius: 3px;
-    border: 1px solid var(--theme-header-border);
-    background: transparent;
-    color: var(--theme-header-text);
-    flex-shrink: 1;
-    min-width: 0;
-    max-width: 180px;
-}
-
-.licenseBadgeIcon {
-    flex-shrink: 0;
-    opacity: 0.85;
-}
-
-.licenseBadgeText {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.1;
-    min-width: 0;
-}
-
-.licenseBadgeTitle {
-    font-size: 0.58rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    opacity: 0.7;
-}
-
-.licenseBadgeValue {
-    font-size: 0.72rem;
-    font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* Neutral by default — color only when attention needed */
-.license_ok {
-    color: var(--theme-header-text);
-    border-color: var(--theme-header-border);
-}
-
-.license_warn {
-    border-color: var(--bs-warning);
-    color: var(--theme-header-text);
-}
-
-.license_warn .licenseBadgeIcon {
-    color: var(--bs-warning);
-}
-
-.license_critical {
-    border-color: var(--bs-danger);
-    color: var(--theme-header-text);
-}
-
-.license_critical .licenseBadgeIcon,
-.license_critical .licenseBadgeValue {
-    color: var(--bs-danger);
-}
-
-/* Flat header toolbar — no chrome box */
+/* Flat header toolbar */
 .headerIconGroup {
     display: inline-flex;
     align-items: center;
-    gap: 0;
+    gap: 4px;
 }
 
 .headerIconBtn {
-    width: 30px;
-    height: 30px;
+    width: 34px;
+    height: 34px;
     border: none;
-    border-radius: 3px;
+    border-radius: 4px;
     background: transparent;
     color: var(--theme-header-text);
     display: inline-flex;
@@ -262,7 +259,7 @@
     justify-content: center;
     cursor: pointer;
     text-decoration: none;
-    opacity: 0.82;
+    opacity: 0.84;
     padding: 0;
     flex-shrink: 0;
 }
@@ -274,6 +271,14 @@
     text-decoration: none;
 }
 
+.headerIconDivider {
+    width: 1px;
+    height: 16px;
+    margin: 0 4px;
+    background: var(--theme-header-border);
+    flex-shrink: 0;
+}
+
 .headerIconLogout,
 .headerIconLogout:hover {
     color: #dc2626 !important;
@@ -281,18 +286,19 @@
     background: transparent !important;
 }
 
-/* Compact Apps control */
+/* Apps control */
 .appsLauncherBtn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    height: 30px;
-    padding: 0 10px;
-    border-radius: 3px;
+    gap: 7px;
+    height: 34px;
+    padding: 0 13px;
+    border-radius: 4px;
     border: 1px solid var(--theme-header-border);
     background: transparent;
     color: var(--theme-header-text);
-    font-size: 0.78rem;
+    font-family: inherit;
+    font-size: 0.8rem;
     font-weight: 600;
     letter-spacing: 0.01em;
     cursor: pointer;
@@ -301,7 +307,7 @@
 .appsLauncherBtn:hover,
 .appsLauncherBtn:focus-visible {
     background: transparent;
-    border-color: color-mix(in srgb, var(--theme-header-text) 35%, var(--theme-header-border));
+    border-color: color-mix(in srgb, var(--theme-header-text) 32%, var(--theme-header-border));
     outline: none;
     box-shadow: none;
 }
@@ -310,7 +316,7 @@
     line-height: 1;
 }
 
-/* Compact apps panel (not a full-page modal) */
+/* Apps launcher modal */
 .appsOverlay {
     position: fixed;
     inset: 0;
@@ -318,32 +324,36 @@
     display: flex;
     align-items: flex-start;
     justify-content: center;
-    padding: 52px 12px 16px;
-    background: rgba(15, 23, 42, 0.28);
-    backdrop-filter: none;
+    padding: 64px 16px 24px;
+    background: color-mix(in srgb, #0f172a 42%, transparent);
+    backdrop-filter: blur(3px);
 }
 
 .appsModal {
-    width: min(420px, 100%);
-    max-height: min(420px, calc(100vh - 72px));
+    width: min(820px, 100%);
+    max-height: min(640px, calc(100vh - 88px));
     display: flex;
     flex-direction: column;
     background: var(--theme-card-bg);
     color: var(--text-primary);
     border: 1px solid var(--theme-header-border);
-    border-radius: 6px;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.14);
+    border-radius: 10px;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
     overflow: hidden;
 }
 
 .appsModalHeader {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-    gap: 12px;
-    padding: 10px 12px;
+    gap: 16px;
+    padding: 16px 18px 12px;
     border-bottom: 1px solid var(--theme-header-border);
-    background: var(--theme-card-bg);
+    background:
+        linear-gradient(135deg,
+            color-mix(in srgb, var(--theme-accent) 8%, transparent),
+            transparent 55%),
+        var(--theme-card-bg);
 }
 
 .appsModalHeading {
@@ -351,26 +361,36 @@
 }
 
 .appsModalKicker {
-    display: none;
+    display: block;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--theme-accent);
+    margin-bottom: 4px;
 }
 
 .appsModalTitle {
     margin: 0;
-    font-size: 0.88rem;
-    font-weight: 650;
-    letter-spacing: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
     color: var(--text-primary);
 }
 
 .appsModalSubtitle {
-    display: none;
+    display: block;
+    margin: 4px 0 0;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.35;
 }
 
 .appsModalClose {
-    width: 28px;
-    height: 28px;
-    border: none;
-    border-radius: 3px;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--theme-header-border);
+    border-radius: 5px;
     background: transparent;
     color: var(--text-secondary);
     display: inline-flex;
@@ -381,59 +401,59 @@
 }
 
 .appsModalClose:hover {
-    background: transparent;
+    background: var(--theme-body-bg);
     color: var(--text-primary);
 }
 
 .appsModalBody {
-    padding: 8px;
+    padding: 14px 18px 18px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 16px;
 }
 
 .appsEmpty {
-    padding: 16px 8px;
+    padding: 24px 12px;
     text-align: center;
     color: var(--text-secondary);
-    font-size: 0.82rem;
+    font-size: 0.88rem;
 }
 
 .appsCategoryTitle {
-    margin: 4px 6px 6px;
-    font-size: 0.68rem;
-    font-weight: 650;
-    letter-spacing: 0.06em;
+    margin: 0 0 10px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
     text-transform: uppercase;
     color: var(--text-secondary);
 }
 
 .appsGrid {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 10px;
 }
 
 .appsTile {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 10px;
-    border-radius: 3px;
-    border: none;
-    background: transparent;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--theme-header-border);
+    background: var(--theme-body-bg);
     color: var(--text-primary);
     text-decoration: none;
-    min-height: 36px;
+    min-height: 70px;
 }
 
 .appsTile:hover {
-    background: var(--theme-body-bg);
-    box-shadow: none;
-    transform: none;
+    border-color: color-mix(in srgb, var(--theme-accent) 45%, var(--theme-header-border));
+    background: color-mix(in srgb, var(--theme-accent) 5%, var(--theme-body-bg));
     color: var(--text-primary);
     text-decoration: none;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
 }
 
 .appsTileDisabled {
@@ -443,35 +463,42 @@
 }
 
 .appsTileIcon {
-    width: 22px;
-    height: 22px;
-    border-radius: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    font-size: 1rem;
-    background: transparent;
-    border: none;
-    color: inherit;
+    font-size: 1.2rem;
+    background: color-mix(in srgb, var(--theme-accent) 10%, var(--theme-card-bg));
+    border: 1px solid color-mix(in srgb, var(--theme-accent) 16%, var(--theme-header-border));
+    color: var(--theme-accent);
 }
 
 .appsTileBody {
     display: flex;
     flex-direction: column;
-    gap: 0;
+    gap: 3px;
     min-width: 0;
-    padding-top: 0;
+    padding-top: 2px;
 }
 
 .appsTileLabel {
-    font-size: 0.84rem;
-    font-weight: 500;
+    font-size: 0.88rem;
+    font-weight: 650;
     line-height: 1.25;
 }
 
 .appsTileDesc {
-    display: none;
+    display: -webkit-box;
+    font-size: 0.74rem;
+    color: var(--text-secondary);
+    line-height: 1.3;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 /* Sidebar — compact Segoe, no hover chrome */
@@ -494,7 +521,7 @@
 
 .sidebarNav {
     flex: 1;
-    padding: 8px 6px 12px;
+    padding: 10px 8px 14px;
     overflow-y: auto;
     overflow-x: hidden;
 }
@@ -516,18 +543,18 @@
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    padding: 5px 8px;
+    padding: 7px 10px;
     cursor: pointer;
     text-align: left;
     color: var(--theme-sidebar-text);
     font-family: inherit;
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     font-weight: 400;
-    line-height: 1.25;
+    line-height: 1.3;
     white-space: nowrap;
     margin: 0;
     border-radius: 0;
-    min-height: 28px;
+    min-height: 30px;
 }
 
 /* No decorative hover fill */
@@ -544,17 +571,17 @@
 }
 
 .navIcon {
-    width: 16px;
-    height: 16px;
+    width: 17px;
+    height: 17px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: 8px;
+    margin-right: 9px;
     flex-shrink: 0;
     color: inherit;
     opacity: 0.9;
     background: transparent;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
 }
 
 .navLabel {
@@ -568,7 +595,7 @@
 }
 
 .quickLinksCollapsed .navItem {
-    padding: 8px 0;
+    padding: 9px 0;
     justify-content: center;
     border-radius: 0;
     border-left-color: transparent;
@@ -581,7 +608,7 @@
 .navSection {
     display: flex;
     flex-direction: column;
-    margin: 0 0 8px;
+    margin: 0 0 10px;
 }
 
 .navSection+.navSection {
@@ -593,11 +620,11 @@
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    gap: 6px;
-    padding: 6px 8px 3px 6px;
+    gap: 7px;
+    padding: 8px 10px 4px 8px;
     color: var(--theme-sidebar-text);
     font-family: inherit;
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 600;
     line-height: 1.2;
     text-transform: uppercase;
@@ -605,18 +632,18 @@
     opacity: 0.75;
     user-select: none;
     pointer-events: none;
-    min-height: 22px;
+    min-height: 24px;
 }
 
 .navGroupIcon {
-    width: 14px;
-    height: 14px;
+    width: 15px;
+    height: 15px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
     opacity: 0.85;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
 }
 
 .navGroupText {
@@ -627,7 +654,7 @@
 
 .quickLinksCollapsed .navGroupLabel {
     justify-content: center;
-    padding: 8px 0 4px;
+    padding: 9px 0 4px;
 }
 
 .quickLinksCollapsed .navGroupText {
@@ -636,37 +663,37 @@
 
 .navSubmenu {
     position: relative;
-    margin: 0 0 2px 10px;
-    padding: 0 0 1px 8px;
+    margin: 0 0 2px 11px;
+    padding: 0 0 2px 10px;
     border-left: 1px solid color-mix(in srgb, var(--theme-sidebar-text) 28%, transparent 72%);
     background: transparent;
     display: flex;
     flex-direction: column;
-    gap: 0;
+    gap: 1px;
 }
 
 .navItemChild {
     position: relative;
-    padding-left: 8px;
-    font-size: 0.8rem;
+    padding-left: 9px;
+    font-size: 0.85rem;
     font-weight: 400;
     border-left-width: 0;
-    min-height: 26px;
+    min-height: 28px;
 }
 
 .navItemChild::before {
     content: "";
     position: absolute;
-    left: -8px;
+    left: -10px;
     top: 50%;
-    width: 7px;
+    width: 8px;
     height: 1px;
     background: color-mix(in srgb, var(--theme-sidebar-text) 28%, transparent 72%);
 }
 
 .navItemChild.navItemActive {
     border-left: 2px solid var(--theme-sidebar-text);
-    padding-left: 6px;
+    padding-left: 7px;
     font-weight: 600;
 }
 
@@ -716,18 +743,27 @@
     display: none;
 }
 
-@media (max-width: 992px) {
-    .licenseBadgeTitle {
-        display: none;
+@media (max-width: 1100px) {
+    .companyName {
+        max-width: min(360px, 42vw);
+        font-size: 1.06rem;
     }
 
-    .licenseBadge {
-        max-width: 140px;
-        padding: 4px 8px;
+    .sessionUser {
+        max-width: min(230px, 30vw);
+        font-size: 0.78rem;
+    }
+
+    .licenseInlineLabel {
+        display: none;
     }
 }
 
 @media (max-width: 768px) {
+    .container {
+        --header-height: 56px;
+    }
+
     .headerContent {
         grid-template-columns: minmax(0, 1fr) auto auto;
         gap: 6px;
@@ -737,34 +773,58 @@
         justify-self: end;
     }
 
+    .companyName {
+        max-width: min(210px, 52vw);
+        font-size: 0.96rem;
+    }
+
+    .sessionMeta {
+        gap: 4px 8px;
+    }
+
+    .sessionUser {
+        font-size: 0.72rem;
+        max-width: min(180px, 46vw);
+    }
+
+    .licenseInline {
+        font-size: 0.7rem;
+        padding: 2px 6px;
+        max-width: 42vw;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-right: 4px;
+    }
+
     .appsLauncherLabel {
         display: none;
     }
 
     .appsLauncherBtn {
         padding: 0;
-        width: 30px;
+        width: 32px;
+        height: 32px;
         justify-content: center;
     }
 
-    .licenseBadge {
-        display: none;
-    }
-
     .headerIconBtn {
-        width: 28px;
-        height: 28px;
+        width: 31px;
+        height: 31px;
     }
 
     .appsOverlay {
-        padding: 48px 10px 12px;
+        padding: 52px 10px 16px;
         align-items: stretch;
     }
 
     .appsModal {
         width: 100%;
-        max-height: calc(100vh - 64px);
-        border-radius: 6px;
+        max-height: calc(100vh - 72px);
+        border-radius: 8px;
+    }
+
+    .appsGrid {
+        grid-template-columns: 1fr;
     }
 
     .mobileMenuButton {

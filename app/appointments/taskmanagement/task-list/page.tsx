@@ -13,7 +13,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
 import { customFetch } from '../../../../components/Auth/customFetch';
 import { loadTaskDefinition } from '../../../../components/serverActions/ActionFiltering';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 
 const TaskViewer = () => {
     const [tasks, setTasks] = useState([]);

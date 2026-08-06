@@ -2,7 +2,7 @@
 import { useParams } from 'next/navigation';
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { customFetch } from '../../../../../components/Auth/customFetch';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { RiRefreshLine, RiSearchLine } from '@remixicon/react';
 import styles from './AuditLogDisplay.module.css';
 
@@ -117,21 +117,21 @@ const AuditLogDisplay: React.FC = () => {
     });
   }, []);
 
-const filteredLogs = useMemo(() => {
-  return auditLogs.filter(
-    (log) => {
-      const username = log.username ? log.username.toLowerCase() : '';
-      const operation = log.operation ? log.operation.toLowerCase() : '';
-      const changedOn = formatDate(log.changed_on).toLowerCase();
-      
-      return (
-        username.includes(searchTerm.toLowerCase()) ||
-        operation.includes(searchTerm.toLowerCase()) ||
-        changedOn.includes(searchTerm.toLowerCase())
-      );
-    }
-  );
-}, [auditLogs, searchTerm, formatDate]);
+  const filteredLogs = useMemo(() => {
+    return auditLogs.filter(
+      (log) => {
+        const username = log.username ? log.username.toLowerCase() : '';
+        const operation = log.operation ? log.operation.toLowerCase() : '';
+        const changedOn = formatDate(log.changed_on).toLowerCase();
+
+        return (
+          username.includes(searchTerm.toLowerCase()) ||
+          operation.includes(searchTerm.toLowerCase()) ||
+          changedOn.includes(searchTerm.toLowerCase())
+        );
+      }
+    );
+  }, [auditLogs, searchTerm, formatDate]);
 
   if (isLoading) {
     return (
@@ -210,8 +210,8 @@ const filteredLogs = useMemo(() => {
                     log.operation === 'INSERT'
                       ? 'var(--success-border)'
                       : log.operation === 'UPDATE'
-                      ? 'var(--info-border)'
-                      : 'var(--danger-border)',
+                        ? 'var(--info-border)'
+                        : 'var(--danger-border)',
                 }}
               >
                 <div

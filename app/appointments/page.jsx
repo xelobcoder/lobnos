@@ -13,7 +13,7 @@ import {
 	RiArrowGoForwardLine
 } from '@remixicon/react';
 import { EditIcon } from '../../components/Billing/BillingContextComponents/Lib/Icons';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/en';
 

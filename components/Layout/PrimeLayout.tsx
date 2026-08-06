@@ -8,7 +8,6 @@ import {
     RiApps2Line,
     RiUser3Line,
     RiFontSize,
-    RiSettings3Line,
     RiLogoutBoxRLine,
     RiMoonLine,
     RiSunLine,
@@ -145,6 +144,17 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
         return Array.from(map.entries());
     }, [roleLinks]);
 
+    const roleLabel = useMemo(() => {
+        const rawRole = user?.role || '';
+        if (!rawRole) return 'User';
+        return rawRole
+            .replace(/[-_]+/g, ' ')
+            .split(' ')
+            .filter(Boolean)
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' ');
+    }, [user?.role]);
+
     const closeApps = useCallback(() => setIsAppsOpen(false), []);
 
     const renderNavItem = (item: LinkType, isChild: boolean = false) => {
@@ -197,7 +207,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                                 aria-label={isQuickLinksCollapsed ? "Expand navigation" : "Collapse navigation"}
                                 aria-expanded={!isQuickLinksCollapsed}
                             >
-                                {isQuickLinksCollapsed ? <RiArrowRightLine size={18} /> : <RiArrowLeftLine size={18} />}
+                                {isQuickLinksCollapsed ? <RiArrowRightLine size={16} /> : <RiArrowLeftLine size={16} />}
                             </button>
                         )}
                         <button
@@ -206,15 +216,25 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                             onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
                             aria-label="Toggle navigation menu"
                         >
-                            <RiMenuLine />
+                            <RiMenuLine size={20} />
                         </button>
+
                         <div className={styles.brandBlock}>
-                            <h2 className={styles.companyName}>{company}</h2>
-                            <span className={`${styles.userInline} d-none d-lg-inline`}>
-                                {user?.username}
-                                <span className={styles.userRoleSep}> · </span>
-                                <span className={styles.userRole}>{user?.role}</span>
-                            </span>
+                            <div className={styles.companyRow}>
+                                <h1 className={styles.companyName} title={company || ''}>
+                                    {company || 'Organization'}
+                                </h1>
+                            </div>
+                            <div className={styles.sessionMeta}>
+                                {user?.username ? (
+                                    <span className={styles.sessionUser} title={`${user.username}(${roleLabel})`}>
+                                        <span>{user.username}</span>
+                                        <span className={styles.userRoleInline}>({roleLabel})</span>
+                                    </span>
+                                ) : (
+                                    <span className={styles.sessionUser}>User session active</span>
+                                )}
+                            </div>
                         </div>
                     </div>
 
@@ -226,26 +246,23 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                             aria-haspopup="dialog"
                             aria-expanded={isAppsOpen}
                         >
-                            <RiApps2Line size={18} />
+                            <RiApps2Line size={16} />
                             <span className={styles.appsLauncherLabel}>Apps</span>
                         </button>
                     </div>
 
                     <div className={styles.headerActions}>
-                        {licenseInfo && (
-                            <div
-                                className={`${styles.licenseBadge} ${styles[`license_${licenseInfo.tone}`]}`}
-                                title={`${licenseInfo.detail}: ${licenseInfo.label}`}
-                            >
-                                <licenseInfo.Icon size={15} className={styles.licenseBadgeIcon} />
-                                <div className={styles.licenseBadgeText}>
-                                    <span className={styles.licenseBadgeTitle}>License</span>
-                                    <span className={styles.licenseBadgeValue}>{licenseInfo.label}</span>
-                                </div>
-                            </div>
-                        )}
-
                         <div className={styles.headerIconGroup} role="toolbar" aria-label="Account actions">
+                            {licenseInfo ? (
+                                <span
+                                    className={`${styles.licenseInline} ${styles[`license_${licenseInfo.tone}`]}`}
+                                    title={`${licenseInfo.detail}: ${licenseInfo.label}`}
+                                >
+                                    <licenseInfo.Icon size={13} className={styles.licenseInlineIcon} />
+                                    <span className={styles.licenseInlineLabel}>License</span>
+                                    <span className={styles.licenseInlineValue}>{licenseInfo.label}</span>
+                                </span>
+                            ) : null}
                             <button
                                 type="button"
                                 className={styles.headerIconBtn}
@@ -253,7 +270,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                                 title="Profile"
                                 aria-label="Open profile"
                             >
-                                <RiUser3Line size={18} />
+                                <RiUser3Line size={17} />
                             </button>
                             <button
                                 type="button"
@@ -262,7 +279,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                                 title="Font"
                                 aria-label="Change font"
                             >
-                                <RiFontSize size={18} />
+                                <RiFontSize size={17} />
                             </button>
                             <button
                                 type="button"
@@ -271,24 +288,16 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                                 title={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
                                 aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
                             >
-                                {theme === 'light' ? <RiMoonLine size={18} /> : <RiSunLine size={18} />}
+                                {theme === 'light' ? <RiMoonLine size={17} /> : <RiSunLine size={17} />}
                             </button>
-                            <button
-                                type="button"
-                                className={styles.headerIconBtn}
-                                onClick={() => handleNavigation('/settings')}
-                                title="Settings"
-                                aria-label="Open settings"
-                            >
-                                <RiSettings3Line size={18} />
-                            </button>
+                            <span className={styles.headerIconDivider} aria-hidden="true" />
                             <a
                                 href="/authentication/logout"
                                 className={`${styles.headerIconBtn} ${styles.headerIconLogout}`}
                                 title="Logout"
                                 aria-label="Log out"
                             >
-                                <RiLogoutBoxRLine size={18} />
+                                <RiLogoutBoxRLine size={17} />
                             </a>
                         </div>
                     </div>
