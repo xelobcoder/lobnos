@@ -71,8 +71,7 @@ export const AdminRoleLinks = [
           text: "Track and manage laboratory expenses and costs",
           label: 'Expenses',
           category: 'Finance',
-          description: 'Expense tracking and management',
-          disabled: true
+          description: 'Expense tracking and management'
      },
 
 
@@ -108,7 +107,7 @@ export const AdminRoleLinks = [
           category: 'Support',
           description: 'Inventory management'
      },
-   
+
      {
           href: "/human-resource/payroll",
           icon: <RiMoneyDollarCircleLine size={24} />,
@@ -145,7 +144,7 @@ export const FrontdeskRoleLinks = [
           category: 'Core Operations',
           description: 'Patient registration and payment processing'
      },
-      {
+     {
           href: "/billing/sales/branches",
           icon: <RiMoneyDollarCircleLine size={24} />,
           text: "Manage sales and billing across multiple branches",

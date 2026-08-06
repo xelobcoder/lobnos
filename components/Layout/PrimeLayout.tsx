@@ -3,9 +3,9 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import styles from './PrimeLayout.module.css';
 import {
     RiMenuLine,
+    RiMenu3Line,
     RiArrowLeftLine,
     RiArrowRightLine,
-    RiApps2Line,
     RiUser3Line,
     RiFontSize,
     RiLogoutBoxRLine,
@@ -134,16 +134,6 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
         };
     }, [daysToExpiration]);
 
-    const appsByCategory = useMemo(() => {
-        const map = new Map<string, typeof roleLinks>();
-        roleLinks.forEach((link) => {
-            const cat = (link as { category?: string }).category || 'Applications';
-            if (!map.has(cat)) map.set(cat, []);
-            map.get(cat)!.push(link);
-        });
-        return Array.from(map.entries());
-    }, [roleLinks]);
-
     const roleLabel = useMemo(() => {
         const rawRole = user?.role || '';
         if (!rawRole) return 'User';
@@ -225,44 +215,27 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                                     {company || 'Organization'}
                                 </h1>
                             </div>
-                            <div className={styles.sessionMeta}>
-                                {user?.username ? (
-                                    <span className={styles.sessionUser} title={`${user.username}(${roleLabel})`}>
-                                        <span>{user.username}</span>
-                                        <span className={styles.userRoleInline}>({roleLabel})</span>
-                                    </span>
-                                ) : (
-                                    <span className={styles.sessionUser}>User session active</span>
-                                )}
-                            </div>
                         </div>
                     </div>
 
-                    <div className={styles.headerCenter}>
-                        <button
-                            type="button"
-                            className={styles.appsLauncherBtn}
-                            onClick={() => setIsAppsOpen(true)}
-                            aria-haspopup="dialog"
-                            aria-expanded={isAppsOpen}
-                        >
-                            <RiApps2Line size={16} />
-                            <span className={styles.appsLauncherLabel}>Apps</span>
-                        </button>
-                    </div>
+                    <div className={styles.headerCenter}></div>
 
                     <div className={styles.headerActions}>
-                        <div className={styles.headerIconGroup} role="toolbar" aria-label="Account actions">
-                            {licenseInfo ? (
-                                <span
-                                    className={`${styles.licenseInline} ${styles[`license_${licenseInfo.tone}`]}`}
-                                    title={`${licenseInfo.detail}: ${licenseInfo.label}`}
-                                >
-                                    <licenseInfo.Icon size={13} className={styles.licenseInlineIcon} />
-                                    <span className={styles.licenseInlineLabel}>License</span>
-                                    <span className={styles.licenseInlineValue}>{licenseInfo.label}</span>
-                                </span>
+                        <div className={`${styles.accountSummary} d-none d-md-flex`}>
+                            <div className={styles.accountPrimary} title={`${user?.username || ''}(${roleLabel})`}>
+                                {user?.username || 'User'}({roleLabel})
+                            </div>
+                            {daysToExpiration !== undefined && daysToExpiration !== null ? (
+                                <div className={styles.accountSecondary} title={licenseInfo?.detail || 'License'}>
+                                    {daysToExpiration > 0
+                                        ? `${daysToExpiration} days to expiration of license`
+                                        : daysToExpiration === 0
+                                            ? 'Expires today'
+                                            : 'License expired'}
+                                </div>
                             ) : null}
+                        </div>
+                        <div className={styles.headerIconGroup} role="toolbar" aria-label="Account actions">
                             <button
                                 type="button"
                                 className={styles.headerIconBtn}
@@ -299,6 +272,17 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                             >
                                 <RiLogoutBoxRLine size={17} />
                             </a>
+                            <button
+                                type="button"
+                                className={`${styles.headerIconBtn} ${styles.headerIconApps}`}
+                                onClick={() => setIsAppsOpen(true)}
+                                title="Apps"
+                                aria-label="Open apps menu"
+                                aria-haspopup="dialog"
+                                aria-expanded={isAppsOpen}
+                            >
+                                <RiMenu3Line size={17} />
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -350,56 +334,51 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                         </div>
 
                         <div className={styles.appsModalBody}>
-                            {appsByCategory.length === 0 ? (
+                            {roleLinks.length === 0 ? (
                                 <div className={styles.appsEmpty}>No applications available for this role.</div>
                             ) : (
-                                appsByCategory.map(([category, items]) => (
-                                    <section key={category} className={styles.appsCategory}>
-                                        <h4 className={styles.appsCategoryTitle}>{category}</h4>
-                                        <div className={styles.appsGrid}>
-                                            {items.map((link, index) => {
-                                                const disabled = Boolean((link as { disabled?: boolean }).disabled);
-                                                const description =
-                                                    (link as { description?: string }).description ||
-                                                    (link as { text?: string }).text ||
-                                                    '';
-                                                const content = (
-                                                    <>
-                                                        <span className={styles.appsTileIcon}>{link.icon}</span>
-                                                        <span className={styles.appsTileBody}>
-                                                            <span className={styles.appsTileLabel}>{link.label}</span>
-                                                            {description ? (
-                                                                <span className={styles.appsTileDesc}>{description}</span>
-                                                            ) : null}
-                                                        </span>
-                                                    </>
-                                                );
-                                                if (disabled) {
-                                                    return (
-                                                        <div
-                                                            key={`${category}-${index}`}
-                                                            className={`${styles.appsTile} ${styles.appsTileDisabled}`}
-                                                            aria-disabled="true"
-                                                            title="Unavailable"
-                                                        >
-                                                            {content}
-                                                        </div>
-                                                    );
-                                                }
-                                                return (
-                                                    <a
-                                                        key={`${category}-${index}`}
-                                                        href={link.href}
-                                                        className={styles.appsTile}
-                                                        onClick={() => setIsAppsOpen(false)}
-                                                    >
-                                                        {content}
-                                                    </a>
-                                                );
-                                            })}
-                                        </div>
-                                    </section>
-                                ))
+                                <div className={styles.appsGrid}>
+                                    {roleLinks.map((link, index) => {
+                                        const disabled = Boolean((link as { disabled?: boolean }).disabled);
+                                        const description =
+                                            (link as { description?: string }).description ||
+                                            (link as { text?: string }).text ||
+                                            '';
+                                        const content = (
+                                            <>
+                                                <span className={styles.appsTileIcon}>{link.icon}</span>
+                                                <span className={styles.appsTileBody}>
+                                                    <span className={styles.appsTileLabel}>{link.label}</span>
+                                                    {description ? (
+                                                        <span className={styles.appsTileDesc}>{description}</span>
+                                                    ) : null}
+                                                </span>
+                                            </>
+                                        );
+                                        if (disabled) {
+                                            return (
+                                                <div
+                                                    key={`app-${index}`}
+                                                    className={`${styles.appsTile} ${styles.appsTileDisabled}`}
+                                                    aria-disabled="true"
+                                                    title="Unavailable"
+                                                >
+                                                    {content}
+                                                </div>
+                                            );
+                                        }
+                                        return (
+                                            <a
+                                                key={`app-${index}`}
+                                                href={link.href}
+                                                className={styles.appsTile}
+                                                onClick={() => setIsAppsOpen(false)}
+                                            >
+                                                {content}
+                                            </a>
+                                        );
+                                    })}
+                                </div>
                             )}
                         </div>
                     </div>

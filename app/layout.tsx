@@ -115,7 +115,7 @@ export default function SRootLayout({
      return (
           <html lang="en" className={`${inter.variable} ${roboto.variable} ${barlow.variable} ${rajdhani.variable} ${raleway.variable} ${robotoCondensed.variable} ${poppins.variable} ${montserrat.variable} ${openSans.variable} ${lato.variable} ${lexend.variable} ${lexendDeca.variable} ${mulish.variable} ${quicksand.variable}`} style={{ '--font-candara': 'Candara, sans-serif', '--font-segoe': '"Segoe UI", Tahoma, sans-serif' } as React.CSSProperties}>
                <head></head>
-               <body className={inter.className}>
+               <body>
                     <ThemeProvider>
                          <PrimeToast />
                          {children}

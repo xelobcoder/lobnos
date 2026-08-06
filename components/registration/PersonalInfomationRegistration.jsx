@@ -204,22 +204,11 @@ export default function PersonalInformationRegistration() {
 	return (
 		<>
 			<section className="col-lg-12 col-sm-12 registration-page-shell">
-				<div className="registration-search-block mb-3">
-					<div className="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-3">
-						<div className="d-flex align-items-start gap-3">
-							<div className="registration-search-icon">
-								<RiSearchLine size={20} />
-							</div>
-							<div>
-								<h6 className="mb-1 fw-semibold">Search Existing Patient</h6>
-								<p className="mb-0 text-muted small">Type a mobile number to load an existing record and choose whether to update it or go straight to billing.</p>
-							</div>
-						</div>
-						<div className="text-lg-end small text-muted">Matches open in a detailed patient chooser</div>
-					</div>
-					<div className="input-group input-group-lg registration-search-input">
+				<div className="registration-search-block mb-2 col-4">
+					
+					<div className="input-group registration-search-input">
 						<span className="input-group-text bg-transparent border-end-0">
-							<RiPhoneLine size={18} className="text-muted" />
+							<RiPhoneLine size={14} className="text-muted" />
 						</span>
 						<input
 							type="text"
@@ -234,7 +223,7 @@ export default function PersonalInformationRegistration() {
 								}
 							}}
 						/>
-						<button type="button" className="btn btn-primary px-4" disabled={!searchQuery.trim() || isSearchingPatient} onClick={handlePatientSearch}>
+						<button type="button" className="btn btn-primary px-2" disabled={!searchQuery.trim() || isSearchingPatient} onClick={handlePatientSearch}>
 							{isSearchingPatient ? "Searching..." : "Search"}
 						</button>
 					</div>
