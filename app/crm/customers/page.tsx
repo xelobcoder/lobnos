@@ -6,11 +6,12 @@ import { customFetch, customPost, formatDateOrNA, parseDate } from '../../../com
 import Loader from '../../../components/accessories/Loader';
 import PatientFiltered from '../../../components/accessories/SectorFileringComponents/CustomerFiltering';
 import CustomersActions from '../../../components/customer/CustomersActionDropDown';
-import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 import { toast } from 'react-toastify';
 import { plsEncryption } from '../../../lib/encryption';
 import { RiResetLeftFill, RiRefreshLine } from '@remixicon/react';
 import dayjs from 'dayjs';
+import PrimeTableV2 from '../../../components/accessories/Datatables/PrimeTableV2';
+
 
 interface Customer {
     patientid: string | number;
@@ -219,15 +220,66 @@ export default function Activator() {
 
 
 
-    const handleSeverSideProcessing = async (pagination: { count: number, page: number, sortby: 'ASC' | 'DESC' }) => {
+    const handleSeverSideProcessing = async (
+        pagination: {
+            count: number,
+            page: number,
+            sortby?: 'ASC' | 'DESC',
+            globalFilter?: string,
+            columnFilters?: Array<{ id: string; value: unknown }>,
+        },
+    ) => {
         try {
-            const { page, count, sortby = 'DESC' } = pagination;
-            const response = await customFetch(`customers?page=${page}&&count=${count}&&sortby=${sortby}`);
-            if (Array.isArray(response)) {
-                return { result: response, error: false }
-            } else {
-                return { result: [], error: false }
+            const { page, count, sortby = 'DESC', globalFilter = '', columnFilters = [] } = pagination;
+            const params = new URLSearchParams({
+                page: String(page),
+                count: String(count),
+                sortby,
+            });
+
+            if (globalFilter.trim()) {
+                params.set('q', globalFilter.trim());
             }
+
+            if (Array.isArray(columnFilters)) {
+                columnFilters.forEach((entry) => {
+                    const value = entry?.value == null ? '' : String(entry.value).trim();
+                    if (entry?.id && value) {
+                        params.set(entry.id, value);
+                    }
+                });
+            }
+
+            const response = await customFetch(`customers?${params.toString()}`);
+
+            const rows = Array.isArray(response)
+                ? response
+                : Array.isArray((response as any)?.result)
+                    ? (response as any).result
+                    : Array.isArray((response as any)?.data)
+                        ? (response as any).data
+                        : Array.isArray((response as any)?.rows)
+                            ? (response as any).rows
+                            : [];
+
+            const totalCount = Number(
+                (response as any)?.totalCount
+                ?? (response as any)?.count
+                ?? (response as any)?.total,
+            );
+
+            const totalPages = Number(
+                (response as any)?.totalPages
+                ?? (response as any)?.pages
+                ?? (response as any)?.lastPage,
+            );
+
+            return {
+                result: rows,
+                error: false,
+                totalCount: Number.isFinite(totalCount) ? totalCount : undefined,
+                totalPages: Number.isFinite(totalPages) ? totalPages : undefined,
+            };
         } catch (err) {
             return { result: [], error: true }
         }
@@ -393,11 +445,15 @@ export default function Activator() {
             <div >
                 {Array.isArray(tempStore)
                     && tempStore.length > 0
-                    && <PrimeTable
+                    && <PrimeTableV2
                         column={columns}
                         data={tempStore}
+                        filtering={true}
+                        showChartView={true}
+                        isExpoerted={true}
                         handleSeverSideProcessing={handleSeverSideProcessing}
                         serverSideFiltering={true}
+                        tableId='crm-customers-table'
                     />}
             </div>
         </div>

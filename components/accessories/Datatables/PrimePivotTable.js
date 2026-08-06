@@ -18,6 +18,7 @@ export default function PrimeTable({
 	const [filteredData, setFilteredData] = useState(data);
 	const [isLoading, setIsLoading] = useState(false);
 	const [queryParams, setQueryParams] = useState({ count: 10, page: 1 });
+	const [paginationMeta, setPaginationMeta] = useState({ totalPages: null, totalCount: null });
 	const [isPivotMode, setIsPivotMode] = useState(false);
 	const [pivotSort, setPivotSort] = useState({ field: null, direction: 'asc' });
 	const [pivotFilter, setPivotFilter] = useState('');
@@ -1155,6 +1156,11 @@ export default function PrimeTable({
 		setGlobalFilter,
 	} = tableInstance;
 
+	const clearAllFilters = () => {
+		setGlobalFilter('');
+		setPivotFilter('');
+	};
+
 	const toogleUp = () => (
 		<svg
 			className="sorted-asc"
@@ -1449,27 +1455,40 @@ export default function PrimeTable({
 
 				if (processedResponse) {
 					const { result, error, totalCount, metadata } = processedResponse;
-					setTimeout(() => {
-						if (result) {
-							setFilteredData(result);
+					if (result) {
+						setFilteredData(result);
 
-							// Update cache with new data
-							if (isPivotMode) {
-								const cacheKey = generateCacheKey(pivotConfig, pivotFilter, sortby);
-								setCachedData(cacheKey, result);
-							}
+						const serverTotalCount = Number(
+							totalCount ?? metadata?.totalCount ?? metadata?.count ?? result?.length ?? 0
+						);
+						const serverTotalPages = Number(
+							metadata?.totalPages ?? metadata?.pages ?? (serverTotalCount > 0 && currentCount > 0 ? Math.ceil(serverTotalCount / currentCount) : 0)
+						);
 
-							// Store metadata if provided (for stats/analytics)
-							if (metadata) {
-								console.log('Server metadata:', metadata);
-							}
-						} else {
-							console.error('Server error:', error);
-							alert(error || 'Failed to fetch data');
+						setPaginationMeta({
+							totalCount: Number.isFinite(serverTotalCount) ? serverTotalCount : null,
+							totalPages: Number.isFinite(serverTotalPages) && serverTotalPages > 0 ? serverTotalPages : null
+						});
+
+						// Update cache with new data
+						if (isPivotMode) {
+							const cacheKey = generateCacheKey(pivotConfig, pivotFilter, sortby);
+							setCachedData(cacheKey, result);
 						}
-						setIsLoading(false);
-					}, 300);
+
+						// Store metadata if provided (for stats/analytics)
+						if (metadata) {
+							console.log('Server metadata:', metadata);
+						}
+					} else {
+						console.error('Server error:', error);
+						alert(error || 'Failed to fetch data');
+					}
+					setIsLoading(false);
+					return;
 				}
+
+				setIsLoading(false);
 			} catch (err) {
 				console.error('Error in RunServerAction:', err);
 				alert('Network error: Unable to fetch data');
@@ -1480,19 +1499,24 @@ export default function PrimeTable({
 
 	const handlePagination = async (value) => {
 		let currentPage = queryParams.page;
+		const hasKnownTotalPages = Number.isFinite(paginationMeta.totalPages) && paginationMeta.totalPages > 0;
+		const canGoNext = hasKnownTotalPages
+			? currentPage < paginationMeta.totalPages
+			: (filteredData?.length || 0) > 0 || currentPage > 1;
 		if (typeof value === "number") {
 			currentPage = value;
 		}
 
-		if (typeof value === "string" && ["Next", "Previous"].includes(value)) {
-			const nextPage =
-				value === "Next"
-					? currentPage + 1
-					: currentPage > 0
-						? currentPage - 1
-						: 0;
-			currentPage = nextPage;
+		if (typeof value === "string") {
+			if (value === "First") currentPage = 1;
+			if (value === "Previous") currentPage = currentPage > 1 ? currentPage - 1 : 1;
+			if (value === "Next") currentPage = canGoNext ? currentPage + 1 : currentPage;
+			if (value === "Last") {
+				currentPage = hasKnownTotalPages ? paginationMeta.totalPages : (canGoNext ? currentPage + 1 : currentPage);
+			}
 		}
+
+		if (currentPage < 1) currentPage = 1;
 		setQueryParams({ ...queryParams, page: currentPage });
 		await RunServerAction(currentPage, queryParams.count);
 	};
@@ -1896,6 +1920,14 @@ export default function PrimeTable({
 							{!isPivotMode ? (
 								<>
 									<GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
+									<button
+										type="button"
+										onClick={clearAllFilters}
+										className="btn btn-sm btn-outline-secondary"
+										style={{ fontSize: '11px', padding: '4px 10px', whiteSpace: 'nowrap' }}
+									>
+										Clear Filters
+									</button>
 
 									{/* Export Buttons */}
 									<button
@@ -2152,15 +2184,21 @@ export default function PrimeTable({
 										className="form-control form-control-sm"
 										style={{ width: '180px', fontSize: '11px' }}
 									/>
-									{pivotData && pivotData.length > 0 && (
-										<button
-											onClick={() => setShowChart(!showChart)}
-											className="btn btn-xs btn-outline-primary"
-											style={{ fontSize: '10px', padding: '2px 8px', whiteSpace: 'nowrap', backgroundColor: '#007bff', color: 'white', border: '2px solid #0056b3' }}
-										>
-											{showChart ? 'Hide Chart' : 'Show Chart'}
-										</button>
-									)}
+									<button
+										type="button"
+										onClick={clearAllFilters}
+										className="btn btn-sm btn-outline-secondary"
+										style={{ fontSize: '11px', padding: '4px 10px', whiteSpace: 'nowrap' }}
+									>
+										Clear Filters
+									</button>
+									<button
+										onClick={() => setShowChart(!showChart)}
+										className="btn btn-xs btn-outline-primary"
+										style={{ fontSize: '10px', padding: '2px 8px', whiteSpace: 'nowrap', backgroundColor: '#007bff', color: 'white', border: '2px solid #0056b3' }}
+									>
+										{showChart ? 'Hide Chart' : 'Show Chart'}
+									</button>
 									<button
 										onClick={toggleFullscreen}
 										className="btn btn-sm btn-outline-secondary"
@@ -2334,7 +2372,7 @@ export default function PrimeTable({
 				</div>
 				<div className="row m-0 p-0 flex-nowrap" style={{ overflow: 'hidden' }}>
 					<div className={isPivotMode && !isPivotSectionCollapsed ? "col-9" : "col-12"} style={{ overflowY: 'auto', overflowX: 'auto', maxHeight: '70vh', minWidth: 0, position: 'relative' }}>
-						{isPivotMode && showChart && pivotData && pivotData.length > 0 && (
+						{isPivotMode && showChart && (
 							<>
 								<div className="p-3 border-bottom" style={{ backgroundColor: '#f8f9fa' }}>
 									<div className="d-flex justify-content-between align-items-center mb-3">
@@ -2409,6 +2447,11 @@ export default function PrimeTable({
 										</button>
 									</div>
 								</div>
+								{(pivotConfig.valueFields.length === 0 || chartData.length === 0) && (
+									<div className="px-3 py-2" style={{ fontSize: '11px', color: '#6c757d' }}>
+										Pick at least one value field in Pivot Mode to render chart data.
+									</div>
+								)}
 								<div className="p-2">
 									<ResponsiveContainer width="100%" height={350}>
 										{chartType === 'bar' && (
@@ -3122,7 +3165,10 @@ export default function PrimeTable({
 							{/* Info Section */}
 							<div className="d-flex align-items-center gap-3">
 								<div style={{ fontSize: '14px', fontWeight: '500', color: '#212529' }}>
-									<span style={{ color: '#198754' }}>Page {queryParams.page}</span>
+									<span style={{ color: '#198754' }}>
+										Page {queryParams.page}
+										{paginationMeta.totalPages ? ` of ${paginationMeta.totalPages}` : ''}
+									</span>
 								</div>
 								<div
 									className="vr"
@@ -3134,7 +3180,7 @@ export default function PrimeTable({
 								></div>
 								<div style={{ fontSize: '13px', color: '#6c757d' }}>
 									<span className="fw-semibold" style={{ color: '#495057' }}>
-										{filteredData.length || 0}
+										{paginationMeta.totalCount || filteredData.length || 0}
 									</span>
 									<span> records</span>
 								</div>
@@ -3142,116 +3188,141 @@ export default function PrimeTable({
 
 							{/* Pagination Controls */}
 							<div className="d-flex align-items-center gap-2">
-								{/* Previous */}
-								<button
-									type="button"
-									onClick={() => handlePagination("Previous")}
-									disabled={queryParams.page === 1}
-									style={{
-										padding: '6px 14px',
-										fontSize: '13px',
-										fontWeight: '500',
-										border: '1px solid #198754',
-										borderRadius: '6px',
-										backgroundColor: 'white',
-										color: queryParams.page === 1 ? '#adb5bd' : '#198754',
-										cursor: queryParams.page === 1 ? 'not-allowed' : 'pointer',
-										transition: 'all 0.2s ease',
-										display: 'flex',
-										alignItems: 'center',
-										gap: '6px',
-										opacity: queryParams.page === 1 ? 0.6 : 1
-									}}
-									onMouseEnter={(e) => {
-										if (queryParams.page !== 1) {
-											e.currentTarget.style.backgroundColor = '#d1e7dd';
-											e.currentTarget.style.borderColor = '#198754';
-										}
-									}}
-									onMouseLeave={(e) => {
-										e.currentTarget.style.backgroundColor = 'white';
-										e.currentTarget.style.borderColor = '#198754';
-									}}
-								>
-									<span>←</span>
-									<span>Previous</span>
-								</button>
+								{(() => {
+									const hasKnownTotalPages = Number.isFinite(paginationMeta.totalPages) && paginationMeta.totalPages > 0;
+									const canGoPrevious = queryParams.page > 1;
+									const canGoNext = hasKnownTotalPages
+										? queryParams.page < paginationMeta.totalPages
+										: (filteredData.length || 0) > 0 || queryParams.page > 1;
 
-								{/* Page Numbers */}
-								<div className="d-flex gap-1">
-									{[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((item) => {
-										const isActive = queryParams.page === item;
-										return (
+									return (
+										<>
 											<button
 												type="button"
-												onClick={() => handlePagination(item)}
-												key={item}
-												aria-current={isActive ? "page" : undefined}
+												onClick={() => handlePagination("First")}
+												disabled={!canGoPrevious || isLoading}
 												style={{
-													minWidth: '38px',
-													height: '38px',
-													padding: '6px',
+													padding: '6px 14px',
 													fontSize: '13px',
-													fontWeight: isActive ? '600' : '500',
-													border: `1.5px solid ${isActive ? '#198754' : '#dee2e6'}`,
+													fontWeight: '500',
+													border: '1px solid #198754',
 													borderRadius: '6px',
-													backgroundColor: isActive ? '#198754' : 'white',
-													color: isActive ? 'white' : '#495057',
-													cursor: 'pointer',
+													backgroundColor: 'white',
+													color: !canGoPrevious || isLoading ? '#adb5bd' : '#198754',
+													cursor: !canGoPrevious || isLoading ? 'not-allowed' : 'pointer',
+													opacity: !canGoPrevious || isLoading ? 0.6 : 1
+												}}
+											>
+												First
+											</button>
+											{/* Previous */}
+											<button
+												type="button"
+												onClick={() => handlePagination("Previous")}
+												disabled={!canGoPrevious || isLoading}
+												style={{
+													padding: '6px 14px',
+													fontSize: '13px',
+													fontWeight: '500',
+													border: '1px solid #198754',
+													borderRadius: '6px',
+													backgroundColor: 'white',
+													color: !canGoPrevious || isLoading ? '#adb5bd' : '#198754',
+													cursor: !canGoPrevious || isLoading ? 'not-allowed' : 'pointer',
 													transition: 'all 0.2s ease',
-													boxShadow: isActive ? '0 2px 6px rgba(25, 135, 84, 0.25)' : 'none'
+													display: 'flex',
+													alignItems: 'center',
+													gap: '6px',
+													opacity: !canGoPrevious || isLoading ? 0.6 : 1
 												}}
 												onMouseEnter={(e) => {
-													if (!isActive) {
+													if (canGoPrevious && !isLoading) {
 														e.currentTarget.style.backgroundColor = '#d1e7dd';
 														e.currentTarget.style.borderColor = '#198754';
-														e.currentTarget.style.transform = 'translateY(-1px)';
 													}
 												}}
 												onMouseLeave={(e) => {
-													if (!isActive) {
-														e.currentTarget.style.backgroundColor = 'white';
-														e.currentTarget.style.borderColor = '#dee2e6';
-														e.currentTarget.style.transform = 'translateY(0)';
-													}
+													e.currentTarget.style.backgroundColor = 'white';
+													e.currentTarget.style.borderColor = '#198754';
 												}}
 											>
-												{item}
+												<span>←</span>
+												<span>Previous</span>
 											</button>
-										);
-									})}
-								</div>
 
-								{/* Next */}
-								<button
-									type="button"
-									onClick={() => handlePagination("Next")}
-									style={{
-										padding: '6px 14px',
-										fontSize: '13px',
-										fontWeight: '500',
-										border: '1px solid #198754',
-										borderRadius: '6px',
-										backgroundColor: 'white',
-										color: '#198754',
-										cursor: 'pointer',
-										transition: 'all 0.2s ease',
-										display: 'flex',
-										alignItems: 'center',
-										gap: '6px'
-									}}
-									onMouseEnter={(e) => {
-										e.currentTarget.style.backgroundColor = '#d1e7dd';
-										e.currentTarget.style.borderColor = '#198754';
-									}}
-									onMouseLeave={(e) => {
-										e.currentTarget.style.backgroundColor = 'white';
-										e.currentTarget.style.borderColor = '#198754';
-									}}
-								>
-									<span>Next</span>
-									<span>→</span>
-								</button>
+											<div style={{
+												minWidth: '72px',
+												height: '38px',
+												padding: '6px 10px',
+												fontSize: '13px',
+												fontWeight: '600',
+												border: '1.5px solid #198754',
+												borderRadius: '6px',
+												backgroundColor: '#198754',
+												color: 'white',
+												display: 'flex',
+												alignItems: 'center',
+												justifyContent: 'center'
+											}}>
+												{queryParams.page}
+											</div>
+
+											{/* Next */}
+											<button
+												type="button"
+												onClick={() => handlePagination("Next")}
+												disabled={!canGoNext || isLoading}
+												style={{
+													padding: '6px 14px',
+													fontSize: '13px',
+													fontWeight: '500',
+													border: '1px solid #198754',
+													borderRadius: '6px',
+													backgroundColor: 'white',
+													color: !canGoNext || isLoading ? '#adb5bd' : '#198754',
+													cursor: !canGoNext || isLoading ? 'not-allowed' : 'pointer',
+													transition: 'all 0.2s ease',
+													display: 'flex',
+													alignItems: 'center',
+													gap: '6px',
+													opacity: !canGoNext || isLoading ? 0.6 : 1
+												}}
+												onMouseEnter={(e) => {
+													if (canGoNext && !isLoading) {
+														e.currentTarget.style.backgroundColor = '#d1e7dd';
+														e.currentTarget.style.borderColor = '#198754';
+													}
+												}}
+												onMouseLeave={(e) => {
+													e.currentTarget.style.backgroundColor = 'white';
+													e.currentTarget.style.borderColor = '#198754';
+												}}
+											>
+												<span>Next</span>
+												<span>→</span>
+											</button>
+
+											<button
+												type="button"
+												onClick={() => handlePagination("Last")}
+												disabled={!canGoNext || isLoading}
+												style={{
+													padding: '6px 14px',
+													fontSize: '13px',
+													fontWeight: '500',
+													border: '1px solid #198754',
+													borderRadius: '6px',
+													backgroundColor: 'white',
+													color: !canGoNext || isLoading ? '#adb5bd' : '#198754',
+													cursor: !canGoNext || isLoading ? 'not-allowed' : 'pointer',
+													opacity: !canGoNext || isLoading ? 0.6 : 1
+												}}
+											>
+												Last
+											</button>
+										</>
+									);
+								})()}
 							</div>
 						</div>
 					)}

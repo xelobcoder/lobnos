@@ -15,7 +15,9 @@
     flex-direction: column;
     height: 100vh;
     max-height: 100vh;
-    background-color: var(--theme-body-bg);
+    background:
+        radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--theme-accent) 10%, transparent 90%), transparent 36%),
+        var(--theme-body-bg);
     font-family: var(--theme-font-family, var(--font-inter));
     overflow: hidden;
 }
@@ -71,6 +73,10 @@
     background-color: var(--theme-header-bg);
     color: var(--theme-header-text);
     z-index: 100;
+    position: sticky;
+    top: 0;
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.12);
+    backdrop-filter: saturate(120%) blur(6px);
 }
 
 .headerContent {
@@ -87,11 +93,13 @@
 }
 
 .headerCompany .companyName {
-    font-size: 1.125rem;
-    font-weight: 600;
+    font-size: 1.05rem;
+    font-weight: 700;
     color: var(--theme-header-text);
     margin: 0;
     white-space: nowrap;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
 }
 
 .headerActions {
@@ -165,6 +173,7 @@
     transition: width var(--transition-duration) ease;
     flex-shrink: 0;
     z-index: 90;
+    box-shadow: none;
 }
 
 .quickLinksCollapsed .quickLinksSidebar {
@@ -178,17 +187,22 @@
     padding: 16px;
     border-bottom: 1px solid var(--theme-sidebar-border);
     min-height: 60px;
+    background: var(--theme-sidebar-bg);
+    position: sticky;
+    top: 0;
+    z-index: 3;
 }
 
 .sidebarTitle {
-    font-size: 0.875rem;
-    font-weight: 600;
+    font-size: 0.8rem;
+    font-weight: 700;
     color: var(--theme-sidebar-text);
     margin: 0;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.06em;
     white-space: nowrap;
     overflow: hidden;
+    opacity: 1;
 }
 
 .quickLinksCollapsed .sidebarTitle {
@@ -217,9 +231,18 @@
 
 .sidebarNav {
     flex: 1;
-    padding: 12px 0;
+    padding: 10px 8px 14px;
     overflow-y: auto;
     overflow-x: hidden;
+}
+
+.sidebarNav::-webkit-scrollbar {
+    width: 8px;
+}
+
+.sidebarNav::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--theme-sidebar-text) 28%, transparent 72%);
+    border-radius: 10px;
 }
 
 /* Navigation Items */
@@ -232,15 +255,17 @@
     align-items: center;
     justify-content: flex-start;
     /* Ensure left alignment */
-    padding: 10px 16px;
+    padding: 9px 12px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.16s ease, color 0.16s ease;
     text-align: left;
     /* Ensure text starts from left */
     color: var(--theme-sidebar-text);
-    font-size: 0.9rem;
-    font-weight: 500;
+    font-size: 0.84rem;
+    font-weight: 600;
     white-space: nowrap;
+    margin: 1px 0;
+    border-radius: 4px;
 }
 
 .navItem:hover {
@@ -251,19 +276,21 @@
     background-color: var(--theme-sidebar-active);
     border-left-color: var(--theme-accent);
     color: var(--theme-sidebar-text);
-    font-weight: 600;
+    font-weight: 700;
+    box-shadow: none;
 }
 
 .navIcon {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: 12px;
+    margin-right: 10px;
     flex-shrink: 0;
     color: inherit;
     opacity: 0.9;
+    background: transparent;
 }
 
 .navLabel {
@@ -279,6 +306,7 @@
 .quickLinksCollapsed .navItem {
     padding: 10px 0;
     justify-content: center;
+    border-radius: 4px;
 }
 
 .quickLinksCollapsed .navIcon {
@@ -299,20 +327,22 @@
     align-items: center;
     justify-content: flex-start;
     /* Ensure left alignment */
-    padding: 10px 16px;
+    padding: 8px 12px;
     cursor: pointer;
     text-align: left;
     /* Ensure text starts from left */
     color: var(--theme-sidebar-text);
-    font-size: 0.8rem;
-    font-weight: 600;
+    font-size: 0.72rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    opacity: 0.9;
+    letter-spacing: 0.06em;
+    opacity: 0.82;
+    border-radius: 4px;
 }
 
 .navGroupButton:hover {
     background-color: var(--theme-sidebar-hover);
+    opacity: 1;
 }
 
 .navExpandIcon {
@@ -331,12 +361,16 @@
 }
 
 .navSubmenu {
-    background-color: rgba(0, 0, 0, 0.05);
+    margin: 2px 0 6px 8px;
+    padding-left: 8px;
+    border-left: 1px solid var(--theme-sidebar-border);
+    background: transparent;
 }
 
 .navItemChild {
-    padding-left: 48px;
-    font-size: 0.85rem;
+    padding-left: 26px;
+    font-size: 0.8rem;
+    border-left-width: 2px;
 }
 
 .quickLinksCollapsed .navItemChild {
@@ -346,15 +380,17 @@
 /* Main Content */
 .mainContent {
     flex: 1;
-    background-color: var(--theme-body-bg);
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--theme-card-bg) 35%, transparent 65%), transparent 140px),
+        var(--theme-body-bg);
     overflow-y: auto;
     padding: 0;
     position: relative;
 }
 
 .contentWrapper {
-    padding: 20px;
-    max-width: 1600px;
+    padding: 18px;
+    max-width: 1700px;
     margin: 0 auto;
     min-height: 100%;
 }

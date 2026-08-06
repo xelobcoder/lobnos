@@ -108,7 +108,10 @@ export const availableFonts = [
      { name: 'Open Sans', value: "var(--font-open-sans)" },
      { name: 'Lato', value: "var(--font-lato)" },
      { name: 'Lexend', value: "var(--font-lexend)" },
-     { name: 'Candara', value: "var(--font-candara)" }
+     { name: 'Candara', value: "var(--font-candara)" },
+     { name: "Segoe", value: "var(--font-segoe)" },
+     { name: 'Arial', value: "var(--font-arial)" },
+     { name: 'Verdana', value: "var(--font-verdana)" },
 ];
 
 export const availableSidebarStyles = [
