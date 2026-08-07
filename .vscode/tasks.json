@@ -4,7 +4,7 @@
 		{
 			"label": "Open Split Terminals",
 			"type": "shell",
-			"command": "npm run next",
+			"command": "pnpm next",
 			"problemMatcher": [],
 			"runOptions": {
 				"runOn": "folderOpen"

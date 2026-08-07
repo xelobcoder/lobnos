@@ -31,7 +31,7 @@ export async function loadClinicianPackage(packageid: number) {
 
 export async function AsyncPatientFilteringloadOptions
 	(input = "") {
-	return await loadOptions(input,'firstname');
+	return await loadOptions(input, 'firstname');
 }
 
 
@@ -95,8 +95,8 @@ export const loadRefundData = async (status: "pending" | "completed", employeeid
 
 
 
-export const handleRefundServerSideProcessing = async (values: { count: number; page: number, employeeid: number, status: 'pending' | "completed",sortby:'ASC' | 'DESC' }) => {
-	const { count, page, employeeid, status,sortby ='DESC' } = values;
+export const handleRefundServerSideProcessing = async (values: { count: number; page: number, employeeid: number, status: 'pending' | "completed", sortby: 'ASC' | 'DESC' }) => {
+	const { count, page, employeeid, status, sortby = 'DESC' } = values;
 	try {
 		const data = await customFetch(
 			`billing/refund/details/status?status=${status}&&employeeid=${employeeid}&&page=${page}&&count=${count}&&sortby=${sortby}`
@@ -113,7 +113,7 @@ export const handleRefundServerSideProcessing = async (values: { count: number; 
 
 export const handleServerSideProcessingAscensionData = async (pagination) => {
 	try {
-		const { page, count, employeeid, ascension_stage, _dateFrom,billingid,patientid,ascensionid, patientname, _dateEnd, isUltrasound, searchString, category, sortby = 'DESC' } = pagination;
+		const { page, count, employeeid, ascension_stage, _dateFrom, billingid, patientid, ascensionid, patientname, _dateEnd, isUltrasound, searchString, category, sortby = 'DESC' } = pagination;
 
 		const parsedFrom = _dateFrom ? formatDate(_dateFrom) : _dateFrom;
 		const parsedEnd = _dateEnd ? formatDate(_dateEnd) : _dateEnd;
@@ -127,10 +127,10 @@ export const handleServerSideProcessingAscensionData = async (pagination) => {
 				`&&isUltrasound=${isUltrasound}` +
 				`&&employeeid=${employeeid}` +
 				`&&sortby=${sortby}` +
-				`&&grouped=${category}`+
-				`&&billingid=${billingid}`+
-				`&&patientid=${patientid}`+
-				`&&ascensionid=${ascensionid}`+
+				`&&grouped=${category}` +
+				`&&billingid=${billingid}` +
+				`&&patientid=${patientid}` +
+				`&&ascensionid=${ascensionid}` +
 				`&&patientname=${patientname}`
 			);
 			if (Array.isArray(result)) {
@@ -225,7 +225,7 @@ export const handlePaginationServerRejectedHistory = async (pagination) => {
 
 export const handleServerTurnAroundTime = async (paginate) => {
 	try {
-		const { page, count, sorting,sortby='DESC' } = paginate
+		const { page, count, sorting, sortby = 'DESC' } = paginate
 		const response = await customFetch(`testascension/tat-data?page=${page}&&count=${count}&&sorting=${sorting}&&sortby=${sortby}`);
 		if (response?.data && Array.isArray(response?.data)) {
 			return { result: response?.data, error: false }
@@ -385,11 +385,11 @@ export const ClinicianAnalyticsCaseSummaryDailyServerSide = async (clinicianId: 
 
 
 
-export async function createConditionAction(conditionName: FormDataEntryValue, testid: number) {
+export async function createConditionAction(conditionName: FormDataEntryValue, testid: number, employeeid: number) {
 	if (!conditionName || !testid) {
 		return false;
 	}
-	const response = await customPost('multi/definition', 'POST', { conditionName, testid });
+	const response = await customPost('multi/definition', 'POST', { conditionName, testid, createdBy: employeeid });
 	if (!response) {
 		throw new Error("No response from the server.");
 	}

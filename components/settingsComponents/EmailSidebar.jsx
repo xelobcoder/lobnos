@@ -4,20 +4,20 @@ import { Analytics, Error, Forward, Home, SettingsApplications } from '@mui/icon
 import { getApplicationSettings } from '../Auth/customFetch';
 import { useRouter } from 'next/navigation';
 export default function EmailSidebarJSX() {
-const router = useRouter();
+  const router = useRouter();
   const appset = async () => {
     const settings = await getApplicationSettings();
     const { emailNotification } = settings;
-    emailNotification === 0 && router.push('/settings/emailsetting/notactivated');
+    emailNotification === 0 && router.push('/settings/email-services');
   }
-  
+
   useEffect(() => {
     appset();
-   }, []);
+  }, []);
 
   return (
     <>
-    <div className="settings-sidebar">
+      <div className="settings-sidebar">
         <div className="contents">
           <ul>
             <li>
@@ -33,7 +33,7 @@ const router = useRouter();
                 <SettingsApplications />
               </div>
               <div className="text">
-                <Link href={'/settings/emailsetting'}> Email setup</Link>
+                <Link href={'/settings/email-services'}> Email setup</Link>
               </div>
             </li>
             <li>
@@ -41,7 +41,7 @@ const router = useRouter();
                 <Analytics />
               </div>
               <div className="text">
-                <Link href={'/settings/emailsetting/analytics'}> charts</Link>
+                <Link href={'/settings/email-services/logs'}> charts</Link>
               </div>
             </li>
             <li>
@@ -49,15 +49,15 @@ const router = useRouter();
                 <Error />
               </div>
               <div className="text">
-                <Link href={'/settings/emailsetting/customemail'}> compomse email</Link>
+                <Link href={'/settings/email-services/queue'}> compose email</Link>
               </div>
             </li>
             <li>
               <div className="icons">
-                <Forward/>
+                <Forward />
               </div>
               <div className="text">
-                <Link href={'/settings/emailsetting/emails?category=all'}>Sent/Draft Emails</Link>
+                <Link href={'/settings/email-services/templates'}>Sent/Draft Emails</Link>
               </div>
             </li>
           </ul>

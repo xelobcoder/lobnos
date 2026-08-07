@@ -10,6 +10,7 @@ interface Category {
     categoryid: number;
     categoryname: string;
     testid: number;
+    createdbyname: string;
     createdby: string;
 }
 
@@ -145,17 +146,19 @@ const CategoryForm = ({ params }: {
             {categories.length > 0 && (
                 <div className="mt-3">
                     <h6 className="bg-secondary-subtle p-2 br-5 pls-label">Categories</h6>
-                    <table className={style.table}>
+                    <table className={`table table-striped ${style.customTable} table-sm`}>
                         <thead>
                             <tr>
-                                <th className="pls-label">Category Name</th>
-                                <th className="pls-label">Actions</th>
+                                <th >Category Name</th>
+                                <th >Created By</th>
+                                <th >Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="table-sm">
+                        <tbody>
                             {categories.map((cat) => (
                                 <tr key={cat.categoryid}>
                                     <td className="text-sm text-capitalize">{cat.categoryname}</td>
+                                    <td className="text-sm text-capitalize">{cat.createdbyname}</td>
                                     <td className="text-sm text-capitalize">
                                         <Button
                                             size="sm"

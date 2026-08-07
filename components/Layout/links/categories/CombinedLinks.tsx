@@ -111,63 +111,63 @@ const AnalyticsLinks: Link[] = [
           children: [
                {
                     title: "Patient Dashboards",
-               
+
                     icon: <RiBarChartBoxLine size={24} />,
                     link: "/analytics/patients/dashboards",
 
                },
                {
                     title: "Age Distribution",
-               
+
                     icon: <RiUserLine size={24} />,
                     link: "/analytics/patients/age-distribution",
 
                },
                {
                     title: "Gender Distribution",
-          
+
                     icon: <RiCalculatorLine size={24} />,
                     link: "/analytics/patients/gender-distribution",
 
                },
                {
                     title: "Marital Status",
-            
+
                     icon: <RiUserLine size={24} />,
                     link: "/analytics/patients/marital-status",
 
                },
                {
                     title: "Registration Over Time",
-                 
+
                     icon: <RiCalendarEventLine size={24} />,
                     link: "/analytics/patients/patient-registration-over-time",
 
                },
                {
                     title: "Occupation Distribution",
-                  
+
                     icon: <RiBarChartBoxLine size={24} />,
                     link: "/analytics/patients/occupation-distribution",
 
                },
                {
                     title: "Missing Data Analysis",
-               
+
                     icon: <RiErrorWarningLine size={24} />,
                     link: "/analytics/patients/missing-data-analysis",
 
                },
                {
                     title: "Contact Completeness",
-                
+
                     icon: <RiPhoneLine size={24} />,
                     link: "/analytics/patients/contact-completeness",
 
                },
                {
                     title: "Registration by Day",
-         
+
                     icon: <RiCalendarEventLine size={24} />,
                     link: "/analytics/patients/registration-by-day",
 
@@ -656,7 +656,25 @@ const ApplicationSettingsLinks: Link[] = [
                { title: "Audit Logs", link: "/settings/records/audit", icon: <RiListCheck2 /> }
           ]
      },
-     { title: "Email Management", link: "/crm/customers/send-email", icon: <RiMailSettingsLine /> }
+     {
+          title: "Email Management",
+          link: "",
+          icon: <RiMailSettingsLine />,
+          children: [
+               { title: "Overview", link: "/settings/email-services", icon: <RiMailSettingsLine /> },
+               { title: "Templates", link: "/settings/email-services/templates", icon: <RiFileTextLine /> },
+               { title: "Providers", link: "/settings/email-services/providers", icon: <RiSettings2Line /> },
+               { title: "Settings", link: "/settings/email-services/settings", icon: <RiSettings3Line /> },
+               { title: "Notifications", link: "/settings/email-services/notifications", icon: <RiMailSettingsLine /> },
+               { title: "Notification Events", link: "/settings/email-services/notifications/events", icon: <RiSettings3Line /> },
+               { title: "Notification Templates", link: "/settings/email-services/notifications/templates", icon: <RiFileTextLine /> },
+               { title: "Notification Trigger", link: "/settings/email-services/notifications/trigger", icon: <RiMailSettingsLine /> },
+               { title: "Notification Queue", link: "/settings/email-services/notifications/queue", icon: <RiCustomerService2Line /> },
+               { title: "Notification Logs", link: "/settings/email-services/notifications/logs", icon: <RiFileListLine /> },
+               { title: "Queue", link: "/settings/email-services/queue", icon: <RiCustomerService2Line /> },
+               { title: "Logs", link: "/settings/email-services/logs", icon: <RiFileListLine /> }
+          ]
+     }
 ];
 
 // Operations Links

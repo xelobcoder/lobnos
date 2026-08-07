@@ -19,28 +19,45 @@ export default function MultiFieldSelectConditions({ fields = [], testid, condit
 		return conditions.filter((item, index) => item.conditionName.trim() === conditionName.trim()).length > 0
 	}
 
-	const hasConstraintFieldHasParameter = function (condition_field, parameter) {
+	const hasExactConstraint = function (condition_field, parameter, conditionConstraint, target, inRange) {
 		if (!Array.isArray(condition_field) || condition_field.length === 0) return false;
-		return condition_field.filter((item, index) => item.parameter.trim() === parameter).length > 0;
+		return condition_field.some((item) => {
+			const existingParameter = (item?.parameter || '').toString().trim().toLowerCase();
+			const existingConstraint = (item?.conditionConstraint || '').toString().trim().toLowerCase();
+			const existingTarget = (item?.target || '').toString().trim();
+			const existingRange = Boolean(item?.inRange);
+
+			return (
+				existingParameter === (parameter || '').toString().trim().toLowerCase() &&
+				existingConstraint === (conditionConstraint || '').toString().trim().toLowerCase() &&
+				existingTarget === (target || '').toString().trim() &&
+				existingRange === Boolean(inRange)
+			);
+		});
 	}
 
 
 
 
 	function addingConstraints(constraintName, parameter, conditionConstraint, target, inRange) {
-		if (!hasMatch(constraintName)) return;
+		if (!hasMatch(constraintName)) {
+			return { ok: false, message: 'Condition not found' };
+		}
 		let singleConstraints = { parameter, conditionConstraint, target, inRange };
 
 		const constaintPosition = conditions.findIndex((constaint, indexPos) => constaint.conditionName.trim() === constraintName.trim());
 
 		const conditionConstraintField = conditions[constaintPosition]['fieldConstraints'];
 
-		if (hasConstraintFieldHasParameter(conditionConstraintField, parameter)) return;
+		if (hasExactConstraint(conditionConstraintField, parameter, conditionConstraint, target, inRange)) {
+			return { ok: false, message: 'This exact validator already exists' };
+		}
 		const nwfieldConstraints = [...conditionConstraintField, singleConstraints];
 
 		let newConditions = [...conditions];
 		newConditions[constaintPosition]['fieldConstraints'] = nwfieldConstraints;
 		setConditions(newConditions);
+		return { ok: true };
 	}
 
 
@@ -106,11 +123,11 @@ export default function MultiFieldSelectConditions({ fields = [], testid, condit
 
 					conditionName={item.conditionName} constraints={item.fieldConstraints} />)}
 			</div>
-			<div>
+			<div className="mt-2 mb-2">
 				<button
 					disabled={pending}
 					onClick={handleSubmitContraints}
-					className="btn btn-primary btn-sm">
+					className="btn btn-primary btn-sm mt-3 mb-3">
 					{pending && <Spinner size="sm" />}	update Information
 				</button>
 			</div>

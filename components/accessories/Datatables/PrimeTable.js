@@ -4,7 +4,7 @@ import { useTable, useGlobalFilter, useFilters, useSortBy } from "react-table";
 import GlobalFilter from "./GlobalFilter";
 import ShowTableDisplayCount from "./TableDisplayShowCount";
 import TableLoading from "./TableLoading";
-import style from "../../../styles/SmsTemplateList.module.css";
+import style from "./PrimeTableV2.module.css";
 import "../../../styles/prime-table.css";
 import { ButtonGroup } from "react-bootstrap";
 
@@ -137,7 +137,7 @@ export default function PrimeTable({
 						: null;
 
 					return (
-						<th key={index} {...restProps} className={`${style.th} pointer`}>
+						<th key={index} {...restProps} className={`${style.th} ${style.sortableHeader}`}>
 							<div className="d-flex justify-content-between align-items-center">
 								<span className="text-sm fw-bold text-capitalize align-items-center">
 									{column.render("Header")}
@@ -183,20 +183,21 @@ export default function PrimeTable({
 	const handlePagination = async (value) => {
 		let currentPage = queryParams.page;
 		if (typeof value === "number") {
-			currentPage = value;
+			currentPage = value > 0 ? value : 1;
 		}
 
 		if (typeof value === "string" && ["Next", "Previous"].includes(value)) {
-			const nextPage =
-				value === "Next"
-					? currentPage + 1
-					: currentPage > 0
-						? currentPage - 1
-						: 0;
+			const nextPage = value === "Next" ? currentPage + 1 : currentPage > 1 ? currentPage - 1 : 1;
 			currentPage = nextPage;
 		}
 		setQueryParams({ ...queryParams, page: currentPage });
 		await RunServerAction(currentPage, queryParams.count);
+	};
+
+	const getPaginationItems = () => {
+		const current = queryParams.page || 1;
+		const start = Math.max(1, current - 1);
+		return [start, start + 1, start + 2].filter((item, index, arr) => item > 0 && arr.indexOf(item) === index);
 	};
 
 	const NoDataAvailable = () => (
@@ -322,8 +323,8 @@ export default function PrimeTable({
 	};
 
 	return (
-		<div className={`${style.tablewrapper}`}>
-			<div className="mx-3 my-2 d-flex justify-content-between flex-wrap gap-2">
+		<div className={style.tableWrapper}>
+			<div className={style.controlBar}>
 				<div className="d-flex align-items-center">
 					{handleSeverSideProcessing && (
 						<ShowTableDisplayCount
@@ -371,9 +372,9 @@ export default function PrimeTable({
 				</div>
 			</div>
 
-			<div style={{ overflowX: "auto !important", maxWidth: "100%", fontFamily: "candara" }}>
+			<div className={style.tableViewport}>
 				<table
-					className="table table-striped table-sm"
+					className={`${style.table} ${style.tableCompact}`}
 
 					// className={`${style.table} ${effectiveTheme !== "PrimeLaboratoryTableStyling" ? `prime-table-${effectiveTheme} prime-table-theme` : ""}`}
 					{...getTableProps()}
@@ -390,9 +391,16 @@ export default function PrimeTable({
 								</td>
 								<td colSpan={column.length - 1}>
 									<div className={style.paginationContainer}>
-										{[1, 2, 3, 4, "Next", "Previous"].map((item, index) => {
+										<button
+											type="button"
+											onClick={() => handlePagination("Previous")}
+											className={`${style.paginationBtn} ${style.paginationBtnNav}`}
+											disabled={queryParams.page <= 1}
+										>
+											Previous
+										</button>
+										{getPaginationItems().map((item, index) => {
 											const isActive = queryParams.page === item;
-											const isNav = typeof item === "string";
 											return (
 												<button
 													type="button"
@@ -401,7 +409,6 @@ export default function PrimeTable({
 													className={`
 																 ${style.paginationBtn}
 																 ${isActive ? style.paginationBtnActive : ""}
-																 ${isNav ? style.paginationBtnNav : ""}
 															`}
 													aria-current={isActive ? "page" : undefined}
 												>
@@ -409,6 +416,14 @@ export default function PrimeTable({
 												</button>
 											);
 										})}
+										<button
+											type="button"
+											onClick={() => handlePagination("Next")}
+											className={`${style.paginationBtn} ${style.paginationBtnNav}`}
+											disabled={filteredData.length === 0}
+										>
+											Next
+										</button>
 									</div>
 								</td>
 							</tr>

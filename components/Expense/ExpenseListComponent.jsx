@@ -293,7 +293,7 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 							}}
 							className="me-2"
 						/>
-						<span className="fw-bold text-capitalize">
+						<span className="fw-bold text-capitalize" style={{ fontSize: '0.85rem', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', display: 'block', maxWidth: '200px' }}>
 							{value}<br />
 							{row.original.groupId && <span className="text-muted" style={{ fontSize: '0.75rem' }}>({row.original.groupId})</span>}
 						</span>
@@ -333,7 +333,7 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 			Header: 'Requested By / Approved By',
 			accessor: 'username',
 			Cell: ({ row }) => (
-				<span className="d-flex flex-column">
+				<span className="d-flex flex-column" style={{ fontSize: '0.75rem' ,textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', display: 'block', maxWidth: '200px' }}>
 					<span className="d-flex align-items-center mb-1">
 						<strong className="text-muted" style={{ fontSize: '0.85rem' }}>Requested:</strong>
 						<span className="ms-2">{row.original.username}</span>
@@ -360,8 +360,8 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 			accessor: 'description',
 		
 			Cell: ({ cell: { value }, row }) => (
-				<span className="text-secondary">
-					{value}
+				<span className="text-secondary" style={{ fontSize: '0.75rem' ,textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', display: 'block', maxWidth: '200px' }}>
+					{value ? value.toString().slice(0, 100) : 'No description provided'}
 				</span>
 			)
 		},

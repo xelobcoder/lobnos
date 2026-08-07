@@ -8,6 +8,7 @@ import PrimeToast from '../../../../../../components/accessories/PrimeToast';
 import { toast } from 'react-toastify';
 import PrimeTable from '../../../../../../components/accessories/Datatables/PrimeTable';
 import { Modal, Button } from 'react-bootstrap';
+import { useApplicationSettings } from '../../../../../../components/Auth/useApplicationContext';
 
 interface Condition {
     id: number;
@@ -27,6 +28,7 @@ export default function CreateConditionPage({ params }: CreateConditionPageProps
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [redirectUrl, setRedirectUrl] = useState('');
+    const employeeid = useApplicationSettings().applicationsettings.user.employeeid;
     const [editingConditionId, setEditingConditionId] = useState<number | null>(null);
     const [conditionInput, setConditionInput] = useState('');
     const [selectedConditions, setSelectedConditions] = useState<number[]>([]);
@@ -61,7 +63,7 @@ export default function CreateConditionPage({ params }: CreateConditionPageProps
                     toast.error('Error updating condition');
                 }
             } else {
-                const { status, conditionId } = await createConditionAction(conditionInput, testid);
+                const { status, conditionId } = await createConditionAction(conditionInput, testid,employeeid);
                 if (status === true && conditionId) {
                     toast.success('Condition created successfully, confirm redirect');
                     setRedirectUrl(`/settings/applicationsettings/testpanels/multiple-test-conditions/${testid}/${conditionId}`);
@@ -161,6 +163,11 @@ export default function CreateConditionPage({ params }: CreateConditionPageProps
             Header: 'Created On',
             accessor: 'createdOn',
             Cell: ({ value }: { value: string }) => new Date(value).toLocaleString(),
+        },
+        {
+            Header: "Created By",
+            accessor: "createdBy",
+            Cell: ({ value }: { value: string }) => value || "N/A",
         },
         {
             Header: 'Updated On',

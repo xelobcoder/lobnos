@@ -74,7 +74,7 @@
     z-index: 100;
     position: sticky;
     top: 0;
-    box-shadow: 0 1px 0 rgba(148, 163, 184, 0.35), 0 3px 10px rgba(15, 23, 42, 0.06);
+    /* box-shadow: 0 1px 0 rgba(148, 163, 184, 0.35), 0 3px 10px rgba(15, 23, 42, 0.06); */
     font-family: var(--theme-font-family, var(--font-inter));
 }
 
@@ -122,7 +122,7 @@
 }
 
 .companyName {
-    font-size: 17px;
+    font-size: 16px !important;
     font-weight: 600;
     color: #000000;
     margin: 0;
@@ -145,7 +145,7 @@
 }
 
 .sessionUser {
-    font-size: 0.8rem;
+    font-size:10px !important;
     font-weight: 500;
     color: #000000;
     opacity: 0.96;
@@ -252,7 +252,7 @@
 }
 
 .accountPrimary {
-    font-size: 1.06rem;
+    font-size: 14px;
     font-weight: 600;
     color: #000000;
     white-space: nowrap;

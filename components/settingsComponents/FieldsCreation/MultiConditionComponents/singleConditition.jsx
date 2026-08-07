@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Select from 'react-select';
 import { reactSelectCustomStyles } from '../../../Auth/customFetch';
-import styles from '../../../../styles/SmsTemplateList.module.css'
+import PrimeTable from '../../../accessories/Datatables/PrimeTable';
 
 const constraintOptions = [
     { value: 1, label: "Less than value" },
@@ -32,41 +32,65 @@ export default function MultiConditionCreationFormChildren({ conditionName, cons
 
     const validateTargetValue = () => {
         const constraintValue = selectedConstraint?.value;
+        const normalizedTarget = typeof targetValue === 'string' ? targetValue.trim() : '';
+
         if (constraintValue === 1 || constraintValue === 2) {
-            return { evaluation: !isNaN(targetValue) && !isNaN(parseFloat(targetValue)), warning: 'Only Numbers allowed' };
+            return { evaluation: normalizedTarget !== '' && !isNaN(normalizedTarget) && !isNaN(parseFloat(normalizedTarget)), warning: 'Only Numbers allowed' };
         } else if (constraintValue === 3 || constraintValue === 4) {
-            return { evaluation: true }
+            return { evaluation: normalizedTarget !== '', warning: 'Target value is required' }
         } else if (constraintValue === 5) {
-            if (!targetValue.includes("-")) {
+            if (!normalizedTarget.includes("-")) {
                 return {
                     evaluation: false,
                     warning: 'Must include - delimeter'
                 }
             };
-            const [min, max] = targetValue.split('-');
+            const [min, max] = normalizedTarget.split('-').map((item) => item.trim());
             return {
-                evaluation: !isNaN(min) && !isNaN(max) && targetValue.includes('-'),
+                evaluation: min !== '' && max !== '' && !isNaN(min) && !isNaN(max),
                 warning: `must be numbers and have a - delimeter`
             };
         }
         return { evaluation: false }
     };
 
+    const normalizeRangeValue = (value) => {
+        const [min, max] = value.split('-').map((item) => item.trim());
+        return `${min}-${max}`;
+    };
+
     const handleCreateValidator = () => {
+        if (!selectedParameter) {
+            alert('Please select a parameter');
+            return;
+        }
+
+        if (!selectedConstraint) {
+            alert('Please select a constraint');
+            return;
+        }
+
         const status = validateTargetValue();
-        if (!selectedParameter || !selectedConstraint || !status.evaluation) {
+        if (!status.evaluation) {
             alert(status.warning);
             return;
         }
 
+        const parsedTarget = selectedConstraint.value === 5 ? normalizeRangeValue(targetValue.trim()) : targetValue.trim();
+
         const newConstraint = {
             parameter: selectedParameter.label,
             conditionConstraint: selectedConstraint.label,
-            target: targetValue,
+            target: parsedTarget,
             inRange: selectedConstraint.value === 5
         };
 
-        addingConstraints(conditionName, newConstraint.parameter, newConstraint.conditionConstraint, newConstraint.target, newConstraint.inRange);
+        const addResponse = addingConstraints(conditionName, newConstraint.parameter, newConstraint.conditionConstraint, newConstraint.target, newConstraint.inRange);
+
+        if (addResponse && addResponse.ok === false) {
+            alert(addResponse.message || 'Unable to create validator');
+            return;
+        }
 
         setSelectedParameter(null);
         setSelectedConstraint(null);
@@ -76,6 +100,38 @@ export default function MultiConditionCreationFormChildren({ conditionName, cons
     const handleRemoveConstraint = (constraintIndex) => {
         removingConstraints(constraintIndex, conditionIndex)
     };
+
+    const constraintColumns = [
+        {
+            Header: 'SR No.',
+            accessor: 'serial',
+            Cell: ({ row }) => <span>{row.index + 1}</span>
+        },
+        {
+            Header: 'Parameter',
+            accessor: 'parameter',
+        },
+        {
+            Header: 'Constraint',
+            accessor: 'conditionConstraint',
+        },
+        {
+            Header: 'Value to Target',
+            accessor: 'target',
+        },
+        {
+            Header: 'Action',
+            accessor: 'action',
+            Cell: ({ row }) => (
+                <button
+                    className="btn btn-danger btn-sm"
+                    onClick={() => handleRemoveConstraint(row.index)}
+                >
+                    Remove
+                </button>
+            )
+        }
+    ];
 
 
 
@@ -127,35 +183,14 @@ export default function MultiConditionCreationFormChildren({ conditionName, cons
             </div>
             <div className="mt-4">
                 <h5 className=' pls-label bg-secondary-subtle p-2 br-5 col-2'>Added Constraints</h5>
-                <table className={`${styles.table} table-sm pls-label`}>
-                    <thead>
-                        <tr>
-                            <th className=' pls-label'>SR No.</th>
-                            <th className='  pls-label'>Parameter</th>
-                            <th className='  pls-label'>Constraint</th>
-                            <th className='  pls-label'>Value to Target</th>
-                            <th className='  pls-label'>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody className='text-sm'>
-                        {constraintField.map((constraint, index) => (
-                            <tr key={index}>
-                                <td><input type='checkbox' style={{ height: 20, width: 20 }} /></td>
-                                <td>{constraint.parameter}</td>
-                                <td>{constraint.conditionConstraint}</td>
-                                <td>{constraint.target}</td>
-                                <td>
-                                    <button
-                                        className="btn btn-danger btn-sm"
-                                        onClick={() => handleRemoveConstraint(index)}
-                                    >
-                                        Remove
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                <PrimeTable
+                    column={constraintColumns}
+                    data={constraintField}
+                    filtering={false}
+                    serverSideProcessing={false}
+                    showPagination={false}
+                    handleSeverSideProcessing={null}
+                />
             </div>
         </div>
     );

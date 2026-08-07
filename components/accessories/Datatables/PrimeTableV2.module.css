@@ -14,7 +14,7 @@
      border-radius: 2px;
      background: #ffffff;
      box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08);
-     overflow: hidden;
+     overflow: visible;
      font-family: "Segoe UI", Tahoma, sans-serif;
 }
 
@@ -127,7 +127,13 @@
 .tableViewport {
      width: 100%;
      overflow-x: auto;
+     overflow-y: visible;
      position: relative;
+}
+
+/* Keep native Bootstrap dropdown behavior while ensuring menus are not clipped in tables. */
+.tableWrapper :global(.dropdown-menu) {
+     z-index: 1080;
 }
 
 .table {
@@ -516,7 +522,7 @@
      border-right: none;
 }
 
-.tableWrapper :global(.btn.btn-sm) {
+.enhancedControls :global(.btn.btn-sm) {
      border-radius: 2px;
      font-size: 0.78rem;
      font-weight: 600;
@@ -524,30 +530,30 @@
      padding: 0.25rem 0.45rem;
 }
 
-.tableWrapper :global(.btn-outline-primary) {
+.enhancedControls :global(.btn-outline-primary) {
      color: #3e4c59;
      border-color: #cfd4da;
 }
 
-.tableWrapper :global(.btn-outline-primary:hover) {
+.enhancedControls :global(.btn-outline-primary:hover) {
      color: #1f2933;
      background: #e9ecef;
      border-color: #adb5bd;
 }
 
-.tableWrapper :global(.btn-primary) {
+.enhancedControls :global(.btn-primary) {
      background: #e9ecef;
      border-color: #adb5bd;
      color: #1f2933;
 }
 
-.tableWrapper :global(.btn-outline-secondary) {
+.enhancedControls :global(.btn-outline-secondary) {
      color: #4b5563;
      border-color: #cfd4da;
 }
 
-.tableWrapper :global(.form-select.form-select-sm),
-.tableWrapper :global(.form-control.form-control-sm) {
+.enhancedControls :global(.form-select.form-select-sm),
+.enhancedControls :global(.form-control.form-control-sm) {
      border-radius: 2px;
      font-size: 0.82rem;
      min-height: 26px;

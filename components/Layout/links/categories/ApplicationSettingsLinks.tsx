@@ -137,5 +137,23 @@ export const ApplicationSettingsLinks: Link[] =
                 { title: "Backup Security", link: "/settings/records/backup-security", icon: <RiShieldLine /> },
             ]
         },
-        { title: "Email Management", link: "/crm/customers/send-email", icon: <RiMailSettingsLine /> }
+        {
+            title: "Email Management",
+            link: "",
+            icon: <RiMailSettingsLine />,
+            children: [
+                { title: "Overview", link: "/settings/email-services", icon: <RiMailSettingsLine /> },
+                { title: "Templates", link: "/settings/email-services/templates", icon: <RiFileTextLine /> },
+                { title: "Providers", link: "/settings/email-services/providers", icon: <RiSettings4Line /> },
+                { title: "Settings", link: "/settings/email-services/settings", icon: <RiSettings4Line /> },
+                { title: "Notifications", link: "/settings/email-services/notifications", icon: <RiMailSettingsLine /> },
+                { title: "Notification Events", link: "/settings/email-services/notifications/events", icon: <RiSettings4Line /> },
+                { title: "Notification Templates", link: "/settings/email-services/notifications/templates", icon: <RiFileTextLine /> },
+                { title: "Notification Trigger", link: "/settings/email-services/notifications/trigger", icon: <RiMailSettingsLine /> },
+                { title: "Notification Queue", link: "/settings/email-services/notifications/queue", icon: <RiCustomerService2Line /> },
+                { title: "Notification Logs", link: "/settings/email-services/notifications/logs", icon: <RiFileListLine /> },
+                { title: "Queue", link: "/settings/email-services/queue", icon: <RiCustomerService2Line /> },
+                { title: "Logs", link: "/settings/email-services/logs", icon: <RiFileListLine /> },
+            ]
+        }
     ];

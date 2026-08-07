@@ -838,7 +838,7 @@ export default function PrimeTableV2({
      };
 
      return (
-          <div ref={wrapperRef} className={`${v2Style.tableWrapper} ${isFullscreen ? v2Style.fullscreen : ""}`} data-table-theme={effectiveTheme}>
+          <div ref={wrapperRef} className={`${v2Style.tableWrapper} ${v2Style.enhancedControls} ${isFullscreen ? v2Style.fullscreen : ""}`} data-table-theme={effectiveTheme}>
                <div className={v2Style.topBar}>
                     <div className={v2Style.topBarTitleGroup}>
                          <h6 className={v2Style.topBarTitle}>Enterprise Grid V9</h6>
