@@ -11,6 +11,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import VitalSignCustomerListInformation from '../../../../components/customer/vitalSignCustomerList'
 import styles from './ConsultationPanel.module.css'
 import { plsDecryption } from "../../../../lib/encryption";
+import { RiArrowLeftLine, RiClipboardLine, RiFileList3Line, RiFlaskFill, RiHeartPulseFill, RiRefreshLine, RiStethoscopeFill } from '@remixicon/react';
 
 type RecordType = 'Old Record' | 'In-Process (Today)' | 'IPD Review' | 'OPD New Cases';
 
@@ -18,6 +19,8 @@ interface FormData {
 	consultation_notes: string;
 	record_type: RecordType;
 }
+
+type SectionNotes = Record<string, string>;
 
 const CATEGORIES = [
 	{ label: "Patient Complaints", key: "Complaints" },
@@ -32,6 +35,68 @@ const CATEGORIES = [
 	{ label: "On Examination (OE)", key: "OE" },
 ];
 
+const createEmptySectionNotes = (): SectionNotes =>
+	CATEGORIES.reduce((acc, category) => {
+		acc[category.key] = "";
+		return acc;
+	}, {} as SectionNotes);
+
+const findCategoryForLine = (line: string) => {
+	const normalized = line.trim().toLowerCase();
+	return CATEGORIES.find((category) => {
+		const options = [category.key, category.label].map((value) => `${value.toLowerCase()}:`);
+		return options.some((option) => normalized.startsWith(option));
+	});
+};
+
+const parseConsultationNotes = (notes: string): SectionNotes => {
+	const parsed = createEmptySectionNotes();
+	let currentCategoryKey: string | null = null;
+
+	notes.split(/\r?\n/).forEach((rawLine) => {
+		const line = rawLine.trim();
+		if (!line) return;
+
+		const matchedCategory = findCategoryForLine(line);
+		if (matchedCategory) {
+			currentCategoryKey = matchedCategory.key;
+			const categoryPrefixes = [matchedCategory.key, matchedCategory.label].map((value) => `${value}:`);
+			const value = categoryPrefixes.reduce((result, prefix) => {
+				if (result.toLowerCase().startsWith(prefix.toLowerCase())) {
+					return result.slice(prefix.length).trim();
+				}
+				return result;
+			}, line);
+
+			if (value) {
+				parsed[currentCategoryKey] = parsed[currentCategoryKey]
+					? `${parsed[currentCategoryKey]}\n${value}`
+					: value;
+			}
+			return;
+		}
+
+		if (!currentCategoryKey) {
+			currentCategoryKey = "Complaints";
+		}
+
+		parsed[currentCategoryKey] = parsed[currentCategoryKey]
+			? `${parsed[currentCategoryKey]}\n${line}`
+			: line;
+	});
+
+	return parsed;
+};
+
+const aggregateConsultationNotes = (sectionNotes: SectionNotes) =>
+	CATEGORIES.map((category) => {
+		const value = sectionNotes[category.key]?.trim();
+		if (!value) return null;
+		return `${category.label}:\n${value}`;
+	})
+		.filter(Boolean)
+		.join("\n\n");
+
 const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 	const router = useRouter();
 	const { clientid } = params
@@ -41,31 +106,52 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 		consultation_notes: "",
 		record_type: "OPD New Cases",
 	});
-	const [selectedCategory, setSelectedCategory] = useState<string>("Complaints");
-	const [currentInput, setCurrentInput] = useState<string>("");
+	const [sectionNotes, setSectionNotes] = useState<SectionNotes>(() => createEmptySectionNotes());
 	const [editingMode, setEditingMode] = useState<boolean>(false);
 	const [errors, setErrors] = useState<Record<string, string>>({});
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [showPostSubmitModal, setShowPostSubmitModal] = useState(false);
 	const [openVitalSign, setCloseVital] = useState<boolean>(false);
+	const [showPreviousConsultationModal, setShowPreviousConsultationModal] = useState(false);
 
 	const searchParams = useSearchParams();
 	const consultationid = searchParams?.get("consultationid");
 	const serviceid = searchParams?.get("serviceid");
-
-	const handleAddEntry = () => {
-		if (currentInput.trim()) {
-			const entry = `${selectedCategory}: ${currentInput}\n`;
-			setFormData((prevFormData) => ({
-				...prevFormData,
-				consultation_notes: prevFormData.consultation_notes + entry,
-			}));
-			setCurrentInput("");
-		}
-	};
+	const aggregatedNotes = aggregateConsultationNotes(sectionNotes);
+	const noteEntries = CATEGORIES.filter((category) => sectionNotes[category.key]?.trim());
+	const wordCount = aggregatedNotes.trim()
+		? aggregatedNotes.trim().split(/\s+/).length
+		: 0;
+	const isEditingExistingConsultation = Boolean(consultationid);
+	const actionTitle = isEditingExistingConsultation ? 'Edit Consultation' : 'New Consultation';
+	const actionSubtitle = isEditingExistingConsultation
+		? 'Review and refine an existing clinical note before saving changes.'
+		: 'Capture the patient story in structured blocks, then submit the complete consultation.';
 
 	const handleClearNotes = () => {
-		setFormData({ ...formData, consultation_notes: "" });
+		setSectionNotes(createEmptySectionNotes());
+		setFormData((prevFormData) => ({ ...prevFormData, consultation_notes: "" }));
+	};
+
+	const resetConsultationForm = () => {
+		setFormData({
+			consultation_notes: "",
+			record_type: "OPD New Cases",
+		});
+		setSectionNotes(createEmptySectionNotes());
+		setEditingMode(false);
+		router.replace(`/doctor/consultation/${clientid}`);
+	};
+
+	const handleSectionChange = (key: string, value: string) => {
+		setSectionNotes((prevSectionNotes) => ({
+			...prevSectionNotes,
+			[key]: value,
+		}));
+
+		if (errors["consultation_notes"]) {
+			setErrors((prevErrors) => ({ ...prevErrors, consultation_notes: "" }));
+		}
 	};
 
 	const handleInputChange = (field: keyof FormData, value: string) => {
@@ -74,7 +160,7 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 
 	const validateForm = (): boolean => {
 		const newErrors: Record<string, string> = {};
-		if (!formData.consultation_notes.trim()) {
+		if (!aggregateConsultationNotes(sectionNotes).trim()) {
 			newErrors["consultation_notes"] = "At least one entry must be added.";
 		}
 		setErrors(newErrors);
@@ -85,10 +171,12 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 		e.preventDefault();
 		if (validateForm()) {
 			setIsSubmitting(true);
+			const compiledConsultationNotes = aggregateConsultationNotes(sectionNotes);
 			const method = consultationid ? 'PUT' : 'POST';
 			const requestUrl = consultationid ? `records/consulation/update?consultationid=${consultationid}` : 'records/consulation';
 			const payload = {
 				...formData,
+				consultation_notes: compiledConsultationNotes,
 				patientid,
 				consulationby: employeeid,
 				associatedTransactionid: serviceid ? Number(serviceid) : undefined,
@@ -103,7 +191,7 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 						consultation_notes: "",
 						record_type: "OPD New Cases",
 					});
-					setCurrentInput("");
+					setSectionNotes(createEmptySectionNotes());
 				}
 				setShowPostSubmitModal(true);
 			}
@@ -129,11 +217,13 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 				try {
 					const data = await customFetch(`records/consultation/get/consultation?consultationid=${consultationid}`);
 					if (data) {
+						const parsedNotes = parseConsultationNotes(data.consultation_notes || "");
 						setFormData((prevFormData) => ({
 							...prevFormData,
 							consultation_notes: data.consultation_notes || "",
 							record_type: data.record_type || "OPD New Cases",
 						}));
+						setSectionNotes(parsedNotes);
 					}
 					setEditingMode(false);
 				} catch (error) {
@@ -149,47 +239,79 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 	return (
 		<>
 			<Container fluid className={styles.consultationPage} >
-
-				<div className="d-flex justify-content-between align-items-center mb-2">
-					<div className="d-flex align-items-center">
-						<Button variant="outline-secondary" size="sm" onClick={() => router.push('/doctor/consultation')} className="me-2">
-							&larr; Back to Patient Selection
-
-						</Button>
-						<Button variant="success"
-							className="me-2"
-							size="sm"
-							onClick={() => {
-								router.push(`/billing/patientid/${clientid}/multi`);
-							}}>
-							Order Laboratory Test
-						</Button>
-						<Button
-							onClick={() => {
-								setFormData({
-									consultation_notes: "",
-									record_type: "OPD New Cases",
-								});
-								setCurrentInput("");
-								setEditingMode(false);
-								router.replace(`/doctor/consultation/${clientid}`);
-							}}
-							variant="primary"
-							className="me-2"
-							size="sm"
-						>
-							New Consultation
-						</Button>
+				<section className={styles.heroSection}>
+					<div className={styles.heroTopBar}>
+						<button type="button" className={styles.ghostAction} onClick={() => router.push('/doctor/consultation')}>
+							<RiArrowLeftLine size={18} />
+							<span>Back to Patient Selection</span>
+						</button>
+						<div className={styles.heroTopActions}>
+							<button type="button" className={styles.secondaryAction} onClick={() => setShowPreviousConsultationModal(true)}>
+								<RiFileList3Line size={18} />
+								<span>Previous Consultations</span>
+							</button>
+							<button type="button" className={styles.secondaryAction} onClick={() => setCloseVital(true)}>
+								<RiHeartPulseFill size={18} />
+								<span>Vital Signs</span>
+							</button>
+							<button
+								type="button"
+								className={styles.successAction}
+								onClick={() => {
+									router.push(`/billing/patientid/${clientid}/multi`);
+								}}
+							>
+								<RiFlaskFill size={18} />
+								<span>Order Laboratory Test</span>
+							</button>
+							<button type="button" className={styles.primaryAction} onClick={resetConsultationForm}>
+								<RiRefreshLine size={18} />
+								<span>New Consultation</span>
+							</button>
+						</div>
 					</div>
-					<div className="d-flex">
-						<button onClick={() => { setCloseVital(true) }} className="btn btn-primary btn-sm me-2">
-							vital signs
+
+					<div className="row g-3 align-items-center">
+						<div className="col-xl-8 col-lg-8">
+							<div className={styles.heroBadge}>Clinical Consultation Workspace</div>
+							<h1 className={styles.heroTitle}>{actionTitle}</h1>
+							<p className={styles.heroSubtitle}>{actionSubtitle}</p>
+							<div className={styles.heroMetaRow}>
+								<span className={styles.heroMetaPill}>{formData.record_type}</span>
+								<span className={styles.heroMetaPill}>{noteEntries.length} section{noteEntries.length === 1 ? '' : 's'} completed</span>
+								<span className={styles.heroMetaPill}>{wordCount} word{wordCount === 1 ? '' : 's'}</span>
+							</div>
+						</div>
+						<div className="col-xl-4 col-lg-4">
+							<div className={styles.summaryGrid}>
+								<div className={styles.summaryCard}>
+									<div className={styles.summaryLabel}>Consultation Mode</div>
+									<div className={styles.summaryValue}>{isEditingExistingConsultation ? 'Revision' : 'Fresh note'}</div>
+								</div>
+								<div className={styles.summaryCard}>
+									<div className={styles.summaryLabel}>Recorded By</div>
+									<div className={styles.summaryValue}>Employee #{employeeid}</div>
+								</div>
+								<div className={styles.summaryCard}>
+									<div className={styles.summaryLabel}>Patient Context</div>
+									<div className={styles.summaryValue}>Minified header</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<section className={styles.patientSnapshotCompact}>
+					<div className={styles.patientStripHeader}>
+						<div className={styles.patientStripTitle}>Patient Context</div>
+						<button type="button" className={styles.patientStripAction} onClick={() => setShowPreviousConsultationModal(true)}>
+							Open Previous Consultations
 						</button>
 					</div>
-				</div>
-				<div>
-					<PreviewPatientInformation patientid={patientid} />
-				</div>
+					<div className={styles.patientInfoFrame}>
+						<PreviewPatientInformation patientid={patientid} compact />
+					</div>
+				</section>
 				{/* Post-submit modal */}
 				<Modal show={showPostSubmitModal} onHide={() => setShowPostSubmitModal(false)} centered>
 					<Modal.Header closeButton>
@@ -207,114 +329,125 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 						</Button>
 					</Modal.Footer>
 				</Modal>
-				<hr />
-				<Row className="mt-3">
-					<Col xs={12} lg={7}>
-						<div className="bg-white p-3 border rounded h-100">
-							<h6 className="mb-3 fw-bold">New Consultation</h6>
+				<Row className="g-4 mt-1">
+					<Col xs={12}>
+						<div className={styles.workspaceCard}>
+							<div className={styles.sectionHeaderRow}>
+								<div>
+									<div className={styles.sectionEyebrow}>Consultation Builder</div>
+									<h2 className={styles.sectionTitle}>{actionTitle}</h2>
+								</div>
+								<div className={styles.sectionHint}>{editingMode ? 'Loading consultation data...' : 'Document each clinical block separately. The system will compile a single progress report when you save.'}</div>
+							</div>
+
 							<Form onSubmit={handleSubmit}>
-								<div style={{ marginBottom: "16px" }}>
-									<label style={{ display: "block", marginBottom: "8px", fontWeight: "bold", fontSize: "0.9rem" }}>Category</label>
-									<select
-										value={selectedCategory}
-										onChange={(e) => setSelectedCategory(e.target.value)}
-										style={{ width: "100%", padding: "8px", fontSize: "0.9rem", border: "1px solid #ccc", borderRadius: "4px" }}
-										disabled={editingMode}
-									>
-										{CATEGORIES.map((cat) => (
-											<option key={cat.key} value={cat.key}>{cat.label}</option>
-										))}
-									</select>
-								</div>
-
-								<div style={{ marginBottom: "16px" }}>
-									<label style={{ display: "block", marginBottom: "8px", fontWeight: "bold", fontSize: "0.9rem" }}>Add Entry</label>
-									<textarea
-										value={currentInput}
-										onChange={(e) => setCurrentInput(e.target.value)}
-										placeholder="Enter consultation notes..."
-										rows={4}
-										style={{ width: "100%", padding: "8px", fontSize: "0.9rem", border: "1px solid #ccc", borderRadius: "4px", resize: "none" }}
-										disabled={editingMode}
-									/>
-									<button
-										type="button"
-										onClick={handleAddEntry}
-										disabled={editingMode || !currentInput.trim()}
-										style={{
-											marginTop: "8px",
-											padding: "6px 12px",
-											backgroundColor: "#28a745",
-											color: "white",
-											border: "none",
-											borderRadius: "4px",
-											cursor: editingMode || !currentInput.trim() ? "not-allowed" : "pointer",
-											fontSize: "0.9rem",
-											opacity: editingMode || !currentInput.trim() ? 0.5 : 1,
-										}}
-									>
-										+ Add Entry
-									</button>
-								</div>
-
-								<div style={{ marginBottom: "16px" }}>
-									<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-										<label style={{ fontWeight: "bold", fontSize: "0.9rem" }}>Consultation Notes</label>
-										{!editingMode && formData.consultation_notes && (
-											<button
-												type="button"
-												onClick={handleClearNotes}
-												style={{
-													padding: "4px 8px",
-													backgroundColor: "#dc3545",
-													color: "white",
-													border: "none",
-													borderRadius: "4px",
-													cursor: "pointer",
-													fontSize: "0.85rem",
-												}}
+								<div className="row g-4">
+									<div className="col-12">
+										<div className={styles.fieldPanel}>
+											<div className={styles.fieldPanelHeader}>
+												<RiStethoscopeFill size={18} />
+												<span>Record Type</span>
+											</div>
+											<Form.Select
+												value={formData.record_type}
+												onChange={(e) => handleInputChange('record_type', e.target.value as RecordType)}
+												disabled={editingMode}
+												className={styles.selectField}
 											>
-												Clear
-											</button>
-										)}
+												<option value="OPD New Cases">OPD New Cases</option>
+												<option value="In-Process (Today)">In-Process (Today)</option>
+												<option value="IPD Review">IPD Review</option>
+												<option value="Old Record">Old Record</option>
+											</Form.Select>
+										</div>
 									</div>
-									<textarea
-										value={formData.consultation_notes}
-										onChange={(e) => setFormData({ ...formData, consultation_notes: e.target.value })}
-										placeholder="Your consultation notes will appear here..."
-										rows={6}
-										style={{
-											width: "100%",
-											padding: "8px",
-											fontSize: "0.9rem",
-											border: "1px solid #ccc",
-											borderRadius: "4px",
-											resize: "none",
-											fontFamily: "monospace",
-										}}
-										readOnly={editingMode}
-									/>
-									{errors["consultation_notes"] && (
-										<div style={{ color: "#dc3545", marginTop: "4px", fontSize: "0.85rem" }}>{errors["consultation_notes"]}</div>
-									)}
-								</div>
 
-								<div style={{ marginTop: "16px", textAlign: "right" }}>
-									<button disabled={isSubmitting} type="submit" style={{ padding: "6px 16px", backgroundColor: "#007bff", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontSize: "0.9rem" }}>
-										{isSubmitting ? "submitting...." : "submit"}
-									</button>
+									<div className="col-12">
+										<div className={styles.composerPanel}>
+											<div className={styles.composerHeader}>
+												<div>
+													<div className={styles.panelTitle}>Clinical Note Sections</div>
+													<div className={styles.panelSubtitle}>Enter each section directly. All completed sections are merged into the final progress report.</div>
+												</div>
+												<button type="button" className={styles.clearNotesButton} onClick={handleClearNotes} disabled={editingMode || !aggregatedNotes.trim()}>
+													Clear All
+												</button>
+											</div>
+											<div className={styles.noteGrid}>
+												{CATEGORIES.map((category) => (
+													<div key={category.key} className={styles.noteSectionCard}>
+														<div className={styles.noteSectionHeader}>
+															<span>{category.label}</span>
+															<small>{sectionNotes[category.key]?.trim() ? 'Documented' : 'Awaiting entry'}</small>
+														</div>
+														<Form.Control
+															as="textarea"
+															value={sectionNotes[category.key] || ''}
+															onChange={(e) => handleSectionChange(category.key, e.target.value)}
+															placeholder={`Enter ${category.label.toLowerCase()}...`}
+															rows={4}
+															className={styles.sectionTextarea}
+															disabled={editingMode}
+														/>
+													</div>
+												))}
+											</div>
+										</div>
+									</div>
+
+									<div className="col-12">
+										<div className={styles.notesPanel}>
+											<div className={styles.notesHeader}>
+												<div>
+													<div className={styles.panelTitle}>Progress Report Preview</div>
+													<div className={styles.panelSubtitle}>This is the consolidated consultation note that will be saved.</div>
+												</div>
+												<div className={styles.noteStats}>
+													<span className={styles.noteStat}><RiClipboardLine size={16} /> {noteEntries.length} sections</span>
+													<span className={styles.noteStat}><RiFileList3Line size={16} /> {wordCount} words</span>
+												</div>
+											</div>
+											<Form.Control
+												as="textarea"
+												value={aggregatedNotes}
+												placeholder="Completed sections will be merged into a clinical progress report here..."
+												rows={12}
+												className={styles.notesTextarea}
+												readOnly
+											/>
+											{errors["consultation_notes"] ? <div className={styles.validationError}>{errors["consultation_notes"]}</div> : null}
+										</div>
+									</div>
+
+									<div className="col-12">
+										<div className={styles.submitRow}>
+											<div className={styles.submitHint}>Save this record when the clinical note is complete and ready for downstream actions.</div>
+											<Button disabled={isSubmitting} type="submit" className={styles.submitButton}>
+												{isSubmitting ? 'Submitting...' : isEditingExistingConsultation ? 'Update Consultation' : 'Save Consultation'}
+											</Button>
+										</div>
+									</div>
 								</div>
 							</Form>
 						</div>
 					</Col>
-
-					<Col xs={12} lg={5}>
-						<div className="bg-white p-3 border rounded h-100">
-							<h6 className="mb-3 fw-bold">Previous Consultations</h6>
-							<PreviousConsulation patientid={clientid} />
-						</div>
-					</Col>
 				</Row>
+
+				{
+					showPreviousConsultationModal && <Modal show={showPreviousConsultationModal} onHide={() => setShowPreviousConsultationModal(false)} size="xl" centered>
+						<Modal.Header closeButton>
+							<Modal.Title>Previous Consultations</Modal.Title>
+						</Modal.Header>
+						<Modal.Body>
+							<PreviousConsulation patientid={clientid} />
+						</Modal.Body>
+						<Modal.Footer>
+							<Button variant="secondary" onClick={() => setShowPreviousConsultationModal(false)}>
+								Close
+							</Button>
+						</Modal.Footer>
+					</Modal>
+				}
 
 				{
 					openVitalSign && <Modal show={openVitalSign} onHide={handleCloseVitalsingModal} size="xl" backdrop='static'>

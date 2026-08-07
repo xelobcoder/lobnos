@@ -4,10 +4,10 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Badge, Button, Card, Col, Form, Modal, Row, Spinner } from 'react-bootstrap';
 import { RiEyeLine, RiPlayCircleLine, RiRefreshLine, RiSendPlane2Line } from '@remixicon/react';
 import { toast } from 'react-toastify';
-import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
-import PrimeToast from '../../../../components/accessories/PrimeToast';
-import { useApplication } from '../../../../components/Auth/useApplicationContext';
 import { EmailProvider, EmailTemplate, QueueItem, PRIORITIES, QUEUE_STATUSES, callGet, callMutate, defaultQueueForm, mapProviderFromApi, mapTemplateFromApi, parseJsonArray, parseJsonObject, parseList, statusBadge } from '../_lib';
+import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
+import PrimeToast from '../../../components/accessories/PrimeToast';
+import { useApplication } from '../../../components/Auth/useApplicationContext';
 
 export default function EmailQueuePage() {
      const app = useApplication();

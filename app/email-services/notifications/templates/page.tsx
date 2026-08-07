@@ -4,18 +4,11 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Badge, Button, Card, Col, Form, Modal, Row, Spinner } from 'react-bootstrap';
 import { RiEyeLine, RiFileHistoryLine, RiSaveLine } from '@remixicon/react';
 import { toast } from 'react-toastify';
-import PrimeTable from '../../../../../components/accessories/Datatables/PrimeTable';
-import PrimeToast from '../../../../../components/accessories/PrimeToast';
-import { useApplication } from '../../../../../components/Auth/useApplicationContext';
-import {
-     callGet,
-     callMutate,
-     extractTemplateVariables,
-     loadSingleEventCatalog,
-     loadEvents,
-     loadTemplates,
-     parseList,
-} from '../_lib';
+import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
+import PrimeToast from '../../../../components/accessories/PrimeToast';
+import { useApplication } from '../../../../components/Auth/useApplicationContext';
+import { extractTemplateVariables, loadEvents, loadTemplates, loadSingleEventCatalog, callMutate, callGet, parseList } from '../_lib';
+
 
 const emptyTemplateForm = {
      id: undefined as number | undefined,

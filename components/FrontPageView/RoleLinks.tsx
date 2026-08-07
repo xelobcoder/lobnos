@@ -131,6 +131,14 @@ export const AdminRoleLinks = [
           label: 'Commissions',
           category: 'Finance',
           description: 'Sales commission management'
+     },
+     {
+          href:"/email-services",
+          icon: <RiMessage2Line size={24} />,
+          text: "Configure and manage email notifications",
+          label: 'Email Services',
+          category: 'Communication',
+          description: 'Email configuration and management'
      }
 ];
 

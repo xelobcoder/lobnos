@@ -4,9 +4,9 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Button, Card, Col, Form, Row, Spinner } from 'react-bootstrap';
 import { RiSendPlane2Line } from '@remixicon/react';
 import { toast } from 'react-toastify';
-import PrimeToast from '../../../../../components/accessories/PrimeToast';
-import { useApplication } from '../../../../../components/Auth/useApplicationContext';
-import { EventCatalogItem, loadEvents, loadSingleEventCatalog, triggerByReference } from '../_lib';
+import PrimeToast from '../../../../components/accessories/PrimeToast';
+import { useApplication } from '../../../../components/Auth/useApplicationContext';
+import { EventCatalogItem, loadSingleEventCatalog, loadEvents, triggerByReference } from '../_lib';
 
 const REFERENCE_LABELS: Record<string, string> = {
      patientId: 'Patient ID',

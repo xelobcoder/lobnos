@@ -2,21 +2,10 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { Badge, Button, Card, Col, Form, Modal, Row, Spinner, Table } from 'react-bootstrap';
-import { RiRefreshLine, RiSaveLine, RiSettings4Line, RiSyncLine } from '@remixicon/react';
+import { RiRefreshLine, RiSaveLine, RiSettings4Line } from '@remixicon/react';
 import { toast } from 'react-toastify';
-import PrimeToast from '../../../../../components/accessories/PrimeToast';
-import {
-     EventCatalogItem,
-     EventSetting,
-     EventVariableMeta,
-     defaultEventSettings,
-     loadEventSettings,
-     loadSingleEventCatalog,
-     loadEvents,
-     loadTemplates,
-     syncDefinitions,
-     callMutate,
-} from '../_lib';
+import PrimeToast from '../../../../components/accessories/PrimeToast';
+import { EventCatalogItem, EventSetting, defaultEventSettings, loadEvents, loadTemplates, loadSingleEventCatalog, loadEventSettings, syncDefinitions, callMutate } from '../_lib';
 
 export default function NotificationEventsPage() {
      const [loading, setLoading] = useState(false);
@@ -121,7 +110,7 @@ export default function NotificationEventsPage() {
                          <strong>Notification Events & Channels</strong>
                          <div className="d-flex gap-2">
                               <Button size="sm" variant="outline-primary" disabled={syncing} onClick={runSync}>
-                                   <RiSyncLine size={14} className="me-1" />
+                                   {/* <RiSyncLine size={14} className="me-1" /> */}
                                    {syncing ? 'Syncing...' : 'Sync Definitions'}
                               </Button>
                               <Button size="sm" variant="outline-secondary" onClick={loadAll}>

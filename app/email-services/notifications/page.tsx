@@ -14,31 +14,31 @@ const sections = [
      {
           title: 'Events & Channels',
           description: 'Configure event toggles and default templates per notification event.',
-          href: '/settings/email-services/notifications/events',
+          href: '/email-services/notifications/events',
           icon: RiSettings4Line,
      },
      {
           title: 'Templates',
           description: 'Create, preview, version, and manage event-specific templates.',
-          href: '/settings/email-services/notifications/templates',
+          href: '/email-services/notifications/templates',
           icon: RiMailSettingsLine,
      },
      {
           title: 'Trigger',
           description: 'Manually trigger a notification event with custom context and recipients.',
-          href: '/settings/email-services/notifications/trigger',
+          href: '/email-services/notifications/trigger',
           icon: RiSendPlane2Line,
      },
      {
           title: 'Queue',
           description: 'Monitor notification queue and retry or cancel queued events.',
-          href: '/settings/email-services/notifications/queue',
+          href: '/email-services/notifications/queue',
           icon: RiSendPlane2Line,
      },
      {
           title: 'Logs',
           description: 'Review notification log outcomes and message details.',
-          href: '/settings/email-services/notifications/logs',
+          href: '/email-services/notifications/logs',
           icon: RiFileList3Line,
      },
 ];

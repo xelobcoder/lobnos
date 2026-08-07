@@ -1,4 +1,6 @@
-import { customFetch, customPost } from '../../../components/Auth/customFetch';
+
+import { customPost, customFetch } from "../../components/Auth/customFetch";
+
 
 export type EmailTemplate = {
      id?: number;

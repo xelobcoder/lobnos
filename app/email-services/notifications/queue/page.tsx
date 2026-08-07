@@ -4,10 +4,11 @@ import React, { useEffect, useState } from 'react';
 import { Badge, Button, Card, Form, Spinner } from 'react-bootstrap';
 import { RiRefreshLine } from '@remixicon/react';
 import { toast } from 'react-toastify';
-import PrimeTable from '../../../../../components/accessories/Datatables/PrimeTable';
-import PrimeToast from '../../../../../components/accessories/PrimeToast';
-import { loadQueue, callMutate } from '../_lib';
+import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
+import PrimeToast from '../../../../components/accessories/PrimeToast';
 import { statusBadge } from '../../_lib';
+import { loadQueue, callMutate } from '../_lib';
+
 
 export default function NotificationQueuePage() {
      const [loading, setLoading] = useState(false);

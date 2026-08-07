@@ -239,7 +239,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                             <button
                                 type="button"
                                 className={styles.headerIconBtn}
-                                onClick={() => handleNavigation(`/human-resource/profile?employeeid=${employeeid}`)}
+                                onClick={() => handleNavigation(`/human-resource/profile?employeeid=${employeeid}&&isOpenSideBarShow=false`)}
                                 title="Profile"
                                 aria-label="Open profile"
                             >
