@@ -14,7 +14,8 @@
      border-radius: 2px;
      background: #ffffff;
      box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08);
-     overflow: visible;
+     max-width: 100%;
+     overflow: hidden;
      font-family: "Segoe UI", Tahoma, sans-serif;
 }
 
@@ -126,9 +127,11 @@
 
 .tableViewport {
      width: 100%;
+     max-width: 100%;
      overflow-x: auto;
      overflow-y: visible;
      position: relative;
+     -webkit-overflow-scrolling: touch;
 }
 
 /* Keep native Bootstrap dropdown behavior while ensuring menus are not clipped in tables. */
@@ -139,6 +142,7 @@
 .table {
      width: 100%;
      min-width: 760px;
+     max-width: 100%;
      border-collapse: separate;
      border-spacing: 0;
      margin: 0;

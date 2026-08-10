@@ -40,13 +40,14 @@ export default function SingleWorkFlowResultDeliveryModal({
 			delivered_at: new Date(),
 			ascensionid: Number(ascension_id),
 			notes: notes ? notes.trim() : null,
+			failurenotes: null,
 		};
 
 		try {
 			setLoading(true);
 
 			const response = await customPost('result/delivery/record', 'POST', payload);
-			const {status,id} = response || {};
+			const { status, id } = response || {};
 			if (status === true) {
 				alert("Result delivery recorded successfully");
 				onSuccess();

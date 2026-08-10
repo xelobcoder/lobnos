@@ -37,14 +37,15 @@ export default function BulkWorkFlowResultDeliveryModal({
 			delivered_at: new Date(),
 			ascensionid: Number(item.ascension_id ?? item.ascensionid),
 			notes: notes ? notes.trim() : null,
+			failurenotes: null,
 		}));
 
 		try {
 			setLoading(true);
-			
+
 			const promises = payload.map(p => customPost('result/delivery/record', 'POST', p));
 			const results = await Promise.all(promises);
-			
+
 			const successCount = results.filter(r => r?.status === true).length;
 			const failCount = results.length - successCount;
 
@@ -98,7 +99,7 @@ export default function BulkWorkFlowResultDeliveryModal({
 							placeholder="Add any delivery notes here..."
 						/>
 					</Form.Group>
-					
+
 					<div className="selected-items-list mt-3">
 						<label className="fw-semibold mb-2">Selected Tests:</label>
 						<div style={{ maxHeight: '150px', overflowY: 'auto' }} className="border rounded p-2 bg-light">
