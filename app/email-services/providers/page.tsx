@@ -4,10 +4,12 @@ import React, { useEffect, useState } from 'react';
 import { Badge, Button, Card, Col, Form, Modal, Row, Spinner } from 'react-bootstrap';
 import { RiAddLine, RiDeleteBinLine, RiRefreshLine, RiSaveLine, RiTestTubeLine } from '@remixicon/react';
 import { toast } from 'react-toastify';
-import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
-import PrimeToast from '../../../../components/accessories/PrimeToast';
-import { useApplication } from '../../../../components/Auth/useApplicationContext';
 import { EmailProvider, callGet, callMutate, defaultProviderForm, mapProviderFromApi, parseList } from '../_lib';
+import styles from '../email-standard.module.css';
+import EmailPageHero from '../_components/EmailPageHero';
+import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
+import PrimeToast from '../../../components/accessories/PrimeToast';
+import { useApplication } from '../../../components/Auth/useApplicationContext';
 
 export default function EmailProvidersPage() {
      const app = useApplication();
@@ -132,12 +134,22 @@ export default function EmailProvidersPage() {
      ];
 
      return (
-          <div className="container-fluid px-3 py-3">
+          <div className={`container-fluid ${styles.pageRoot}`}>
                <PrimeToast />
-               <Card className="border rounded">
-                    <Card.Header className="bg-body-tertiary d-flex justify-content-between align-items-center">
-                         <strong>Email Providers</strong>
-                         <div className="d-flex gap-2">
+               <EmailPageHero
+                    title="Provider Routing"
+                    subtitle="Configure SMTP providers, fallback preferences, and secure connection behavior from one standardized panel."
+                    icon={<RiTestTubeLine size={16} />}
+                    badge="Provider Control"
+                    stats={[
+                         { label: 'Providers', value: providers.length },
+                         { label: 'Loading', value: loading ? 'Yes' : 'No' },
+                    ]}
+               />
+               <Card className={styles.surfaceCard}>
+                    <Card.Header className={`${styles.surfaceHeader} d-flex justify-content-between align-items-center`}>
+                         <strong className={styles.surfaceTitle}>Email Providers</strong>
+                         <div className={styles.headerActions}>
                               <Button size="sm" variant="outline-secondary" onClick={() => loadProviders()}><RiRefreshLine size={14} /></Button>
                               <Button size="sm" variant="success" onClick={() => { setProviderModalMode('create'); setProviderForm(defaultProviderForm); setProviderModalOpen(true); }}><RiAddLine size={14} className="me-1" />New Provider</Button>
                          </div>

@@ -8,7 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Modal, Button, Form } from "react-bootstrap";
 import { handleDatePicker, handleSeverSideProcessing } from "../serverActions/ActionFiltering";
 import { useApplication, useApplicationSettings } from "../Auth/useApplicationContext";
-import { RiSearchLine, RiCalendarEventLine, RiTableLine, RiBarChartBoxLine } from "@remixicon/react";
+import { RiCalendarEventLine, RiTableLine, RiBarChartBoxLine } from "@remixicon/react";
 import styles from './../../styles/SmsTemplateList.module.css'
 import { billingSource } from "../../lib/billingLib";
 import AdjustBillingSourceModal from './AdjustBillingSourceModal';
@@ -16,6 +16,7 @@ import PrimeTablePivot from '../accessories/Datatables/PrimePivotTable'
 import PrimeTable from "../accessories/Datatables/PrimeTable";
 import dayjs from "dayjs";
 import ISLOADING from "../isLoading";
+import DateFilterReusable from "../operations/Laboratory/ResuableFilter/DateFilterReusable";
 
 export interface BillingSourceOption {
 	value: number;
@@ -55,14 +56,14 @@ interface RowData {
 
 type ModalType = 'adjust' | 'update' | null;
 
-export default function BilledClientsView({ 
-	data, 
-	branchid, 
-	expensesPaymentMade, 
-	isLoading = false, 
-	datequery: propDatequery, 
-	setDatequery: propSetDatequery, 
-	showFilters = true 
+export default function BilledClientsView({
+	data,
+	branchid,
+	expensesPaymentMade,
+	isLoading = false,
+	datequery: propDatequery,
+	setDatequery: propSetDatequery,
+	showFilters = true
 }: BilledClientsViewProps) {
 	const searchParams = useSearchParams();
 	const pquery = useMemo(() => {
@@ -77,6 +78,7 @@ export default function BilledClientsView({
 	});
 	const datequery = propDatequery || internalDatequery;
 	const setDatequery = propSetDatequery || setInternalDatequery;
+	const [dateFilter, setDateFilter] = useState<string>(datequery.from && datequery.to ? 'Custom Range' : 'All');
 
 	const user = useApplication()?.user;
 	const userRole = user?.role?.toLowerCase();
@@ -100,7 +102,8 @@ export default function BilledClientsView({
 		if (!propDatequery || !propSetDatequery) {
 			if (pquery.from || pquery.to) {
 				setInternalDatequery({
-					from: pquery.from || '', to: pquery.to || '' });
+					from: pquery.from || '', to: pquery.to || ''
+				});
 			}
 		}
 	}, [pquery.from, pquery.to, propDatequery, propSetDatequery]);
@@ -227,7 +230,7 @@ export default function BilledClientsView({
 			const voidTransactionResponse = await customPost(`billing/management/void/${billingid}`, 'POST', {
 				employeeid
 			});
-			const {status, statusCode, message} = voidTransactionResponse
+			const { status, statusCode, message } = voidTransactionResponse
 
 			if (status == true && statusCode == 200) {
 				alert(message);
@@ -244,7 +247,7 @@ export default function BilledClientsView({
 		{
 			Header: "Date", accessor: "billedon", title: "Date of Transaction", Cell: ({ value, row }) => {
 				const formatted = value ? dayjs(value).format('MM/DD/YYYY HH:mm:ss') : '';
-				return row.original.isFirstOfDay ? <span style={{ backgroundColor: 'red', color: 'white', padding: '2px 4px', borderRadius: '4px' }}>{formatted}	<br/>(First of the day)</span> : <span>{formatted}</span>;
+				return row.original.isFirstOfDay ? <span style={{ backgroundColor: 'red', color: 'white', padding: '2px 4px', borderRadius: '4px' }}>{formatted}	<br />(First of the day)</span> : <span>{formatted}</span>;
 			}
 		},
 		{
@@ -253,23 +256,23 @@ export default function BilledClientsView({
 			title: "Employee who processed the bill",
 			Cell: ({ row }) => <div>
 
-				<span>{row.original.salesperson	}</span>
-				<br/>		
+				<span>{row.original.salesperson}</span>
+				<br />
 				<span>{row.original.serviceCategory}	</span>
 			</div>
 		},
-		{ 
-			Header: "Client Name", 
-			accessor: "fullname", 
+		{
+			Header: "Client Name",
+			accessor: "fullname",
 			title: "Full name of the client",
 			Cell: ({ row }) => (
 				<div className="d-flex flex-column">
 					<span className="fw-semibold">{row.original.fullname}</span>
 					<span className="text-muted small">{row.original.fullpatientid}</span>
 				</div>
-			) 
+			)
 		},
-		
+
 		{ Header: "BID", accessor: "billingid", title: "Billing ID", Cell: ({ value }) => <div className="text-center">{value}</div> },
 		{ Header: "TC", accessor: "totalcost", title: "Total Cost", Cell: ({ value }) => <div>{(Number(value) || 0).toFixed(2)}</div> },
 		{ Header: "DS", accessor: "discount", title: "Discount Amount", Cell: ({ value }) => <div>{(Number(value) || 0).toFixed(2)}</div> },
@@ -280,12 +283,14 @@ export default function BilledClientsView({
 		{ Header: "SC", accessor: "surcharge", title: "Surcharge Amount", Cell: ({ value }) => <div>{(Number(value) || 0).toFixed(2)}</div> },
 		{ Header: "WO", accessor: "writeoff", title: "Write Off Amount", Cell: ({ value }) => <div>{(Number(value) || 0).toFixed(2)}</div> },
 		{ Header: "TS", accessor: "status", title: "Transaction Status", Cell: ({ value }) => value ? <span className={value === 'voided' ? 'text-secondary' : value === 'active' ? 'text-success' : 'text-muted'}>{value}</span> : <span className="text-muted">-</span> },
-		{ Header: "PS", accessor: "paymentstatus", title: "Payment Status", Cell: ({ value, row }) => {
-			if (row.original?.status === 'voided') {
-				return <span className="text-secondary">voided</span>;
+		{
+			Header: "PS", accessor: "paymentstatus", title: "Payment Status", Cell: ({ value, row }) => {
+				if (row.original?.status === 'voided') {
+					return <span className="text-secondary">voided</span>;
+				}
+				return value ? <span className={value === 'pending' ? 'text-warning' : value === 'partial' ? 'text-warning' : 'text-success'}>{value}</span> : <span className="text-muted">-</span>;
 			}
-			return value ? <span className={value === 'pending' ? 'text-warning' : value === 'partial' ? 'text-warning' : 'text-success'}>{value}</span> : <span className="text-muted">-</span>;
-		}},
+		},
 		{
 			Header: "Actions",
 			accessor: "actions",
@@ -327,7 +332,7 @@ export default function BilledClientsView({
 								</Dropdown.Item>
 								<Dropdown.Divider />
 								<Dropdown.Item
-								onClick={(ev) => {window.open(`/billing/transactions/previous-transaction/${row.original.billingid}?isOpenSideBarShow=false`,'_blank')}}
+									onClick={(ev) => { window.open(`/billing/transactions/previous-transaction/${row.original.billingid}?isOpenSideBarShow=false`, '_blank') }}
 									className="d-flex align-items-center gap-2 py-2 px-3"
 								>
 									<RiFileList2Line size={16} /> View Transactions Details
@@ -350,7 +355,7 @@ export default function BilledClientsView({
 										<Dropdown.Divider />
 										<Dropdown.Item
 											className="d-flex align-items-center gap-2 py-2 px-3 text-success fw-semibold"
-											onClick={() =>  { window.open(`/billing/cash-collection?patientid=${plsEncryption(row.original.patientid.toString())}&&billingid=${row.original.billingid}&&paymentstatus=pending&&isOpenSideBarShow=false`,'_blank')}}
+											onClick={() => { window.open(`/billing/cash-collection?patientid=${plsEncryption(row.original.patientid.toString())}&&billingid=${row.original.billingid}&&paymentstatus=pending&&isOpenSideBarShow=false`, '_blank') }}
 										>
 											<RiRefund2Line size={16} /> Settle Bill
 										</Dropdown.Item>
@@ -528,33 +533,16 @@ export default function BilledClientsView({
 								</button>
 							</div>}
 							{isAdmin && showFilters && (
-								<div className="d-flex align-items-center gap-2 mt-2 mt-sm-0">
-									<div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
-										<span className="input-group-text bg-transparent border-end-0" style={{ borderColor: 'var(--bs-border-color)' }}>
-											<RiCalendarEventLine size={16} className="text-muted" />
-										</span>
-										<input type="date" className="form-control shadow-none border-start-0" value={datequery.from} onChange={(ev) => setDatequery({ ...datequery, from: ev.target.value })} />
+								<div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2 mt-2 mt-sm-0">
+									<div style={{ minWidth: '240px' }}>
+										{/* <DateFilterReusable
+											value={dateFilter}
+											onChange={setDateFilter}
+											onDateRangeChange={(from, to) => setDatequery({ from, to })}
+											label="Period"
+											className="w-100"
+										/> */}
 									</div>
-									<div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
-										<span className="input-group-text bg-transparent border-end-0" style={{ borderColor: 'var(--bs-border-color)' }}>
-											<RiCalendarEventLine size={16} className="text-muted" />
-										</span>
-										<input type="date" className="form-control shadow-none border-start-0" value={datequery.to} onChange={(ev) => setDatequery({ ...datequery, to: ev.target.value })} min={datequery.from} />
-									</div>
-									<button
-										className="btn btn-outline-secondary btn-sm d-flex align-items-center"
-										onClick={() => {
-											console.log("Search button clicked with dates:", datequery);
-											handleDatePicker({
-												branchid,
-												date: datequery.from,
-												from: datequery.from,
-												to: datequery.to
-											}, router);
-										}}
-									>
-										<RiSearchLine size={16} className="me-1" /> Search
-									</button>
 									{datequery.from && datequery.to && (
 										<button
 											className="btn btn-primary btn-sm"

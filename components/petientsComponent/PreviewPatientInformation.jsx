@@ -32,7 +32,7 @@ export default function PreviewPatientInformation({ patientid, compact = false }
 
 	if (compact) {
 		return (
-			<div className="border rounded bg-light px-3 py-2 d-flex align-items-center justify-content-between flex-wrap gap-2" style={{ fontFamily: 'Candara, sans-serif' }}>
+			<div className="border rounded bg-body-tertiary px-3 py-2 d-flex align-items-center justify-content-between flex-wrap gap-2" style={{ fontFamily: 'Candara, sans-serif' }}>
 				<div className="d-flex align-items-center gap-2" style={{ minWidth: 260 }}>
 					<img
 						src={`https://ui-avatars.com/api/?name=${encodeURIComponent(`${data?.firstname || ''} ${data?.lastname || ''}`)}&background=random&size=64`}
@@ -60,14 +60,14 @@ export default function PreviewPatientInformation({ patientid, compact = false }
 
 	const InfoField = ({ label, value }) => (
 		<div className="mb-1" style={{ fontFamily: 'Candara, sans-serif' }}>
-			<p style={{ marginBottom: '0' }} className="text-dark fs-5">
+			<p style={{ marginBottom: '0' }} className="text-body fs-5">
 				<span className="fw-bold">{label}:</span> {value || "N/A"}
 			</p>
 		</div>
 	);
 
 	return (
-		<div className="border rounded p-2 bg-light" style={{ fontFamily: 'Candara, sans-serif' }}>
+		<div className="border rounded p-2 bg-body-tertiary" style={{ fontFamily: 'Candara, sans-serif' }}>
 			<h6 className="mb-2 text-capitalize fw-bold text-primary" style={{ fontFamily: 'Candara, sans-serif' }}>Patient Information</h6>
 			<Row>
 				<Col md={4} className="d-flex justify-content-center mb-3 mb-md-0">

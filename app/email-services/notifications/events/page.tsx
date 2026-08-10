@@ -6,6 +6,8 @@ import { RiRefreshLine, RiSaveLine, RiSettings4Line } from '@remixicon/react';
 import { toast } from 'react-toastify';
 import PrimeToast from '../../../../components/accessories/PrimeToast';
 import { EventCatalogItem, EventSetting, defaultEventSettings, loadEvents, loadTemplates, loadSingleEventCatalog, loadEventSettings, syncDefinitions, callMutate } from '../_lib';
+import styles from '../../email-standard.module.css';
+import EmailPageHero from '../../_components/EmailPageHero';
 
 export default function NotificationEventsPage() {
      const [loading, setLoading] = useState(false);
@@ -103,12 +105,23 @@ export default function NotificationEventsPage() {
      };
 
      return (
-          <div className="container-fluid px-3 py-3">
+          <div className={`container-fluid ${styles.pageRoot}`}>
                <PrimeToast />
-               <Card className="border rounded">
-                    <Card.Header className="bg-body-tertiary d-flex justify-content-between align-items-center flex-wrap gap-2">
-                         <strong>Notification Events & Channels</strong>
-                         <div className="d-flex gap-2">
+               <EmailPageHero
+                    title="Notification Events"
+                    subtitle="Map event definitions to channels and defaults using a single, audited events control surface."
+                    icon={<RiSettings4Line size={16} />}
+                    badge="Event Matrix"
+                    stats={[
+                         { label: 'Events', value: events.length },
+                         { label: 'Templates', value: templates.length },
+                         { label: 'Selected', value: selectedEventCode || 'None' },
+                    ]}
+               />
+               <Card className={styles.surfaceCard}>
+                    <Card.Header className={`${styles.surfaceHeader} d-flex justify-content-between align-items-center flex-wrap gap-2`}>
+                         <strong className={styles.surfaceTitle}>Notification Events & Channels</strong>
+                         <div className={styles.headerActions}>
                               <Button size="sm" variant="outline-primary" disabled={syncing} onClick={runSync}>
                                    {/* <RiSyncLine size={14} className="me-1" /> */}
                                    {syncing ? 'Syncing...' : 'Sync Definitions'}

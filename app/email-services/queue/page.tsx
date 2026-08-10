@@ -8,6 +8,8 @@ import { EmailProvider, EmailTemplate, QueueItem, PRIORITIES, QUEUE_STATUSES, ca
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 import PrimeToast from '../../../components/accessories/PrimeToast';
 import { useApplication } from '../../../components/Auth/useApplicationContext';
+import styles from '../email-standard.module.css';
+import EmailPageHero from '../_components/EmailPageHero';
 
 export default function EmailQueuePage() {
      const app = useApplication();
@@ -155,11 +157,22 @@ export default function EmailQueuePage() {
      ];
 
      return (
-          <div className="container-fluid px-3 py-3 d-flex flex-column gap-3">
+          <div className={`container-fluid ${styles.pageRoot} d-flex flex-column gap-3`}>
                <PrimeToast />
+               <EmailPageHero
+                    title="Queue Operations"
+                    subtitle="Create outbound jobs, monitor processing status, and execute retries with consistent queue tooling."
+                    icon={<RiSendPlane2Line size={16} />}
+                    badge="Queue Center"
+                    stats={[
+                         { label: 'Queued', value: queueItems.length },
+                         { label: 'Templates', value: templates.length },
+                         { label: 'Providers', value: providers.length },
+                    ]}
+               />
 
-               <Card className="border rounded">
-                    <Card.Header className="bg-body-tertiary d-flex align-items-center gap-2">
+               <Card className={styles.surfaceCard}>
+                    <Card.Header className={`${styles.surfaceHeader} d-flex align-items-center gap-2`}>
                          <RiSendPlane2Line size={18} /> <strong>Queue New Email</strong>
                     </Card.Header>
                     <Card.Body>
@@ -187,8 +200,8 @@ export default function EmailQueuePage() {
                     </Card.Body>
                </Card>
 
-               <Card className="border rounded">
-                    <Card.Header className="bg-body-tertiary d-flex justify-content-between align-items-center flex-wrap gap-2">
+               <Card className={styles.surfaceCard}>
+                    <Card.Header className={`${styles.surfaceHeader} d-flex justify-content-between align-items-center flex-wrap gap-2`}>
                          <strong>Queue Monitor</strong>
                          <div className="d-flex gap-2 align-items-center flex-wrap">
                               <Form.Select style={{ width: 120 }} value={queueLimit} onChange={(e) => setQueueLimit(Number(e.target.value))}>{[20, 50, 100].map((opt) => <option key={opt} value={opt}>{opt}</option>)}</Form.Select>

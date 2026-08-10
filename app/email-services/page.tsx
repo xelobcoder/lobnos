@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import React from 'react';
 import { Card, Col, Row } from 'react-bootstrap';
+import styles from './email-standard.module.css';
 import {
      RiFileList3Line,
      RiMailCheckLine,
@@ -51,30 +52,19 @@ const sections = [
 ];
 
 export default function EmailServicesHubPage() {
-     const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
-
      return (
-          <div className="container-fluid px-3 py-3">
-               <Card className="border rounded mb-3" style={{ borderColor: 'var(--bs-border-color)' }}>
-                    <Card.Header className="bg-body-tertiary d-flex align-items-center justify-content-between">
-                         <h5 className="mb-0 fw-bold d-flex align-items-center gap-2">
-                              <span
-                                   className="d-inline-flex align-items-center justify-content-center rounded"
-                                   style={{
-                                        width: 30,
-                                        height: 30,
-                                        color: COLOR_ACCENT,
-                                        backgroundColor: 'var(--bs-body-bg)',
-                                        border: '1px solid var(--bs-border-color)',
-                                   }}
-                              >
-                                   <RiMailLine size={16} />
-                              </span>
-                              Email Services
-                         </h5>
-                    </Card.Header>
-                    <Card.Body>
-                         <p className="mb-0 text-muted">
+          <div className={`container-fluid ${styles.pageRoot}`}>
+               <Card className={styles.heroCard}>
+                    <Card.Body className={styles.heroBody}>
+                         <div className={styles.heroTitleRow}>
+                              <h5 className={styles.heroTitle}>
+                                   <span className={styles.heroIcon}>
+                                        <RiMailLine size={16} />
+                                   </span>
+                                   Email Services
+                              </h5>
+                         </div>
+                         <p className={styles.heroDescription}>
                               Manage templates, providers, queue operations, delivery settings, and logs from one place.
                          </p>
                     </Card.Body>
@@ -86,24 +76,15 @@ export default function EmailServicesHubPage() {
                          return (
                               <Col key={section.href} md={6} xl={4}>
                                    <Link href={section.href} className="text-decoration-none text-body">
-                                        <Card className="border rounded h-100" style={{ borderColor: 'var(--bs-border-color)' }}>
-                                             <Card.Body className="d-flex flex-column gap-2 p-4">
-                                                  <div className="d-flex align-items-center gap-2">
-                                                       <span
-                                                            className="d-inline-flex align-items-center justify-content-center rounded"
-                                                            style={{
-                                                                 width: 32,
-                                                                 height: 32,
-                                                                 color: COLOR_ACCENT,
-                                                                 backgroundColor: 'var(--bs-tertiary-bg)',
-                                                                 border: '1px solid var(--bs-border-color)',
-                                                            }}
-                                                       >
+                                        <Card className={styles.navCard}>
+                                             <Card.Body className={styles.navCardBody}>
+                                                  <div className={styles.navTitleRow}>
+                                                       <span className={styles.heroIcon}>
                                                             <Icon size={18} />
                                                        </span>
-                                                       <h6 className="mb-0 fw-bold">{section.title}</h6>
+                                                       <h6 className={styles.navTitle}>{section.title}</h6>
                                                   </div>
-                                                  <p className="mb-0 text-muted small">{section.description}</p>
+                                                  <p className={styles.navDescription}>{section.description}</p>
                                              </Card.Body>
                                         </Card>
                                    </Link>

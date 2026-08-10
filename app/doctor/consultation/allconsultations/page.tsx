@@ -211,53 +211,94 @@ const ConsultationRecordsTable = () => {
             <Modal show={showModal} backdrop="static" onHide={() => {
                 setShowModal(false);
                 setSelectedRecord(null);
-            }} size="xl">
-                <Modal.Header closeButton>
-                    <Modal.Title>Consultation Record Details</Modal.Title>
+            }} size="xl" scrollable>
+                <Modal.Header closeButton className="border-0 pb-0">
+                    <Modal.Title as="div" className="w-100">
+                        <div className="border rounded-4 p-4 bg-body-tertiary">
+                            <div className="text-uppercase text-muted small fw-semibold mb-2">Clinical Record Review</div>
+                            <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-3">
+                                <div>
+                                    <h4 className="fw-bold mb-1 text-dark">Consultation Record Details</h4>
+                                    <div className="text-muted small">Review the patient context and the submitted progress report in one structured view.</div>
+                                </div>
+                                {selectedRecord ? (
+                                    <div className="d-flex flex-wrap gap-2">
+                                        <span className="badge rounded-pill text-bg-info px-3 py-2">{selectedRecord.record_type || 'Consultation'}</span>
+                                        <span className="badge rounded-pill text-bg-light text-dark border px-3 py-2">{formatDate(selectedRecord.created_at)}</span>
+                                    </div>
+                                ) : null}
+                            </div>
+                        </div>
+                    </Modal.Title>
                 </Modal.Header>
-                <Modal.Body>
+                <Modal.Body className="pt-3">
                     {selectedRecord && (
                         <div className="container-fluid px-0">
+                            <div className="row g-3 mb-3">
+                                <div className="col-md-4">
+                                    <div className="border rounded-4 p-3 h-100 bg-white">
+                                        <div className="text-uppercase text-muted small fw-semibold mb-2">Patient</div>
+                                        <div className="fw-bold text-dark mb-1">{`${selectedRecord.designation ? `${selectedRecord.designation} ` : ''}${selectedRecord.firstname || ''} ${selectedRecord.middlename || ''} ${selectedRecord.lastname || ''}`.replace(/\s+/g, ' ').trim() || '-'}</div>
+                                        <div className="text-muted small">{selectedRecord.fullpatientid || '-'}</div>
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="border rounded-4 p-3 h-100 bg-white">
+                                        <div className="text-uppercase text-muted small fw-semibold mb-2">Consultation By</div>
+                                        <div className="fw-bold text-dark mb-1">{getConsultantName(selectedRecord)}</div>
+                                        <div className="text-muted small">Recorded clinician</div>
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="border rounded-4 p-3 h-100 bg-white">
+                                        <div className="text-uppercase text-muted small fw-semibold mb-2">Recorded On</div>
+                                        <div className="fw-bold text-dark mb-1">{formatDate(selectedRecord.created_at)}</div>
+                                        <div className="text-muted small">Source consultation timestamp</div>
+                                    </div>
+                                </div>
+                            </div>
                             <div className="row g-3">
                                 <div className="col-lg-6">
-                                    <div className="border rounded p-3 h-100">
+                                    <div className="border rounded-4 p-3 p-md-4 h-100 bg-white shadow-sm">
                                         <h6 className="fw-bold mb-3">Demographics</h6>
-                                        <table className="table table-sm mb-0">
-                                            <tbody>
-                                                {[
-                                                    { key: "fullpatientid", label: "Patient ID" },
-                                                    { key: "designation", label: "Designation" },
-                                                    { key: "firstname", label: "First Name" },
-                                                    { key: "middlename", label: "Middle Name" },
-                                                    { key: "lastname", label: "Last Name" },
-                                                    { key: "age", label: "Age" },
-                                                    { key: "agetype", label: "Age Type" },
-                                                    { key: "gender", label: "Gender" },
-                                                    { key: "marital_status", label: "Marital Status" },
-                                                    { key: "occupation", label: "Occupation" },
-                                                    { key: "mobile_number", label: "Mobile Number" },
-                                                    { key: "email", label: "Email" },
-                                                    { key: "organization", label: "Organization" },
-                                                    { key: "contactpointer", label: "Contact Pointer" },
-                                                    { key: "whatAppcontact", label: "WhatsApp Contact" },
-                                                    { key: "relativecontactname", label: "Relative Contact Name" },
-                                                    { key: "relativecontactnumber", label: "Relative Contact Number" },
-                                                ].map((col) => (
-                                                    <tr key={col.key}>
-                                                        <td className="pls-label"><strong>{col.label}</strong></td>
-                                                        <td className="text-sm">{selectedRecord[col.key] ?? "-"}</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
+                                        <div className="table-responsive">
+                                            <table className="table table-sm align-middle mb-0">
+                                                <tbody>
+                                                    {[
+                                                        { key: "fullpatientid", label: "Patient ID" },
+                                                        { key: "designation", label: "Designation" },
+                                                        { key: "firstname", label: "First Name" },
+                                                        { key: "middlename", label: "Middle Name" },
+                                                        { key: "lastname", label: "Last Name" },
+                                                        { key: "age", label: "Age" },
+                                                        { key: "agetype", label: "Age Type" },
+                                                        { key: "gender", label: "Gender" },
+                                                        { key: "marital_status", label: "Marital Status" },
+                                                        { key: "occupation", label: "Occupation" },
+                                                        { key: "mobile_number", label: "Mobile Number" },
+                                                        { key: "email", label: "Email" },
+                                                        { key: "organization", label: "Organization" },
+                                                        { key: "contactpointer", label: "Contact Pointer" },
+                                                        { key: "whatAppcontact", label: "WhatsApp Contact" },
+                                                        { key: "relativecontactname", label: "Relative Contact Name" },
+                                                        { key: "relativecontactnumber", label: "Relative Contact Number" },
+                                                    ].map((col) => (
+                                                        <tr key={col.key}>
+                                                            <td className="text-muted small fw-semibold" style={{ width: '42%' }}>{col.label}</td>
+                                                            <td className="text-dark">{selectedRecord[col.key] ?? "-"}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div className="col-lg-6">
-                                    <div className="p-3 h-100 border">
+                                    <div className="p-3 p-md-4 h-100 border rounded-4 bg-white shadow-sm">
                                         <h6 className="fw-bold mb-3">Progress Report</h6>
                                         <pre
-                                            className="mb-0 text-wrap rounded bg-secondary-subtle p-3"
+                                            className="mb-0 text-wrap rounded-4 bg-body-tertiary p-3 p-md-4 border"
                                             style={{
                                                 whiteSpace: "pre-wrap",
                                                 wordBreak: "break-word",
@@ -269,9 +310,9 @@ const ConsultationRecordsTable = () => {
                                         >
                                             {getProgressReport(selectedRecord) || "-"}
                                         </pre>
-                                        <div className="mt-3 pt-2 border-top rounded bg-secondary-subtle p-3 ">
-                                            <small className="text-muted d-block">Consultation By</small>
-                                            <div className="fw-semibold">{getConsultantName(selectedRecord)}</div>
+                                        <div className="mt-3 border rounded-4 bg-body-tertiary p-3">
+                                            <small className="text-muted d-block text-uppercase fw-semibold mb-1">Clinical Note Summary</small>
+                                            <div className="fw-semibold text-dark">{truncateWords(getProgressReport(selectedRecord) || '-', 24)}</div>
                                         </div>
                                     </div>
                                 </div>

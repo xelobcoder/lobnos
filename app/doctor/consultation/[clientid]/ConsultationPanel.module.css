@@ -483,6 +483,47 @@
      padding-right: 4px;
 }
 
+.topSheetDialog {
+     margin: 0.75rem auto 1.5rem;
+     max-width: min(1180px, calc(100vw - 1.5rem));
+}
+
+.topSheetContent {
+     border: 1px solid rgba(15, 23, 42, 0.08);
+     border-radius: 20px;
+     overflow: hidden;
+     box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+}
+
+.topSheetHeader {
+     align-items: flex-start;
+     padding: 1rem 1rem 0;
+     border-bottom: 0;
+}
+
+.topSheetTitle {
+     font-size: 1.2rem;
+     font-weight: 800;
+     color: var(--consult-ink);
+     margin-bottom: 0.25rem;
+}
+
+.topSheetSubtitle {
+     font-size: 0.88rem;
+     line-height: 1.5;
+     color: var(--consult-muted);
+}
+
+.topSheetBody {
+     padding-top: 0.5rem;
+     background: linear-gradient(180deg, #fbfdff 0%, #f8fafc 100%);
+}
+
+.topSheetFooter {
+     border-top: 1px solid rgba(15, 23, 42, 0.08);
+     background: #ffffff;
+}
+
 .guideList {
      margin: 0;
      padding-left: 1.1rem;
@@ -564,4 +605,109 @@
           flex-direction: column;
           align-items: stretch;
      }
+
+     .topSheetDialog {
+          max-width: calc(100vw - 1rem);
+          margin: 0.5rem auto 1rem;
+     }
+}
+
+[data-bs-theme="dark"] .consultationPage {
+     --consult-bg: linear-gradient(180deg, #0b1220 0%, #101828 35%, #111827 100%);
+     --consult-surface: #111827;
+     --consult-surface-muted: #1f2937;
+     --consult-border: rgba(148, 163, 184, 0.18);
+     --consult-accent: #2dd4bf;
+     --consult-accent-deep: #99f6e4;
+     --consult-ink: #f8fafc;
+     --consult-muted: #cbd5e1;
+}
+
+[data-bs-theme="dark"] .heroSection {
+     background: linear-gradient(135deg, #020617 0%, #0f172a 54%, #134e4a 130%);
+     border-color: rgba(148, 163, 184, 0.14);
+}
+
+[data-bs-theme="dark"] .ghostAction,
+[data-bs-theme="dark"] .secondaryAction {
+     background: rgba(15, 23, 42, 0.72);
+     border-color: rgba(148, 163, 184, 0.2);
+}
+
+[data-bs-theme="dark"] .primaryAction {
+     background: #1e293b;
+     color: #f8fafc;
+}
+
+[data-bs-theme="dark"] .summaryCard {
+     background: rgba(15, 23, 42, 0.72);
+     border-color: rgba(148, 163, 184, 0.16);
+}
+
+[data-bs-theme="dark"] .patientStripAction,
+[data-bs-theme="dark"] .historyModalButton,
+[data-bs-theme="dark"] .clearNotesButton {
+     background: #1f2937;
+     color: #e2e8f0;
+     border-color: rgba(148, 163, 184, 0.18);
+}
+
+[data-bs-theme="dark"] .patientInfoFrame,
+[data-bs-theme="dark"] .noteSectionCard,
+[data-bs-theme="dark"] .categoryChip,
+[data-bs-theme="dark"] .noteStat {
+     background: #0f172a;
+}
+
+[data-bs-theme="dark"] .fieldPanel,
+[data-bs-theme="dark"] .composerPanel,
+[data-bs-theme="dark"] .notesPanel,
+[data-bs-theme="dark"] .topSheetBody {
+     background: linear-gradient(180deg, #111827 0%, #0f172a 100%);
+     border-color: rgba(148, 163, 184, 0.16);
+}
+
+[data-bs-theme="dark"] .selectField,
+[data-bs-theme="dark"] .sectionTextarea,
+[data-bs-theme="dark"] .notesTextarea {
+     background: #0b1220 !important;
+     color: #f8fafc !important;
+     border-color: rgba(148, 163, 184, 0.22) !important;
+}
+
+[data-bs-theme="dark"] .selectField::placeholder,
+[data-bs-theme="dark"] .sectionTextarea::placeholder,
+[data-bs-theme="dark"] .notesTextarea::placeholder {
+     color: #94a3b8 !important;
+}
+
+[data-bs-theme="dark"] .categoryChip {
+     border-color: rgba(148, 163, 184, 0.16);
+     color: #e2e8f0;
+}
+
+[data-bs-theme="dark"] .categoryChip small,
+[data-bs-theme="dark"] .noteSectionHeader small,
+[data-bs-theme="dark"] .sectionHint,
+[data-bs-theme="dark"] .topSheetSubtitle,
+[data-bs-theme="dark"] .panelSubtitle,
+[data-bs-theme="dark"] .submitHint,
+[data-bs-theme="dark"] .summaryLabel {
+     color: #94a3b8;
+}
+
+[data-bs-theme="dark"] .categoryChipActive {
+     background: linear-gradient(135deg, rgba(45, 212, 191, 0.16) 0%, rgba(45, 212, 191, 0.24) 100%);
+     border-color: rgba(45, 212, 191, 0.26);
+     color: #ccfbf1;
+}
+
+[data-bs-theme="dark"] .topSheetContent {
+     background: #111827;
+     border-color: rgba(148, 163, 184, 0.18);
+}
+
+[data-bs-theme="dark"] .topSheetFooter {
+     background: #111827;
+     border-top-color: rgba(148, 163, 184, 0.16);
 }

@@ -8,6 +8,8 @@ import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable
 import PrimeToast from '../../../../components/accessories/PrimeToast';
 import { statusBadge } from '../../_lib';
 import { loadQueue, callMutate } from '../_lib';
+import styles from '../../email-standard.module.css';
+import EmailPageHero from '../../_components/EmailPageHero';
 
 
 export default function NotificationQueuePage() {
@@ -69,11 +71,22 @@ export default function NotificationQueuePage() {
      ];
 
      return (
-          <div className="container-fluid px-3 py-3">
+          <div className={`container-fluid ${styles.pageRoot}`}>
                <PrimeToast />
-               <Card className="border rounded">
-                    <Card.Header className="bg-body-tertiary d-flex align-items-center justify-content-between gap-2 flex-wrap">
-                         <strong>Notification Queue</strong>
+               <EmailPageHero
+                    title="Notification Queue"
+                    subtitle="Track delivery lifecycles, execute retries, and cancel stale jobs from a unified queue monitor."
+                    icon={<RiRefreshLine size={16} />}
+                    badge="Delivery Queue"
+                    stats={[
+                         { label: 'Rows', value: rows.length },
+                         { label: 'Limit', value: limit },
+                         { label: 'Loading', value: loading ? 'Yes' : 'No' },
+                    ]}
+               />
+               <Card className={styles.surfaceCard}>
+                    <Card.Header className={`${styles.surfaceHeader} d-flex align-items-center justify-content-between gap-2 flex-wrap`}>
+                         <strong className={styles.surfaceTitle}>Notification Queue</strong>
                          <div className="d-flex align-items-center gap-2">
                               <Form.Select size="sm" style={{ width: 120 }} value={limit} onChange={(e) => setLimit(Number(e.target.value))}>
                                    {[20, 50, 100].map((opt) => <option key={opt} value={opt}>{opt}</option>)}

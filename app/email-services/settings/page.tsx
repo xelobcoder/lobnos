@@ -3,10 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Card, Col, Form, Row, Spinner } from 'react-bootstrap';
 import { RiAddLine, RiDeleteBinLine, RiSaveLine, RiSettings4Line } from '@remixicon/react';
+import styles from '../email-standard.module.css';
 import { toast } from 'react-toastify';
-import PrimeToast from '../../../../components/accessories/PrimeToast';
-import { EmailProvider, EmailSettings, callGet, callMutate, defaultSettingsForm, mapProviderFromApi, parseJsonArray, parseList } from '../_lib';
-import { useApplication } from '../../../../components/Auth/useApplicationContext';
+import PrimeToast from '../../../components/accessories/PrimeToast';
+import { useApplication } from '../../../components/Auth/useApplicationContext';
+import EmailPageHero from '../_components/EmailPageHero';
+import { EmailProvider, EmailSettings, defaultSettingsForm, callGet, parseList, mapProviderFromApi, parseJsonArray, callMutate } from '../_lib';
 
 export default function EmailSettingsPage() {
      const app = useApplication();
@@ -78,11 +80,22 @@ export default function EmailSettingsPage() {
      };
 
      return (
-          <div className="container-fluid px-3 py-3">
+          <div className={`container-fluid ${styles.pageRoot}`}>
                <PrimeToast />
-               <Card className="border rounded">
-                    <Card.Header className="bg-body-tertiary d-flex align-items-center gap-2">
-                         <RiSettings4Line size={18} /> <strong>Email Settings</strong>
+               <EmailPageHero
+                    title="Delivery Settings"
+                    subtitle="Control default provider behavior, attachment constraints, and retry windows in one standard control plane."
+                    icon={<RiSettings4Line size={16} />}
+                    badge="Email Core"
+                    stats={[
+                         { label: 'Providers', value: providers.length },
+                         { label: 'Retries', value: settingsForm.maxRetries },
+                         { label: 'Backoff Steps', value: settingsForm.retryBackoffMinutes.length },
+                    ]}
+               />
+               <Card className={styles.surfaceCard}>
+                    <Card.Header className={`${styles.surfaceHeader} d-flex align-items-center gap-2`}>
+                         <RiSettings4Line size={18} /> <strong className={styles.surfaceTitle}>Email Settings</strong>
                     </Card.Header>
                     <Card.Body>
                          {loading ? (

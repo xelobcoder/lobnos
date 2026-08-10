@@ -7,6 +7,8 @@ import { toast } from 'react-toastify';
 import PrimeToast from '../../../../components/accessories/PrimeToast';
 import { useApplication } from '../../../../components/Auth/useApplicationContext';
 import { EventCatalogItem, loadSingleEventCatalog, loadEvents, triggerByReference } from '../_lib';
+import styles from '../../email-standard.module.css';
+import EmailPageHero from '../../_components/EmailPageHero';
 
 const REFERENCE_LABELS: Record<string, string> = {
      patientId: 'Patient ID',
@@ -126,11 +128,22 @@ export default function NotificationTriggerPage() {
      const requiredRefs = catalog?.requiredReferences || [];
 
      return (
-          <div className="container-fluid px-3 py-3">
+          <div className={`container-fluid ${styles.pageRoot}`}>
                <PrimeToast />
-               <Card className="border rounded">
-                    <Card.Header className="bg-body-tertiary d-flex justify-content-between align-items-center">
-                         <strong>Manual Notification Trigger</strong>
+               <EmailPageHero
+                    title="Manual Trigger"
+                    subtitle="Dispatch event-driven notifications with explicit references, recipient overrides, and context payload controls."
+                    icon={<RiSendPlane2Line size={16} />}
+                    badge="Trigger Console"
+                    stats={[
+                         { label: 'Events', value: events.length },
+                         { label: 'Required Refs', value: requiredRefs.length },
+                         { label: 'Submitting', value: submitting ? 'Yes' : 'No' },
+                    ]}
+               />
+               <Card className={styles.surfaceCard}>
+                    <Card.Header className={`${styles.surfaceHeader} d-flex justify-content-between align-items-center`}>
+                         <strong className={styles.surfaceTitle}>Manual Notification Trigger</strong>
                          <Button size="sm" variant="primary" disabled={submitting || loading} onClick={triggerNotification}>
                               <RiSendPlane2Line size={14} className="me-1" />
                               {submitting ? 'Triggering...' : 'Trigger'}

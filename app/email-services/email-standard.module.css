@@ -1,0 +1,199 @@
+.pageRoot {
+     --mail-border: color-mix(in srgb, var(--pls-primary, var(--bs-primary)) 20%, var(--bs-border-color));
+     --mail-accent: var(--pls-primary, var(--bs-primary));
+     --mail-accent-deep: var(--pls-primary-dark, var(--bs-primary));
+     --mail-accent-soft: var(--pls-accent, var(--bs-primary));
+     --mail-surface: var(--theme-card-bg, var(--bs-body-bg));
+     --mail-soft: color-mix(in srgb, var(--mail-accent) 6%, var(--bs-tertiary-bg));
+     --mail-text: var(--bs-emphasis-color);
+     --mail-muted: var(--bs-secondary-color);
+     padding: 1rem;
+     border-radius: 1rem;
+     background:
+          radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--mail-accent-soft) 18%, transparent) 0%, transparent 42%),
+          radial-gradient(circle at 88% 100%, color-mix(in srgb, var(--mail-accent) 12%, transparent) 0%, transparent 36%),
+          linear-gradient(180deg, color-mix(in srgb, var(--theme-body-bg, var(--bs-body-bg)) 82%, white 18%) 0%, transparent 100%);
+}
+
+.heroCard {
+     border: 1px solid var(--mail-border);
+     border-radius: 1rem;
+     background: linear-gradient(135deg, var(--mail-accent-deep) 0%, var(--mail-accent) 56%, var(--mail-accent-soft) 100%);
+     color: var(--theme-sidebar-text, var(--bs-light));
+     box-shadow: 0 18px 36px rgba(15, 23, 42, 0.18);
+     margin-bottom: 1rem;
+}
+
+.heroBody {
+     padding: 1rem 1.25rem;
+}
+
+.heroTitleRow {
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+     gap: 0.75rem;
+     margin-bottom: 0.35rem;
+}
+
+.heroTitle {
+     margin: 0;
+     font-weight: 800;
+     color: inherit;
+     display: inline-flex;
+     align-items: center;
+     gap: 0.6rem;
+}
+
+.heroIcon {
+     width: 1.9rem;
+     height: 1.9rem;
+     border-radius: 0.55rem;
+     display: inline-flex;
+     align-items: center;
+     justify-content: center;
+     color: inherit;
+     border: 1px solid color-mix(in srgb, var(--theme-sidebar-text, var(--bs-light)) 28%, transparent);
+     background: color-mix(in srgb, var(--theme-sidebar-text, var(--bs-light)) 12%, transparent);
+}
+
+.heroDescription {
+     margin: 0;
+     color: color-mix(in srgb, var(--theme-sidebar-text, var(--bs-light)) 82%, transparent);
+     font-size: 0.92rem;
+}
+
+.heroBadge {
+     border: 1px solid color-mix(in srgb, var(--theme-sidebar-text, var(--bs-light)) 28%, transparent);
+     background: color-mix(in srgb, var(--theme-sidebar-text, var(--bs-light)) 12%, transparent);
+     color: var(--theme-sidebar-text, var(--bs-light));
+     font-size: 0.72rem;
+     font-weight: 700;
+     letter-spacing: 0.04em;
+     text-transform: uppercase;
+     border-radius: 999px;
+     padding: 0.35rem 0.7rem;
+}
+
+.heroStatsRow {
+     margin-top: 0.9rem;
+     display: flex;
+     flex-wrap: wrap;
+     gap: 0.55rem;
+}
+
+.heroStatChip {
+     border: 1px solid color-mix(in srgb, var(--theme-sidebar-text, var(--bs-light)) 24%, transparent);
+     border-radius: 0.75rem;
+     background: color-mix(in srgb, var(--theme-sidebar-text, var(--bs-light)) 10%, transparent);
+     padding: 0.45rem 0.6rem;
+     min-width: 120px;
+     display: inline-flex;
+     flex-direction: column;
+     gap: 0.1rem;
+}
+
+.heroStatLabel {
+     font-size: 0.68rem;
+     text-transform: uppercase;
+     color: color-mix(in srgb, var(--theme-sidebar-text, var(--bs-light)) 78%, transparent);
+     letter-spacing: 0.04em;
+}
+
+.heroStatValue {
+     font-size: 0.95rem;
+     font-weight: 700;
+     color: var(--theme-sidebar-text, var(--bs-light));
+}
+
+.surfaceCard {
+     border: 1px solid var(--mail-border);
+     border-radius: 1rem;
+     background: var(--mail-surface);
+     box-shadow: 0 12px 28px rgba(2, 6, 23, 0.07);
+     overflow: hidden;
+}
+
+.surfaceHeader {
+     background: linear-gradient(180deg, color-mix(in srgb, var(--mail-accent) 8%, var(--mail-surface)) 0%, var(--mail-soft) 100%);
+     border-bottom: 1px solid var(--mail-border);
+     border-top-left-radius: 1rem !important;
+     border-top-right-radius: 1rem !important;
+}
+
+.surfaceTitle {
+     margin: 0;
+     font-weight: 700;
+     color: var(--mail-text);
+}
+
+.headerActions {
+     display: flex;
+     gap: 0.5rem;
+     flex-wrap: wrap;
+     align-items: center;
+}
+
+[data-bs-theme="dark"] .pageRoot {
+     --mail-border: color-mix(in srgb, var(--pls-primary, var(--bs-primary)) 28%, var(--bs-border-color));
+     background:
+          radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--mail-accent-soft) 18%, transparent) 0%, transparent 46%),
+          radial-gradient(circle at 90% 100%, color-mix(in srgb, var(--mail-accent) 16%, transparent) 0%, transparent 38%),
+          linear-gradient(180deg, color-mix(in srgb, var(--theme-body-bg, var(--bs-body-bg)) 88%, transparent) 0%, transparent 100%);
+}
+
+[data-bs-theme="dark"] .heroCard {
+     background: linear-gradient(135deg, var(--mail-accent-deep) 0%, var(--mail-accent) 56%, var(--mail-accent-soft) 100%);
+}
+
+[data-bs-theme="dark"] .surfaceHeader {
+     background: linear-gradient(180deg, color-mix(in srgb, var(--mail-accent) 16%, var(--mail-surface)) 0%, color-mix(in srgb, var(--mail-accent-deep) 8%, var(--mail-surface)) 100%);
+}
+
+.navCard {
+     border: 1px solid var(--mail-border);
+     border-radius: 0.95rem;
+     background: var(--mail-surface);
+     height: 100%;
+     transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.navCard:hover {
+     transform: translateY(-1px);
+     box-shadow: 0 12px 22px rgba(15, 23, 42, 0.08);
+}
+
+.navCardBody {
+     display: flex;
+     flex-direction: column;
+     gap: 0.45rem;
+     padding: 1rem;
+}
+
+.navTitleRow {
+     display: flex;
+     align-items: center;
+     gap: 0.5rem;
+}
+
+.navTitle {
+     margin: 0;
+     font-weight: 700;
+     color: var(--mail-text);
+}
+
+.navDescription {
+     margin: 0;
+     color: var(--mail-muted);
+     font-size: 0.86rem;
+}
+
+@media (max-width: 767px) {
+     .pageRoot {
+          padding: 0.75rem;
+     }
+
+     .heroBody {
+          padding: 0.85rem 0.95rem;
+     }
+}

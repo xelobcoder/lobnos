@@ -46,11 +46,19 @@ type SectionCardProps = {
      children: React.ReactNode;
 };
 
+const accentColor = 'var(--bs-warning-text-emphasis, #d97706)';
+const warmSurface = 'var(--bs-tertiary-bg)';
+const subtleSurface = 'var(--bs-secondary-bg)';
+const borderColor = 'var(--bs-border-color)';
+const bodyBg = 'var(--bs-body-bg)';
+const bodyColor = 'var(--bs-body-color)';
+const emphasisColor = 'var(--bs-emphasis-color)';
+
 function SectionCard({ title, subtitle, children }: SectionCardProps) {
      return (
-          <div className="border rounded-4 h-100 overflow-hidden bg-white shadow-sm">
-               <div className="p-4 border-bottom" style={{ background: 'linear-gradient(180deg, #fffaf0 0%, #ffffff 100%)' }}>
-                    <h2 className="fs-5 fw-bold text-dark mb-1">{title}</h2>
+          <div className="border rounded-4 h-100 overflow-hidden shadow-sm" style={{ backgroundColor: bodyBg, borderColor }}>
+               <div className="p-4 border-bottom" style={{ background: `linear-gradient(180deg, ${warmSurface} 0%, ${bodyBg} 100%)`, borderColor }}>
+                    <h2 className="fs-5 fw-bold mb-1" style={{ color: emphasisColor }}>{title}</h2>
                     {subtitle ? <p className="text-muted mb-0 small">{subtitle}</p> : null}
                </div>
                <div className="p-4">{children}</div>
@@ -63,13 +71,13 @@ function DetailItem({ icon, label, value, tone = 'text-dark' }: DetailItemProps)
           <div className="d-flex align-items-start gap-3 py-3 border-bottom">
                <div
                     className="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0"
-                    style={{ width: 44, height: 44, backgroundColor: '#fff3e6' }}
+                    style={{ width: 44, height: 44, backgroundColor: subtleSurface }}
                >
                     {icon}
                </div>
                <div className="min-w-0">
                     <div className="text-uppercase text-muted small fw-semibold mb-1">{label}</div>
-                    <div className={`fw-semibold ${tone}`}>{value}</div>
+                    <div className={`fw-semibold ${tone === 'text-dark' ? '' : tone}`} style={tone === 'text-dark' ? { color: emphasisColor } : undefined}>{value}</div>
                </div>
           </div>
      );
@@ -77,9 +85,9 @@ function DetailItem({ icon, label, value, tone = 'text-dark' }: DetailItemProps)
 
 function ProfileStat({ label, value }: { label: string; value: React.ReactNode }) {
      return (
-          <div className="border rounded-4 p-3 bg-white h-100">
+          <div className="border rounded-4 p-3 h-100" style={{ backgroundColor: bodyBg, borderColor }}>
                <div className="text-uppercase text-muted small fw-semibold mb-2">{label}</div>
-               <div className="fw-bold text-dark">{value}</div>
+               <div className="fw-bold" style={{ color: emphasisColor }}>{value}</div>
           </div>
      );
 }
@@ -246,9 +254,9 @@ export default function UserProfilePage() {
      if (!user) {
           return (
                <div className="container-fluid px-4 py-5">
-                    <div className="border rounded-4 bg-white shadow-sm mx-auto p-5 text-center" style={{ maxWidth: 640 }}>
-                         <RiUser3Fill size={56} className="mb-3" style={{ color: '#d97706' }} />
-                         <h1 className="fs-3 fw-bold text-dark mb-2">Profile not available</h1>
+                    <div className="border rounded-4 shadow-sm mx-auto p-5 text-center" style={{ maxWidth: 640, backgroundColor: bodyBg, borderColor }}>
+                         <RiUser3Fill size={56} className="mb-3" style={{ color: accentColor }} />
+                         <h1 className="fs-3 fw-bold mb-2" style={{ color: emphasisColor }}>Profile not available</h1>
                          <p className="text-muted mb-0">The requested staff profile could not be loaded for this employee record.</p>
                     </div>
                </div>
@@ -261,10 +269,10 @@ export default function UserProfilePage() {
                <div className="container-fluid px-4 py-4">
                     <div className="row g-4 align-items-start">
                          <div className="col-12">
-                              <div className="border rounded-4 overflow-hidden shadow-sm bg-white">
+                              <div className="border rounded-4 overflow-hidden shadow-sm" style={{ backgroundColor: bodyBg, borderColor }}>
                                    <div
                                         className="p-4 p-lg-5"
-                                        style={{ background: 'linear-gradient(135deg, #1f2937 0%, #374151 42%, #f59e0b 160%)' }}
+                                        style={{ background: 'linear-gradient(135deg, var(--bs-dark) 0%, color-mix(in srgb, var(--bs-dark) 72%, var(--bs-body-bg)) 42%, var(--bs-warning) 160%)' }}
                                    >
                                         <div className="row g-4 align-items-center text-white">
                                              <div className="col-lg-8">
@@ -276,7 +284,7 @@ export default function UserProfilePage() {
                                                             <div className="text-uppercase small fw-semibold" style={{ letterSpacing: '0.08em', opacity: 0.8 }}>HR Profile Editor</div>
                                                             <h1 className="display-6 fw-bold mb-1">{editData.username}</h1>
                                                             <div className="d-flex flex-wrap gap-2 align-items-center">
-                                                                 <span className="badge rounded-pill text-bg-light text-dark px-3 py-2">{editData.role}</span>
+                                                                 <span className="badge rounded-pill px-3 py-2 border" style={{ backgroundColor: 'rgba(255,255,255,0.16)', color: '#fff', borderColor: 'rgba(255,255,255,0.18)' }}>{editData.role}</span>
                                                                  {getStatusBadge(editData.activation)}
                                                             </div>
                                                        </div>
@@ -301,67 +309,67 @@ export default function UserProfilePage() {
                          </div>
 
                          <div className="col-xl-8">
-                              <form className="border rounded-4 bg-white shadow-sm overflow-hidden" onSubmit={handleEditSubmit}>
-                                   <div className="p-4 border-bottom" style={{ background: 'linear-gradient(180deg, #fffaf0 0%, #ffffff 100%)' }}>
-                                        <h2 className="fs-4 fw-bold text-dark mb-1">Edit Profile</h2>
+                              <form className="border rounded-4 shadow-sm overflow-hidden" style={{ backgroundColor: bodyBg, borderColor }} onSubmit={handleEditSubmit}>
+                                   <div className="p-4 border-bottom" style={{ background: `linear-gradient(180deg, ${warmSurface} 0%, ${bodyBg} 100%)`, borderColor }}>
+                                        <h2 className="fs-4 fw-bold mb-1" style={{ color: emphasisColor }}>Edit Profile</h2>
                                         <p className="text-muted mb-0">Keep personal details current and submit credential changes only when required.</p>
                                    </div>
 
                                    <div className="p-4 p-lg-5">
                                         <div className="row g-4">
                                              <div className="col-12">
-                                                  <h3 className="fs-5 fw-bold text-dark mb-3">Personal Information</h3>
+                                                  <h3 className="fs-5 fw-bold mb-3" style={{ color: emphasisColor }}>Personal Information</h3>
                                              </div>
                                              <div className="col-md-6">
-                                                  <label className="form-label text-dark fw-semibold" htmlFor="username">Username</label>
+                                                  <label className="form-label fw-semibold" style={{ color: emphasisColor }} htmlFor="username">Username</label>
                                                   <input type="text" name="username" id="username" value={editData.username} onChange={handleEditChange} className="form-control form-control-lg" placeholder="Enter username" required />
                                              </div>
                                              <div className="col-md-6">
-                                                  <label className="form-label text-dark fw-semibold" htmlFor="email">Email Address</label>
+                                                  <label className="form-label fw-semibold" style={{ color: emphasisColor }} htmlFor="email">Email Address</label>
                                                   <input type="email" name="email" id="email" value={editData.email} onChange={handleEditChange} className="form-control form-control-lg" placeholder="Enter email address" required autoComplete="off" />
                                              </div>
                                              <div className="col-md-6">
-                                                  <label className="form-label text-dark fw-semibold" htmlFor="mobile">Mobile Number</label>
+                                                  <label className="form-label fw-semibold" style={{ color: emphasisColor }} htmlFor="mobile">Mobile Number</label>
                                                   <input type="tel" name="mobile" id="mobile" value={editData.mobile} onChange={handleEditChange} className="form-control form-control-lg" placeholder="10-digit mobile number" required minLength={10} maxLength={10} autoComplete="off" />
                                              </div>
                                              <div className="col-md-6">
-                                                  <label className="form-label text-dark fw-semibold" htmlFor="alternativeMobile">Alternative Contact</label>
+                                                  <label className="form-label fw-semibold" style={{ color: emphasisColor }} htmlFor="alternativeMobile">Alternative Contact</label>
                                                   <input type="tel" name="alternativeMobile" id="alternativeMobile" value={editData.alternativeMobile || ''} onChange={handleEditChange} className="form-control form-control-lg" placeholder="Alternative contact number" minLength={10} maxLength={10} autoComplete="off" />
                                              </div>
                                              <div className="col-md-6">
-                                                  <label className="form-label text-dark fw-semibold" htmlFor="dob">Date of Birth</label>
+                                                  <label className="form-label fw-semibold" style={{ color: emphasisColor }} htmlFor="dob">Date of Birth</label>
                                                   <input type="date" name="dob" id="dob" value={editData.dob || ''} onChange={handleEditChange} className="form-control form-control-lg" required autoComplete="off" />
                                              </div>
                                              <div className="col-md-6">
-                                                  <label className="form-label text-dark fw-semibold" htmlFor="branch">Branch</label>
+                                                  <label className="form-label fw-semibold" style={{ color: emphasisColor }} htmlFor="branch">Branch</label>
                                                   <input type="text" name="branch" id="branch" value={String(editData.branch || '')} onChange={handleEditChange} className="form-control form-control-lg" placeholder="Assigned branch" required autoComplete="off" />
                                              </div>
 
                                              <div className="col-12 pt-2">
                                                   <div className="border-top pt-4">
-                                                       <h3 className="fs-5 fw-bold text-dark mb-2">Security Updates</h3>
+                                                       <h3 className="fs-5 fw-bold mb-2" style={{ color: emphasisColor }}>Security Updates</h3>
                                                        <p className="text-muted mb-0">These fields are optional. Provide the current password when changing a password or PIN.</p>
                                                   </div>
                                              </div>
                                              <div className="col-md-6">
-                                                  <label className="form-label text-dark fw-semibold" htmlFor="currentPassword">Current Password</label>
+                                                  <label className="form-label fw-semibold" style={{ color: emphasisColor }} htmlFor="currentPassword">Current Password</label>
                                                   <input type="password" name="currentPassword" id="currentPassword" value={passwordFields.currentPassword} onChange={handlePasswordFieldsChange} className="form-control form-control-lg" placeholder="Enter current password" autoComplete="off" />
                                              </div>
                                              <div className="col-md-6">
-                                                  <label className="form-label text-dark fw-semibold" htmlFor="newPassword">New Password</label>
+                                                  <label className="form-label fw-semibold" style={{ color: emphasisColor }} htmlFor="newPassword">New Password</label>
                                                   <input type="password" name="newPassword" id="newPassword" value={passwordFields.newPassword} onChange={handlePasswordFieldsChange} className="form-control form-control-lg" placeholder="Enter new password" minLength={6} autoComplete="off" />
                                              </div>
                                              <div className="col-md-6">
-                                                  <label className="form-label text-dark fw-semibold" htmlFor="confirmPassword">Confirm New Password</label>
+                                                  <label className="form-label fw-semibold" style={{ color: emphasisColor }} htmlFor="confirmPassword">Confirm New Password</label>
                                                   <input type="password" name="confirmPassword" id="confirmPassword" value={passwordFields.confirmPassword} onChange={handlePasswordFieldsChange} className="form-control form-control-lg" placeholder="Confirm new password" minLength={6} autoComplete="off" />
                                              </div>
                                              <div className="col-md-6"></div>
                                              <div className="col-md-6">
-                                                  <label className="form-label text-dark fw-semibold" htmlFor="newPin">New PIN</label>
+                                                  <label className="form-label fw-semibold" style={{ color: emphasisColor }} htmlFor="newPin">New PIN</label>
                                                   <input type="password" name="newPin" id="newPin" value={passwordFields.newPin} onChange={handlePasswordFieldsChange} className="form-control form-control-lg" placeholder="4-digit PIN" minLength={4} maxLength={4} autoComplete="off" />
                                              </div>
                                              <div className="col-md-6">
-                                                  <label className="form-label text-dark fw-semibold" htmlFor="confirmPin">Confirm New PIN</label>
+                                                  <label className="form-label fw-semibold" style={{ color: emphasisColor }} htmlFor="confirmPin">Confirm New PIN</label>
                                                   <input type="password" name="confirmPin" id="confirmPin" value={passwordFields.confirmPin} onChange={handlePasswordFieldsChange} className="form-control form-control-lg" placeholder="Confirm new PIN" minLength={4} maxLength={4} autoComplete="off" />
                                              </div>
                                         </div>
@@ -406,8 +414,8 @@ export default function UserProfilePage() {
           <div className="container-fluid px-4 py-4">
                <div className="row g-4 align-items-start">
                     <div className="col-lg-5 col-xl-4">
-                         <div className="border rounded-4 overflow-hidden shadow-sm bg-white position-sticky" style={{ top: 24 }}>
-                              <div className="p-4 p-lg-5 text-white" style={{ background: 'linear-gradient(160deg, #111827 0%, #374151 45%, #f59e0b 150%)' }}>
+                         <div className="border rounded-4 overflow-hidden shadow-sm position-sticky" style={{ top: 24, backgroundColor: bodyBg, borderColor }}>
+                              <div className="p-4 p-lg-5 text-white" style={{ background: 'linear-gradient(160deg, var(--bs-dark) 0%, color-mix(in srgb, var(--bs-dark) 72%, var(--bs-body-bg)) 45%, var(--bs-warning) 150%)' }}>
                                    <div className="rounded-circle d-flex align-items-center justify-content-center mb-4" style={{ width: 96, height: 96, backgroundColor: 'rgba(255,255,255,0.14)' }}>
                                         <RiUser3Fill size={44} />
                                    </div>
@@ -416,7 +424,7 @@ export default function UserProfilePage() {
                                    <p className="mb-3" style={{ color: 'rgba(255,255,255,0.78)' }}>{user.role}</p>
                                    <div className="d-flex flex-wrap gap-2 mb-4">
                                         {getStatusBadge(user.activation)}
-                                        <span className="badge rounded-pill text-bg-light text-dark px-3 py-2">Employee #{user.employeeid}</span>
+                                        <span className="badge rounded-pill px-3 py-2 border" style={{ backgroundColor: 'rgba(255,255,255,0.16)', color: '#fff', borderColor: 'rgba(255,255,255,0.18)' }}>Employee #{user.employeeid}</span>
                                    </div>
                                    <button className="btn btn-warning fw-semibold px-4" onClick={() => setEditMode(true)}>
                                         <RiEdit2Fill size={18} className="me-2" />
@@ -436,24 +444,24 @@ export default function UserProfilePage() {
                          <div className="row g-4">
                               <div className="col-12">
                                    <SectionCard title="Contact Details" subtitle="Primary communication and reachability information.">
-                                        <DetailItem icon={<RiMailFill size={20} style={{ color: '#d97706' }} />} label="Email address" value={user.email || '-'} />
-                                        <DetailItem icon={<RiPhoneFill size={20} style={{ color: '#d97706' }} />} label="Phone numbers" value={<span>{user.mobile || '-'}{user.alternativeMobile ? <span className="text-muted fw-normal"> / {user.alternativeMobile}</span> : null}</span>} />
-                                        <DetailItem icon={<RiBuilding2Fill size={20} style={{ color: '#d97706' }} />} label="Assigned branch" value={user.branch || '-'} />
+                                        <DetailItem icon={<RiMailFill size={20} style={{ color: accentColor }} />} label="Email address" value={user.email || '-'} />
+                                        <DetailItem icon={<RiPhoneFill size={20} style={{ color: accentColor }} />} label="Phone numbers" value={<span>{user.mobile || '-'}{user.alternativeMobile ? <span className="text-muted fw-normal"> / {user.alternativeMobile}</span> : null}</span>} />
+                                        <DetailItem icon={<RiBuilding2Fill size={20} style={{ color: accentColor }} />} label="Assigned branch" value={user.branch || '-'} />
                                    </SectionCard>
                               </div>
 
                               <div className="col-md-6">
                                    <SectionCard title="Employment Overview" subtitle="Core staff identity on the account.">
-                                        <DetailItem icon={<RiShieldUserFill size={20} style={{ color: '#d97706' }} />} label="Employee ID" value={user.employeeid} />
-                                        <DetailItem icon={<RiUser3Fill size={20} style={{ color: '#d97706' }} />} label="Role" value={user.role || '-'} />
-                                        <DetailItem icon={<RiCake2Fill size={20} style={{ color: '#d97706' }} />} label="Date of birth" value={user.dob || '-'} />
+                                        <DetailItem icon={<RiShieldUserFill size={20} style={{ color: accentColor }} />} label="Employee ID" value={user.employeeid} />
+                                        <DetailItem icon={<RiUser3Fill size={20} style={{ color: accentColor }} />} label="Role" value={user.role || '-'} />
+                                        <DetailItem icon={<RiCake2Fill size={20} style={{ color: accentColor }} />} label="Date of birth" value={user.dob || '-'} />
                                    </SectionCard>
                               </div>
 
                               <div className="col-md-6">
                                    <SectionCard title="Security Snapshot" subtitle="Credential status and authentication details.">
                                         <DetailItem
-                                             icon={<RiKey2Fill size={20} style={{ color: '#d97706' }} />}
+                                             icon={<RiKey2Fill size={20} style={{ color: accentColor }} />}
                                              label="PIN"
                                              value={
                                                   <span>
@@ -461,7 +469,7 @@ export default function UserProfilePage() {
                                                        <button
                                                             type="button"
                                                             className="btn btn-link btn-sm p-0 ms-2 fw-semibold"
-                                                            style={{ textDecoration: 'none', color: '#b45309' }}
+                                                            style={{ textDecoration: 'none', color: accentColor }}
                                                             onClick={() => setShowPin(v => !v)}
                                                             aria-label={showPin ? 'Hide PIN' : 'Show PIN'}
                                                        >
@@ -470,8 +478,8 @@ export default function UserProfilePage() {
                                                   </span>
                                              }
                                         />
-                                        <DetailItem icon={<RiVerifiedBadgeFill size={20} style={{ color: '#d97706' }} />} label="Email authenticated" value={user.emailAuthenticated === 'true' ? 'Yes' : 'No'} />
-                                        <DetailItem icon={<RiCheckFill size={20} style={{ color: '#d97706' }} />} label="Account status" value={user.activation === 1 ? 'Enabled' : 'Disabled'} />
+                                        <DetailItem icon={<RiVerifiedBadgeFill size={20} style={{ color: accentColor }} />} label="Email authenticated" value={user.emailAuthenticated === 'true' ? 'Yes' : 'No'} />
+                                        <DetailItem icon={<RiCheckFill size={20} style={{ color: accentColor }} />} label="Account status" value={user.activation === 1 ? 'Enabled' : 'Disabled'} />
                                    </SectionCard>
                               </div>
 
@@ -481,19 +489,19 @@ export default function UserProfilePage() {
                                              <div className="col-md-6">
                                                   <div className="border rounded-4 p-4 h-100 bg-body-tertiary">
                                                        <div className="d-flex align-items-center gap-3 mb-2">
-                                                            <RiCalendarEventFill size={22} style={{ color: '#d97706' }} />
+                                                            <RiCalendarEventFill size={22} style={{ color: accentColor }} />
                                                             <div className="text-uppercase text-muted small fw-semibold">Profile created</div>
                                                        </div>
-                                                       <div className="fw-bold text-dark">{user.date_created || '-'}</div>
+                                                       <div className="fw-bold" style={{ color: emphasisColor }}>{user.date_created || '-'}</div>
                                                   </div>
                                              </div>
                                              <div className="col-md-6">
                                                   <div className="border rounded-4 p-4 h-100 bg-body-tertiary">
                                                        <div className="d-flex align-items-center gap-3 mb-2">
-                                                            <RiCalendarEventFill size={22} style={{ color: '#d97706' }} />
+                                                            <RiCalendarEventFill size={22} style={{ color: accentColor }} />
                                                             <div className="text-uppercase text-muted small fw-semibold">Last updated</div>
                                                        </div>
-                                                       <div className="fw-bold text-dark">{user.updated_on || 'No updates recorded'}</div>
+                                                       <div className="fw-bold" style={{ color: emphasisColor }}>{user.updated_on || 'No updates recorded'}</div>
                                                   </div>
                                              </div>
                                         </div>

@@ -841,7 +841,7 @@ export default function PrimeTableV2({
           <div ref={wrapperRef} className={`${v2Style.tableWrapper} ${v2Style.enhancedControls} ${isFullscreen ? v2Style.fullscreen : ""}`} data-table-theme={effectiveTheme}>
                <div className={v2Style.topBar}>
                     <div className={v2Style.topBarTitleGroup}>
-                         <h6 className={v2Style.topBarTitle}>Enterprise Grid V9</h6>
+                         {/* <h6 className={v2Style.topBarTitle}>Enterprise Grid V9</h6> */}
                          <div className={v2Style.metaRow}>
                               <table.Subscribe selector={(s) => Object.keys(s.rowSelection || {}).length}>
                                    {(selectedCount) => <span className={v2Style.metaChip}>Selected: {selectedCount}</span>}

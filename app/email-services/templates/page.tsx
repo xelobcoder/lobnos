@@ -4,10 +4,13 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Badge, Button, Card, Col, Form, Modal, Row, Spinner } from 'react-bootstrap';
 import { RiAddLine, RiDeleteBinLine, RiEyeLine, RiFileCopyLine, RiMailLine, RiRefreshLine, RiSaveLine } from '@remixicon/react';
 import { toast } from 'react-toastify';
-import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
-import PrimeToast from '../../../../components/accessories/PrimeToast';
-import { useApplication } from '../../../../components/Auth/useApplicationContext';
+
 import { EmailTemplate, STATUS_OPTIONS, TEMPLATE_CATEGORIES, VARIABLE_CHIPS, callGet, callMutate, defaultTemplateForm, mapTemplateFromApi, parseList, statusBadge } from '../_lib';
+import styles from '../email-standard.module.css';
+import EmailPageHero from '../_components/EmailPageHero';
+import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
+import PrimeToast from '../../../components/accessories/PrimeToast';
+import { useApplication } from '../../../components/Auth/useApplicationContext';
 
 export default function EmailTemplatesPage() {
      const app = useApplication();
@@ -151,12 +154,23 @@ export default function EmailTemplatesPage() {
      ];
 
      return (
-          <div className="container-fluid px-3 py-3">
+          <div className={`container-fluid ${styles.pageRoot}`}>
                <PrimeToast />
-               <Card className="border rounded">
-                    <Card.Header className="bg-body-tertiary d-flex justify-content-between align-items-center">
-                         <strong>Email Templates</strong>
-                         <div className="d-flex gap-2">
+               <EmailPageHero
+                    title="Email Templates"
+                    subtitle="Design reusable email content blocks with variable chips, previews, and controlled activation status."
+                    icon={<RiMailLine size={16} />}
+                    badge="Template Studio"
+                    stats={[
+                         { label: 'Templates', value: templates.length },
+                         { label: 'Categories', value: TEMPLATE_CATEGORIES.length },
+                         { label: 'Variables', value: VARIABLE_CHIPS.length },
+                    ]}
+               />
+               <Card className={styles.surfaceCard}>
+                    <Card.Header className={`${styles.surfaceHeader} d-flex justify-content-between align-items-center`}>
+                         <strong className={styles.surfaceTitle}>Email Templates</strong>
+                         <div className={styles.headerActions}>
                               <Button size="sm" variant="outline-secondary" onClick={() => loadTemplates()}><RiRefreshLine size={14} /></Button>
                               <Button size="sm" variant="success" onClick={() => openTemplateModal('create')}><RiAddLine size={14} className="me-1" />New Template</Button>
                          </div>

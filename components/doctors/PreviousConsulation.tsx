@@ -6,6 +6,18 @@ export default function PreviousConsulation({ patientid }: { patientid: number }
      const [consulationRecords, setConsulationRecords] = useState<any[]>([]);
      const [loading, setLoading] = useState<boolean>(true);
 
+     const getConsultationText = (record: any) =>
+          record.progress_report || record.consultation_notes || record.complaints || "No consultation notes recorded";
+
+     const formatCreatedAt = (createdAt: string) =>
+          new Date(createdAt).toLocaleDateString(undefined, {
+               year: 'numeric',
+               month: 'long',
+               day: 'numeric',
+               hour: '2-digit',
+               minute: '2-digit'
+          });
+
      useEffect(() => {
           if (patientid) {
                setLoading(true);
@@ -25,34 +37,30 @@ export default function PreviousConsulation({ patientid }: { patientid: number }
           }
      }, [patientid]);
 
-     if (loading) return <h6 className="alert alert-info pls-color">Loading...</h6>;
+     if (loading) return <div className="alert alert-info mb-0">Loading previous consultations...</div>;
 
      if (consulationRecords.length === 0)
-          return <h6 className="alert alert-danger pls-color">No Previous consultation</h6>;
+          return <div className="alert alert-secondary mb-0">No previous consultation records were found for this patient.</div>;
 
      return (
-          <div>
+          <div className="d-grid gap-3">
                {consulationRecords.map((record, index) => (
-                    <div key={index} style={{ marginBottom: "24px", border: "1px solid #ddd", borderRadius: "4px", padding: "12px", backgroundColor: "#f9f9f9" }}>
-                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", borderBottom: "1px solid #eee", paddingBottom: "8px" }}>
+                    <div key={index} className="border rounded-4 bg-body shadow-sm overflow-hidden">
+                         <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 p-3 p-md-4 border-bottom bg-body-tertiary">
                               <div>
-                                   <h6 style={{ marginBottom: "4px", fontSize: "0.95rem", fontWeight: "bold" }}>
-                                        {new Date(record.created_at).toLocaleDateString(undefined, {
-                                             year: 'numeric',
-                                             month: 'long',
-                                             day: 'numeric',
-                                             hour: '2-digit',
-                                             minute: '2-digit'
-                                        })}
-                                   </h6>
-                                   <p style={{ marginBottom: "0", fontSize: "0.85rem", color: "#666" }}>
-                                        By: <strong>{record.consultationby || record.consulationby || "Unknown"}</strong> |
-                                        Type: <span style={{ display: "inline-block", marginLeft: "4px" }}><span style={{ padding: "2px 6px", backgroundColor: "#0dcaf0", color: "white", borderRadius: "3px", fontSize: "0.75rem" }}>{record.record_type}</span></span>
-                                   </p>
+                                   <div className="text-uppercase text-muted small fw-semibold mb-1">Consultation Date</div>
+                                   <h6 className="mb-1 fw-bold text-body-emphasis">{formatCreatedAt(record.created_at)}</h6>
+                                   <div className="text-muted small">Recorded by <span className="fw-semibold text-body-emphasis">{record.consultationby || record.consulationby || "Unknown"}</span></div>
+                              </div>
+                              <div className="d-flex align-items-center gap-2 flex-wrap">
+                                   <span className="badge rounded-pill text-bg-info px-3 py-2">{record.record_type || 'Consultation'}</span>
                               </div>
                          </div>
-                         <div style={{ whiteSpace: "pre-wrap", wordWrap: "break-word", fontSize: "0.9rem", lineHeight: "1.6", fontFamily: "monospace", color: "#333" }}>
-                              {record.progress_report || record.consultation_notes || record.complaints || "No consultation notes recorded"}
+                         <div className="p-3 p-md-4">
+                              <div className="text-uppercase text-muted small fw-semibold mb-2">Progress Report</div>
+                              <div className="rounded-4 border bg-body-tertiary p-3 p-md-4" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: '1.7' }}>
+                                   {getConsultationText(record)}
+                              </div>
                          </div>
                     </div>
                ))}

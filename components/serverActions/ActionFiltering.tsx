@@ -450,16 +450,27 @@ export async function loadTaskDefinition(pagination) {
 
 
 
-export const handleServerCriticalValues = async (paginate) => {
+
+export const handleServerCriticalValues = async (paginate: { page: number; count: number; sortby?: 'DESC' | 'ASC'; status?: 'seen' | 'unseen' }) => {
 	try {
-		const { page, count, sortby } = paginate
-		const response = await customFetch(`result/criticalvalues/logging/paginated?sortby=${sortby}&&page=${page}&&count=${count}`);
+		const { page, count, sortby = 'DESC', status } = paginate
+		const statusQuery = status ? `&&status=${status}` : '';
+		const response = await customFetch(`result/criticalvalues/logging/paginated?sortby=${sortby}&&page=${page}&&count=${count}${statusQuery}`);
 		if (response?.data && Array.isArray(response?.data)) {
-			return { result: response?.data, error: false }
+			const totalCount = Number(response?.total ?? response?.count ?? 0);
+			const pageSize = Number(response?.pageSize ?? count);
+			const totalPages = totalCount > 0 && pageSize > 0 ? Math.ceil(totalCount / pageSize) : undefined;
+
+			return {
+				result: response?.data,
+				error: false,
+				totalCount: Number.isFinite(totalCount) ? totalCount : undefined,
+				totalPages,
+			}
 		}
-		return { result: [], error: true }
+		return { result: [], error: true, totalCount: 0, totalPages: 0 }
 	} catch (err) {
-		return { result: [], error: true }
+		return { result: [], error: true, totalCount: 0, totalPages: 0 }
 	}
 }
 

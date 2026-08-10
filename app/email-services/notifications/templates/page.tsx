@@ -8,6 +8,8 @@ import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable
 import PrimeToast from '../../../../components/accessories/PrimeToast';
 import { useApplication } from '../../../../components/Auth/useApplicationContext';
 import { extractTemplateVariables, loadEvents, loadTemplates, loadSingleEventCatalog, callMutate, callGet, parseList } from '../_lib';
+import styles from '../../email-standard.module.css';
+import EmailPageHero from '../../_components/EmailPageHero';
 
 
 const emptyTemplateForm = {
@@ -240,13 +242,24 @@ export default function NotificationTemplatesPage() {
      ];
 
      return (
-          <div className="container-fluid px-3 py-3 d-flex flex-column gap-3">
+          <div className={`container-fluid ${styles.pageRoot} d-flex flex-column gap-3`}>
                <PrimeToast />
+               <EmailPageHero
+                    title="Notification Templates"
+                    subtitle="Compose event-bound templates with version history, preview rendering, and placeholder safety checks."
+                    icon={<RiFileHistoryLine size={16} />}
+                    badge="Notification Content"
+                    stats={[
+                         { label: 'Templates', value: visibleTemplates.length },
+                         { label: 'Event Vars', value: catalogVariables.length },
+                         { label: 'Versions Open', value: showVersionsModal ? 'Yes' : 'No' },
+                    ]}
+               />
 
-               <Card className="border rounded">
-                    <Card.Header className="bg-body-tertiary d-flex justify-content-between align-items-center flex-wrap gap-2">
-                         <strong>Notification Templates</strong>
-                         <div className="d-flex gap-2">
+               <Card className={styles.surfaceCard}>
+                    <Card.Header className={`${styles.surfaceHeader} d-flex justify-content-between align-items-center flex-wrap gap-2`}>
+                         <strong className={styles.surfaceTitle}>Notification Templates</strong>
+                         <div className={styles.headerActions}>
                               <Button size="sm" variant="outline-secondary" onClick={resetTemplateForm}>New</Button>
                               <Button size="sm" variant="outline-primary" onClick={() => previewTemplate()}><RiEyeLine size={14} className="me-1" />Preview</Button>
                               <Button size="sm" variant="success" onClick={saveTemplate}><RiSaveLine size={14} className="me-1" />Save Template</Button>
@@ -289,8 +302,8 @@ export default function NotificationTemplatesPage() {
                                    </Col>
 
                                    <Col lg={5}>
-                                        <Card className="border rounded">
-                                             <Card.Header className="bg-body-tertiary"><strong>Preview</strong></Card.Header>
+                                        <Card className={styles.surfaceCard}>
+                                             <Card.Header className={styles.surfaceHeader}><strong>Preview</strong></Card.Header>
                                              <Card.Body>
                                                   {templatePreview ? (
                                                        <>

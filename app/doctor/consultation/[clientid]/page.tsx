@@ -434,14 +434,17 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 				</Row>
 
 				{
-					showPreviousConsultationModal && <Modal show={showPreviousConsultationModal} onHide={() => setShowPreviousConsultationModal(false)} size="xl" centered>
-						<Modal.Header closeButton>
-							<Modal.Title>Previous Consultations</Modal.Title>
+					showPreviousConsultationModal && <Modal show={showPreviousConsultationModal} onHide={() => setShowPreviousConsultationModal(false)} size="xl" scrollable dialogClassName={styles.topSheetDialog} contentClassName={styles.topSheetContent}>
+						<Modal.Header closeButton className={styles.topSheetHeader}>
+							<Modal.Title as="div">
+								<div className={styles.topSheetTitle}>Previous Consultations</div>
+								<div className={styles.topSheetSubtitle}>Review earlier progress reports without leaving the active consultation workspace.</div>
+							</Modal.Title>
 						</Modal.Header>
-						<Modal.Body>
+						<Modal.Body className={styles.topSheetBody}>
 							<PreviousConsulation patientid={clientid} />
 						</Modal.Body>
-						<Modal.Footer>
+						<Modal.Footer className={styles.topSheetFooter}>
 							<Button variant="secondary" onClick={() => setShowPreviousConsultationModal(false)}>
 								Close
 							</Button>

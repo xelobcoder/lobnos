@@ -8,8 +8,9 @@ import BilledClientsView from "../../../../../components/Billing/BilledClientsVi
 import { useApplication } from "../../../../../components/Auth/useApplicationContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import { handleDatePicker } from "../../../../../components/serverActions/ActionFiltering";
-import { RiSearchLine, RiCalendarEventLine } from "@remixicon/react";
+import { RiSearchLine } from "@remixicon/react";
 import { useApplicationSettings } from "../../../../../components/Auth/useApplicationContext";
+import DateFilterReusable from "../../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 
 export default function DailySalesViewCustomerRepresentative({ params, searchParams }: {
 	params: {
@@ -36,6 +37,7 @@ export default function DailySalesViewCustomerRepresentative({ params, searchPar
 	const [datequery, setDatequery] = useState({ from: initialFrom, to: initialTo });
 	// activeQuery for the actual search (only changes when search is clicked or initial load)
 	const [activeQuery, setActiveQuery] = useState({ from: initialFrom, to: initialTo });
+	const [dateFilter, setDateFilter] = useState("");
 
 	// Sync URL search params with datequery on init/URL change
 	useEffect(() => {
@@ -131,18 +133,15 @@ export default function DailySalesViewCustomerRepresentative({ params, searchPar
 	return (
 		<div>
 			{/* Date Filters at the top */}
-			<div className="d-flex align-items-center gap-2 mt-3 mb-3">
-				<div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
-					<span className="input-group-text bg-transparent border-end-0" style={{ borderColor: 'var(--bs-border-color)' }}>
-						<RiCalendarEventLine size={16} className="text-muted" />
-					</span>
-					<input type="date" className="form-control shadow-none border-start-0" value={datequery.from} onChange={(ev) => setDatequery({ ...datequery, from: ev.target.value })} />
-				</div>
-				<div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
-					<span className="input-group-text bg-transparent border-end-0" style={{ borderColor: 'var(--bs-border-color)' }}>
-						<RiCalendarEventLine size={16} className="text-muted" />
-					</span>
-					<input type="date" className="form-control shadow-none border-start-0" value={datequery.to} onChange={(ev) => setDatequery({ ...datequery, to: ev.target.value })} min={datequery.from} />
+			<div className="d-flex align-items-center gap-2 mt-3 mb-3 flex-wrap">
+				<div style={{ minWidth: '240px' }}>
+					<DateFilterReusable
+						value={dateFilter}
+						onChange={setDateFilter}
+						onDateRangeChange={(from, to) => setDatequery({ from, to })}
+						label="Period"
+						className="w-100"
+					/>
 				</div>
 				<button
 					className="btn btn-outline-secondary btn-sm d-flex align-items-center"
