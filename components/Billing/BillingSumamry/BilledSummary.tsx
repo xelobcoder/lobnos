@@ -14,11 +14,18 @@ interface Summary {
 	earned_revenue: string | number;
 	discount: string | number;
 	total_refunded: string | number;
+	total_billing?: number;
+	total_patients_registered?: number;
 	transactioncount?: number;
 	expenses_paid: string | number;
 	net_operating_cash: string | number;
 	outstanding: string | number;
 }
+
+type SummaryPayload = {
+	summary?: Summary[];
+	branch?: Branch;
+};
 
 interface Branch {
 	branchid: number;
@@ -38,6 +45,8 @@ const _default: Summary = {
 	earned_revenue: '0.00',
 	discount: '0.00',
 	total_refunded: '0.00',
+	total_billing: 0,
+	total_patients_registered: 0,
 	transactioncount: 0,
 	expenses_paid: '0.00',
 	net_operating_cash: '0.00',
@@ -94,7 +103,7 @@ const AnalyticCard = ({
 );
 
 const cardColors = {
-	totalCost: { bg: "#4f46e5", icon: "#6366f1" }, 
+	totalCost: { bg: "#4f46e5", icon: "#6366f1" },
 	outstanding: { bg: "#ea580c", icon: "#f97316" }, // Orange
 	refunded: { bg: "#be123c", icon: "#e11d48" }, // Crimson
 	expenses: { bg: "#dc2626", icon: "#ef4444" }, // Red
@@ -109,11 +118,35 @@ type PropsQuery = {
 	branchid: string;
 	from?: string;
 	to?: string;
-	summary?: Summary;
+	summary?: Summary | Summary[] | SummaryPayload;
 };
 
+type ResolvedSummaryData = {
+	summary: Summary;
+	branch: Branch | null;
+};
+
+function resolveSummaryData(value?: Summary | Summary[] | SummaryPayload) {
+	if (!value) {
+		return { summary: _default, branch: null } as ResolvedSummaryData;
+	}
+
+	if (Array.isArray(value)) {
+		return { summary: value[0] || _default, branch: null } as ResolvedSummaryData;
+	}
+
+	if ("summary" in value && Array.isArray(value.summary)) {
+		return {
+			summary: value.summary[0] || _default,
+			branch: value.branch || null,
+		} as ResolvedSummaryData;
+	}
+
+	return { summary: value, branch: null } as ResolvedSummaryData;
+}
+
 export default function BilledSummary({ branchid, from, to, summary }: PropsQuery) {
-	const [internalSummary, setInternalSummary] = useState<Summary>(summary || _default);
+	const [internalSummary, setInternalSummary] = useState<Summary>(resolveSummaryData(summary).summary);
 	const [branch, setBranch] = useState<Branch | null>(null);
 	const [isVisible, setIsVisible] = useState<boolean>(true);
 	const role = useApplication()?.user?.role;
@@ -121,8 +154,11 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 
 	useEffect(() => {
 		if (summary) {
-			const summaryToUse = Array.isArray(summary) ? summary[0] : summary;
-			setInternalSummary(summaryToUse || _default);
+			const resolved = resolveSummaryData(summary);
+			setInternalSummary(resolved.summary);
+			if (resolved.branch) {
+				setBranch(resolved.branch);
+			}
 			return;
 		}
 		async function fetchSummary() {
@@ -131,7 +167,7 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 					`summary/daily?branchid=${branchid}&from=${from}&to=${to}`
 				);
 				if (data && data?.summary && Array.isArray(data.summary) && data.summary.length > 0) {
-					setInternalSummary(data.summary[0]); 
+					setInternalSummary(data.summary[0]);
 				}
 				setBranch(data.branch);
 			} catch (err) {
@@ -162,9 +198,19 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 							</div>
 						)}
 					</div>
-					<h5 className=" fw-bold">Transactions Count: {Number(internalSummary.transactioncount || 0).toLocaleString()}</h5>
+					<div className="d-flex align-items-center gap-3 flex-wrap">
+						<h6 className="mb-0 fw-bold text-dark">
+							Transactions: {Number(internalSummary.transactioncount || 0).toLocaleString()}
+						</h6>
+						<h6 className="mb-0 fw-bold text-dark">
+							Total Billing: {Number(internalSummary.total_billing || 0).toLocaleString()}
+						</h6>
+						<h6 className="mb-0 fw-bold text-dark">
+							Patients Registered: {Number(internalSummary.total_patients_registered || 0).toLocaleString()}
+						</h6>
+					</div>
 					<div className="d-flex align-items-center gap-2">
-						
+
 						{isAdmin && (
 							<button
 								className="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2"

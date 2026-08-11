@@ -554,7 +554,7 @@ export default function CreateCompensationPage() {
                                              />
                                         </div>
                                         <div className="col-md-6">
-                                             <label className="form-label">Effective To (Optional)</label>
+                                             <label className="form-label">Effective To</label>
                                              <input
                                                   type="date"
                                                   className="form-control"
