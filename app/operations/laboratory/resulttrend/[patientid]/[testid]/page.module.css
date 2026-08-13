@@ -1,0 +1,802 @@
+.page {
+     --rt-bg-soft: #f3f7fa;
+     --rt-bg-card: #ffffff;
+     --rt-border: #d6dfe6;
+     --rt-text-main: #1f2d3d;
+     --rt-text-muted: #58677a;
+     --rt-accent: #005eb8;
+     --rt-accent-strong: #003f7d;
+     --rt-accent-soft: #e6f0fa;
+     --rt-positive: #00703c;
+     --rt-negative: #b10e1e;
+     --rt-neutral: #5c6f82;
+     --rt-chart-surface: #ffffff;
+     --rt-chart-line-start: #005eb8;
+     --rt-chart-line-end: #0072ce;
+     --rt-chart-area-start: rgba(0, 114, 206, 0.30);
+     --rt-chart-area-end: rgba(0, 114, 206, 0.05);
+     --rt-shadow: 0 8px 24px rgba(24, 39, 75, 0.08);
+
+     min-height: 100%;
+     padding: 20px 16px 28px;
+     background:
+          radial-gradient(circle at top right, #e8f2fb 0%, rgba(232, 242, 251, 0) 42%),
+          linear-gradient(180deg, #fbfdff 0%, #f6f9fc 100%);
+}
+
+@media (min-width: 768px) {
+     .page {
+          padding: 24px 24px 34px;
+     }
+}
+
+.hero {
+     border: 1px solid var(--rt-border);
+     border-radius: 14px;
+     background: var(--rt-bg-card);
+     box-shadow: none;
+     padding: 18px;
+     margin-bottom: 18px;
+}
+
+@media (min-width: 992px) {
+     .hero {
+          padding: 22px;
+     }
+}
+
+.heroTop {
+     display: flex;
+     flex-wrap: wrap;
+     align-items: center;
+     justify-content: space-between;
+     gap: 12px;
+     margin-bottom: 14px;
+}
+
+.title {
+     margin: 0;
+     font-size: 1.45rem;
+     line-height: 1.2;
+     color: var(--rt-text-main);
+     letter-spacing: 0.01em;
+}
+
+.subtitle {
+     margin: 2px 0 0;
+     color: var(--rt-text-muted);
+     font-size: 0.9rem;
+}
+
+.kpiBadge {
+     background: var(--rt-accent-soft);
+     color: #084a7a;
+     border: 1px solid #b8daf7;
+     border-radius: 999px;
+     padding: 6px 12px;
+     font-size: 0.8rem;
+     font-weight: 700;
+     white-space: nowrap;
+}
+
+.metaGrid {
+     display: grid;
+     grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+     gap: 10px;
+}
+
+.metaItem {
+     border: 1px solid var(--rt-border);
+     border-radius: 10px;
+     padding: 10px 12px;
+     background: #fcfeff;
+}
+
+.metaLabel {
+     display: block;
+     margin-bottom: 4px;
+     font-size: 0.72rem;
+     font-weight: 700;
+     color: #6d7d90;
+     text-transform: uppercase;
+     letter-spacing: 0.06em;
+}
+
+.metaValue {
+     font-size: 0.98rem;
+     color: var(--rt-text-main);
+     font-weight: 700;
+     word-break: break-word;
+}
+
+.alertBox {
+     margin-top: 14px;
+     border: 1px solid var(--rt-border);
+     border-radius: 10px;
+     padding: 12px;
+     background: #f7fbff;
+     color: var(--rt-text-muted);
+}
+
+.alertError {
+     background: #fff5f5;
+     border-color: #f2c6ca;
+     color: #8a2332;
+}
+
+.sectionCard {
+     border: 1px solid var(--rt-border);
+     border-radius: 14px;
+     background: var(--rt-bg-card);
+     box-shadow: none;
+     overflow: hidden;
+     margin-bottom: 20px;
+}
+
+.sectionHead {
+     border-bottom: 1px solid var(--rt-border);
+     background: linear-gradient(180deg, #fbfdff 0%, #f3f8fd 100%);
+     padding: 14px 16px;
+}
+
+.sectionHeadRow {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     gap: 10px;
+     flex-wrap: wrap;
+}
+
+.sectionTitle {
+     margin: 0;
+     font-size: 1rem;
+     color: var(--rt-text-main);
+     font-weight: 700;
+}
+
+.sectionHint {
+     margin: 4px 0 0;
+     color: var(--rt-text-muted);
+     font-size: 0.82rem;
+}
+
+.viewToggle {
+     display: inline-flex;
+     border: 1px solid #b9d2ea;
+     border-radius: 10px;
+     overflow: hidden;
+     background: #ffffff;
+}
+
+.viewBtn {
+     border: none;
+     background: transparent;
+     color: #335a7c;
+     font-size: 0.82rem;
+     font-weight: 700;
+     padding: 6px 11px;
+}
+
+.viewBtnActive {
+     background: #005eb8;
+     color: #ffffff;
+}
+
+.sectionBody {
+     padding: 14px;
+}
+
+.simpleTableWrap {
+     width: 100%;
+     max-width: 100%;
+     overflow-x: auto;
+     border: 1px solid var(--rt-border);
+     border-radius: 10px;
+     background: var(--rt-bg-card);
+}
+
+.simpleTable {
+     width: 100%;
+     border-collapse: separate;
+     border-spacing: 0;
+     min-width: 640px;
+}
+
+.simpleTable th,
+.simpleTable td {
+     padding: 8px 10px;
+     border-bottom: 1px solid var(--rt-border);
+     text-align: left;
+     color: var(--rt-text-main);
+     font-size: 0.84rem;
+     vertical-align: middle;
+}
+
+.simpleTable th {
+     position: sticky;
+     top: 0;
+     z-index: 1;
+     background: linear-gradient(180deg, #f9fbfc 0%, #f1f6fb 100%);
+     font-size: 0.78rem;
+     letter-spacing: 0.02em;
+     text-transform: uppercase;
+}
+
+.simpleTable tbody tr:nth-child(odd) {
+     background: #ffffff;
+}
+
+.simpleTable tbody tr:nth-child(even) {
+     background: #fafdff;
+}
+
+.simpleTable tbody tr:hover {
+     background: #edf5ff;
+}
+
+.simpleTableEmpty {
+     text-align: center !important;
+     color: var(--rt-text-muted) !important;
+     padding: 16px !important;
+}
+
+.chartSection {
+     margin-top: 8px;
+}
+
+.chartGrid {
+     display: grid;
+     grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+     gap: 14px;
+}
+
+.chartCard {
+     border: 1px solid #c9d9ea;
+     border-radius: 12px;
+     padding: 10px;
+     background: #ffffff;
+}
+
+.chartTitle {
+     margin: 0 0 8px;
+     font-size: 0.9rem;
+     font-weight: 700;
+     color: var(--rt-text-main);
+     line-height: 1.35;
+     word-break: break-word;
+}
+
+.chartStatRow {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     gap: 10px;
+     margin-bottom: 6px;
+}
+
+.chartPrimaryValue {
+     color: var(--rt-accent);
+     font-size: 1.8rem;
+     line-height: 1;
+     font-weight: 800;
+     letter-spacing: -0.02em;
+}
+
+.chartPrimaryUnit {
+     font-size: 0.9rem;
+     font-weight: 700;
+     color: #2f5f8a;
+}
+
+.chartDelta {
+     font-size: 0.92rem;
+     font-weight: 700;
+     border-radius: 999px;
+     padding: 4px 9px;
+     white-space: nowrap;
+}
+
+.chartDeltaUp {
+     color: var(--rt-positive);
+     background: #e6f5ec;
+}
+
+.chartDeltaDown {
+     color: var(--rt-negative);
+     background: #fdecef;
+}
+
+.chartDeltaFlat {
+     color: var(--rt-neutral);
+     background: #eef2f6;
+}
+
+.chartEmpty {
+     margin: 0;
+     font-size: 0.82rem;
+     color: var(--rt-text-muted);
+}
+
+.chartSvg {
+     width: 100%;
+     height: auto;
+     display: block;
+}
+
+.chartPlotBg {
+     fill: var(--rt-chart-surface);
+}
+
+.chartAxisText {
+     font-size: 11px;
+     fill: #5f7388;
+}
+
+.chartGridLine {
+     stroke: #dfe8f2;
+     stroke-width: 1;
+}
+
+.chartAxisLine {
+     stroke: #bdcfe1;
+     stroke-width: 1;
+}
+
+.chartLine {
+     fill: none;
+     stroke-width: 2.4;
+}
+
+.chartDot {
+     fill: var(--rt-accent);
+     stroke: #ffffff;
+     stroke-width: 1.4;
+}
+
+.chartLastValue {
+     font-size: 11px;
+     font-weight: 700;
+     fill: var(--rt-accent-strong);
+}
+
+.chartHoverGuide {
+     stroke: #005eb8;
+     stroke-width: 1;
+     stroke-dasharray: 3 3;
+     opacity: 0.75;
+}
+
+.chartTooltipBox {
+     fill: #ffffff;
+     opacity: 1;
+     stroke: #4f95d6;
+     stroke-width: 1.4;
+     filter: drop-shadow(0 8px 12px rgba(14, 55, 97, 0.22));
+}
+
+.chartTooltipTitle {
+     font-size: 11px;
+     font-weight: 700;
+     fill: #2a4d70;
+}
+
+.chartTooltipAccent {
+     font-size: 13px;
+     font-weight: 800;
+     fill: #005eb8;
+}
+
+.chartTooltipText {
+     font-size: 11px;
+     fill: #1d3954;
+}
+
+.valueListWrap {
+     border: 1px solid #d9e7f4;
+     border-radius: 10px;
+     overflow: hidden;
+}
+
+.valueRow {
+     display: flex;
+     justify-content: space-between;
+     align-items: flex-start;
+     gap: 8px;
+     border-bottom: 1px solid #e4edf6;
+     padding: 10px 12px;
+     background: #ffffff;
+}
+
+.valueRow:last-child {
+     border-bottom: none;
+}
+
+.valueRowDate {
+     color: #223b55;
+     font-size: 0.95rem;
+     font-weight: 700;
+     margin-bottom: 2px;
+}
+
+.valueRowPrimary {
+     color: #005eb8;
+     font-size: 1.1rem;
+     line-height: 1.1;
+     font-weight: 800;
+}
+
+.valueUnit {
+     color: #2f5f8a;
+     font-size: 0.86rem;
+     font-weight: 700;
+}
+
+.valueRangeBlock {
+     margin-top: 8px;
+}
+
+.valueRangeScale {
+     position: relative;
+     width: min(250px, 100%);
+     height: 16px;
+}
+
+.valueRangeTrack {
+     position: absolute;
+     top: 7px;
+     left: 0;
+     width: 100%;
+     height: 3px;
+     border-radius: 999px;
+     background: linear-gradient(90deg, #c7d8e8 0%, #6bb6ff 45%, #c7d8e8 100%);
+}
+
+.valueRangeMarker {
+     position: absolute;
+     top: 1px;
+     width: 14px;
+     height: 14px;
+     border-radius: 50%;
+     transform: translateX(-50%);
+     border: 2px solid #ffffff;
+     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.valueRangeMarkerNormal {
+     background: #00703c;
+}
+
+.valueRangeMarkerLow {
+     background: #b10e1e;
+}
+
+.valueRangeMarkerHigh {
+     background: #b10e1e;
+}
+
+.valueRangeLabels {
+     width: min(250px, 100%);
+     display: flex;
+     justify-content: space-between;
+     margin-top: 2px;
+     color: #4f6780;
+     font-size: 0.75rem;
+     font-weight: 700;
+}
+
+.valueRangeSummary {
+     margin-top: 4px;
+     color: #3f5d7b;
+     font-size: 0.76rem;
+     font-weight: 700;
+}
+
+.valueReferenceText {
+     margin-top: 6px;
+     color: #4f6780;
+     font-size: 0.78rem;
+     font-weight: 700;
+}
+
+.valueReferenceSentence {
+     margin-top: 7px;
+     color: #3e5973;
+     font-size: 0.86rem;
+     font-weight: 600;
+}
+
+.valueRangeScaleV2 {
+     position: relative;
+     width: min(360px, 100%);
+     margin-top: 8px;
+     padding-top: 34px;
+}
+
+.valueMarkerWrapV2 {
+     position: absolute;
+     top: 0;
+     transform: translateX(-50%);
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     pointer-events: none;
+}
+
+.valueMarkerValueV2 {
+     font-size: 1.05rem;
+     line-height: 1;
+     font-weight: 800;
+     color: #1f2d3d;
+}
+
+.valueMarkerArrowV2 {
+     width: 0;
+     height: 0;
+     margin-top: 4px;
+     border-left: 7px solid transparent;
+     border-right: 7px solid transparent;
+     border-top: 10px solid #111111;
+}
+
+.valueRangeTrackV2 {
+     display: flex;
+     width: 100%;
+     height: 26px;
+     border: 2px solid #2d3b47;
+     background: #ffffff;
+     overflow: hidden;
+}
+
+.valueRangeOutV2 {
+     background: #f2b227;
+}
+
+.valueRangeNormalV2 {
+     background:
+          repeating-linear-gradient(-45deg,
+               #2ab7a9,
+               #2ab7a9 6px,
+               #39c7b8 6px,
+               #39c7b8 12px);
+}
+
+.valueRangeTicksV2 {
+     position: relative;
+     height: 24px;
+}
+
+.valueRangeTickV2 {
+     position: absolute;
+     top: 3px;
+     transform: translateX(-50%);
+     font-size: 0.82rem;
+     font-weight: 800;
+     color: #1f2d3d;
+}
+
+.valueRowMeta {
+     color: #2f4f6d;
+     font-size: 0.92rem;
+     font-weight: 700;
+     text-align: right;
+}
+
+:global([data-bs-theme="dark"]) .page {
+     --rt-bg-soft: #0b1320;
+     --rt-bg-card: #111c2b;
+     --rt-border: #2a3a4f;
+     --rt-text-main: #e6f0fb;
+     --rt-text-muted: #9cb3cc;
+     --rt-accent: #65b3ff;
+     --rt-accent-strong: #a7d4ff;
+     --rt-accent-soft: #18324f;
+     --rt-positive: #5ad89a;
+     --rt-negative: #ff8f9b;
+     --rt-neutral: #9fb3c9;
+     --rt-chart-surface: #122136;
+     --rt-chart-line-start: #7fc2ff;
+     --rt-chart-line-end: #5aa7ff;
+     --rt-chart-area-start: rgba(110, 182, 255, 0.28);
+     --rt-chart-area-end: rgba(110, 182, 255, 0.06);
+
+     background:
+          radial-gradient(circle at top right, #1a2a3d 0%, rgba(26, 42, 61, 0) 45%),
+          linear-gradient(180deg, #0a121f 0%, #0f1a2a 100%);
+}
+
+:global([data-bs-theme="dark"]) .kpiBadge {
+     background: #1a3553;
+     color: #b9ddff;
+     border-color: #2f5b85;
+}
+
+:global([data-bs-theme="dark"]) .metaItem {
+     background: #142234;
+}
+
+:global([data-bs-theme="dark"]) .metaLabel {
+     color: #8ca4bf;
+}
+
+:global([data-bs-theme="dark"]) .alertBox {
+     background: #122236;
+}
+
+:global([data-bs-theme="dark"]) .alertError {
+     background: #3a1d25;
+     border-color: #7a3642;
+     color: #ffb3be;
+}
+
+:global([data-bs-theme="dark"]) .sectionHead {
+     background: linear-gradient(180deg, #162437 0%, #122033 100%);
+}
+
+:global([data-bs-theme="dark"]) .simpleTableWrap {
+     background: #122136;
+     border-color: #2a415b;
+}
+
+:global([data-bs-theme="dark"]) .simpleTable th,
+:global([data-bs-theme="dark"]) .simpleTable td {
+     border-bottom-color: #243c54;
+}
+
+:global([data-bs-theme="dark"]) .simpleTable th {
+     background: linear-gradient(180deg, #1a2d44 0%, #14263b 100%);
+     color: #dbeeff;
+}
+
+:global([data-bs-theme="dark"]) .simpleTable tbody tr:nth-child(odd) {
+     background: #122136;
+}
+
+:global([data-bs-theme="dark"]) .simpleTable tbody tr:nth-child(even) {
+     background: #14253a;
+}
+
+:global([data-bs-theme="dark"]) .simpleTable tbody tr:hover {
+     background: #193048;
+}
+
+:global([data-bs-theme="dark"]) .viewToggle {
+     border-color: #2f5b85;
+     background: #122136;
+}
+
+:global([data-bs-theme="dark"]) .viewBtn {
+     color: #a8cae8;
+}
+
+:global([data-bs-theme="dark"]) .viewBtnActive {
+     background: #2e7fcb;
+     color: #f4faff;
+}
+
+:global([data-bs-theme="dark"]) .chartCard {
+     border-color: #2a415b;
+     background: #122136;
+}
+
+:global([data-bs-theme="dark"]) .chartPrimaryUnit {
+     color: #9bc7f5;
+}
+
+:global([data-bs-theme="dark"]) .chartDeltaUp {
+     color: #70e0ab;
+     background: #183429;
+}
+
+:global([data-bs-theme="dark"]) .chartDeltaDown {
+     color: #ff9fad;
+     background: #3a2027;
+}
+
+:global([data-bs-theme="dark"]) .chartDeltaFlat {
+     color: #b3c4d6;
+     background: #23364b;
+}
+
+:global([data-bs-theme="dark"]) .chartAxisText {
+     fill: #96aec8;
+}
+
+:global([data-bs-theme="dark"]) .chartGridLine {
+     stroke: #2a3f56;
+}
+
+:global([data-bs-theme="dark"]) .chartAxisLine {
+     stroke: #3a5470;
+}
+
+:global([data-bs-theme="dark"]) .chartDot {
+     stroke: #0f1a2a;
+}
+
+:global([data-bs-theme="dark"]) .chartHoverGuide {
+     stroke: #7ec1ff;
+}
+
+:global([data-bs-theme="dark"]) .chartTooltipBox {
+     fill: #13263b;
+     stroke: #5fa8ec;
+     filter: drop-shadow(0 8px 12px rgba(4, 10, 20, 0.45));
+}
+
+:global([data-bs-theme="dark"]) .chartTooltipTitle {
+     fill: #b9d9f8;
+}
+
+:global([data-bs-theme="dark"]) .chartTooltipAccent {
+     fill: #78c1ff;
+}
+
+:global([data-bs-theme="dark"]) .chartTooltipText {
+     fill: #d8ebff;
+}
+
+:global([data-bs-theme="dark"]) .valueListWrap {
+     border-color: #2a415b;
+}
+
+:global([data-bs-theme="dark"]) .valueRow {
+     border-bottom-color: #243c54;
+     background: #122136;
+}
+
+:global([data-bs-theme="dark"]) .valueRowDate {
+     color: #dbeeff;
+}
+
+:global([data-bs-theme="dark"]) .valueUnit {
+     color: #9bc7f5;
+}
+
+:global([data-bs-theme="dark"]) .valueRangeTrack {
+     background: linear-gradient(90deg, #324a65 0%, #4b9fe8 45%, #324a65 100%);
+}
+
+:global([data-bs-theme="dark"]) .valueRangeMarker {
+     border-color: #0f1a2a;
+}
+
+:global([data-bs-theme="dark"]) .valueRangeLabels,
+:global([data-bs-theme="dark"]) .valueReferenceText,
+:global([data-bs-theme="dark"]) .valueRowMeta {
+     color: #a8bed4;
+}
+
+:global([data-bs-theme="dark"]) .valueRangeSummary {
+     color: #bad0e6;
+}
+
+:global([data-bs-theme="dark"]) .valueReferenceSentence {
+     color: #b7cbe0;
+}
+
+:global([data-bs-theme="dark"]) .valueMarkerValueV2,
+:global([data-bs-theme="dark"]) .valueRangeTickV2 {
+     color: #e3effd;
+}
+
+:global([data-bs-theme="dark"]) .valueMarkerArrowV2 {
+     border-top-color: #d7e7f7;
+}
+
+:global([data-bs-theme="dark"]) .valueRangeTrackV2 {
+     border-color: #4f657c;
+     background: #16283a;
+}
+
+:global([data-bs-theme="dark"]) .valueRangeOutV2 {
+     background: #c7942b;
+}
+
+:global([data-bs-theme="dark"]) .valueRangeNormalV2 {
+     background:
+          repeating-linear-gradient(-45deg,
+               #1f988d,
+               #1f988d 6px,
+               #2ab7a9 6px,
+               #2ab7a9 12px);
+}

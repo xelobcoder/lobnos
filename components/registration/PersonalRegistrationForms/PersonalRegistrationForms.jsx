@@ -328,8 +328,8 @@ const PersonalRegistrationForms = ({ designation, setFormData, handleAgeCalculat
     return (
         <div className="registration-shell">
 
-            <div className="registration-form-container registration-form-grid-3">
-                <div className="registration-profile-column border rounded-3 p-3" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: 'var(--bs-border-color)' }}>
+            <div className="registration-form-container registration-form-grid-2">
+                {/* <div className="registration-profile-column border rounded-3 p-3" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: 'var(--bs-border-color)' }}>
                     <h6 className='fw-semibold mb-3 d-flex align-items-center gap-2' style={{ color: 'var(--bs-body-color)' }}>
                         <RiUserStarLine size={18} />
                         Profile & Identity
@@ -395,7 +395,7 @@ const PersonalRegistrationForms = ({ designation, setFormData, handleAgeCalculat
                             />
                         </div>
                     )}
-                </div>
+                </div> */}
 
                 {/* column two  */}
                 <div>

@@ -8,20 +8,76 @@ import { toast } from 'react-toastify';
 import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
 import { customPost, customFetch } from '../../../../components/Auth/customFetch';
 
+type EncryptionAlgorithm = 'AES-128' | 'AES-256' | 'ChaCha20';
+
+interface BackupSecuritySettingsResponse {
+     id: number;
+     encryption_enabled: boolean;
+     encryption_algorithm: string;
+     encryption_password?: string | null;
+     key_rotation_days: number;
+     secure_deletion_enabled: boolean;
+     deletion_passes: number;
+     storage_path?: string | null;
+     current_key_id?: string | null;
+     key_last_rotated?: string | null;
+     is_active?: boolean;
+     created_at?: string;
+     updated_at?: string;
+}
+
+type ValidationErrors = {
+     encryption_password?: string;
+     confirm_password?: string;
+     key_rotation_days?: string;
+};
+
+const DEFAULT_STORAGE_PATH = 'C:\\Lobnos\\Backups';
+
+function normalizeEncryptionAlgorithm(value?: string | null): EncryptionAlgorithm {
+     if (value === 'AES-128' || value === 'aes-128-cbc') {
+          return 'AES-128';
+     }
+
+     if (value === 'ChaCha20' || value === 'chacha20') {
+          return 'ChaCha20';
+     }
+
+     return 'AES-256';
+}
+
+function formatRotationDate(value?: string | null): string {
+     if (!value) {
+          return 'Not yet rotated';
+     }
+
+     const parsed = new Date(value);
+     if (Number.isNaN(parsed.getTime())) {
+          return 'Not yet rotated';
+     }
+
+     return parsed.toISOString().split('T')[0];
+}
 
 export default function BackupSecurityPage() {
      const { user } = useApplicationSettings().applicationsettings;
 
      // State variables
      const [encryptionEnabled, setEncryptionEnabled] = useState(true);
-     const [encryptionAlgorithm, setEncryptionAlgorithm] = useState('AES-256');
+     const [encryptionAlgorithm, setEncryptionAlgorithm] = useState<EncryptionAlgorithm>('AES-256');
+     const [encryptionPassword, setEncryptionPassword] = useState('');
+     const [confirmPassword, setConfirmPassword] = useState('');
+     const [showEncryptionPassword, setShowEncryptionPassword] = useState(false);
+     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
      const [keyRotationDays, setKeyRotationDays] = useState(90);
      const [secureDeletionEnabled, setSecureDeletionEnabled] = useState(true);
      const [deletionPasses, setDeletionPasses] = useState(3);
      const [currentKeyId, setCurrentKeyId] = useState('KEY-2025-001');
-     const [keyLastRotated, setKeyLastRotated] = useState('2025-10-15');
-     const [storagePath, setStoragePath] = useState('C:\\Lobnos\\Backups');
+     const [keyLastRotated, setKeyLastRotated] = useState('Not yet rotated');
+     const [storagePath, setStoragePath] = useState(DEFAULT_STORAGE_PATH);
      const [storagePathError, setStoragePathError] = useState('');
+     const [isActive, setIsActive] = useState(true);
+     const [errors, setErrors] = useState<ValidationErrors>({});
      const [loading, setLoading] = useState(true);
      const [saving, setSaving] = useState(false);
      const [rotating, setRotating] = useState(false);
@@ -43,6 +99,31 @@ export default function BackupSecurityPage() {
 
           setStoragePathError('');
           return true;
+     };
+
+     const validateForm = () => {
+          const nextErrors: ValidationErrors = {};
+
+          if (encryptionEnabled) {
+               if (!encryptionPassword.trim()) {
+                    nextErrors.encryption_password = 'Encryption password is required when encryption is enabled';
+               } else if (encryptionPassword.length < 8) {
+                    nextErrors.encryption_password = 'Encryption password must be at least 8 characters';
+               }
+
+               if (!confirmPassword.trim()) {
+                    nextErrors.confirm_password = 'Please confirm the encryption password';
+               } else if (encryptionPassword !== confirmPassword) {
+                    nextErrors.confirm_password = 'Password confirmation does not match';
+               }
+          }
+
+          if (!Number.isInteger(keyRotationDays) || keyRotationDays < 30 || keyRotationDays > 365) {
+               nextErrors.key_rotation_days = 'Key rotation period must be between 30 and 365 days';
+          }
+
+          setErrors(nextErrors);
+          return Object.keys(nextErrors).length === 0;
      };
 
      // Load security settings on component mount
@@ -82,23 +163,25 @@ export default function BackupSecurityPage() {
                setLoading(true);
                const response = await customFetch(`security-features/backup/security-settings`);
                if (response.status && response.data) {
-                    const settings = response.data;
+                    const settings = response.data as BackupSecuritySettingsResponse;
                     setEncryptionEnabled(settings.encryption_enabled);
-                    setEncryptionAlgorithm(settings.encryption_algorithm === 'aes-256-cbc' ? 'AES-256' :
-                         settings.encryption_algorithm === 'aes-128-cbc' ? 'AES-128' : 'ChaCha20');
+                    setEncryptionAlgorithm(normalizeEncryptionAlgorithm(settings.encryption_algorithm));
+                    setEncryptionPassword(settings.encryption_password || '');
+                    setConfirmPassword(settings.encryption_password || '');
                     setKeyRotationDays(settings.key_rotation_days);
                     setSecureDeletionEnabled(settings.secure_deletion_enabled);
                     setDeletionPasses(settings.deletion_passes);
-                    setCurrentKeyId(settings.current_key_id);
-                    setKeyLastRotated(new Date(settings.key_last_rotated).toISOString().split('T')[0]);
-                    setStoragePath(settings.storage_path || 'C:\\Lobnos\\Backups');
+                    setCurrentKeyId(settings.current_key_id || 'Not assigned');
+                    setKeyLastRotated(formatRotationDate(settings.key_last_rotated));
+                    setStoragePath(settings.storage_path || DEFAULT_STORAGE_PATH);
+                    setIsActive(settings.is_active ?? true);
+                    setErrors({});
                } else if (response?.status && response?.data == null) {
                     toast.info('No security settings found. Using default values.');
                } else {
                     toast.error('Failed to load security settings');
                }
-          } catch (error) {
-               console.error('Error loading security settings:', error);
+          } catch (_error) {
                toast.error('Failed to load security settings');
           } finally {
                setLoading(false);
@@ -122,8 +205,7 @@ export default function BackupSecurityPage() {
                } else {
                     toast.error(response.error || 'Failed to rotate encryption key');
                }
-          } catch (error) {
-               console.error('Error rotating key:', error);
+          } catch (_error) {
                toast.error('Failed to rotate encryption key');
           } finally {
                setRotating(false);
@@ -137,26 +219,45 @@ export default function BackupSecurityPage() {
                return;
           }
 
+          if (!validateForm()) {
+               toast.error('Please correct the highlighted fields before saving');
+               return;
+          }
+
           try {
                setSaving(true);
-               const payload = {
+               const payload: Record<string, unknown> = {
                     encryption_enabled: encryptionEnabled,
-                    encryption_algorithm: encryptionAlgorithm === 'AES-256' ? 'aes-256-cbc' :
-                         encryptionAlgorithm === 'AES-128' ? 'aes-128-cbc' : 'chacha20',
+                    encryption_algorithm: encryptionAlgorithm,
                     key_rotation_days: keyRotationDays,
                     secure_deletion_enabled: secureDeletionEnabled,
                     deletion_passes: deletionPasses,
-                    storage_path: storagePath
+                    storage_path: storagePath,
+                    is_active: isActive,
                };
+
+               if (encryptionEnabled && encryptionPassword.trim()) {
+                    payload.encryption_password = encryptionPassword;
+               }
 
                const response = await customPost(`security-features/backup/security-settings`, 'PUT', payload);
                if (response.status) {
+                    const updatedSettings = response?.data as BackupSecuritySettingsResponse | undefined;
+                    if (updatedSettings) {
+                         setEncryptionAlgorithm(normalizeEncryptionAlgorithm(updatedSettings.encryption_algorithm));
+                         setEncryptionPassword(updatedSettings.encryption_password || encryptionPassword);
+                         setConfirmPassword(updatedSettings.encryption_password || encryptionPassword);
+                         setCurrentKeyId(updatedSettings.current_key_id || currentKeyId);
+                         setKeyLastRotated(formatRotationDate(updatedSettings.key_last_rotated));
+                         setStoragePath(updatedSettings.storage_path || storagePath);
+                         setIsActive(updatedSettings.is_active ?? isActive);
+                    }
+                    setErrors({});
                     toast.success('Security settings saved successfully!');
                } else {
                     toast.error(response.error || 'Failed to save security settings');
                }
-          } catch (error) {
-               console.error('Error saving security settings:', error);
+          } catch (_error) {
                toast.error('Failed to save security settings');
           } finally {
                setSaving(false);
@@ -179,7 +280,10 @@ export default function BackupSecurityPage() {
                          <div className="d-flex align-items-center justify-content-between mb-4">
                               <div className="d-flex align-items-center gap-3">
                                    <div>
-                                        <h4 className="mb-1">Backup Security Settings</h4>
+                                        <div className="d-flex align-items-center gap-2 mb-1">
+                                             <h4 className="mb-0">Backup Security Settings</h4>
+                                             <Badge bg={isActive ? 'success' : 'secondary'}>{isActive ? 'Active' : 'Inactive'}</Badge>
+                                        </div>
                                         <p className="text-muted mb-0 fs-6">Configure encryption, access controls, and security policies for backups</p>
                                    </div>
                               </div>
@@ -227,7 +331,10 @@ export default function BackupSecurityPage() {
                                                             <Col md={6}>
                                                                  <Form.Group>
                                                                       <Form.Label>Encryption Algorithm</Form.Label>
-                                                                      <Form.Select value={encryptionAlgorithm} onChange={(e) => setEncryptionAlgorithm(e.target.value)}>
+                                                                      <Form.Select
+                                                                           value={encryptionAlgorithm}
+                                                                           onChange={(e) => setEncryptionAlgorithm(e.target.value as EncryptionAlgorithm)}
+                                                                      >
                                                                            <option value="AES-128">AES-128 (Fast)</option>
                                                                            <option value="AES-256">AES-256 (Secure)</option>
                                                                            <option value="ChaCha20">ChaCha20 (Modern)</option>
@@ -243,7 +350,53 @@ export default function BackupSecurityPage() {
                                                                            onChange={(e) => setKeyRotationDays(Number(e.target.value))}
                                                                            min="30"
                                                                            max="365"
+                                                                           isInvalid={Boolean(errors.key_rotation_days)}
                                                                       />
+                                                                      <Form.Control.Feedback type="invalid">{errors.key_rotation_days}</Form.Control.Feedback>
+                                                                 </Form.Group>
+                                                            </Col>
+                                                       </Row>
+                                                       <Row className="mb-3">
+                                                            <Col md={6}>
+                                                                 <Form.Group>
+                                                                      <Form.Label>Encryption Password</Form.Label>
+                                                                      <div className="input-group">
+                                                                           <Form.Control
+                                                                                type={showEncryptionPassword ? 'text' : 'password'}
+                                                                                autoComplete="new-password"
+                                                                                value={encryptionPassword}
+                                                                                onChange={(e) => setEncryptionPassword(e.target.value)}
+                                                                                isInvalid={Boolean(errors.encryption_password)}
+                                                                           />
+                                                                           <Button
+                                                                                variant="outline-secondary"
+                                                                                onClick={() => setShowEncryptionPassword((prev) => !prev)}
+                                                                           >
+                                                                                {showEncryptionPassword ? 'Hide' : 'Show'}
+                                                                           </Button>
+                                                                           <Form.Control.Feedback type="invalid">{errors.encryption_password}</Form.Control.Feedback>
+                                                                      </div>
+                                                                 </Form.Group>
+                                                            </Col>
+                                                            <Col md={6}>
+                                                                 <Form.Group>
+                                                                      <Form.Label>Confirm Encryption Password</Form.Label>
+                                                                      <div className="input-group">
+                                                                           <Form.Control
+                                                                                type={showConfirmPassword ? 'text' : 'password'}
+                                                                                autoComplete="new-password"
+                                                                                value={confirmPassword}
+                                                                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                                                                isInvalid={Boolean(errors.confirm_password)}
+                                                                           />
+                                                                           <Button
+                                                                                variant="outline-secondary"
+                                                                                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                                                                           >
+                                                                                {showConfirmPassword ? 'Hide' : 'Show'}
+                                                                           </Button>
+                                                                           <Form.Control.Feedback type="invalid">{errors.confirm_password}</Form.Control.Feedback>
+                                                                      </div>
                                                                  </Form.Group>
                                                             </Col>
                                                        </Row>

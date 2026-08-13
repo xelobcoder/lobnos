@@ -1,0 +1,294 @@
+/*
+ * PrimeTable (v1) styles.
+ * Split from PrimeTableV2.module.css so v1 never overflows its container
+ * in the x-direction: the table has no forced min-width and cell content
+ * wraps instead of extending the layout.
+ */
+
+.tableWrapper {
+     --pt-primary: var(--bs-primary);
+     --pt-primary-strong: color-mix(in srgb, var(--bs-primary) 70%, black 30%);
+     --pt-primary-border: #d5d9de;
+     --pt-text-strong: #1f2933;
+     --pt-text-soft: #52606d;
+     --pt-header-bg: #f4f6f8;
+     --pt-row-hover: #f8fafb;
+     --pt-toolbar-bg: #f8f9fa;
+     --pt-panel-bg: #fbfcfd;
+     --pt-cell-bg: #ffffff;
+
+     border: 1px solid var(--pt-primary-border);
+     border-radius: 2px;
+     background: #ffffff;
+     box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08);
+     width: 100%;
+     max-width: 100%;
+     overflow: hidden;
+     font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+.controlBar {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     gap: 10px;
+     flex-wrap: wrap;
+     padding: 8px 10px;
+     background: var(--pt-toolbar-bg);
+     border-bottom: 1px solid var(--pt-primary-border);
+}
+
+.tableWrapper :global(input.form-control) {
+     border-color: var(--pt-primary-border);
+     background: var(--pt-cell-bg);
+     color: var(--pt-text-strong);
+}
+
+.tableWrapper :global(input.form-control::placeholder) {
+     color: var(--pt-text-soft);
+}
+
+.tableWrapper :global(.btn.btn-sm.btn-outline-secondary) {
+     border-color: var(--pt-primary-border);
+     color: var(--pt-text-soft);
+     background: var(--pt-cell-bg);
+}
+
+.tableWrapper :global(.btn.btn-sm.btn-outline-secondary:hover) {
+     border-color: color-mix(in srgb, var(--pt-primary) 50%, var(--pt-primary-border) 50%);
+     color: var(--pt-text-strong);
+     background: color-mix(in srgb, var(--pt-primary) 8%, var(--pt-cell-bg) 92%);
+}
+
+.tableViewport {
+     width: 100%;
+     max-width: 100%;
+     overflow-x: hidden;
+     overflow-y: visible;
+     position: relative;
+}
+
+/* Keep native Bootstrap dropdown behavior while ensuring menus are not clipped in tables. */
+.tableWrapper :global(.dropdown-menu) {
+     z-index: 1080;
+}
+
+.table {
+     width: 100%;
+     max-width: 100%;
+     table-layout: auto;
+     border-collapse: separate;
+     border-spacing: 0;
+     margin: 0;
+     font-size: 0.9rem;
+     color: var(--pt-text-strong);
+}
+
+.th {
+     color: #3e4c59;
+     font-weight: 700;
+     font-size: 0.82rem;
+     letter-spacing: 0.02em;
+     text-transform: none;
+     padding: 8px 10px;
+     border-right: 1px solid var(--pt-primary-border);
+     border-bottom: 1px solid var(--pt-primary-border);
+     background: linear-gradient(180deg, #f9fbfc 0%, var(--pt-header-bg) 100%);
+     white-space: normal;
+     overflow-wrap: anywhere;
+     word-break: break-word;
+}
+
+.sortableHeader {
+     cursor: pointer;
+}
+
+.sortableHeader:hover {
+     background: color-mix(in srgb, var(--pt-primary) 8%, #ffffff 92%);
+     box-shadow: none;
+}
+
+.tableRow {
+     border-bottom: 1px solid #e8edf4;
+}
+
+.tableRow:hover {
+     background: var(--pt-row-hover);
+}
+
+.evenRow {
+     background: #ffffff;
+}
+
+.oddRow {
+     background: #fbfdff;
+}
+
+.td {
+     padding: 9px 11px;
+     vertical-align: middle;
+     border-bottom: 1px solid #e4e7eb;
+     color: var(--pt-text-strong);
+     white-space: normal;
+     overflow-wrap: anywhere;
+     word-break: break-word;
+}
+
+.tableCompact .td {
+     padding: 6px 9px;
+     font-size: 0.82rem;
+}
+
+.tableCompact .th {
+     padding: 7px 9px;
+     font-size: 0.75rem;
+}
+
+.rowPaid {
+     background: #ffffff !important;
+     color: #0f5132 !important;
+}
+
+.rowUnpaid {
+     background: #ffffff !important;
+     color: #842029 !important;
+}
+
+.paginationSeparator {
+     margin: 0 8px;
+     color: color-mix(in srgb, var(--pt-primary) 40%, #6f86a2 60%);
+}
+
+.paginationContainer {
+     display: flex;
+     justify-content: flex-end;
+     align-items: center;
+     gap: 6px;
+     flex-wrap: wrap;
+}
+
+.paginationBtn {
+     border: 1px solid var(--pt-primary-border);
+     background: #ffffff;
+     color: #3e4c59;
+     border-radius: 2px;
+     min-width: 34px;
+     height: 26px;
+     padding: 0 10px;
+     font-size: 0.78rem;
+     font-weight: 600;
+}
+
+.paginationBtn:hover:not(:disabled) {
+     background: #ffffff;
+     border-color: var(--pt-primary);
+}
+
+.paginationBtnActive {
+     background: #e9ecef;
+     color: #1f2933;
+     border-color: var(--pt-primary);
+     box-shadow: none;
+}
+
+.paginationBtnNav {
+     min-width: 72px;
+}
+
+.paginationBtn:disabled {
+     opacity: 0.45;
+     cursor: not-allowed;
+}
+
+:global([data-bs-theme="dark"]) .tableWrapper {
+     --pt-primary: #65b3ff;
+     --pt-primary-strong: #a7d4ff;
+     --pt-primary-border: #2a415b;
+     --pt-text-strong: #e6f0fb;
+     --pt-text-soft: #9cb3cc;
+     --pt-header-bg: #15263a;
+     --pt-row-hover: #14263a;
+     --pt-toolbar-bg: #122136;
+     --pt-panel-bg: #122136;
+     --pt-cell-bg: #122136;
+
+     background: #111c2b;
+     box-shadow: none;
+}
+
+:global([data-bs-theme="dark"]) .th {
+     color: #dcebfd;
+     background: linear-gradient(180deg, #1a2d44 0%, #15263a 100%);
+}
+
+:global([data-bs-theme="dark"]) .td {
+     border-bottom-color: #23394f;
+}
+
+:global([data-bs-theme="dark"]) .tableRow {
+     border-bottom-color: #23394f;
+}
+
+:global([data-bs-theme="dark"]) .evenRow {
+     background: #122136;
+}
+
+:global([data-bs-theme="dark"]) .oddRow {
+     background: #14253a;
+}
+
+:global([data-bs-theme="dark"]) .tableWrapper :global(input.form-control) {
+     border-color: #2a415b;
+     background: #16283d;
+     color: #e6f0fb;
+}
+
+:global([data-bs-theme="dark"]) .tableWrapper :global(input.form-control::placeholder) {
+     color: #9cb3cc;
+}
+
+:global([data-bs-theme="dark"]) .tableWrapper :global(.btn.btn-sm.btn-outline-secondary) {
+     border-color: #2a415b;
+     color: #bad0e6;
+     background: #16283d;
+}
+
+:global([data-bs-theme="dark"]) .tableWrapper :global(.btn.btn-sm.btn-outline-secondary:hover) {
+     border-color: #4d84b8;
+     color: #e6f0fb;
+     background: #1b334d;
+}
+
+:global([data-bs-theme="dark"]) .paginationBtn {
+     border-color: #2a415b;
+     background: #16283d;
+     color: #cfe3f7;
+}
+
+:global([data-bs-theme="dark"]) .paginationBtnActive {
+     background: #244261;
+     color: #f4faff;
+     border-color: #4d84b8;
+}
+
+.noDataCell {
+     padding: 30px 18px;
+}
+
+.noDataWrapper {
+     display: flex;
+     flex-direction: column;
+     justify-content: center;
+     align-items: center;
+     gap: 6px;
+}
+
+.noDataIcon {
+     opacity: 0.85;
+}
+
+.noDataText {
+     color: var(--pt-text-soft);
+     font-size: 0.92rem;
+     font-weight: 600;
+}

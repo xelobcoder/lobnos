@@ -78,6 +78,8 @@ export default function CompensationListPage() {
      const [typeFilter, setTypeFilter] = useState<string>('all');
      const [sortBy, setSortBy] = useState<'employee' | 'salary' | 'date'>('date');
      const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+     const [currentPage, setCurrentPage] = useState(1);
+     const itemsPerPage = 10;
 
      useEffect(() => {
           fetchCompensations();
@@ -86,6 +88,17 @@ export default function CompensationListPage() {
      useEffect(() => {
           applyFilters();
      }, [compensations, searchTerm, statusFilter, typeFilter, sortBy, sortOrder]);
+
+     useEffect(() => {
+          setCurrentPage(1);
+     }, [searchTerm, statusFilter, typeFilter, sortBy, sortOrder]);
+
+     useEffect(() => {
+          const totalPages = Math.max(1, Math.ceil(filteredCompensations.length / itemsPerPage));
+          if (currentPage > totalPages) {
+               setCurrentPage(totalPages);
+          }
+     }, [currentPage, filteredCompensations.length]);
 
      const fetchEmployees = async () => {
           try {
@@ -241,6 +254,11 @@ export default function CompensationListPage() {
           alert('Export functionality will be implemented');
      };
 
+     const totalPages = Math.max(1, Math.ceil(filteredCompensations.length / itemsPerPage));
+     const safeCurrentPage = Math.min(currentPage, totalPages);
+     const startIndex = (safeCurrentPage - 1) * itemsPerPage;
+     const paginatedCompensations = filteredCompensations.slice(startIndex, startIndex + itemsPerPage);
+
      if (loading) return <Loader />;
 
      return (
@@ -347,6 +365,7 @@ export default function CompensationListPage() {
                          </Link>
                     </div>
                ) : (
+                    <>
                     <div className="table-responsive">
                          <table className="table table-hover align-middle">
                               <thead className="table-light">
@@ -365,7 +384,7 @@ export default function CompensationListPage() {
                                    </tr>
                               </thead>
                               <tbody>
-                                   {filteredCompensations.map((comp) => (
+                                   {paginatedCompensations.map((comp) => (
                                         <tr key={comp.id}>
                                              <td className="fw-medium">{comp.employeeid}</td>
                                              <td>{comp.employee_name || 'N/A'}</td>
@@ -433,6 +452,48 @@ export default function CompensationListPage() {
                               </tbody>
                          </table>
                     </div>
+                    <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mt-3">
+                         <div className="text-muted small">
+                              Showing {Math.min(startIndex + 1, filteredCompensations.length)}-
+                              {Math.min(startIndex + itemsPerPage, filteredCompensations.length)} of {filteredCompensations.length} records
+                         </div>
+                         <nav aria-label="Compensation table pagination">
+                              <ul className="pagination pagination-sm mb-0">
+                                   <li className={`page-item ${safeCurrentPage === 1 ? 'disabled' : ''}`}>
+                                        <button
+                                             type="button"
+                                             className="page-link"
+                                             onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                                             disabled={safeCurrentPage === 1}
+                                        >
+                                             Previous
+                                        </button>
+                                   </li>
+                                   {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+                                        <li key={page} className={`page-item ${safeCurrentPage === page ? 'active' : ''}`}>
+                                             <button
+                                                  type="button"
+                                                  className="page-link"
+                                                  onClick={() => setCurrentPage(page)}
+                                             >
+                                                  {page}
+                                             </button>
+                                        </li>
+                                   ))}
+                                   <li className={`page-item ${safeCurrentPage === totalPages ? 'disabled' : ''}`}>
+                                        <button
+                                             type="button"
+                                             className="page-link"
+                                             onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                                             disabled={safeCurrentPage === totalPages}
+                                        >
+                                             Next
+                                        </button>
+                                   </li>
+                              </ul>
+                         </nav>
+                    </div>
+                    </>
                )}
           </div>
      );

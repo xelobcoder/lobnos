@@ -4,7 +4,7 @@ import { useTable, useGlobalFilter, useFilters, useSortBy } from "react-table";
 import GlobalFilter from "./GlobalFilter";
 import ShowTableDisplayCount from "./TableDisplayShowCount";
 import TableLoading from "./TableLoading";
-import style from "./PrimeTableV2.module.css";
+import style from "./PrimeTable.module.css";
 import "../../../styles/prime-table.css";
 import { ButtonGroup } from "react-bootstrap";
 

@@ -130,7 +130,6 @@ export const ApplicationSettingsLinks: Link[] =
             link: "",
             icon: <RiFileListLine />,
             children: [
-                { title: "Record Management", link: "/settings/records", icon: <RiFileListLine /> },
                 { title: "Result Accessibility", link: "/settings/records/result-accessible-settings", icon: <RiEyeLine /> },
                 { title: "Result Access Requests", link: "/settings/records/result-access-requests", icon: <RiListCheck2 /> },
                 { title: "Data Backup & Restore", link: "/settings/records/data-backup-restore", icon: <RiShieldCheckLine /> },
