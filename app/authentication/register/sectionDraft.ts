@@ -49,8 +49,7 @@ export const SECTION_CONFIGS: Record<SectionKey, SectionConfig> = {
           payloadKey: "documents",
           itemLabel: "Document",
           fields: [
-               { key: "documentType", label: "Document Type", type: "text", placeholder: "ID card, passport" },
-               { key: "fileName", label: "File Name", type: "text" },
+               { key: "documentType", label: "Document Type", type: "text", placeholder: "passport, cv, certificate" },
                { key: "filePath", label: "File Path / Reference", type: "text" },
           ],
      },
@@ -133,7 +132,7 @@ type DraftStore = Record<SectionKey, DraftRows>;
 
 const DEFAULT_DRAFTS: DraftStore = {
      "emergency-contacts": [{ fullName: "", relationship: "", mobile: "", address: "" }],
-     documents: [{ documentType: "", fileName: "", filePath: "" }],
+     documents: [{ documentType: "", filePath: "" }],
      "employment-history": [{ organization: "", position: "", startDate: "", endDate: "", responsibilities: "" }],
      certifications: [{ certificationName: "", organization: "", issueDate: "", expiryDate: "" }],
      education: [{ institution: "", degree: "", fieldOfStudy: "", startDate: "", endDate: "", grade: "", certificateNumber: "" }],
