@@ -63,7 +63,7 @@ export const BillingSettingsTab: React.FC<BillingSettingsTabProps> = ({ settings
                          label: 'Witness Refund',
                          description: 'Enable refund processing with witness verification',
                          icon: <RiUserSharedLine size={20} />
-                    }, 
+                    },
                     {
                          name: 'makepdfprintingcompulsory',
                          label: 'Make PDF Printing Compulsory',
@@ -147,7 +147,13 @@ export const BillingSettingsTab: React.FC<BillingSettingsTabProps> = ({ settings
                          icon: <RiMoneyDollarCircleLine size={20} />
                     },
                     {
-                         name:"allowScientistToRegisterClient",
+                         name: 'allowCrmToPrintResult',
+                         label: 'Allow CRM to Print Result',
+                         description: 'Permit CRM staff to print lab results and reports',
+                         icon: <RiFileListLine size={20} />
+                    },
+                    {
+                         name: "allowScientistToRegisterClient",
                          label: 'Allow Scientist to Register Client',
                          description: 'Permit scientists to register new clients in the system',
                          icon: <RiUserSharedLine size={20} />

@@ -30,6 +30,9 @@ import dayjs from 'dayjs';
 import SingleWorkFlowResultDeliveryModal from './singleWorkFlowDeliveryResult';
 import BulkWorkFlowResultDeliveryModal from './bulkWorkFlowDeliveryResult';
 
+
+
+
 const normalizeDeliveryMode = (mode) => {
      const raw = (mode ?? '').toString().trim();
      if (!raw) return '';
@@ -205,6 +208,10 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
      };
 
 
+     const allowCrmToPrintResult = useApplication()?.settings?.allowCrmToPrintResult || 0;
+     const role = useApplication()?.user?.role || '';
+
+
 
      useEffect(() => {
           setIsClient(true);
@@ -351,6 +358,20 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
                                    <RiTruckLine size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
                                    {row.original?.delivered_mode ? 'Update Result Delivery' : 'Record Result Delivery'}
                               </Dropdown.Item>
+                              {
+                                   allowCrmToPrintResult && role == "customer service representative" ? (
+                                        <>
+                                             <Dropdown.Item
+                                                  className='pls-label d-flex align-items-center gap-2' onClick={() => handleBrowserView(row.original)}>
+                                                  {downloadSvg}  Print Result
+                                             </Dropdown.Item>
+                                             <Dropdown.Item
+                                                  className='pls-label d-flex align-items-center gap-2' onClick={() => handlePrintMultipleResults(row)}>
+                                                  {downloadSvg}  Print Multiple Results
+                                             </Dropdown.Item>
+                                        </>
+                                   ) : null
+                              }
 
                               {mode !== 'crm' ? (
                                    <>

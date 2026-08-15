@@ -55,6 +55,7 @@ interface ApplicationSettingsData {
 	isCommissionEarnedOnOrganizationalBilling: number,
 	isCommissionEarnedOnNHISBilling: number,
 	isCommissionEarnedOnPHISBilling: number,
+	allowCrmToPrintResult: number;
 	ageVariationLimits: string | null
 }
 
@@ -172,6 +173,7 @@ export default function ApplicationSettings() {
 						emailNotification: 0,
 						includeTax: 0,
 						patientIdPrefix: '',
+						allowCrmToPrintResult: 0,
 						fontFamily: '',
 						billingidPrefix: '',
 						services: '',
