@@ -220,22 +220,18 @@ export default function CommissionAssignmentList({
      ];
 
      return (
-          <div className="card border-0 shadow-sm">
-               <div className="card-body p-0">
-                    <PrimeTable
-                         column={columns}
-                         data={assignments}
-                         serverSideFiltering={true}
-                         handleSeverSideProcessing={handleServerSideProcessing}
-                         urlparams={{
-                              filterType: propsFilterType,
-                              filterName: propsFilterName,
-                              status: propsStatus,
-                              refreshTrigger
-                         }}
-                         filtering={false}
-                    />
-               </div>
-          </div>
+          <PrimeTable
+               column={columns}
+               data={assignments}
+               serverSideFiltering={true}
+               handleSeverSideProcessing={handleServerSideProcessing}
+               urlparams={{
+                    filterType: propsFilterType,
+                    filterName: propsFilterName,
+                    status: propsStatus,
+                    refreshTrigger
+               }}
+               filtering={false}
+          />
      );
 }

@@ -1,41 +1,43 @@
 /*
  * PrimeTable (v1) styles.
- * Split from PrimeTableV2.module.css so v1 never overflows its container
- * in the x-direction: the table has no forced min-width and cell content
- * wraps instead of extending the layout.
+ * PrimeTable v1 shared styles.
  */
 
 .tableWrapper {
      --pt-primary: var(--bs-primary);
-     --pt-primary-strong: color-mix(in srgb, var(--bs-primary) 70%, black 30%);
-     --pt-primary-border: #d5d9de;
-     --pt-text-strong: #1f2933;
-     --pt-text-soft: #52606d;
-     --pt-header-bg: #f4f6f8;
-     --pt-row-hover: #f8fafb;
-     --pt-toolbar-bg: #f8f9fa;
-     --pt-panel-bg: #fbfcfd;
+     --pt-primary-border: #d9dee5;
+     --pt-text-strong: #252a31;
+     --pt-text-soft: #667085;
+     --pt-header-bg: #f6f7f9;
+     --pt-row-hover: #f2f7ff;
+     --pt-toolbar-bg: #ffffff;
      --pt-cell-bg: #ffffff;
 
      border: 1px solid var(--pt-primary-border);
-     border-radius: 2px;
+     border-radius: 0;
      background: #ffffff;
-     box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08);
+     box-shadow: none;
      width: 100%;
      max-width: 100%;
-     overflow: hidden;
-     font-family: "Segoe UI", Tahoma, sans-serif;
+     min-width: 0;
+     overflow: visible;
+     box-sizing: border-box;
 }
 
 .controlBar {
      display: flex;
      justify-content: space-between;
      align-items: center;
-     gap: 10px;
+     gap: 12px;
      flex-wrap: wrap;
-     padding: 8px 10px;
+     min-height: 48px;
+     padding: 8px 12px;
      background: var(--pt-toolbar-bg);
      border-bottom: 1px solid var(--pt-primary-border);
+}
+
+.controlBar>* {
+     min-width: 0;
 }
 
 .tableWrapper :global(input.form-control) {
@@ -63,8 +65,11 @@
 .tableViewport {
      width: 100%;
      max-width: 100%;
-     overflow-x: hidden;
-     overflow-y: visible;
+     min-width: 0;
+     overflow-x: auto;
+     overflow-y: hidden;
+     overscroll-behavior-inline: contain;
+     -webkit-overflow-scrolling: touch;
      position: relative;
 }
 
@@ -75,7 +80,7 @@
 
 .table {
      width: 100%;
-     max-width: 100%;
+     min-width: max-content;
      table-layout: auto;
      border-collapse: separate;
      border-spacing: 0;
@@ -85,18 +90,16 @@
 }
 
 .th {
-     color: #3e4c59;
-     font-weight: 700;
-     font-size: 0.82rem;
-     letter-spacing: 0.02em;
+     color: #475467;
+     font-weight: 600;
+     font-size: 0.76rem;
+     letter-spacing: 0;
      text-transform: none;
-     padding: 8px 10px;
-     border-right: 1px solid var(--pt-primary-border);
+     padding: 10px 12px;
+     border-right: 0;
      border-bottom: 1px solid var(--pt-primary-border);
-     background: linear-gradient(180deg, #f9fbfc 0%, var(--pt-header-bg) 100%);
-     white-space: normal;
-     overflow-wrap: anywhere;
-     word-break: break-word;
+     background: var(--pt-header-bg);
+     white-space: nowrap;
 }
 
 .sortableHeader {
@@ -109,7 +112,7 @@
 }
 
 .tableRow {
-     border-bottom: 1px solid #e8edf4;
+     border-bottom: 1px solid #eaecf0;
 }
 
 .tableRow:hover {
@@ -121,27 +124,25 @@
 }
 
 .oddRow {
-     background: #fbfdff;
+     background: #ffffff;
 }
 
 .td {
-     padding: 9px 11px;
+     padding: 11px 12px;
      vertical-align: middle;
-     border-bottom: 1px solid #e4e7eb;
+     border-bottom: 1px solid #eaecf0;
      color: var(--pt-text-strong);
-     white-space: normal;
-     overflow-wrap: anywhere;
-     word-break: break-word;
+     white-space: nowrap;
 }
 
 .tableCompact .td {
-     padding: 6px 9px;
-     font-size: 0.82rem;
+     padding: 9px 12px;
+     font-size: 0.84rem;
 }
 
 .tableCompact .th {
-     padding: 7px 9px;
-     font-size: 0.75rem;
+     padding: 9px 12px;
+     font-size: 0.76rem;
 }
 
 .rowPaid {
@@ -156,7 +157,28 @@
 
 .paginationSeparator {
      margin: 0 8px;
-     color: color-mix(in srgb, var(--pt-primary) 40%, #6f86a2 60%);
+     color: #98a2b3;
+}
+
+.paginationBar {
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+     gap: 12px;
+     min-height: 52px;
+     padding: 8px 12px;
+     border-top: 1px solid var(--pt-primary-border);
+     background: #ffffff;
+     min-width: 0;
+}
+
+.paginationMeta {
+     display: flex;
+     align-items: center;
+     color: var(--pt-text-soft);
+     font-size: 0.8rem;
+     font-weight: 500;
+     white-space: nowrap;
 }
 
 .paginationContainer {
@@ -165,39 +187,59 @@
      align-items: center;
      gap: 6px;
      flex-wrap: wrap;
+     min-width: 0;
 }
 
 .paginationBtn {
      border: 1px solid var(--pt-primary-border);
      background: #ffffff;
      color: #3e4c59;
-     border-radius: 2px;
-     min-width: 34px;
-     height: 26px;
+     border-radius: 3px;
+     min-width: 32px;
+     height: 32px;
      padding: 0 10px;
-     font-size: 0.78rem;
+     font-size: 0.8rem;
      font-weight: 600;
 }
 
 .paginationBtn:hover:not(:disabled) {
-     background: #ffffff;
+     background: #f2f7ff;
      border-color: var(--pt-primary);
 }
 
 .paginationBtnActive {
-     background: #e9ecef;
-     color: #1f2933;
+     background: var(--pt-primary);
+     color: #ffffff;
      border-color: var(--pt-primary);
      box-shadow: none;
 }
 
 .paginationBtnNav {
-     min-width: 72px;
+     min-width: 76px;
 }
 
 .paginationBtn:disabled {
-     opacity: 0.45;
+     background: #f9fafb;
+     color: #98a2b3;
+     opacity: 1;
      cursor: not-allowed;
+}
+
+@media (max-width: 575.98px) {
+     .paginationBar {
+          align-items: flex-start;
+          flex-direction: column;
+     }
+
+     .paginationContainer {
+          width: 100%;
+          justify-content: flex-start;
+          flex-wrap: wrap;
+     }
+
+     .paginationBtnNav {
+          min-width: 70px;
+     }
 }
 
 :global([data-bs-theme="dark"]) .tableWrapper {

@@ -78,14 +78,19 @@ export default function TurnAroundDataTable({ data: initialData }) {
 	}, [sorting]);
 
 	const columns = [
-		{ Header: "Client Info", accessor: "patientName", width: 150 },
+		{ Header: "Client Info", accessor: "patientName", width: 150,Cell: ({ value, row }) => (
+			<div>
+				<div><strong>{value}</strong></div>
+				<div className="text-muted">AscensionId: {row.original.ascensionId}</div>
+			</div>
+		)},
 		{
 			Header: "Billed On/test", accessor: "billedon", width: 100, Cell: ({ value, row }) => {
 				return (
 					<div>
 						{value ? moment(value).format("MMM DD, YYYY HH:mm") : "N/A"}
 						<br />
-						<div>{row.original.test}</div>
+						<div className='fw-bold'>{row.original.test}</div>
 					</div>
 				)
 			}

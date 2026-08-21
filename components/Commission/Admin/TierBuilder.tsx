@@ -2,15 +2,18 @@
 
 import React, { useState } from "react";
 import { CommissionTier } from "../../../lib/commission/commissionApi";
+import { validateCommissionTierRanges } from "../../../lib/commission/commissionHelpers";
+import PrimeTable from "../../accessories/Datatables/PrimeTable";
 import { RiAddLine, RiEdit2Line, RiDeleteBin6Line } from "@remixicon/react";
 
 
 interface TierBuilderProps {
      tiers: CommissionTier[];
      onTiersChange: (tiers: CommissionTier[]) => void;
+     commissionType: "tiered" | "volume" | "quota" | "accelerating";
 }
 
-export default function TierBuilder({ tiers, onTiersChange }: TierBuilderProps) {
+export default function TierBuilder({ tiers, onTiersChange, commissionType }: TierBuilderProps) {
      const [editingIndex, setEditingIndex] = useState<number | null>(null);
      const [formData, setFormData] = useState<CommissionTier>({
           min_amount_inclusive: 0,
@@ -19,21 +22,43 @@ export default function TierBuilder({ tiers, onTiersChange }: TierBuilderProps) 
           tier_value: 0,
           sort_order: 1,
      });
+     const isVolumeTier = commissionType === "volume";
+     const isQuotaTier = commissionType === "quota";
+     const isAcceleratingTier = commissionType === "accelerating";
+     const [tierError, setTierError] = useState<string | null>(null);
+     const boundaryLabel = isVolumeTier
+          ? "Service Count"
+          : isQuotaTier
+               ? "Achievement (%)"
+               : isAcceleratingTier
+                    ? "Performance Amount"
+                    : "Service Amount";
+     const boundaryPrefix = isVolumeTier || isQuotaTier ? "" : "GHS";
 
      const handleAddTier = () => {
           const newTier: CommissionTier = {
                ...formData,
+               tier_type: isAcceleratingTier ? "percentage" : formData.tier_type,
                sort_order: Math.max(...tiers.map((t) => t.sort_order), 0) + 1,
           };
+          const updatedTiers = editingIndex !== null
+               ? tiers.map((tier, index) => index === editingIndex ? newTier : tier)
+               : [...tiers, newTier];
+          const validationError = validateCommissionTierRanges(updatedTiers);
+
+          if (validationError) {
+               setTierError(validationError);
+               return;
+          }
 
           if (editingIndex !== null) {
-               const updated = [...tiers];
-               updated[editingIndex] = newTier;
-               onTiersChange(updated);
+               onTiersChange(updatedTiers);
                setEditingIndex(null);
           } else {
-               onTiersChange([...tiers, newTier]);
+               onTiersChange(updatedTiers);
           }
+
+          setTierError(null);
 
           setFormData({
                min_amount_inclusive: 0,
@@ -46,6 +71,7 @@ export default function TierBuilder({ tiers, onTiersChange }: TierBuilderProps) 
 
      const handleDeleteTier = (index: number) => {
           onTiersChange(tiers.filter((_, i) => i !== index));
+          setTierError(null);
      };
 
      const handleEditTier = (index: number) => {
@@ -64,6 +90,54 @@ export default function TierBuilder({ tiers, onTiersChange }: TierBuilderProps) 
           });
      };
 
+     const columns = [
+          {
+               Header: `Minimum ${boundaryLabel}`,
+               accessor: "min_amount_inclusive",
+               Cell: ({ value }: { value: number }) => <span>{boundaryPrefix ? `${boundaryPrefix} ` : ""}{value}</span>,
+          },
+          {
+               Header: `Maximum ${boundaryLabel}`,
+               accessor: "max_amount_exclusive",
+               Cell: ({ value }: { value: number | null | undefined }) => (
+                    <span>{value == null ? "Unlimited" : `${boundaryPrefix ? `${boundaryPrefix} ` : ""}${value}`}</span>
+               ),
+          },
+          {
+               Header: "Type",
+               accessor: "tier_type",
+               Cell: ({ value }: { value: CommissionTier["tier_type"] }) => (
+                    <span className="badge bg-info">{value === "percentage" ? "%" : "GHS"}</span>
+               ),
+          },
+          {
+               Header: "Rate",
+               accessor: "tier_value",
+               Cell: ({ row }: any) => {
+                    const tier = row.original as CommissionTier;
+                    return <span className="fw-semibold">{tier.tier_value}{tier.tier_type === "percentage" ? "%" : ""}</span>;
+               },
+          },
+          {
+               Header: "Actions",
+               accessor: "actions",
+               disableSortBy: true,
+               Cell: ({ row }: any) => {
+                    const tierIndex = tiers.indexOf(row.original as CommissionTier);
+                    return (
+                         <div className="d-flex gap-1">
+                              <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => handleEditTier(tierIndex)} title="Edit">
+                                   <RiEdit2Line />
+                              </button>
+                              <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteTier(tierIndex)} title="Delete">
+                                   <RiDeleteBin6Line />
+                              </button>
+                         </div>
+                    );
+               },
+          },
+     ];
+
      return (
           <div className="border rounded p-3 bg-white">
                {/* Form */}
@@ -74,11 +148,12 @@ export default function TierBuilder({ tiers, onTiersChange }: TierBuilderProps) 
 
                     <div className="row g-3">
                          <div className="col-md-3">
-                              <label className="form-label small fw-medium">Min Amount</label>
+                              <label className="form-label small fw-medium">Minimum {boundaryLabel}</label>
                               <div className="input-group input-group-sm">
-                                   <span className="input-group-text">GHS</span>
+                                   {boundaryPrefix && <span className="input-group-text">{boundaryPrefix}</span>}
                                    <input
                                         type="number"
+                                        min="0"
                                         className="form-control"
                                         value={formData.min_amount_inclusive}
                                         onChange={(e) =>
@@ -92,11 +167,12 @@ export default function TierBuilder({ tiers, onTiersChange }: TierBuilderProps) 
                          </div>
 
                          <div className="col-md-3">
-                              <label className="form-label small fw-medium">Max Amount</label>
+                              <label className="form-label small fw-medium">Maximum {boundaryLabel}</label>
                               <div className="input-group input-group-sm">
-                                   <span className="input-group-text">GHS</span>
+                                   {boundaryPrefix && <span className="input-group-text">{boundaryPrefix}</span>}
                                    <input
                                         type="number"
+                                        min="0"
                                         className="form-control"
                                         placeholder="Empty = No limit"
                                         value={formData.max_amount_exclusive ?? ""}
@@ -114,19 +190,28 @@ export default function TierBuilder({ tiers, onTiersChange }: TierBuilderProps) 
 
                          <div className="col-md-2">
                               <label className="form-label small fw-medium">Type</label>
-                              <select
-                                   className="form-select form-select-sm"
-                                   value={formData.tier_type}
-                                   onChange={(e) =>
-                                        setFormData({
-                                             ...formData,
-                                             tier_type: e.target.value as "percentage" | "fixed",
-                                        })
-                                   }
-                              >
-                                   <option value="percentage">Percentage</option>
-                                   <option value="fixed">Fixed</option>
-                              </select>
+                              {isAcceleratingTier ? (
+                                   <input
+                                        type="text"
+                                        className="form-control form-control-sm"
+                                        value="Percentage"
+                                        readOnly
+                                   />
+                              ) : (
+                                   <select
+                                        className="form-select form-select-sm"
+                                        value={formData.tier_type}
+                                        onChange={(e) =>
+                                             setFormData({
+                                                  ...formData,
+                                                  tier_type: e.target.value as "percentage" | "fixed",
+                                             })
+                                        }
+                                   >
+                                        <option value="percentage">Percentage</option>
+                                        <option value="fixed">Fixed</option>
+                                   </select>
+                              )}
                          </div>
 
                          <div className="col-md-2">
@@ -167,68 +252,18 @@ export default function TierBuilder({ tiers, onTiersChange }: TierBuilderProps) 
                               )}
                          </div>
                     </div>
+                    {tierError && <div className="text-danger small mt-2">{tierError}</div>}
                </div>
 
                {/* Tiers List */}
                {tiers.length > 0 ? (
                     <div>
                          <h6 className="fw-semibold mb-2">Configured Tiers</h6>
-                         <div className="table-responsive">
-                              <table className="table table-sm table-hover mb-0">
-                                   <thead className="table-light">
-                                        <tr>
-                                             <th>Min Amount</th>
-                                             <th>Max Amount</th>
-                                             <th>Type</th>
-                                             <th>Rate</th>
-                                             <th style={{ width: "120px" }}>Actions</th>
-                                        </tr>
-                                   </thead>
-                                   <tbody>
-                                        {tiers.map((tier, index) => (
-                                             <tr key={index}>
-                                                  <td>GHS {tier.min_amount_inclusive}</td>
-                                                  <td>
-                                                       {tier.max_amount_exclusive === null
-                                                            ? "Unlimited"
-                                                            : `GHS ${tier.max_amount_exclusive}`}
-                                                  </td>
-                                                  <td>
-                                                       <span className="badge bg-info">
-                                                            {tier.tier_type === "percentage" ? "%" : "GHS"}
-                                                       </span>
-                                                  </td>
-                                                  <td className="fw-semibold">
-                                                       {tier.tier_value}
-                                                       {tier.tier_type === "percentage" ? "%" : ""}
-                                                  </td>
-                                                  <td>
-                                                       <button
-                                                            type="button"
-                                                            className="btn btn-sm btn-outline-primary me-1"
-                                                            onClick={() => handleEditTier(index)}
-                                                            title="Edit"
-                                                       >
-                                                            <RiEdit2Line />
-                                                       </button>
-                                                       <button
-                                                            type="button"
-                                                            className="btn btn-sm btn-outline-danger"
-                                                            onClick={() => handleDeleteTier(index)}
-                                                            title="Delete"
-                                                       >
-                                                            <RiDeleteBin6Line />
-                                                       </button>
-                                                  </td>
-                                             </tr>
-                                        ))}
-                                   </tbody>
-                              </table>
-                         </div>
+                         <PrimeTable column={columns} data={tiers} filtering={false} />
                     </div>
                ) : (
                     <div className="alert alert-info mb-0">
-                         No tiers added yet. Add tiers above to configure tiered commissions.
+                         Tier ranges use [minimum, maximum): shared boundaries are allowed, and the final tier may have no maximum.
                     </div>
                )}
           </div>

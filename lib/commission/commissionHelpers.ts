@@ -1,17 +1,26 @@
 import * as yup from "yup";
-import { CommissionConfig, CommissionAssignment, CommissionDefault } from "./commissionApi";
+import { CommissionConfig, CommissionTier, CommissionAssignment, CommissionDefault } from "./commissionApi";
 
-// ===================== Validation Schemas =====================
 
 export const commissionConfigSchema = yup.object().shape({
      name: yup
           .string()
           .required("Configuration name is required")
           .min(3, "Name must be at least 3 characters"),
+     description: yup.string().nullable(),
      commission_type: yup
           .string()
           .oneOf(
-               ["percentage", "fixed", "tiered", "hybrid", "sliding_scale"],
+               [
+                    "percentage",
+                    "fixed",
+                    "tiered",
+                    "hybrid",
+                    "sliding_scale",
+                    "volume",
+                    "quota",
+                    "accelerating",
+               ],
                "Invalid commission type"
           )
           .required("Commission type is required"),
@@ -22,7 +31,10 @@ export const commissionConfigSchema = yup.object().shape({
           .min(0, "Cannot be negative")
           .max(100, "Cannot exceed 100%")
           .when("commission_type", {
-               is: (type: string) => type === "percentage" || type === "hybrid" || type === "sliding_scale",
+               is: (type: string) =>
+                    type === "percentage" ||
+                    type === "hybrid" ||
+                    type === "sliding_scale",
                then: (schema) => schema.required("Percentage rate is required"),
                otherwise: (schema) => schema.nullable(),
           }),
@@ -80,6 +92,25 @@ export const commissionConfigSchema = yup.object().shape({
           "quarterly",
           "yearly",
      ]),
+     volume_period: yup
+          .string()
+          .oneOf(["daily", "weekly", "monthly", "quarterly", "yearly"], "Invalid volume period")
+          .nullable()
+          .when("commission_type", {
+               is: "volume",
+               then: (schema) => schema.required("Volume period is required"),
+               otherwise: (schema) => schema.nullable(),
+          }),
+     quota_target: yup
+          .number()
+          .typeError("Quota target must be a number")
+          .nullable()
+          .min(0, "Cannot be negative")
+          .when("commission_type", {
+               is: "quota",
+               then: (schema) => schema.required("Quota target is required"),
+               otherwise: (schema) => schema.nullable(),
+          }),
      effective_from: yup.string().required("Effective from is required"),
      effective_to: yup.string().nullable(),
      is_active: yup.boolean().required("Active status is required"),
@@ -136,6 +167,9 @@ export function formatCommissionType(type: string): string {
           tiered: "Tiered",
           hybrid: "Hybrid (% + Fixed)",
           sliding_scale: "Sliding Scale",
+          volume: "Volume",
+          quota: "Quota",
+          accelerating: "Accelerating",
      };
      return typeMap[type] || type;
 }
@@ -162,20 +196,70 @@ export function getCommissionTypeDescription(type: string): string {
           tiered: "Different rates based on service amount tiers",
           hybrid: "Combine percentage and fixed components",
           sliding_scale: "Performance-based rates that increase when targets are met",
+          volume: "Layered rates based on eligible service volume in a period",
+          quota: "Rate selection based on target achievement percentage",
+          accelerating: "Progressive percentage rates across performance bands",
      };
      return descriptions[type] || "";
+}
+
+export function validateCommissionTierRanges(tiers: CommissionTier[]): string | null {
+     if (tiers.length === 0) {
+          return "Add at least one tier for this commission type";
+     }
+
+     const sortedTiers = [...tiers].sort(
+          (first, second) => first.min_amount_inclusive - second.min_amount_inclusive
+     );
+     let expectedMinimum = 0;
+
+     for (const tier of sortedTiers) {
+          const maximum = tier.max_amount_exclusive ?? null;
+
+          if (!Number.isFinite(tier.min_amount_inclusive) || tier.min_amount_inclusive < 0) {
+               return "Each tier minimum must be a valid non-negative number";
+          }
+          if (tier.min_amount_inclusive < expectedMinimum) {
+               return "Tier ranges overlap. Each tier must begin where the previous tier ends";
+          }
+          if (tier.min_amount_inclusive > expectedMinimum) {
+               return "Tier ranges cannot contain gaps. Each tier must begin where the previous tier ends";
+          }
+          if (maximum === null) {
+               if (tier !== sortedTiers[sortedTiers.length - 1]) {
+                    return "An unbounded tier must be the final tier";
+               }
+               return null;
+          }
+          if (!Number.isFinite(maximum) || maximum <= tier.min_amount_inclusive) {
+               return "Each tier maximum must be greater than its minimum";
+          }
+
+          expectedMinimum = maximum;
+     }
+
+     return null;
 }
 
 // ===================== Calculation Helpers =====================
 
 export function calculateCommissionPreview(
      serviceAmount: number,
-     config: CommissionConfig
+     config: CommissionConfig,
+     tierMetric: number = 0
 ): {
      raw: number;
      afterMinCap: number;
      afterMaxCap: number;
      description: string;
+     achievementPercentage?: number;
+     selectedTier?: CommissionTier;
+     breakdown?: Array<{
+          minAmount: number;
+          maxAmount: number;
+          rate: number;
+          commission: number;
+     }>;
 } {
      if (serviceAmount <= 0) {
           return {
@@ -183,19 +267,75 @@ export function calculateCommissionPreview(
                afterMinCap: 0,
                afterMaxCap: 0,
                description: "Invalid service amount",
+               breakdown: [],
           };
      }
 
      let raw = 0;
+     let selectedTier: CommissionTier | undefined;
+     let achievementPercentage: number | undefined;
+     let breakdown: Array<{
+          minAmount: number;
+          maxAmount: number;
+          rate: number;
+          commission: number;
+     }> = [];
 
-     if (config.commission_type === "percentage" || config.commission_type === "sliding_scale") {
+     const getMatchingTier = (metric: number) =>
+          config.tiers
+               ?.slice()
+               .sort((first, second) => first.sort_order - second.sort_order)
+               .find((tier) =>
+                    metric >= tier.min_amount_inclusive &&
+                    (tier.max_amount_exclusive == null || metric < tier.max_amount_exclusive)
+               );
+     const calculateTierValue = (tier: CommissionTier) =>
+          tier.tier_type === "percentage"
+               ? serviceAmount * (tier.tier_value / 100)
+               : tier.tier_value;
+
+     if (config.commission_type === "percentage") {
           raw = serviceAmount * ((config.percentage_rate || 0) / 100);
+     } else if (config.commission_type === "sliding_scale") {
+          const baseRate = config.percentage_rate || 0;
+          const maximumRate = config.sliding_max_percentage ?? baseRate;
+          const progressPercentage = Math.min(100, Math.max(0, tierMetric));
+          const appliedRate = baseRate + ((maximumRate - baseRate) * progressPercentage) / 100;
+          raw = serviceAmount * (appliedRate / 100);
      } else if (config.commission_type === "fixed") {
           raw = config.fixed_component || 0;
      } else if (config.commission_type === "hybrid") {
           const percentPart = serviceAmount * ((config.percentage_rate || 0) / 100);
           const fixedPart = config.fixed_component || 0;
           raw = percentPart + fixedPart;
+     } else if (config.commission_type === "tiered") {
+          selectedTier = getMatchingTier(serviceAmount);
+          raw = selectedTier ? calculateTierValue(selectedTier) : 0;
+     } else if (config.commission_type === "volume") {
+          selectedTier = getMatchingTier(tierMetric);
+          raw = selectedTier ? calculateTierValue(selectedTier) : 0;
+     } else if (config.commission_type === "quota") {
+          achievementPercentage = config.quota_target && config.quota_target > 0
+               ? (tierMetric / config.quota_target) * 100
+               : 0;
+          const tier = getMatchingTier(achievementPercentage);
+          selectedTier = tier;
+          raw = selectedTier ? calculateTierValue(selectedTier) : 0;
+     } else if (config.commission_type === "accelerating") {
+          breakdown = (config.tiers || []).reduce<typeof breakdown>((segments, tier) => {
+               const segmentEnd = tier.max_amount_exclusive ?? tierMetric;
+               const segmentValue = Math.max(0, Math.min(tierMetric, segmentEnd) - tier.min_amount_inclusive);
+               if (segmentValue > 0) {
+                    segments.push({
+                         minAmount: tier.min_amount_inclusive,
+                         maxAmount: tier.min_amount_inclusive + segmentValue,
+                         rate: tier.tier_value,
+                         commission: (segmentValue * tier.tier_value) / 100,
+                    });
+               }
+               return segments;
+          }, []);
+          raw = breakdown.reduce((total, segment) => total + segment.commission, 0);
      }
 
      let afterMinCap = raw;
@@ -213,6 +353,9 @@ export function calculateCommissionPreview(
           afterMinCap: parseFloat(afterMinCap.toString()),
           afterMaxCap: parseFloat(afterMaxCap.toString()),
           description: `Service: GHS ${serviceAmount} → Commission: GHS ${afterMaxCap}`,
+          achievementPercentage,
+          selectedTier,
+          breakdown,
      };
 }
 

@@ -1,3 +1,4 @@
 allowBuilds:
+  '@livekit/local-inference': true
   core-js: true
   unrs-resolver: true

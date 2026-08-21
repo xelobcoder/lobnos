@@ -53,29 +53,23 @@ export default function CommissionConfigsPage() {
                </div>
 
                {showForm && (
-                    <div className="row mb-4">
-                         <div className="col-lg-8">
-                              <CommissionConfigForm
-                                   configId={editingConfig?.id}
-                                   onSaved={handleConfigSaved}
-                                   onCancel={handleCancel}
-                              />
-                         </div>
+                    <div className="mb-4">
+                         <CommissionConfigForm
+                              configId={editingConfig?.id}
+                              onSaved={handleConfigSaved}
+                              onCancel={handleCancel}
+                         />
                     </div>
                )}
 
-               <div className="card">
-                    <div className="card-header bg-light py-3">
-                         <h5 className="mb-0">Active Configurations</h5>
-                    </div>
-                    <div className="card-body p-0">
-                         <CommissionConfigList
-                              onEdit={handleEdit}
-                              onDelete={handleDelete}
-                              refreshTrigger={refreshKey}
-                         />
-                    </div>
-               </div>
+               <section>
+                    <h5 className="mb-3">Active Configurations</h5>
+                    <CommissionConfigList
+                         onEdit={handleEdit}
+                         onDelete={handleDelete}
+                         refreshTrigger={refreshKey}
+                    />
+               </section>
           </div>
      );
 }

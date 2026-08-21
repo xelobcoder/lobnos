@@ -4,13 +4,18 @@
     border: 1px solid #ccc;
     border-radius: 4px;
     outline: none;
-    max-height: 40px;
+    max-height: 36px;
     font-size: 1rem;
     transition: border-color 0.3s;
     background-color: var(--bs-body-bg);
     color: var(--bs-body-color);
+    height : 400px;
 }
 
+.custom-input:focus, .form-control:focus, .custom-input:active, .form-control:active {
+    border-color: #86b7fe !important;
+    box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.25) !important;
+}
 
 
 .registration-form-container {

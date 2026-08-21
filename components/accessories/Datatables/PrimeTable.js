@@ -93,6 +93,10 @@ export default function PrimeTable({
 		state: { globalFilter },
 		setGlobalFilter,
 	} = tableInstance;
+	const hasControls =
+		filtering ||
+		isExpoerted ||
+		(serverSideFiltering && typeof handleSeverSideProcessing === "function");
 
 	const toogleUp = () => (
 		<svg
@@ -324,53 +328,55 @@ export default function PrimeTable({
 
 	return (
 		<div className={style.tableWrapper}>
-			<div className={style.controlBar}>
-				<div className="d-flex align-items-center">
-					{handleSeverSideProcessing && (
-						<ShowTableDisplayCount
-							page={queryParams.page}
-							setLoader={setIsLoading}
-							handleLoader={RunServerAction}
-							queryParams={queryParams}
-							setQueryParams={setQueryParams}
-						/>
-					)}
-				</div>
-				<div className="d-flex align-items-center gap-2">
-					{filtering && (
-						<div>
-							<GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
-						</div>
-					)}
-					{isExpoerted && (
-						<ButtonGroup
-							className="d-flex justify-content-end"
-							aria-label="Export options"
-							size="sm"
-						>
-							<button
-								type="button"
-								className="btn btn-sm btn-outline-secondary"
-								onClick={() => {
-									alert("PDF export is not implemented yet.");
-								}}
+			{hasControls && (
+				<div className={style.controlBar}>
+					<div className="d-flex align-items-center">
+						{serverSideFiltering && typeof handleSeverSideProcessing === "function" && (
+							<ShowTableDisplayCount
+								page={queryParams.page}
+								setLoader={setIsLoading}
+								handleLoader={RunServerAction}
+								queryParams={queryParams}
+								setQueryParams={setQueryParams}
+							/>
+						)}
+					</div>
+					<div className="d-flex align-items-center gap-2">
+						{filtering && (
+							<div>
+								<GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
+							</div>
+						)}
+						{isExpoerted && (
+							<ButtonGroup
+								className="d-flex justify-content-end"
+								aria-label="Export options"
+								size="sm"
 							>
-								excel
-							</button>
+								<button
+									type="button"
+									className="btn btn-sm btn-outline-secondary"
+									onClick={() => {
+										alert("PDF export is not implemented yet.");
+									}}
+								>
+									excel
+								</button>
 
-							<button
-								type="button"
-								className="btn btn-sm btn-outline-secondary"
-								onClick={() => {
-									alert("PDF export is not implemented yet.");
-								}}
-							>
-								PDF
-							</button>
-						</ButtonGroup>
-					)}
+								<button
+									type="button"
+									className="btn btn-sm btn-outline-secondary"
+									onClick={() => {
+										alert("PDF export is not implemented yet.");
+									}}
+								>
+									PDF
+								</button>
+							</ButtonGroup>
+						)}
+					</div>
 				</div>
-			</div>
+			)}
 
 			<div className={style.tableViewport}>
 				<table
@@ -381,56 +387,49 @@ export default function PrimeTable({
 				>
 					<thead>{customHeaderGroup()}</thead>
 					<RenderingTable getTableBodyProps={getTableBodyProps} />
-					{serverSideFiltering && (
-						<tfoot>
-							<tr>
-								<td colSpan={2} className="text-secondary-emphasis">
-									<span>Current Page: {queryParams.page} </span>
-									<span className={style.paginationSeparator}>|</span>
-									<span>Item Count: {filteredData.length || 0}</span>
-								</td>
-								<td colSpan={column.length - 1}>
-									<div className={style.paginationContainer}>
-										<button
-											type="button"
-											onClick={() => handlePagination("Previous")}
-											className={`${style.paginationBtn} ${style.paginationBtnNav}`}
-											disabled={queryParams.page <= 1}
-										>
-											Previous
-										</button>
-										{getPaginationItems().map((item, index) => {
-											const isActive = queryParams.page === item;
-											return (
-												<button
-													type="button"
-													onClick={() => handlePagination(item)}
-													key={index}
-													className={`
-																 ${style.paginationBtn}
-																 ${isActive ? style.paginationBtnActive : ""}
-															`}
-													aria-current={isActive ? "page" : undefined}
-												>
-													{item}
-												</button>
-											);
-										})}
-										<button
-											type="button"
-											onClick={() => handlePagination("Next")}
-											className={`${style.paginationBtn} ${style.paginationBtnNav}`}
-											disabled={filteredData.length === 0}
-										>
-											Next
-										</button>
-									</div>
-								</td>
-							</tr>
-						</tfoot>
-					)}
 				</table>
 			</div>
+			{serverSideFiltering && typeof handleSeverSideProcessing === "function" && (
+				<div className={style.paginationBar}>
+					<div className={style.paginationMeta}>
+						<span>Page {queryParams.page}</span>
+						<span className={style.paginationSeparator} aria-hidden="true">/</span>
+						<span>{filteredData.length || 0} items shown</span>
+					</div>
+					<nav className={style.paginationContainer} aria-label="Table pagination">
+						<button
+							type="button"
+							onClick={() => handlePagination("Previous")}
+							className={`${style.paginationBtn} ${style.paginationBtnNav}`}
+							disabled={queryParams.page <= 1}
+						>
+							Previous
+						</button>
+						{getPaginationItems().map((item) => {
+							const isActive = queryParams.page === item;
+							return (
+								<button
+									type="button"
+									onClick={() => handlePagination(item)}
+									key={item}
+									className={`${style.paginationBtn} ${isActive ? style.paginationBtnActive : ""}`}
+									aria-current={isActive ? "page" : undefined}
+								>
+									{item}
+								</button>
+							);
+						})}
+						<button
+							type="button"
+							onClick={() => handlePagination("Next")}
+							className={`${style.paginationBtn} ${style.paginationBtnNav}`}
+							disabled={filteredData.length === 0}
+						>
+							Next
+						</button>
+					</nav>
+				</div>
+			)}
 		</div>
 	);
 }

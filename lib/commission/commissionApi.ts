@@ -11,7 +11,7 @@ export interface ApiResponse<T> {
 // ===================== Commission Config Types =====================
 export interface CommissionTier {
      min_amount_inclusive: number;
-     max_amount_exclusive: number | null;
+     max_amount_exclusive?: number | null;
      tier_type: "percentage" | "fixed";
      tier_value: number;
      sort_order: number;
@@ -20,7 +20,9 @@ export interface CommissionTier {
 export interface CommissionConfig {
      id?: number;
      name: string;
-     commission_type: "percentage" | "fixed" | "tiered" | "hybrid" | "sliding_scale";
+     description?: string | null;
+     commission_base?: "gross" | "outsourced_net" | null;
+     commission_type: "percentage" | "fixed" | "tiered" | "hybrid" | "sliding_scale" | "volume" | "quota" | "accelerating";
      percentage_rate?: number | null;
      sliding_max_percentage?: number | null;
      fixed_component?: number | null;
@@ -28,6 +30,8 @@ export interface CommissionConfig {
      max_commission?: number | null;
      period_cap?: number | null;
      period_cap_reset?: "daily" | "weekly" | "monthly" | "quarterly" | "yearly";
+     volume_period?: "daily" | "weekly" | "monthly" | "quarterly" | "yearly" | null;
+     quota_target?: number | null;
      effective_from: string;
      effective_to?: string | null;
      is_active: boolean;

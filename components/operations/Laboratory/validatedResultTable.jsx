@@ -278,7 +278,9 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
           {
                Header: 'Full Name',
                accessor: 'fullname',
-               Cell: ({ row }) => <div className='text-uppercase fw-bold'>{row.original.fullname}</div>
+               Cell: ({ row }) => <div className='text-uppercase fw-bold'>{row.original.fullname} <br /> ({row.original.fullpatientid})
+                    <br /> <span className='text-muted fw-normal'>({row.original.patientid}) ({row.original.age})</span>
+               </div>
           },
           { Header: 'BillingId/Ascension ID', accessor: 'ascensionid', Cell: ({ row }) => <div><div>Bill:{row.original.billingid}</div><br /><div>Ascension:{row.original.ascensionid}</div></div> },
           {
@@ -286,24 +288,13 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
                accessor: 'ascension_date',
                Cell: ({ row }) => <div>{dayjs(row.original.ascension_date).format('DD-MM-YYYY hh:mm:ss')}</div>
           },
-          {
-               Header: 'Patient ID',
-               accessor: 'fullpatientid'
-          },
 
           {
-               Header: 'Age',
-               accessor: 'age',
-               Cell: ({ row }) => <div>{row.original.age}</div>
-          },
-          {
-               Header: 'Test',
+               Header: 'Test/Department',
                accessor: 'name',
+               Cell: ({ row }) => <div>{row.original.name}<br />({row.original.department})</div>
           },
-          {
-               Header: 'Department',
-               accessor: 'department',
-          },
+
           {
                Header: 'Delivery',
                accessor: 'requested_mode',
@@ -469,19 +460,13 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
           {
                Header: 'Full Name',
                accessor: 'fullname',
-               Cell: ({ row }) => <div className='text-uppercase fw-bold'>{row.original.fullname}</div>
+               Cell: ({ row }) => <div className='text-uppercase fw-bold'>{row.original.fullname}
+                    <br /> ({row.original.fullpatientid || row.original.patientid})
+                    <br /> <span className='text-muted fw-normal'>({row.original.patientid}) ({row.original.age})</span>
+               </div>
           },
-          {
-               Header: 'Patient ID',
-               accessor: 'fullpatientid',
-               Cell: ({ row }) => (
-                    <strong>{row.original.fullpatientid || row.original.patientid}</strong>
-               )
-          },
-          {
-               Header: 'Age',
-               accessor: 'age'
-          },
+
+
           {
                Header: 'Billing ID',
                accessor: 'billingid'
@@ -492,6 +477,25 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
                Cell: ({ row }) => (
                     <span className="">{row.original.tests?.length || 0} test{(row.original.tests?.length || 0) !== 1 ? 's' : ''}</span>
                )
+          },
+          {
+               Header: 'Individual Tests',
+               accessor: 'test_names',
+               disableSortBy: true,
+               Cell: ({ row }) => {
+                    const tests = Array.isArray(row.original.tests) ? row.original.tests : [];
+
+                    return tests.length > 0 ? (
+                         <div className="d-flex flex-column gap-1">
+                              {tests.map((test, index) => (
+                                   <div key={test.ascensionid || test.testid || index}>
+                                        <span className="fw-semibold">{test.name || 'Unnamed test'}</span>
+                                        {test.department ? <small className="text-muted ms-1">({test.department})</small> : null}
+                                   </div>
+                              ))}
+                         </div>
+                    ) : <span className="text-muted">No tests</span>;
+               }
           },
           {
                Header: 'Delivery',

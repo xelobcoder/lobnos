@@ -11,6 +11,7 @@ import {
 } from "../../../lib/commission/commissionHelpers";
 import { useApplicationSettings } from "../../Auth/useApplicationContext";
 import Loader from "../../isLoading";
+import PrimeTable from "../../accessories/Datatables/PrimeTable";
 import { RiEdit2Line, RiDeleteBin6Line } from "@remixicon/react";
 
 interface CommissionConfigListProps {
@@ -82,105 +83,90 @@ export default function CommissionConfigList({
           );
      }
 
+     const columns = [
+          {
+               Header: "Name",
+               accessor: "name",
+               Cell: ({ value }: { value: string }) => <span className="fw-medium">{value}</span>,
+          },
+          {
+               Header: "Type",
+               accessor: "commission_type",
+               Cell: ({ value }: { value: string }) => (
+                    <span className="badge bg-light text-dark">{formatCommissionType(value)}</span>
+               ),
+          },
+          {
+               Header: "Rate",
+               accessor: "rate",
+               disableSortBy: true,
+               Cell: ({ row }: any) => {
+                    const config = row.original as CommissionConfig;
+                    if (config.commission_type === "percentage") return <span>{config.percentage_rate}%</span>;
+                    if (config.commission_type === "fixed") return <span>{formatCurrency(config.fixed_component || 0)}</span>;
+                    if (config.commission_type === "hybrid") return <span>{config.percentage_rate}% + {formatCurrency(config.fixed_component || 0)}</span>;
+                    if (config.commission_type === "sliding_scale") return <span>{config.percentage_rate}% - {config.sliding_max_percentage}%</span>;
+                    const tierLabels: Record<string, string> = {
+                         tiered: "Multiple tiers",
+                         volume: "Volume tiers",
+                         quota: "Quota tiers",
+                         accelerating: "Progressive tiers",
+                    };
+                    return <span className="text-muted small">{tierLabels[config.commission_type]}</span>;
+               },
+          },
+          {
+               Header: "Caps",
+               accessor: "caps",
+               disableSortBy: true,
+               Cell: ({ row }: any) => {
+                    const config = row.original as CommissionConfig;
+                    return config.min_commission || config.max_commission ? (
+                         <span className="small">
+                              {config.min_commission && `Min: ${formatCurrency(config.min_commission)}`}
+                              {config.min_commission && config.max_commission && " | "}
+                              {config.max_commission && `Max: ${formatCurrency(config.max_commission)}`}
+                         </span>
+                    ) : <span className="text-muted">None</span>;
+               },
+          },
+          {
+               Header: "Period Cap",
+               accessor: "period_cap",
+               Cell: ({ row }: any) => {
+                    const config = row.original as CommissionConfig;
+                    return config.period_cap ? <span className="small">{formatCurrency(config.period_cap)} / {formatPeriodReset(config.period_cap_reset)}</span> : <span className="text-muted">None</span>;
+               },
+          },
+          {
+               Header: "Status",
+               accessor: "is_active",
+               Cell: ({ row }: any) => {
+                    const status = getConfigStatus(row.original as CommissionConfig);
+                    return <span className={`badge bg-${status.color}`}>{status.label}</span>;
+               },
+          },
+          {
+               Header: "Actions",
+               accessor: "actions",
+               disableSortBy: true,
+               Cell: ({ row }: any) => {
+                    const config = row.original as CommissionConfig;
+                    return (
+                         <div className="d-flex gap-1">
+                              <button className="btn btn-sm btn-outline-primary" onClick={() => onEdit?.(config)} title="Edit">
+                                   <RiEdit2Line size={16} />
+                              </button>
+                              <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(config.id!)} disabled={deleting === config.id} title="Delete">
+                                   {deleting === config.id ? <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" /> : <RiDeleteBin6Line size={16} />}
+                              </button>
+                         </div>
+                    );
+               },
+          },
+     ];
+
      return (
-          <div className="table-responsive">
-               <table className="table table-hover table-striped">
-                    <thead className="table-light">
-                         <tr>
-                              <th>Name</th>
-                              <th>Type</th>
-                              <th>Rate</th>
-                              <th>Caps</th>
-                              <th>Period Cap</th>
-                              <th>Status</th>
-                              <th style={{ width: "140px" }}>Actions</th>
-                         </tr>
-                    </thead>
-                    <tbody>
-                         {configs.map((config) => {
-                              const status = getConfigStatus(config);
-                              return (
-                                   <tr key={config.id}>
-                                        <td className="fw-medium">{config.name}</td>
-                                        <td>
-                                             <span className="badge bg-light text-dark">
-                                                  {formatCommissionType(config.commission_type)}
-                                             </span>
-                                        </td>
-                                        <td>
-                                             {config.commission_type === "percentage" && config.percentage_rate && (
-                                                  <span>{config.percentage_rate}%</span>
-                                             )}
-                                             {config.commission_type === "fixed" && config.fixed_component && (
-                                                  <span>{formatCurrency(config.fixed_component)}</span>
-                                             )}
-                                             {config.commission_type === "tiered" && (
-                                                  <span className="text-muted small">Multiple tiers</span>
-                                             )}
-                                             {config.commission_type === "hybrid" && (
-                                                  <span>
-                                                       {config.percentage_rate}% + {formatCurrency(config.fixed_component || 0)}
-                                                  </span>
-                                             )}
-                                             {config.commission_type === "sliding_scale" && (
-                                                  <span>
-                                                       {config.percentage_rate}% - {config.sliding_max_percentage}%
-                                                  </span>
-                                             )}
-                                        </td>
-                                        <td>
-                                             {config.min_commission || config.max_commission ? (
-                                                  <span className="small">
-                                                       {config.min_commission && `Min: ${formatCurrency(config.min_commission)}`}
-                                                       {config.min_commission && config.max_commission && " | "}
-                                                       {config.max_commission && `Max: ${formatCurrency(config.max_commission)}`}
-                                                  </span>
-                                             ) : (
-                                                  <span className="text-muted">None</span>
-                                             )}
-                                        </td>
-                                        <td>
-                                             {config.period_cap ? (
-                                                  <span className="small">
-                                                       {formatCurrency(config.period_cap)} / {formatPeriodReset(config.period_cap_reset)}
-                                                  </span>
-                                             ) : (
-                                                  <span className="text-muted">None</span>
-                                             )}
-                                        </td>
-                                        <td>
-                                             <span className={`badge bg-${status.color}`}>{status.label}</span>
-                                        </td>
-                                        <td>
-                                             <button
-                                                  className="btn btn-sm btn-outline-primary me-1"
-                                                  onClick={() => onEdit && onEdit(config)}
-                                                  title="Edit"
-                                             >
-                                                  <RiEdit2Line size={16} />
-                                             </button>
-                                             <button
-                                                  className="btn btn-sm btn-outline-danger"
-                                                  onClick={() => handleDelete(config.id!)}
-                                                  disabled={deleting === config.id}
-                                                  title="Delete"
-                                             >
-                                                  {deleting === config.id ? (
-                                                       <span
-                                                            className="spinner-border spinner-border-sm"
-                                                            role="status"
-                                                            aria-hidden="true"
-                                                       ></span>
-                                                  ) : (
-                                                       <RiDeleteBin6Line size={16} />
-                                                  )}
-                                             </button>
-                                        </td>
-                                   </tr>
-                              );
-                         })}
-                    </tbody>
-               </table>
-          </div>
+          <PrimeTable handleSeverSideProcessing={undefined} serverSideFiltering={true} column={columns} data={configs} filtering={false} />
      );
 }
