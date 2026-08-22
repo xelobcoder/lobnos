@@ -89,7 +89,7 @@ export default function ApplicableClinicians({ packageid }: ApplicableClinicians
                 </div>
             )}
 
-            <ClinicianFiltering onSelect={handleSelectionOfClinician} isDisabled={false} isBulk={false}/>
+            <ClinicianFiltering isAutoLoadAll={true} onSelect={handleSelectionOfClinician} isDisabled={false} isBulk={true}/>
             <table className="table pls-color">
                 <thead>
                     <tr>

@@ -4,6 +4,7 @@ import dayjs from "dayjs";
 import { toast } from "react-toastify";
 import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
 import { customPost, currencyFormatter, customFetch } from "../../../components/Auth/customFetch";
+import DateFilterReusable from "../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 
 interface UntrackedService {
      serviceid: number;
@@ -26,8 +27,14 @@ export default function UntrackedCommissionRecordsPage() {
      const [data, setData] = useState<UntrackedService[]>([]);
      const [startDate, setStartDate] = useState(defaultStart);
      const [endDate, setEndDate] = useState(today);
+     const [dateFilter, setDateFilter] = useState("This Year");
      const [loading, setLoading] = useState(true);
      const [filtering, setFiltering] = useState(false);
+
+     const handleDateRangeChange = (nextStartDate: string, nextEndDate: string) => {
+          setStartDate(nextStartDate);
+          setEndDate(nextEndDate);
+     };
 
      const fetchInitialServices = async () => {
           setLoading(true);
@@ -235,34 +242,14 @@ export default function UntrackedCommissionRecordsPage() {
 
                <div className="border rounded p-3 mb-4">
                     <div className="row g-3 align-items-end">
-                         <div className="col-auto">
-                              <label className="form-label small mb-1">Start Date</label>
-                              <input
-                                   type="date"
-                                   className="form-control form-control-sm"
-                                   value={startDate}
-                                   onChange={(e) => setStartDate(e.target.value)}
-                              />
-                         </div>
-                         <div className="col-auto">
-                              <label className="form-label small mb-1">End Date</label>
-                              <input
-                                   type="date"
-                                   className="form-control form-control-sm"
-                                   value={endDate}
-                                   min={startDate}
-                                   onChange={(e) => setEndDate(e.target.value)}
-                              />
-                         </div>
-                         <div className="col-auto">
-                              <button
-                                   className="btn btn-sm btn-primary"
-                                   onClick={() => fetchInitialServices()}
-                                   disabled={filtering || loading}
-                              >
-                                   Apply Filter
-                              </button>
-                         </div>
+                         <DateFilterReusable
+                              value={dateFilter}
+                              onChange={setDateFilter}
+                              onDateRangeChange={handleDateRangeChange}
+                              label="Date Range"
+                              className="col-12 col-lg-4"
+                              disabled={loading || filtering}
+                         />
                     </div>
                </div>
 

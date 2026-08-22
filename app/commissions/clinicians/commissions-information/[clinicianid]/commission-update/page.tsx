@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import dayjs from 'dayjs';
 import PrimeTable from '../../../../../../components/accessories/Datatables/PrimeTable';
 import { customPost, currencyFormatter, customFetch } from '../../../../../../components/Auth/customFetch';
+import DateFilterReusable from '../../../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable';
 
 interface CommissionRecord {
      id: number;
@@ -50,7 +51,13 @@ export default function CommissionUpdatePage() {
      const [updating, setUpdating] = useState(false);
      const [startDate, setStartDate] = useState(defaultStart);
      const [endDate, setEndDate] = useState(today);
+     const [dateFilter, setDateFilter] = useState('This Year');
      const clinicianid = useParams()?.clinicianid;
+
+     const handleDateRangeChange = (start: string, end: string) => {
+          setStartDate(start);
+          setEndDate(end);
+     };
 
      const handleServerSideProcessing = async (pagination) => {
           try {
@@ -171,25 +178,12 @@ export default function CommissionUpdatePage() {
                          Total Commission Due: {currencyFormatter.format(summary.totalDue)}
                     </div>
                     <div className="d-flex gap-2 align-items-end flex-wrap">
-                         <div>
-                              <input
-                                   type="date"
-                                   className="form-control form-control-sm"
-                                   value={startDate}
-                                   onChange={(e) => setStartDate(e.target.value)}
-                                   style={{ width: '120px' }}
-                              />
-                         </div>
-                         <div>
-                              <input
-                                   type="date"
-                                   className="form-control form-control-sm"
-                                   value={endDate}
-                                   onChange={(e) => setEndDate(e.target.value)}
-                                   min={startDate}
-                                   style={{ width: '120px' }}
-                              />
-                         </div>
+                         <DateFilterReusable
+                              value={dateFilter}
+                              onChange={setDateFilter}
+                              onDateRangeChange={handleDateRangeChange}
+                              label="Filter by"
+                         />
                          <Button variant="outline-primary" size="sm" onClick={applyFilter} disabled={filtering}>
                               {filtering ? 'Filtering...' : 'Filter'}
                          </Button>
@@ -208,7 +202,7 @@ export default function CommissionUpdatePage() {
                                              <div className="mt-1">
                                                   <div className="d-flex justify-content-between">
                                                        <span className="small">Paid: {currencyFormatter.format(Number(record.paidamount))}</span>
-                                                       <span className="small">Comm: {record.commission_percentage}%</span>
+                                                       <span className="small">Comm: {record.percentage_rate_applied !== null ? `${record.percentage_rate_applied}%` : 'N/A'}</span>
                                                   </div>
                                                   <div className="small fw-bold">Commission Due: {currencyFormatter.format(Number(record.commission_due))}</div>
                                              </div>
@@ -247,7 +241,7 @@ export default function CommissionUpdatePage() {
                     <Modal.Body>
                          {selectedRecord && (
                               <div className="small">
-                                   <p className='text-capitalize'><strong>Recipient:</strong> {selectedRecord.recipient_name} ({selectedRecord.type})</p>
+                                   <p className='text-capitalize'><strong>Recipient:</strong> {selectedRecord.recipient_name || 'N/A'} ({selectedRecord.recipient_type})</p>
                                    <p className='text-capitalize'><strong>Service:</strong> {selectedRecord.test_name}</p>
                                    <Form.Group className="mb-3">
                                         <Form.Label>New Commission Rate (%)</Form.Label>

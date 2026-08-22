@@ -41,6 +41,26 @@ interface PaidCommissionData {
      recipient_name: string;
 }
 
+interface CommissionBreakdownData {
+     id: number;
+     batch_payment_id: number;
+     serviceid: number;
+     commission_due: string;
+     amount_allocated: string;
+     waived_amount: string;
+     status: string;
+     created_at: string;
+     expense_synced: number;
+     expense_id: number | null;
+     updated_at: string;
+     percentage_rate_applied: number | null;
+     commission_type: string;
+     recipient_type: string;
+     recipient_id: number;
+     final_commission: string;
+     recipient_name: string;
+}
+
 async function getPaidCommissions({ startDate, endDate, clinicianId, organizationId, recipientType }: { startDate: string, endDate: string, clinicianId?: number, organizationId?: number, recipientType?: string }) {
      try {
           let url = `commission-payments/commission/batch/information?&startDate=${dayjs(startDate).format('YYYY-MM-DD')}&endDate=${dayjs(endDate).format('YYYY-MM-DD')}`;
@@ -108,7 +128,7 @@ export default function PaidCommissionsPaymentMadePage() {
      const [organizationsLoading, setOrganizationsLoading] = useState(false);
      const [showBreakdownModal, setShowBreakdownModal] = useState(false);
      const [selectedCommission, setSelectedCommission] = useState<PaidCommissionData | null>(null);
-     const [breakdownData, setBreakdownData] = useState<any[]>([]);
+     const [breakdownData, setBreakdownData] = useState<CommissionBreakdownData[]>([]);
      const [breakdownLoading, setBreakdownLoading] = useState(false);
 
      useEffect(() => {
@@ -186,8 +206,8 @@ export default function PaidCommissionsPaymentMadePage() {
           try {
                const url = `commission-payments/commission/batch/information/${batchId}/batch?startDate=${dayjs(startdate).format('YYYY-MM-DD')}&endDate=${dayjs(end_date).format('YYYY-MM-DD')}&recipient_id=${recipient_id}&recipient_type=${recipient_type}`;
                const response = await customFetch(url);
-               if (response?.status == true && Array.isArray(response.data) && response.data.length > 0) {
-                    setBreakdownData(response.data || []);
+               if (response?.status === true && Array.isArray(response.data)) {
+                    setBreakdownData(response.data as CommissionBreakdownData[]);
                } else {
                     setBreakdownData([]);
                }
@@ -559,9 +579,14 @@ export default function PaidCommissionsPaymentMadePage() {
                     </div>
                </div>
                {/* Breakdown Modal */}
-               <Modal show={showBreakdownModal} onHide={() => setShowBreakdownModal(false)} size="xl">
+               <Modal show={showBreakdownModal} onHide={() => setShowBreakdownModal(false)} fullscreen aria-labelledby="commission-breakdown-modal" centered>
                     <Modal.Header closeButton>
-                         <Modal.Title>Commission Breakdown - {selectedCommission?.batch_reference}</Modal.Title>
+                         <Modal.Title>
+                              Commission Breakdown - {selectedCommission?.batch_reference}
+                              <span className="d-block fs-6 fw-normal text-muted mt-1">
+                                   Recipient: {selectedCommission?.recipient_name || 'N/A'}
+                              </span>
+                         </Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
                          {breakdownLoading ? (
@@ -574,10 +599,32 @@ export default function PaidCommissionsPaymentMadePage() {
                               </div>
                          ) : selectedCommission ? (
                               <>
+                                   <div className="border rounded p-4 mb-4 bg-body-tertiary">
+                                        <div className="row align-items-center g-3">
+                                             <div className="col-lg-5">
+                                                  <div className="text-muted small text-uppercase fw-semibold mb-1">Recipient</div>
+                                                  <div className="fs-2 fw-bold text-primary">{selectedCommission.recipient_name || 'N/A'}</div>
+                                             </div>
+                                             <div className="col-sm-6 col-lg-4">
+                                                  <div className="text-muted small text-uppercase fw-semibold mb-1">Batch Reference</div>
+                                                  <div className="fw-semibold text-break">{selectedCommission.batch_reference}</div>
+                                             </div>
+                                             <div className="col-sm-6 col-lg-3">
+                                                  <div className="text-muted small text-uppercase fw-semibold mb-1">Status</div>
+                                                  <span className={`badge fs-6 ${selectedCommission.status === 'paid' ? 'bg-success' : selectedCommission.status === 'pending' ? 'bg-warning text-dark' : 'bg-secondary'}`}>
+                                                       {selectedCommission.status.charAt(0).toUpperCase() + selectedCommission.status.slice(1)}
+                                                  </span>
+                                             </div>
+                                        </div>
+                                        <div className="border-top mt-3 pt-3 text-muted small">
+                                             <strong>Period:</strong> {dayjs(selectedCommission.start_date).format('DD/MM/YYYY')} - {dayjs(selectedCommission.end_date).format('DD/MM/YYYY')}
+                                        </div>
+                                   </div>
+
                                    <div className="row g-3 mb-4">
                                         <div className="col-md-6">
-                                             <div className="border rounded p-3">
-                                                  <h6 className="fw-bold mb-3">Commission Details</h6>
+                                             <div className="border rounded p-4 h-100">
+                                                  <h6 className="fw-bold mb-4 pb-2 border-bottom">Commission Details</h6>
                                                   <div className="row">
                                                        <div className="col-6"><strong>Batch Reference:</strong></div>
                                                        <div className="col-6">{selectedCommission.batch_reference}</div>
@@ -608,29 +655,28 @@ export default function PaidCommissionsPaymentMadePage() {
                                                   </div>
                                                   <div className="row">
                                                        <div className="col-6"><strong>Recipient:</strong></div>
-                                                       <div className="col-6">{selectedCommission.recipient_name}</div>
+                                                       <div className="col-6 fw-semibold">{selectedCommission.recipient_name || 'N/A'}</div>
                                                   </div>
                                              </div>
                                         </div>
                                         <div className="col-md-6">
-                                             <div className="border rounded p-3">
-                                                  <h6 className="fw-bold mb-3">Financial Summary</h6>
+                                             <div className="border rounded p-4 h-100">
+                                                  <h6 className="fw-bold mb-4 pb-2 border-bottom">Financial Summary</h6>
                                                   <div className="row">
                                                        <div className="col-6"><strong>Total Commission:</strong></div>
-                                                       <div className="col-6 fw-bold text-primary">{currencyFormatter.format(Number(selectedCommission.total_commission_amount))}</div>
+                                                       <div className="col-6 fw-bold text-primary fs-5">{currencyFormatter.format(Number(selectedCommission.total_commission_amount))}</div>
                                                   </div>
                                                   <div className="row">
                                                        <div className="col-6"><strong>Payment Amount:</strong></div>
-                                                       <div className="col-6 fw-bold text-success">{currencyFormatter.format(Number(selectedCommission.payment_amount))}</div>
+                                                       <div className="col-6 fw-bold text-success fs-5">{currencyFormatter.format(Number(selectedCommission.payment_amount))}</div>
                                                   </div>
                                                   <div className="row">
                                                        <div className="col-6"><strong>Waived Amount:</strong></div>
-                                                       <div className="col-6 fw-bold text-warning">{currencyFormatter.format(Number(selectedCommission.waived_amount))}</div>
+                                                       <div className="col-6 fw-bold text-warning fs-5">{currencyFormatter.format(Number(selectedCommission.waived_amount))}</div>
                                                   </div>
-                                                  <hr />
-                                                  <div className="row">
+                                                  <div className="row border-top mt-3 pt-3">
                                                        <div className="col-6"><strong>Net Amount:</strong></div>
-                                                       <div className="col-6 fw-bold">
+                                                       <div className="col-6 fw-bold text-success fs-4">
                                                             {currencyFormatter.format(Number(selectedCommission.payment_amount) - Number(selectedCommission.waived_amount))}
                                                        </div>
                                                   </div>
@@ -649,9 +695,10 @@ export default function PaidCommissionsPaymentMadePage() {
                                         <h6 className="fw-bold mb-3">Commission Breakdown</h6>
                                         {breakdownData.length > 0 ? (
                                              <div className="table-responsive">
-                                                  <table className="table table-sm table-striped">
+                                                  <table className="table table-sm table-striped align-middle commission-breakdown-table">
                                                        <thead className="table-light">
                                                             <tr>
+                                                                 <th>Recipient</th>
                                                                  <th>Recipient ID</th>
                                                                  <th>Service ID</th>
                                                                  <th>Commission Due</th>
@@ -665,30 +712,35 @@ export default function PaidCommissionsPaymentMadePage() {
                                                             </tr>
                                                        </thead>
                                                        <tbody>
-                                                            {breakdownData.map((item: any, index: number) => (
+                                                            {breakdownData.map((item, index) => (
                                                                  <tr key={index}>
+                                                                      <td>{item.recipient_name || 'N/A'}</td>
                                                                       <td>{item.recipient_id || 'N/A'}</td>
                                                                       <td>{item.serviceid || 'N/A'}</td>
                                                                       <td>{currencyFormatter.format(Number(item.commission_due || 0))}</td>
                                                                       <td>{currencyFormatter.format(Number(item.amount_allocated || 0))}</td>
                                                                       <td>{currencyFormatter.format(Number(item.waived_amount || 0))}</td>
                                                                       <td>{currencyFormatter.format(Number(item.final_commission || item.commission_due || 0))}</td>
-                                                                      <td>{item.percentage_rate_applied ? `${item.percentage_rate_applied}%` : 'N/A'}</td>
+                                                                      <td>{item.percentage_rate_applied !== null ? `${item.percentage_rate_applied}%` : 'N/A'}</td>
                                                                       <td>
                                                                            <span className={`badge ${item.status === 'paid' ? 'bg-success' : item.status === 'pending' ? 'bg-warning' : item.status === 'partial' ? 'bg-info' : 'bg-secondary'}`}>
                                                                                 {item.status || 'N/A'}
                                                                            </span>
                                                                       </td>
-                                                                      <td>{item.commission_type || item.type || 'N/A'}</td>
-                                                                   
+                                                                      <td>{item.commission_type || 'N/A'}</td>
+
                                                                       <td>{item.created_at ? dayjs(item.created_at).format('DD/MM/YYYY') : 'N/A'}</td>
                                                                  </tr>
                                                             ))}
                                                             <tr className="fw-bold border-top">
                                                                  <td>Total</td>
+                                                                 <td></td>
+                                                                 <td></td>
                                                                  <td>{currencyFormatter.format(breakdownData.reduce((sum, item) => sum + Number(item.commission_due || 0), 0))}</td>
                                                                  <td>{currencyFormatter.format(breakdownData.reduce((sum, item) => sum + Number(item.amount_allocated || 0), 0))}</td>
                                                                  <td>{currencyFormatter.format(breakdownData.reduce((sum, item) => sum + Number(item.waived_amount || 0), 0))}</td>
+                                                                 <td></td>
+                                                                 <td></td>
                                                                  <td>{currencyFormatter.format(breakdownData.reduce((sum, item) => sum + Number(item.final_commission || item.commission_due || 0), 0))}</td>
                                                                  <td></td>
                                                                  <td></td>
@@ -729,6 +781,13 @@ export default function PaidCommissionsPaymentMadePage() {
                     </main>
                )}
                <style>{`
+                    .commission-breakdown-table {
+                         min-width: 1120px;
+                    }
+                    .commission-breakdown-table th,
+                    .commission-breakdown-table td {
+                         padding: 0.85rem 1rem !important;
+                    }
                     .table-responsive thead.sticky-top th {
                          border-bottom: 2px solid var(--bs-border-color); 
                     }

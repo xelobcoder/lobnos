@@ -1,56 +1,16 @@
 "use client";
 import React, { useState } from 'react';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-// PDF export function
-function exportCommissionDataToPDF(commissionData, startDate, endDate) {
-     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-     // Use Times New Roman if available
-     if (doc.getFontList && doc.getFontList()['Times New Roman']) {
-          doc.setFont('Times New Roman', 'bold');
-     } else {
-          doc.setFont('times', 'bold');
-     }
-     doc.setFontSize(22);
-     doc.text('Organizations Commission Report', 14, 18);
-     doc.setFontSize(14);
-     doc.setFont('times', 'normal');
-     doc.text(`Period: ${startDate} to ${endDate}`, 14, 28);
-     autoTable(doc, {
-          startY: 36,
-          head: [[
-               'Organization Name',
-               'Phone',
-               'Services',
-               'Total Payable',
-               'Total Paid',
-               'Commission Earned',
-          ]],
-          body: commissionData.map(record => [
-               record.organization_name,
-               record.organization_phone,
-               record.total_services,
-               (typeof currencyFormatter !== 'undefined' ? currencyFormatter.format(Number(record.total_payable)) : record.total_payable),
-               (typeof currencyFormatter !== 'undefined' ? currencyFormatter.format(Number(record.total_paid)) : record.total_paid),
-               (typeof currencyFormatter !== 'undefined' ? currencyFormatter.format(Number(record.commission_earned_total)) : record.commission_earned_total),
-          ]),
-          styles: { fontSize: 12, font: 'times', fontStyle: 'bold' },
-          headStyles: { fillColor: [22, 160, 133], fontSize: 13, font: 'times', fontStyle: 'bold' },
-          bodyStyles: { font: 'times', fontStyle: 'bold' },
-     });
-     doc.save(`commission-report-${startDate}-to-${endDate}.pdf`);
-}
-
 import styles from '../../../commissions/clinicians/commissions-information/CommissionReport.module.css';
-import { RiAlertLine, RiFileList3Line, RiMoneyDollarCircleLine, RiServiceLine, RiUserLine } from '@remixicon/react';
+import { RiAlertLine, RiArrowDownSLine, RiArrowUpSLine, RiFileList3Line, RiMoneyDollarCircleLine, RiServiceLine, RiUserLine } from '@remixicon/react';
 import dayjs from 'dayjs';
-import { currencyFormatter ,customFetch} from '../../../../components/Auth/customFetch';
+import { currencyFormatter, customFetch } from '../../../../components/Auth/customFetch';
 import DateFilterReusable from '../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable';
 import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
+import { exportCommissionDataToPDF } from '../../../../lib/commission/exportCommissionPdf';
 
 interface CommissionData {
      organization_id: number;
-     organization_name: string;    
+     organization_name: string;
      organization_phone: string;
      service_date: string;
      total_services: number;
@@ -66,24 +26,33 @@ interface ApiResponse {
 
 
 
-const formatDate = (dateString: string) => {
-     try {
-          return new Date(dateString).toLocaleDateString('en-US', {
-               year: 'numeric',
-               month: 'short',
-               day: 'numeric',
-          });
-     } catch (e) {
-          return 'Invalid Date';
+const SHIMMER_STYLES = `
+     @keyframes commission-shimmer {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
      }
-};
+`;
+
+const SkeletonBlock = ({ height, width = '100%', className = '' }: { height: number; width?: number | string; className?: string }) => (
+     <div
+          className={className}
+          style={{
+               height,
+               width,
+               borderRadius: '0.5rem',
+               background: 'linear-gradient(90deg, var(--bs-tertiary-bg) 25%, var(--bs-secondary-bg) 50%, var(--bs-tertiary-bg) 75%)',
+               backgroundSize: '200% 100%',
+               animation: 'commission-shimmer 1.4s linear infinite',
+          }}
+     />
+);
 
 const Stat = ({ label, value, icon }: { label: string, value: string | number, icon: React.ReactNode }) => (
-     <div className={styles.statItem}>
-          <div className={styles.statIcon}>{icon}</div>
-          <div className={styles.statInfo}>
-               <span className={styles.statValue}>{value}</span>
-               <span className={styles.statLabel}>{label}</span>
+     <div className="border rounded p-3 h-100 d-flex align-items-center gap-3">
+          <span className="text-muted">{icon}</span>
+          <div>
+               <div className="fw-bold">{value}</div>
+               <div className="text-muted small">{label}</div>
           </div>
      </div>
 );
@@ -107,6 +76,8 @@ export default function OrganizationPendingCommission() {
      const [loading, setLoading] = useState(false);
      const [error, setError] = useState<string | null>(null);
      const [dateFilter, setDateFilter] = useState('Today');
+     const [showOrgSummary, setShowOrgSummary] = useState(false);
+     const [reloadKey, setReloadKey] = useState(0);
 
      React.useEffect(() => {
           setLoading(true);
@@ -125,7 +96,7 @@ export default function OrganizationPendingCommission() {
                     setCommissionData([]);
                })
                .finally(() => setLoading(false));
-     }, [startDate, endDate]);
+     }, [startDate, endDate, reloadKey]);
 
 
      // Handler for DateFilterReusable
@@ -134,20 +105,49 @@ export default function OrganizationPendingCommission() {
           setEndDate(end);
      };
 
+     if (loading && commissionData.length === 0) {
+          return (
+               <main className={styles.container}>
+                    <style>{SHIMMER_STYLES}</style>
+                    <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-4 gap-3">
+                         <SkeletonBlock height={34} width={300} />
+                         <SkeletonBlock height={38} width={240} />
+                    </div>
+                    <SkeletonBlock height={110} className="mb-3" />
+                    <div className="row g-3 mb-4">
+                         {Array.from({ length: 5 }).map((_, i) => (
+                              <div key={i} className="col-6 col-md-4 col-lg">
+                                   <SkeletonBlock height={64} />
+                              </div>
+                         ))}
+                    </div>
+                    <SkeletonBlock height={48} className="mb-4" />
+                    <SkeletonBlock height={320} />
+               </main>
+          );
+     }
+
      if (error) {
           return (
                <main className={styles.container}>
-                    <div className={styles.header}>
-                         <h1 className={styles.title}>Could Not Load Commission Data</h1>
-                    </div>
-                    <div className={styles.errorBox}>
-                         <RiAlertLine size={40} />
-                         <div>
-                              <p><strong>There was a problem connecting to the API.</strong></p>
-                              <p>Please check the console for more details or ensure your API server is running.</p>
+                    <div className="border rounded p-4" style={{ borderColor: 'var(--bs-danger-border-subtle)', background: 'var(--bs-danger-bg-subtle)' }}>
+                         <div className="d-flex align-items-center gap-2 mb-1" style={{ color: 'var(--bs-danger-text-emphasis)' }}>
+                              <RiAlertLine size={20} />
+                              <strong>We couldn&rsquo;t load commission data</strong>
+                         </div>
+                         <p className="mb-3 small" style={{ color: 'var(--bs-danger-text-emphasis)' }}>
+                              Check your connection and make sure the API server is running, then try again.
+                         </p>
+                         <div className="d-flex align-items-center gap-3 flex-wrap">
+                              <button type="button" className="btn btn-outline-danger btn-sm" onClick={() => setReloadKey(k => k + 1)}>
+                                   Try again
+                              </button>
+                              <details className="small">
+                                   <summary className="text-muted" style={{ cursor: 'pointer' }}>Technical details</summary>
+                                   <pre className="mt-2 mb-0 small" style={{ whiteSpace: 'pre-wrap' }}>{error}</pre>
+                              </details>
                          </div>
                     </div>
-                    <pre className={styles.pre}>{error}</pre>
                </main>
           );
      }
@@ -161,7 +161,6 @@ export default function OrganizationPendingCommission() {
      const totalServices = commissionData.reduce((sum, item) => sum + item.total_services, 0);
      const uniqueOrganizations = new Set(commissionData.map(item => item.organization_id)).size;
 
-     // Group data by organization for summary
      const organizationSummary = commissionData.reduce((acc, item) => {
           const key = item.organization_id;
           if (!acc[key]) {
@@ -182,13 +181,75 @@ export default function OrganizationPendingCommission() {
      }, {} as Record<number, any>);
 
 
+     const columns = [
+          {
+               Header: 'Organization Name',
+               accessor: 'organization_name',
+          },
+          {
+               Header: 'Phone',
+               accessor: 'organization_phone',
+          },
+          {
+               Header: 'Services',
+               accessor: 'total_services',
+               Cell: ({ value }: any) => value?.toLocaleString?.() ?? value,
+          },
+          {
+               Header: 'Total Payable for services',
+               accessor: 'total_payable',
+               Cell: ({ value }: any) => currencyFormatter.format(Number(value)),
+          },
+          {
+               Header: 'Total Paid for services',
+               accessor: 'total_paid',
+               Cell: ({ value }: any) => currencyFormatter.format(Number(value)),
+          },
+          {
+               Header: 'Commission Earned',
+               accessor: 'commission_earned_total',
+               Cell: ({ value }: any) => currencyFormatter.format(Number(value)),
+          },
+          {
+               Header: 'Actions',
+               id: 'actions',
+               disableSortBy: true,
+               Cell: ({ row }: any) => (
+                    <a
+                         href={`/commissions/organizations/commission-details/${row.original.organization_id}`}
+                         className='btn btn-primary btn-sm'
+                         target="_blank"
+                         rel="noopener noreferrer"
+                    >
+                         View
+                    </a>
+               ),
+          },
+     ];
+
+     const handleSeverSideProcessing = async ({ page, count, sortby = 'ASC', startDate, endDate }: any) => {
+          try {
+               const url = `organization/commission/summary?startDate=${startDate}&endDate=${endDate}&page=${page}&count=${count}${sortby ? `&sortby=${sortby}` : ''}`;
+               const response = await customFetch(url);
+               if (response && response?.result && Array.isArray(response.result)) {
+                    return { result: response.result, error: false };
+               } else {
+                    return { result: [], error: false };
+               }
+          } catch (error) {
+               return { result: [], error: true };
+          }
+     };
+
      return (
           <main className={styles.container}>
-               {/* Header with Title and Filter on same level */}
+               <style>{SHIMMER_STYLES}</style>
+
+               {/* Header */}
                <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-4 gap-3">
                     <h1 className={styles.title} style={{ margin: 0 }}>
                          <RiFileList3Line />
-                         Organizations Commission Analytics Report
+                         Organizations Commission Report
                     </h1>
 
                     <div style={{ flexShrink: 0, minWidth: '240px' }}>
@@ -202,137 +263,127 @@ export default function OrganizationPendingCommission() {
                     </div>
                </div>
 
-               <hr />
+               {/* Hero stat: the number this page exists for */}
+               <div className="border rounded p-4 mb-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3" style={{ background: 'var(--bs-tertiary-bg)' }}>
+                    <div>
+                         <span className="text-muted small fw-semibold text-uppercase" style={{ letterSpacing: '0.05em' }}>
+                              Total Commission Earned
+                         </span>
+                         <div className="d-flex align-items-center gap-2 mt-1">
+                              <RiMoneyDollarCircleLine size={32} style={{ color: 'var(--bs-success)' }} />
+                              <span style={{ fontSize: '2.25rem', fontWeight: 800, lineHeight: 1.1 }}>
+                                   {currencyFormatter.format(totalCommissionEarned)}
+                              </span>
+                         </div>
+                    </div>
+                    <span className="text-muted small">
+                         {dayjs(startDate).format('MMM D, YYYY')} – {dayjs(endDate).format('MMM D, YYYY')}
+                    </span>
+               </div>
 
-               {/* Summary Stats */}
-               <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-4 gap-3">
-                    <div className="row g-3">
-                         <div className="col-12 col-sm-6 col-md-4 col-lg-3">
-                              <Stat label="Total Commission Earned" value={currencyFormatter.format(totalCommissionEarned)} icon={<RiMoneyDollarCircleLine />} />
-                         </div>
-                         <div className="col-12 col-sm-6 col-md-4 col-lg-3">
-                              <Stat label="Total Payable Amount" value={currencyFormatter.format(totalServiceValue)} icon={<RiServiceLine />} />
-                         </div>
-                         <div className="col-12 col-sm-6 col-md-4 col-lg-3">
-                              <Stat label="Total Paid Amount" value={currencyFormatter.format(totalPaidAmount)} icon={<RiMoneyDollarCircleLine />} />
-                         </div>
-                         <div className="col-12 col-sm-6 col-md-4 col-lg-3">
-                              <Stat label="Total Services Rendered" value={totalServices.toLocaleString()} icon={<RiServiceLine />} />
-                         </div>
-                         <div className="col-12 col-sm-6 col-md-4 col-lg-3">
-                              <Stat label="Active Organizations" value={uniqueOrganizations} icon={<RiUserLine />} />
-                         </div>
-                         <div className="col-12 col-sm-6 col-md-4 col-lg-3">
-                              <Stat label="Total Records" value={commissionData.length.toLocaleString()} icon={<RiFileList3Line />} />
-                         </div>
+               {/* Secondary stats */}
+               <div className="row g-3 mb-4">
+                    <div className="col-6 col-md-4 col-lg">
+                         <Stat label="Total Payable" value={currencyFormatter.format(totalServiceValue)} icon={<RiServiceLine />} />
+                    </div>
+                    <div className="col-6 col-md-4 col-lg">
+                         <Stat label="Total Paid" value={currencyFormatter.format(totalPaidAmount)} icon={<RiMoneyDollarCircleLine />} />
+                    </div>
+                    <div className="col-6 col-md-4 col-lg">
+                         <Stat label="Services Rendered" value={totalServices.toLocaleString()} icon={<RiServiceLine />} />
+                    </div>
+                    <div className="col-6 col-md-4 col-lg">
+                         <Stat label="Active Organizations" value={uniqueOrganizations} icon={<RiUserLine />} />
+                    </div>
+                    <div className="col-6 col-md-4 col-lg">
+                         <Stat label="Total Records" value={commissionData.length.toLocaleString()} icon={<RiFileList3Line />} />
                     </div>
                </div>
 
-               <div className={styles.sectionDivider}></div>
 
 
-
-               <div className="card" style={{ borderRadius: '0.75rem', borderColor: 'var(--bs-border-color)', margin: '2rem 0 1.5rem 0', background: 'var(--theme-card-bg)' }}>
-                    <div className="card-header py-3 px-4 d-flex justify-content-between align-items-center" style={{ borderColor: 'var(--bs-border-color)', background: 'var(--bs-tertiary-bg)' }}>
-                         <h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center" style={{ color: 'inherit' }}>
-                              <RiFileList3Line className="me-2" />
-                              Detailed Commission Records
-                         </h2>
+               {/* By organization summary */}
+               {commissionData.length > 0 && (
+                    <div className="border rounded mb-4">
                          <button
                               type="button"
-                              className={styles.exportButton || 'btn btn-primary btn-sm'}
-                              onClick={() => exportCommissionDataToPDF(commissionData, startDate, endDate)}
-                              disabled={!commissionData || commissionData.length === 0}
+                              className="w-100 d-flex justify-content-between align-items-center p-3 bg-transparent border-0"
+                              onClick={() => setShowOrgSummary(v => !v)}
+                              aria-expanded={showOrgSummary}
                          >
-                              Export PDF
+                              <span className="fw-semibold d-flex align-items-center gap-2">
+                                   <RiUserLine size={18} className="text-muted" />
+                                   By organization
+                                   <span className="badge text-bg-secondary">{uniqueOrganizations}</span>
+                              </span>
+                              {showOrgSummary
+                                   ? <RiArrowUpSLine size={18} className="text-muted" />
+                                   : <RiArrowDownSLine size={18} className="text-muted" />}
                          </button>
-                    </div>
-                    <div className="card-body p-3 p-md-4">
-                         {Array.isArray(commissionData) && commissionData.length > 0 ? (
-                              <div className="table-responsive table-small">
-                                   {/* PrimeTable integration */}
-                                   {(() => {
-                                        // Define columns for PrimeTable
-                                        const columns = [
-                                             {
-                                                  Header: 'Organization Name',
-                                                  accessor: 'organization_name',
-                                             },
-                                             {
-                                                  Header: 'Phone',
-                                                  accessor: 'organization_phone',
-                                             },
-                                             {
-                                                  Header: 'Services',
-                                                  accessor: 'total_services',
-                                                  Cell: ({ value }) => value?.toLocaleString?.() ?? value,
-                                             },
-                                             {
-                                                  Header: 'Total Payable for services',
-                                                  accessor: 'total_payable',
-                                                  Cell: ({ value }) => currencyFormatter.format(Number(value)),
-                                             },
-                                             {
-                                                  Header: 'Total Paid for services',
-                                                  accessor: 'total_paid',
-                                                  Cell: ({ value }) => currencyFormatter.format(Number(value)),
-                                             },
-                                             {
-                                                  Header: 'Commission Earned',
-                                                  accessor: 'commission_earned_total',
-                                                  Cell: ({ value }) => currencyFormatter.format(Number(value)),
-                                             },
-                                             {
-                                                  Header: 'Actions',
-                                                  id: 'actions',
-                                                  disableSortBy: true,
-                                                  Cell: ({ row }) => (
-                                                       <a
-                                                            href={`/commissions/organizations/commission-details/${row.original.organization_id}`}
-                                                            className='btn btn-primary btn-sm'
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                       >
-                                                            View
-                                                       </a>
-                                                  ),
-                                             },
-                                        ];
-                                        // Dynamically import PrimeTable to avoid SSR issues
-                                       
-                                        const handleSeverSideProcessing = async ({ page, count, sortby = 'ASC', startDate, endDate }) => {
-                                             try {
-                                                  const url = `organization/commission/summary?startDate=${startDate}&endDate=${endDate}&page=${page}&count=${count}${sortby ? `&sortby=${sortby}` : ''}`;
-                                                  const response = await customFetch(url);
-                                                  if (response && response?.result && Array.isArray(response.result)) {
-                                                       return { result: response.result, error: false };
-                                                  } else {
-                                                       return { result: [], error: false };
-                                                  }
-                                             } catch (error) {
-                                                  return { result: [], error: true };
-                                             }
-                                        };
-                                        return (
-                                             <PrimeTable
-                                                  column={columns}
-                                                  data={commissionData}
-                                                  filtering={true}
-                                                  urlparams={{ startDate, endDate }}
-                                                  serverSideFiltering={true}
-                                                  handleSeverSideProcessing={handleSeverSideProcessing}
-                                             />
-                                        );
-                                   })()}
-                              </div>
-                         ) : (
-                              <div className={styles.emptyState}>
-                                   <RiFileList3Line size={32} style={{ opacity: 0.5, marginBottom: '0.5rem' }} />
-                                   <p>No commission records available for the selected period.</p>
+                         {showOrgSummary && (
+                              <div className="table-responsive" style={{ borderTop: '1px solid var(--bs-border-color)' }}>
+                                   <table className="table table-sm table-hover table-striped mb-0 text-start">
+                                        <thead className="bg-body-tertiary">
+                                             <tr>
+                                                  <th>Organization</th>
+                                                  <th>Phone</th>
+                                                  <th>Records</th>
+                                                  <th>Services</th>
+                                                  <th>Total Payable</th>
+                                                  <th>Commission Earned</th>
+                                             </tr>
+                                        </thead>
+                                        <tbody>
+                                             {Object.values(organizationSummary).map((org: any) => (
+                                                  <tr key={org.organization_name}>
+                                                       <td className="fw-semibold">{org.organization_name}</td>
+                                                       <td>{org.organization_phone}</td>
+                                                       <td>{org.records}</td>
+                                                       <td>{org.total_services.toLocaleString()}</td>
+                                                       <td>{currencyFormatter.format(org.total_value)}</td>
+                                                       <td className="fw-semibold">{currencyFormatter.format(org.total_commission_earned_total)}</td>
+                                                  </tr>
+                                             ))}
+                                        </tbody>
+                                   </table>
                               </div>
                          )}
                     </div>
+               )}
+
+               {/* Detailed records */}
+               <div className="d-flex justify-content-between align-items-center mb-3">
+                    <h2 className="fs-6 fw-semibold mb-0 d-flex align-items-center">
+                         <RiFileList3Line className="me-2" />
+                         Detailed Commission Records
+                    </h2>
+                    <button
+                         type="button"
+                         className="btn btn-outline-primary btn-sm"
+                         onClick={() => exportCommissionDataToPDF(commissionData, startDate, endDate)}
+                         disabled={!commissionData || commissionData.length === 0}
+                    >
+                         Export PDF
+                    </button>
                </div>
+
+               {Array.isArray(commissionData) && commissionData.length > 0 ? (
+                    <div className="table-responsive table-small">
+                         <PrimeTable
+                              column={columns}
+                              data={commissionData}
+                              filtering={true}
+                              urlparams={{ startDate, endDate }}
+                              serverSideFiltering={true}
+                              handleSeverSideProcessing={handleSeverSideProcessing}
+                         />
+                    </div>
+               ) : (
+                    <div className={styles.emptyState}>
+                         <RiFileList3Line size={32} style={{ opacity: 0.5, marginBottom: '0.5rem' }} />
+                         <p>No commission records available for the selected period.</p>
+                    </div>
+               )}
           </main>
      );
 }

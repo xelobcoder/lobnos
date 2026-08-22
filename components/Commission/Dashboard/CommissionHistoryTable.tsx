@@ -93,8 +93,8 @@ export default function CommissionHistoryTable({
                <div className="mb-3">
                     <h5 className="mb-0">Commission History</h5>
                </div>
-               <PrimeTable column={columns} data={commissions} filtering={false} 
-                handleSeverSideProcessing={undefined} serverSideFiltering={true}
+               <PrimeTable column={columns} data={commissions} filtering={false}
+                    handleSeverSideProcessing={undefined} serverSideFiltering={true}
                />
                <div className="border-top mt-3 pt-2 small">
                     <div className="row g-2">

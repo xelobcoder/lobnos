@@ -71,13 +71,20 @@ export default function StockManagementCompo() {
 	const [viewMode, setViewMode] = useState('list');
 
 	const columns = [
-		{ Header: 'Asc. ID', accessor: 'ascensionid' },
+				{ Header: 'Patient', accessor: 'fullname' ,Cell: ({ value, row }) => (
+			<div>
+				<div><strong>{value}
+					<br/>({row.original.fullpatientid})({row.original.age})</strong></div>
+				<div className="text-muted">AscensionId: {row.original.ascensionid}</div>
+			</div>
+		)},
 		{ Header: 'Bill ID', accessor: 'billingid' },
-		{ Header: 'Patient', accessor: 'fullname' },
-		{ Header: 'Patient ID', accessor: 'fullpatientid' },
-		{ Header: 'Age', accessor: 'age' },
-		{ Header: 'Department', accessor: 'department' },
-		{ Header: 'Test', accessor: 'name' },
+		{ Header: 'Test(Department)', accessor: 'department',Cell: ({ value, row }) => (
+			<div>
+				<div><strong>{row.original.name}</strong></div>
+				<div className="text-muted">({value})</div>
+			</div>
+		)},
 		{ Header: 'Approval', accessor: 'approvalstatus', Cell: ({ value }) => (value === 1 ? 'Approved' : 'Pending') },
 		{ Header: 'Consumption', accessor: 'consumption_status', Cell: ({ value }) => (value === 'completed' ? 'Completed' : value === 'pending' ? 'Pending' : (value || 'Unknown')) },
 		{ Header: 'Billing Date', accessor: 'billing_date', Cell: ({ value }) => (value ? new Date(value).toLocaleString() : 'N/A') },

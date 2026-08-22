@@ -20,10 +20,20 @@ interface CommissionData {
 	occupation: string | null;
 	organization: number | null;
 	total_services: number;
-	total_payable: string;
-	total_paid: string;
+	earned_revenue?: string;
+	cash_collected?: string;
+	total_payable?: string;
+	total_paid?: string;
 	serviceid: number;
 	commission_earned: string;
+}
+
+interface ClinicianInfo {
+	clinician_name?: string;
+	name?: string;
+	clinician_phone?: string;
+	phone?: string;
+	occupation?: string | null;
 }
 
 
@@ -60,6 +70,7 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 		loadCommissionData();
 	};
 	const [commissionData, setCommissionData] = useState<CommissionData[]>([]);
+	const [clinicianInfoFromApi, setClinicianInfoFromApi] = useState<ClinicianInfo | null>(null);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [chartView, setChartView] = useState<'bar' | 'line'>('bar');
@@ -95,6 +106,18 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 		}
 	};
 
+	const loadClinicianInfo = async () => {
+		try {
+			const response = await customFetch(`clinicians/getclinician?id=${encodeURIComponent(params.clinicianid)}`);
+			const clinician = Array.isArray(response?.result) ? response.result[0] : null;
+			if (clinician) {
+				setClinicianInfoFromApi(clinician);
+			}
+		} catch (err) {
+			console.error('Error loading clinician information:', err);
+		}
+	};
+
 	const loadCommissionData = async () => {
 		setLoading(true);
 		setError(null);
@@ -115,6 +138,10 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 			} else {
 				const data = commissionRes as CommissionData[];
 				setCommissionData(data);
+
+				if (data.length === 0) {
+					await loadClinicianInfo();
+				}
 
 				// Calculate date range from service dates
 				if (data.length > 0) {
@@ -271,19 +298,18 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 	}
 
 	const summary = commissionData.reduce((acc, item) => {
+		const totalPayable = Number(item.earned_revenue ?? item.total_payable ?? 0);
 		acc.total_commission += Number(item.commission_earned);
-		acc.total_value += Number(item.total_payable);
+		acc.total_value += totalPayable;
 		acc.total_services += item.total_services;
 		return acc;
 	}, { total_commission: 0, total_value: 0, total_services: 0 });
 
 	// Default clinician info when no data is available
-	const clinicianInfo = commissionData.length > 0 ? commissionData[0] : {
-		clinician_name: 'Unknown Clinician',
-		clinician_phone: 'N/A',
-		occupation: 'N/A'
-	};
-	const { clinician_name, clinician_phone, occupation } = clinicianInfo;
+	const clinicianLookup = clinicianInfoFromApi as ClinicianInfo | null;
+	const clinician_name = commissionData[0]?.clinician_name || clinicianLookup?.clinician_name || clinicianLookup?.name || `Clinician ${params.clinicianid}`;
+	const clinician_phone = commissionData[0]?.clinician_phone || clinicianLookup?.clinician_phone || clinicianLookup?.phone || 'N/A';
+	const occupation = commissionData[0]?.occupation || clinicianLookup?.occupation || 'N/A';
 	return (
 		<main className={styles.container}>
 			<div className="d-flex justify-content-between align-items-center mb-3">
@@ -468,7 +494,7 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 										</td>
 										<td className="py-2">{dayjs(record.service_date).format('DD/MM/YYYY')}</td>
 										<td className="py-2 text-start">{record.total_services}</td>
-										<td className="py-2 text-start">{currencyFormatter.format(Number(record.total_payable))}</td>
+										<td className="py-2 text-start">{currencyFormatter.format(Number(record.earned_revenue ?? record.total_payable ?? 0))}</td>
 										<td className="py-2 text-start">{currencyFormatter.format(Number(record.commission_earned))}</td>
 										<td className="py-2 text-center">
 											<button

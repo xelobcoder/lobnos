@@ -4,7 +4,8 @@ import dayjs from "dayjs";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import PrimeTable from "../../../../../../../components/accessories/Datatables/PrimeTable";
-import { currencyFormatter, customPost,customFetch } from "../../../../../../../components/Auth/customFetch";
+import { currencyFormatter, customPost, customFetch } from "../../../../../../../components/Auth/customFetch";
+import DateFilterReusable from "../../../../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 
 interface UntrackedService {
      serviceid: number;
@@ -37,6 +38,12 @@ export default function RecipientUntrackedServicesPage({
      const [loading, setLoading] = useState(true);
      const [filtering, setFiltering] = useState(false);
      const [recipientName, setRecipientName] = useState<string>("");
+     const [dateFilter, setDateFilter] = useState("This Year");
+
+     const handleDateRangeChange = (start: string, end: string) => {
+          setStartDate(start);
+          setEndDate(end);
+     };
 
      const recipientType = params.recipient_type;
      const recipientId = params.recipient_id;
@@ -228,29 +235,12 @@ export default function RecipientUntrackedServicesPage({
                               </h2>
                               <div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
                                    <div className="d-flex gap-2 flex-wrap">
-                                        <div className="input-group input-group-sm" style={{ flexBasis: "140px", minWidth: "130px" }}>
-                                             <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: "var(--bs-border-color)" }}>
-                                                  <RiCalendarEventLine size={16} className="text-muted" />
-                                             </span>
-                                             <input
-                                                  type="date"
-                                                  className="form-control shadow-none border-start-0"
-                                                  value={startDate}
-                                                  onChange={(e) => setStartDate(e.target.value)}
-                                             />
-                                        </div>
-                                        <div className="input-group input-group-sm" style={{ flexBasis: "140px", minWidth: "130px" }}>
-                                             <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: "var(--bs-border-color)" }}>
-                                                  <RiCalendarEventLine size={16} className="text-muted" />
-                                             </span>
-                                             <input
-                                                  type="date"
-                                                  className="form-control shadow-none border-start-0"
-                                                  value={endDate}
-                                                  min={startDate}
-                                                  onChange={(e) => setEndDate(e.target.value)}
-                                             />
-                                        </div>
+                                        <DateFilterReusable
+                                             value={dateFilter}
+                                             onChange={setDateFilter}
+                                             onDateRangeChange={handleDateRangeChange}
+                                             label="Filter by"
+                                        />
                                         <button
                                              className="btn btn-sm btn-primary d-flex align-items-center"
                                              onClick={() => fetchServices()}

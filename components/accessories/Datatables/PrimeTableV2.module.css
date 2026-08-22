@@ -16,7 +16,7 @@
      box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08);
      max-width: 100%;
      overflow: hidden;
-     font-family: "Segoe UI", Tahoma, sans-serif;
+     /* font-family: "Segoe UI", Tahoma, sans-serif; */
 }
 
 .topBar {
@@ -157,9 +157,9 @@
 .th {
      color: #3e4c59;
      font-weight: 700;
-     font-size: 0.82rem;
+     font-size: 1.2rem;
      letter-spacing: 0.02em;
-     text-transform: none;
+     text-transform:capitalize;
      padding: 8px 10px;
      border-right: 1px solid var(--pt-primary-border);
      border-bottom: 1px solid var(--pt-primary-border);
@@ -264,12 +264,13 @@
 
 .tableCompact .td {
      padding: 6px 9px;
-     font-size: 0.82rem;
+     font-size: 1rem;
 }
 
 .tableCompact .th {
      padding: 7px 9px;
-     font-size: 0.75rem;
+     font-size: 1rem;
+     text-transform:capitalize !important;
 }
 
 .rowPaid {

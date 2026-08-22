@@ -5,8 +5,9 @@ import React, { useState, useEffect } from 'react';
 import { Button, Modal, Form } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import PrimeTable from '../../../../../components/accessories/Datatables/PrimeTable';
-import { customPost, currencyFormatter,customFetch } from '../../../../../components/Auth/customFetch';
+import { customPost, currencyFormatter, customFetch } from '../../../../../components/Auth/customFetch';
 import { useApplication } from '../../../../../components/Auth/useApplicationContext';
+import DateFilterReusable from '../../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable';
 
 interface CommissionRecord {
      id: number;
@@ -51,7 +52,13 @@ export default function OrganizationCommissionUpdatePage({ params }: { params: {
      const [updating, setUpdating] = useState(false);
      const [startDate, setStartDate] = useState(defaultStart);
      const [endDate, setEndDate] = useState(today);
+     const [dateFilter, setDateFilter] = useState('This Year');
      const employeeid = useApplication()?.user?.employeeid;
+
+     const handleDateRangeChange = (start: string, end: string) => {
+          setStartDate(start);
+          setEndDate(end);
+     };
 
      const handleServerSideProcessing = async (pagination: any) => {
           try {
@@ -233,25 +240,12 @@ export default function OrganizationCommissionUpdatePage({ params }: { params: {
                          <p className="text-muted mb-0">Organization ID: {params.organization}</p>
                     </div>
                     <div className="d-flex gap-2 align-items-end flex-wrap">
-                         <div>
-                              <input
-                                   type="date"
-                                   className="form-control form-control-sm"
-                                   value={startDate}
-                                   onChange={(e) => setStartDate(e.target.value)}
-                                   style={{ width: '140px' }}
-                              />
-                         </div>
-                         <div>
-                              <input
-                                   type="date"
-                                   className="form-control form-control-sm"
-                                   value={endDate}
-                                   onChange={(e) => setEndDate(e.target.value)}
-                                   min={startDate}
-                                   style={{ width: '140px' }}
-                              />
-                         </div>
+                         <DateFilterReusable
+                              value={dateFilter}
+                              onChange={setDateFilter}
+                              onDateRangeChange={handleDateRangeChange}
+                              label="Filter by"
+                         />
                          <Button variant="outline-primary" size="sm" onClick={applyFilter} disabled={filtering}>
                               {filtering ? 'Filtering...' : 'Filter'}
                          </Button>

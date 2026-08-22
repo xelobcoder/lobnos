@@ -1,10 +1,11 @@
 "use client";
-import { RiFileListLine, RiCalendarEventLine, RiRefreshLine, RiUserLine, RiBuildingLine } from "@remixicon/react";
+import { RiFileListLine, RiRefreshLine, RiUserLine, RiBuildingLine } from "@remixicon/react";
 import dayjs from "dayjs";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import PrimeTable from "../../../../../../components/accessories/Datatables/PrimeTable";
 import { currencyFormatter, customPost, customFetch } from "../../../../../../components/Auth/customFetch";
+import DateFilterReusable from "../../../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 
 interface UntrackedService {
      serviceid: number;
@@ -37,6 +38,12 @@ export default function RecipientUntrackedServicesPage({
      const [loading, setLoading] = useState(true);
      const [filtering, setFiltering] = useState(false);
      const [recipientName, setRecipientName] = useState<string>("");
+     const [dateFilter, setDateFilter] = useState("This Year");
+
+     const handleDateRangeChange = (start: string, end: string) => {
+          setStartDate(start);
+          setEndDate(end);
+     };
 
      const recipientType = params.recipient_type;
      const recipientId = params.recipient_id;
@@ -208,7 +215,7 @@ export default function RecipientUntrackedServicesPage({
                <nav aria-label="breadcrumb" className="mb-3">
                     <ol className="breadcrumb">
                          <li className="breadcrumb-item">
-                              <a href="/organization/untracked-commission-records">Untracked Services</a>
+                              <a href="/commissions/untracked-commission-records">Untracked Services</a>
                          </li>
                          <li className="breadcrumb-item active" aria-current="page">
                               {recipientType} {recipientId}
@@ -218,7 +225,7 @@ export default function RecipientUntrackedServicesPage({
 
                <div className="card mb-4" style={{ borderRadius: "0.75rem", borderColor: "var(--bs-border-color)" }}>
                     <div className="card-header py-3 px-4" style={{ backgroundColor: "var(--bs-tertiary-bg)", borderColor: "var(--bs-border-color)" }}>
-                         <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
+                         <div className="d-flex flex-column gap-3">
                               <h2 className="fs-6 fw-semibold text-body-emphasis mb-3 mb-lg-0 d-flex align-items-center">
                                    <RiFileListLine size={22} style={{ color: "oklch(0.646 0.222 41.116)" }} className="me-2 flex-shrink-0" />
                                    Untracked Services for {recipientType}
@@ -226,31 +233,18 @@ export default function RecipientUntrackedServicesPage({
                                         <span className="ms-2 badge bg-primary">{recipientName}</span>
                                    )}
                               </h2>
-                              <div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
-                                   <div className="d-flex gap-2 flex-wrap">
-                                        <div className="input-group input-group-sm" style={{ flexBasis: "140px", minWidth: "130px" }}>
-                                             <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: "var(--bs-border-color)" }}>
-                                                  <RiCalendarEventLine size={16} className="text-muted" />
-                                             </span>
-                                             <input
-                                                  type="date"
-                                                  className="form-control shadow-none border-start-0"
-                                                  value={startDate}
-                                                  onChange={(e) => setStartDate(e.target.value)}
-                                             />
-                                        </div>
-                                        <div className="input-group input-group-sm" style={{ flexBasis: "140px", minWidth: "130px" }}>
-                                             <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: "var(--bs-border-color)" }}>
-                                                  <RiCalendarEventLine size={16} className="text-muted" />
-                                             </span>
-                                             <input
-                                                  type="date"
-                                                  className="form-control shadow-none border-start-0"
-                                                  value={endDate}
-                                                  min={startDate}
-                                                  onChange={(e) => setEndDate(e.target.value)}
-                                             />
-                                        </div>
+                              <div className="row g-2 align-items-end">
+                                   <div className="col-12 col-lg-5">
+                                        <DateFilterReusable
+                                             value={dateFilter}
+                                             onChange={setDateFilter}
+                                             onDateRangeChange={handleDateRangeChange}
+                                             label="Date Range"
+                                             className="w-100"
+                                             disabled={loading || filtering}
+                                        />
+                                   </div>
+                                   <div className="col-12 col-lg-auto d-flex gap-2 flex-wrap">
                                         <button
                                              className="btn btn-sm btn-primary d-flex align-items-center"
                                              onClick={() => fetchServices()}
@@ -272,7 +266,7 @@ export default function RecipientUntrackedServicesPage({
                          </div>
                     </div>
 
-                    <div className="card-body p-4">
+                    <div className="card-body p-4 pb-3">
                          <p className="text-muted mb-0">
                               {recipientType === "clinician" ? (
                                    <RiUserLine size={16} className="me-1" />
@@ -283,39 +277,18 @@ export default function RecipientUntrackedServicesPage({
                          </p>
                     </div>
 
-                    <div className="row g-3 mb-4">
-                         <div className="col-md-4">
-                              <div className="border rounded h-100" style={{ borderColor: "var(--bs-border-color)" }}>
-                                   <div className="p-3">
-                                        <div className="d-flex align-items-center mb-2">
-                                             <RiFileListLine size={20} className="text-primary me-2" />
-                                             <h6 className="mb-0 fw-bold">Total Services</h6>
-                                        </div>
-                                        <div className="fs-4 fw-bold text-primary">{summary.totalServices}</div>
-                                   </div>
-                              </div>
+                    <div className="row g-0 border-top border-bottom mb-4 text-start">
+                         <div className="col-12 col-md-4 p-3 border-bottom border-md-bottom-0 border-md-end">
+                              <div className="text-muted small fw-semibold text-uppercase mb-1">Total Services</div>
+                              <div className="fs-4 fw-bold text-primary">{summary.totalServices}</div>
                          </div>
-                         <div className="col-md-4">
-                              <div className="border rounded h-100" style={{ borderColor: "var(--bs-border-color)" }}>
-                                   <div className="p-3">
-                                        <div className="d-flex align-items-center mb-2">
-                                             <span className="text-success me-2" style={{ fontSize: "20px" }}>₵</span>
-                                             <h6 className="mb-0 fw-bold">Total Payable</h6>
-                                        </div>
-                                        <div className="fs-4 fw-bold text-success">{currencyFormatter.format(summary.totalPayable)}</div>
-                                   </div>
-                              </div>
+                         <div className="col-12 col-md-4 p-3 border-bottom border-md-bottom-0 border-md-end">
+                              <div className="text-muted small fw-semibold text-uppercase mb-1">Total Payable</div>
+                              <div className="fs-4 fw-bold text-success">{currencyFormatter.format(summary.totalPayable)}</div>
                          </div>
-                         <div className="col-md-4">
-                              <div className="border rounded h-100" style={{ borderColor: "var(--bs-border-color)" }}>
-                                   <div className="p-3">
-                                        <div className="d-flex align-items-center mb-2">
-                                             <span className="text-info me-2" style={{ fontSize: "20px" }}>₵</span>
-                                             <h6 className="mb-0 fw-bold">Total Paid</h6>
-                                        </div>
-                                        <div className="fs-4 fw-bold text-info">{currencyFormatter.format(summary.totalPaid)}</div>
-                                   </div>
-                              </div>
+                         <div className="col-12 col-md-4 p-3">
+                              <div className="text-muted small fw-semibold text-uppercase mb-1">Total Paid</div>
+                              <div className="fs-4 fw-bold text-info">{currencyFormatter.format(summary.totalPaid)}</div>
                          </div>
                     </div>
 

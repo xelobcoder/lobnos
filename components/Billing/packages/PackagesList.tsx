@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { customFetch, customPost } from "../../Auth/customFetch";
 import PrimeTable from "../../accessories/Datatables/PrimeTable";
 import moment from "moment";
-import Dropdown from "react-bootstrap/Dropdown";
 import { Modal, Button } from "react-bootstrap";
 import ApplicableTestComponent from "./ApplicableTest";
 import ApplicableOrganization from './ApplicableOrganization';
@@ -130,39 +129,77 @@ const PackagesTable: React.FC = () => {
         }
     };
 
+
+    const handleServerSideProcessing = async (pagination) => {
+        const { page, count } = pagination;
+        try {
+            const response = await customFetch(`packages?page=${page}&count=${count}`);
+            if (Array.isArray(response)) {
+                const formattedPackages = response.map((pkg) => ({
+                    ...pkg,
+                    created_at: moment(pkg.created_at).format("LLLL"),
+                    updated_at: moment(pkg.updated_at).format("LLLL"),
+                    created_by: pkg.username,
+                }));
+                setPackages(formattedPackages);
+            }
+        } catch (error) {
+            console.error("Failed to fetch packages:", error);
+            toast.error("Failed to load packages. Please try again later.");
+        }
+    }
+
     const columns = [
-        { Header: "ID", accessor: "id" },
-        { Header: "Package Name", accessor: "package_name" },
-        { Header: "Created At", accessor: "created_at" },
-        { Header: "Updated At", accessor: "updated_at" },
-        { Header: "Username", accessor: "username" },
+        { Header: "Package Name", accessor: "package_name", Cell: ({ value }: { value: string }) => <span className="fw-medium">{value}</span> },
+        {
+            Header: "Created", accessor: "created_at",
+            Cell: ({ value }: { value: string }) => <span className="text-muted">{value}</span>
+        },
+        {
+            Header: "Updated", accessor: "updated_at",
+            Cell: ({ value }: { value: string }) => <span className="text-muted">{value}</span>
+        },
+        { Header: "Created By", accessor: "created_by", Cell: ({ value }: { value: string }) => <span className="text-muted">{value}</span> },
         {
             Header: "Actions",
             Cell: ({ row }: any) => (
-                <Dropdown className="pls-color" >
-                    <Dropdown.Toggle variant="light" id="dropdown-actions" size="sm">
-                        Actions
-                    </Dropdown.Toggle>
-
-                    <Dropdown.Menu style={{ fontSize: '14px', zIndex: 1050 }}>
-                        <Dropdown.Item onClick={(ev) => { handlePackageEditing(row.original) }}>
-                            Edit Package Name
-                        </Dropdown.Item>
-                        {/* Update onClick to show the delete confirmation modal */}
-                        <Dropdown.Item onClick={() => handleShowDeleteConfirmModal(row.original.id)}>
-                            Delete Package
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={() => handleShowTestModal(row.original.id)}>
-                            Add Package Test
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={() => handleShowClinicianModal(row.original.id)}>
-                            Add Applicable clinician
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={() => handleOpenOrgModal(row.original.id)}>
-                            Add Applicable Organization
-                        </Dropdown.Item>
-                    </Dropdown.Menu>
-                </Dropdown>
+                <div className="d-flex flex-wrap gap-1">
+                    <button
+                        type="button"
+                        className="btn btn-sm btn-outline-primary"
+                        onClick={() => handlePackageEditing(row.original)}
+                    >
+                        Edit Name
+                    </button>
+                    <button
+                        type="button"
+                        className="btn btn-sm btn-outline-danger"
+                        onClick={() => handleShowDeleteConfirmModal(row.original.id)}
+                    >
+                        Delete
+                    </button>
+                    <button
+                        type="button"
+                        className="btn btn-sm btn-outline-primary"
+                        onClick={() => handleShowTestModal(row.original.id)}
+                    >
+                        Add Test
+                    </button>
+                    <button
+                        type="button"
+                        className="btn btn-sm btn-outline-primary"
+                        onClick={() => handleShowClinicianModal(row.original.id)}
+                    >
+                        Add Clinician
+                    </button>
+                    <button
+                        type="button"
+                        className="btn btn-sm btn-outline-primary"
+                        onClick={() => handleOpenOrgModal(row.original.id)}
+                    >
+                        Add Organization
+                    </button>
+                </div>
             ),
         },
     ];
@@ -188,9 +225,9 @@ const PackagesTable: React.FC = () => {
                 <PrimeTable
                     column={columns}
                     data={packages}
-                    serverSideFiltering={false}
+                    serverSideFiltering={true}
                     filtering={false}
-                    handleSeverSideProcessing={null}
+                    handleSeverSideProcessing={handleServerSideProcessing}
                 />
             )}
 
