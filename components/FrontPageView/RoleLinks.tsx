@@ -1,4 +1,4 @@
-import { RiMoneyDollarCircleLine, RiFileList3Line, RiMessage2Line, RiStethoscopeLine, RiBarChartBoxLine, RiFileTextLine, RiSyringeLine, RiTestTubeLine, RiMicroscopeLine, RiPulseLine, RiDashboardLine, RiUserLine, RiSettingsLine, RiShieldCheckLine, RiShoppingCartLine } from "@remixicon/react";
+import { RiMoneyDollarCircleLine, RiFileList3Line, RiMessage2Line, RiStethoscopeLine, RiBarChartBoxLine, RiFileTextLine, RiSyringeLine, RiTestTubeLine, RiMicroscopeLine, RiPulseLine, RiDashboardLine, RiUserLine, RiSettingsLine, RiShieldCheckLine, RiShoppingCartLine, RiBookletLine } from "@remixicon/react";
 
 export const AdminRoleLinks = [
      {
@@ -131,6 +131,14 @@ export const AdminRoleLinks = [
           label: 'Commissions',
           category: 'Finance',
           description: 'Sales commission management'
+     },
+     {
+          href: '/accounting',
+          icon: <RiBookletLine size={24} />,
+          text: "General ledger, financial statements and period close",
+          label: 'Accounting',
+          category: 'Finance',
+          description: 'Double-entry ledger, trial balance, P&L, balance sheet and journals'
      },
      {
           href:"/email-services",

@@ -234,10 +234,28 @@ export default function OrganizationCommissionUpdatePage({ params }: { params: {
 
      return (
           <div className="container-fluid px-4 py-3">
-               <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap">
-                    <div>
-                         <h1 className="h5 mb-1">Organization Commission Update</h1>
-                         <p className="text-muted mb-0">Organization ID: {params.organization}</p>
+               <div className="pb-3 mb-4" style={{ borderBottom: '1px solid var(--bs-border-color)' }}>
+                    <h1 className="fs-5 fw-bold mb-1 d-flex align-items-center">
+                         <RiEditLine className="me-2" />
+                         Organization Commission Update
+                    </h1>
+                    <p className="text-muted mb-0 small">Organization ID: {params.organization}</p>
+               </div>
+
+               <div className="border rounded p-3 mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                    <div className="row g-3 flex-grow-1">
+                         <div className="col-sm-4">
+                              <span className="text-muted small fw-semibold text-uppercase d-block" style={{ letterSpacing: '0.05em' }}>Total Service Amount</span>
+                              <span className="fs-5 fw-bold">{currencyFormatter.format(summary.totalServiceAmount)}</span>
+                         </div>
+                         <div className="col-sm-4">
+                              <span className="text-muted small fw-semibold text-uppercase d-block" style={{ letterSpacing: '0.05em' }}>Total Commission</span>
+                              <span className="fs-5 fw-bold text-primary">{currencyFormatter.format(summary.totalCommission)}</span>
+                         </div>
+                         <div className="col-sm-4">
+                              <span className="text-muted small fw-semibold text-uppercase d-block" style={{ letterSpacing: '0.05em' }}>Total Adjustments</span>
+                              <span className="fs-5 fw-bold">{currencyFormatter.format(summary.totalAdjustments)}</span>
+                         </div>
                     </div>
                     <div className="d-flex gap-2 align-items-end flex-wrap">
                          <DateFilterReusable
@@ -249,14 +267,6 @@ export default function OrganizationCommissionUpdatePage({ params }: { params: {
                          <Button variant="outline-primary" size="sm" onClick={applyFilter} disabled={filtering}>
                               {filtering ? 'Filtering...' : 'Filter'}
                          </Button>
-                    </div>
-               </div>
-
-               <div className="border rounded p-3 mb-4">
-                    <div className="row g-3 text-muted small">
-                         <div className="col-sm-4">Total Service Amount: {currencyFormatter.format(summary.totalServiceAmount)}</div>
-                         <div className="col-sm-4">Total Commission: {currencyFormatter.format(summary.totalCommission)}</div>
-                         <div className="col-sm-4">Total Adjustments: {currencyFormatter.format(summary.totalAdjustments)}</div>
                     </div>
                </div>
 

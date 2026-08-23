@@ -1,0 +1,380 @@
+import { customFetch, customPost } from "../../components/Auth/customFetch";
+
+export interface ApiResponse<T> {
+     status: string;
+     statusCode: number;
+     message?: string;
+     result: T;
+}
+
+export interface TrialBalanceRow {
+     account_code: string;
+     name: string;
+     type: "asset" | "liability" | "equity" | "revenue" | "expense";
+     normal_balance: "debit" | "credit";
+     debits: number;
+     credits: number;
+     balance: number;
+}
+
+export interface TrialBalance {
+     rows: TrialBalanceRow[];
+     totals: { debits: number; credits: number; balanced: boolean };
+}
+
+export interface LedgerLine {
+     journal_entry_id: number;
+     occurred_at: string;
+     transaction_type: string;
+     source_module: string;
+     source_table: string;
+     source_pk: number;
+     source_ref: string;
+     description: string | null;
+     account_code: string;
+     account_name: string;
+     direction: "debit" | "credit";
+     amount: number;
+     branchid: number | null;
+     billingid: number | null;
+     expense_id: number | null;
+     invoice_id: number | null;
+     employeeid: number | null;
+}
+
+export interface Paginated<T> {
+     data: T[];
+     total: number;
+     page: number;
+     count: number;
+}
+
+export interface IncomeStatement {
+     revenue: TrialBalanceRow[];
+     costOfSales: TrialBalanceRow[];
+     operatingExpenses: TrialBalanceRow[];
+     totals: {
+          revenue: number;
+          costOfSales: number;
+          grossProfit: number;
+          operatingExpenses: number;
+          netProfit: number;
+     };
+}
+
+export interface BalanceSheet {
+     assets: TrialBalanceRow[];
+     liabilities: TrialBalanceRow[];
+     equity: TrialBalanceRow[];
+     totals: {
+          assets: number;
+          liabilities: number;
+          equity: number;
+          retainedProfit: number;
+          liabilitiesAndEquity: number;
+          difference: number;
+     };
+}
+
+export interface ChartAccount {
+     account_code: string;
+     name: string;
+     type: "asset" | "liability" | "equity" | "revenue" | "expense";
+     normal_balance: "debit" | "credit";
+     is_active: number | boolean;
+}
+
+export interface PartyBalance {
+     partyType: string;
+     partyId: number | null;
+     partyName: string | null;
+     documents: number;
+     charged: number;
+     settled: number;
+     balance: number;
+     oldestDocumentDate: string | null;
+}
+
+export interface SubledgerStatementEntry {
+     id: number;
+     document_type: string;
+     document_ref: string;
+     document_date: string;
+     amount: number;
+     gross_amount: number;
+     tax_amount: number;
+     source_module: string;
+     runningBalance: number;
+}
+
+export interface AgingRow {
+     partyType: string;
+     partyId: number | null;
+     partyName: string | null;
+     reference: string;
+     documentDate: string;
+     ageDays: number;
+     current: number;
+     days30: number;
+     days60: number;
+     days90: number;
+     over90: number;
+     total: number;
+}
+
+export interface Aging {
+     rows: AgingRow[];
+     totals: {
+          current: number;
+          days30: number;
+          days60: number;
+          days90: number;
+          over90: number;
+          total: number;
+     };
+}
+
+
+
+export type PeriodStatus = "open" | "soft_closed" | "closed" | "locked";
+
+export interface AccountingPeriod {
+     id: number;
+     period_code: string;
+     period_start: string;
+     period_end: string;
+     status: PeriodStatus;
+     closed_by: number | null;
+     closed_at: string | null;
+     notes: string | null;
+}
+
+export type ManualJournalStatus = "draft" | "submitted" | "approved" | "posted" | "void";
+
+export interface ManualJournalLine {
+     id?: number;
+     account_code: string;
+     direction: "debit" | "credit";
+     amount: number;
+     branchid?: number | null;
+     employeeid?: number | null;
+     line_description?: string | null;
+}
+
+export interface ManualJournal {
+     id: number;
+     journal_no: string;
+     journal_date: string;
+     description: string;
+     reference: string | null;
+     status: ManualJournalStatus;
+     journal_entry_id: number | null;
+     created_by: number | null;
+     submitted_by: number | null;
+     approved_by: number | null;
+     posted_by: number | null;
+     submitted_at: string | null;
+     approved_at: string | null;
+     posted_at: string | null;
+     notes: string | null;
+}
+
+export interface OutboxHealth {
+     pending: number;
+     failed: number;
+     deadLetter: number;
+     oldestPendingMinutes: number | null;
+}
+
+export interface OutboxRow {
+     id: number;
+     source_module: string;
+     source_table: string;
+     source_pk: number;
+     source_ref: string;
+     transaction_type: string;
+     status: "pending" | "posted" | "failed" | "dead_letter";
+     attempts: number;
+     last_error: string | null;
+     created_at: string;
+     processed_at: string | null;
+}
+
+const BASE = "accounting";
+
+function query(params: Record<string, string | number | undefined | null>): string {
+     const search = new URLSearchParams();
+     Object.entries(params).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && value !== "") {
+               search.append(key, String(value));
+          }
+     });
+     const asString = search.toString();
+     return asString ? `?${asString}` : "";
+}
+
+export const accountingApi = {
+     trialBalance(from?: string, to?: string, branchId?: number): Promise<ApiResponse<TrialBalance>> {
+          return customFetch(`${BASE}/reports/trial-balance${query({ from, to, branchId })}`);
+     },
+
+     generalLedger(filters: {
+          from?: string;
+          to?: string;
+          accountCode?: string;
+          sourceModule?: string;
+          branchId?: number;
+          page?: number;
+          count?: number;
+     }): Promise<ApiResponse<Paginated<LedgerLine>>> {
+          return customFetch(`${BASE}/reports/general-ledger${query(filters)}`);
+     },
+
+     incomeStatement(from: string, to: string, branchId?: number): Promise<ApiResponse<IncomeStatement>> {
+          return customFetch(`${BASE}/reports/income-statement${query({ from, to, branchId })}`);
+     },
+
+     balanceSheet(asOf: string, branchId?: number): Promise<ApiResponse<BalanceSheet>> {
+          return customFetch(`${BASE}/reports/balance-sheet${query({ asOf, branchId })}`);
+     },
+
+     receivableAging(asOf?: string): Promise<ApiResponse<Aging>> {
+          return customFetch(`${BASE}/reports/receivable-aging${query({ asOf })}`);
+     },
+
+     payableAging(asOf?: string): Promise<ApiResponse<Aging>> {
+          return customFetch(`${BASE}/reports/payable-aging${query({ asOf })}`);
+     },
+
+     accounts(): Promise<ApiResponse<ChartAccount[]>> {
+          return customFetch(`${BASE}/accounts`);
+     },
+
+     cashFlow(from: string, to: string): Promise<ApiResponse<any>> {
+          return customFetch(`${BASE}/reports/cash-flow${query({ from, to })}`);
+     },
+
+     revenueAnalysis(from: string, to: string, branchId?: number): Promise<ApiResponse<any>> {
+          return customFetch(`${BASE}/reports/revenue-analysis${query({ from, to, branchId })}`);
+     },
+
+     expenseAnalysis(from: string, to: string, branchId?: number): Promise<ApiResponse<any>> {
+          return customFetch(`${BASE}/reports/expense-analysis${query({ from, to, branchId })}`);
+     },
+
+     branchPerformance(from: string, to: string): Promise<ApiResponse<any>> {
+          return customFetch(`${BASE}/reports/branch-performance${query({ from, to })}`);
+     },
+
+     inventoryValuation(asOf?: string): Promise<ApiResponse<any>> {
+          return customFetch(`${BASE}/reports/inventory-valuation${query({ asOf })}`);
+     },
+
+     subledgerBalances(ledger: "AR" | "AP", asOf?: string): Promise<ApiResponse<PartyBalance[]>> {
+          return customFetch(`${BASE}/subledger/${ledger}/balances${query({ asOf })}`);
+     },
+
+     subledgerReconcile(
+          ledger: "AR" | "AP",
+          asOf?: string
+     ): Promise<ApiResponse<{ subledger: number; generalLedger: number; difference: number }>> {
+          return customFetch(`${BASE}/subledger/${ledger}/reconcile${query({ asOf })}`);
+     },
+
+     subledgerStatement(
+          ledger: "AR" | "AP",
+          partyType: string,
+          partyId: number,
+          from?: string,
+          to?: string
+     ): Promise<ApiResponse<{ entries: SubledgerStatementEntry[]; openingBalance: number; closingBalance: number }>> {
+          return customFetch(`${BASE}/subledger/${ledger}/statement/${partyType}/${partyId}${query({ from, to })}`);
+     },
+
+     periods(from?: string, to?: string): Promise<ApiResponse<AccountingPeriod[]>> {
+          return customFetch(`${BASE}/periods${query({ from, to })}`);
+     },
+
+     periodTotals(periodCode: string): Promise<ApiResponse<{ debits: number; credits: number; entries: number }>> {
+          return customFetch(`${BASE}/periods/${periodCode}/totals`);
+     },
+
+     setPeriodStatus(periodCode: string, status: PeriodStatus, employeeid: number, notes?: string) {
+          return customPost(`/api/v1/${BASE}/periods/${periodCode}/status`, "PUT", { status, employeeid, notes });
+     },
+
+     manualJournals(filters: {
+          status?: ManualJournalStatus;
+          from?: string;
+          to?: string;
+          page?: number;
+          count?: number;
+     }): Promise<ApiResponse<Paginated<ManualJournal>>> {
+          return customFetch(`${BASE}/manual-journals${query(filters)}`);
+     },
+
+     manualJournal(id: number): Promise<ApiResponse<{ journal: ManualJournal; lines: ManualJournalLine[] }>> {
+          return customFetch(`${BASE}/manual-journals/${id}`);
+     },
+
+     createManualJournal(payload: {
+          journalDate: string;
+          description: string;
+          reference?: string;
+          notes?: string;
+          employeeid: number;
+          lines: ManualJournalLine[];
+     }) {
+          return customPost(`/api/v1/${BASE}/manual-journals`, "POST", payload);
+     },
+
+     updateManualJournal(id: number, payload: {
+          journalDate: string;
+          description: string;
+          reference?: string;
+          notes?: string;
+          lines: ManualJournalLine[];
+     }) {
+          return customPost(`/api/v1/${BASE}/manual-journals/${id}`, "PUT", payload);
+     },
+
+     submitManualJournal(id: number, employeeid: number) {
+          return customPost(`/api/v1/${BASE}/manual-journals/${id}/submit`, "PUT", { employeeid });
+     },
+
+     approveManualJournal(id: number, employeeid: number) {
+          return customPost(`/api/v1/${BASE}/manual-journals/${id}/approve`, "PUT", { employeeid });
+     },
+
+     postManualJournal(id: number, employeeid: number) {
+          return customPost(`/api/v1/${BASE}/manual-journals/${id}/post`, "PUT", { employeeid });
+     },
+
+     reverseManualJournal(id: number, employeeid: number, description?: string) {
+          return customPost(`/api/v1/${BASE}/manual-journals/${id}/reverse`, "PUT", { employeeid, description });
+     },
+
+     voidManualJournal(id: number, employeeid: number, reason?: string) {
+          return customPost(`/api/v1/${BASE}/manual-journals/${id}/void`, "PUT", { employeeid, reason });
+     },
+
+     outboxHealth(): Promise<ApiResponse<OutboxHealth>> {
+          return customFetch(`${BASE}/outbox/health`);
+     },
+
+     outbox(filters: { status?: string; sourceModule?: string; page?: number; count?: number }): Promise<ApiResponse<Paginated<OutboxRow>>> {
+          return customFetch(`${BASE}/outbox${query(filters)}`);
+     },
+
+     replayOutbox(id: number) {
+          return customPost(`/api/v1/${BASE}/outbox/${id}/replay`, "PUT", {});
+     },
+
+     closeFiscalYear(fiscalYear: number, employeeid: number) {
+          return customPost(`/api/v1/${BASE}/close/fiscal-year`, "POST", { fiscalYear, employeeid });
+     },
+
+     openingBalances(asOf: string, lines: Array<{ accountCode: string; debit?: number; credit?: number }>, employeeid: number) {
+          return customPost(`/api/v1/${BASE}/opening-balances`, "POST", { asOf, lines, employeeid });
+     },
+};

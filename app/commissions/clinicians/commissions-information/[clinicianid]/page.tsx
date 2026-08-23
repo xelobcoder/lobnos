@@ -312,8 +312,8 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 	const occupation = commissionData[0]?.occupation || clinicianLookup?.occupation || 'N/A';
 	return (
 		<main className={styles.container}>
-			<div className="d-flex justify-content-between align-items-center mb-3">
-				<h1 className={styles.title}><RiUserLine /> {clinician_name.toUpperCase()} - Commission Details</h1>
+			<div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 pb-3 mb-4" style={{ borderBottom: '1px solid var(--bs-border-color)' }}>
+				<h1 className={styles.title} style={{ margin: 0 }}><RiUserLine /> {clinician_name.toUpperCase()} - Commission Details</h1>
 				<div className="d-flex gap-2">
 					<Link
 						href={`/commissions/clinicians/commissions-information/${params.clinicianid}/commission-update`}
@@ -333,7 +333,6 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 					</Link>
 				</div>
 			</div>
-			<hr />
 			{/* Summary Cards */}
 			<div className="row g-3 mb-4">
 				<div className="col-12 col-sm-6 col-md-3">
@@ -382,77 +381,72 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 				</div>
 			)}
 
-			{/* Chart Section - Modern Analytics Style (Card) */}
-			<div className="card" style={{ borderRadius: '0.75rem', borderColor: 'var(--bs-border-color)', margin: '2rem 0 1.5rem 0', background: 'none' }}>
-				<div className="card-header py-3 px-4" style={{ borderColor: 'var(--bs-border-color)', background: 'none' }}>
-					<div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
-						<h2 className="fs-6 fw-semibold text-body-emphasis mb-3 mb-lg-0 d-flex align-items-center" style={{ color: 'inherit' }}>
+			{/* Chart Section */}
+			<div className="border rounded mb-4" style={{ background: 'none' }}>
+				<div className="p-3 p-md-4 pb-0">
+					<div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-2 mb-3">
+						<h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
 							Commission Trend
 						</h2>
-						<div className="d-flex  gap-2">
-							<DateFilterReusable
-								value={dateFilter}
-								onChange={setDateFilter}
-								onDateRangeChange={handleDateRangeChange}
-								label="Filter by"
-								className="col-12 col-lg-auto"
-							/>
-							<button onClick={loadCommissionData} className="btn btn-sm btn-primary d-flex align-items-center" type="button" aria-label="Load commission data" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
-								Load Data
-							</button>
-							<button onClick={handleResetFilters} className="btn btn-sm btn-outline-secondary d-flex align-items-center" type="button" aria-label="Reset date filters" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
-								Reset
-							</button>
-						</div>
 						<div className="btn-group btn-group-sm" role="group" aria-label="Chart view toggle">
-							<button type="button" className={`btn ${chartView === 'bar' ? 'btn-primary active' : 'btn-outline-secondary'}`} style={chartView === 'bar' ? {} : { fontWeight: 500 }} onClick={() => setChartView('bar')}>
+							<button type="button" className={`btn ${chartView === 'bar' ? 'btn-primary active' : 'btn-outline-secondary'}`} onClick={() => setChartView('bar')}>
 								Bar
 							</button>
-							<button type="button" className={`btn ${chartView === 'line' ? 'btn-primary active' : 'btn-outline-secondary'}`} style={chartView === 'line' ? {} : { fontWeight: 500 }} onClick={() => setChartView('line')}>
+							<button type="button" className={`btn ${chartView === 'line' ? 'btn-primary active' : 'btn-outline-secondary'}`} onClick={() => setChartView('line')}>
 								Line
 							</button>
 						</div>
 					</div>
+					<div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2 mb-3">
+						<DateFilterReusable
+							value={dateFilter}
+							onChange={setDateFilter}
+							onDateRangeChange={handleDateRangeChange}
+							label="Filter by"
+							className="col-12 col-lg-auto"
+						/>
+						<button onClick={loadCommissionData} className="btn btn-sm btn-primary" type="button" aria-label="Load commission data">
+							Load Data
+						</button>
+						<button onClick={handleResetFilters} className="btn btn-sm btn-outline-secondary" type="button" aria-label="Reset date filters">
+							Reset
+						</button>
+					</div>
 				</div>
-				<div className="card-body p-3 p-md-4" style={{ background: 'none' }}>
+				<div className="p-3 p-md-4 pt-0" style={{ background: 'none' }}>
 					<div className="CommissionLineChart-to-pdf">
 						<CommissionLineChart data={commissionData} view={chartView} />
 					</div>
 				</div>
 			</div>
-			<div className={styles.sectionDivider}></div>
 
 			{/* Detailed Commission Records */}
-			<div className="card" style={{ borderRadius: '0.75rem', borderColor: 'var(--bs-border-color)', margin: '2rem 0 1.5rem 0', backgroundColor: 'var(--theme-card-bg)' }}>
-				<div className="card-header py-3 d-flex justify-content-between align-items-center" style={{ borderColor: 'var(--bs-border-color)', backgroundColor: 'var(--theme-card-bg)' }}>
-					<h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center" style={{ color: 'inherit' }}>
+			<div className="border rounded" style={{ backgroundColor: 'var(--theme-card-bg)' }}>
+				<div className="p-3 p-md-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2" style={{ borderBottom: '1px solid var(--bs-border-color)' }}>
+					<h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
 						<RiFileList3Line className="me-2" />
 						Detailed Commission Records
 					</h2>
 
 					<div className="d-flex flex-row align-items-center gap-2">
-						{/* DateFilterReusable now handles date selection; removed old manual date pickers */}
-						<button onClick={loadCommissionData} className="btn btn-sm btn-primary d-flex align-items-center" type="button" aria-label="Load commission data" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
+						<button onClick={loadCommissionData} className="btn btn-sm btn-primary" type="button" aria-label="Load commission data">
 							Load Data
 						</button>
-						<button onClick={handleResetFilters} className="btn btn-sm btn-outline-secondary d-flex align-items-center" type="button" aria-label="Reset date filters" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
+						<button onClick={handleResetFilters} className="btn btn-sm btn-outline-secondary" type="button" aria-label="Reset date filters">
 							Reset
 						</button>
 					</div>
 				</div>
-				<div className="card-header py-3 px-4 d-flex justify-content-between align-items-center" style={{ borderColor: 'var(--bs-border-color)', backgroundColor: 'var(--theme-card-bg)' }}>
-					<div>
-						<small className="text-muted d-block mt-1" style={{ fontSize: '0.85rem' }}>
-							<div className="row gx-2">
-								<div className="col-6 mb-1"><strong>Total payable:</strong> <span className="ms-1">amount payable by the services referred by the clinician for that date.</span></div>
-								<div className="col-6 mb-1"><strong>Total services:</strong> <span className="ms-1">total number of services referred by the clinician for that date.</span></div>
-								<div className="col-6"><strong>Commission (Earned by Paid):</strong> <span className="ms-1">commission due based on the amount actually paid for the services referred.</span></div>
-								<div className="col-6"><strong>Commission (Earned by Payable):</strong> <span className="ms-1">commission calculated based on the total payable amount for the services referred.</span></div>
-							</div>
-						</small>
+				<details className="px-3 px-md-4 py-2" style={{ borderBottom: '1px solid var(--bs-border-color)' }}>
+					<summary className="text-muted small" style={{ cursor: 'pointer' }}>What do these columns mean?</summary>
+					<div className="row gx-2 small text-muted mt-2">
+						<div className="col-md-6 mb-1"><strong>Total payable:</strong> <span className="ms-1">amount payable by the services referred by the clinician for that date.</span></div>
+						<div className="col-md-6 mb-1"><strong>Total services:</strong> <span className="ms-1">total number of services referred by the clinician for that date.</span></div>
+						<div className="col-md-6"><strong>Commission (Earned by Paid):</strong> <span className="ms-1">commission due based on the amount actually paid for the services referred.</span></div>
+						<div className="col-md-6"><strong>Commission (Earned by Payable):</strong> <span className="ms-1">commission calculated based on the total payable amount for the services referred.</span></div>
 					</div>
-				</div>
-				<div className="card-body p-3 p-md-4" style={{ backgroundColor: 'var(--theme-card-bg)' }}>
+				</details>
+				<div className="p-3 p-md-4" style={{ backgroundColor: 'var(--theme-card-bg)' }}>
 
 					{/* Bulk Pay Button */}
 					{selectedRecords.size > 0 && (

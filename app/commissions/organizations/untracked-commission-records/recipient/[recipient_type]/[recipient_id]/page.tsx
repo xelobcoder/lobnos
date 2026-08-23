@@ -215,7 +215,7 @@ export default function RecipientUntrackedServicesPage({
                <nav aria-label="breadcrumb" className="mb-3">
                     <ol className="breadcrumb">
                          <li className="breadcrumb-item">
-                              <a href="/organization/untracked-commission-records">Untracked Services</a>
+                              <a href="/commissions/organizations/untracked-commission-records">Untracked Services</a>
                          </li>
                          <li className="breadcrumb-item active" aria-current="page">
                               {recipientType} {recipientId}
@@ -223,10 +223,10 @@ export default function RecipientUntrackedServicesPage({
                     </ol>
                </nav>
 
-               <div className="card mb-4" style={{ borderRadius: "0.75rem", borderColor: "var(--bs-border-color)" }}>
-                    <div className="card-header py-3 px-4" style={{ backgroundColor: "var(--bs-tertiary-bg)", borderColor: "var(--bs-border-color)" }}>
-                         <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
-                              <h2 className="fs-6 fw-semibold text-body-emphasis mb-3 mb-lg-0 d-flex align-items-center">
+               <div className="border rounded mb-4">
+                    <div className="p-3 p-md-4" style={{ backgroundColor: "var(--bs-tertiary-bg)", borderBottom: "1px solid var(--bs-border-color)" }}>
+                         <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-2">
+                              <h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
                                    <RiFileListLine size={22} style={{ color: "oklch(0.646 0.222 41.116)" }} className="me-2 flex-shrink-0" />
                                    Untracked Services for {recipientType}
                                    {recipientName && (
@@ -234,35 +234,34 @@ export default function RecipientUntrackedServicesPage({
                                    )}
                               </h2>
                               <div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
-                                   <div className="d-flex gap-2 flex-wrap">
-                                        <DateFilterReusable
-                                             value={dateFilter}
-                                             onChange={setDateFilter}
-                                             onDateRangeChange={handleDateRangeChange}
-                                             label="Filter by"
-                                        />
-                                        <button
-                                             className="btn btn-sm btn-primary d-flex align-items-center"
-                                             onClick={() => fetchServices()}
-                                             disabled={filtering || loading}
-                                        >
-                                             <RiRefreshLine size={16} className="me-1" />
-                                             Apply Filter
-                                        </button>
-                                        <button
-                                             className="btn btn-sm btn-outline-secondary d-flex align-items-center"
-                                             onClick={() => fetchServices()}
-                                             disabled={loading || filtering}
-                                        >
-                                             <RiRefreshLine size={16} className="me-1" />
-                                             {loading ? "Refreshing..." : "Refresh"}
-                                        </button>
-                                   </div>
+                                   <DateFilterReusable
+                                        value={dateFilter}
+                                        onChange={setDateFilter}
+                                        onDateRangeChange={handleDateRangeChange}
+                                        label="Filter by"
+                                        disabled={loading || filtering}
+                                   />
+                                   <button
+                                        className="btn btn-sm btn-primary d-flex align-items-center"
+                                        onClick={() => fetchServices()}
+                                        disabled={filtering || loading}
+                                   >
+                                        <RiRefreshLine size={16} className="me-1" />
+                                        Apply Filter
+                                   </button>
+                                   <button
+                                        className="btn btn-sm btn-outline-secondary d-flex align-items-center"
+                                        onClick={() => fetchServices()}
+                                        disabled={loading || filtering}
+                                   >
+                                        <RiRefreshLine size={16} className="me-1" />
+                                        {loading ? "Refreshing..." : "Refresh"}
+                                   </button>
                               </div>
                          </div>
                     </div>
 
-                    <div className="card-body p-4">
+                    <div className="p-3 p-md-4 pb-0">
                          <p className="text-muted mb-0">
                               {recipientType === "clinician" ? (
                                    <RiUserLine size={16} className="me-1" />
@@ -273,61 +272,49 @@ export default function RecipientUntrackedServicesPage({
                          </p>
                     </div>
 
-                    <div className="row g-3 mb-4">
+                    <div className="row g-3 p-3 p-md-4">
                          <div className="col-md-4">
-                              <div className="border rounded h-100" style={{ borderColor: "var(--bs-border-color)" }}>
+                              <div className="border rounded h-100">
                                    <div className="p-3">
-                                        <div className="d-flex align-items-center mb-2">
-                                             <RiFileListLine size={20} className="text-primary me-2" />
-                                             <h6 className="mb-0 fw-bold">Total Services</h6>
-                                        </div>
+                                        <div className="text-muted small text-uppercase fw-semibold mb-1" style={{ letterSpacing: "0.05em" }}>Total Services</div>
                                         <div className="fs-4 fw-bold text-primary">{summary.totalServices}</div>
                                    </div>
                               </div>
                          </div>
                          <div className="col-md-4">
-                              <div className="border rounded h-100" style={{ borderColor: "var(--bs-border-color)" }}>
+                              <div className="border rounded h-100">
                                    <div className="p-3">
-                                        <div className="d-flex align-items-center mb-2">
-                                             <span className="text-success me-2" style={{ fontSize: "20px" }}>₵</span>
-                                             <h6 className="mb-0 fw-bold">Total Payable</h6>
-                                        </div>
-                                        <div className="fs-4 fw-bold text-success">{currencyFormatter.format(summary.totalPayable)}</div>
+                                        <div className="text-muted small text-uppercase fw-semibold mb-1" style={{ letterSpacing: "0.05em" }}>Total Payable</div>
+                                        <div className="fs-4 fw-bold">{currencyFormatter.format(summary.totalPayable)}</div>
                                    </div>
                               </div>
                          </div>
                          <div className="col-md-4">
-                              <div className="border rounded h-100" style={{ borderColor: "var(--bs-border-color)" }}>
+                              <div className="border rounded h-100">
                                    <div className="p-3">
-                                        <div className="d-flex align-items-center mb-2">
-                                             <span className="text-info me-2" style={{ fontSize: "20px" }}>₵</span>
-                                             <h6 className="mb-0 fw-bold">Total Paid</h6>
-                                        </div>
-                                        <div className="fs-4 fw-bold text-info">{currencyFormatter.format(summary.totalPaid)}</div>
+                                        <div className="text-muted small text-uppercase fw-semibold mb-1" style={{ letterSpacing: "0.05em" }}>Total Paid</div>
+                                        <div className="fs-4 fw-bold text-success">{currencyFormatter.format(summary.totalPaid)}</div>
                                    </div>
                               </div>
                          </div>
                     </div>
 
-                    <div className="card" style={{ borderRadius: "0.75rem", borderColor: "var(--bs-border-color)" }}>
-                         <div className="card-header py-3 px-4" style={{ backgroundColor: "var(--bs-tertiary-bg)", borderColor: "var(--bs-border-color)" }}>
+                    <div style={{ borderTop: "1px solid var(--bs-border-color)" }}>
+                         <div className="p-3 p-md-4 pb-2">
                               <h6 className="mb-0 fw-semibold text-body-emphasis">Service Records</h6>
                          </div>
-                         <div className="card-body p-0">
-                              <div className="table-responsive">
-                                   <PrimeTable
-                                        column={columns}
-                                        data={data}
-                                        filtering={true}
-                                        serverSideFiltering={true}
-                                        urlparams={{ startDate, endDate }}
-                                        handleSeverSideProcessing={handleServerSideProcessing}
-                                   />
-                              </div>
+                         <div className="table-responsive">
+                              <PrimeTable
+                                   column={columns}
+                                   data={data}
+                                   filtering={true}
+                                   serverSideFiltering={true}
+                                   urlparams={{ startDate, endDate }}
+                                   handleSeverSideProcessing={handleServerSideProcessing}
+                              />
                          </div>
                     </div>
                </div>
-               );
           </div>
      );
 }

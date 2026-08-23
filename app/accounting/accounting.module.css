@@ -1,0 +1,132 @@
+.accountingModule {
+     --accounting-ink: #182321;
+     --accounting-muted: #687873;
+     --accounting-line: #dbe3df;
+     --accounting-accent: #1c766c;
+     min-height: 100%;
+     background: #f4f6f4;
+     color: var(--accounting-ink);
+}
+
+.accountingModule :global(.container-fluid) {
+     max-width: 1680px;
+     padding-top: 2rem !important;
+     padding-bottom: 2.5rem !important;
+}
+
+.accountingModule :global(.container-fluid > .mb-4 h4),
+.accountingModule :global(.container-fluid > .mb-4 h1) {
+     font-weight: 750;
+     letter-spacing: 0;
+}
+
+.accountingModule :global(.card) {
+     border: 1px solid var(--accounting-line);
+     border-radius: 6px;
+     background: rgba(255, 255, 255, .92);
+     box-shadow: 0 5px 18px rgba(33, 55, 49, .045) !important;
+}
+
+.accountingModule :global(.card-header),
+.accountingModule :global(.card-footer) {
+     border-color: var(--accounting-line);
+     background: #fbfcfb !important;
+}
+
+.accountingModule :global(.form-control),
+.accountingModule :global(.form-select) {
+     border-color: #cbd6d1;
+     border-radius: 4px;
+     color: var(--accounting-ink);
+}
+
+.accountingModule :global(.form-control:focus),
+.accountingModule :global(.form-select:focus) {
+     border-color: var(--accounting-accent);
+     box-shadow: 0 0 0 .2rem rgba(28, 118, 108, .13);
+}
+
+.accountingModule :global(.btn-primary) {
+     border-color: var(--accounting-accent);
+     background: var(--accounting-accent);
+}
+
+.accountingModule :global(.btn-primary:hover),
+.accountingModule :global(.btn-primary:focus) {
+     border-color: #155e57;
+     background: #155e57;
+}
+
+.accountingModule :global(.table) {
+     --bs-table-bg: transparent;
+     margin-bottom: 0;
+     color: var(--accounting-ink);
+     font-size: .875rem;
+}
+
+.accountingModule :global(.table > :not(caption) > * > *) {
+     padding: .8rem 1rem;
+     border-bottom-color: #e7ece9;
+     text-align: left !important;
+}
+
+.accountingModule :global(.table .text-end) {
+     text-align: left !important;
+}
+
+.accountingModule :global(.table thead th) {
+     position: sticky;
+     top: 0;
+     z-index: 1;
+     background: #f5f8f6;
+     color: #5d6d68;
+     font-size: .7rem;
+     font-weight: 750;
+     letter-spacing: .08em;
+     text-transform: uppercase;
+     white-space: nowrap;
+}
+
+.accountingModule :global(.table tbody tr:hover) {
+     --bs-table-hover-bg: #f4f8f6;
+}
+
+.accountingModule :global(.table-secondary),
+.accountingModule :global(.table-light) {
+     --bs-table-bg: #f5f8f6;
+     color: var(--accounting-ink);
+}
+
+.accountingModule :global(.alert) {
+     border-radius: 5px;
+     border-width: 1px;
+     font-size: .875rem;
+}
+
+.accountingModule :global(.badge) {
+     border-radius: 3px;
+     font-size: .68rem;
+     font-weight: 700;
+     letter-spacing: .04em;
+     padding: .4em .6em;
+     text-transform: uppercase;
+}
+
+.accountingModule :global(.text-muted) {
+     color: var(--accounting-muted) !important;
+}
+
+.accountingModule :global(label) {
+     color: #51615c;
+     font-weight: 650;
+}
+
+@media (max-width: 767px) {
+     .accountingModule :global(.container-fluid) {
+          padding: 1.25rem .85rem !important;
+     }
+
+     .accountingModule :global(.table > :not(caption) > * > *) {
+          padding: .65rem .75rem;
+     }
+}

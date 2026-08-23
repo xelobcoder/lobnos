@@ -95,27 +95,23 @@ export default function OrganizationPaidCommissionsPage({ params }: { params: { 
 
      return (
           <div className="container-fluid px-4 py-3">
-               <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap">
-                    <div>
-                         <h1 className="h5 mb-1 d-flex align-items-center"><RiHospitalLine className="me-2" />Organization Paid Commissions</h1>
-                         <p className="text-muted mb-0">Organization ID: {params.organization}</p>
-                    </div>
+               <div className="pb-3 mb-4" style={{ borderBottom: '1px solid var(--bs-border-color)' }}>
+                    <h1 className="h5 mb-1 d-flex align-items-center"><RiHospitalLine className="me-2" />Organization Paid Commissions</h1>
+                    <p className="text-muted mb-0 small">Organization ID: {params.organization}</p>
                </div>
 
-               <div className="card rounded mb-4" style={{ borderColor: 'var(--bs-border-color)' }}>
-                    <div className="card-body py-3 px-4">
-                         <div className="d-flex flex-column flex-sm-row gap-2 align-items-sm-center">
-                              <DateFilterReusable
-                                   value={dateFilter}
-                                   onChange={setDateFilter}
-                                   onDateRangeChange={(start, end) => { setStartDate(start); setEndDate(end); }}
-                                   label="Filter by"
-                                   className="col-12 col-sm-auto"
-                              />
-                              <button className="btn btn-sm btn-outline-secondary" type="button" onClick={handleResetFilters}>
-                                   Reset
-                              </button>
-                         </div>
+               <div className="border rounded mb-4 p-3 px-4" style={{ borderColor: 'var(--bs-border-color)' }}>
+                    <div className="d-flex flex-column flex-sm-row gap-2 align-items-sm-center">
+                         <DateFilterReusable
+                              value={dateFilter}
+                              onChange={setDateFilter}
+                              onDateRangeChange={(start, end) => { setStartDate(start); setEndDate(end); }}
+                              label="Filter by"
+                              className="col-12 col-sm-auto"
+                         />
+                         <button className="btn btn-sm btn-outline-secondary" type="button" onClick={handleResetFilters}>
+                              Reset
+                         </button>
                     </div>
                </div>
 
@@ -132,28 +128,27 @@ export default function OrganizationPaidCommissionsPage({ params }: { params: { 
                     <>
                          <div className="row g-3 mb-4">
                               <div className="col-12 col-sm-4">
-                                   <div className="border rounded p-3 h-100 bg-light">
-                                        <div className="text-muted small mb-2">Batch Count</div>
-                                        <div className="fw-semibold fs-4">{paidCommissions.length}</div>
+                                   <div className="border rounded p-3 h-100">
+                                        <div className="text-muted small text-uppercase fw-semibold mb-1" style={{ letterSpacing: '0.05em' }}>Batch Count</div>
+                                        <div className="fw-bold fs-4">{paidCommissions.length}</div>
                                    </div>
                               </div>
                               <div className="col-12 col-sm-4">
-                                   <div className="border rounded p-3 h-100 bg-light">
-                                        <div className="text-muted small mb-2">Total Commission</div>
-                                        <div className="fw-semibold fs-4">{currencyFormatter.format(totalSummary.totalCommission)}</div>
+                                   <div className="border rounded p-3 h-100">
+                                        <div className="text-muted small text-uppercase fw-semibold mb-1" style={{ letterSpacing: '0.05em' }}>Total Commission</div>
+                                        <div className="fw-bold fs-4 text-primary">{currencyFormatter.format(totalSummary.totalCommission)}</div>
                                    </div>
                               </div>
                               <div className="col-12 col-sm-4">
-                                   <div className="border rounded p-3 h-100 bg-light">
-                                        <div className="text-muted small mb-2">Total Paid</div>
-                                        <div className="fw-semibold fs-4">{currencyFormatter.format(totalSummary.totalPaid)}</div>
+                                   <div className="border rounded p-3 h-100">
+                                        <div className="text-muted small text-uppercase fw-semibold mb-1" style={{ letterSpacing: '0.05em' }}>Total Paid</div>
+                                        <div className="fw-bold fs-4 text-success">{currencyFormatter.format(totalSummary.totalPaid)}</div>
                                    </div>
                               </div>
                          </div>
 
-                         <div className="card border rounded mb-4">
-                              <div className="card-body p-3 p-md-4">
-                                   <PrimeTable
+                         <div className="border rounded mb-4 p-3 p-md-4">
+                              <PrimeTable
                                         column={[
                                              { Header: 'Batch Reference', accessor: 'batch_reference' },
                                              {
@@ -191,7 +186,6 @@ export default function OrganizationPaidCommissionsPage({ params }: { params: { 
                                         serverSideFiltering={true}
                                         handleSeverSideProcessing={handleSeverSideProcessing}
                                    />
-                              </div>
                          </div>
                     </>
                )}

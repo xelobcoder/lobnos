@@ -20,14 +20,14 @@ export default function RulesLoadingTempleteCreation({ rule, setImpression, impr
                                    )
                             })}
                      </section>
-                     <section>
+                     {/* <section>
                             <div className='list-group heightedBorder br-0 my-2'>
                                    <div className='list-group-item fw-bold text-uppercase bg-body-secondary pls-color'>Impression</div>
                                    <div className='list-group-item'>
                                           <MARKDOWN_EDITOR updatedata={(ev, data) => { setImpression(data) }} initialData={impression || "Impression Here"} />
                                    </div>
                             </div>
-                     </section>
+                     </section> */}
               </div>
 
        )

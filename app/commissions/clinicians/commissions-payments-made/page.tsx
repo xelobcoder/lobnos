@@ -449,30 +449,34 @@ export default function PaidCommissionsPaymentMadePage() {
      return (
           <div className="py-4">
                {/* Chart Section - TOP */}
-               <div className="card mb-4" style={{ borderRadius: '0.75rem', borderColor: COLOR_BORDER }}>
-                    <div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
+               <div className="border rounded mb-4" style={{ borderColor: COLOR_BORDER }}>
+                    <div className="p-3 p-md-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderBottom: `1px solid ${COLOR_BORDER}` }}>
                          <div className="d-flex flex-column gap-3">
-                              {/* Chart Controls and Filters Row */}
-                              <div className="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                              {/* Recipient selection row */}
+                              <div className="d-flex flex-wrap align-items-center gap-2">
+                                   <span className="text-muted small fw-semibold text-uppercase me-1" style={{ letterSpacing: '0.05em' }}>Recipient</span>
+                                   <Button variant="outline-primary" size="sm" onClick={loadClinicians} disabled={cliniciansLoading}>
+                                        {cliniciansLoading ? 'Loading...' : 'Load Clinicians'}
+                                   </Button>
+                                   <select className="form-select form-select-sm" style={{ width: '180px' }} value={selectedClinician ?? ''} onChange={e => { setSelectedClinician(Number(e.target.value) || null); setSelectedOrganization(null); }} disabled={clinicians.length === 0}>
+                                        <option value="">Select Clinician</option>
+                                        {clinicians.map(c => (
+                                             <option key={c.id} value={c.id}>{c.name}</option>
+                                        ))}
+                                   </select>
+                                   <Button variant="outline-primary" size="sm" onClick={loadOrganizations} disabled={organizationsLoading}>
+                                        {organizationsLoading ? 'Loading...' : 'Load Orgs'}
+                                   </Button>
+                                   <select className="form-select form-select-sm" style={{ width: '180px' }} value={selectedOrganization ?? ''} onChange={e => { setSelectedOrganization(Number(e.target.value) || null); setSelectedClinician(null); }} disabled={organizations.length === 0}>
+                                        <option value="">Select Organization</option>
+                                        {organizations.map(o => (
+                                             <option key={o.id} value={o.id}>{o.name}</option>
+                                        ))}
+                                   </select>
+                              </div>
+                              {/* Date filter + actions row */}
+                              <div className="d-flex flex-wrap justify-content-between align-items-center gap-2" style={{ borderTop: `1px solid ${COLOR_BORDER}`, paddingTop: '0.75rem' }}>
                                    <div className="d-flex flex-wrap align-items-center gap-2">
-                                        <Button variant="outline-primary" size="sm" onClick={loadClinicians} disabled={cliniciansLoading}>
-                                             {cliniciansLoading ? 'Loading...' : 'Load Clinicians'}
-                                        </Button>
-                                        <select className="form-select form-select-sm" style={{ width: '180px' }} value={selectedClinician ?? ''} onChange={e => { setSelectedClinician(Number(e.target.value) || null); setSelectedOrganization(null); }} disabled={clinicians.length === 0}>
-                                             <option value="">Select Clinician</option>
-                                             {clinicians.map(c => (
-                                                  <option key={c.id} value={c.id}>{c.name}</option>
-                                             ))}
-                                        </select>
-                                        <Button variant="outline-primary" size="sm" onClick={loadOrganizations} disabled={organizationsLoading}>
-                                             {organizationsLoading ? 'Loading...' : 'Load Orgs'}
-                                        </Button>
-                                        <select className="form-select form-select-sm" style={{ width: '180px' }} value={selectedOrganization ?? ''} onChange={e => { setSelectedOrganization(Number(e.target.value) || null); setSelectedClinician(null); }} disabled={organizations.length === 0}>
-                                             <option value="">Select Organization</option>
-                                             {organizations.map(o => (
-                                                  <option key={o.id} value={o.id}>{o.name}</option>
-                                             ))}
-                                        </select>
                                         <DateFilterReusable
                                              value={dateFilter}
                                              onChange={setDateFilter}
@@ -487,32 +491,30 @@ export default function PaidCommissionsPaymentMadePage() {
                                              Reset
                                         </Button>
                                    </div>
-                                   <div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
-                                        <div className="btn-group btn-group-sm" role="group" aria-label="Chart type">
-                                             {viewButtons.map(btn => (
-                                                  <Button
-                                                       key={btn.type}
-                                                       variant={chartView === btn.type ? 'primary' : 'outline-secondary'}
-                                                       size="sm"
-                                                       onClick={() => setChartView(btn.type)}
-                                                       style={chartView === btn.type ? { backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT } : {}}
-                                                  >
-                                                       <btn.icon size={16} className="me-1 align-text-bottom" /> {btn.label}
-                                                  </Button>
-                                             ))}
-                                        </div>
+                                   <div className="btn-group btn-group-sm" role="group" aria-label="Chart type">
+                                        {viewButtons.map(btn => (
+                                             <Button
+                                                  key={btn.type}
+                                                  variant={chartView === btn.type ? 'primary' : 'outline-secondary'}
+                                                  size="sm"
+                                                  onClick={() => setChartView(btn.type)}
+                                                  style={chartView === btn.type ? { backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT } : {}}
+                                             >
+                                                  <btn.icon size={16} className="me-1 align-text-bottom" /> {btn.label}
+                                             </Button>
+                                        ))}
                                    </div>
                               </div>
                          </div>
                     </div>
-                    <div className="card-body p-4">
+                    <div className="p-4">
                          <h2 className="fs-6 fw-semibold text-body-emphasis mb-3 d-flex align-items-center">
                               <RiBarChartBoxLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" />
                               Commission Payments Trend
                          </h2>
                          {renderChartContainerContent()}
                     </div>
-                    <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{ borderTop: `1px solid ${COLOR_BORDER}` }}>
+                    <div className="bg-body-tertiary p-3 p-md-4" style={{ borderTop: `1px solid ${COLOR_BORDER}` }}>
                          <div className="print-date-range" style={{ display: 'none' }}>
                               Report Period: {startDate} - {endDate}
                          </div>

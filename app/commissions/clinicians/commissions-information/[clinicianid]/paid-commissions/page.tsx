@@ -21,7 +21,7 @@ import {
      Area,
 } from "recharts";
 import { toast } from "react-toastify";
-import { currencyFormatter,customFetch } from "../../../../../../components/Auth/customFetch";
+import { currencyFormatter, customFetch } from "../../../../../../components/Auth/customFetch";
 import { useApplication } from "../../../../../../components/Auth/useApplicationContext";
 import DateFilterReusable from "../../../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 
@@ -386,8 +386,8 @@ export default function PaidCommissionsPage({ params }: { params: { clinicianid:
 
      return (
           <div className="py-4">
-               <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h1 className="h4 fw-bold text-primary d-flex align-items-center"><RiUserLine className="me-2" /> Paid Commissions</h1>
+               <div className="d-flex justify-content-between align-items-center pb-3 mb-4" style={{ borderBottom: `1px solid ${COLOR_BORDER}` }}>
+                    <h1 className="h4 fw-bold text-primary d-flex align-items-center mb-0"><RiUserLine className="me-2" /> Paid Commissions</h1>
                     <Link
                          href={`/commissions/clinicians/commissions-information/${params.clinicianid}`}
                          className="btn btn-outline-primary btn-sm"
@@ -397,11 +397,10 @@ export default function PaidCommissionsPage({ params }: { params: { clinicianid:
                          Update Commission Records
                     </Link>
                </div>
-               <hr />
 
                {/* Chart Section - Same format as Daily Sales Trend */}
-               <div className="card" style={{ borderRadius: '0.75rem', borderColor: COLOR_BORDER, marginBottom: '2rem' }}>
-                    <div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
+               <div className="border rounded mb-4" style={{ borderColor: COLOR_BORDER }}>
+                    <div className="p-3 p-md-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderBottom: `1px solid ${COLOR_BORDER}` }}>
                          <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
                               <h2 className="fs-6 fw-semibold text-body-emphasis mb-3 mb-lg-0 d-flex align-items-center">
                                    <RiLineChartLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" />
@@ -436,7 +435,7 @@ export default function PaidCommissionsPage({ params }: { params: { clinicianid:
                               </div>
                          </div>
                     </div>
-                    <div className="card-body p-3 p-md-4">
+                    <div className="p-3 p-md-4">
                          {error && chartData.length > 0 && (
                               <div className="alert alert-light-warning border-warning border-opacity-50 border-start-0 border-end-0 border-bottom-0 rounded-0 d-flex align-items-center small p-2 mb-3" role="alert" style={{ borderTopWidth: '3px' }}>
                                    <RiErrorWarningLine size={18} className="me-2 flex-shrink-0" />
@@ -448,14 +447,14 @@ export default function PaidCommissionsPage({ params }: { params: { clinicianid:
                     </div>
                </div>
 
-               <div className="card  mb-4">
-                    <div className="card-header d-flex justify-content-between align-items-center">
+               <div className="border rounded mb-4">
+                    <div className="p-3 p-md-4 d-flex justify-content-between align-items-center" style={{ borderBottom: `1px solid ${COLOR_BORDER}` }}>
                          <h2 className="h6 fw-semibold text-body mb-0 d-flex align-items-center">
                               <RiFileList3Line className="me-2" />
                               Paid Commission Batches
                          </h2>
                     </div>
-                    <div className="card-body">
+                    <div className="p-3 p-md-4">
                          {paidCommissions.length > 0 && (
                               <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{ borderTop: `1px solid ${COLOR_BORDER}` }} ref={generalPdfRef}>
                                    <div className="print-date-range" style={{ display: 'none' }}>

@@ -60,6 +60,10 @@ export default function OrganizationCommissionDetails({ params }: { params: { or
      const employeeid = useApplication()?.user?.employeeid;
      const branchid = useApplication()?.branchid;
      const [lastRefreshTime, setLastRefreshTime] = useState<string>(dayjs().format('HH:mm:ss'));
+     const [organizationInformation, setOrganizationInformation] = useState<{
+          name: string,
+          mobile: string
+     }>({ name: "", mobile : "" })
 
      // Auto-reload every 30 seconds
      useEffect(() => {
@@ -84,13 +88,27 @@ export default function OrganizationCommissionDetails({ params }: { params: { or
           }
      };
 
+
+     const getOrganizationDetails = async (organizationalId: number) => {
+          try {
+               const response = await customFetch(`organization/basic?id=${organizationalId}`);
+               if (response && response?.status == "success" && response?.result && Array.isArray(response?.result) && response.result.length > 0) {
+                    setOrganizationInformation(response.result[0])
+               } else {
+                    setOrganizationInformation({ name: "", mobile: "" })
+               }
+          } catch (err) {
+               toast.error("Error Loading Details of the organization")
+          }
+     }
+
      const loadCommissionData = async () => {
           setLoading(true);
           setError(null);
           try {
                // First load with a very broad date range to get all services
-               const broadStart = dayjs().subtract(10, 'year').format('YYYY-MM-DD');
-               const broadEnd = dayjs().add(1, 'year').format('YYYY-MM-DD');
+               const broadStart = startDate || dayjs().subtract(1, 'year').format('YYYY-MM-DD');
+               const broadEnd = endDate || dayjs().add(1, 'year').format('YYYY-MM-DD');
 
                const res = await getOrganizationCommission({
                     organizationid: params.organization,
@@ -137,6 +155,7 @@ export default function OrganizationCommissionDetails({ params }: { params: { or
      // Initial data load
      useEffect(() => {
           loadCommissionData();
+          getOrganizationDetails(Number(params.organization));
      }, [params.organization]); // Only depend on organization, not dates
 
      const handleDateRangeChange = (start: string, end: string) => {
@@ -146,7 +165,6 @@ export default function OrganizationCommissionDetails({ params }: { params: { or
 
      const handleResetFilters = () => {
           setDateFilter('This Year');
-          // Reset will reload data and recalculate date range from services
           loadCommissionData();
      };
 
@@ -282,10 +300,10 @@ export default function OrganizationCommissionDetails({ params }: { params: { or
 
      return (
           <main className={styles.container}>
-               <div className="d-flex justify-content-between align-items-center mb-3">
+               <div className="d-flex justify-content-between align-items-center pb-3 mb-4" style={{ borderBottom: '1px solid var(--bs-border-color)' }}>
                     <h1 className={styles.title} style={{ margin: 0 }}>
                          <RiHospitalLine className="me-2" />
-                         {organizationInfo.organization_name.toUpperCase()} - Commission Details
+                         {organizationInformation.name.toUpperCase()}({organizationInformation.mobile}) - Commission Details
                     </h1>
                     <div className="d-flex gap-2">
                          <Link
@@ -306,7 +324,6 @@ export default function OrganizationCommissionDetails({ params }: { params: { or
                          </Link>
                     </div>
                </div>
-               <hr />
 
                <div className="row g-3 mb-4">
                     <div className="col-12 col-sm-6 col-md-3">
@@ -395,38 +412,38 @@ export default function OrganizationCommissionDetails({ params }: { params: { or
                     </div>
                )}
 
-               <div className="card" style={{ borderRadius: '0.75rem', borderColor: 'var(--bs-border-color)', margin: '2rem 0 1.5rem 0', background: 'none' }}>
-                    <div className="card-header py-3 px-4" style={{ borderColor: 'var(--bs-border-color)', background: 'none' }}>
-                         <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
-                              <h2 className="fs-6 fw-semibold text-body-emphasis mb-3 mb-lg-0 d-flex align-items-center" style={{ color: 'inherit' }}>
+               <div className="border rounded mb-4" style={{ background: 'none' }}>
+                    <div className="p-3 p-md-4 pb-0">
+                         <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-2 mb-3">
+                              <h2 className="fs-6 fw-semibold text-body-emphasis mb-0">
                                    Commission Trend
                               </h2>
-                              <div className="d-flex gap-2">
-                                   <DateFilterReusable
-                                        value={dateFilter}
-                                        onChange={setDateFilter}
-                                        onDateRangeChange={handleDateRangeChange}
-                                        label="Filter by"
-                                        className="col-12 col-lg-auto"
-                                   />
-                                   <button onClick={loadCommissionData} className="btn btn-sm btn-primary d-flex align-items-center" type="button" aria-label="Load commission data" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
-                                        Load Data
-                                   </button>
-                                   <button onClick={handleResetFilters} className="btn btn-sm btn-outline-secondary d-flex align-items-center" type="button" aria-label="Reset date filters" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
-                                        Reset
-                                   </button>
-                              </div>
                               <div className="btn-group btn-group-sm" role="group" aria-label="Chart view toggle">
-                                   <button type="button" className={`btn ${chartView === 'bar' ? 'btn-primary active' : 'btn-outline-secondary'}`} style={chartView === 'bar' ? {} : { fontWeight: 500 }} onClick={() => setChartView('bar')}>
+                                   <button type="button" className={`btn ${chartView === 'bar' ? 'btn-primary active' : 'btn-outline-secondary'}`} onClick={() => setChartView('bar')}>
                                         Bar
                                    </button>
-                                   <button type="button" className={`btn ${chartView === 'line' ? 'btn-primary active' : 'btn-outline-secondary'}`} style={chartView === 'line' ? {} : { fontWeight: 500 }} onClick={() => setChartView('line')}>
+                                   <button type="button" className={`btn ${chartView === 'line' ? 'btn-primary active' : 'btn-outline-secondary'}`} onClick={() => setChartView('line')}>
                                         Line
                                    </button>
                               </div>
                          </div>
+                         <div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2 mb-3">
+                              <DateFilterReusable
+                                   value={dateFilter}
+                                   onChange={setDateFilter}
+                                   onDateRangeChange={handleDateRangeChange}
+                                   label="Filter by"
+                                   className="col-12 col-lg-auto"
+                              />
+                              <button onClick={loadCommissionData} className="btn btn-sm btn-primary" type="button" aria-label="Load commission data">
+                                   Load Data
+                              </button>
+                              <button onClick={handleResetFilters} className="btn btn-sm btn-outline-secondary" type="button" aria-label="Reset date filters">
+                                   Reset
+                              </button>
+                         </div>
                     </div>
-                    <div className="card-body p-3 p-md-4" style={{ background: 'none' }}>
+                    <div className="p-3 p-md-4 pt-0" style={{ background: 'none' }}>
                          {loading ? (
                               <div className="text-center py-5">
                                    <div className="spinner-border text-primary" role="status" />
@@ -443,25 +460,24 @@ export default function OrganizationCommissionDetails({ params }: { params: { or
                          )}
                     </div>
                </div>
-               <div className={styles.sectionDivider}></div>
 
-               <div className="card" style={{ borderRadius: '0.75rem', borderColor: 'var(--bs-border-color)', margin: '2rem 0 1.5rem 0', backgroundColor: 'var(--theme-card-bg)' }}>
-                    <div className="card-header py-3 d-flex justify-content-between align-items-center" style={{ borderColor: 'var(--bs-border-color)', backgroundColor: 'var(--theme-card-bg)' }}>
-                         <h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center" style={{ color: 'inherit' }}>
+               <div className="border rounded" style={{ backgroundColor: 'var(--theme-card-bg)' }}>
+                    <div className="p-3 p-md-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2" style={{ borderBottom: '1px solid var(--bs-border-color)' }}>
+                         <h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
                               <RiFileList3Line className="me-2" />
                               Detailed Commission Records
                          </h2>
 
                          <div className="d-flex flex-row align-items-center gap-2">
-                              <button onClick={loadCommissionData} className="btn btn-sm btn-primary d-flex align-items-center" type="button" aria-label="Load commission data" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
+                              <button onClick={loadCommissionData} className="btn btn-sm btn-primary" type="button" aria-label="Load commission data">
                                    Load Data
                               </button>
-                              <button onClick={handleResetFilters} className="btn btn-sm btn-outline-secondary d-flex align-items-center" type="button" aria-label="Reset date filters" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
+                              <button onClick={handleResetFilters} className="btn btn-sm btn-outline-secondary" type="button" aria-label="Reset date filters">
                                    Reset
                               </button>
                          </div>
                     </div>
-                    <div className="card-header py-3 px-4 d-flex justify-content-between align-items-center" style={{ borderColor: 'var(--bs-border-color)', backgroundColor: 'var(--theme-card-bg)' }}>
+                    <div className="px-3 px-md-4 py-2" style={{ borderBottom: '1px solid var(--bs-border-color)' }}>
                          <div>
                               <small className="text-muted d-block mt-1" style={{ fontSize: '0.85rem' }}>
                                    <div className="row gx-2">
@@ -473,7 +489,7 @@ export default function OrganizationCommissionDetails({ params }: { params: { or
                               </small>
                          </div>
                     </div>
-                    <div className="card-body p-3 p-md-4" style={{ backgroundColor: 'var(--theme-card-bg)' }}>
+                    <div className="p-3 p-md-4" style={{ backgroundColor: 'var(--theme-card-bg)' }}>
 
                          {selectedRecords.size > 0 && (
                               <div className="mb-3">

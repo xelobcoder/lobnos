@@ -253,11 +253,24 @@ export default function UntrackedCommissionRecordsPage() {
                     </div>
                </div>
 
-               <div className="border rounded p-3 mb-4">
-                    <div className="row g-3 text-muted small">
-                         <div className="col-sm-4">Total Services: {summary.totalServices}</div>
-                         <div className="col-sm-4">Total Payable: {currencyFormatter.format(summary.totalPayable)}</div>
-                         <div className="col-sm-4">Total Paid: {currencyFormatter.format(summary.totalPaid)}</div>
+               <div className="row g-3 mb-4">
+                    <div className="col-12 col-sm-4">
+                         <div className="border rounded p-3 h-100">
+                              <div className="text-muted small text-uppercase fw-semibold mb-1" style={{ letterSpacing: '0.05em' }}>Total Services</div>
+                              <div className="fw-bold fs-4">{summary.totalServices}</div>
+                         </div>
+                    </div>
+                    <div className="col-12 col-sm-4">
+                         <div className="border rounded p-3 h-100">
+                              <div className="text-muted small text-uppercase fw-semibold mb-1" style={{ letterSpacing: '0.05em' }}>Total Payable</div>
+                              <div className="fw-bold fs-4">{currencyFormatter.format(summary.totalPayable)}</div>
+                         </div>
+                    </div>
+                    <div className="col-12 col-sm-4">
+                         <div className="border rounded p-3 h-100">
+                              <div className="text-muted small text-uppercase fw-semibold mb-1" style={{ letterSpacing: '0.05em' }}>Total Paid</div>
+                              <div className="fw-bold fs-4 text-success">{currencyFormatter.format(summary.totalPaid)}</div>
+                         </div>
                     </div>
                </div>
 

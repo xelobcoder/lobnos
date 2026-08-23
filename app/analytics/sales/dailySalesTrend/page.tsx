@@ -17,10 +17,11 @@ import {
 } from "recharts";
 import { currencyFormatter, customFetch } from "../../../../components/Auth/customFetch";
 import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
-import { RiLineChartLine, RiBarChartBoxLine, RiBubbleChartLine, RiErrorWarningLine, RiCalendarEventLine, RiInbox2Line, RiLoader4Line, RiRefreshLine, RiArrowUpSFill, RiArrowDownSFill } from "@remixicon/react";
+import { RiLineChartLine, RiBarChartBoxLine, RiBubbleChartLine, RiErrorWarningLine, RiInbox2Line, RiLoader4Line, RiRefreshLine, RiArrowUpSFill, RiArrowDownSFill } from "@remixicon/react";
 import { randomBytes } from "crypto";
 import { plsEncryption } from "../../../../lib/encryption";
 import dayjs from "dayjs";
+import DateFilterReusable from "../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 
 interface SalesDataEntry {
     date: string;
@@ -81,7 +82,7 @@ export default function DailySalesTrend() {
         const currentYear = now.getFullYear();
         const currentMonth = now.getMonth();
         const startDate = new Date(currentYear, currentMonth, 1).toISOString().split('T')[0];
-        const endDate = new Date(currentYear, currentMonth + 1, 0).toISOString().split('T')[0];
+        const endDate = new Date().toISOString().split('T')[0];
         return {
             startDate,
             endDate,
@@ -91,6 +92,7 @@ export default function DailySalesTrend() {
     const initialDates = getInitialDates();
     const [startDate, setStartDate] = useState<string>(initialDates.startDate);
     const [endDate, setEndDate] = useState<string>(initialDates.endDate);
+    const [dateFilter, setDateFilter] = useState<string>("This Month");
 
     const fetchData = useCallback(async (fetchStartDate: string, fetchEndDate: string, currentBranchId?: string, currentEmployeeId?: number) => {
         if (!currentBranchId) {
@@ -182,13 +184,11 @@ export default function DailySalesTrend() {
         setView(newView);
     };
 
-    const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => setStartDate(e.target.value);
-    const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => setEndDate(e.target.value);
-
     const handleResetFilters = () => {
         const { startDate: defaultStartDate, endDate: defaultEndDate } = getInitialDates();
         setStartDate(defaultStartDate);
         setEndDate(defaultEndDate);
+        setDateFilter("This Month");
     };
 
     const handleMetricToggle = (metricKey: string) => {
@@ -445,18 +445,16 @@ export default function DailySalesTrend() {
                             ))}
                         </div>
                         <div className="d-flex align-items-center gap-2 mt-2 mt-sm-0">
-                            <div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
-                                <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: COLOR_BORDER, paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
-                                    <RiCalendarEventLine size={16} className="text-muted" style={{ color: COLOR_TEXT_MUTED }} />
-                                </span>
-                                <input id="startDateDST" type="date" className="form-control shadow-none border-start-0" value={startDate} onChange={handleStartDateChange} aria-label="Start Date" style={{ fontSize: '0.875rem', borderColor: COLOR_BORDER, paddingLeft: '0.3rem' }} />
-                            </div>
-                            <div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
-                                <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: COLOR_BORDER, paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
-                                    <RiCalendarEventLine size={16} className="text-muted" style={{ color: COLOR_TEXT_MUTED }} />
-                                </span>
-                                <input id="endDateDST" type="date" className="form-control shadow-none border-start-0" value={endDate} onChange={handleEndDateChange} min={startDate} aria-label="End Date" style={{ fontSize: '0.875rem', borderColor: COLOR_BORDER, paddingLeft: '0.3rem' }} />
-                            </div>
+                            <DateFilterReusable
+                                value={dateFilter}
+                                onChange={setDateFilter}
+                                onDateRangeChange={(newStartDate, newEndDate) => {
+                                    setStartDate(newStartDate);
+                                    setEndDate(newEndDate);
+                                }}
+                                label="Filter by"
+                                className="w-auto"
+                            />
                             <button onClick={() => fetchData(startDate, endDate, branchid, employeeid)} className="btn btn-sm btn-primary d-flex align-items-center" type="button" aria-label="Load data" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem', whiteSpace: 'nowrap' }}>
                                 <RiRefreshLine size={16} className="me-1" /> Load Data
                             </button>

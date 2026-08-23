@@ -173,9 +173,15 @@ export default function CommissionUpdatePage() {
 
      return (
           <div>
-               <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap">
-                    <div className="fw-bold text-body">
-                         Total Commission Due: {currencyFormatter.format(summary.totalDue)}
+               <h1 className="fs-5 fw-bold mb-3 d-flex align-items-center">
+                    <RiEditLine className="me-2" />
+                    Commission Update
+               </h1>
+
+               <div className="border rounded p-3 mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                    <div>
+                         <span className="text-muted small fw-semibold text-uppercase" style={{ letterSpacing: '0.05em' }}>Total Commission Due</span>
+                         <div className="fs-3 fw-bold text-primary">{currencyFormatter.format(summary.totalDue)}</div>
                     </div>
                     <div className="d-flex gap-2 align-items-end flex-wrap">
                          <DateFilterReusable

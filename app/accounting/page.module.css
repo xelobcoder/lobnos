@@ -1,0 +1,195 @@
+.page {
+     min-height: 100%;
+     padding: 2rem clamp(1rem, 3vw, 3rem);
+     background: linear-gradient(135deg, #f8f7f2 0%, #f3f5f3 52%, #eef3f2 100%);
+     color: #182321;
+}
+
+.page h1 {
+     font-size: clamp(1.65rem, 2.4vw, 2.2rem);
+     font-weight: 700;
+     letter-spacing: 0;
+}
+
+.eyebrow,
+.sectionKicker {
+     color: #1c766c;
+     font-size: .7rem;
+     font-weight: 700;
+     letter-spacing: .12em;
+     text-transform: uppercase;
+}
+
+.eyebrow {
+     display: flex;
+     align-items: center;
+     gap: .4rem;
+     margin-bottom: .55rem;
+}
+
+.period {
+     display: inline-flex;
+     align-items: center;
+     gap: .45rem;
+     padding: .55rem .8rem;
+     border: 1px solid #d7dfdc;
+     border-radius: 999px;
+     background: rgba(255, 255, 255, .55);
+     color: #51605d;
+     font-size: .8rem;
+}
+
+.attention {
+     padding: .85rem 1rem;
+     margin-bottom: 1.25rem;
+     border: 1px solid #e7c678;
+     border-radius: .45rem;
+     background: #fff7df;
+     color: #654b14;
+}
+
+.metric {
+     display: block;
+     min-height: 142px;
+     padding: 1.15rem;
+     border: 1px solid #dbe2df;
+     border-top: 4px solid transparent;
+     border-radius: .45rem;
+     background: rgba(255, 255, 255, .82);
+     color: #182321;
+     box-shadow: 0 8px 22px rgba(34, 55, 50, .05);
+     transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.metric:hover {
+     color: #182321;
+     transform: translateY(-3px);
+     box-shadow: 0 12px 26px rgba(34, 55, 50, .11);
+}
+
+.metric svg {
+     color: #81908c;
+}
+
+.metricLabel {
+     font-size: .78rem;
+     font-weight: 700;
+     text-transform: uppercase;
+     letter-spacing: .08em;
+}
+
+.metricDetail,
+.reportItem small {
+     display: block;
+     margin-top: .2rem;
+     color: #71807c;
+     font-size: .78rem;
+}
+
+.revenue {
+     border-top-color: #278b78;
+}
+
+.profit {
+     border-top-color: #d38a38;
+}
+
+.receivables {
+     border-top-color: #3c78a8;
+}
+
+.payables {
+     border-top-color: #bd5b55;
+}
+
+.panel {
+     height: 100%;
+     overflow: hidden;
+     border: 1px solid #dbe2df;
+     border-radius: .45rem;
+     background: rgba(255, 255, 255, .78);
+     box-shadow: 0 8px 22px rgba(34, 55, 50, .04);
+}
+
+.panelHeader {
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+     padding: 1.2rem 1.35rem;
+     border-bottom: 1px solid #e2e8e5;
+}
+
+.panelHeader svg {
+     color: #1c766c;
+}
+
+.panelHeader h2 {
+     margin: .25rem 0 0;
+     font-size: 1.05rem;
+     font-weight: 700;
+}
+
+.reportList {
+     padding: .35rem 1.35rem;
+}
+
+.reportItem {
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+     gap: 1rem;
+     padding: .85rem 0;
+     border-bottom: 1px solid #edf0ee;
+     color: #24322f;
+     text-decoration: none;
+}
+
+.reportItem:last-child {
+     border-bottom: 0;
+}
+
+.reportItem:hover {
+     color: #1c766c;
+}
+
+.reportItem strong {
+     font-size: .9rem;
+}
+
+.reportItem svg {
+     flex: 0 0 auto;
+}
+
+.queueValue {
+     font-size: 1.65rem;
+     font-weight: 700;
+}
+
+.queueLabel {
+     color: #71807c;
+     font-size: .72rem;
+     text-transform: uppercase;
+     letter-spacing: .08em;
+}
+
+.queueStatus {
+     margin-top: .75rem;
+     padding-top: 1rem;
+     border-top: 1px solid #e2e8e5;
+     color: #687873;
+}
+
+@media (max-width: 575px) {
+     .page {
+          padding: 1.25rem .9rem;
+     }
+
+     .attention {
+          align-items: flex-start !important;
+          flex-direction: column;
+     }
+
+     .period {
+          align-self: flex-start;
+     }
+}
