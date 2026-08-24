@@ -65,12 +65,12 @@ export default function PeriodAnalysisReport({ type, title, subtitle }: Props) {
           ...periods.map((period) => ({
                Header: dayjs(`${period}-01`).format("MMM YY"),
                accessor: period,
-               Cell: ({ value }: any) => <span className="d-block text-end">{value ? money(value) : "-"}</span>,
+               Cell: ({ value }: any) => <span className="">{value ? money(value) : "-"}</span>,
           })),
           {
                Header: "Total",
                accessor: "total",
-               Cell: ({ value }: any) => <span className="d-block text-end fw-semibold">{money(value)}</span>,
+               Cell: ({ value }: any) => <span className=" fw-semibold">{money(value)}</span>,
           },
      ];
 
@@ -93,7 +93,7 @@ export default function PeriodAnalysisReport({ type, title, subtitle }: Props) {
                     </>
                }
           >
-               <div className="mb-2">
+               <div className="mb-2 bg-white">
                     <div className="border rounded p-4 ">
                          <h4>Total for period</h4>
                          <hr />

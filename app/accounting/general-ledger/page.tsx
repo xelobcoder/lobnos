@@ -23,39 +23,76 @@ export default function GeneralLedgerPage() {
      const [rows, setRows] = useState<any[]>([]);
      const [total, setTotal] = useState(0);
 
-     // PrimeTable drives paging: it hands back page/count and expects { result }.
-     // Overrides let a filter change fetch with its new value before state has settled.
-     const handleSeverSideProcessing = useCallback(
+     const handleSeverSideProcessing =
           async ({
                page,
                count,
+               sortby,
                overrides,
           }: {
                page: number;
                count: number;
+               sortby?: string;
                overrides?: { accountCode?: string; sourceModule?: string };
           }) => {
-               const response = await accountingApi.generalLedger({
-                    from,
-                    to,
-                    accountCode: (overrides?.accountCode ?? accountCode) || undefined,
-                    sourceModule: (overrides?.sourceModule ?? sourceModule) || undefined,
-                    page: page || 1,
-                    count: count || 25,
-               });
+               try {
+                    const response = await accountingApi.generalLedger({
+                         from,
+                         to,
+                         accountCode: (overrides?.accountCode ?? accountCode) || undefined,
+                         sourceModule: (overrides?.sourceModule ?? sourceModule) || undefined,
+                         page: page ,
+                         count: count,
+                         sortby,
+                    });
 
-               const data = response?.result?.data || [];
-               setTotal(response?.result?.total || 0);
-               setRows(data);
-               return { result: data };
-          },
-          [from, to, accountCode, sourceModule]
-     );
+                    const data = response?.result?.data || [];
+                    return { result: data, total: response?.result?.total || 0,error: false };
+               } catch (error: any) {
+                    console.error("Error fetching general ledger data:", error);
+                    return { result: [], total: 0, error: true };
+               }
+          }
+
+
+
+     const clientSideProcessing =
+          async ({
+               page,
+               count,
+               sortby,
+               overrides,
+          }: {
+               page: number;
+               count: number;
+               sortby?: string;
+               overrides?: { accountCode?: string; sourceModule?: string };
+          }) => {
+               try {
+                    const response = await accountingApi.generalLedger({
+                         from,
+                         to,
+                         accountCode: (overrides?.accountCode ?? accountCode) || undefined,
+                         sourceModule: (overrides?.sourceModule ?? sourceModule) || undefined,
+                         page: page || 1,
+                         count: count || 10,
+                         sortby,
+                    });
+
+                    const data = response?.result?.data || [];
+                    setTotal(response?.result?.total || 0);
+                    setRows(data);
+               } catch (error: any) {
+                    console.error("Error fetching general ledger data:", error);
+                    return { result: [], total: 0 };
+               }
+          };
+
 
      useEffect(() => {
-          handleSeverSideProcessing({ page: 1, count: 25 });
+          clientSideProcessing({ page: 1, count: 10});
           // eslint-disable-next-line react-hooks/exhaustive-deps
-     }, []);
+     }, [from, to, accountCode, sourceModule]);
 
      const column = [
           {
@@ -136,7 +173,7 @@ export default function GeneralLedgerPage() {
                               <label className="form-label mb-1 small text-muted">Account</label>
                               <input
                                    type="text"
-                                   className="form-control form-control-sm"
+                                   className="form-control custom-input"
                                    placeholder="e.g. acc-1002"
                                    value={accountCode}
                                    onChange={(e) => setAccountCode(e.target.value.trim())}
@@ -144,21 +181,21 @@ export default function GeneralLedgerPage() {
                          </div>
                          <div className="col-6 col-md-3">
                               <label className="form-label mb-1 small text-muted">Module</label>
-                              <select className="form-select form-select-sm" value={sourceModule} onChange={(e) => setSourceModule(e.target.value)}>
+                              <select className="form-select custom-select" value={sourceModule} onChange={(e) => setSourceModule(e.target.value)}>
                                    <option value="">All modules</option>
                                    {MODULES.map((module) => (
                                         <option key={module} value={module}>{module}</option>
                                    ))}
                               </select>
                          </div>
-                         <div className="col-12 col-md-2">
+                         {/* <div className="col-12 col-md-2">
                               <button
                                    className="btn btn-sm btn-primary w-100"
                                    onClick={() => handleSeverSideProcessing({ page: 1, count: 25 })}
                               >
                                    Apply
                               </button>
-                         </div>
+                         </div> */}
                     </>
                }
           >

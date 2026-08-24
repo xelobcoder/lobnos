@@ -30,7 +30,7 @@ import {
 
 export const AccountingLinks: Link[] = [
      {
-          title: "Dashboard",
+          title: "Financial Overview",
           link: "/accounting",
           icon: <RiDashboardLine size={20} />
      },
@@ -72,7 +72,8 @@ export const AccountingLinks: Link[] = [
                { title: "AR Reconciliation", link: "/accounting/reconciliation?ledger=AR", icon: <RiUserReceived2Line size={18} /> },
                { title: "AP Reconciliation", link: "/accounting/reconciliation?ledger=AP", icon: <RiUserShared2Line size={18} /> },
                { title: "Inventory Reconciliation", link: "/accounting/inventory/valuation", icon: <RiArchiveDrawerLine size={18} /> },
-               { title: "Bank Reconciliation", link: "/accounting/bank-reconciliation", icon: <RiBankLine size={18} /> }
+               { title: "Bank Reconciliation", link: "/accounting/bank-reconciliation", icon: <RiBankLine size={18} /> },
+               { title: "Bank Accounts", link: "/accounting/bank-accounts", icon: <RiBankLine size={18} /> }
           ]
      },
      {

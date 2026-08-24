@@ -64,14 +64,14 @@ export default function SubledgerReport({ ledger, title, subtitle, partyLabel }:
                     );
                },
           },
-          { Header: "Documents", accessor: "documents", Cell: ({ value }: any) => <span className="d-block text-end">{value}</span> },
-          { Header: "Charged", accessor: "charged", Cell: ({ value }: any) => <span className="d-block text-end">{money(value)}</span> },
-          { Header: "Settled", accessor: "settled", Cell: ({ value }: any) => <span className="d-block text-end">{money(value)}</span> },
+          { Header: "Documents", accessor: "documents", Cell: ({ value }: any) => <span >{value}</span> },
+          { Header: "Charged", accessor: "charged", Cell: ({ value }: any) => <span >{money(value)}</span> },
+          { Header: "Settled", accessor: "settled", Cell: ({ value }: any) => <span >{money(value)}</span> },
           {
                Header: "Balance",
                accessor: "balance",
                Cell: ({ value }: any) => (
-                    <span className={`d-block text-end fw-semibold ${Number(value) < 0 ? "text-danger" : ""}`}>{money(value)}</span>
+                    <span className={`w-semibold ${Number(value) < 0 ? "text-danger" : ""}`}>{money(value)}</span>
                ),
           },
           {
@@ -93,11 +93,11 @@ export default function SubledgerReport({ ledger, title, subtitle, partyLabel }:
                accessor: "documentDate",
                Cell: ({ value }: any) => <span className="text-nowrap">{dayjs(value).format("DD MMM YYYY")}</span>,
           },
-          { Header: "Age", accessor: "ageDays", Cell: ({ value }: any) => <span className="d-block text-end">{value}d</span> },
-          { Header: "Current", accessor: "current", Cell: ({ value }: any) => <span className="d-block text-end">{value ? money(value) : "-"}</span> },
-          { Header: "1-30", accessor: "days30", Cell: ({ value }: any) => <span className="d-block text-end">{value ? money(value) : "-"}</span> },
-          { Header: "31-60", accessor: "days60", Cell: ({ value }: any) => <span className="d-block text-end">{value ? money(value) : "-"}</span> },
-          { Header: "61-90", accessor: "days90", Cell: ({ value }: any) => <span className="d-block text-end">{value ? money(value) : "-"}</span> },
+          { Header: "Age", accessor: "ageDays", Cell: ({ value }: any) => <span className="">{value}d</span> },
+          { Header: "Current", accessor: "current", Cell: ({ value }: any) => <span className="">{value ? money(value) : "-"}</span> },
+          { Header: "1-30", accessor: "days30", Cell: ({ value }: any) => <span className="">{value ? money(value) : "-"}</span> },
+          { Header: "31-60", accessor: "days60", Cell: ({ value }: any) => <span className="">{value ? money(value) : "-"}</span> },
+          { Header: "61-90", accessor: "days90", Cell: ({ value }: any) => <span className="">{value ? money(value) : "-"}</span> },
           {
                Header: "90+",
                accessor: "over90",
@@ -128,25 +128,21 @@ export default function SubledgerReport({ ledger, title, subtitle, partyLabel }:
                          </div>
                          <div className="col-6 col-md-3">
                               <label className="form-label mb-1 small text-muted">View</label>
-                              <select className="form-select form-select-sm" value={view} onChange={(e) => setView(e.target.value as any)}>
+                              <select className="form-select custom-select" value={view} onChange={(e) => setView(e.target.value as any)}>
                                    <option value="balances">Balances by {partyLabel.toLowerCase()}</option>
                                    <option value="aging">Aging by document</option>
                               </select>
                          </div>
-                         <div className="col-12 col-md-3">
-                              <button className="btn btn-sm btn-primary w-100" onClick={load} disabled={loading}>
-                                   {loading ? "Loading..." : "Apply"}
-                              </button>
-                         </div>
+                         
                     </>
                }
           >
                <div className="row g-2 mb-3">
                     {tiles.map((tile) => (
                          <div className="col-6 col-md-2" key={tile.label}>
-                              <div className="border rounded p-2">
-                                   <div className="small text-muted">{tile.label}</div>
-                                   <div className="fw-semibold">{money(tile.value)}</div>
+                              <div className="border rounded p-4">
+                                   <h4 >{tile.label}</h4>
+                                   <h3 className="fw-bold">{money(tile.value)}</h3>
                               </div>
                          </div>
                     ))}

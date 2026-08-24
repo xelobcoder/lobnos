@@ -1,4 +1,4 @@
-import { customFetch, customPost } from "../../components/Auth/customFetch";
+import { customFetch, customFile, customPost } from "../../components/Auth/customFetch";
 
 export interface ApiResponse<T> {
      status: string;
@@ -76,12 +76,43 @@ export interface BalanceSheet {
      };
 }
 
+export interface FinancialOverview {
+     asOf: string;
+     period: { from: string; to: string; code: string; status: string | null };
+     performance: {
+          today: { revenue: number; expenses: number; profit: number };
+          monthToDate: { revenue: number; expenses: number; profit: number };
+          yearToDate: { revenue: number; expenses: number; profit: number };
+     };
+     position: {
+          cash: number; bank: number; cashAndBank: number; receivables: number; overdueReceivables: number;
+          payables: number; overduePayables: number; inventory: number; fixedAssets: number; totalAssets: number;
+          totalLiabilities: number; equity: number; netAssets: number;
+          balanceDifference: number;
+     };
+     trend: { periods: string[]; revenue: number[]; expenses: number[]; profit: number[] };
+}
+
 export interface ChartAccount {
      account_code: string;
      name: string;
      type: "asset" | "liability" | "equity" | "revenue" | "expense";
      normal_balance: "debit" | "credit";
      is_active: number | boolean;
+}
+
+export interface BankAccount {
+     id: number;
+     name: string;
+     bank_name: string | null;
+     account_number: string | null;
+     gl_account_code: string;
+     gl_account_name?: string | null;
+     branchid: number | null;
+     is_active: number | boolean;
+     total_lines?: number;
+     unmatched_lines?: number;
+     last_statement_date?: string | null;
 }
 
 export interface PartyBalance {
@@ -218,6 +249,10 @@ export const accountingApi = {
           return customFetch(`${BASE}/reports/trial-balance${query({ from, to, branchId })}`);
      },
 
+     financialOverview(asOf?: string, branchId?: number): Promise<ApiResponse<FinancialOverview>> {
+          return customFetch(`${BASE}/reports/financial-overview${query({ asOf, branchId })}`);
+     },
+
      generalLedger(filters: {
           from?: string;
           to?: string;
@@ -226,6 +261,7 @@ export const accountingApi = {
           branchId?: number;
           page?: number;
           count?: number;
+          sortby?: string;
      }): Promise<ApiResponse<Paginated<LedgerLine>>> {
           return customFetch(`${BASE}/reports/general-ledger${query(filters)}`);
      },
@@ -252,6 +288,70 @@ export const accountingApi = {
 
      authorityPermissions(): Promise<ApiResponse<string[]>> {
           return customFetch(`${BASE}/authority/permissions`);
+     },
+
+     bankAccounts(): Promise<ApiResponse<BankAccount[]>> {
+          return customFetch(`${BASE}/bank/accounts`);
+     },
+
+     createBankAccount(payload: { name: string; bank_name?: string; account_number?: string; gl_account_code: string; branchid?: number | null }) {
+          return customPost(`/api/v1/${BASE}/bank/accounts`, "POST", payload);
+     },
+
+     updateBankAccount(
+          id: number,
+          payload: Partial<{ name: string; bank_name: string; account_number: string; gl_account_code: string; is_active: boolean }>
+     ) {
+          return customPost(`/api/v1/${BASE}/bank/accounts/${id}`, "PUT", payload);
+     },
+
+     importBankStatement(payload: {
+          bankAccountId: number;
+          lines: Array<{ txnDate: string; description?: string; reference?: string; amount: number }>;
+     }) {
+          return customPost(`/api/v1/${BASE}/bank/statement/import`, "POST", payload);
+     },
+
+     importBankExcel(bankAccountId: number, file: File) {
+          const form = new FormData();
+          form.append("bankAccountId", String(bankAccountId));
+          form.append("file", file);
+          return customFile(`/api/v1/${BASE}/bank/statement/import-excel`, form);
+     },
+
+     bankStatementLines(
+          bankAccountId: number,
+          filters?: { from?: string; to?: string; status?: string; page?: number; count?: number }
+     ): Promise<ApiResponse<Paginated<any>>> {
+          return customFetch(`${BASE}/bank/${bankAccountId}/statement-lines${query({ ...filters })}`);
+     },
+
+     bankUnmatchedLedger(bankAccountId: number, from?: string, to?: string): Promise<ApiResponse<any[]>> {
+          return customFetch(`${BASE}/bank/${bankAccountId}/unmatched-ledger${query({ from, to })}`);
+     },
+
+     bankSuggestions(bankAccountId: number, from?: string, to?: string): Promise<ApiResponse<any[]>> {
+          return customFetch(`${BASE}/bank/${bankAccountId}/suggestions${query({ from, to })}`);
+     },
+
+     bankSummary(bankAccountId: number, asOf: string, statementBalance: number): Promise<ApiResponse<any>> {
+          return customFetch(`${BASE}/bank/${bankAccountId}/summary${query({ asOf, statementBalance })}`);
+     },
+
+     bankMatch(statementLineId: number, journalLineId: number) {
+          return customPost(`/api/v1/${BASE}/bank/match`, "POST", { statementLineId, journalLineId });
+     },
+
+     bankMatchMany(pairs: Array<{ statementLineId: number; journalLineId: number }>) {
+          return customPost(`/api/v1/${BASE}/bank/match-many`, "POST", { pairs });
+     },
+
+     bankUnmatch(statementLineId: number) {
+          return customPost(`/api/v1/${BASE}/bank/statement-lines/${statementLineId}/unmatch`, "PUT", {});
+     },
+
+     bankIgnore(statementLineId: number) {
+          return customPost(`/api/v1/${BASE}/bank/statement-lines/${statementLineId}/ignore`, "PUT", {});
      },
 
      authorityEmployees(): Promise<ApiResponse<Array<{ employeeid: number; username: string; role: string; branch: number | null; fullname: string }>>> {

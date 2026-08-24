@@ -59,13 +59,13 @@ export default function SubledgerStatementPage({
           {
                Header: "Charge",
                accessor: "amount",
-               Cell: ({ value }: any) => <span className="d-block text-end">{Number(value) > 0 ? money(value) : "-"}</span>,
+               Cell: ({ value }: any) => <span className="d-block ">{Number(value) > 0 ? money(value) : "-"}</span>,
           },
           {
                Header: "Settlement",
                accessor: "gross_amount",
                Cell: ({ row }: any) => (
-                    <span className="d-block text-end">
+                    <span className="d-block ">
                          {Number(row.original.amount) < 0 ? money(Math.abs(Number(row.original.amount))) : "-"}
                     </span>
                ),
@@ -73,7 +73,7 @@ export default function SubledgerStatementPage({
           {
                Header: "Balance",
                accessor: "runningBalance",
-               Cell: ({ value }: any) => <span className="d-block text-end fw-semibold">{money(value)}</span>,
+               Cell: ({ value }: any) => <span className="d-block  fw-semibold">{money(value)}</span>,
           },
      ];
 
@@ -97,11 +97,7 @@ export default function SubledgerStatementPage({
                                    disabled={loading}
                               />
                          </div>
-                         <div className="col-12 col-md-3">
-                              <button className="btn btn-sm btn-primary w-100" onClick={load} disabled={loading}>
-                                   {loading ? "Loading..." : "Apply"}
-                              </button>
-                         </div>
+                         
                     </>
                }
           >
@@ -110,13 +106,13 @@ export default function SubledgerStatementPage({
                          <div className="small text-muted">Opening balance</div>
                          <div className="fw-semibold">{money(openingBalance)}</div>
                     </div>
-                    <div className="text-end">
+                    <div className="">
                          <div className="small text-muted">Closing balance</div>
                          <div className="fw-semibold">{money(closingBalance)}</div>
                     </div>
                </div>
 
-               <PrimeTable column={column} data={entries} filtering isExpoerted handleSeverSideProcessing={undefined} />
+               <PrimeTable column={column} data={entries} filtering  handleSeverSideProcessing={undefined} />
           </ReportShell>
      );
 }

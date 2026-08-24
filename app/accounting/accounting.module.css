@@ -1,10 +1,10 @@
 .accountingModule {
-     --accounting-ink: #182321;
-     --accounting-muted: #687873;
-     --accounting-line: #dbe3df;
+     --accounting-ink: var(--bs-body-color);
+     --accounting-muted: var(--bs-secondary-color);
+     --accounting-line: var(--bs-border-color);
      --accounting-accent: #1c766c;
      min-height: 100%;
-     background: #f4f6f4;
+     background: var(--bs-body-bg);
      color: var(--accounting-ink);
 }
 
@@ -23,21 +23,22 @@
 .accountingModule :global(.card) {
      border: 1px solid var(--accounting-line);
      border-radius: 6px;
-     background: rgba(255, 255, 255, .92);
+     background: var(--bs-tertiary-bg);
      box-shadow: 0 5px 18px rgba(33, 55, 49, .045) !important;
 }
 
 .accountingModule :global(.card-header),
 .accountingModule :global(.card-footer) {
      border-color: var(--accounting-line);
-     background: #fbfcfb !important;
+     background: var(--bs-secondary-bg) !important;
 }
 
 .accountingModule :global(.form-control),
 .accountingModule :global(.form-select) {
-     border-color: #cbd6d1;
+     border-color: var(--bs-border-color);
      border-radius: 4px;
-     color: var(--accounting-ink);
+     color: var(--bs-body-color);
+     background-color: var(--bs-body-bg);
 }
 
 .accountingModule :global(.form-control:focus),
@@ -66,7 +67,7 @@
 
 .accountingModule :global(.table > :not(caption) > * > *) {
      padding: .8rem 1rem;
-     border-bottom-color: #e7ece9;
+     border-bottom-color: var(--accounting-line);
      text-align: left !important;
 }
 
@@ -78,8 +79,8 @@
      position: sticky;
      top: 0;
      z-index: 1;
-     background: #f5f8f6;
-     color: #5d6d68;
+     background: var(--bs-secondary-bg);
+     color: var(--bs-secondary-color);
      font-size: .7rem;
      font-weight: 750;
      letter-spacing: .08em;
@@ -88,12 +89,12 @@
 }
 
 .accountingModule :global(.table tbody tr:hover) {
-     --bs-table-hover-bg: #f4f8f6;
+     --bs-table-hover-bg: var(--bs-tertiary-bg);
 }
 
 .accountingModule :global(.table-secondary),
 .accountingModule :global(.table-light) {
-     --bs-table-bg: #f5f8f6;
+     --bs-table-bg: var(--bs-secondary-bg);
      color: var(--accounting-ink);
 }
 
@@ -117,7 +118,7 @@
 }
 
 .accountingModule :global(label) {
-     color: #51615c;
+     color: var(--bs-secondary-color);
      font-weight: 650;
 }
 

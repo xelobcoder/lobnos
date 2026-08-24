@@ -21,36 +21,48 @@ export default function PostingExceptionsPage() {
      const [loading, setLoading] = useState(false);
      const [busy, setBusy] = useState<number | null>(null);
 
-     const handleSeverSideProcessing = useCallback(
-          async ({ page, count }: { page: number; count: number }) => {
+     const handleSeverSideProcessing = async ({ page, count, sortby }: { page: number; count: number; sortby?: "ASC" | "DESC" }) => {
+          try {
                const response = await accountingApi.outbox({
                     status: status || undefined,
-                    page: page || 1,
-                    count: count || 25,
+                    page: page,
+                    count: count,
+               });
+               const data = response?.result?.data || [];
+               return { result: data, error: false };
+          } catch (error: any) {
+               return { result: [], error: true, };
+          }
+     };
+
+     const load = async () => {
+          setLoading(true);
+          try {
+               const response = await accountingApi.outbox({
+                    status: status || undefined,
+                    page: 1,
+                    count: 10,
                });
                const data = response?.result?.data || [];
                setRows(data);
-               return { result: data };
-          },
-          [status]
-     );
+               const healthResponse = await accountingApi.outboxHealth();
+               setHealth(healthResponse?.result || null);
 
-     const load = useCallback(async () => {
-          setLoading(true);
-          try {
-               const healthRes = await accountingApi.outboxHealth();
-               setHealth(healthRes?.result || null);
-               await handleSeverSideProcessing({ page: 1, count: 25 });
           } catch (error: any) {
                toast.error(error?.message || "Unable to load posting exceptions");
           } finally {
                setLoading(false);
           }
-     }, [handleSeverSideProcessing]);
+     };
 
      useEffect(() => {
           load();
-     }, [load]);
+     }, []);
+
+
+     useEffect(() => {
+        load();
+     }, [status]);
 
      const replay = async (id: number) => {
           setBusy(id);
@@ -150,13 +162,13 @@ export default function PostingExceptionsPage() {
                          </select>
                     </div>
                }
-               >
-                    <div className="row g-2 mb-3">
+          >
+               <div className="row g-2 mb-3">
                     {tiles.map((tile) => (
                          <div className="col-6 col-md-3" key={tile.label}>
                               <div className="border rounded p-4">
                                    <h5 className="text-uppercase">{tile.label}</h5>
-                                   <hr/>
+                                   <hr />
                                    <div className={`fs-5 fw-bold ${tile.tone}`}>{tile.value}</div>
                               </div>
                          </div>

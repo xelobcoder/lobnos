@@ -5,8 +5,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
 import ReportShell from "../../../components/accounting/ReportShell";
-import AccountingGuard from "../../../components/accounting/AccountingGuard";
-import { currencyFormatter } from "../../../components/Auth/customFetch";
+import { currencyFormatter, customFetch } from "../../../components/Auth/customFetch";
 import { accountingApi } from "../../../lib/accounting/accountingApi";
 
 const PERMISSION_LABELS: Record<string, string> = {
@@ -24,14 +23,6 @@ const PERMISSION_LABELS: Record<string, string> = {
 const AMOUNT_BOUND = ["expense.pay", "purchase_order.pay"];
 
 export default function DelegationsPage() {
-     return (
-          <AccountingGuard ownerOnly>
-               <DelegationsScreen />
-          </AccountingGuard>
-     );
-}
-
-function DelegationsScreen() {
      const [permissions, setPermissions] = useState<string[]>([]);
      const [rows, setRows] = useState<any[]>([]);
      const [employees, setEmployees] = useState<any[]>([]);
@@ -54,7 +45,7 @@ function DelegationsScreen() {
                     accountingApi.authorityEmployees(),
                ]);
                setPermissions(permsRes?.result || []);
-               setRows(listRes?.result?.data || listRes?.result || []);
+               setRows(listRes?.result || []);
                setEmployees(employeesRes?.result || []);
 
                if (!employeesRes?.result?.length) {
@@ -182,10 +173,10 @@ function DelegationsScreen() {
           >
                <div className="alert alert-info py-4 d-flex align-items-center gap-2">
                     <RiShieldUserLine size={18} />
-                    <span>
+                    <div>
                          Administrators always hold every authority. Everyone else can only do what is delegated here, and a
                          payment outside the delegated band is refused even when the person holds the permission.
-                    </span>
+                    </div>
                </div>
 
                <div className="card border-0 shadow-sm mb-3">
