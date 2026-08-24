@@ -6,7 +6,6 @@ import { RiPrinterLine } from "@remixicon/react";
 interface Props {
      title: string;
      subtitle?: string;
-     /** Rendered centred above the data, the way a printed statement is headed. */
      reportTitle?: string;
      range?: string;
      filters?: React.ReactNode;
@@ -16,12 +15,13 @@ interface Props {
 
 export default function ReportShell({ title, subtitle, reportTitle, range, filters, actions, children }: Props) {
      return (
-          <div className="container-fluid py-3">
+          <div className="container-fluid py-5">
                <div className="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
                     <div>
                          <h4 className="mb-1">{title}</h4>
                          {subtitle && <small className="text-muted">{subtitle}</small>}
                     </div>
+                 
                     <div className="d-flex align-items-center gap-2">
                          {actions}
                          <button className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" onClick={() => window.print()}>
@@ -42,10 +42,11 @@ export default function ReportShell({ title, subtitle, reportTitle, range, filte
                     <div className="card-body">
                          {reportTitle && (
                               <div className="text-center mb-3">
-                                   <div className="fw-semibold">{reportTitle}</div>
+                                   <h3 className="fw-bold">{reportTitle}</h3>
                                    {range && <small className="text-muted">{range}</small>}
                               </div>
                          )}
+                            <hr/>
                          {children}
                     </div>
                </div>

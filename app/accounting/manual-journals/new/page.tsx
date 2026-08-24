@@ -6,6 +6,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { currencyFormatter } from "../../../../components/Auth/customFetch";
 import DateFilterReusable from "../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
+import styles from "./page.module.css";
 import { useApplication } from "../../../../components/Auth/useApplicationContext";
 import { accountingApi, ChartAccount, ManualJournalLine } from "../../../../lib/accounting/accountingApi";
 
@@ -210,19 +211,20 @@ export default function NewManualJournalPage() {
                                         </tr>
                                    ))}
                               </tbody>
-                              <tfoot className="table-light">
+                              <tfoot className={styles.summaryFooter}>
                                    <tr>
-                                        <th colSpan={2}>Totals</th>
-                                        <th className="text-end">
-                                             <div>Dr {currencyFormatter.format(debits)}</div>
-                                             <div>Cr {currencyFormatter.format(credits)}</div>
+                                        <th colSpan={2} className={styles.summaryHeading}>Journal summary</th>
+                                        <th className={styles.summaryAmounts}>
+                                             <div><span>Debit</span><strong>{currencyFormatter.format(debits)}</strong></div>
+                                             <div><span>Credit</span><strong>{currencyFormatter.format(credits)}</strong></div>
                                         </th>
                                         <th colSpan={2}>
-                                             <span className={`d-inline-flex align-items-center gap-1 ${balanced ? "text-success" : "text-danger"}`}>
-                                                  {balanced ? <RiCheckboxCircleLine size={18} /> : <RiErrorWarningLine size={18} />}
-                                                  {balanced
-                                                       ? "Balanced"
-                                                       : `Out by ${currencyFormatter.format(Math.abs(debits - credits))}`}
+                                             <span className={`${styles.summaryStatus} ${balanced ? styles.summaryBalanced : styles.summaryUnbalanced}`}>
+                                                  {balanced ? <RiCheckboxCircleLine size={28} /> : <RiErrorWarningLine size={28} />}
+                                                  <span>
+                                                       <strong>{balanced ? "Balanced" : "Out of balance"}</strong>
+                                                       <small>{balanced ? "Ready to submit for approval" : `Difference: ${currencyFormatter.format(Math.abs(debits - credits))}`}</small>
+                                                  </span>
                                              </span>
                                         </th>
                                    </tr>

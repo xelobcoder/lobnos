@@ -107,7 +107,7 @@ export async function middleware(request: NextRequest) {
             }
 
             // Only admin, manager, and storekeeper can access inventory
-            if (currentPath.startsWith('/inventory') && !["manager", "admin", "storekeeper"].includes(role)) {
+            if (currentPath.startsWith('/inventory') && !["manager", "admin", "storekeeper",'accountant'].includes(role)) {
                 return NextResponse.redirect(new URL('/unauthorized', request.url));
             }
 

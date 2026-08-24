@@ -55,11 +55,6 @@ export default function InventoryValuationPage() {
                          <div className="col-12 col-md-6">
                               <DateFilterReusable value={dateFilter} onChange={setDateFilter} onDateRangeChange={(_, end) => setAsOf(end)} label="Period" className="w-100" disabled={loading} />
                          </div>
-                         <div className="col-12 col-md-3">
-                              <button className="btn btn-sm btn-primary w-100" onClick={load} disabled={loading}>
-                                   {loading ? "Running..." : "Run report"}
-                              </button>
-                         </div>
                     </>
                }
           >
@@ -81,7 +76,7 @@ export default function InventoryValuationPage() {
                     </p>
                )}
 
-               <PrimeTable column={column} data={rows} filtering isExpoerted handleSeverSideProcessing={undefined} />
+               <PrimeTable column={column} data={rows} filtering  handleSeverSideProcessing={undefined} />
           </ReportShell>
      );
 }

@@ -1,5 +1,6 @@
 "use client";
 import dayjs from "dayjs";
+import { useSearchParams } from "next/navigation";
 import React, { useCallback, useEffect, useState } from "react";
 import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
 import ReportShell from "../../../components/accounting/ReportShell";
@@ -10,23 +11,35 @@ import { accountingApi } from "../../../lib/accounting/accountingApi";
 const MODULES = ["billing", "expense", "inventory", "supplier", "payroll", "commission", "manual"];
 
 export default function GeneralLedgerPage() {
+     const searchParams = useSearchParams();
      const currentYear = dayjs().year();
-     const [from, setFrom] = useState(dayjs(`${currentYear}-01-01`).format("YYYY-MM-DD"));
-     const [to, setTo] = useState(dayjs().format("YYYY-MM-DD"));
-     const [dateFilter, setDateFilter] = useState("This Year");
-     const [accountCode, setAccountCode] = useState("");
-     const [sourceModule, setSourceModule] = useState("");
+
+     // drill-through links from the statements arrive as ?accountCode=&from=&to=
+     const [from, setFrom] = useState(searchParams.get("from") || dayjs(`${currentYear}-01-01`).format("YYYY-MM-DD"));
+     const [to, setTo] = useState(searchParams.get("to") || dayjs().format("YYYY-MM-DD"));
+     const [dateFilter, setDateFilter] = useState(searchParams.get("from") ? "Custom Range" : "This Year");
+     const [accountCode, setAccountCode] = useState(searchParams.get("accountCode") || "");
+     const [sourceModule, setSourceModule] = useState(searchParams.get("sourceModule") || "");
      const [rows, setRows] = useState<any[]>([]);
      const [total, setTotal] = useState(0);
 
      // PrimeTable drives paging: it hands back page/count and expects { result }.
+     // Overrides let a filter change fetch with its new value before state has settled.
      const handleSeverSideProcessing = useCallback(
-          async ({ page, count }: { page: number; count: number }) => {
+          async ({
+               page,
+               count,
+               overrides,
+          }: {
+               page: number;
+               count: number;
+               overrides?: { accountCode?: string; sourceModule?: string };
+          }) => {
                const response = await accountingApi.generalLedger({
                     from,
                     to,
-                    accountCode: accountCode || undefined,
-                    sourceModule: sourceModule || undefined,
+                    accountCode: (overrides?.accountCode ?? accountCode) || undefined,
+                    sourceModule: (overrides?.sourceModule ?? sourceModule) || undefined,
                     page: page || 1,
                     count: count || 25,
                });
@@ -149,6 +162,30 @@ export default function GeneralLedgerPage() {
                     </>
                }
           >
+               {(accountCode || sourceModule) && (
+                    <div className="alert alert-info py-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                         <span>
+                              Filtered to
+                              {accountCode && <strong className="ms-1">account {accountCode}</strong>}
+                              {accountCode && sourceModule && <span> and</span>}
+                              {sourceModule && <strong className="ms-1 text-capitalize">{sourceModule}</strong>}
+                              <span className="ms-1">
+                                   between {dayjs(from).format("D MMM YYYY")} and {dayjs(to).format("D MMM YYYY")}.
+                              </span>
+                         </span>
+                         <button
+                              className="btn btn-sm btn-outline-secondary"
+                              onClick={() => {
+                                   setAccountCode("");
+                                   setSourceModule("");
+                                   handleSeverSideProcessing({ page: 1, count: 25, overrides: { accountCode: "", sourceModule: "" } });
+                              }}
+                         >
+                              Clear filters
+                         </button>
+                    </div>
+               )}
+
                <PrimeTable
                     column={column}
                     data={rows}

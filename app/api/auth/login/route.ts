@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
 
         console.log(response, 'Reponse')
 
-        const allowedRoles = ["storekeeper", "sonographer", "scientist", "manager", "admin", "customer service representative"];
+        const allowedRoles = ["storekeeper", "sonographer", "accountant", "scientist", "manager", "admin", "customer service representative"];
         const userRole = user?.role?.toLowerCase();
         const isValidRole = allowedRoles.includes(userRole);
 

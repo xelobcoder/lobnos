@@ -138,10 +138,11 @@ export const AdminRoleLinks = [
           text: "General ledger, financial statements and period close",
           label: 'Accounting',
           category: 'Finance',
-          description: 'Double-entry ledger, trial balance, P&L, balance sheet and journals'
+          description: 'Double-entry ledger, trial balance, P&L, balance sheet and journals',
+          roles: ['admin', 'super_admin', 'accountant']
      },
      {
-          href:"/email-services",
+          href: "/email-services",
           icon: <RiMessage2Line size={24} />,
           text: "Configure and manage email notifications",
           label: 'Email Services',
@@ -290,5 +291,50 @@ export const procurementRoleLinks = [
           label: 'Incident Reporting',
           category: 'Quality & Compliance',
           description: 'Incident reporting and management system'
+     }
+];
+
+
+export const AccountantRoleLinks = [
+     {
+          href: '/accounting',
+          icon: <RiBookletLine size={24} />,
+          text: "Access accounting features including general ledger, financial statements, and period close",
+          label: 'Accounting',
+          category: 'Finance',
+          description: 'Double-entry ledger, trial balance, P&L, balance sheet and journals'
+     },
+     {
+          href: '/compliance/incident-reporting',
+          icon: <RiShieldCheckLine size={24} />,
+          text: "Report and manage incidents for quality and compliance tracking",
+          label: 'Incident Reporting',
+          category: 'Quality & Compliance',
+          description: 'Incident reporting and management system'
+     },
+     {
+          href: '/billing/expenses',
+          icon: <RiFileList3Line size={24} />,
+          text: "Track and manage laboratory expenses and costs",
+          label: 'Expenses',
+          category: 'Finance',
+          description: 'Expense tracking and management'
+     },
+     {
+          href: "/human-resource/payroll",
+          icon: <RiMoneyDollarCircleLine size={24} />,
+          text: "Manage payroll and employee compensation",
+          label: 'Payroll',
+          category: 'Human Resources',
+          description: 'Employee payroll management'
+     },
+     {
+          labwl:"Inventory",
+          href: '/inventory',
+          icon: <RiShoppingCartLine size={24} />,
+          text: "Access inventory management",
+          label: 'Inventory',
+          category: 'Support',
+          description: 'Inventory management'
      }
 ];

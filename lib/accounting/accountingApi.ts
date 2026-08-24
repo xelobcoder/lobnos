@@ -238,16 +238,48 @@ export const accountingApi = {
           return customFetch(`${BASE}/reports/balance-sheet${query({ asOf, branchId })}`);
      },
 
-     receivableAging(asOf?: string): Promise<ApiResponse<Aging>> {
-          return customFetch(`${BASE}/reports/receivable-aging${query({ asOf })}`);
+     receivableAging(asOf?: string, paging?: { page?: number; count?: number; sortby?: string }): Promise<ApiResponse<Aging>> {
+          return customFetch(`${BASE}/reports/receivable-aging${query({ asOf, ...paging })}`);
      },
 
-     payableAging(asOf?: string): Promise<ApiResponse<Aging>> {
-          return customFetch(`${BASE}/reports/payable-aging${query({ asOf })}`);
+     payableAging(asOf?: string, paging?: { page?: number; count?: number; sortby?: string }): Promise<ApiResponse<Aging>> {
+          return customFetch(`${BASE}/reports/payable-aging${query({ asOf, ...paging })}`);
      },
 
      accounts(): Promise<ApiResponse<ChartAccount[]>> {
           return customFetch(`${BASE}/accounts`);
+     },
+
+     authorityPermissions(): Promise<ApiResponse<string[]>> {
+          return customFetch(`${BASE}/authority/permissions`);
+     },
+
+     authorityEmployees(): Promise<ApiResponse<Array<{ employeeid: number; username: string; role: string; branch: number | null; fullname: string }>>> {
+          return customFetch(`${BASE}/authority/employees`);
+     },
+
+     myAuthority(): Promise<ApiResponse<{ employeeid: number; role: string; permissions: Record<string, { allowed: boolean; reason: string }> }>> {
+          return customFetch(`${BASE}/authority/mine`);
+     },
+
+     delegations(activeOnly = true, paging?: { page?: number; count?: number; sortby?: string }): Promise<ApiResponse<any>> {
+          return customFetch(`${BASE}/authority/delegations${query({ activeOnly: String(activeOnly), ...paging })}`);
+     },
+
+     grantDelegation(payload: {
+          employeeid: number;
+          permission: string;
+          minAmount?: number | null;
+          maxAmount?: number | null;
+          branchid?: number | null;
+          expiresAt?: string | null;
+          notes?: string | null;
+     }) {
+          return customPost(`/api/v1/${BASE}/authority/delegations`, "POST", payload);
+     },
+
+     revokeDelegation(id: number) {
+          return customPost(`/api/v1/${BASE}/authority/delegations/${id}`, "DELETE", {});
      },
 
      cashFlow(from: string, to: string): Promise<ApiResponse<any>> {
@@ -266,12 +298,16 @@ export const accountingApi = {
           return customFetch(`${BASE}/reports/branch-performance${query({ from, to })}`);
      },
 
-     inventoryValuation(asOf?: string): Promise<ApiResponse<any>> {
-          return customFetch(`${BASE}/reports/inventory-valuation${query({ asOf })}`);
+     inventoryValuation(asOf?: string, paging?: { page?: number; count?: number; sortby?: string }): Promise<ApiResponse<any>> {
+          return customFetch(`${BASE}/reports/inventory-valuation${query({ asOf, ...paging })}`);
      },
 
-     subledgerBalances(ledger: "AR" | "AP", asOf?: string): Promise<ApiResponse<PartyBalance[]>> {
-          return customFetch(`${BASE}/subledger/${ledger}/balances${query({ asOf })}`);
+     subledgerBalances(
+          ledger: "AR" | "AP",
+          asOf?: string,
+          paging?: { page?: number; count?: number; sortby?: string }
+     ): Promise<ApiResponse<{ data: PartyBalance[]; total: number; page: number; count: number }>> {
+          return customFetch(`${BASE}/subledger/${ledger}/balances${query({ asOf, ...paging })}`);
      },
 
      subledgerReconcile(
@@ -286,9 +322,10 @@ export const accountingApi = {
           partyType: string,
           partyId: number,
           from?: string,
-          to?: string
-     ): Promise<ApiResponse<{ entries: SubledgerStatementEntry[]; openingBalance: number; closingBalance: number }>> {
-          return customFetch(`${BASE}/subledger/${ledger}/statement/${partyType}/${partyId}${query({ from, to })}`);
+          to?: string,
+          paging?: { page?: number; count?: number }
+     ): Promise<ApiResponse<{ entries: SubledgerStatementEntry[]; total: number; page: number; count: number; openingBalance: number; closingBalance: number }>> {
+          return customFetch(`${BASE}/subledger/${ledger}/statement/${partyType}/${partyId}${query({ from, to, ...paging })}`);
      },
 
      periods(from?: string, to?: string): Promise<ApiResponse<AccountingPeriod[]>> {
@@ -309,6 +346,7 @@ export const accountingApi = {
           to?: string;
           page?: number;
           count?: number;
+          sortby?: string;
      }): Promise<ApiResponse<Paginated<ManualJournal>>> {
           return customFetch(`${BASE}/manual-journals${query(filters)}`);
      },
@@ -359,10 +397,10 @@ export const accountingApi = {
      },
 
      outboxHealth(): Promise<ApiResponse<OutboxHealth>> {
-          return customFetch(`${BASE}/outbox/health`);
+          return customFetch(`${BASE}/outbox/health?page=1&count=10`);
      },
 
-     outbox(filters: { status?: string; sourceModule?: string; page?: number; count?: number }): Promise<ApiResponse<Paginated<OutboxRow>>> {
+     outbox(filters: { status?: string; sourceModule?: string; page?: number; count?: number; sortby?: string }): Promise<ApiResponse<Paginated<OutboxRow>>> {
           return customFetch(`${BASE}/outbox${query(filters)}`);
      },
 

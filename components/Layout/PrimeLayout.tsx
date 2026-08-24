@@ -18,7 +18,7 @@ import {
 } from '@remixicon/react';
 import { useApplicationSettings } from "../Auth/useApplicationContext";
 import { Link as LinkType } from "./links/types";
-import { AdminRoleLinks, FrontdeskRoleLinks, LaboratoryScientistRoleLinks, PhelobotomyRoleLinks, SonographerRoleLinks } from "../FrontPageView/RoleLinks";
+import { AccountantRoleLinks, AdminRoleLinks, FrontdeskRoleLinks, LaboratoryScientistRoleLinks, PhelobotomyRoleLinks, SonographerRoleLinks } from "../FrontPageView/RoleLinks";
 import { FontSelector } from "./FontSelector";
 import { getFontPreference, applyFontToDocument } from "../../lib/themes";
 import { useTheme } from "../ThemeProvider";
@@ -41,6 +41,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
         manager: AdminRoleLinks,
         scientist: LaboratoryScientistRoleLinks,
         sonographer: SonographerRoleLinks,
+        accountant: AccountantRoleLinks,
         phelobotomist: PhelobotomyRoleLinks
     };
 

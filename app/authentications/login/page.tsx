@@ -113,7 +113,9 @@ export default function PrimeLabLoginPage() {
 					router.push("/operations/laboratory");
 				} else if (role === "storekeeper") {
 					router.push("/inventory");
-				} 
+				} else if (role === "accountant") {
+					router.push("/accounting");
+				}
 				else {
 					router.push("/");
 				}

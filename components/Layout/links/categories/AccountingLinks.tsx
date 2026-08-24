@@ -112,6 +112,7 @@ export const AccountingLinks: Link[] = [
           icon: <RiShieldCheckLine size={20} />,
           children: [
                { title: "Posting Exceptions", link: "/accounting/posting-health", icon: <RiPulseLine size={18} /> },
+               { title: "Delegated Authority", link: "/accounting/delegations", icon: <RiShieldCheckLine size={18} /> },
                { title: "Audit Trail", link: "/accounting/general-ledger", icon: <RiFileList3Line size={18} /> }
           ]
      }

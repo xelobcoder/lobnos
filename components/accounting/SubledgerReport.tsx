@@ -33,7 +33,7 @@ export default function SubledgerReport({ ledger, title, subtitle, partyLabel }:
                     accountingApi.subledgerReconcile(ledger, asOf),
                ]);
 
-               setBalances((balancesRes?.result || []).filter((row) => Math.abs(row.balance) > 0.001));
+               setBalances((balancesRes?.result?.data || []).filter((row) => Math.abs(row.balance) > 0.001));
                setAging(agingRes?.result || null);
                setReconcile(reconcileRes?.result || null);
           } finally {

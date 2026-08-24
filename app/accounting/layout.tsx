@@ -7,6 +7,7 @@ import { ApplicationProvider } from "../../components/Auth/useApplicationContext
 import { AccountingLinks } from "../../components/Layout/links/categories/AccountingLinks";
 import MAIN_LAYOUT from "../../components/Layout/MainLayout";
 import PrimeLayout from "../../components/Layout/PrimeLayout";
+import AccountingGuard from "../../components/accounting/AccountingGuard";
 import styles from "./accounting.module.css";
 
 export default function AccountingLayout({
@@ -21,7 +22,7 @@ export default function AccountingLayout({
                          <PrimeToast />
                          <div className={styles.accountingModule}>
                               <PrimeLayout links={AccountingLinks}>
-                                   {children}
+                                   <AccountingGuard>{children}</AccountingGuard>
                               </PrimeLayout>
                          </div>
                     </MAIN_LAYOUT>

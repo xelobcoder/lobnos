@@ -85,22 +85,23 @@ export default function PeriodAnalysisReport({ type, title, subtitle }: Props) {
                          <div className="col-12 col-md-6">
                               <DateFilterReusable value={dateFilter} onChange={setDateFilter} onDateRangeChange={(start, end) => { setFrom(start); setTo(end); }} label="Period" className="w-100" disabled={loading} />
                          </div>
-                         <div className="col-12 col-md-3">
+                         {/* <div className="col-12 col-md-3">
                               <button className="btn btn-sm btn-primary w-100" onClick={load} disabled={loading}>
                                    {loading ? "Running..." : "Run report"}
                               </button>
-                         </div>
+                         </div> */}
                     </>
                }
           >
-               <div className="d-flex justify-content-end mb-2">
-                    <div className="border rounded p-2 text-end">
-                         <div className="small text-muted">Total for period</div>
-                         <div className="fs-5 fw-semibold">{money(totals.total || 0)}</div>
+               <div className="mb-2">
+                    <div className="border rounded p-4 ">
+                         <h4>Total for period</h4>
+                         <hr />
+                         <h3 className=" fw-bold">{money(totals.total || 0)}</h3>
                     </div>
                </div>
 
-               <PrimeTable column={column} data={rows} filtering isExpoerted handleSeverSideProcessing={undefined} />
+               <PrimeTable column={column} data={rows} filtering  handleSeverSideProcessing={undefined} />
           </ReportShell>
      );
 }

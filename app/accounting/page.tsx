@@ -63,8 +63,8 @@ export default function AccountingOverviewPage() {
      const cards = [
           { label: "Revenue", detail: "Year to date", value: revenue, href: "/accounting/income-statement", tone: styles.revenue },
           { label: "Net profit", detail: "Year to date", value: netProfit, href: "/accounting/income-statement", tone: styles.profit },
-          { label: "Receivables", detail: "Outstanding", value: receivables, href: "/accounting/receivable-aging", tone: styles.receivables },
-          { label: "Payables", detail: "Outstanding", value: payables, href: "/accounting/payable-aging", tone: styles.payables },
+          { label: "Receivables", detail: "Outstanding", value: receivables, href: "/accounting/receivables", tone: styles.receivables },
+          { label: "Payables", detail: "Outstanding", value: payables, href: "/accounting/payables", tone: styles.payables },
      ];
 
      const needsAttention = (health?.failed || 0) + (health?.deadLetter || 0) > 0 || !balanced;

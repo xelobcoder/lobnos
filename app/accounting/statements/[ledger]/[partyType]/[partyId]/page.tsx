@@ -27,7 +27,7 @@ export default function SubledgerStatementPage({
      const load = useCallback(async () => {
           setLoading(true);
           try {
-               const response = await accountingApi.subledgerStatement(ledger, params.partyType, partyId, from, to);
+               const response = await accountingApi.subledgerStatement(ledger, params.partyType, partyId, from, to, { count: 200 });
                setEntries(response?.result?.entries || []);
                setOpeningBalance(response?.result?.openingBalance || 0);
                setClosingBalance(response?.result?.closingBalance || 0);

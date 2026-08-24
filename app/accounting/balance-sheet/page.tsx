@@ -123,17 +123,13 @@ export default function BalanceSheetPage() {
                                    className="w-100"
                               />
                          </div>
-                         <div className="col-12 col-md-3">
-                              <button className="btn btn-sm btn-primary w-100" onClick={load} disabled={loading}>
-                                   {loading ? "Running..." : "Run report"}
-                              </button>
-                         </div>
+                        
                     </>
                }
           >
                {error && <div className="alert alert-danger py-2">{error}</div>}
 
-               <div className={`alert d-flex align-items-center gap-2 py-2 ${outOfBalance ? "alert-danger" : "alert-success"}`}>
+               <div className={`alert d-flex align-items-center gap-2 py-4 ${outOfBalance ? "alert-danger alert-danger-subtle" : "alert-success alert-success-subtle"}`}>
                     {outOfBalance ? <RiErrorWarningLine size={18} /> : <RiCheckboxCircleLine size={18} />}
                     <span>
                          <strong>Balance check: {outOfBalance ? "FAIL" : "PASS"}</strong>

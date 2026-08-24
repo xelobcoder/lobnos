@@ -519,6 +519,7 @@ export default function AuthenticationIndexPage() {
                                              <option value="scientist">Scientist</option>
                                              <option value="customer service representative">Customer Service Representative</option>
                                              <option value="manager">Manager</option>
+                                             <option value="accountant">Accountant</option>
                                              <option value="clinician">Clinician</option>
                                              <option value="phlebotomist">Phlebotomist</option>
                                              <option value="sonographer">Sonographer</option>

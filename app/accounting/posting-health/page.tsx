@@ -141,7 +141,7 @@ export default function PostingExceptionsPage() {
                filters={
                     <div className="col-6 col-md-3">
                          <label className="form-label mb-1 small text-muted">Status</label>
-                         <select className="form-select form-select-sm" value={status} onChange={(e) => setStatus(e.target.value)}>
+                         <select className="form-select custom-select" value={status} onChange={(e) => setStatus(e.target.value)}>
                               <option value="">All</option>
                               <option value="pending">Pending</option>
                               <option value="failed">Failed</option>
@@ -150,13 +150,14 @@ export default function PostingExceptionsPage() {
                          </select>
                     </div>
                }
-          >
-               <div className="row g-2 mb-3">
+               >
+                    <div className="row g-2 mb-3">
                     {tiles.map((tile) => (
                          <div className="col-6 col-md-3" key={tile.label}>
-                              <div className="border rounded p-2">
-                                   <div className="small text-muted">{tile.label}</div>
-                                   <div className={`fs-5 fw-semibold ${tile.tone}`}>{tile.value}</div>
+                              <div className="border rounded p-4">
+                                   <h5 className="text-uppercase">{tile.label}</h5>
+                                   <hr/>
+                                   <div className={`fs-5 fw-bold ${tile.tone}`}>{tile.value}</div>
                               </div>
                          </div>
                     ))}
@@ -172,7 +173,6 @@ export default function PostingExceptionsPage() {
                     column={column}
                     data={rows}
                     filtering
-                    isExpoerted
                     serverSideFiltering
                     handleSeverSideProcessing={handleSeverSideProcessing}
                />
