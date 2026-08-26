@@ -30,19 +30,39 @@ export const LaboratoryOperationsLinks: Link[] = [
             { title: "Validated Result", link: `/operations/laboratory/validated`, icon: <RiFileListLine /> },
         ]
     },
-    { title: "Register New Client", link: "/crm/registration", icon: <RiRegisteredFill /> },
-    { title: 'Laboratory Operations Home', link: "/operations/laboratory", icon: <RiHome2Line /> },
-    { title: "Daily Laboratory Request", link: "/operations/laboratory/main/dailyRequest", icon: <RiFileListLine /> },
-    { title: 'Advanced Search', link: '/operations/laboratory/advanced-search', icon: <RiSearchLine /> },
-
-    { title: 'Audit Log', link: '/operations/laboratory/auditlogs', icon: <RiFileListLine /> },
-    { title: 'Patient Archives', link: '/operations/laboratory/patientarchives', icon: <RiFileListLine /> },
-    { title: "Critical Values Alert", link: `/operations/laboratory/criticalvaluesAlert`, icon: <RiAlarmWarningLine /> },
-    { title: "Turn around Time", link: `/operations/laboratory/turnaroundtime`, icon: <RiTimeLine /> },
-    { title: "Stock Management", link: `/operations/laboratory/stockmanagement`, icon: <RiStore2Line /> },
-    { title: 'Quality Control', link: '/operations/laboratory/quality-control', icon: <RiQuestionMark /> },
-    { title: 'Incident Reporting', link: '/compliance/incident-reporting', icon: <RiShieldCheckLine /> },
-    { title: "Laboratory Result Not Delivered", link: "/operations/laboratory/undelivered", icon: <RiFileListLine /> },
+    {
+        title: "Laboratory Workspace",
+        link: "/operations/laboratory",
+        icon: <RiHome2Line />,
+        children: [
+            { title: "Laboratory Operations Home", link: "/operations/laboratory", icon: <RiHome2Line /> },
+            { title: "Register New Client", link: "/crm/registration", icon: <RiRegisteredFill /> },
+            { title: "Daily Laboratory Request", link: "/operations/laboratory/main/dailyRequest", icon: <RiFileListLine /> },
+            { title: "Advanced Search", link: "/operations/laboratory/advanced-search", icon: <RiSearchLine /> },
+        ]
+    },
+    {
+        title: "Records & Auditing",
+        link: "/operations/laboratory/patientarchives",
+        icon: <RiFileListLine />,
+        children: [
+            { title: "Patient Archives", link: "/operations/laboratory/patientarchives", icon: <RiFileListLine /> },
+            { title: "Audit Log", link: "/operations/laboratory/auditlogs", icon: <RiFileListLine /> },
+            { title: "Laboratory Result Not Delivered", link: "/operations/laboratory/undelivered", icon: <RiFileListLine /> },
+        ]
+    },
+    {
+        title: "Quality & Performance",
+        link: "/operations/laboratory/quality-control",
+        icon: <RiShieldCheckLine />,
+        children: [
+            { title: "Critical Values Alert", link: "/operations/laboratory/criticalvaluesAlert", icon: <RiAlarmWarningLine /> },
+            { title: "Turn around Time", link: "/operations/laboratory/turnaroundtime", icon: <RiTimeLine /> },
+            { title: "Quality Control", link: "/operations/laboratory/quality-control", icon: <RiQuestionMark /> },
+            { title: "Stock Management", link: "/operations/laboratory/stockmanagement", icon: <RiStore2Line /> },
+            { title: "Incident Reporting", link: "/compliance/incident-reporting", icon: <RiShieldCheckLine /> },
+        ]
+    },
 ];
 
 

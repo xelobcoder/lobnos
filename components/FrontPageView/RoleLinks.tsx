@@ -18,7 +18,7 @@ export const AdminRoleLinks = [
           description: 'Sales and billing management for multiple branches'
      },
      {
-          href: '/operations/laboratory',
+          href: '/operations/laboratory/main/dailyRequest',
           icon: <RiTestTubeLine size={24} />,
           text: "Streamline laboratory test processing and result management",
           label: 'Operations',
@@ -199,7 +199,7 @@ export const LaboratoryScientistRoleLinks = [
           description: 'Sample collection management'
      },
      {
-          href: '/operations/laboratory',
+          href: 'operations/laboratory/main/dailyRequest',
           icon: <RiTestTubeLine size={24} />,
           text: "Process and manage laboratory tests and results",
           label: 'Laboratory',
