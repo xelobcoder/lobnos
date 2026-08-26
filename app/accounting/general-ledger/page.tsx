@@ -105,8 +105,8 @@ export default function GeneralLedgerPage() {
                accessor: "journal_entry_id",
                Cell: ({ row }: any) => (
                     <div>
-                         <div className="fw-semibold">#{row.original.journal_entry_id}</div>
-                         <span className="badge bg-light text-dark text-capitalize">{row.original.transaction_type}</span>
+                    
+                         <span className="badge bg-light text-dark text-capitalize fw-bold">{row.original.transaction_type}</span>
                     </div>
                ),
           },
@@ -114,8 +114,8 @@ export default function GeneralLedgerPage() {
                Header: "Account",
                accessor: "account_code",
                Cell: ({ row }: any) => (
-                    <div>
-                         <div className="text-muted small">{row.original.account_code}</div>
+                    <div className="text-uppercase fw-bold">
+                         <div >{row.original.account_code}</div>
                          {row.original.account_name}
                     </div>
                ),
@@ -124,10 +124,10 @@ export default function GeneralLedgerPage() {
                Header: "Source",
                accessor: "source_module",
                Cell: ({ row }: any) => (
-                    <div>
-                         <div className="text-capitalize">{row.original.source_module}</div>
+                    <div className="text-uppercase fw-bold">
+                         <div >{row.original.source_module}</div>
                          <small className="text-muted">
-                              {row.original.source_table}#{row.original.source_ref || row.original.source_pk}
+                          {row.original.source_ref || row.original.source_pk}
                          </small>
                     </div>
                ),
@@ -137,7 +137,7 @@ export default function GeneralLedgerPage() {
                Header: "Debit",
                accessor: "amount",
                Cell: ({ row }: any) => (
-                    <span className="d-block text-end">
+                    <span className="bg-light text-dark px-2 py-1 rounded d-inline-block">
                          {row.original.direction === "debit" ? currencyFormatter.format(Number(row.original.amount)) : "-"}
                     </span>
                ),
@@ -146,7 +146,7 @@ export default function GeneralLedgerPage() {
                Header: "Credit",
                accessor: "direction",
                Cell: ({ row }: any) => (
-                    <span className="d-block text-end">
+                    <span className="bg-light text-dark px-2 py-1 rounded d-inline-block">
                          {row.original.direction === "credit" ? currencyFormatter.format(Number(row.original.amount)) : "-"}
                     </span>
                ),

@@ -2,12 +2,14 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Alert, Form } from 'react-bootstrap';
 import { RiSaveLine, RiSettings4Line } from '@remixicon/react';
-import { customFetch, customPost } from '../../../components/Auth/customFetch';
+import { customFetch, customPost, reloadApplicationSettingsCache } from '../../../components/Auth/customFetch';
 import Loader from '../../../components/isLoading';
 import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
 import { BillingSettingsTab } from '../../../components/settings/applicationsettings/BillingSettingsTab';
 import { availableFonts } from '../../../lib/themes';
 import Link from 'next/link';
+
+
 
 // Helper to get region/district objects from code
 function getRegionAndDistrict(regions: any[], regioncode: string, districtcode: string): { region: any, district: any } {
@@ -60,7 +62,7 @@ interface ApplicationSettingsData {
 }
 
 export default function ApplicationSettings() {
-	const { applicationsettings } = useApplicationSettings();
+	const { applicationsettings, setApplicationSettings } = useApplicationSettings();
 	const { user } = applicationsettings;
 
 	const [settings, setSettings] = useState<ApplicationSettingsData | null>(null);
@@ -412,6 +414,7 @@ export default function ApplicationSettings() {
 			if (response?.status === 'success' && response?.statusCode === 200) {
 				setSuccess(true);
 				setTimeout(() => setSuccess(false), 3000);
+				await reloadApplicationSettingsCache(setApplicationSettings);
 			} else {
 				setError('Failed to update application settings');
 			}

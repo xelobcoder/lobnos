@@ -402,18 +402,26 @@ const PersonalRegistrationForms = ({ designation, setFormData, handleAgeCalculat
 
                     <div className="form-group mb-3 mt-3 form-group-responsive">
                         <label htmlFor="designation" className='required' style={{ color: 'var(--bs-body-color)' }}>Designation</label>
-                        <select
-                            id="designation"
-                            className="form-control custom-select form-control-sm"
-                            style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }}
-                            value={data?.designation || ''}
-                            onChange={(ev) => setFormData('designation', ev.target.value)}
-                        >
-                            <option value="">Select designation</option>
-                            {designationOptions.map(option => (
-                                <option key={option.value} value={option.value}>{option.label}</option>
-                            ))}
-                        </select>
+                        <Controller
+                            name="designation"
+                            control={control}
+                            rules={{ required: 'Designation is required' }}
+                            render={({ field }) => (
+                                <select
+                                    {...field}
+                                    id="designation"
+                                    className="form-control custom-select form-control-sm"
+                                    style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }}
+                                    value={data?.designation || ''}
+                                >
+                                    <option value="">Select designation</option>
+                                    {designationOptions.map(option => (
+                                        <option key={option.value} value={option.value}>{option.label}</option>
+                                    ))}
+                                </select>
+                            )}
+                        />
+                        {errors.designation && <small id="designation-error" role="alert" className="d-block text-danger mt-1">{errors.designation.message}</small>}
                     </div>
 
                     <div className="form-group mb-3 mt-3 form-group-responsive">

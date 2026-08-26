@@ -11,6 +11,7 @@ import { plsEncryption } from '../../../lib/encryption';
 import { RiResetLeftFill, RiRefreshLine } from '@remixicon/react';
 import dayjs from 'dayjs';
 import PrimeTableV2 from '../../../components/accessories/Datatables/PrimeTableV2';
+import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 
 
 interface Customer {
@@ -148,7 +149,12 @@ export default function Activator() {
         { Header: 'PatientID', accessor: 'fullpatientid' },
         { Header: 'registered on', accessor: 'date', Cell: ({ value }) => { return <span>{dayjs(value).format('YYYY-MM-DD HH:mm:ss')}</span> } },
         {
-            Header: 'fullname', accessor: 'fullname', Cell: ({ value }) => <div className='text-capitalize'>{value}</div>,
+            Header: 'fullname', accessor: 'fullname',
+            Cell: ({ value, row }) => <div className='text-uppercase fw-bold bg-success-subtle'>
+                {value ? value : 'N/A'}
+                <br />
+                {row.original.agetype ? row.original.age + ' ' + row.original.agetype : 'N/A'}({row.original.gender === 'male' ? 'M' : row.original.gender === 'female' ? 'F' : 'N/A'})
+            </div>,
             filteringMode: 'text'
         },
         {
@@ -156,8 +162,10 @@ export default function Activator() {
             filteringMode: 'date'
         },
         {
-            Header: "Age & Gender", accessor: '', Cell: ({ row }) => (
-                <div>{row.original.age} {row.original.agetype}({row.original.gender === 'male' ? 'M' : 'F'})</div>
+            Header: "relative details", accessor: 'relativecontactname', Cell: ({ row }) => (
+                <div>{row.original.relativecontactname ?
+                    row.original.relativecontactname : 'N/A'
+                } {row.original.relativecontactnumber ? row.original.relativecontactnumber : 'N/A'}</div>
             )
         },
         {
@@ -445,15 +453,13 @@ export default function Activator() {
             <div >
                 {Array.isArray(tempStore)
                     && tempStore.length > 0
-                    && <PrimeTableV2
+                    && <PrimeTable
                         column={columns}
                         data={tempStore}
                         filtering={true}
-                        showChartView={true}
-                        isExpoerted={true}
                         handleSeverSideProcessing={handleSeverSideProcessing}
                         serverSideFiltering={true}
-                        tableId='crm-customers-table'
+                
                     />}
             </div>
         </div>

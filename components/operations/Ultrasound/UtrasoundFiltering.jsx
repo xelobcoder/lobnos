@@ -4,7 +4,7 @@ import DateFilterReusable from "../Laboratory/ResuableFilter/DateFilterReusable"
 import { useUltrasoundContext } from "./UltrasoundContext";
 import { handleDateRangeSelection } from "../Laboratory/AscensionFilteringComponent";
 
-export default function UltrasoundAscensionFiltering({ ascension_stage, employeeid }) {
+export default function UltrasoundAscensionFiltering({ ascension_stage, employeeid, branchid }) {
        const { queryParams, setQueryParams, _getAscensionData, loadCounter, setLoadCounter } =
               useUltrasoundContext();
 
@@ -41,6 +41,49 @@ export default function UltrasoundAscensionFiltering({ ascension_stage, employee
        });
        const [dateFilter, setDateFilter] = useState("");
 
+       useEffect(() => {
+              const listener = (event) => {
+                     if (event.data?.type !== "TEST_PANEL_SELECTED") {
+                            return;
+                     }
+
+                     const selectedTestId = event.data.payload?.id;
+                     if (!selectedTestId) {
+                            return;
+                     }
+
+                     setQueryParams((prev) => ({
+                            ...prev,
+                            ascensionid: "",
+                            patientid: "",
+                            billingid: "",
+                            patientname: "",
+                            testid: selectedTestId,
+                     }));
+                     _getAscensionData(ascension_stage, employeeid, {
+                            ascensionid: queryParams.ascensionid,
+                            patientid: queryParams.patientid,
+                            billingid: queryParams.billingid,
+                            patientname: queryParams.patientname,
+                            testid: selectedTestId,
+                     });
+              };
+
+              window.addEventListener("message", listener);
+              return () => window.removeEventListener("message", listener);
+       }, [ascension_stage, employeeid, queryParams, _getAscensionData, setQueryParams]);
+
+       const handleFilterByLabTest = () => {
+              const popup = window.open(
+                     `/labtestfilter?employeeid=${employeeid}&&branchid=${branchid}`,
+                     "LabTestFilter",
+                     "width=600,height=450,resizable=no,scrollbars=yes"
+              )
+
+              if (popup) {
+                     popup.focus()
+              }
+       }
 
        const handleSettingCategory = (section, value) => {
               setCategory({ section, value });
@@ -66,6 +109,9 @@ export default function UltrasoundAscensionFiltering({ ascension_stage, employee
                                                  handleSettingCategory("none", "");
                                           } else {
                                                  setCategory({ section: ev.target.value, value: '' });
+                                                 if (ev.target.value == "testname") {
+                                                        handleFilterByLabTest(ev.target.value);
+                                                 }
                                           }
 
                                    }} className="form-select ">
@@ -74,6 +120,7 @@ export default function UltrasoundAscensionFiltering({ ascension_stage, employee
                                           <option value="patientname">Patient Name</option>
                                           <option value="patientid">Patient ID</option>
                                           <option value="billingid">Billing ID</option>
+                                          <option value="testname">Laboratory Test</option>
                                    </select>
                             </div>
 

@@ -6,8 +6,8 @@ import { useApplicationSettings } from "../../../../components/Auth/useApplicati
 
 export default function UltrasonograhyWaitingList() {
 	const { applicationsettings } = useApplicationSettings();
-	const { employeeid, username, role } = applicationsettings.user;
-
+	const { employeeid, username, role} = applicationsettings.user;
+const branchid = applicationsettings.branchid;
 	if (!employeeid) return null;
 
 	return (
@@ -15,6 +15,7 @@ export default function UltrasonograhyWaitingList() {
 			<UltrasoundAscensionFiltering
 				ascension_stage={"ULTRASOUND_UNCOMPLETED"}
 				employeeid={employeeid}
+				branchid={branchid}
 			/>
 			<AscentionUltrasoundUnCompletedTable stage={"ULTRASOUND_UNCOMPLETED"} />
 		</UltrasoundStagesProvider>

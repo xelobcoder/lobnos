@@ -1,6 +1,6 @@
 import React from "react";
-import { Dropdown } from 'react-bootstrap';
-import { RiMoreLine, RiCheckLine, RiCloseLine } from '@remixicon/react';
+import { Button, Dropdown } from 'react-bootstrap';
+import { RiMoreLine, RiCheckLine, RiCloseLine, RiPrinterFill, RiDoorClosedFill } from '@remixicon/react';
 import { useUltrasoundContext } from "./UltrasoundContext";
 import { generateRandomTextAndNumbers, PrepareResultEntryHeader } from "../../Auth/customFetch";
 import PrimeTable from '../../accessories/Datatables/PrimeTable';
@@ -44,12 +44,10 @@ export default function AscentionUltrasoundUnCompletedTable({ stage }) {
 			accessor: 'fullname',
 			Cell: ({ row }) => (
 				<div>
-					<div className="text-uppercase fw-bold text-primary">
-						{row.original.fullname}
+					<div className="text-uppercase fw-bold">
+						{row.original.fullname}({row.original.age})
 					</div>
-					<div className="small text-muted">
-						Age: {row.original.age}
-					</div>
+
 					<div className="small">
 						<strong>ID:</strong> {row.original.fullpatientid}
 					</div>
@@ -78,11 +76,13 @@ export default function AscentionUltrasoundUnCompletedTable({ stage }) {
 		{
 			Header: 'Payment Status',
 			accessor: 'clientstatus',
-			Cell: ({ value }) => (
-				<span className={`badge ${value === 'paid' ? 'bg-success' : value === 'pending' ? 'bg-warning' : 'bg-secondary'}`}>
-					{value?.toUpperCase()}
-				</span>
-			),
+			Cell: ({ value }) => {
+				return (
+					<span style={{ color: "#000", fontWeight: 700 }}>
+						{value?.toUpperCase()}
+					</span>
+				);
+			},
 			width: 100,
 		},
 		{
@@ -97,20 +97,20 @@ export default function AscentionUltrasoundUnCompletedTable({ stage }) {
 					<div>
 						{isCompleted ? (
 							<div>
-								<span className="badge bg-success">Completed</span>
-								<div className="small text-muted mt-1">
+								<span >Completed</span>
+								<div >
 									{dayjs(start).format('DD-MM-YY HH:mm:ss')}
 								</div>
 							</div>
 						) : start ? (
 							<div>
-								<span className="badge bg-info">In Progress</span>
-								<div className="small text-muted mt-1">
+								<span >In Progress</span>
+								<div >
 									Started: {dayjs(start).format('DD-MM-YY HH:mm:ss')}
 								</div>
 							</div>
 						) : (
-							<span className="badge bg-secondary">Not Started</span>
+							<span>Not Started</span>
 						)}
 					</div>
 				);
@@ -132,7 +132,21 @@ export default function AscentionUltrasoundUnCompletedTable({ stage }) {
 			Header: 'Actions',
 			accessor: 'action',
 			Cell: ({ row }) => (
-				<Dropdown>
+				// replace with your action buttons
+				<>
+					<div>
+						<Button variant="outline-primary" size="sm" className="me-1 fw-bold" onClick={() => PrepareResultEntryHeader(row.original, true, branchid, false)} disabled={row.original.clientstatus === 'pending'}>
+							<RiDoorClosedFill />	{row.original.resultEntryStart ? 'Cont. Entry' : 'Enter Result'}
+						</Button>
+						{stage == "ULTRASOUND_COMPLETED" && row.original.resultEntryEnd && (
+							<Button variant="outline-success" size="sm" className="fw-bold" onClick={() => handlePrintResult(row.original)}>
+								<RiPrinterFill />	Print Result
+							</Button>
+						)}
+
+
+					</div>
+					{/* <Dropdown>
 					<Dropdown.Toggle variant="link" size="sm" className="p-0">
 						<RiMoreLine size={16} />
 					</Dropdown.Toggle>
@@ -151,7 +165,8 @@ export default function AscentionUltrasoundUnCompletedTable({ stage }) {
 							</Dropdown.Item>
 						)}
 					</Dropdown.Menu>
-				</Dropdown>
+				</Dropdown> */}
+				</>
 			),
 			width: 50,
 		},
@@ -175,12 +190,29 @@ export default function AscentionUltrasoundUnCompletedTable({ stage }) {
 					billingid: queryParams.billingid,
 					patientid: queryParams.patientid,
 					patientname: queryParams.patientname,
+					testid: queryParams.testid,
 					branchid: queryParams.branchid,
-					ascensionid : queryParams.ascensionid,
+					ascensionid: queryParams.ascensionid,
 					category: queryParams.category
 				}}
 				serverSideFiltering={true}
-				handleSeverSideProcessing={handleServerSideProcessingAscensionData} />
+				handleSeverSideProcessing={handleServerSideProcessingAscensionData}
+				rowStyling={{
+					type: "custom",
+					getRowStyle: (row) => {
+						const status = String(row.clientstatus ?? "").trim().toLowerCase();
+
+						if (status.includes("partial")) {
+							return { backgroundColor: "#fff3cd", color: "#664d03" };
+						}
+
+						if (status.includes("pending")) {
+							return { backgroundColor: "#f8d7da", color: "#842029" };
+						}
+
+						return {};
+					},
+				}} />
 		</div>
 	);
 }

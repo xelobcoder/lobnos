@@ -32,9 +32,9 @@ export function UltrasoundStagesProvider({ children }) {
               _dateEnd: currentDate,
               page: 1,
               count: 10,
-            branchid,
+              branchid,
               employeeid,
-                category: category || 'ungrouped',
+              category: category || 'ungrouped',
               isUltrasound: true,
               patientid,
               billingid,
@@ -47,19 +47,20 @@ export function UltrasoundStagesProvider({ children }) {
               updatePagination(value, setQueryParams, queryParams);
        };
 
-       const _getAscensionData = async function (ascension_stage,employeeid,userprovidedCategory) {
+       const _getAscensionData = async function (ascension_stage, employeeid, userprovidedCategory) {
               const ascensionid = userprovidedCategory?.ascensionid || queryParams.ascensionid;
               const patientid = userprovidedCategory?.patientid || queryParams.patientid;
               const billingid = userprovidedCategory?.billingid || queryParams.billingid;
               const patientname = userprovidedCategory?.patientname || queryParams.patientname;
-              const  newQueryParams =  {...queryParams};
+              const testid = userprovidedCategory?.testid || queryParams.testid;
+              const newQueryParams = { ...queryParams, ...userprovidedCategory };
 
               if (billingid || ascensionid) {
-                     newQueryParams['_dateEnd']= '';
-                     newQueryParams['_dateFrom']= '';
+                     newQueryParams['_dateEnd'] = '';
+                     newQueryParams['_dateFrom'] = '';
               }
-              await getAscensionData(ascension_stage, setCollection, newQueryParams, setLoading,employeeid,branchid,category,{
-                     ascensionid, patientid, billingid, patientname
+              await getAscensionData(ascension_stage, setCollection, newQueryParams, setLoading, employeeid, branchid, category, {
+                     ascensionid, patientid, billingid, patientname, testid
               });
        }
 
@@ -67,7 +68,7 @@ export function UltrasoundStagesProvider({ children }) {
               <UltrasoundContext.Provider value={{
                      collection, setCollection, isLoading, setLoading, queryParams, _getAscensionData, toast,
                      loadCounter, setLoadCounter,
-                     setQueryParams, updatePageValue, canloadPage, setLoadPage,category,ascensionid, patientid, billingid,patientname
+                     setQueryParams, updatePageValue, canloadPage, setLoadPage, category, ascensionid, patientid, billingid, patientname
               }}>
                      <ToastContainer theme="colored" position="top-right" className={'text-sm'} />
                      {children}

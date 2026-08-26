@@ -3,6 +3,9 @@ import { useEffect } from 'react';;
 import { useApplicationSettings } from '../Auth/useApplicationContext';
 
 
+
+
+
 export default function MAIN_LAYOUT({ children }) {
      const { applicationsettings, setApplicationSettings } = useApplicationSettings();
 
