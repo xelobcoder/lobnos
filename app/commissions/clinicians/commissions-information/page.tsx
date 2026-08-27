@@ -219,7 +219,7 @@ export default function CliniciansCommission() {
                </div>
 
                {/* Hero stat: the number this page exists for */}
-               <div className="border rounded p-4 mb-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3" style={{ background: 'var(--bs-tertiary-bg)' }}>
+               <div className="border bg-white rounded p-4 mb-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3" style={{ background: 'var(--bs-tertiary-bg)' }}>
                     <div>
                          <span className="text-muted small fw-semibold text-uppercase" style={{ letterSpacing: '0.05em' }}>
                               Total Commission Earned
@@ -239,7 +239,7 @@ export default function CliniciansCommission() {
                {/* Secondary stats */}
                <div className="row g-3 mb-4">
                     <div className="col-6 col-md-4 col-lg">
-                         <Stat label="Total Payable" value={currencyFormatter.format(totalServiceValue)} icon={<RiServiceLine />} />
+                         <Stat label="Total Payable" value={currencyFormatter.format(totalServiceValue)} icon={<RiServiceLine  />} />
                     </div>
                     <div className="col-6 col-md-4 col-lg">
                          <Stat label="Total Paid" value={currencyFormatter.format(totalPaidAmount)} icon={<RiMoneyDollarCircleLine />} />
@@ -273,7 +273,7 @@ export default function CliniciansCommission() {
                                    ? <RiArrowUpSLine size={18} className="text-muted" />
                                    : <RiArrowDownSLine size={18} className="text-muted" />}
                          </button>
-                         {showClinicianSummary && (
+                         {/* {showClinicianSummary && (
                               <div className="table-responsive" style={{ borderTop: '1px solid var(--bs-border-color)' }}>
                                    <table className="table table-sm table-hover table-striped mb-0 text-start">
                                         <thead className="bg-body-tertiary">
@@ -300,7 +300,7 @@ export default function CliniciansCommission() {
                                         </tbody>
                                    </table>
                               </div>
-                         )}
+                         )} */}
                     </div>
                )}
 
@@ -327,6 +327,7 @@ export default function CliniciansCommission() {
                                    {
                                         Header: 'Clinician Name',
                                         accessor: 'clinician_name',
+                                        Cell: ({ value }) => <div className="fw-bold">{value || 'N/A'}</div>,
                                    },
                                    {
                                         Header: 'Phone',

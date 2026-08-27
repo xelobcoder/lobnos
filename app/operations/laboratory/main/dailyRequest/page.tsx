@@ -27,6 +27,7 @@ export default function LaboratoryClientList() {
      const [loading, setLoading] = React.useState<boolean>(false);
      const [error, setError] = React.useState<string>('');
      const [query, setQuery] = React.useState('');
+     const [selectedClientKeys, setSelectedClientKeys] = React.useState<Set<string>>(new Set());
 
      const loadClients = async () => {
           if (!dateFrom && !dateTo && !filterCategory.value) {
@@ -50,8 +51,10 @@ export default function LaboratoryClientList() {
 
                if (response?.statusCode === 200 && Array.isArray(response.result)) {
                     setClients(response.result);
+                    setSelectedClientKeys(new Set());
                } else if (response?.result && Array.isArray(response.result)) {
                     setClients(response.result);
+                    setSelectedClientKeys(new Set());
                } else {
                     setClients([]);
                     setError('No data returned for the selected criteria.');
@@ -82,6 +85,7 @@ export default function LaboratoryClientList() {
           setFilterCategory({ section: '', value: '' });
           setSelectedStatus('pending');
           setClients([]);
+          setSelectedClientKeys(new Set());
           setQuery('');
           setError('');
      };
@@ -189,6 +193,18 @@ export default function LaboratoryClientList() {
           window.open(`/operations/laboratory/main/dailyRequest/visit?patientid=${patientid}&billingid=${billingid}&&isOpenSideBarShow=false`, '_blank');
      }
 
+     const getClientKey = (client: ClientFolderItem) => `${client.patientid}-${client.billingid}`;
+
+     const toggleClientSelection = (client: ClientFolderItem) => {
+          const clientKey = getClientKey(client);
+          setSelectedClientKeys((currentKeys) => {
+               const nextKeys = new Set(currentKeys);
+               if (nextKeys.has(clientKey)) nextKeys.delete(clientKey);
+               else nextKeys.add(clientKey);
+               return nextKeys;
+          });
+     };
+
      const filteredClients = React.useMemo(() => {
           const q = query.trim().toLowerCase();
           if (!q) return clients;
@@ -198,6 +214,32 @@ export default function LaboratoryClientList() {
                String(c.billingid).includes(q)
           );
      }, [clients, query]);
+
+     const allFilteredClientsSelected = filteredClients.length > 0 && filteredClients.every((client) => selectedClientKeys.has(getClientKey(client)));
+
+     const toggleAllFilteredClients = () => {
+          setSelectedClientKeys((currentKeys) => {
+               const nextKeys = new Set(currentKeys);
+               if (allFilteredClientsSelected) {
+                    filteredClients.forEach((client) => nextKeys.delete(getClientKey(client)));
+               } else {
+                    filteredClients.forEach((client) => nextKeys.add(getClientKey(client)));
+               }
+               return nextKeys;
+          });
+     };
+
+     const openSelectedFolders = () => {
+          const selectedClients = filteredClients.filter((client) => selectedClientKeys.has(getClientKey(client)));
+          if (selectedClients.length === 0) return;
+
+          const selected = encodeURIComponent(JSON.stringify(selectedClients.map(({ patientid, billingid, patient_details }) => ({
+               patientid,
+               billingid,
+               patient_details
+          }))));
+          window.open(`/operations/laboratory/main/dailyRequest/multiple/visit?selected=${selected}&isOpenSideBarShow=false`, '_blank', 'noopener,noreferrer');
+     };
 
      const stats = React.useMemo(() => {
           const pendingPayment = clients.filter(c => (c.payment_status || '').toLowerCase() === 'pending').length;
@@ -289,6 +331,17 @@ export default function LaboratoryClientList() {
                               <div style={{ flex: '1 1 auto' }} />
 
                               <button
+                                   onClick={openSelectedFolders}
+                                   className="btn btn-outline-primary d-flex align-items-center gap-2"
+                                   disabled={selectedClientKeys.size === 0}
+                                   title="Open selected requests"
+                                   style={{ flex: '0 0 auto', padding: '0.5rem 1rem', whiteSpace: 'nowrap' }}
+                              >
+                                   <span>↗</span>
+                                   Open Selected ({selectedClientKeys.size})
+                              </button>
+
+                              <button
                                    onClick={loadClients}
                                    className="btn btn-primary d-flex align-items-center gap-2"
                                    disabled={loading}
@@ -343,6 +396,15 @@ export default function LaboratoryClientList() {
                               <table className="table table-bordered table-striped align-middle">
                                    <thead className="table-light">
                                         <tr>
+                                             <th style={{ width: 48 }} className="text-center">
+                                                  <input
+                                                       type="checkbox"
+                                                       className="form-check-input"
+                                                       checked={allFilteredClientsSelected}
+                                                       onChange={toggleAllFilteredClients}
+                                                       aria-label="Select all visible requests"
+                                                  />
+                                             </th>
                                              <th style={{ minWidth: 260 }}>Patient</th>
                                              <th style={{ minWidth: 160 }}>Request</th>
                                              <th style={{ minWidth: 260 }}>Progress</th>
@@ -359,6 +421,15 @@ export default function LaboratoryClientList() {
                                                        key={`${client.patientid}-${client.billingid}`}
                                                        className={isPaymentPending ? 'bg-danger-subtle border-start border-4 border-danger' : ''}
                                                   >
+                                                       <td className="text-center">
+                                                            <input
+                                                                 type="checkbox"
+                                                                 className="form-check-input"
+                                                                 checked={selectedClientKeys.has(getClientKey(client))}
+                                                                 onChange={() => toggleClientSelection(client)}
+                                                                 aria-label={`Select request for ${client.patient_details}`}
+                                                            />
+                                                       </td>
                                                        <td>
                                                             <div className="fw-semibold">{client.patient_details}</div>
                                                             <div className="text-muted" style={{ fontSize: '0.85rem' }}>

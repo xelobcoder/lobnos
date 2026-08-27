@@ -1,18 +1,25 @@
 'use client'
 import styles from './login.module.css';
-import { RiShieldCrossFill, RiMailLine, RiLockLine, RiEyeLine, RiEyeOffLine } from '@remixicon/react';
+import { RiShieldCrossFill, RiMailLine, RiLockLine, RiEyeLine, RiEyeOffLine, RiHospitalLine, RiStethoscopeLine, RiUserHeartLine } from '@remixicon/react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Alert, Spinner } from 'react-bootstrap';
 import { customPost } from '../../../components/Auth/customFetch';
 
 export default function PrimeLabLoginPage() {
+	const [loginMode, setLoginMode] = useState<'center' | 'doctor' | 'patient'>('center');
 	const [isSubmitting, setSubmitting] = useState(false);
 	const [loginStatus, setLoginStatus] = useState<'idle' | 'error' | 'success'>('idle');
 	const [message, setMessage] = useState<string>('');
-	const [userInformation, setUserInformation] = useState({email: '', password: ''});
+	const [userInformation, setUserInformation] = useState({ email: '', password: '' });
 	const [showPassword, setShowPassword] = useState(false);
 	const router = useRouter();
+	const loginModes = [
+		{ key: 'center' as const, label: 'Center Login', icon: RiHospitalLine, description: 'For laboratory and administrative teams' },
+		{ key: 'doctor' as const, label: 'Doctor Login', icon: RiStethoscopeLine, description: 'For doctors and clinical partners' },
+		{ key: 'patient' as const, label: 'Patient Login', icon: RiUserHeartLine, description: 'Access your results and care information' },
+	];
+	const activeLoginMode = loginModes.find((mode) => mode.key === loginMode)!;
 
 	const handleLoginBind = async (formData) => {
 		try {
@@ -45,7 +52,7 @@ export default function PrimeLabLoginPage() {
 				};
 			}
 
-			const backendResponse = await customPost('prime/login', 'POST', { email, password, browserInfo },false, true);
+			const backendResponse = await customPost('prime/login', 'POST', { email, password, browserInfo }, false, true);
 
 			if (backendResponse.status === "error" &&
 				(backendResponse.message === "License expired or invalid" || backendResponse.message === "License vaalidation failed" ||
@@ -56,7 +63,7 @@ export default function PrimeLabLoginPage() {
 			}
 
 
-			const { status, accessToken, user ,settings ,sessionExpiryTime, loginsessionId } = backendResponse;
+			const { status, accessToken, user, settings, sessionExpiryTime, loginsessionId } = backendResponse;
 
 			if (!status || status == false) {
 				setLoginStatus('error');
@@ -65,7 +72,7 @@ export default function PrimeLabLoginPage() {
 				return;
 			}
 
-	
+
 
 			const cookieResponse = await fetch('/api/auth/login', {
 				method: 'POST',
@@ -78,7 +85,7 @@ export default function PrimeLabLoginPage() {
 					user,
 					email,
 					browserInfo,
-					sessionExpiryTime, loginsessionId ,
+					sessionExpiryTime, loginsessionId,
 					settings
 				}),
 			});
@@ -103,7 +110,7 @@ export default function PrimeLabLoginPage() {
 			setTimeout(() => {
 				if (role === "customer service representative") {
 					router.push("/crm/customers");
-				}  else if (role === 'admin') {
+				} else if (role === 'admin') {
 					router.push("/analytics");
 				} else if (role === 'manager') {
 					router.push("/");
@@ -152,10 +159,28 @@ export default function PrimeLabLoginPage() {
 			<div className={styles.formSide}>
 				<div className={styles.formContainer}>
 					<div className={styles.loginHeader}>
-						<h2 className={styles.welcomeTitle}>Welcome Back</h2>
-						<p className={styles.welcomeSubtitle}>Sign in to your account to continue</p>
+						<h2 className={styles.welcomeTitle}>Welcome back</h2>
+						<p className={styles.welcomeSubtitle}>{activeLoginMode.description}</p>
 					</div>
 
+					<div className={styles.loginModeSelector} role="tablist" aria-label="Choose account type">
+						{loginModes.map((mode) => {
+							const ModeIcon = mode.icon;
+							return (
+								<button
+									key={mode.key}
+									type="button"
+									role="tab"
+									aria-selected={loginMode === mode.key}
+									className={`${styles.loginModeButton} ${loginMode === mode.key ? styles.activeLoginMode : ''}`}
+									onClick={() => setLoginMode(mode.key)}
+								>
+									<ModeIcon size={18} />
+									<span>{mode.label}</span>
+								</button>
+							);
+						})}
+					</div>
 					{loginStatus !== 'idle' && (
 						<Alert variant={loginStatus === 'error' ? "danger" : "success"} className="mb-4 border-0 shadow-sm">
 							<div className='text-sm font-medium'>
@@ -167,18 +192,18 @@ export default function PrimeLabLoginPage() {
 					<form className={styles.loginForm}>
 						<div className={styles.formGroup}>
 							<label htmlFor="email" className={styles.formLabel}>
-								Email Address
+								{loginMode === 'patient' ? 'Patient ID or Email Address' : 'Email Address'}
 							</label>
 							<div className={styles.inputWrapper}>
-								<RiMailLine size={20} className={styles.inputIcon} />
+								{loginMode === 'patient' ? <RiUserHeartLine size={20} className={styles.inputIcon} /> : <RiMailLine size={20} className={styles.inputIcon} />}
 								<input
 									id="email"
 									name="email"
-									type="email"
+									type={loginMode === 'patient' ? 'text' : 'email'}
 									value={userInformation.email}
-									onChange={(e) => setUserInformation({...userInformation, email: e.target.value})}
+									onChange={(e) => setUserInformation({ ...userInformation, email: e.target.value })}
 									className={styles.formInput}
-									placeholder="name@company.com"
+									placeholder={loginMode === 'patient' ? 'Enter your patient ID or email' : 'name@company.com'}
 									required
 									autoComplete="email"
 								/>
@@ -203,7 +228,7 @@ export default function PrimeLabLoginPage() {
 									className={styles.formInput}
 									placeholder="Enter your password"
 									value={userInformation.password}
-									onChange={(e) => setUserInformation({...userInformation, password: e.target.value})}
+									onChange={(e) => setUserInformation({ ...userInformation, password: e.target.value })}
 									required
 									autoComplete="current-password"
 								/>
@@ -223,7 +248,7 @@ export default function PrimeLabLoginPage() {
 							<span>
 								{isSubmitting
 									? (loginStatus === 'success' ? 'Redirecting...' : 'Signing in...')
-									: 'Sign In'}
+									: 'Sign In Using Secure Server'}
 							</span>
 						</button>
 					</form>

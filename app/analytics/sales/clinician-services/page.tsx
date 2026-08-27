@@ -8,20 +8,21 @@ import { RiRefreshLine, RiLoader4Line, RiErrorWarningLine, RiInbox2Line } from "
 import { useApplication } from "../../../../components/Auth/useApplicationContext";
 
 const SHADCN_PRIMARY = "#3B82F6";
-const SHADCN_FOREGROUND = "#0F172A";
-const SHADCN_MUTED_FOREGROUND = "#64748B";
 const SHADCN_BORDER = "#E2E8F0";
 const SHADCN_CARD_BG = "#FFFFFF";
 const SHADCN_MUTED_BG = "#F8FAFC";
 
 interface ServiceDetailEntry {
-     serviceId?: string;
-     serviceName?: string;
-     patientName?: string;
-     serviceDate?: string;
-     amount?: number;
-     status?: string;
-     [key: string]: any;
+     clinicianId: number;
+     status: string;
+     totalServicesRendered: number;
+     gross_revenue: number;
+     cash_collected: number;
+     earned_revenue: number;
+     serviceAddedOn: Date | string;
+     discount: number;
+     total_refunded: number;
+     clinician_name: string;
 }
 
 const getDefaultDateRange = () => {
@@ -73,7 +74,7 @@ export default function ClinicianServiceDetailsPage() {
           setError(null);
 
           try {
-               const url = `financials/billing/summary?key=clinicianServiceDetails&clinicianId=${clinicianId}&startDate=${fetchStartDate}&endDate=${fetchEndDate}&&employeeid=${employeeid}`;
+               const url = `financials/billing/summary?key=clinicianServiceDetails&clinicianId=${clinicianId}&startDate=${fetchStartDate}&endDate=${fetchEndDate}&employeeid=${employeeid}`;
                const response = await customFetch(url);
 
                if (!response || !Array.isArray(response)) {
@@ -81,13 +82,16 @@ export default function ClinicianServiceDetailsPage() {
                }
 
                setData(response.map((item: any) => ({
-                    serviceId: item.serviceId || item.id || item.reference || "",
-                    serviceName: item.serviceName || item.name || item.description || "",
-                    patientName: item.patientName || item.clientName || item.patient || "",
-                    serviceDate: item.serviceDate || item.date || "",
-                    amount: item.amount ? parseFloat(item.amount) : item.total ? parseFloat(item.total) : 0,
-                    status: item.status || item.state || "",
-                    ...item,
+                    clinicianId: Number(item.clinicianId) || 0,
+                    status: item.status || "",
+                    totalServicesRendered: Number(item.totalServicesRendered) || 0,
+                    gross_revenue: parseFloat(item.gross_revenue) || 0,
+                    cash_collected: parseFloat(item.cash_collected) || 0,
+                    earned_revenue: parseFloat(item.earned_revenue) || 0,
+                    discount: parseFloat(item.discount) || 0,
+                    total_refunded: parseFloat(item.total_refunded) || 0,
+                    clinician_name: item.clinician_name || "Unknown",
+                    serviceAddedOn: item.serviceAddedOn ? new Date(item.serviceAddedOn) : new Date(),
                })));
           } catch (err) {
                setData([]);
@@ -95,7 +99,7 @@ export default function ClinicianServiceDetailsPage() {
           } finally {
                setLoading(false);
           }
-     }, [clinicianId]);
+     }, [clinicianId, employeeid]);
 
      useEffect(() => {
           fetchDetails(startDate, endDate);
@@ -145,21 +149,29 @@ export default function ClinicianServiceDetailsPage() {
                     <table className="table table-sm table-hover table-striped small text-start">
                          <thead className="sticky-top bg-body-tertiary">
                               <tr>
-                                   <th>Service</th>
-                                   <th className="text-end">Date</th>
-                                   <th className="text-end">Patient</th>
-                                   <th className="text-end">Amount</th>
-                                   <th className="text-end">Status</th>
+                                   <th>Clinician</th>
+                                   <th className="">Service Added On</th>
+                                   <th className="">Services</th>
+                                   <th className="">Gross Revenue</th>
+                                   <th className="">Cash Collected</th>
+                                   <th className="">Earned Revenue</th>
+                                   <th className="">Discount</th>
+                                   <th className="">Refunded</th>
+                                   <th className="">Status</th>
                               </tr>
                          </thead>
                          <tbody>
                               {data.map((item, index) => (
-                                   <tr key={`${item.serviceId || index}-${index}`}>
-                                        <td>{item.serviceName || item.serviceId || 'N/A'}</td>
-                                        <td className="text-end">{item.serviceDate || 'N/A'}</td>
-                                        <td className="text-end">{item.patientName || 'N/A'}</td>
-                                        <td className="text-end">{currencyFormatter.format(item.amount || 0)}</td>
-                                        <td className="text-end">{item.status || 'N/A'}</td>
+                                   <tr key={`${item.clinicianId}-${index}`}>
+                                        <td>{item.clinician_name}</td>
+                                        <td className="">{item.serviceAddedOn instanceof Date ? item.serviceAddedOn.toLocaleDateString() : item.serviceAddedOn}</td>
+                                        <td className="">{item.totalServicesRendered}</td>
+                                        <td className="">{currencyFormatter.format(item.gross_revenue)}</td>
+                                        <td className="">{currencyFormatter.format(item.cash_collected)}</td>
+                                        <td className="">{currencyFormatter.format(item.earned_revenue)}</td>
+                                        <td className="">{currencyFormatter.format(item.discount)}</td>
+                                        <td className="">{currencyFormatter.format(item.total_refunded)}</td>
+                                        <td className="">{item.status || 'N/A'}</td>
                                    </tr>
                               ))}
                          </tbody>

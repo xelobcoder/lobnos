@@ -139,21 +139,45 @@ export default function CommissionUpdatePage() {
      }, { totalPayable: 0, totalPaid: 0, totalDue: 0 });
 
      const columns = [
-          { accessor: 'service_id', Header: 'Service ID' },
           {
                accessor: 'test_name', Header: 'Test Name', Cell: ({ row }: any) => (
-                    <div>
-                         <div>{row.original.test_name}</div>
-                         <small className="text-muted">{row.original.serviceCategory}</small>
+                    <div className="fw-bold">
+                         <div>{row.original.test_name} ({row.original.service_id})</div>
+                         <small className="text-muted">{row.original.serviceCategory.toString().includes("_") ? row.original.serviceCategory.toString().replace("_", " ") : row.original.serviceCategory.toString()}</small>
                     </div>
                )
           },
           { accessor: 'service_amount', Header: 'Service Amount', Cell: ({ row }: any) => currencyFormatter.format(Number(row.original.service_amount)) },
-          { accessor: 'commission_type', Header: 'Commission Type' },
-          { accessor: 'percentage_rate_applied', Header: 'Percentage Rate', Cell: ({ row }: any) => row.original.percentage_rate_applied ? `${row.original.percentage_rate_applied}%` : 'N/A' },
+          {
+               accessor: 'commission_type', Header: 'Commission Type',
+               Cell: ({ row }: any) => {
+                    const type = row.original.commission_type;
+                    const rate = row.original.percentage_rate_applied;
+                    return type === 'percentage' ? `Percentage (${rate}%)` : 'Fixed Amount';
+               }
+          },
           { accessor: 'fixed_amount_applied', Header: 'Fixed Amount', Cell: ({ row }: any) => row.original.fixed_amount_applied ? currencyFormatter.format(Number(row.original.fixed_amount_applied)) : 'N/A' },
-          { accessor: 'commission_due', Header: 'Commission Due', Cell: ({ row }: any) => currencyFormatter.format(Number(row.original.commission_due)) },
-          { accessor: 'final_commission', Header: 'Final Commission', Cell: ({ row }: any) => currencyFormatter.format(Number(row.original.final_commission)) },
+          {
+               accessor: 'commission_due', Header: 'Commission',
+               Cell: ({ row }: any) => {
+                    const commissionDue = Number(row.original.commission_due);
+                    return (
+                         <div>
+                              <span className="fw-bold">{currencyFormatter.format(commissionDue)}</span>
+                         </div>
+                    )
+               }
+          },
+          {
+               accessor:"final_commission", Header: 'Final Commission', Cell: ({ row }: any) => {
+                    const finalCommission = Number(row.original.final_commission);
+                    return (
+                         <div>
+                              <span className="fw-bold">{currencyFormatter.format(finalCommission)}</span>
+                         </div>
+                    )
+               }
+          },
           { accessor: 'status', Header: 'Status' },
           { accessor: 'recipient_type', Header: 'Recipient Type' },
           { accessor: 'recipient_name', Header: 'Recipient Name', Cell: ({ row }: any) => row.original.recipient_name || 'N/A' },
@@ -173,25 +197,28 @@ export default function CommissionUpdatePage() {
 
      return (
           <div>
-               <h1 className="fs-5 fw-bold mb-3 d-flex align-items-center">
-                    <RiEditLine className="me-2" />
+               <h1 className="fs-5 fw-bold mb-3 bg-white p-2 d-flex align-items-center">
                     Commission Update
                </h1>
 
-               <div className="border rounded p-3 mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-                    <div>
-                         <span className="text-muted small fw-semibold text-uppercase" style={{ letterSpacing: '0.05em' }}>Total Commission Due</span>
-                         <div className="fs-3 fw-bold text-primary">{currencyFormatter.format(summary.totalDue)}</div>
+               <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <div className="border rounded p-3 mb-4 d-flex flex-column col-4  bg-white">
+                         <div>
+                              <span className="text-muted small fw-semibold text-uppercase" style={{ letterSpacing: '0.05em' }}>Total Commission Due</span>
+                              <div className="fs-3 fw-bold text-primary">{currencyFormatter.format(summary.totalDue)}</div>
+                         </div>
+
                     </div>
-                    <div className="d-flex gap-2 align-items-end flex-wrap">
+                    <div className="d-flex col-6">
                          <DateFilterReusable
                               value={dateFilter}
                               onChange={setDateFilter}
+                              className="me-2"
                               onDateRangeChange={handleDateRangeChange}
                               label="Filter by"
                          />
                          <Button variant="outline-primary" size="sm" onClick={applyFilter} disabled={filtering}>
-                              {filtering ? 'Filtering...' : 'Filter'}
+                              {filtering ? 'Filtering...' : 'Filter Records'}
                          </Button>
                     </div>
                </div>

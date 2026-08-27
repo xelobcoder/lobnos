@@ -3,7 +3,7 @@
   display: flex;
   min-height: 100vh;
   width: 100%;
-  font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+  font-family: Candara, 'Segoe UI', sans-serif;
   background-color: #fff;
 }
 
@@ -84,6 +84,7 @@
     opacity: 0;
     transform: translateX(-30px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -99,13 +100,13 @@
   justify-content: center;
   padding: 2rem;
   background-color: #ffffff;
-  max-width: 580px;
+  max-width: 540px;
   position: relative;
 }
 
 .formContainer {
   width: 100%;
-  max-width: 440px;
+  max-width: 400px;
   animation: fadeInRight 0.8s ease-out;
 }
 
@@ -114,6 +115,7 @@
     opacity: 0;
     transform: translateX(30px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -121,13 +123,13 @@
 }
 
 .loginHeader {
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
   text-align: left;
 }
 
 .logoIcon {
   color: #fff;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
 .welcomeTitle {
@@ -143,10 +145,45 @@
   color: #6b7280;
 }
 
+.loginModeSelector {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.loginModeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.25rem 0.75rem;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: #6b7280;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.loginModeButton:hover {
+  color: #1b5e20;
+}
+
+.activeLoginMode {
+  color: #1b5e20;
+  border-bottom-color: #2e7d32;
+}
+
 .loginForm {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
 .formGroup {
@@ -170,7 +207,7 @@
 
 .inputIcon {
   position: absolute;
-  left: 1rem;
+  left: 0.85rem;
   color: #9ca3af;
   pointer-events: none;
   transition: color 0.2s ease;
@@ -178,10 +215,11 @@
 
 .formInput {
   width: 100%;
-  padding: 0.875rem 1rem 0.875rem 3rem;
+  min-height: 2.75rem;
+  padding: 0.65rem 0.85rem 0.65rem 2.75rem;
   border: 1.5px solid #e5e7eb;
   border-radius: 0.5rem;
-  font-size: 1rem;
+  font-size: 0.95rem;
   color: #1f2937;
   transition: all 0.2s ease;
   background-color: #f9fafb;
@@ -194,7 +232,7 @@
   box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.08);
 }
 
-.formInput:focus ~ .inputIcon,
+.formInput:focus~.inputIcon,
 .inputWrapper:focus-within .inputIcon {
   color: #2e7d32;
 }
@@ -238,9 +276,10 @@
 }
 
 .signInButton {
-  margin-top: 1rem;
+  margin-top: 0.5rem;
   width: 100%;
-  padding: 0.875rem 1rem;
+  min-height: 2.75rem;
+  padding: 0.65rem 1rem;
   background: #2e7d32;
   color: white;
   border: none;
@@ -293,7 +332,7 @@
     background: white;
     padding: 2.5rem;
     border-radius: 1rem;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
   }
 }
 
@@ -322,5 +361,11 @@
 
   .welcomeTitle {
     font-size: 1.5rem;
+  }
+
+  .loginModeButton {
+    flex-direction: column;
+    gap: 0.15rem;
+    font-size: 0.68rem;
   }
 }
