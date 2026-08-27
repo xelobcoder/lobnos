@@ -1,8 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { PrepareResultEntryHeader } from '../../Auth/customFetch';
 
-function handlePrintMultipleResults(row) {
-     const { testid, name, patientid, ascensionid, billingid } = row.original
+function isPaidResult(item) {
+     const paymentStatus = item?.paymentstatus ?? item?.clientstatus;
+     return String(paymentStatus || '').trim().toLowerCase() === 'paid';
+}
+
+function canPrintResult(item, allowPrintingUnpaid) {
+     const printableItems = Array.isArray(item?.tests) ? item.tests : [item];
+     if (allowPrintingUnpaid === 1 || printableItems.some(isPaidResult)) return true;
+     alert("Printing of results is not allowed for unpaid tests.");
+     return false;
+}
+
+function handlePrintMultipleResults(row, allowPrintingUnpaid) {
+     const item = Array.isArray(row.original?.tests)
+          ? row.original.tests.find((test) => isPaidResult(test)) || row.original.tests[0]
+          : row.original;
+     if (!canPrintResult(row.original, allowPrintingUnpaid)) return;
+     const { testid, name, patientid, ascensionid, billingid } = item
 
      const csvid = `${generateRandomTextAndNumbers(70)}${billingid}`
      const ptid = `${generateRandomTextAndNumbers(50)}${patientid}`
@@ -200,6 +216,10 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
      const [showBulkDeliveryModal, setShowBulkDeliveryModal] = useState(false);
 
      const viewResultHandler = (item, multiple = false) => {
+          if (!canPrintResult(item, allowPrintingUnpaid)) return;
+          if (Array.isArray(item?.tests)) {
+               item = item.tests.find((test) => isPaidResult(test)) || item.tests[0];
+          }
           const { testid, name, patientid, ascensionid, billingid } = item;
           const csvid = `${generateRandomTextAndNumbers(70)}${billingid}`;
           const ptid = `${generateRandomTextAndNumbers(50)}${patientid}`;
@@ -221,10 +241,7 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
 
 
      const handleBrowserView = (data) => {
-          if (allowPrintingUnpaid !== 1 && data.paymentstatus !== "paid") {
-               alert("Printing of results is not allowed for unpaid tests.")
-               return
-          }
+          if (!canPrintResult(data, allowPrintingUnpaid)) return;
 
           const { testid, name, patientid, ascensionid, billingid } = data
 
@@ -357,7 +374,7 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
                                                   {downloadSvg}  Print Result
                                              </Dropdown.Item>
                                              <Dropdown.Item
-                                                  className='pls-label d-flex align-items-center gap-2' onClick={() => handlePrintMultipleResults(row)}>
+                                                  className='pls-label d-flex align-items-center gap-2' onClick={() => handlePrintMultipleResults(row, allowPrintingUnpaid)}>
                                                   {downloadSvg}  Print Multiple Results
                                              </Dropdown.Item>
                                         </>
@@ -371,7 +388,7 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
                                              {downloadSvg}  Print Result
                                         </Dropdown.Item>
                                         <Dropdown.Item
-                                             className='pls-label d-flex align-items-center gap-2' onClick={() => handlePrintMultipleResults(row)}>
+                                             className='pls-label d-flex align-items-center gap-2' onClick={() => handlePrintMultipleResults(row, allowPrintingUnpaid)}>
                                              {downloadSvg}  Print Multiple Results
                                         </Dropdown.Item>
                                         <Dropdown.Item className='pls-label d-flex align-items-center gap-2' onClick={() => {
@@ -565,7 +582,7 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
                               className="btn btn-sm btn-primary"
                               onClick={() => {
                                    if (row.original.tests && row.original.tests.length > 0) {
-                                        handlePrintMultipleResults({ original: row.original.tests[0] });
+                                        handlePrintMultipleResults({ original: row.original.tests[0] }, allowPrintingUnpaid);
                                    }
                               }}
                          >
