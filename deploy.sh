@@ -6,7 +6,7 @@ echo "======================================"
 echo "PrimeLabSys deployment started"
 echo "======================================"
 
-echo
+echoecho
 echo "Fetching the latest changes..."
 git fetch origin
 
@@ -54,11 +54,11 @@ fi
 
 echo
 echo "Installing dependencies..."
-npm install
+pnpm install
 
 echo
 echo "Building the application..."
-npm run build
+pnpm run build
 
 echo
 echo "Restarting PM2..."
