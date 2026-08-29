@@ -7,20 +7,6 @@ import moment from 'moment';
 import { RiEyeLine, RiCheckboxCircleLine } from '@remixicon/react';
 import { customFetch } from '../../Auth/customFetch';
 
-
-function parseTatToMinutes(tat) {
-	if (typeof tat !== 'string') return null;
-	if (!tat || tat === 'N/A') return null;
-	let min = 0;
-	const dayMatch = tat.match(/(\d+)\s*days?/);
-	const hrMatch = tat.match(/(\d+)\s*hr/);
-	const minMatch = tat.match(/(-?\d+)\s*min/);
-	if (dayMatch) min += parseInt(dayMatch[1], 10) * 24 * 60;
-	if (hrMatch) min += parseInt(hrMatch[1], 10) * 60;
-	if (minMatch) min += parseInt(minMatch[1], 10);
-	return min;
-}
-
 export default function TurnAroundDataTable({ data: initialData }) {
 	const [showModal, setShowModal] = useState(false);
 	const [selectedRow, setSelectedRow] = useState(null);
@@ -42,7 +28,7 @@ export default function TurnAroundDataTable({ data: initialData }) {
 	const fetchSortedData = async (sortOrder) => {
 		setLoading(true);
 		try {
-			const response = await customFetch(`testascension/tat-data?page=1&&count=10&&sorting=${sortOrder}`);
+			const response = await customFetch(`testascension/tat-data?page=1&count=10&sortby=${sortOrder}`);
 			if (response?.data && Array.isArray(response?.data)) {
 				setData(response.data);
 			}
@@ -62,7 +48,7 @@ export default function TurnAroundDataTable({ data: initialData }) {
 		e.preventDefault();
 		setLoading(true);
 		try {
-			const response = await customFetch(`testascension/tat-data?page=1&&count=10&&sorting=${sorting}&&ascensionId=${ascensionIdFilter}`);
+			const response = await customFetch(`testascension/tat-data?page=1&count=10&sortby=${sorting}&ascensionId=${ascensionIdFilter}`);
 			if (response?.data && Array.isArray(response?.data)) {
 				setData(response.data);
 			}
@@ -78,19 +64,21 @@ export default function TurnAroundDataTable({ data: initialData }) {
 	}, [sorting]);
 
 	const columns = [
-		{ Header: "Client Info", accessor: "patientName", width: 150,Cell: ({ value, row }) => (
-			<div>
-				<div><strong>{value}</strong></div>
-				<div className="text-muted">AscensionId: {row.original.ascensionId}</div>
-			</div>
-		)},
+		{
+			Header: "Client Info", accessor: "patientName", width: 150, Cell: ({ value, row }) => (
+				<div className="fw-bold">
+					<div><strong>{value}</strong></div>
+					<div className="text-muted">AscensionId: {row.original.ascensionId}</div>
+				</div>
+			)
+		},
 		{
 			Header: "Billed On/test", accessor: "billedon", width: 100, Cell: ({ value, row }) => {
 				return (
 					<div>
-						{value ? moment(value).format("MMM DD, YYYY HH:mm") : "N/A"}
-						<br />
 						<div className='fw-bold'>{row.original.test}</div>
+						{/* <br/> */}
+						({value ? moment(value).format("MMM DD, YYYY HH:mm") : "N/A"})
 					</div>
 				)
 			}
@@ -258,7 +246,7 @@ export default function TurnAroundDataTable({ data: initialData }) {
 			</form>
 			<PrimeTable
 				column={columns}
-				urlparams={{sortby: sorting}}
+				urlparams={{ sortby: sorting }}
 				data={data}
 				serverSideFiltering={true}
 				handleSeverSideProcessing={handleServerTurnAroundTime}

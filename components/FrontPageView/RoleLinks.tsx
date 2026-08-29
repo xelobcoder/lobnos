@@ -199,7 +199,7 @@ export const LaboratoryScientistRoleLinks = [
           description: 'Sample collection management'
      },
      {
-          href: 'operations/laboratory/main/dailyRequest',
+          href: '/operations/laboratory/main/dailyRequest',
           icon: <RiTestTubeLine size={24} />,
           text: "Process and manage laboratory tests and results",
           label: 'Laboratory',

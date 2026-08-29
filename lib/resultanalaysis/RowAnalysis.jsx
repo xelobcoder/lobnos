@@ -15,10 +15,11 @@ const ChangeIcon = (data) => {
     return null;
 };
 
-export default function ResultAnalysisRow({ item, months, index }) {
+export default function ResultAnalysisRow({ item, months, index, year }) {
+    const currentSelectedYear = year || new Date().getFullYear();
     const [showModal, setShowModal] = useState(false);
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
-    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+    const [selectedYear, setSelectedYear] = useState(currentSelectedYear);
     const router = useRouter();
 
     const monthOptions = [
@@ -54,7 +55,7 @@ export default function ResultAnalysisRow({ item, months, index }) {
                 return (
                     <td key={month} className="text-center p-2">
                         <Link
-                            href={`/analytics/resultanalysis/monthcasecount?testid=${item.testid}&&show=allcaseCount&&month=${monthIndex + 1}&&duration=month&&expandTarget=${item.testid}`}
+                            href={`/analytics/resultanalysis/monthcasecount?testid=${item.testid}&&show=allcaseCount&&month=${monthIndex + 1}&&duration=month&&expandTarget=${item.testid}&year=${currentSelectedYear}`}
                             className="text-decoration-none"
                         >
                             <div
@@ -113,6 +114,13 @@ export default function ResultAnalysisRow({ item, months, index }) {
                         title="Yearly Cases Count"
                     >
                         Y
+                    </button>
+                    <button
+                        className="btn btn-outline-info"
+                        onClick={(ev) => { router.push(`/analytics/resultanalysis/fieldvalues/selector?testid=${item.testid}&&testname=${encodeURIComponent(item.testname)}`) }}
+                        title="Field Value Analytics"
+                    >
+                        F
                     </button>
                 </div>
 

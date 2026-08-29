@@ -114,6 +114,36 @@ export async function customFetch(endpoint, isLogin = false) {
 	}
 }
 
+export async function customFetchMutation(endpoint, method, body) {
+	const url = new URL(
+		`/api/v1/${endpoint}`,
+		process.env.NODE_ENV == "production"
+			? process.env.PRODUCTION_BASEURL
+			: process.env.DEVELOPMENT_BASEURL,
+	);
+	url.searchParams.append("tenantId", process.env.TENANTID);
+	const context = await getRequestContext();
+	if (!context?.PLS_PRIME_TENANT_SESSION || !context?.PLS_SESSION) {
+		return { error: "Session not found" };
+	}
+
+	const response = await fetch(url.toString(), {
+		method,
+		headers: {
+			Authorization: `Bearer ${context.PLS_SESSION}`,
+			"Content-Type": "application/json",
+			"pls-prime-tenant-session": context.PLS_PRIME_TENANT_SESSION,
+			"pls-session": context.PLS_SESSION,
+			loginsessionId: context.loginsessionId || "",
+		},
+		cache: "no-cache",
+		credentials: "include",
+		body: body ? JSON.stringify(body) : undefined,
+	});
+
+	return response.json();
+}
+
 export async function handleLogout(setIsLoggingOut) {
 	try {
 		const response = await fetch("/api/auth/logout", {

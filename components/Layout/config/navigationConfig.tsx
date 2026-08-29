@@ -18,7 +18,8 @@ import {
     RiShoppingCart2Line,
     RiSettings3Line,
     RiWalletLine,
-    RiBoxingLine
+    RiBoxingLine,
+    RiLineChartLine
 } from '@remixicon/react';
 
 export interface NavigationItem {
@@ -172,6 +173,27 @@ export const navigationConfig: NavigationCategory[] = [
                 title:"New Expense",
                 icon:<RiMoneyDollarBoxLine size={20} />,
                 link:"/expense/newExpense"
+            }
+        ]
+    },
+    {
+        category: "Analytics",
+        items: [
+            {
+                title: "Result Analysis",
+                icon: <RiLineChartLine size={20} />,
+                children: [
+                    {
+                        title: "All Tests",
+                        icon: <RiTestTubeLine size={18} />,
+                        link: "/analytics/resultanalysis/alltest"
+                    },
+                    {
+                        title: "Test Value Distribution",
+                        icon: <RiBarChartBoxLine size={18} />,
+                        link: "/analytics/resultanalysis/fieldvalues/selector"
+                    }
+                ]
             }
         ]
     },

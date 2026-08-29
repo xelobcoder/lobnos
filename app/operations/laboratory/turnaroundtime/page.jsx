@@ -6,7 +6,7 @@ export default async function TurnAroundTime() {
     let data = [];
 
     try {
-        const response = await customFetch(`testascension/tat-data?page=1&&count=10&&sorting=ASC`);
+        const response = await customFetch(`testascension/tat-data?page=1&count=10&sortby=ASC`);
         if (response?.data && Array.isArray(response?.data)) {
             data = response.data;
         }
@@ -18,5 +18,5 @@ export default async function TurnAroundTime() {
         );
     }
 
-   return <TurnAroundDataTable data={data}/> 
+    return <TurnAroundDataTable data={data} />
 }

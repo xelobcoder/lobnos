@@ -27,16 +27,20 @@ type ResultItem = {
 export default function ResultAnalysisAllTestView() {
 	const { user } = useApplication();
 	const employeeid = user?.employeeid;
+	const currentYear = new Date().getFullYear();
+	const [selectedYear, setSelectedYear] = useState<number>(currentYear);
 	const [resultData, setResultData] = useState<ResultItem[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
+
+	const yearOptions = Array.from({ length: 8 }, (_, i) => currentYear - i);
 
 	useEffect(() => {
 		const fetchData = async () => {
 			setLoading(true);
 			setError(null);
 			try {
-				const response = await customFetch(`result/analysis/test/alltest/yearlycount?employeeid=${employeeid}`);
+				const response = await customFetch(`result/analysis/test/alltest/yearlycount?employeeid=${employeeid}&year=${selectedYear}`);
 				setResultData(Array.isArray(response) && response.length > 0 ? response : []);
 			} catch (err) {
 				setError('Failed to fetch result analysis data.');
@@ -45,7 +49,7 @@ export default function ResultAnalysisAllTestView() {
 			}
 		};
 		if (employeeid) fetchData();
-	}, [employeeid]);
+	}, [employeeid, selectedYear]);
 
 	const months: string[] = [
 		"January", "February", "March", "April", "May",
@@ -56,12 +60,26 @@ export default function ResultAnalysisAllTestView() {
 	return (
 		<div className="container-fluid px-4 py-3">
 			<div className="card" style={{ borderRadius: '0.75rem', borderColor: COLOR_BORDER }}>
-				<div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
+				<div className="card-header py-3 px-4 d-flex align-items-center justify-content-between flex-wrap gap-2" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
 					<h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
 						<RiFlaskLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" />
 						Yearly Test Result Analysis
-						<RiCalendar2Line size={26} className="ms-2 flex-shrink-0" style={{ color: COLOR_TEXT_MUTED }} />
+						<RiCalendar2Line size={22} className="ms-2 flex-shrink-0" style={{ color: COLOR_TEXT_MUTED }} />
 					</h2>
+					<div className="d-flex align-items-center gap-2">
+						<label htmlFor="year-select" className="small fw-medium text-body-secondary mb-0">Year:</label>
+						<select
+							id="year-select"
+							className="form-select form-select-sm"
+							style={{ width: '120px', borderColor: COLOR_BORDER, fontWeight: 500 }}
+							value={selectedYear}
+							onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+						>
+							{yearOptions.map((y) => (
+								<option key={y} value={y}>{y}</option>
+							))}
+						</select>
+					</div>
 				</div>
 				<div className="card-body p-3 p-md-4">
 					{loading ? (
@@ -107,7 +125,7 @@ export default function ResultAnalysisAllTestView() {
 								</thead>
 								<tbody>
 									{resultData.map((item, index) => (
-										<ResultAnalysisRow key={index} index={index} months={months} item={item} />
+										<ResultAnalysisRow key={index} index={index} months={months} item={item} year={selectedYear} />
 									))}
 								</tbody>
 							</table>

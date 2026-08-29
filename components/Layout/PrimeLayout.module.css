@@ -310,6 +310,81 @@
     flex-shrink: 0;
 }
 
+.notificationControl {
+    position: relative;
+}
+
+.notificationBadge {
+    position: absolute;
+    top: -5px;
+    right: -6px;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    border-radius: 9px;
+    background: #c92a2a;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 17px;
+}
+
+.notificationPanel {
+    position: absolute;
+    top: calc(100% + 9px);
+    right: 0;
+    width: min(380px, calc(100vw - 24px));
+    max-height: min(520px, calc(100vh - 78px));
+    overflow: hidden;
+    background: var(--theme-card-bg);
+    border: 1px solid var(--theme-header-border);
+    border-radius: 6px;
+    box-shadow: 0 16px 32px rgba(15, 23, 42, 0.2);
+    color: var(--text-primary);
+    z-index: 130;
+}
+
+.notificationPanelHeader {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.85rem;
+}
+
+.notificationPanelHeader span {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+}
+
+.notificationList {
+    max-height: 460px;
+    overflow-y: auto;
+}
+
+.notificationItem {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 8px minmax(0, 1fr);
+    gap: 9px;
+    padding: 11px 14px;
+    border: 0;
+    border-bottom: 1px solid var(--border-color);
+    background: transparent;
+    color: inherit;
+    text-align: left;
+}
+
+.notificationItem:hover { background: color-mix(in srgb, var(--theme-accent) 7%, transparent); }
+.notificationUnread { background: color-mix(in srgb, var(--theme-accent) 10%, transparent); }
+.notificationItem strong, .notificationItem small { display: block; }
+.notificationItem strong { font-size: 0.82rem; }
+.notificationItem small { margin-top: 3px; color: var(--text-secondary); font-size: 0.75rem; line-height: 1.35; }
+.notificationPriority { width: 7px; height: 7px; margin-top: 5px; border-radius: 50%; background: var(--theme-accent); }
+.notificationPriority_warning { background: #d97706; }
+.notificationPriority_critical { background: #c92a2a; }
+.notificationEmpty { padding: 18px 14px; color: var(--text-secondary); font-size: 0.82rem; }
+
 .headerIconLogout,
 .headerIconLogout:hover {
     color: #dc2626 !important;

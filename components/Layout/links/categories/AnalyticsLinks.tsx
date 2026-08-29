@@ -219,7 +219,8 @@ export const AnalyticsLinks: Link[] = [
         link: "/analytics/resultanalysis/alltest",
         icon: <RiTestTubeLine />,
         children: [
-            { title: 'All Test', link: '/analytics/resultanalysis/alltest', icon: <RiTestTubeLine /> }
+            { title: 'All Tests', link: '/analytics/resultanalysis/alltest', icon: <RiTestTubeLine /> },
+            { title: 'Test Value Distribution', link: '/analytics/resultanalysis/fieldvalues/selector', icon: <RiBarChartBoxLine /> }
         ]
     },
     {

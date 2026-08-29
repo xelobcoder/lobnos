@@ -15,6 +15,7 @@ import {
     RiShieldCheckLine,
     RiErrorWarningLine,
     RiTimeLine,
+    RiNotification3Line,
 } from '@remixicon/react';
 import { useApplicationSettings } from "../Auth/useApplicationContext";
 import { Link as LinkType } from "./links/types";
@@ -23,6 +24,7 @@ import { FontSelector } from "./FontSelector";
 import { getFontPreference, applyFontToDocument } from "../../lib/themes";
 import { useTheme } from "../ThemeProvider";
 import { useRouter, useSearchParams } from 'next/navigation';
+import { customFetch, customFetchMutation } from '../Auth/customFetch';
 
 
 interface PrimeLayoutProps {
@@ -49,7 +51,11 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
     const [isFontSelectorOpen, setIsFontSelectorOpen] = useState<boolean>(false);
     const [isAppsOpen, setIsAppsOpen] = useState<boolean>(false);
+    const [isNotificationsOpen, setIsNotificationsOpen] = useState<boolean>(false);
+    const [notifications, setNotifications] = useState<any[]>([]);
+    const [unreadCount, setUnreadCount] = useState<number>(0);
     const roleLinks = roleViews[user.role] || [];
+    const canViewNotifications = ['admin', 'manager', 'super-admin', 'super admin'].includes(String(user?.role || '').toLowerCase().trim());
     const employeeid = user?.employeeid || 0;
     const [currentPath, setCurrentPath] = useState<string>("");
     const isOpenSideBarShow = useSearchParams().get("isOpenSideBarShow") !== "false";
@@ -82,6 +88,37 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
             document.body.style.overflow = prev;
         };
     }, [isAppsOpen]);
+
+    useEffect(() => {
+        if (!canViewNotifications) return;
+        let active = true;
+        const loadNotifications = async () => {
+            try {
+                const [inboxResponse, countResponse] = await Promise.all([
+                    customFetch('notifications/inbox?limit=10'),
+                    customFetch('notifications/inbox/unread-count'),
+                ]);
+                if (!active) return;
+                if (Array.isArray(inboxResponse?.result)) setNotifications(inboxResponse.result);
+                if (typeof countResponse?.count === 'number') setUnreadCount(countResponse.count);
+            } catch {
+                // The operational feed must not interrupt the primary workspace.
+            }
+        };
+        loadNotifications();
+        const intervalId = window.setInterval(loadNotifications, 60_000);
+        return () => {
+            active = false;
+            window.clearInterval(intervalId);
+        };
+    }, [canViewNotifications]);
+
+    const markNotificationRead = async (notificationId: number) => {
+        const response = await customFetchMutation(`notifications/inbox/${notificationId}/read`, 'PATCH');
+        if (response?.status !== 'success') return;
+        setNotifications((current) => current.map((notification) => notification.id === notificationId ? { ...notification, readAt: new Date().toISOString() } : notification));
+        setUnreadCount((current) => Math.max(0, current - 1));
+    };
 
     const handleNavigation = (path: string) => {
         if (window.location.pathname !== path) {
@@ -264,6 +301,45 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                             >
                                 {theme === 'light' ? <RiMoonLine size={17} /> : <RiSunLine size={17} />}
                             </button>
+                            {canViewNotifications && <div className={styles.notificationControl}>
+                                <button
+                                    type="button"
+                                    className={styles.headerIconBtn}
+                                    onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                                    title="Notifications"
+                                    aria-label="Open notifications"
+                                    aria-expanded={isNotificationsOpen}
+                                >
+                                    <RiNotification3Line size={17} />
+                                    {unreadCount > 0 && <span className={styles.notificationBadge}>{unreadCount > 99 ? '99+' : unreadCount}</span>}
+                                </button>
+                                {isNotificationsOpen && (
+                                    <div className={styles.notificationPanel} role="dialog" aria-label="Notifications">
+                                        <div className={styles.notificationPanelHeader}>
+                                            <strong>Notifications</strong>
+                                            <span>{unreadCount} unread</span>
+                                        </div>
+                                        <div className={styles.notificationList}>
+                                            {notifications.length === 0 ? (
+                                                <div className={styles.notificationEmpty}>No notifications yet.</div>
+                                            ) : notifications.map((notification) => (
+                                                <button
+                                                    type="button"
+                                                    key={notification.id}
+                                                    className={`${styles.notificationItem} ${!notification.readAt ? styles.notificationUnread : ''}`}
+                                                    onClick={() => markNotificationRead(notification.id)}
+                                                >
+                                                    <span className={`${styles.notificationPriority} ${styles[`notificationPriority_${notification.priority}`] || ''}`} />
+                                                    <span>
+                                                        <strong>{notification.title}</strong>
+                                                        <small>{notification.message}</small>
+                                                    </span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>}
                             <span className={styles.headerIconDivider} aria-hidden="true" />
                             <a
                                 href="/authentication/logout"
