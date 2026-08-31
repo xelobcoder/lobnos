@@ -15,7 +15,7 @@ import {
 } from '@remixicon/react';
 
 
-export default function UserList({ users, handleDelete, activateUser, updateRefresh, filters ,setCurrentUsers}) {
+export default function UserList({ users, handleDelete, activateUser, updateRefresh, filters, setCurrentUsers }) {
 	const navigateTo = useRouter();
 
 	const columns = [
@@ -49,6 +49,13 @@ export default function UserList({ users, handleDelete, activateUser, updateRefr
 						)}
 					</div>
 				);
+			}
+		},
+		{
+			Header: "Login Username",
+			accessor: "loginUsername",
+			Cell: function ({ row, value }) {
+				return <span className="fw-semibold">{value || row.original.login_username || 'Not generated'}</span>;
 			}
 		},
 		{ Header: "Email", accessor: "email" },

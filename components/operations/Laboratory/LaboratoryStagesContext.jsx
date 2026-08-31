@@ -42,6 +42,7 @@ export function LaboratoryStagesProvider({ children }) {
               page: 1,
               count: 10,
               isUltrasound: false,
+              clinicianId: null,
               category: category || 'grouped',
               branchid: branchid,
               ascensionid: ascensionid || '',
@@ -63,6 +64,7 @@ export function LaboratoryStagesProvider({ children }) {
               const billingid = userprovidedCategory?.billingid || queryParams.billingid;
               const patientname = userprovidedCategory?.patientname || queryParams.patientname;
               const testid = userprovidedCategory?.testid || queryParams.testid;
+              const clinicianId = userprovidedCategory?.clinicianId || queryParams.clinicianId || null;
               
               const  newQueryParams =  {...queryParams};
 
@@ -71,9 +73,9 @@ export function LaboratoryStagesProvider({ children }) {
                      newQueryParams['_dateEnd']= '';
                      newQueryParams['_dateFrom']= '';
               }
-           
+
               await getAscensionData(ascension_stage, setCollection, newQueryParams, setLoading, employeeid, branchid, category, {
-                     ascensionid, patientid, billingid, patientname,testid
+                     ascensionid, patientid, billingid, patientname,testid,clinicianId
               });
        }
 

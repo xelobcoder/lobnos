@@ -40,6 +40,9 @@ export async function middleware(request: NextRequest) {
         }
 
         if (isValid && isLoginPage && payload) {
+            const role = payload.user?.role?.toLowerCase?.() || '';
+            if (role === 'clinician') return NextResponse.redirect(new URL('/doctor', request.url));
+            if (role === 'patient') return NextResponse.redirect(new URL('/patientportal', request.url));
             return NextResponse.redirect(new URL('/', request.url));
         }
 
@@ -47,10 +50,25 @@ export async function middleware(request: NextRequest) {
             const { user, email, settings } = payload as UserPayload;
             const role = user.role || "";
             const currentPath = request.nextUrl.pathname;
+
+            if (role === "clinician") {
+                if (!currentPath.startsWith('/doctor')) {
+                    return NextResponse.redirect(new URL('/doctor', request.url));
+                }
+                return NextResponse.next();
+            }
+
+            if (role === "patient") {
+                if (!currentPath.startsWith('/patientportal')) {
+                    return NextResponse.redirect(new URL('/patientportal', request.url));
+                }
+                return NextResponse.next();
+            }
+
             // Check CRM access first
             if (currentPath.startsWith("/crm")) {
                 if (!["admin", "manager", "customer service representative", 'scientist', 'sonographer'].includes(role.toString().toLowerCase().trim())) {
-                         if (role == "storekeeper") {
+                    if (role == "storekeeper") {
                         return NextResponse.redirect(new URL('/inventory', request.url));
                     } else {
                         return NextResponse.next();
@@ -72,14 +90,14 @@ export async function middleware(request: NextRequest) {
             if (role === "scientist") {
                 if (!currentPath.startsWith('/operations/laboratory') && !currentPath.startsWith('/operations/phelobotomy') &&
                     !currentPath.startsWith('/phelobotomy') && !currentPath.startsWith('/operations/phlebotomy')
-                     && (currentPath.startsWith('/billing') && settings?.allowScientistToRegisterClient == 0) && !currentPath.startsWith('/phlebotomy')) {
+                    && (currentPath.startsWith('/billing') && settings?.allowScientistToRegisterClient == 0) && !currentPath.startsWith('/phlebotomy')) {
                     return NextResponse.redirect(new URL('/unauthorized', request.url));
                 }
                 return NextResponse.next();
             }
 
             // Handle storekeeper access
-            if (!["admin", "manager","accountant"].includes(role.toString().toLowerCase().trim())) {
+            if (!["admin", "manager", "accountant"].includes(role.toString().toLowerCase().trim())) {
 
                 const restrictedPaths = [
                     '/settings',
@@ -107,7 +125,7 @@ export async function middleware(request: NextRequest) {
             }
 
             // Only admin, manager, and storekeeper can access inventory
-            if (currentPath.startsWith('/inventory') && !["manager", "admin", "storekeeper",'accountant'].includes(role)) {
+            if (currentPath.startsWith('/inventory') && !["manager", "admin", "storekeeper", 'accountant'].includes(role)) {
                 return NextResponse.redirect(new URL('/unauthorized', request.url));
             }
 
@@ -117,7 +135,7 @@ export async function middleware(request: NextRequest) {
             }
 
             // Redirect /billing/expenses to /billing/expenses/expenselist for admin
-            if (['admin', 'manager','accountant'].includes(role.toString().toLowerCase().trim()) &&
+            if (['admin', 'manager', 'accountant'].includes(role.toString().toLowerCase().trim()) &&
                 currentPath === '/billing/expenses'
             ) { return NextResponse.redirect(new URL('/billing/expenses/expenselist', request.url)); }
 
@@ -141,6 +159,8 @@ export const config = {
         '/analytics/:path*',
         '/settings/:path*',
         '/operations/:path*',
+        '/doctor/:path*',
+        '/patientportal/:path*',
         '/phelobotomy/:path*',
         '/phlebotomy/:path*',
         '/crm/:path*',

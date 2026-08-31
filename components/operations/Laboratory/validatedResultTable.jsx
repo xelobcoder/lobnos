@@ -346,71 +346,79 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
           {
                Header: 'Action',
                accessor: '',
-               Cell: ({ row }) => (
-                    <Dropdown align="end">
+               Cell: ({ row }) => {
+                    return <Dropdown align="end">
                          <Dropdown.Toggle variant='link' size="sm" className="p-0 text-decoration-none border-0 shadow-none">
                               <RiMoreLine fontSize="small" />
                          </Dropdown.Toggle>
                          <Dropdown.Menu className="validated-action-menu py-1" style={{ display: 'block', minWidth: '15rem' }}>
-                              <Dropdown.Item
-                                   className='pls-label d-flex align-items-center gap-2'
-                                   onClick={() => {
-                                        const normalizedItem = {
-                                             ...row.original,
-                                             ascension_id: row.original.ascension_id ?? row.original.ascensionid,
-                                        };
-                                        setSelectedDeliveryItem(normalizedItem);
-                                        setShowDeliveryModal(true);
-                                   }}
-                              >
-                                   <RiTruckLine size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-                                   {row.original?.delivered_mode ? 'Update Result Delivery' : 'Record Result Delivery'}
-                              </Dropdown.Item>
-                              {
-                                   allowCrmToPrintResult && role == "customer service representative" ? (
-                                        <>
-                                             <Dropdown.Item
-                                                  className='pls-label d-flex align-items-center gap-2' onClick={() => handleBrowserView(row.original)}>
-                                                  {downloadSvg}  Print Result
-                                             </Dropdown.Item>
-                                             <Dropdown.Item
-                                                  className='pls-label d-flex align-items-center gap-2' onClick={() => handlePrintMultipleResults(row, allowPrintingUnpaid)}>
-                                                  {downloadSvg}  Print Multiple Results
-                                             </Dropdown.Item>
-                                        </>
-                                   ) : null
-                              }
-
-                              {mode !== 'crm' ? (
+                              {role === "clinician" ? (
+                                   <Dropdown.Item
+                                        className='pls-label d-flex align-items-center gap-2' onClick={() => handlePrintMultipleResults(row, allowPrintingUnpaid)}>
+                                        {downloadSvg}  Print Multiple Results
+                                   </Dropdown.Item>
+                              ) : (
                                    <>
                                         <Dropdown.Item
-                                             className='pls-label d-flex align-items-center gap-2' onClick={() => handleBrowserView(row.original)}>
-                                             {downloadSvg}  Print Result
+                                             className='pls-label d-flex align-items-center gap-2'
+                                             onClick={() => {
+                                                  const normalizedItem = {
+                                                       ...row.original,
+                                                       ascension_id: row.original.ascension_id ?? row.original.ascensionid,
+                                                  };
+                                                  setSelectedDeliveryItem(normalizedItem);
+                                                  setShowDeliveryModal(true);
+                                             }}
+                                        >
+                                             <RiTruckLine size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+                                             {row.original?.delivered_mode ? 'Update Result Delivery' : 'Record Result Delivery'}
                                         </Dropdown.Item>
-                                        <Dropdown.Item
-                                             className='pls-label d-flex align-items-center gap-2' onClick={() => handlePrintMultipleResults(row, allowPrintingUnpaid)}>
-                                             {downloadSvg}  Print Multiple Results
-                                        </Dropdown.Item>
-                                        <Dropdown.Item className='pls-label d-flex align-items-center gap-2' onClick={() => {
-                                             const { testid, patientid, ascensionid, billingid } = row.original;
-                                             window.open(`/communications/sms/laboratory-lifecycle-events/sends?testid=${encodeURIComponent(testid)}&patientid=${encodeURIComponent(patientid)}&ascensionid=${encodeURIComponent(ascensionid)}&billingid=${encodeURIComponent(billingid)}`);
-                                        }}>
-                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path fill="none" d="M0 0h24v24H0z"></path><path d="M2 21l21-9-21-9v7l15 2-15 2z"></path></svg>
-                                             Send Completed SMS
-                                        </Dropdown.Item>
-                                        <Dropdown.Item className='pls-label d-flex align-items-center gap-2' as="a" target="_blank" href={`/operations/laboratory/validated/printing-tracking/${row.original.ascensionid}`}>
-                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path fill="none" d="M0 0h24v24H0z"></path><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 14.93V19h-2v-2.07A8.001 8.001 0 0 1 4.07 13H2v-2h2.07A8.001 8.001 0 0 1 11 4.07V2h2v2.07A8.001 8.001 0 0 1 19.93 11H22v2h-2.07A8.001 8.001 0 0 1 13 19.93zM12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"></path></svg>
-                                             View Result Tracking
-                                        </Dropdown.Item>
-                                        <Dropdown.Item className='pls-label d-flex align-items-center gap-2' onClick={() => PrepareResultEntryHeader({ id: row.original.testid, ...row.original }, false, branchid, false)}>
-                                             {downloadSvg} Edit Patient Result
-                                        </Dropdown.Item>
+                                        {
+                                             allowCrmToPrintResult && role == "customer service representative" ? (
+                                                  <>
+                                                       <Dropdown.Item
+                                                            className='pls-label d-flex align-items-center gap-2' onClick={() => handleBrowserView(row.original)}>
+                                                            {downloadSvg}  Print Result
+                                                       </Dropdown.Item>
+                                                       <Dropdown.Item
+                                                            className='pls-label d-flex align-items-center gap-2' onClick={() => handlePrintMultipleResults(row, allowPrintingUnpaid)}>
+                                                            {downloadSvg}  Print Multiple Results
+                                                       </Dropdown.Item>
+                                                  </>
+                                             ) : null
+                                        }
+
+                                        {mode !== 'crm' ? (
+                                             <>
+                                                  <Dropdown.Item
+                                                       className='pls-label d-flex align-items-center gap-2' onClick={() => handleBrowserView(row.original)}>
+                                                       {downloadSvg}  Print Result
+                                                  </Dropdown.Item>
+                                                  <Dropdown.Item
+                                                       className='pls-label d-flex align-items-center gap-2' onClick={() => handlePrintMultipleResults(row, allowPrintingUnpaid)}>
+                                                       {downloadSvg}  Print Multiple Results
+                                                  </Dropdown.Item>
+                                                  <Dropdown.Item className='pls-label d-flex align-items-center gap-2' onClick={() => {
+                                                       const { testid, patientid, ascensionid, billingid } = row.original;
+                                                       window.open(`/communications/sms/laboratory-lifecycle-events/sends?testid=${encodeURIComponent(testid)}&patientid=${encodeURIComponent(patientid)}&ascensionid=${encodeURIComponent(ascensionid)}&billingid=${encodeURIComponent(billingid)}`);
+                                                  }}>
+                                                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path fill="none" d="M0 0h24v24H0z"></path><path d="M2 21l21-9-21-9v7l15 2-15 2z"></path></svg>
+                                                       Send Completed SMS
+                                                  </Dropdown.Item>
+                                                  <Dropdown.Item className='pls-label d-flex align-items-center gap-2' as="a" target="_blank" href={`/operations/laboratory/validated/printing-tracking/${row.original.ascensionid}`}>
+                                                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path fill="none" d="M0 0h24v24H0z"></path><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 14.93V19h-2v-2.07A8.001 8.001 0 0 1 4.07 13H2v-2h2.07A8.001 8.001 0 0 1 11 4.07V2h2v2.07A8.001 8.001 0 0 1 19.93 11H22v2h-2.07A8.001 8.001 0 0 1 13 19.93zM12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"></path></svg>
+                                                       View Result Tracking
+                                                  </Dropdown.Item>
+                                                  <Dropdown.Item className='pls-label d-flex align-items-center gap-2' onClick={() => PrepareResultEntryHeader({ id: row.original.testid, ...row.original }, false, branchid, false)}>
+                                                       {downloadSvg} Edit Patient Result
+                                                  </Dropdown.Item>
+                                             </>
+                                        ) : null}
                                    </>
-                              ) : null}
+                              )}
                          </Dropdown.Menu>
                     </Dropdown>
-
-               )
+               }
           },
      ];
 

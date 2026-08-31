@@ -23,6 +23,17 @@ interface TestItem {
   testname: string;
 }
 
+const ANALYTICS_FIELD_PLANS = new Set(['limits', 'input', 'options', 'plain', 'textReference']);
+
+const getFieldPlanLabel = (plan?: string) => {
+  if (plan === 'limits') return 'Numeric range';
+  if (plan === 'options') return 'Options';
+  if (plan === 'input') return 'Text input';
+  if (plan === 'plain') return 'Plain text';
+  if (plan === 'textReference') return 'Text reference';
+  return plan || 'Field';
+};
+
 export default function FieldSelectorPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -85,7 +96,7 @@ export default function FieldSelectorPage() {
 
   const handleFieldClick = (field: TestField) => {
     const fieldid = field.id || field.fieldid;
-    const fieldName = field.name || field.field;
+    const fieldName = field.name || field.field || `Field #${fieldid}`;
     router.push(`/analytics/resultanalysis/fieldvalues?testid=${testid}&fieldid=${fieldid}&fieldName=${encodeURIComponent(fieldName)}`);
   };
 
@@ -104,7 +115,7 @@ export default function FieldSelectorPage() {
         <div className="card-header py-3 px-4 d-flex align-items-center justify-content-between" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
           <h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
             <RiFlaskLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" />
-            {testid ? `Select Numeric Field: ${testname}` : 'Select Test for Value Distribution Analytics'}
+            {testid ? `Select Field: ${testname}` : 'Select Test for Value Distribution Analytics'}
           </h2>
           {testid && (
             <button
@@ -149,17 +160,17 @@ export default function FieldSelectorPage() {
             </div>
           ) : testid ? (
             // Field selection view for specific test
-            fields.filter((f) => f.plan === 'limits').length === 0 ? (
+            fields.filter((f) => ANALYTICS_FIELD_PLANS.has(f.plan || '')).length === 0 ? (
               <div className="d-flex flex-column justify-content-center align-items-center text-center" style={{ minHeight: '350px' }}>
                 <RiInbox2Line size={48} className="mb-3 text-muted" style={{ color: COLOR_TEXT_MUTED }} />
-                <h5 className="fw-medium mb-1">No Numeric Fields Available</h5>
+                <h5 className="fw-medium mb-1">No Analytics Fields Available</h5>
                 <p className="text-muted px-3" style={{ color: COLOR_TEXT_MUTED }}>
-                  This test has no numeric range fields configured for analytics.
+                  This test has no numeric range, text, or option fields configured for analytics.
                 </p>
               </div>
             ) : (
               <div className="row">
-                {fields.filter((f) => f.plan === 'limits').map((field, idx) => {
+                {fields.filter((f) => ANALYTICS_FIELD_PLANS.has(f.plan || '')).map((field, idx) => {
                   const fieldid = field.id || field.fieldid;
                   const fieldName = field.name || field.field;
                   return (
@@ -188,6 +199,7 @@ export default function FieldSelectorPage() {
                             {field.units && (
                               <p className="small text-muted mb-2">Unit: <strong>{field.units}</strong></p>
                             )}
+                            <p className="small text-muted mb-2">Type: <strong>{getFieldPlanLabel(field.plan)}</strong></p>
                             <p className="small text-muted mb-0">ID: {fieldid}</p>
                           </div>
                           <RiArrowRightLine size={20} style={{ color: COLOR_ACCENT, marginLeft: '1rem', flexShrink: 0 }} />

@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import { z } from "zod";
 import {
      customFetch,
+     customPost,
      getBranches,
      handleResponse,
      validateFormData,
@@ -14,22 +15,24 @@ import {
 import { useApplication } from "../../../components/Auth/useApplicationContext";
 import Loader from "../../../components/accessories/Loader";
 import { loadAllSectionPayloads, clearSectionDrafts, hydrateSectionDraftsFromUser, SECTION_CONFIGS } from "./sectionDraft";
+import { designation as designationOptions } from "../../../components/registration/fields/Util";
 
 
-const schema = z
-     .object({
-          designation: z.string().min(1, "Designation is required"),
-          firstname: z.string().min(1, "Firstname is required"),
-          middlename: z.string().optional(),
-          lastname: z.string().min(1, "Lastname is required"),
-          name: z.string().min(1, "Name is required"),
-          email: z.string().email("Invalid email address"),
-          mobile: z.string().regex(/^\d{10}$/, "Mobile number must be 10 digits"),
-          password: z.string().min(6, "Password must be at least 6 characters"),
-          cpassword: z.string(),
-          role: z.string().min(1, "Role is required"),
-          pin: z.string().regex(/^\d{4}$/, "PIN must be 4 digits"),
-     })
+const baseSchema = z.object({
+     designation: z.string().min(1, "Designation is required"),
+     firstname: z.string().min(1, "Firstname is required"),
+     middlename: z.string().optional(),
+     lastname: z.string().min(1, "Lastname is required"),
+     name: z.string().min(1, "Name is required"),
+     email: z.string().email("Invalid email address"),
+     mobile: z.string().regex(/^\d{10}$/, "Mobile number must be 10 digits"),
+     password: z.string().min(6, "Password must be at least 6 characters"),
+     cpassword: z.string(),
+     role: z.string().min(1, "Role is required"),
+     pin: z.string().regex(/^\d{4}$/, "PIN must be 4 digits"),
+});
+
+const schema = baseSchema
      .refine((data) => data.password === data.cpassword, {
           message: "Passwords do not match",
           path: ["cpassword"],
@@ -92,7 +95,10 @@ export default function AuthenticationIndexPage() {
      const [register, setRegister] = useState<RegisterData>(defaultData);
      const [isLoading, setLoading] = useState<boolean>(false);
      const [branches, setBranches] = useState<Branch[]>([]);
-     const currentUserEmployeeid = useApplication()?.user?.employeeid;
+     const currentUser = useApplication()?.user;
+     const currentUserEmployeeid = currentUser?.employeeid;
+     const canResetPassword = ['admin', 'manager'].includes(String(currentUser?.role || '').toLowerCase());
+     const [temporaryPassword, setTemporaryPassword] = useState<string>("");
 
      const numericOnlyFields = new Set(["mobile", "altMobile", "pin"]);
 
@@ -129,7 +135,19 @@ export default function AuthenticationIndexPage() {
 
      const validateForm = (): boolean => {
           try {
-               schema.parse({ ...register, name: buildFullName() });
+               if (employeeid) {
+                    baseSchema.omit({ password: true, cpassword: true }).parse({ ...register, name: buildFullName() });
+                    if ((register.password || register.cpassword) && register.password !== register.cpassword) {
+                         toast.error("Passwords do not match");
+                         return false;
+                    }
+                    if ((register.password || register.cpassword) && register.password.length < 6) {
+                         toast.error("Password must be at least 6 characters");
+                         return false;
+                    }
+               } else {
+                    schema.parse({ ...register, name: buildFullName() });
+               }
                return true;
           } catch (error) {
                if (error instanceof z.ZodError) {
@@ -214,10 +232,24 @@ export default function AuthenticationIndexPage() {
                     employeeid: employeeid || undefined,
                };
 
+               if (employeeid && !register.password) {
+                    delete (data as Partial<typeof data>).password;
+                    delete (data as Partial<typeof data>).cpassword;
+               }
+
                validateFormData(
                     data,
                     false,
-                    [
+                    employeeid ? [
+                         "designation",
+                         "firstname",
+                         "lastname",
+                         "name",
+                         "email",
+                         "role",
+                         "mobile",
+                         "pin",
+                    ] : [
                          "designation",
                          "firstname",
                          "lastname",
@@ -242,6 +274,40 @@ export default function AuthenticationIndexPage() {
           } catch (error) {
                console.error("Error submitting form", error);
                toast.error("Failed to submit form. Please try again.");
+          } finally {
+               setLoading(false);
+          }
+     };
+
+     const handleResetPassword = async () => {
+          if (!employeeid || !currentUserEmployeeid) {
+               toast.error("Employee and current user are required");
+               return;
+          }
+
+          if (!canResetPassword) {
+               toast.error("Only admin or manager can reset staff passwords");
+               return;
+          }
+
+          const confirmed = window.confirm("Reset this employee password and show a temporary password?");
+          if (!confirmed) return;
+
+          setLoading(true);
+          try {
+               const response = await customPost("logins/reset-password", "POST", {
+                    employeeid,
+               });
+
+               if (response?.status === "success" && response.temporaryPassword) {
+                    setTemporaryPassword(response.temporaryPassword);
+                    toast.success("Password reset successfully");
+               } else {
+                    toast.error(response?.message || "Failed to reset password");
+               }
+          } catch (error) {
+               console.error(error);
+               toast.error("Failed to reset password");
           } finally {
                setLoading(false);
           }
@@ -349,16 +415,19 @@ export default function AuthenticationIndexPage() {
                                         <label className="form-label text-dark fw-medium" htmlFor="designation">
                                              Designation <span className="text-danger">*</span>
                                         </label>
-                                        <input
-                                             type="text"
+                                        <select
                                              name="designation"
                                              id="designation"
                                              value={register.designation}
                                              onChange={handleChange}
-                                             className="form-control border-1 py-2"
-                                             placeholder="Enter designation"
+                                             className="form-select border-1 py-2"
                                              required
-                                        />
+                                        >
+                                             <option value="">Select designation</option>
+                                             {designationOptions.map((item) => (
+                                                  <option value={item} key={item}>{item}</option>
+                                             ))}
+                                        </select>
                                    </div>
 
                                    <div className="col-md-6">
@@ -546,7 +615,7 @@ export default function AuthenticationIndexPage() {
 
                                    <div className="col-md-6">
                                         <label className="form-label text-dark fw-medium" htmlFor="password">
-                                             Password <span className="text-danger">*</span>
+                                             Password {!employeeid && <span className="text-danger">*</span>}
                                         </label>
                                         <input
                                              type="password"
@@ -555,8 +624,8 @@ export default function AuthenticationIndexPage() {
                                              value={register.password}
                                              onChange={handleChange}
                                              className="form-control border-1 py-2"
-                                             placeholder="Minimum 6 characters"
-                                             required
+                                             placeholder={employeeid ? "Leave blank to keep current password" : "Minimum 6 characters"}
+                                             required={!employeeid}
                                              minLength={6}
                                              autoComplete="off"
                                         />
@@ -564,7 +633,7 @@ export default function AuthenticationIndexPage() {
 
                                    <div className="col-md-6">
                                         <label className="form-label text-dark fw-medium" htmlFor="cpassword">
-                                             Confirm Password <span className="text-danger">*</span>
+                                             Confirm Password {!employeeid && <span className="text-danger">*</span>}
                                         </label>
                                         <input
                                              type="password"
@@ -573,8 +642,8 @@ export default function AuthenticationIndexPage() {
                                              value={register.cpassword}
                                              onChange={handleChange}
                                              className="form-control border-1 py-2"
-                                             placeholder="Re-enter password"
-                                             required
+                                             placeholder={employeeid ? "Leave blank to keep current password" : "Re-enter password"}
+                                             required={!employeeid}
                                              minLength={6}
                                              autoComplete="off"
                                         />
@@ -604,6 +673,11 @@ export default function AuthenticationIndexPage() {
                               </div>
 
                               <div className="d-flex justify-content-end mt-4 pt-3 border-top">
+                                   {employeeid && canResetPassword && (
+                                        <button type="button" className="btn btn-outline-warning btn-sm px-4 py-2 me-2" onClick={handleResetPassword} disabled={isLoading}>
+                                             Reset Password
+                                        </button>
+                                   )}
                                    <button type="submit" className="btn btn-primary btn-sm px-4 py-2" disabled={isLoading}>
                                         {isLoading ? (
                                              <>
@@ -615,6 +689,11 @@ export default function AuthenticationIndexPage() {
                                         )}
                                    </button>
                               </div>
+                              {temporaryPassword && (
+                                   <div className="alert alert-warning mt-3 mb-0">
+                                        Temporary password: <strong>{temporaryPassword}</strong>
+                                   </div>
+                              )}
                          </form>
                     </div>
                </div>

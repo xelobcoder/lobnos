@@ -10,11 +10,13 @@ const COLOR_BORDER = 'var(--bs-border-color)';
 const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
 
 interface DailyAggregate {
-  observedDate: string;
+  observedDate: string | null;
   testid: number;
   fieldid: number;
   rangeVersion: string;
   bucketKey: string;
+  valueKind?: 'numeric' | 'categorical';
+  categoricalValue?: string | null;
   observationCount: number;
   valueSum: string;
   valueSumSquares: string;
@@ -24,11 +26,9 @@ interface DailyAggregate {
 
 interface BucketData {
   bucketKey: string;
+  label: string;
+  valueKind: 'numeric' | 'categorical';
   count: number;
-  sum: number;
-  min: number | null;
-  max: number | null;
-  mean: number;
 }
 
 export default function ResultValueAnalyticsPage() {
@@ -43,7 +43,12 @@ export default function ResultValueAnalyticsPage() {
   const [buckets, setBuckets] = useState<Map<string, BucketData>>(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [dateRange, setDateRange] = useState({ start: '', end: '' });
+
+  const orderedBuckets = Array.from(buckets.values()).sort((first, second) => {
+    return second.count - first.count || first.label.localeCompare(second.label);
+  });
+
+  const totalObservationCount = orderedBuckets.reduce((total, bucket) => total + bucket.count, 0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -60,8 +65,6 @@ export default function ResultValueAnalyticsPage() {
         const query = new URLSearchParams({
           testid: testid as string,
           fieldid: fieldid as string,
-          ...(dateRange.start && { startDate: dateRange.start }),
-          ...(dateRange.end && { endDate: dateRange.end }),
         });
 
         const response = await customFetch(`result/analysis/test/field/aggregates?${query}`);
@@ -82,55 +85,27 @@ export default function ResultValueAnalyticsPage() {
     };
 
     fetchData();
-  }, [testid, fieldid, dateRange]);
+  }, [testid, fieldid]);
 
   const aggregateBuckets = (aggregates: DailyAggregate[]) => {
     const bucketMap = new Map<string, BucketData>();
 
     aggregates.forEach((agg) => {
-      const key = agg.bucketKey;
+      const valueKind = agg.valueKind === 'categorical' ? 'categorical' : 'numeric';
+      const label = agg.categoricalValue || agg.bucketKey;
+      const key = label.toLowerCase();
       const count = agg.observationCount || 0;
-      const sum = parseFloat(agg.valueSum || '0');
-      const min = agg.minValue ? parseFloat(agg.minValue) : null;
-      const max = agg.maxValue ? parseFloat(agg.maxValue) : null;
-      const mean = count > 0 ? sum / count : 0;
 
       if (bucketMap.has(key)) {
         const existing = bucketMap.get(key)!;
         existing.count += count;
-        existing.sum += sum;
-        existing.min = existing.min !== null && min !== null ? Math.min(existing.min, min) : min ?? existing.min;
-        existing.max = existing.max !== null && max !== null ? Math.max(existing.max, max) : max ?? existing.max;
-        existing.mean = existing.count > 0 ? existing.sum / existing.count : 0;
       } else {
-        bucketMap.set(key, { bucketKey: key, count, sum, min, max, mean });
+        bucketMap.set(key, { bucketKey: agg.bucketKey, label, valueKind, count });
       }
     });
 
     setBuckets(bucketMap);
   };
-
-  const bucketLabels: Record<string, string> = {
-    'below_range': '🔴 Below Reference Range',
-    'range_0_25': '🟡 0-25% of Range',
-    'range_25_50': '🟡 25-50% of Range',
-    'range_50_75': '🟢 50-75% of Range',
-    'range_75_100': '🟢 75-100% of Range',
-    'above_range': '🔴 Above Reference Range',
-    'at_reference_value': '🟢 At Reference Value',
-    'no_reference_range': '⚪ No Reference Range',
-  };
-
-  const bucketOrder = [
-    'below_range',
-    'range_0_25',
-    'range_25_50',
-    'range_50_75',
-    'range_75_100',
-    'above_range',
-    'at_reference_value',
-    'no_reference_range',
-  ];
 
   return (
     <div className="container-fluid px-4 py-3">
@@ -154,7 +129,7 @@ export default function ResultValueAnalyticsPage() {
               <RiErrorWarningLine size={48} className="mb-3 text-danger" />
               <h5 className="fw-medium mb-1">Error Loading Data</h5>
               <p className="text-muted px-3" style={{ color: COLOR_TEXT_MUTED }}>{error}</p>
-              <button 
+              <button
                 className="btn btn-primary mt-3 d-flex align-items-center"
                 onClick={() => router.push('/analytics/resultanalysis/alltest')}
               >
@@ -167,7 +142,7 @@ export default function ResultValueAnalyticsPage() {
               <RiInbox2Line size={48} className="mb-3 text-muted" style={{ color: COLOR_TEXT_MUTED }} />
               <h5 className="fw-medium mb-1">No Data Available</h5>
               <p className="text-muted px-3" style={{ color: COLOR_TEXT_MUTED }}>
-                No numeric result values available for this field.
+                No result values available for this field.
               </p>
             </div>
           ) : (
@@ -175,19 +150,15 @@ export default function ResultValueAnalyticsPage() {
               <div className="mb-4 p-3" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderRadius: '0.5rem' }}>
                 <h6 className="fw-semibold mb-3">Distribution Summary</h6>
                 <div className="row">
-                  {bucketOrder
-                    .filter((key) => buckets.has(key))
-                    .map((key) => {
-                      const bucket = buckets.get(key)!;
-                      const percentage = ((bucket.count / data.length) * 100).toFixed(1);
+                  {orderedBuckets
+                    .map((bucket) => {
+                      const percentage = totalObservationCount > 0 ? ((bucket.count / totalObservationCount) * 100).toFixed(1) : '0.0';
                       return (
-                        <div key={key} className="col-md-6 col-lg-4 mb-3">
+                        <div key={`${bucket.valueKind}-${bucket.bucketKey}-${bucket.label}`} className="col-md-6 col-lg-4 mb-3">
                           <div className="p-3 bg-white border rounded-2">
-                            <div className="fw-semibold mb-2">{bucketLabels[key] || key}</div>
+                            <div className="fw-semibold mb-2">{bucket.label}</div>
                             <div className="small">
                               <div>Count: <strong>{bucket.count}</strong> ({percentage}%)</div>
-                              <div>Mean: <strong>{bucket.mean.toFixed(4)}</strong></div>
-                              <div>Range: <strong>{bucket.min?.toFixed(4) || 'N/A'}</strong> - <strong>{bucket.max?.toFixed(4) || 'N/A'}</strong></div>
                             </div>
                           </div>
                         </div>
@@ -197,32 +168,26 @@ export default function ResultValueAnalyticsPage() {
               </div>
 
               <div className="mt-4">
-                <h6 className="fw-semibold mb-3">Daily Observations</h6>
+                <h6 className="fw-semibold mb-3">Aggregate Values</h6>
                 <div className="table-responsive">
                   <table className="table table-sm table-hover">
                     <thead className="table-light">
                       <tr>
-                        <th scope="col" className="fw-semibold">Date</th>
-                        <th scope="col" className="fw-semibold">Range Classification</th>
+                        <th scope="col" className="fw-semibold">Value</th>
+                        <th scope="col" className="text-center fw-semibold">Type</th>
                         <th scope="col" className="text-center fw-semibold">Count</th>
-                        <th scope="col" className="text-center fw-semibold">Mean</th>
-                        <th scope="col" className="text-center fw-semibold">Min</th>
-                        <th scope="col" className="text-center fw-semibold">Max</th>
                       </tr>
                     </thead>
                     <tbody>
                       {data.map((row, idx) => (
                         <tr key={idx}>
-                          <td>{row.observedDate}</td>
                           <td>
                             <span className="badge" style={{ backgroundColor: COLOR_ACCENT }}>
-                              {bucketLabels[row.bucketKey] || row.bucketKey}
+                              {row.categoricalValue || row.bucketKey}
                             </span>
                           </td>
+                          <td className="text-center text-capitalize">{row.valueKind || 'numeric'}</td>
                           <td className="text-center">{row.observationCount}</td>
-                          <td className="text-center">{(parseFloat(row.valueSum) / row.observationCount).toFixed(4)}</td>
-                          <td className="text-center">{row.minValue ? parseFloat(row.minValue).toFixed(4) : 'N/A'}</td>
-                          <td className="text-center">{row.maxValue ? parseFloat(row.maxValue).toFixed(4) : 'N/A'}</td>
                         </tr>
                       ))}
                     </tbody>

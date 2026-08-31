@@ -67,8 +67,11 @@ export async function customFetch(endpoint, isLogin = false) {
 				!context["PLS_PRIME_TENANT_SESSION"] ||
 				!context["PLS_SESSION"])
 		) {
-			if (window) {
-				alert("SESSION EXPIRED, LOGGING YOU OUT...");
+			if (
+				typeof window !== "undefined" &&
+				!window.location.pathname.startsWith("/authentication/logout") &&
+				!window.location.pathname.startsWith("/authentications/login")
+			) {
 				window.location.href = "/authentication/logout";
 			}
 			return { error: "Session not found" };
@@ -144,7 +147,20 @@ export async function customFetchMutation(endpoint, method, body) {
 	return response.json();
 }
 
+let isLoggingOutInFlight = false;
+
 export async function handleLogout(setIsLoggingOut) {
+	// Guard against multiple concurrent invocations (e.g. several parallel
+	// requests all receiving 401 at once) triggering repeated logout/redirect storms.
+	if (isLoggingOutInFlight) return;
+	isLoggingOutInFlight = true;
+
+	const redirectToLogin = () => {
+		setTimeout(() => {
+			window.location.href = "/authentications/login";
+		}, 1000);
+	};
+
 	try {
 		const response = await fetch("/api/auth/logout", {
 			method: "POST",
@@ -153,22 +169,20 @@ export async function handleLogout(setIsLoggingOut) {
 			},
 		});
 
-		if (response.ok) {
-			setTimeout(() => {
-				window.location.href = "/authentications/login";
-			}, 1000);
-		} else {
+		if (!response.ok) {
 			console.error("Logout failed");
-			setTimeout(() => {
-				window.location.href = "/authentications/login";
-			}, 1000);
 		}
 	} catch (error) {
-		setTimeout(() => {
-			window.location.href = "/authentications/login";
-		}, 1000);
+		// ignore, still redirect below
 	} finally {
-		setIsLoggingOut(false);
+		// Clear cached auth state so stale data doesn't make the app think it's still logged in.
+		if (typeof window !== "undefined") {
+			localStorage.removeItem("applicationsettings");
+		}
+		if (typeof setIsLoggingOut === "function") {
+			setIsLoggingOut(false);
+		}
+		redirectToLogin();
 	}
 }
 

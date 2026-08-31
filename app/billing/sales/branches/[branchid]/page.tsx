@@ -24,7 +24,15 @@ export default function DailySalesViewCustomerRepresentative({ params, searchPar
 	const { user } = useApplication();
 	const router = useRouter();
 	const role = user?.role?.toLowerCase();
-	const isAdminOrAccountant = role === "admin" || role === "accountant" || role === "superadmin";
+	const canViewAdvancedSales = ["admin", "accountant", "superadmin"].includes(role || "");
+	const isDailyRestrictedView = !!role && !canViewAdvancedSales;
+	const getTodayDateString = () => {
+		const today = new Date();
+		const year = today.getFullYear();
+		const month = String(today.getMonth() + 1).padStart(2, "0");
+		const day = String(today.getDate()).padStart(2, "0");
+		return `${year}-${month}-${day}`;
+	};
 	const [transactions, setTransactions] = useState<any[]>([]);
 	const [summary, setSummary] = useState<any>(undefined);
 	const [expensesPaymentMade, setExpensesPaymentMade] = useState<any[]>([]);
@@ -33,7 +41,6 @@ export default function DailySalesViewCustomerRepresentative({ params, searchPar
 	const { branchid } = params;
 	const initialFrom = searchParams.from || "";
 	const initialTo = searchParams.to || "";
-	// datequery for the form inputs (changes as user types)
 	const [datequery, setDatequery] = useState({ from: initialFrom, to: initialTo });
 	// activeQuery for the actual search (only changes when search is clicked or initial load)
 	const [activeQuery, setActiveQuery] = useState({ from: initialFrom, to: initialTo });
@@ -41,6 +48,14 @@ export default function DailySalesViewCustomerRepresentative({ params, searchPar
 
 	// Sync URL search params with datequery on init/URL change
 	useEffect(() => {
+		if (isDailyRestrictedView) {
+			const today = getTodayDateString();
+			const forcedQuery = { from: today, to: today };
+			setDatequery(forcedQuery);
+			setActiveQuery(forcedQuery);
+			return;
+		}
+
 		setDatequery({
 			from: searchParams.from || '',
 			to: searchParams.to || ''
@@ -49,7 +64,7 @@ export default function DailySalesViewCustomerRepresentative({ params, searchPar
 			from: searchParams.from || '',
 			to: searchParams.to || ''
 		});
-	}, [searchParams.from, searchParams.to]);
+	}, [searchParams.from, searchParams.to, isDailyRestrictedView]);
 
 	// Only sync URL when activeQuery changes, not on every input change
 	useEffect(() => {
@@ -80,13 +95,15 @@ export default function DailySalesViewCustomerRepresentative({ params, searchPar
 		async function fetchData() {
 			if (!branchIdState) return;
 			setIsLoading(true);
+			const queryFrom = isDailyRestrictedView ? getTodayDateString() : activeQuery.from;
+			const queryTo = isDailyRestrictedView ? getTodayDateString() : activeQuery.to;
 			let endpoint = "billing/payment/info/client";
-			if (activeQuery.from && activeQuery.to) {
-				endpoint += `?from=${activeQuery.from}&to=${activeQuery.to}`;
-			} else if (activeQuery.from) {
-				endpoint += `?from=${activeQuery.from}`;
-			} else if (activeQuery.to) {
-				endpoint += `?to=${activeQuery.to}`;
+			if (queryFrom && queryTo) {
+				endpoint += `?from=${queryFrom}&to=${queryTo}`;
+			} else if (queryFrom) {
+				endpoint += `?from=${queryFrom}`;
+			} else if (queryTo) {
+				endpoint += `?to=${queryTo}`;
 			}
 			endpoint = endpoint + `&&branchid=${branchIdState}&&isloadall=true`;
 			try {
@@ -109,7 +126,7 @@ export default function DailySalesViewCustomerRepresentative({ params, searchPar
 			}
 		}
 		fetchData();
-	}, [branchIdState, activeQuery.from, activeQuery.to]);
+	}, [branchIdState, activeQuery.from, activeQuery.to, isDailyRestrictedView]);
 
 	const handleSearchClick = () => {
 		// Update activeQuery to trigger fetch
@@ -132,35 +149,40 @@ export default function DailySalesViewCustomerRepresentative({ params, searchPar
 
 	return (
 		<div>
-			{/* Date Filters at the top */}
-			<div className="d-flex align-items-center gap-2 mt-3 mb-3 flex-wrap">
-				<div style={{ minWidth: '240px' }}>
-					<DateFilterReusable
-						value={dateFilter}
-						onChange={setDateFilter}
-						onDateRangeChange={(from, to) => setDatequery({ from, to })}
-						label="Period"
-						className="w-100"
-					/>
+			{isDailyRestrictedView ? (
+				<div className="d-flex align-items-center justify-content-between mt-3 mb-3 flex-wrap gap-2">
+					<span className="text-muted small">Showing sales for today only</span>
 				</div>
-				<button
-					className="btn btn-outline-secondary btn-sm d-flex align-items-center"
-					onClick={handleSearchClick}
-				>
-					<RiSearchLine size={16} className="me-1" /> Search
-				</button>
-				{datequery.from && datequery.to && (
+			) : (
+				<div className="d-flex align-items-center gap-2 mt-3 mb-3 flex-wrap">
+					<div style={{ minWidth: '240px' }}>
+						<DateFilterReusable
+							value={dateFilter}
+							onChange={setDateFilter}
+							onDateRangeChange={(from, to) => setDatequery({ from, to })}
+							label="Period"
+							className="w-100"
+						/>
+					</div>
 					<button
-						className="btn btn-primary btn-sm"
-						onClick={() => window.open(`${branchid}/day-transaction-break-down?date=${datequery.from}&&from=${datequery.from}&&end=${datequery.to}&isOpenSideBarShow=false`)}
+						className="btn btn-outline-secondary btn-sm d-flex align-items-center"
+						onClick={handleSearchClick}
 					>
-						BreakDown
+						<RiSearchLine size={16} className="me-1" /> Search
 					</button>
-				)}
-			</div>
+					{canViewAdvancedSales && datequery.from && datequery.to && (
+						<button
+							className="btn btn-primary btn-sm"
+							onClick={() => window.open(`${branchid}/day-transaction-break-down?date=${datequery.from}&&from=${datequery.from}&&end=${datequery.to}&isOpenSideBarShow=false`)}
+						>
+							BreakDown
+						</button>
+					)}
+				</div>
+			)}
 
 			{/* Summary component below filters */}
-			{isAdminOrAccountant && branchIdState && <BilledSummary branchid={branchIdState} from={activeQuery.from} to={activeQuery.to} summary={summary} />}
+			{branchIdState && <BilledSummary branchid={branchIdState} from={activeQuery.from} to={activeQuery.to} summary={summary} />}
 
 			{/* Table component at the bottom */}
 			<BilledClientsView

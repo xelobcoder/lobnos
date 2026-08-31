@@ -1,6 +1,6 @@
 'use client'
 import styles from './login.module.css';
-import { RiShieldCrossFill, RiMailLine, RiLockLine, RiEyeLine, RiEyeOffLine, RiHospitalLine, RiStethoscopeLine, RiUserHeartLine } from '@remixicon/react';
+import { RiShieldCrossFill, RiUserLine, RiLockLine, RiEyeLine, RiEyeOffLine, RiHospitalLine, RiStethoscopeLine, RiUserHeartLine } from '@remixicon/react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Alert, Spinner } from 'react-bootstrap';
@@ -11,7 +11,7 @@ export default function PrimeLabLoginPage() {
 	const [isSubmitting, setSubmitting] = useState(false);
 	const [loginStatus, setLoginStatus] = useState<'idle' | 'error' | 'success'>('idle');
 	const [message, setMessage] = useState<string>('');
-	const [userInformation, setUserInformation] = useState({ email: '', password: '' });
+	const [userInformation, setUserInformation] = useState({ username: '', password: '' });
 	const [showPassword, setShowPassword] = useState(false);
 	const router = useRouter();
 	const loginModes = [
@@ -27,7 +27,7 @@ export default function PrimeLabLoginPage() {
 			setLoginStatus('idle');
 			setMessage('');
 
-			const email = userInformation.email;
+			const username = userInformation.username;
 			const password = userInformation.password;
 
 			let browserInfo = {};
@@ -52,7 +52,8 @@ export default function PrimeLabLoginPage() {
 				};
 			}
 
-			const backendResponse = await customPost('prime/login', 'POST', { email, password, browserInfo }, false, true);
+			const endpoint = loginMode === 'center' ? 'prime/login' : loginMode === 'doctor' ? 'login/clinician' : 'login/patient';
+			const backendResponse = await customPost(endpoint, 'POST', { username, password, browserInfo }, false, true);
 
 			if (backendResponse.status === "error" &&
 				(backendResponse.message === "License expired or invalid" || backendResponse.message === "License vaalidation failed" ||
@@ -63,7 +64,7 @@ export default function PrimeLabLoginPage() {
 			}
 
 
-			const { status, accessToken, user, settings, sessionExpiryTime, loginsessionId } = backendResponse;
+			const { status, accessToken, token, user, settings, sessionExpiryTime, loginsessionId } = backendResponse;
 
 			if (!status || status == false) {
 				setLoginStatus('error');
@@ -81,11 +82,11 @@ export default function PrimeLabLoginPage() {
 				},
 				body: JSON.stringify({
 					status,
-					accessToken,
+					accessToken: accessToken || token,
 					user,
-					email,
+					email: user?.email || username,
 					browserInfo,
-					sessionExpiryTime, loginsessionId,
+					sessionExpiryTime: sessionExpiryTime || Date.now() + (12 * 60 * 60 * 1000), loginsessionId,
 					settings
 				}),
 			});
@@ -108,24 +109,29 @@ export default function PrimeLabLoginPage() {
 
 			const { role } = cookieResult;
 			setTimeout(() => {
-				if (role === "customer service representative") {
-					router.push("/crm/customers");
-				} else if (role === 'admin') {
-					router.push("/analytics");
-				} else if (role === 'manager') {
-					router.push("/");
-				} else if (role === "sonographer") {
-					router.push("/operations/imaging/ultrasound");
-				} else if (role === "scientist") {
-					router.push("/operations/laboratory");
-				} else if (role === "storekeeper") {
-					router.push("/inventory");
-				} else if (role === "accountant") {
-					router.push("/accounting");
-				}
-				else {
-					router.push("/");
-				}
+				if (role === "patient") {
+					router.push("/patientportal");
+				} else if (role === "clinician") {
+					router.push("/doctor");
+				} else
+					if (role === "customer service representative") {
+						router.push("/crm/customers");
+					} else if (role === 'admin') {
+						router.push("/analytics");
+					} else if (role === 'manager') {
+						router.push("/");
+					} else if (role === "sonographer") {
+						router.push("/operations/imaging/ultrasound");
+					} else if (role === "scientist") {
+						router.push("/operations/laboratory");
+					} else if (role === "storekeeper") {
+						router.push("/inventory");
+					} else if (role === "accountant") {
+						router.push("/accounting");
+					}
+					else {
+						router.push("/");
+					}
 			}, 1000);
 
 		} catch (err) {
@@ -191,21 +197,21 @@ export default function PrimeLabLoginPage() {
 
 					<form className={styles.loginForm}>
 						<div className={styles.formGroup}>
-							<label htmlFor="email" className={styles.formLabel}>
-								{loginMode === 'patient' ? 'Patient ID or Email Address' : 'Email Address'}
+							<label htmlFor="username" className={styles.formLabel}>
+								{loginMode === 'center' ? 'Center Username' : loginMode === 'doctor' ? 'Doctor Username' : 'Patient Username'}
 							</label>
 							<div className={styles.inputWrapper}>
-								{loginMode === 'patient' ? <RiUserHeartLine size={20} className={styles.inputIcon} /> : <RiMailLine size={20} className={styles.inputIcon} />}
+								{loginMode === 'patient' ? <RiUserHeartLine size={20} className={styles.inputIcon} /> : <RiUserLine size={20} className={styles.inputIcon} />}
 								<input
-									id="email"
-									name="email"
-									type={loginMode === 'patient' ? 'text' : 'email'}
-									value={userInformation.email}
-									onChange={(e) => setUserInformation({ ...userInformation, email: e.target.value })}
+									id="username"
+									name="username"
+									type="text"
+									value={userInformation.username}
+									onChange={(e) => setUserInformation({ ...userInformation, username: e.target.value })}
 									className={styles.formInput}
-									placeholder={loginMode === 'patient' ? 'Enter your patient ID or email' : 'name@company.com'}
+									placeholder={loginMode === 'center' ? 'Enter your center username' : loginMode === 'doctor' ? 'Enter your doctor username' : 'Enter your patient username'}
 									required
-									autoComplete="email"
+									autoComplete="username"
 								/>
 							</div>
 						</div>

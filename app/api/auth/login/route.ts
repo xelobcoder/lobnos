@@ -26,7 +26,8 @@ export async function POST(request: NextRequest) {
             .sign(secret);
 
         const { payload } = await jwtVerify(signedToken, secret);
-        const maxAge = Math.floor((sessionExpiryTime - Date.now()) / 1000);
+        const effectiveSessionExpiryTime = sessionExpiryTime || Date.now() + (12 * 60 * 60 * 1000);
+        const maxAge = Math.max(1, Math.floor((effectiveSessionExpiryTime - Date.now()) / 1000));
         // Set cookies
         cookies().set('PLS-SESSION', signedToken, {
             httpOnly: true,
@@ -46,7 +47,7 @@ export async function POST(request: NextRequest) {
         });
 
 
-        cookies().set("loginsessionId", loginsessionId, {
+        cookies().set("loginsessionId", loginsessionId || '', {
             httpOnly: true,
             secure: false,
             sameSite: 'lax',
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
 
         console.log(response, 'Reponse')
 
-        const allowedRoles = ["storekeeper", "sonographer", "accountant", "scientist", "manager", "admin", "customer service representative"];
+        const allowedRoles = ["storekeeper", "sonographer", "accountant", "scientist", "manager", "admin", "customer service representative", "patient", "clinician"];
         const userRole = user?.role?.toLowerCase();
         const isValidRole = allowedRoles.includes(userRole);
 

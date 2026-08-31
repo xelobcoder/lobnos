@@ -6,7 +6,7 @@ import { handleDateRangeSelection } from "./AscensionFilteringComponent";
 import DateFilterReusable from "../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 import { date } from "zod";
 
-export default function LaboratoryAscensionFiltering({ ascension_stage, employeeid, branchid }) {
+export default function LaboratoryAscensionFiltering({ ascension_stage, clinicianId, employeeid, branchid }) {
 
        const router = useRouter();
        const {
@@ -21,13 +21,17 @@ export default function LaboratoryAscensionFiltering({ ascension_stage, employee
 
 
        useEffect(() => {
-              _getAscensionData(ascension_stage, employeeid, branchid);
+              _getAscensionData(ascension_stage, employeeid, branchid,{
+                     clinicianId: clinicianId || null,
+              });
               setLoadCounter((prev) => prev + 1);
        }, [ascension_stage, employeeid]);
 
        useEffect(() => {
               if (loadCounter > 0) {
-                     _getAscensionData(ascension_stage, employeeid, branchid);
+                     _getAscensionData(ascension_stage, employeeid, branchid,{
+                            clinicianId: clinicianId || null,
+                     });
               }
        }, [queryParams.page, queryParams.count, ascension_stage, employeeid]);
 
@@ -52,6 +56,7 @@ export default function LaboratoryAscensionFiltering({ ascension_stage, employee
                      patientid: '',
                      testid: '',
                      billingid: '',
+                     clinicianId: clinicianId,
                      patientname: "",
                      [section]: value,
                      _dateFrom: "",
@@ -68,6 +73,7 @@ export default function LaboratoryAscensionFiltering({ ascension_stage, employee
                                           ascensionid: queryParams.ascensionid,
                                           patientid: queryParams.patientid,
                                           billingid: queryParams.billingid,
+                                          clinicianId: clinicianId || null,
                                           [category.section]: category.value,
                                           testid: event.data.payload.id
                                    })
@@ -89,6 +95,7 @@ export default function LaboratoryAscensionFiltering({ ascension_stage, employee
                                    ascensionid: queryParams.ascensionid,
                                    patientid: queryParams.patientid,
                                    billingid: queryParams.billingid,
+                                   clinicianId: clinicianId || null,
                                    [category.section]: category.value,
                                    testid: queryParams.testid
                             });
@@ -123,6 +130,7 @@ export default function LaboratoryAscensionFiltering({ ascension_stage, employee
                      patientid: '',
                      testid: '',
                      billingid: '',
+                     clinicianId: clinicianId || null,
                      patientname: "",
                      _dateFrom: "",
                      _dateEnd: "",

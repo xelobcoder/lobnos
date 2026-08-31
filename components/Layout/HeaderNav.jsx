@@ -4,7 +4,7 @@ import { Container } from "react-bootstrap";
 import { useApplicationSettings } from "../Auth/useApplicationContext";
 export default function ApplicationHeader() {
 	const { applicationsettings } = useApplicationSettings();
-	const { user,company, daysToExpiration } = applicationsettings;
+	const { user, company, daysToExpiration } = applicationsettings;
 	const { username, role, branch, employeeid } = user;
 
 
@@ -41,7 +41,7 @@ export default function ApplicationHeader() {
 								<span>
 									<svg
 										onClick={(ev) => {
-											handleLogout(employeeid);
+											handleLogout();
 										}}
 										xmlns="http://www.w3.org/2000/svg"
 										viewBox="0 0 24 24"
