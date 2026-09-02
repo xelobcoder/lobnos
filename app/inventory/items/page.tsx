@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { RiBox3Line, RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiInboxLine, RiHistoryLine } from '@remixicon/react';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 import { customFetch, customPost } from '../../../components/Auth/customFetch';
@@ -21,6 +21,7 @@ interface InventoryItem {
      currentStock: number;
      minStock: number;
      maxStock: number;
+     salePrice?: number;
      unitPrice: number;
      totalValue: number;
      location: string;
@@ -95,6 +96,8 @@ const STATUS_BADGES = {
 
 export default function InventoryItemsPage() {
      const router = useRouter();
+     const searchParams = useSearchParams();
+     const isPharmacyInventory = searchParams.get('category') === 'Pharmacy';
      const { branchid, user } = useApplicationSettings().applicationsettings || {};
      const employeeid = user?.employeeid;
      const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
@@ -124,6 +127,7 @@ export default function InventoryItemsPage() {
           currentStock: 0,
           minStock: 0,
           maxStock: 0,
+          salePrice: 0,
           location_id: '',
           expiryDate: '',
           batchNumber: ''
@@ -244,6 +248,12 @@ export default function InventoryItemsPage() {
                loadConsumptionUnits();
           }
      }, [branchid, employeeid]);
+
+     useEffect(() => {
+          if (isPharmacyInventory && categories.some((category) => category.name === 'Pharmacy')) {
+               setItemForm((current) => ({ ...current, category: 'Pharmacy' }));
+          }
+     }, [isPharmacyInventory, categories]);
 
      const handleServerSideProcessing = async ({ page, count, sortby = 'ASC' }: { page: number; count: number; sortby?: string }) => {
           try {
@@ -396,6 +406,7 @@ export default function InventoryItemsPage() {
                     current_stock: itemForm.currentStock,
                     min_stock: itemForm.minStock,
                     max_stock: itemForm.maxStock,
+                    sale_price: itemForm.salePrice,
                     location_id: itemForm.location_id || undefined,
                     expiry_date: itemForm.expiryDate || undefined,
                     batch_number: itemForm.batchNumber || undefined,
@@ -449,6 +460,7 @@ export default function InventoryItemsPage() {
                     consumption_unit: itemForm.consumption_unit,
                     min_stock: itemForm.minStock,
                     max_stock: itemForm.maxStock,
+                    sale_price: itemForm.salePrice,
                     location_id: itemForm.location_id || undefined,
                     expiry_date: itemForm.expiryDate || undefined,
                     batch_number: itemForm.batchNumber || undefined,
@@ -517,6 +529,7 @@ export default function InventoryItemsPage() {
                currentStock: item.currentStock || 0,
                minStock: item.minStock || 0,
                maxStock: item.maxStock || 0,
+               salePrice: item.sale_price || item.salePrice || 0,
                location_id: item.location_id || '',
                expiryDate: item.expiryDate || '',
                batchNumber: item.batchNumber || ''
@@ -690,6 +703,7 @@ export default function InventoryItemsPage() {
                currentStock: 0,
                minStock: 0,
                maxStock: 0,
+               salePrice: 0,
                location_id: '',
                expiryDate: '',
                batchNumber: ''
@@ -703,9 +717,9 @@ export default function InventoryItemsPage() {
                     <div>
                          <h2 className="mb-1">
                               <RiBox3Line className="me-2" />
-                              Inventory Items
+                              {isPharmacyInventory ? 'Pharmacy Inventory Items' : 'Inventory Items'}
                          </h2>
-                         <p className="text-muted mb-0">Manage and track all laboratory inventory items</p>
+                         <p className="text-muted mb-0">{isPharmacyInventory ? 'Create and manage medicines available for pharmacy sale' : 'Manage and track all laboratory inventory items'}</p>
                     </div>
                     <div className="d-flex gap-2">
                          <button
@@ -778,6 +792,7 @@ export default function InventoryItemsPage() {
                                                             className="form-select"
                                                             value={itemForm.category}
                                                             onChange={(e) => setItemForm(prev => ({ ...prev, category: e.target.value }))}
+                                                            disabled={isPharmacyInventory}
                                                        >
                                                             <option value="">Select category</option>
                                                             {categories.map(category => (
@@ -785,6 +800,19 @@ export default function InventoryItemsPage() {
                                                             ))}
                                                        </select>
                                                   </div>
+                                                  {itemForm.category === 'Pharmacy' && (
+                                                       <div className="mb-3">
+                                                            <label className="form-label">Pharmacy Sale Price *</label>
+                                                            <input
+                                                                 type="number"
+                                                                 className="form-control"
+                                                                 value={itemForm.salePrice}
+                                                                 onChange={(e) => setItemForm(prev => ({ ...prev, salePrice: parseFloat(e.target.value) || 0 }))}
+                                                                 min="0.01"
+                                                                 step="0.01"
+                                                            />
+                                                       </div>
+                                                  )}
                                              </div>
                                              <div className="col-md-6">
                                                   <div className="mb-3">

@@ -4,6 +4,7 @@ import {
      RiFileListLine,
      RiMedicineBottleLine,
      RiAlarmWarningLine,
+     RiArchiveLine,
      RiDashboardLine,
      RiBankCardLine,
      RiSettings3Line,
@@ -31,9 +32,14 @@ export const PharmacyLinks: Link[] = [
           icon: <RiFileListLine />,
      },
      {
-          title: "Drug Stock",
-          link: "/pharmacy/stock",
+          title: "Pharmacy Items",
+          link: "/pharmacy/catalogue",
           icon: <RiMedicineBottleLine />,
+     },
+     {
+          title: "Stock Levels",
+          link: "/pharmacy/stock",
+          icon: <RiArchiveLine />,
      },
      {
           title: "Low Stock Alerts",

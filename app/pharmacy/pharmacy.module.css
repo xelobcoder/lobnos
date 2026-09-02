@@ -1,0 +1,800 @@
+.workspace {
+     max-width: 1440px;
+     margin: 0 auto;
+     color: #172126;
+     animation: enter 260ms ease-out both;
+}
+
+.loadingState,
+.emptyTable {
+     padding: 16px;
+     color: #71807c;
+     font-size: 11px;
+     text-align: center;
+}
+
+.header {
+     display: flex;
+     align-items: flex-end;
+     justify-content: space-between;
+     gap: 16px;
+     margin-bottom: 20px;
+}
+
+.eyebrow {
+     display: block;
+     margin-bottom: 5px;
+     color: #71807c;
+     font-size: 10px;
+     font-weight: 700;
+     letter-spacing: 0;
+     text-transform: uppercase;
+}
+
+.header h1 {
+     margin: 0 0 5px;
+     font: 700 30px var(--font-raleway), sans-serif;
+     letter-spacing: 0;
+}
+
+.header p {
+     margin: 0;
+     color: #687572;
+     font-size: 12px;
+}
+
+.primaryAction,
+.scanButton {
+     min-height: 42px;
+     display: inline-flex;
+     align-items: center;
+     justify-content: center;
+     gap: 8px;
+     padding: 0 14px;
+     color: #fff;
+     border: 1px solid #087f73;
+     border-radius: 6px;
+     background: #087f73;
+     text-decoration: none;
+     font: 700 12px inherit;
+}
+
+.scanButton {
+     color: #075e56;
+     border-color: #a7d3cc;
+     background: #eff9f6;
+}
+
+.metricGrid {
+     display: grid;
+     grid-template-columns: repeat(4, minmax(0, 1fr));
+     gap: 12px;
+     margin-bottom: 16px;
+}
+
+.metric {
+     display: flex;
+     align-items: flex-start;
+     gap: 12px;
+     min-height: 104px;
+     padding: 15px;
+     border: 1px solid #dce6e3;
+     border-radius: 6px;
+     background: #fff;
+     box-shadow: 0 3px 14px rgba(36, 54, 57, .04);
+}
+
+.metricIcon {
+     display: grid;
+     width: 34px;
+     height: 34px;
+     place-items: center;
+     color: #087f73;
+     border-radius: 6px;
+     background: #e6f4f0;
+}
+
+.metric[data-tone="amber"] .metricIcon {
+     color: #9a5708;
+     background: #fff0d8;
+}
+
+.metric[data-tone="red"] .metricIcon {
+     color: #a13128;
+     background: #fbe9e7;
+}
+
+.metric[data-tone="green"] .metricIcon {
+     color: #2d7a46;
+     background: #e6f4e9;
+}
+
+.metric div {
+     display: grid;
+     gap: 3px;
+}
+
+.metric span:not(.metricIcon) {
+     color: #65726f;
+     font-size: 10px;
+}
+
+.metric strong {
+     font-size: 18px;
+}
+
+.metric small {
+     color: #71807c;
+     font-size: 9px;
+}
+
+.overviewGrid {
+     display: grid;
+     grid-template-columns: minmax(0, 1fr) 310px;
+     gap: 16px;
+}
+
+.panel,
+.actionPanel,
+.cataloguePanel,
+.cartPanel {
+     border: 1px solid #dce6e3;
+     border-radius: 6px;
+     background: #fff;
+     box-shadow: 0 3px 14px rgba(36, 54, 57, .04);
+}
+
+.panelHeading,
+.cartHeading {
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+     gap: 12px;
+     padding: 13px 16px;
+     border-bottom: 1px solid #e8eeec;
+}
+
+.panelHeading h2,
+.cartHeading h2 {
+     display: flex;
+     align-items: center;
+     gap: 7px;
+     margin: 0;
+     font-size: 15px;
+}
+
+.panelHeading a {
+     display: inline-flex;
+     align-items: center;
+     gap: 5px;
+     color: #087f73;
+     font-size: 11px;
+     font-weight: 700;
+     text-decoration: none;
+}
+
+.tableWrap {
+     overflow-x: auto;
+}
+
+.table {
+     width: 100%;
+     min-width: 600px;
+     border-collapse: collapse;
+     font-size: 12px;
+}
+
+.table th {
+     padding: 10px 16px;
+     color: #66736f;
+     background: #f8faf9;
+     font-size: 9px;
+     text-align: left;
+     text-transform: uppercase;
+}
+
+.table td {
+     padding: 13px 16px;
+     border-top: 1px solid #edf1f0;
+}
+
+.table td strong,
+.table td small {
+     display: block;
+}
+
+.table td small {
+     margin-top: 3px;
+     color: #7b8884;
+     font-size: 9px;
+}
+
+.amount {
+     text-align: right;
+     font-weight: 700;
+}
+
+.status {
+     padding: 4px 7px;
+     color: #287344;
+     border-radius: 9px;
+     background: #e5f4e9;
+     font-size: 9px;
+     font-weight: 700;
+}
+
+.actionPanel {
+     padding: 10px;
+}
+
+.actionPanel>.eyebrow {
+     padding: 7px 7px 5px;
+}
+
+.actionPanel a {
+     display: grid;
+     grid-template-columns: 22px 1fr 16px;
+     align-items: center;
+     gap: 9px;
+     padding: 13px 8px;
+     color: #087f73;
+     border-top: 1px solid #edf1f0;
+     text-decoration: none;
+}
+
+.actionPanel a strong,
+.actionPanel a small {
+     display: block;
+}
+
+.actionPanel a strong {
+     color: #25322f;
+     font-size: 11px;
+}
+
+.actionPanel a small {
+     margin-top: 3px;
+     color: #72807c;
+     font-size: 9px;
+}
+
+.catalogueFormPanel {
+     max-width: 900px;
+     border: 1px solid #dce6e3;
+     border-radius: 6px;
+     background: #fff;
+     box-shadow: 0 3px 14px rgba(36, 54, 57, .04);
+}
+
+.catalogueForm {
+     display: grid;
+     grid-template-columns: repeat(2, minmax(0, 1fr));
+     gap: 16px;
+     padding: 18px;
+}
+
+.catalogueForm label {
+     display: grid;
+     gap: 7px;
+     color: #4d5d58;
+     font-size: 11px;
+     font-weight: 700;
+}
+
+.catalogueForm input:not([type="checkbox"]),
+.catalogueForm select {
+     width: 100%;
+     min-height: 39px;
+     padding: 0 10px;
+     color: #172126;
+     border: 1px solid #d6dfdc;
+     border-radius: 5px;
+     background: #fff;
+     outline-color: #087f73;
+     font: 12px inherit;
+}
+
+.catalogueForm .checkField {
+     display: flex;
+     align-items: center;
+     gap: 8px;
+     min-height: 39px;
+     padding-top: 19px;
+}
+
+.checkField input {
+     width: 16px;
+     height: 16px;
+     accent-color: #087f73;
+}
+
+.formActions {
+     grid-column: 1 / -1;
+     display: flex;
+     align-items: center;
+     gap: 12px;
+     padding-top: 3px;
+}
+
+.formActions .completeButton {
+     width: auto;
+     min-width: 180px;
+     justify-content: center;
+     gap: 8px;
+}
+
+.formActions .completedNotice {
+     margin: 0;
+}
+
+.posLayout {
+     display: grid;
+     grid-template-columns: minmax(0, 1fr) 390px;
+     gap: 16px;
+     align-items: start;
+}
+
+.cataloguePanel {
+     padding: 14px;
+}
+
+.searchBox {
+     height: 44px;
+     display: flex;
+     align-items: center;
+     gap: 9px;
+     padding: 0 10px;
+     color: #65736f;
+     border: 1px solid #d4dfdc;
+     border-radius: 6px;
+     background: #f8faf9;
+}
+
+.searchBox input {
+     width: 100%;
+     min-width: 0;
+     border: 0;
+     outline: 0;
+     background: transparent;
+     color: #172126;
+     font: 12px inherit;
+}
+
+.searchBox button,
+.addButton,
+.removeButton {
+     display: grid;
+     place-items: center;
+     border: 0;
+     background: transparent;
+}
+
+.catalogueHeader {
+     display: flex;
+     justify-content: space-between;
+     padding: 16px 3px 10px;
+     font-size: 11px;
+     font-weight: 700;
+}
+
+.catalogueHeader small {
+     color: #75827e;
+     font-size: 10px;
+     font-weight: 500;
+}
+
+.medicineList {
+     border-top: 1px solid #e8eeec;
+}
+
+.medicineRow {
+     display: grid;
+     grid-template-columns: 38px minmax(0, 1fr) 100px 34px;
+     align-items: center;
+     gap: 10px;
+     min-height: 76px;
+     border-bottom: 1px solid #e8eeec;
+}
+
+.medicineIcon {
+     display: grid;
+     width: 34px;
+     height: 34px;
+     place-items: center;
+     color: #087f73;
+     border-radius: 6px;
+     background: #e8f5f2;
+}
+
+.medicineRow strong,
+.medicineRow small {
+     display: block;
+}
+
+.medicineRow strong {
+     font-size: 12px;
+}
+
+.medicineRow small {
+     margin-top: 3px;
+     color: #71807c;
+     font-size: 9px;
+}
+
+.prescriptionTag {
+     display: inline-block;
+     margin-top: 5px;
+     padding: 2px 5px;
+     color: #9a5708;
+     border-radius: 4px;
+     background: #fff0d8;
+     font-size: 8px;
+     font-weight: 700;
+}
+
+.medicinePrice {
+     text-align: right;
+}
+
+.addButton {
+     width: 32px;
+     height: 32px;
+     color: #087f73;
+     border: 1px solid #9fccc5;
+     border-radius: 5px;
+     background: #fff;
+}
+
+.cartPanel {
+     position: sticky;
+     top: 12px;
+     overflow: hidden;
+}
+
+.cartHeading>span {
+     padding: 4px 7px;
+     color: #52625e;
+     border-radius: 9px;
+     background: #edf2f0;
+     font-size: 9px;
+     font-weight: 700;
+}
+
+.customerField {
+     display: grid;
+     gap: 6px;
+     padding: 13px 16px;
+     border-bottom: 1px solid #e8eeec;
+     color: #586762;
+     font-size: 10px;
+     font-weight: 700;
+}
+
+.customerField input {
+     height: 34px;
+     padding: 0 9px;
+     border: 1px solid #d7e0dd;
+     border-radius: 5px;
+     outline-color: #087f73;
+     font: 11px inherit;
+}
+
+.cartLines {
+     min-height: 222px;
+     max-height: 390px;
+     overflow-y: auto;
+}
+
+.emptyCart {
+     min-height: 222px;
+     display: grid;
+     place-content: center;
+     justify-items: center;
+     gap: 7px;
+     color: #77847f;
+     font-size: 10px;
+}
+
+.emptyCart strong {
+     color: #46534f;
+     font-size: 12px;
+}
+
+.cartLine {
+     display: grid;
+     grid-template-columns: minmax(0, 1fr) 83px auto 26px;
+     align-items: center;
+     gap: 8px;
+     padding: 12px 16px;
+     border-bottom: 1px solid #edf1f0;
+}
+
+.cartLine>div:first-child strong,
+.cartLine>div:first-child small {
+     display: block;
+}
+
+.cartLine>div:first-child strong {
+     font-size: 11px;
+}
+
+.cartLine>div:first-child small {
+     margin-top: 3px;
+     color: #74817d;
+     font-size: 9px;
+}
+
+.cartLine>strong {
+     font-size: 10px;
+     white-space: nowrap;
+}
+
+.quantity {
+     display: grid;
+     grid-template-columns: 25px 25px 25px;
+     align-items: center;
+     border: 1px solid #d7e0dd;
+     border-radius: 4px;
+}
+
+.quantity button {
+     height: 26px;
+     color: #087f73;
+     border: 0;
+     background: #f8faf9;
+}
+
+.quantity output {
+     text-align: center;
+     font-size: 10px;
+     font-weight: 700;
+}
+
+.removeButton {
+     color: #a13128;
+}
+
+.cartFooter {
+     padding: 14px 16px;
+     background: #fbfdfc;
+}
+
+.total {
+     display: flex;
+     justify-content: space-between;
+     align-items: baseline;
+     margin-bottom: 13px;
+}
+
+.total span {
+     color: #5e6d68;
+     font-size: 11px;
+}
+
+.total strong {
+     font-size: 20px;
+}
+
+.paymentMethods {
+     display: grid;
+     grid-template-columns: repeat(3, 1fr);
+     gap: 6px;
+     margin: 0 0 13px;
+     padding: 0;
+     border: 0;
+}
+
+.paymentMethods legend {
+     margin-bottom: 7px;
+     color: #5e6d68;
+     font-size: 10px;
+     font-weight: 700;
+}
+
+.paymentMethods label {
+     min-height: 34px;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     gap: 5px;
+     padding: 3px;
+     border: 1px solid #d3dedb;
+     border-radius: 5px;
+     background: #fff;
+     font-size: 9px;
+}
+
+.paymentMethods input {
+     accent-color: #087f73;
+}
+
+.completeButton {
+     width: 100%;
+     min-height: 42px;
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     padding: 0 13px;
+     color: #fff;
+     border: 1px solid #087f73;
+     border-radius: 6px;
+     background: #087f73;
+     font: 700 11px inherit;
+}
+
+.completeButton:disabled {
+     cursor: not-allowed;
+     opacity: .5;
+}
+
+.completedNotice {
+     margin: 10px 0 0;
+     padding: 9px;
+     color: #21653d;
+     border-left: 3px solid #2d7a46;
+     background: #eef8f0;
+     font-size: 10px;
+}
+
+@keyframes enter {
+     from {
+          opacity: 0;
+          transform: translateY(8px);
+     }
+
+     to {
+          opacity: 1;
+          transform: translateY(0);
+     }
+}
+
+@media (max-width: 960px) {
+     .metricGrid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+     }
+
+     .overviewGrid,
+     .posLayout {
+          grid-template-columns: 1fr;
+     }
+
+     .cartPanel {
+          position: static;
+     }
+
+     .cartLines {
+          max-height: none;
+     }
+}
+
+@media (max-width: 560px) {
+     .workspace {
+          padding-bottom: 8px;
+     }
+
+     .header {
+          align-items: flex-start;
+          flex-direction: column;
+     }
+
+     .header h1 {
+          font-size: 25px;
+     }
+
+     .primaryAction,
+     .scanButton {
+          width: 100%;
+     }
+
+     .metricGrid {
+          grid-template-columns: 1fr;
+     }
+
+     .metric {
+          min-height: 82px;
+     }
+
+     .medicineRow {
+          grid-template-columns: 34px minmax(0, 1fr) 32px;
+     }
+
+     .medicinePrice {
+          display: none;
+     }
+
+     .posLayout {
+          gap: 12px;
+     }
+
+     .cataloguePanel {
+          padding: 10px;
+     }
+
+     .cartLine {
+          grid-template-columns: minmax(0, 1fr) 78px 26px;
+     }
+
+     .cartLine>strong {
+          display: none;
+     }
+
+     .paymentMethods {
+          grid-template-columns: 1fr;
+     }
+
+     .table {
+          min-width: 520px;
+     }
+}
+
+@media (max-width: 560px) {
+     .catalogueForm {
+          grid-template-columns: 1fr;
+          padding: 14px;
+     }
+
+     .catalogueForm .checkField {
+          padding-top: 0;
+     }
+
+     .formActions {
+          align-items: stretch;
+          flex-direction: column;
+     }
+
+     .formActions .completeButton {
+          width: 100%;
+     }
+}
+
+@media (prefers-reduced-motion: reduce) {
+     .workspace {
+          animation: none;
+     }
+}
+
+:global([data-bs-theme="dark"]) .workspace {
+     color: var(--bs-body-color);
+}
+
+:global([data-bs-theme="dark"]) .metric,
+:global([data-bs-theme="dark"]) .panel,
+:global([data-bs-theme="dark"]) .actionPanel,
+:global([data-bs-theme="dark"]) .cataloguePanel,
+:global([data-bs-theme="dark"]) .cartPanel,
+:global([data-bs-theme="dark"]) .catalogueFormPanel {
+     border-color: var(--bs-border-color);
+     background: var(--bs-body-bg);
+     box-shadow: none;
+}
+
+:global([data-bs-theme="dark"]) .searchBox,
+:global([data-bs-theme="dark"]) .quantity button,
+:global([data-bs-theme="dark"]) .cartFooter {
+     background: var(--bs-tertiary-bg);
+     border-color: var(--bs-border-color);
+     color: var(--bs-body-color);
+}
+
+:global([data-bs-theme="dark"]) .searchBox input,
+:global([data-bs-theme="dark"]) .catalogueForm input:not([type="checkbox"]),
+:global([data-bs-theme="dark"]) .catalogueForm select,
+:global([data-bs-theme="dark"]) .customerField input {
+     color: var(--bs-body-color);
+     border-color: var(--bs-border-color);
+     background: var(--bs-body-bg);
+}
+
+:global([data-bs-theme="dark"]) .medicineRow,
+:global([data-bs-theme="dark"]) .cartLine,
+:global([data-bs-theme="dark"]) .panelHeading,
+:global([data-bs-theme="dark"]) .cartHeading,
+:global([data-bs-theme="dark"]) .customerField {
+     border-color: var(--bs-border-color);
+}
+
+:global([data-bs-theme="dark"]) .medicineRow strong,
+:global([data-bs-theme="dark"]) .cartLine>div:first-child strong,
+:global([data-bs-theme="dark"]) .emptyCart strong {
+     color: var(--bs-body-color);
+}

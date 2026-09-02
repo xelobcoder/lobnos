@@ -1,0 +1,612 @@
+'use client';
+
+import jsPDF from 'jspdf';
+import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from 'react';
+import {
+     RiAddLine,
+     RiCloseLine,
+     RiDeleteBinLine,
+     RiErrorWarningLine,
+     RiLoader4Line,
+     RiMedicineBottleLine,
+     RiSearchLine,
+     RiShoppingCartLine,
+     RiCheckboxCircleLine,
+} from '@remixicon/react';
+import Link from 'next/link';
+import { customFetch, customFetchMutation } from '../../../components/Auth/customFetch';
+import { useApplication } from '../../../components/Auth/useApplicationContext';
+
+type StockStatus = 'in_stock' | 'low_stock' | 'out_of_stock';
+type Medicine = {
+     inventoryItemId: string;
+     name: string;
+     unit: string;
+     salePrice: number;
+     availableStock: number;
+     minimumStock: number;
+     stockStatus: StockStatus;
+};
+type CartLine = Medicine & { quantity: number };
+
+const STOCK_LABELS: Record<StockStatus, { text: string; badge: string; tone: string }> = {
+     in_stock: { text: 'In stock', badge: 'text-bg-success', tone: 'text-muted' },
+     low_stock: { text: 'Low stock', badge: 'text-bg-warning', tone: 'text-warning' },
+     out_of_stock: { text: 'Out of stock', badge: 'text-bg-danger', tone: 'text-danger' },
+};
+type Receipt = {
+     receiptNumber: string;
+     total: number;
+     paymentMethod: string;
+     customerName: string;
+     lines: CartLine[];
+     completedAt: string;
+};
+
+const currency = new Intl.NumberFormat('en-GH', { style: 'currency', currency: 'GHS' });
+
+export default function PharmacySellPage() {
+     const application = useApplication();
+     const company = application?.company;
+     const companyName = typeof company === 'string' ? company : company?.name || 'LOBNOS PHARMACY';
+     const soldBy = application?.user?.username || 'Pharmacy staff';
+     const companyLogoUrl = process.env.NODE_ENV === 'development'
+          ? `${process.env.DEVELOPMENT_BASEURL}settings/companyprofile/images`
+          : `${process.env.PRODUCTION_BASEURL}settings/companyprofile/images`;
+     const [query, setQuery] = useState('');
+     const [loading, setLoading] = useState(false);
+     const [cart, setCart] = useState<CartLine[]>([]);
+     const [catalogue, setCatalogue] = useState<Medicine[]>([]);
+     const [customerName, setCustomerName] = useState('');
+     const [paymentMethod, setPaymentMethod] = useState('cash');
+     const [receipt, setReceipt] = useState<Receipt | null>(null);
+     const [error, setError] = useState('');
+     const [submitting, setSubmitting] = useState(false);
+     const searchInputRef = useRef<HTMLInputElement>(null);
+
+     const subtotal = cart.reduce((total, line) => total + line.salePrice * line.quantity, 0);
+     const totalUnits = cart.reduce((total, line) => total + line.quantity, 0);
+
+     useEffect(() => {
+          let active = true;
+          const timer = window.setTimeout(async () => {
+               setLoading(true);
+               setError('');
+               try {
+                    const response = await customFetch(`pharmacy/catalogue?count=200&search=${encodeURIComponent(query.trim())}`);
+                    if (!active) return;
+                    if (response?.success) setCatalogue(response.data.items || []);
+                    else {
+                         setError(response?.error?.message || 'Unable to load the pharmacy catalogue.');
+                         setCatalogue([]);
+                    }
+               } catch {
+                    if (active) {
+                         setError('Unable to load the pharmacy catalogue.');
+                         setCatalogue([]);
+                    }
+               } finally {
+                    if (active) setLoading(false);
+               }
+          }, 200);
+
+          return () => {
+               active = false;
+               window.clearTimeout(timer);
+          };
+     }, [query]);
+
+     const addMedicine = (medicine: Medicine) => {
+          setReceipt(null);
+          setCart((current) => {
+               const existing = current.find((line) => line.inventoryItemId === medicine.inventoryItemId);
+               if (!existing) return [...current, { ...medicine, quantity: 1 }];
+               if (existing.quantity >= medicine.availableStock) return current;
+               return current.map((line) =>
+                    line.inventoryItemId === medicine.inventoryItemId ? { ...line, quantity: line.quantity + 1 } : line
+               );
+          });
+          searchInputRef.current?.focus();
+     };
+
+     const updateQuantity = (inventoryItemId: string, quantity: number) =>
+          setCart((current) =>
+               current.flatMap((line) =>
+                    quantity < 1 ? [] : line.inventoryItemId === inventoryItemId ? [{ ...line, quantity: Math.min(quantity, line.availableStock) }] : [line]
+               )
+          );
+
+     const addFirstSearchResult = (event: KeyboardEvent<HTMLInputElement>) => {
+          if (event.key !== 'Enter') return;
+          event.preventDefault();
+          const medicine = catalogue.find((item) => item.availableStock > 0);
+          if (medicine) {
+               addMedicine(medicine);
+               setQuery('');
+          }
+     };
+
+     const printThermalReceipt = async () => {
+          if (!receipt) return;
+
+          const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [80, 297] });
+          const pageWidth = pdf.internal.pageSize.getWidth();
+          const leftMargin = 6;
+          const rightMargin = pageWidth - 6;
+          const divider = '----------------------------------------------------------------';
+          let yPosition = 8;
+          const formatAmount = (amount: number) => `GHS ${amount.toFixed(2)}`;
+          const addDivider = () => {
+               pdf.text(divider, pageWidth / 2, yPosition, { align: 'center' });
+               yPosition += 4;
+          };
+
+          try {
+               const logoResponse = await fetch(companyLogoUrl);
+               if (logoResponse.ok) {
+                    const logoBlob = await logoResponse.blob();
+                    const logoDataUrl = await new Promise<string>((resolve, reject) => {
+                         const reader = new FileReader();
+                         reader.onload = () => resolve(reader.result as string);
+                         reader.onerror = () => reject(new Error('Unable to read company logo.'));
+                         reader.readAsDataURL(logoBlob);
+                    });
+                    pdf.addImage(logoDataUrl, 'JPEG', pageWidth / 2 - 8, yPosition, 16, 16);
+                    yPosition += 20;
+               }
+          } catch {
+               // A receipt can still print when the logo is unavailable.
+          }
+
+          pdf.setFont('courier', 'bold');
+          pdf.setFontSize(11);
+          pdf.text(companyName.toUpperCase(), pageWidth / 2, yPosition, { align: 'center', maxWidth: pageWidth - 12 });
+          yPosition += 5;
+          pdf.setFont('courier', 'normal');
+          pdf.setFontSize(8);
+          pdf.text('SALES RECEIPT', pageWidth / 2, yPosition, { align: 'center' });
+          yPosition += 5;
+          addDivider();
+
+          pdf.text(`Receipt: ${receipt.receiptNumber}`, leftMargin, yPosition);
+          yPosition += 4;
+          pdf.text(`Date: ${new Date(receipt.completedAt).toLocaleString('en-GH')}`, leftMargin, yPosition);
+          yPosition += 4;
+          pdf.text(`Customer: ${receipt.customerName}`, leftMargin, yPosition);
+          yPosition += 4;
+          pdf.text(`Payment: ${receipt.paymentMethod.replace('_', ' ').toUpperCase()}`, leftMargin, yPosition);
+          yPosition += 4;
+          pdf.text(`Sold by: ${soldBy}`, leftMargin, yPosition);
+          yPosition += 4;
+          addDivider();
+
+          pdf.setFont('courier', 'bold');
+          pdf.text('ITEM', leftMargin, yPosition);
+          pdf.text('AMOUNT', rightMargin, yPosition, { align: 'right' });
+          yPosition += 4;
+          addDivider();
+          pdf.setFont('courier', 'normal');
+
+          receipt.lines.forEach((line) => {
+               const name = line.name.length > 27 ? `${line.name.slice(0, 24)}...` : line.name;
+               pdf.text(name, leftMargin, yPosition);
+               yPosition += 4;
+               pdf.text(`${line.quantity} x ${formatAmount(line.salePrice)}`, leftMargin, yPosition);
+               pdf.text(formatAmount(line.quantity * line.salePrice), rightMargin, yPosition, { align: 'right' });
+               yPosition += 5;
+          });
+
+          addDivider();
+          pdf.setFont('courier', 'bold');
+          pdf.setFontSize(10);
+          pdf.text('TOTAL', leftMargin, yPosition);
+          pdf.text(formatAmount(receipt.total), rightMargin, yPosition, { align: 'right' });
+          yPosition += 6;
+          addDivider();
+          pdf.setFontSize(8);
+          pdf.text('Thank you for your purchase!', pageWidth / 2, yPosition, { align: 'center' });
+          yPosition += 4;
+          pdf.setFont('courier', 'normal');
+          pdf.setFontSize(7);
+          pdf.text('Please retain this receipt for your records.', pageWidth / 2, yPosition, { align: 'center' });
+
+          pdf.autoPrint();
+          const receiptUrl = URL.createObjectURL(pdf.output('blob'));
+          const printWindow = window.open(receiptUrl, '_blank');
+          window.setTimeout(() => URL.revokeObjectURL(receiptUrl), 30000);
+          if (!printWindow) setError('Popups are blocked. Please allow popups to print receipts.');
+     };
+
+     const completeSale = async (event: FormEvent) => {
+          event.preventDefault();
+          if (!cart.length || submitting) return;
+          setSubmitting(true);
+          setError('');
+          const response = await customFetchMutation('pharmacy/sales', 'POST', {
+               idempotencyKey: crypto.randomUUID(),
+               customerName: customerName || 'Walk-in customer',
+               paymentMethod,
+               lines: cart.map((line) => ({ inventoryItemId: line.inventoryItemId, quantity: line.quantity })),
+          });
+          setSubmitting(false);
+          if (response?.success) {
+               setReceipt({
+                    ...response.data,
+                    customerName: customerName || 'Walk-in customer',
+                    lines: cart,
+                    completedAt: new Date().toISOString(),
+               });
+               setCart([]);
+               setCustomerName('');
+          } else {
+               setError(response?.error?.message || 'Sale could not be completed.');
+          }
+     };
+
+     return (
+          <main
+               className="container-fluid px-4 py-3"
+               style={{ minHeight: '100vh', backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)' }}
+          >
+               {receipt && (
+                    <div
+                         className="modal d-block"
+                         role="dialog"
+                         aria-modal="true"
+                         aria-labelledby="receipt-complete-title"
+                         style={{ backgroundColor: 'rgba(23, 33, 38, 0.5)' }}
+                    >
+                         <div className="modal-dialog modal-dialog-centered">
+                              <div className="modal-content border-0" style={{ borderRadius: '6px' }}>
+                                   <div className="modal-body p-4 text-center">
+                                        <RiCheckboxCircleLine size={44} className="mb-3" style={{ color: '#2D7A46' }} />
+                                        <h2 id="receipt-complete-title" className="fs-4 fw-bold mb-2">
+                                             Sale completed
+                                        </h2>
+                                        <p className="text-muted mb-3">
+                                             Receipt {receipt.receiptNumber} for {currency.format(receipt.total)} has been recorded.
+                                        </p>
+                                        <p className="fw-semibold mb-0">Would you like to print the receipt?</p>
+                                   </div>
+                                   <div className="modal-footer border-0 pt-0 px-4 pb-4 d-flex gap-2">
+                                        <button type="button" className="btn btn-outline-secondary flex-grow-1" onClick={() => setReceipt(null)}>
+                                             Continue without printing
+                                        </button>
+                                        <button
+                                             type="button"
+                                             className="btn flex-grow-1"
+                                             onClick={() => {
+                                                  printThermalReceipt();
+                                                  setReceipt(null);
+                                             }}
+                                        >
+                                             Print receipt
+                                        </button>
+                                   </div>
+                              </div>
+                         </div>
+                    </div>
+               )}
+
+               {/* Error Alert */}
+               {error && (
+                    <div className="mb-4">
+                         <div
+                              className="alert d-flex align-items-start gap-3"
+                              role="alert"
+                              style={{ backgroundColor: '#FEF2F2', borderColor: '#B42318', borderWidth: '1px' }}
+                         >
+                              <RiErrorWarningLine size={24} style={{ color: '#B42318', flexShrink: 0, marginTop: '2px' }} />
+                              <div className="flex-grow-1">
+                                   <h5 className="fw-semibold mb-1" style={{ color: '#B42318' }}>
+                                        Error
+                                   </h5>
+                                   <p className="mb-0">{error}</p>
+                              </div>
+                              <button
+                                   type="button"
+                                   className="btn-close"
+                                   onClick={() => setError('')}
+                                   aria-label="Close alert"
+                              />
+                         </div>
+                    </div>
+               )}
+
+               <form onSubmit={completeSale}>
+                    <div className="row g-3">
+                         {/* Catalogue Section */}
+                         <div className="col-lg-8">
+                              {/* Search Box */}
+                              <div className="card border-0 mb-3" style={{ borderRadius: '6px' }}>
+                                   <div className="card-body p-3">
+                                        <div
+                                             className="input-group input-group-lg"
+                                             style={{ position: 'relative' }}
+                                        >
+                                             <span
+                                                  className="input-group-text bg-transparent border-end-0"
+                                                  style={{ borderColor: 'var(--bs-border-color)' }}
+                                             >
+                                                  <RiSearchLine size={20} className="text-muted" />
+                                             </span>
+                                             <input
+                                                  ref={searchInputRef}
+                                                  type="text"
+                                                  className="form-control form-control-lg border-start-0"
+                                                  style={{ borderColor: 'var(--bs-border-color)' }}
+                                                  value={query}
+                                                  onChange={(event) => setQuery(event.target.value)}
+                                                  onKeyDown={addFirstSearchResult}
+                                                  placeholder="Scan barcode or type a medicine name"
+                                                  aria-label="Search medicine catalogue"
+                                                  autoFocus
+                                             />
+                                             {query && (
+                                                  <button
+                                                       type="button"
+                                                       className="btn btn-outline-secondary"
+                                                       onClick={() => setQuery('')}
+                                                       aria-label="Clear search"
+                                                  >
+                                                       <RiCloseLine size={20} />
+                                                  </button>
+                                             )}
+                                        </div>
+                                   </div>
+                              </div>
+
+                              <div className="d-flex justify-content-between align-items-end mb-2">
+                                   <div>
+                                        <h5 className="fw-bold mb-0">Medicines</h5>
+                                        <small className="text-muted">{loading ? 'Searching...' : `${catalogue.length} results`}</small>
+                                   </div>
+                                   <small className="text-muted">Press Enter to add the first available result</small>
+                              </div>
+
+                              {/* Loading State */}
+                              {loading && (
+                                   <div className="text-center py-5">
+                                        <RiLoader4Line size={40} className="text-muted mb-3" style={{ animation: 'spin 1s linear infinite' }} />
+                                        <p className="text-muted">Loading medicine catalogue...</p>
+                                   </div>
+                              )}
+
+                              {/* Empty State */}
+                              {!loading && catalogue.length === 0 && (
+                                   <div className="card border-0" style={{ borderRadius: '6px' }}>
+                                        <div className="card-body text-center py-5">
+                                             <RiMedicineBottleLine size={48} className="text-muted mb-3" style={{ opacity: 0.3 }} />
+                                             <h5 className="fw-semibold mb-1">No medicines found</h5>
+                                             <p className="text-muted small mb-3">
+                                                  {query
+                                                       ? `Nothing matches "${query}". Try a different name or barcode.`
+                                                       : 'No pharmacy items have been set up yet. Add items to the Pharmacy category in inventory to start selling.'}
+                                             </p>
+                                        </div>
+                                   </div>
+                              )}
+
+                              {!loading && catalogue.length > 0 && (
+                                   <div className="table-responsive border rounded-2" style={{ maxHeight: 'calc(100vh - 250px)', overflowY: 'auto' }}>
+                                        <table className="table table-sm table-hover align-middle mb-0" style={{ fontSize: '0.875rem' }}>
+                                             <thead className="sticky-top" style={{ backgroundColor: 'var(--bs-tertiary-bg)', zIndex: 1 }}>
+                                                  <tr>
+                                                       <th>Medicine name</th>
+                                                       <th style={{ width: '100px' }}>Unit</th>
+                                                       <th className="text-end" style={{ width: '110px' }}>Price</th>
+                                                       <th className="text-end" style={{ width: '110px' }}>On hand</th>
+                                                       <th style={{ width: '46px' }}><span className="visually-hidden">Add</span></th>
+                                                  </tr>
+                                             </thead>
+                                             <tbody>
+                                                  {catalogue.map((medicine) => (
+                                                       <tr
+                                                            key={medicine.inventoryItemId}
+                                                            style={{ opacity: medicine.availableStock === 0 ? 0.55 : 1, cursor: medicine.availableStock > 0 ? 'pointer' : 'default' }}
+                                                            onDoubleClick={() => medicine.availableStock > 0 && addMedicine(medicine)}
+                                                       >
+                                                            <td>
+                                                                 <div className="fw-semibold">{medicine.name}</div>
+                                                            </td>
+                                                            <td className="text-muted">{medicine.unit}</td>
+                                                            <td className="text-end fw-semibold">{currency.format(medicine.salePrice)}</td>
+                                                            <td className="text-end">
+                                                                 <span className={`badge ${STOCK_LABELS[medicine.stockStatus].badge}`}>
+                                                                      {medicine.stockStatus === 'out_of_stock'
+                                                                           ? STOCK_LABELS[medicine.stockStatus].text
+                                                                           : medicine.availableStock}
+                                                                 </span>
+                                                            </td>
+                                                            <td className="text-center">
+                                                                 <button
+                                                                      type="button"
+                                                                      className="btn btn-sm btn-success d-inline-flex p-1"
+                                                                      onClick={() => addMedicine(medicine)}
+                                                                      disabled={medicine.availableStock === 0}
+                                                                      aria-label={`Add ${medicine.name}`}
+                                                                 >
+                                                                      <RiAddLine size={16} />
+                                                                 </button>
+                                                            </td>
+                                                       </tr>
+                                                  ))}
+                                             </tbody>
+                                        </table>
+                                   </div>
+                              )}
+                         </div>
+
+                         {/* Cart Section */}
+                         <div className="col-lg-4">
+                              <div className="card border-0" style={{ borderRadius: '6px', position: 'sticky', top: '20px' }}>
+                                   {/* Cart Header */}
+                                   <div
+                                        className="card-header border-0"
+                                        style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderRadius: '6px 6px 0 0' }}
+                                   >
+                                        <div className="d-flex align-items-center gap-2 mb-2">
+                                             <RiShoppingCartLine size={20} className="text-success" />
+                                             <h5 className="fw-bold mb-0">Cart</h5>
+                                             {cart.length > 0 && (
+                                                  <span className="badge rounded-pill text-bg-success ms-auto">
+                                                       {cart.length} line{cart.length !== 1 ? 's' : ''} · {totalUnits} unit{totalUnits !== 1 ? 's' : ''}
+                                                  </span>
+                                             )}
+                                        </div>
+                                   </div>
+
+                                   {/* Card Body */}
+                                   <div className="card-body p-3" style={{ minHeight: '300px' }}>
+                                        {/* Customer Field */}
+                                        <div className="mb-3">
+                                             <label className="form-label small text-uppercase fw-semibold text-muted">Customer name</label>
+                                             <input
+                                                  type="text"
+                                                  className="form-control form-control-sm"
+                                                  value={customerName}
+                                                  onChange={(event) => setCustomerName(event.target.value)}
+                                                  placeholder="Walk-in customer"
+                                             />
+                                        </div>
+
+                                        {/* Cart Items */}
+                                        {cart.length === 0 ? (
+                                             <div className="text-center py-4">
+                                                  <RiShoppingCartLine size={40} className="text-muted mb-2" style={{ opacity: 0.3 }} />
+                                                  <p className="text-muted small mb-0">Your cart is empty. Add medicines to begin.</p>
+                                             </div>
+                                        ) : (
+                                             <div className="d-flex flex-column gap-1 mb-3" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                                                  {cart.map((line) => (
+                                                       <div
+                                                            key={line.inventoryItemId}
+                                                            className="d-flex align-items-center gap-2 py-2 border-bottom"
+                                                            style={{ borderColor: 'var(--bs-border-color)' }}
+                                                       >
+                                                            <div className="flex-grow-1 overflow-hidden">
+                                                                 <h6 className="fw-semibold mb-0 text-truncate">{line.name}</h6>
+                                                                 <small className="text-muted">{currency.format(line.salePrice)} each</small>
+                                                            </div>
+                                                            <div className="input-group input-group-sm flex-nowrap" style={{ width: '108px' }}>
+                                                                 <button
+                                                                      type="button"
+                                                                      className="btn btn-outline-secondary px-2"
+                                                                      onClick={() => updateQuantity(line.inventoryItemId, line.quantity - 1)}
+                                                                      aria-label={`Decrease ${line.name} quantity`}
+                                                                 >
+                                                                      −
+                                                                 </button>
+                                                                 <input
+                                                                      type="number"
+                                                                      className="form-control text-center px-1"
+                                                                      value={line.quantity}
+                                                                      min={1}
+                                                                      max={line.availableStock}
+                                                                      inputMode="numeric"
+                                                                      aria-label={`${line.name} quantity`}
+                                                                      onFocus={(event) => event.currentTarget.select()}
+                                                                      onChange={(event) => updateQuantity(line.inventoryItemId, Number(event.target.value))}
+                                                                 />
+                                                                 <button
+                                                                      type="button"
+                                                                      className="btn btn-outline-secondary px-2"
+                                                                      onClick={() => updateQuantity(line.inventoryItemId, line.quantity + 1)}
+                                                                      aria-label={`Increase ${line.name} quantity`}
+                                                                 >
+                                                                      +
+                                                                 </button>
+                                                            </div>
+                                                            <div className="fw-bold text-success text-end" style={{ minWidth: '70px', fontSize: '0.9rem' }}>
+                                                                 {currency.format(line.salePrice * line.quantity)}
+                                                            </div>
+                                                            <button
+                                                                 type="button"
+                                                                 className="btn btn-sm btn-link p-0 text-danger"
+                                                                 onClick={() => updateQuantity(line.inventoryItemId, 0)}
+                                                                 aria-label={`Remove ${line.name}`}
+                                                            >
+                                                                 <RiDeleteBinLine size={16} />
+                                                            </button>
+                                                       </div>
+                                                  ))}
+                                             </div>
+                                        )}
+                                   </div>
+
+                                   {/* Cart Footer */}
+                                   <div
+                                        className="card-footer border-top"
+                                        style={{ backgroundColor: 'var(--bs-body-bg)', borderRadius: '0 0 6px 6px' }}
+                                   >
+                                        {/* Total */}
+                                        <div className="d-flex justify-content-between align-items-center mb-3 p-3 rounded-2" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+                                             <span className="fw-semibold text-muted">Total</span>
+                                             <div className="fs-5 fw-bold text-success">
+                                                  {currency.format(subtotal)}
+                                             </div>
+                                        </div>
+
+                                        {/* Payment Method */}
+                                        <fieldset className="mb-3">
+                                             <legend className="form-label small text-uppercase fw-semibold text-muted">Payment method</legend>
+                                             <div className="d-flex flex-wrap gap-3">
+                                                  {[
+                                                       ['cash', 'Cash'],
+                                                       ['mobile_money', 'Mobile money'],
+                                                       ['card', 'Card'],
+                                                  ].map(([value, label]) => (
+                                                       <label key={value} className="form-check">
+                                                            <input
+                                                                 type="radio"
+                                                                 name="payment"
+                                                                 value={value}
+                                                                 checked={paymentMethod === value}
+                                                                 onChange={() => setPaymentMethod(value)}
+                                                                 className="form-check-input"
+                                                            />
+                                                            <span className="form-check-label">{label}</span>
+                                                       </label>
+                                                  ))}
+                                             </div>
+                                        </fieldset>
+
+                                        {/* Complete Button */}
+                                        <button
+                                             className="btn btn-success btn-lg w-100"
+                                             type="submit"
+                                             disabled={cart.length === 0 || submitting}
+                                             style={{
+                                                  fontWeight: 600,
+                                             }}
+                                        >
+                                             {submitting ? (
+                                                  <>
+                                                       <RiLoader4Line size={18} className="me-2" style={{ animation: 'spin 1s linear infinite', display: 'inline-block' }} />
+                                                       Completing sale...
+                                                  </>
+                                             ) : (
+                                                  <>
+                                                       Complete sale • {currency.format(subtotal)}
+                                                  </>
+                                             )}
+                                        </button>
+                                   </div>
+                              </div>
+                         </div>
+                    </div>
+               </form>
+
+               <style jsx>{`
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+      `}</style>
+          </main>
+     );
+}

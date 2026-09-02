@@ -1,4 +1,4 @@
-import { RiMoneyDollarCircleLine, RiFileList3Line, RiMessage2Line, RiStethoscopeLine, RiBarChartBoxLine, RiFileTextLine, RiSyringeLine, RiTestTubeLine, RiMicroscopeLine, RiPulseLine, RiDashboardLine, RiUserLine, RiSettingsLine, RiShieldCheckLine, RiShoppingCartLine, RiBookletLine } from "@remixicon/react";
+import { RiMoneyDollarCircleLine, RiFileList3Line, RiMessage2Line, RiStethoscopeLine, RiBarChartBoxLine, RiFileTextLine, RiSyringeLine, RiTestTubeLine, RiMicroscopeLine, RiPulseLine, RiDashboardLine, RiUserLine, RiSettingsLine, RiShieldCheckLine, RiShoppingCartLine, RiBookletLine, RiMedicineBottleLine } from "@remixicon/react";
 
 export const AdminRoleLinks = [
      {
@@ -48,14 +48,6 @@ export const AdminRoleLinks = [
           label: 'Analytics',
           category: 'Analytics',
           description: 'Business intelligence and reporting'
-     },
-     {
-          href: '/authentication/users',
-          icon: <RiUserLine size={24} />,
-          text: "Manage user accounts, roles, and permissions",
-          label: 'Users',
-          category: 'Administration',
-          description: 'User management and access control'
      },
      {
           href: '/settings/applicationsettings',
@@ -148,6 +140,14 @@ export const AdminRoleLinks = [
           label: 'Email Services',
           category: 'Communication',
           description: 'Email configuration and management'
+     },
+     {
+          href: '/pharmacy',
+          icon: <RiMedicineBottleLine size={24} />,
+          text: "Access pharmacy management",
+          label: 'Pharmacy',
+          category: 'Support',
+          description: 'Pharmacy management'
      }
 ];
 

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { RiShoppingCartLine, RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiSendPlaneLine, RiCheckLine, RiMailLine, RiFilterLine, RiCloseLine, RiInboxArchiveLine, RiMoneyDollarCircleLine, RiSaveLine, RiDownloadLine } from '@remixicon/react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -165,6 +165,9 @@ const orderRowStyling = {
 
 export default function PurchaseOrdersPage() {
      const router = useRouter();
+     const searchParams = useSearchParams();
+     const restockItemId = searchParams.get('restockItemId');
+     const [restockApplied, setRestockApplied] = useState(false);
      const { applicationsettings } = useApplicationSettings();
      const employeeid = applicationsettings?.user?.employeeid;
      const branchid = applicationsettings?.branchid;
@@ -404,6 +407,29 @@ export default function PurchaseOrdersPage() {
                loadPurchaseOrders();
           }
      }, [branchid, employeeid]);
+
+     // Deep link from stock screens: open a draft order pre-seeded with the item to restock.
+     useEffect(() => {
+          if (!restockItemId || restockApplied || inventoryItems.length === 0) return;
+          const item = inventoryItems.find(inventoryItem => inventoryItem.id === restockItemId);
+          if (!item) return;
+
+          setOrderForm(prev => ({
+               ...prev,
+               items: [{
+                    itemId: item.id,
+                    itemName: item.name,
+                    brand: item.brand,
+                    sku: item.sku,
+                    quantity: 1,
+                    unit: item.unit,
+                    discountRate: 0,
+                    taxRate: 0
+               }]
+          }));
+          setShowOrderModal(true);
+          setRestockApplied(true);
+     }, [restockItemId, restockApplied, inventoryItems]);
 
      // Trigger table refresh when filters change
      useEffect(() => {
@@ -797,22 +823,22 @@ export default function PurchaseOrdersPage() {
 
                const detailedOrder = response.data;
                const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-               const pageWidth  = doc.internal.pageSize.getWidth();
+               const pageWidth = doc.internal.pageSize.getWidth();
                const pageHeight = doc.internal.pageSize.getHeight();
 
-               const companyName  = (applicationsettings?.user?.company || applicationsettings?.company || 'Company').toUpperCase();
-               const companyAddr  = applicationsettings?.companyAddress || applicationsettings?.tenantAddress || '';
-               const companyEmail = applicationsettings?.companyEmail   || applicationsettings?.tenantEmail   || '';
+               const companyName = (applicationsettings?.user?.company || applicationsettings?.company || 'Company').toUpperCase();
+               const companyAddr = applicationsettings?.companyAddress || applicationsettings?.tenantAddress || '';
+               const companyEmail = applicationsettings?.companyEmail || applicationsettings?.tenantEmail || '';
                const companyPhone = applicationsettings?.companyContact || applicationsettings?.tenantContact || '';
 
-               const orderNumber  = detailedOrder.order_number || detailedOrder.id || order.orderNumber;
-               const orderDate    = new Date(detailedOrder.order_date || order.orderDate).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
+               const orderNumber = detailedOrder.order_number || detailedOrder.id || order.orderNumber;
+               const orderDate = new Date(detailedOrder.order_date || order.orderDate).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
                const deliveryDate = detailedOrder.expected_delivery_date
                     ? new Date(detailedOrder.expected_delivery_date).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })
                     : 'N/A';
 
-               const supplierName    = detailedOrder.supplier_name    || detailedOrder.supplier?.name    || order.supplierName    || 'N/A';
-               const supplierEmail   = detailedOrder.supplier_email   || detailedOrder.supplier?.email   || order.supplierEmail   || '';
+               const supplierName = detailedOrder.supplier_name || detailedOrder.supplier?.name || order.supplierName || 'N/A';
+               const supplierEmail = detailedOrder.supplier_email || detailedOrder.supplier?.email || order.supplierEmail || '';
                const supplierContact = detailedOrder.supplier_contact || detailedOrder.supplier?.contact || order.supplierContact || '';
                const supplierAddress = detailedOrder.supplier_address || detailedOrder.supplier?.address || order.supplierAddress || '';
 
@@ -837,7 +863,7 @@ export default function PurchaseOrdersPage() {
 
                // Company contact line — muted, centred
                const subParts: string[] = [];
-               if (companyAddr)  subParts.push(companyAddr);
+               if (companyAddr) subParts.push(companyAddr);
                if (companyPhone) subParts.push(`Tel: ${companyPhone}`);
                if (companyEmail) subParts.push(`Email: ${companyEmail}`);
                if (subParts.length > 0) {
@@ -871,18 +897,18 @@ export default function PurchaseOrdersPage() {
                doc.setFontSize(9);
 
                // Left column
-               doc.setFont('candara', 'bold');   doc.setTextColor(80, 80, 80);  doc.text('Order No:',   14, metaTop);
-               doc.setFont('candara', 'normal'); doc.setTextColor(33, 37, 41);  doc.text(String(orderNumber), 36, metaTop);
+               doc.setFont('candara', 'bold'); doc.setTextColor(80, 80, 80); doc.text('Order No:', 14, metaTop);
+               doc.setFont('candara', 'normal'); doc.setTextColor(33, 37, 41); doc.text(String(orderNumber), 36, metaTop);
 
-               doc.setFont('candara', 'bold');   doc.setTextColor(80, 80, 80);  doc.text('Status:',     14, metaTop + 6);
-               doc.setFont('candara', 'normal'); doc.setTextColor(33, 37, 41);  doc.text((detailedOrder.status || order.status || '').replace(/_/g, ' ').toUpperCase(), 36, metaTop + 6);
+               doc.setFont('candara', 'bold'); doc.setTextColor(80, 80, 80); doc.text('Status:', 14, metaTop + 6);
+               doc.setFont('candara', 'normal'); doc.setTextColor(33, 37, 41); doc.text((detailedOrder.status || order.status || '').replace(/_/g, ' ').toUpperCase(), 36, metaTop + 6);
 
                // Right column
-               doc.setFont('candara', 'bold');   doc.setTextColor(80, 80, 80);  doc.text('Date:',          pageWidth - 70, metaTop);
-               doc.setFont('candara', 'normal'); doc.setTextColor(33, 37, 41);  doc.text(orderDate,         pageWidth - 52, metaTop);
+               doc.setFont('candara', 'bold'); doc.setTextColor(80, 80, 80); doc.text('Date:', pageWidth - 70, metaTop);
+               doc.setFont('candara', 'normal'); doc.setTextColor(33, 37, 41); doc.text(orderDate, pageWidth - 52, metaTop);
 
-               doc.setFont('candara', 'bold');   doc.setTextColor(80, 80, 80);  doc.text('Exp. Delivery:', pageWidth - 70, metaTop + 6);
-               doc.setFont('candara', 'normal'); doc.setTextColor(33, 37, 41);  doc.text(deliveryDate,       pageWidth - 46, metaTop + 6);
+               doc.setFont('candara', 'bold'); doc.setTextColor(80, 80, 80); doc.text('Exp. Delivery:', pageWidth - 70, metaTop + 6);
+               doc.setFont('candara', 'normal'); doc.setTextColor(33, 37, 41); doc.text(deliveryDate, pageWidth - 46, metaTop + 6);
 
                // Divider
                doc.setDrawColor(200, 200, 200);
@@ -908,7 +934,7 @@ export default function PurchaseOrdersPage() {
                doc.setTextColor(60, 60, 60);
                let sy = billTop + 12;
                if (supplierAddress) { doc.text(supplierAddress, 14, sy); sy += 5; }
-               if (supplierEmail)   { doc.text(`Email: ${supplierEmail}`,   14, sy); sy += 5; }
+               if (supplierEmail) { doc.text(`Email: ${supplierEmail}`, 14, sy); sy += 5; }
                if (supplierContact) { doc.text(`Tel: ${supplierContact}`, 14, sy); sy += 5; }
                sy += 5;
 
@@ -919,12 +945,12 @@ export default function PurchaseOrdersPage() {
 
                const tableHead = isReceived
                     ? [['#', 'Item Description', 'Unit', 'Qty Received', 'Unit Price', 'Total']]
-                    : [['#', 'Item Description', 'Unit', 'Qty Ordered',  'Unit Price', 'Total']];
+                    : [['#', 'Item Description', 'Unit', 'Qty Ordered', 'Unit Price', 'Total']];
 
                const itemsBody = itemsToMap.map((item, idx) => {
-                    const qty   = isReceived ? (item.quantity_received ?? item.quantity_ordered) : item.quantity_ordered;
+                    const qty = isReceived ? (item.quantity_received ?? item.quantity_ordered) : item.quantity_ordered;
                     const price = isReceived ? formatCurrencyForPDF(item.unit_price || 0) : '';
-                    const total = isReceived ? formatCurrencyForPDF((item.unit_price || 0) * qty)   : '';
+                    const total = isReceived ? formatCurrencyForPDF((item.unit_price || 0) * qty) : '';
                     return [String(idx + 1), item.item_name || '', item.unit || '', String(qty), price, total];
                });
 
@@ -938,12 +964,12 @@ export default function PurchaseOrdersPage() {
                     head: tableHead,
                     body: itemsBody,
                     foot: [['', '', '', '', 'TOTAL:', footerTotal]],
-                    styles:     { font: 'candara', fontSize: 9,  cellPadding: 3, textColor: [33, 37, 41] },
+                    styles: { font: 'candara', fontSize: 9, cellPadding: 3, textColor: [33, 37, 41] },
                     headStyles: { fillColor: [22, 34, 54], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
                     footStyles: { fillColor: [240, 240, 240], textColor: [22, 34, 54], fontStyle: 'bold', fontSize: 10 },
                     alternateRowStyles: { fillColor: [248, 249, 250] },
                     columnStyles: {
-                         0: { cellWidth: 8,  halign: 'center' },
+                         0: { cellWidth: 8, halign: 'center' },
                          1: { cellWidth: 'auto' },
                          2: { cellWidth: 16, halign: 'center' },
                          3: { cellWidth: 26, halign: 'center' },
@@ -959,7 +985,7 @@ export default function PurchaseOrdersPage() {
                // ══════════════════════════════════════════════════════════════
                const notes = detailedOrder.notes || order.notes;
                if (notes) {
-                    doc.setFont('candara', 'bold');   doc.setFontSize(9); doc.setTextColor(60, 60, 60);
+                    doc.setFont('candara', 'bold'); doc.setFontSize(9); doc.setTextColor(60, 60, 60);
                     doc.text('Notes / Terms:', 14, lastY + 10);
                     doc.setFont('candara', 'normal'); doc.setFontSize(9);
                     doc.text(notes, 14, lastY + 16, { maxWidth: pageWidth - 28 });
