@@ -7,6 +7,7 @@ import {
      RiArchiveLine,
      RiDashboardLine,
      RiBankCardLine,
+     RiRefund2Line,
      RiSettings3Line,
 } from '@remixicon/react';
 
@@ -27,9 +28,19 @@ export const PharmacyLinks: Link[] = [
           icon: <RiBankCardLine />,
      },
      {
+          title: "Prescriptions",
+          link: "/pharmacy/prescriptions",
+          icon: <RiFileListLine />,
+     },
+     {
           title: "Sales History",
           link: "/pharmacy/sales-history",
           icon: <RiFileListLine />,
+     },
+     {
+          title: "Refunds & Voids",
+          link: "/pharmacy/reversals",
+          icon: <RiRefund2Line />,
      },
      {
           title: "Pharmacy Items",

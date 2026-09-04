@@ -39,15 +39,24 @@ type SaleDetail = Sale & {
 };
 
 const currency = new Intl.NumberFormat('en-GH', { style: 'currency', currency: 'GHS' });
-const DEFAULT_PAGE_SIZE = 20;
+const DEFAULT_PAGE_SIZE = 10;
 const OTHER_REASON = 'Other (specify)';
 
-const STATUS_BADGES: Record<string, string> = {
-     completed: 'text-bg-success',
-     refunded: 'text-bg-warning',
-     voided: 'text-bg-danger',
-     cancelled: 'text-bg-secondary',
+const saleRowStyling = {
+     type: 'custom',
+     getRowClassName: (sale: Sale) => {
+          if (sale.status === 'refunded') return 'table-warning';
+          if (sale.status === 'voided') return 'table-danger';
+          return '';
+     },
+     getRowStyle: (sale: Sale) => {
+          if (sale.status === 'refunded') return { backgroundColor: '#fff3cd', color: '#664d03' };
+          if (sale.status === 'voided') return { backgroundColor: '#f8d7da', color: '#842029' };
+          return {};
+     },
 };
+
+const SalesHistoryTable = PrimeTable as any;
 
 const REVERSAL_OPTIONS: { value: ReversalType; label: string; help: string }[] = [
      { value: 'refund', label: 'Refund', help: 'Money is returned to the customer and the goods come back into stock.' },
@@ -190,7 +199,7 @@ export default function PharmacySalesHistoryPage() {
                accessor: 'status',
                Cell: ({ row }: { row: { original: Sale } }) => (
                     <div>
-                         <span className={`badge text-capitalize ${STATUS_BADGES[row.original.status] || 'text-bg-secondary'}`}>{row.original.status}</span>
+                         <span className="text-capitalize">{row.original.status}</span>
                          {row.original.reversalReason && (
                               <div className="small text-muted mt-1" title={row.original.reversalReason}>{row.original.reversalReason}</div>
                          )}
@@ -234,18 +243,19 @@ export default function PharmacySalesHistoryPage() {
                     </div>
                )}
 
-               <PrimeTable
+               <SalesHistoryTable
                     column={columns}
                     data={sales}
                     filtering={true}
                     serverSideFiltering={true}
+                    rowStyling={saleRowStyling}
                     handleSeverSideProcessing={({ page, count }: { page: number; count: number }) => loadSales(page, count)}
                />
 
                {target && (
                     <>
                          <div className="modal d-block" tabIndex={-1} role="dialog">
-                              <div className="modal-dialog modal-dialog-centered">
+                              <div className="modal-dialog mt-3">
                                    <form className="modal-content" onSubmit={submitReversal}>
                                         <div className="modal-header">
                                              <h5 className="modal-title">Reverse receipt {target.receiptNumber}</h5>
@@ -321,7 +331,7 @@ export default function PharmacySalesHistoryPage() {
                {(detail || detailLoading || detailError) && (
                     <>
                          <div className="modal d-block" tabIndex={-1} role="dialog">
-                              <div className="modal-dialog modal-lg modal-dialog-centered">
+                              <div className="modal-dialog modal-lg mt-3">
                                    <div className="modal-content">
                                         <div className="modal-header">
                                              <h5 className="modal-title">
@@ -351,7 +361,7 @@ export default function PharmacySalesHistoryPage() {
                                                             </div>
                                                             <div className="col-sm-6">
                                                                  <small className="text-muted d-block">Status</small>
-                                                                 <span className={`badge text-capitalize ${STATUS_BADGES[detail.status] || 'text-bg-secondary'}`}>{detail.status}</span>
+                                                                 <span className="text-capitalize">{detail.status}</span>
                                                             </div>
                                                        </div>
 

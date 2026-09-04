@@ -11,7 +11,7 @@ import {
 export default function page() {
 
      return (
-          <div className="min-vh-100 bg-light">
+          <div className="max-vh-100 bg-light">
                {/* Hero Section */}
                <section className="hero-section position-relative overflow-hidden py-5">
                     <div className="hero-background"></div>
@@ -44,8 +44,8 @@ export default function page() {
                                                   Login to PLS
                                              </Link>
                                         </div>
-                                        <Link href="/crm/registration" className="btn btn-link text-warning text-decoration-none fw-semibold">
-                                             <RiArrowRightLine className="me-2" size={18} />
+                                        <Link href="/crm/registration" className="btn px-5 py-3 text-dark text-uppercase btn-warning text-warning text-decoration-none fw-semibold">
+                                             <RiArrowRightLine className="me-2" size={20} />
                                              Quick Access
                                         </Link>
                                    </div>

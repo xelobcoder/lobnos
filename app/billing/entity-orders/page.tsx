@@ -1,0 +1,326 @@
+"use client";
+
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "react-toastify";
+import { Container, Form, Button, Modal } from "react-bootstrap";
+import { customFetch } from "../../../components/Auth/customFetch";
+import { customFetchMutation } from "../../../components/Auth/customFetch";
+import { useApplicationSettings } from "../../../components/Auth/useApplicationContext";
+import { RiRefreshLine, RiInboxLine, RiUser3Line, RiBuildingLine, RiFileList3Line } from "@remixicon/react";
+import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
+
+
+type EntityOrder = {
+	id: number;
+	patient_id: number;
+	patientName?: string;
+	entity_type: "clinician" | "organization" | "general";
+	entity_id: number | null;
+	entityName?: string;
+	billing_source: number;
+	status: string;
+	revision: number;
+	billing_id: number | null;
+	sample_location: "center" | "referrer" | null;
+	decision_reason: string | null;
+	notes: string | null;
+	created_at: string;
+	total?: number;
+	lines?: Array<{ id: number; test_id: number; test_name: string; unit_price: number | string; quantity: number }>;
+};
+
+const STATUS_FILTERS = [
+	{ value: "pending", label: "Pending review" },
+	{ value: "PENDING", label: "Pending" },
+	{ value: "ON_HOLD", label: "On hold" },
+	{ value: "APPROVED", label: "Approved (ready to convert)" },
+	{ value: "CONVERTED", label: "Converted" },
+	{ value: "REJECTED", label: "Rejected" },
+	{ value: "all", label: "All orders" },
+];
+
+/**
+ * Center billing review queue for entity (clinician/organization) lab orders.
+ * Any logged-in billing staff member (admin, manager, customer service rep, …)
+ * can approve, hold, reject, and convert orders here. The ordering clinician
+ * does NOT approve their own orders in the consultation panel.
+ */
+export default function EntityOrdersReviewPage() {
+	const userCtx = useApplicationSettings().applicationsettings?.user;
+	const reviewerId = Number(userCtx?.employeeid ?? userCtx?.id ?? 0);
+	const reviewerBranch = useApplicationSettings().applicationsettings?.branchid ?? null;
+
+	const [statusFilter, setStatusFilter] = useState("pending");
+	const [sampleLocation, setSampleLocation] = useState("");
+	const [orders, setOrders] = useState<EntityOrder[]>([]);
+	const [loading, setLoading] = useState(false);
+	const [busyId, setBusyId] = useState<number | null>(null);
+	const [viewOrder, setViewOrder] = useState<EntityOrder | null>(null);
+
+	const fetchOrders = useCallback(async () => {
+		setLoading(true);
+		try {
+			const params = new URLSearchParams();
+			if (statusFilter === "pending") params.set("pendingReview", "1");
+			else if (statusFilter !== "all") params.set("status", statusFilter);
+			if (sampleLocation) params.set("sampleLocation", sampleLocation);
+			const response = await customFetch(`entityorders?${params.toString()}`);
+			setOrders(response?.result || []);
+		} catch {
+			setOrders([]);
+			toast.error("Unable to load entity orders.");
+		} finally {
+			setLoading(false);
+		}
+	}, [statusFilter, sampleLocation]);
+
+	useEffect(() => {
+		fetchOrders();
+	}, [fetchOrders]);
+
+	const act = async (orderId: number, actionPath: "submit" | "approve" | "hold" | "reject" | "convert" | "cancel", reason?: string) => {
+		setBusyId(orderId);
+		const response = await customFetchMutation(`entityorders/${orderId}/${actionPath}`, "POST", {
+			employeeid: reviewerId,
+			branchId: reviewerBranch ?? undefined,
+			...(reason ? { reason } : {}),
+		});
+		setBusyId(null);
+		if (response?.status === "success") {
+			toast.success(response?.message || "Order updated.");
+			fetchOrders();
+		} else {
+			toast.error(response?.message || "Unable to update this order.");
+		}
+	};
+
+	const askReason = (title: string) => {
+		const reason = window.prompt(title);
+		return reason && reason.trim() ? reason.trim() : null;
+	};
+
+	const orderTotal = (order: EntityOrder) =>
+		order.total ?? (order.lines || []).reduce((sum, l) => sum + Number(l.unit_price) * Number(l.quantity), 0);
+
+	const columns = useMemo(() => [
+		{
+			Header: "Patient",
+			accessor: "patientName",
+			Cell: ({ row }: { row: { original: EntityOrder } }) => {
+				return <div className="fw-bold">{row.original.patientName || `Patient #${row.original.patient_id}`}</div>
+			}
+		},
+		{
+			Header: "Billed to",
+			accessor: "entityName",
+			Cell: ({ row }: { row: { original: EntityOrder } }) => {
+				const order = row.original;
+				return (
+					<>
+						<span className="d-inline-flex align-items-center gap-1 fw-bold">
+							{order.entityName || `${order.entity_type} #${order.entity_id}`}
+						</span>
+						{order.notes && <div className="text-muted small">{order.notes}</div>}
+					</>
+				);
+			},
+		},
+		{
+			Header: "Tests",
+			accessor: "lines",
+			Cell: ({ row }: { row: { original: EntityOrder } }) => {
+				const lines = row.original.lines || [];
+				if (lines.length === 0) return "—";
+				return (
+					<button
+						type="button"
+						className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
+						onClick={() => setViewOrder(row.original)}
+					>
+						<RiFileList3Line size={14} />
+						<span>View {lines.length} test{lines.length === 1 ? "" : "s"}</span>
+					</button>
+				);
+			},
+		},
+		{
+			Header: "Total",
+			id: "total",
+			accessor: (row: EntityOrder) => orderTotal(row),
+			Cell: ({ value }: { value: number }) => <span className="fw-semibold">{value.toFixed(2)}</span>,
+		},
+		{
+			Header: "Sample",
+			accessor: "sample_location",
+			Cell: ({ value }: { value: EntityOrder["sample_location"] }) =>
+				value === "referrer" ? "Referrer" : "Center",
+		},
+		{
+			Header: "Status",
+			accessor: "status",
+			Cell: ({ row }: { row: { original: EntityOrder } }) => {
+				const order = row.original;
+				return (
+					<>
+						<span className="fw-semibold">{order.status}</span>
+						{order.status === "ON_HOLD" && order.decision_reason && (
+							<div className="small text-warning-emphasis mt-1">{order.decision_reason}</div>
+						)}
+						{order.status === "REJECTED" && order.decision_reason && (
+							<div className="small text-danger-emphasis mt-1">{order.decision_reason}</div>
+						)}
+						{order.status === "CONVERTED" && order.billing_id && (
+							<div className="small text-muted mt-1">Bill #{order.billing_id}</div>
+						)}
+					</>
+				);
+			},
+		},
+		{
+			Header: "Created",
+			accessor: "created_at",
+			Cell: ({ value }: { value: string }) => <span className="text-muted small">{value ? new Date(value).toLocaleString() : "—"}</span>,
+		},
+		{
+			Header: "Actions",
+			id: "actions",
+			Cell: ({ row }: { row: { original: EntityOrder } }) => {
+				const order = row.original;
+				return (
+					<div className="text-nowrap">
+						{(order.status === "PENDING" || order.status === "ON_HOLD") && (
+							<>
+								<Button size="sm" variant="success" className="me-1" disabled={busyId === order.id} onClick={() => act(order.id, "approve")}>
+									Approve
+								</Button>
+								<Button size="sm" variant="outline-warning" className="me-1" disabled={busyId === order.id} onClick={() => {
+									const reason = askReason("Reason for holding this order?");
+									if (reason) act(order.id, "hold", reason);
+								}}>
+									Hold
+								</Button>
+								<Button size="sm" variant="outline-danger" disabled={busyId === order.id} onClick={() => {
+									const reason = askReason("Reason for rejecting this order?");
+									if (reason) act(order.id, "reject", reason);
+								}}>
+									Reject
+								</Button>
+							</>
+						)}
+						{order.status === "APPROVED" && (
+							<Button size="sm" variant="primary" disabled={busyId === order.id} onClick={() => act(order.id, "convert")}>
+								{busyId === order.id ? "Converting…" : "Convert to bill"}
+							</Button>
+						)}
+						{(order.status === "DRAFT" || order.status === "PENDING" || order.status === "ON_HOLD") && (
+							<Button size="sm" variant="outline-danger" disabled={busyId === order.id} onClick={() => {
+								const reason = askReason("Reason for cancelling this order?");
+								if (reason) act(order.id, "cancel", reason);
+							}}>
+								Cancel
+							</Button>
+						)}
+					</div>
+				);
+			},
+		},
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	], [busyId]);
+
+	const viewOrderLines = viewOrder?.lines || [];
+
+	return (
+		<Container fluid className="py-3">
+			<Modal show={!!viewOrder} onHide={() => setViewOrder(null)} centered size="lg">
+				<Modal.Header closeButton>
+					<Modal.Title className="fs-6">
+					{viewOrderLines.length} test{viewOrderLines.length === 1 ? "" : "s"}
+					</Modal.Title>
+				</Modal.Header>
+				<Modal.Body className="px-3">
+					{viewOrder && (
+						<>
+							<div className="px-3 py-2 border-bottom text-muted small d-flex flex-wrap gap-3">
+								<span><strong>Patient:</strong> {viewOrder.patientName || `Patient #${viewOrder.patient_id}`}</span>
+								<span><strong>Billed to:</strong> {viewOrder.entityName || `${viewOrder.entity_type} #${viewOrder.entity_id}`}</span>
+								<span><strong>Sample:</strong> {viewOrder.sample_location === "referrer" ? "Referrer" : "Center"}</span>
+								<span><strong>Status:</strong> {viewOrder.status}</span>
+							</div>
+							<table className="table table-sm table-striped align-middle mb-0">
+								<thead>
+									<tr>
+										<th style={{ width: 40 }}>#</th>
+										<th>Test</th>
+										<th style={{ width: 80 }} className="text-center">Qty</th>
+										<th style={{ width: 120 }} className="text-end">Unit price</th>
+										<th style={{ width: 120 }} className="text-end">Line total</th>
+									</tr>
+								</thead>
+								<tbody>
+									{viewOrderLines.map((line, idx) => (
+										<tr key={line.id ?? idx}>
+											<td className="text-muted">{idx + 1}.</td>
+											<td>{line.test_name}</td>
+											<td className="text-center">{line.quantity}</td>
+											<td className="text-end">{Number(line.unit_price).toFixed(2)}</td>
+											<td className="text-end">{(Number(line.unit_price) * Number(line.quantity)).toFixed(2)}</td>
+										</tr>
+									))}
+								</tbody>
+								<tfoot>
+									<tr className="fw-bold border-top">
+										<td colSpan={4} className="text-end">Total</td>
+										<td className="text-end">{viewOrder ? orderTotal(viewOrder).toFixed(2) : "0.00"}</td>
+									</tr>
+								</tfoot>
+							</table>
+							{viewOrder.notes && <div className="px-3 py-2 border-top text-muted small"><strong>Notes:</strong> {viewOrder.notes}</div>}
+						</>
+					)}
+				</Modal.Body>
+				<Modal.Footer>
+					<Button variant="secondary" size="sm" onClick={() => setViewOrder(null)}>Close</Button>
+				</Modal.Footer>
+			</Modal>
+
+			<div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+				<div>
+					<strong>Entity Order Review</strong>
+					<div className="text-muted small">Approve, hold, reject, and convert clinician / organization lab orders to billing.</div>
+				</div>
+				<div className="d-flex gap-2 align-items-center flex-wrap">
+					<Form.Select size="sm" style={{ width: 210 }} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+						{STATUS_FILTERS.map((f) => (
+							<option key={f.value} value={f.value}>{f.label}</option>
+						))}
+					</Form.Select>
+					<Form.Select size="sm" style={{ width: 200 }} value={sampleLocation} onChange={(e) => setSampleLocation(e.target.value)}>
+						<option value="">Sample: any</option>
+						<option value="center">Sample: at center</option>
+						<option value="referrer">Sample: at referrer</option>
+					</Form.Select>
+					<Button size="sm" variant="outline-secondary" onClick={fetchOrders} disabled={loading}>
+						<RiRefreshLine size={16} />
+					</Button>
+				</div>
+			</div>
+
+			{loading ? (
+				<div className="text-muted small p-4 text-center">Loading orders…</div>
+			) : orders.length === 0 ? (
+				<div className="text-muted small p-5 text-center">
+					<RiInboxLine size={28} className="mb-2 d-block mx-auto" />
+					No orders match this filter.
+				</div>
+			) : (
+				<PrimeTable
+					column={columns}
+					data={orders}
+					filtering={true}
+					serverSideFiltering={true}
+					handleSeverSideProcessing={() => { }}
+				/>
+			)}
+		</Container>
+	);
+}

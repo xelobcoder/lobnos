@@ -59,6 +59,8 @@ export default function PharmacySellPage() {
      const [query, setQuery] = useState('');
      const [loading, setLoading] = useState(false);
      const [cart, setCart] = useState<CartLine[]>([]);
+     // Local cache of the catalogue loaded on mount (and grown by backend fallback searches), filtered client-side as the user types.
+     const [catalogueCache, setCatalogueCache] = useState<Medicine[]>([]);
      const [catalogue, setCatalogue] = useState<Medicine[]>([]);
      const [customerName, setCustomerName] = useState('');
      const [paymentMethod, setPaymentMethod] = useState('cash');
@@ -71,17 +73,67 @@ export default function PharmacySellPage() {
      const subtotal = cart.reduce((total, line) => total + line.salePrice * line.quantity, 0);
      const totalUnits = cart.reduce((total, line) => total + line.quantity, 0);
 
-     // Debounced search catalogue with stale request protection
+     const matchesQuery = (medicine: Medicine, needle: string) =>
+          medicine.name.toLowerCase().includes(needle);
+
+     // Load a sizeable batch of the catalogue once on mount so most searches can be answered locally.
      useEffect(() => {
+          let active = true;
+          (async () => {
+               setLoading(true);
+               setError('');
+               try {
+                    const response = await customFetch('pharmacy/catalogue?count=300');
+                    if (!active) return;
+                    if (response?.success) {
+                         const items: Medicine[] = response.data.items || [];
+                         setCatalogueCache(items);
+                         setCatalogue(items.slice(0, 50));
+                    } else {
+                         setError(response?.error?.message || 'Unable to load the pharmacy catalogue.');
+                    }
+               } catch {
+                    if (active) setError('Unable to load the pharmacy catalogue.');
+               } finally {
+                    if (active) setLoading(false);
+               }
+          })();
+          return () => {
+               active = false;
+          };
+     }, []);
+
+     // Filter the local cache first; only fall back to the backend (debounced) when nothing matches locally.
+     useEffect(() => {
+          const term = query.trim().toLowerCase();
+
+          if (!term) {
+               setCatalogue(catalogueCache.slice(0, 50));
+               return;
+          }
+
+          const localMatches = catalogueCache.filter((medicine) => matchesQuery(medicine, term));
+          if (localMatches.length > 0) {
+               setCatalogue(localMatches);
+               return;
+          }
+
           let active = true;
           const timer = window.setTimeout(async () => {
                setLoading(true);
                setError('');
                try {
-                    const response = await customFetch(`pharmacy/catalogue?count=100&search=${encodeURIComponent(query.trim())}`);
+                    const response = await customFetch(`pharmacy/catalogue?count=50&search=${encodeURIComponent(term)}`);
                     if (!active) return;
                     if (response?.success) {
-                         setCatalogue(response.data.items || []);
+                         const items: Medicine[] = response.data.items || [];
+                         setCatalogue(items);
+                         // Merge newly discovered items into the cache so future keystrokes can find them locally.
+                         setCatalogueCache((current) => {
+                              const existingIds = new Set(current.map((item) => item.inventoryItemId));
+                              const additions = items.filter((item) => !existingIds.has(item.inventoryItemId));
+                              return additions.length ? [...current, ...additions] : current;
+                         });
                     } else {
                          setError(response?.error?.message || 'Unable to load the pharmacy catalogue.');
                          setCatalogue([]);
@@ -94,13 +146,13 @@ export default function PharmacySellPage() {
                } finally {
                     if (active) setLoading(false);
                }
-          }, 180);
+          }, 250);
 
           return () => {
                active = false;
                window.clearTimeout(timer);
           };
-     }, [query]);
+     }, [query, catalogueCache]);
 
      const addMedicine = (medicine: Medicine) => {
           setReceipt(null);
@@ -413,11 +465,11 @@ export default function PharmacySellPage() {
                {receipt && (
                     <div
                          className="modal d-block animate-fade-in"
-                         role="dialog"
+                         // role="dialog"
                          aria-modal="true"
                          style={{ backgroundColor: 'rgba(23, 33, 38, 0.5)', zIndex: 1060 }}
                     >
-                         <div className="modal-dialog modal-dialog-centered">
+                         <div className="modal-dialog mt-3">
                               <div className="modal-content border" style={{ borderRadius: '6px', borderColor: '#212529' }}>
                                    <div className="modal-body p-4 text-center">
                                         <RiCheckboxCircleLine size={44} className="mb-3 text-success" />

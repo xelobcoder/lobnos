@@ -418,6 +418,11 @@ const CrmLinks: Link[] = [
                     icon: <RiBillFill />
                },
                {
+                    title: "Entity Order Review",
+                    link: "/billing/entity-orders",
+                    icon: <RiBillFill />
+               },
+               {
                     title: 'Sales Session',
                     link: '/billing/billing-sessions/sales-session',
                     icon: <RiScales2Fill />
@@ -755,7 +760,9 @@ const ConsulationLinks: Link[] = [
 const DoctorsPortalLinks: Link[] = [
      { title: 'Consulations', link: '/doctor/consultation/allconsultations', icon: <RiFileListLine /> },
      { title: "Consult", link: '/doctor/consultation', icon: <RiAddBoxLine /> },
-     { title: 'Pending Consultations', link: "/doctor/consultation/clients/pending", icon: <RiTimeLine /> }
+     { title: 'Pending Consultations', link: "/doctor/consultation/clients/pending", icon: <RiTimeLine /> },
+     { title: 'Order Lab Test', link: '/doctor/order-lab', icon: <RiTestTubeLine /> },
+     { title: 'Order Drugs', link: '/doctor/order-drugs', icon: <RiMedicineBottleLine /> }
 ];
 
 // Billing Links
@@ -853,6 +860,11 @@ const BillingSalesLink: Link[] = [
      {
           title: "Billing ",
           link: "/billing/patientid",
+          icon: <RiBillFill />
+     },
+     {
+          title: "Entity Order Review",
+          link: "/billing/entity-orders",
           icon: <RiBillFill />
      },
 

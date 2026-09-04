@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useCallback, useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { RiAlarmWarningLine, RiCloseLine, RiMedicineBottleLine, RiSearchLine, RiTruckLine } from '@remixicon/react';
 import Link from 'next/link';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
@@ -33,6 +33,7 @@ const currency = new Intl.NumberFormat('en-GH', { style: 'currency', currency: '
 const DEFAULT_PAGE_SIZE = 20;
 
 export default function PharmacyStockPage() {
+     const router = useRouter();
      const searchParams = useSearchParams();
      const lowStockOnly = searchParams.get('filter') === 'low';
 
@@ -41,6 +42,31 @@ export default function PharmacyStockPage() {
      const [items, setItems] = useState<StockItem[]>([]);
      const [summary, setSummary] = useState<StockSummary>({ totalItems: 0, inStock: 0, lowStock: 0, outOfStock: 0 });
      const [error, setError] = useState('');
+     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+     const toggleSelected = (id: string) =>
+          setSelectedIds((current) => {
+               const next = new Set(current);
+               if (next.has(id)) next.delete(id); else next.add(id);
+               return next;
+          });
+
+     const allOnPageSelected = items.length > 0 && items.every((item) => selectedIds.has(item.inventoryItemId));
+     const toggleSelectAllOnPage = () =>
+          setSelectedIds((current) => {
+               const next = new Set(current);
+               if (allOnPageSelected) {
+                    items.forEach((item) => next.delete(item.inventoryItemId));
+               } else {
+                    items.forEach((item) => next.add(item.inventoryItemId));
+               }
+               return next;
+          });
+
+     const restockSelected = () => {
+          if (selectedIds.size === 0) return;
+          router.push(`/inventory/orders?restockItemIds=${encodeURIComponent(Array.from(selectedIds).join(','))}`);
+     };
 
      const loadStock = useCallback(
           async (page = 1, count = DEFAULT_PAGE_SIZE, search = '') => {
@@ -88,6 +114,27 @@ export default function PharmacyStockPage() {
      ];
 
      const columns = [
+          {
+               Header: () => (
+                    <input
+                         type="checkbox"
+                         className="form-check-input"
+                         checked={allOnPageSelected}
+                         onChange={toggleSelectAllOnPage}
+                         aria-label="Select all items on this page"
+                    />
+               ),
+               accessor: 'select',
+               Cell: ({ row }: { row: { original: StockItem } }) => (
+                    <input
+                         type="checkbox"
+                         className="form-check-input"
+                         checked={selectedIds.has(row.original.inventoryItemId)}
+                         onChange={() => toggleSelected(row.original.inventoryItemId)}
+                         aria-label={`Select ${row.original.name}`}
+                    />
+               ),
+          },
           {
                Header: 'Item',
                accessor: 'name',
@@ -138,6 +185,15 @@ export default function PharmacyStockPage() {
                                    : 'Live stock position for every item in the Pharmacy category.'}
                          </small>
                     </div>
+                    <button
+                         type="button"
+                         className="btn btn-primary d-flex align-items-center gap-2"
+                         disabled={selectedIds.size === 0}
+                         onClick={restockSelected}
+                    >
+                         <RiTruckLine size={18} />
+                         Restock selected {selectedIds.size > 0 ? `(${selectedIds.size})` : ''}
+                    </button>
                     <form className="d-flex gap-2" onSubmit={submitSearch} role="search">
                          <div className="input-group" style={{ minWidth: '280px' }}>
                               <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: 'var(--bs-border-color)' }}>

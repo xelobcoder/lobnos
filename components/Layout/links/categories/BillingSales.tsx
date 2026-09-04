@@ -35,6 +35,11 @@ export const BillingSalesLink: Link[] = [
         link: "/billing/patientid",
         icon: <RiBillFill />
     },
+    {
+        title: "Entity Order Review",
+        link: "/billing/entity-orders",
+        icon: <RiBillFill />
+    },
    
     {
         title: "Expenses",

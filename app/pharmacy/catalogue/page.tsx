@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { RiCloseLine, RiMedicineBottleLine, RiSearchLine, RiShoppingCartLine, RiTruckLine } from '@remixicon/react';
 import Link from 'next/link';
 import { customFetch } from '../../../components/Auth/customFetch';
@@ -40,6 +41,7 @@ const SORT_FIELDS: { value: SortField; label: string }[] = [
 ];
 
 export default function PharmacyCataloguePage() {
+     const router = useRouter();
      const [searchTerm, setSearchTerm] = useState('');
      const [appliedSearch, setAppliedSearch] = useState('');
      const [sortBy, setSortBy] = useState<SortField>('name');
@@ -47,6 +49,31 @@ export default function PharmacyCataloguePage() {
      const [items, setItems] = useState<CatalogueItem[]>([]);
      const [total, setTotal] = useState(0);
      const [error, setError] = useState('');
+     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+     const toggleSelected = (id: string) =>
+          setSelectedIds((current) => {
+               const next = new Set(current);
+               if (next.has(id)) next.delete(id); else next.add(id);
+               return next;
+          });
+
+     const allOnPageSelected = items.length > 0 && items.every((item) => selectedIds.has(item.inventoryItemId));
+     const toggleSelectAllOnPage = () =>
+          setSelectedIds((current) => {
+               const next = new Set(current);
+               if (allOnPageSelected) {
+                    items.forEach((item) => next.delete(item.inventoryItemId));
+               } else {
+                    items.forEach((item) => next.add(item.inventoryItemId));
+               }
+               return next;
+          });
+
+     const restockSelected = () => {
+          if (selectedIds.size === 0) return;
+          router.push(`/inventory/orders?restockItemIds=${encodeURIComponent(Array.from(selectedIds).join(','))}`);
+     };
 
      const loadCatalogue = useCallback(
           async (page = 1, count = DEFAULT_PAGE_SIZE, search = '', field: SortField = 'name', direction: SortDirection = 'asc') => {
@@ -86,6 +113,27 @@ export default function PharmacyCataloguePage() {
      };
 
      const columns = [
+          {
+               Header: () => (
+                    <input
+                         type="checkbox"
+                         className="form-check-input"
+                         checked={allOnPageSelected}
+                         onChange={toggleSelectAllOnPage}
+                         aria-label="Select all items on this page"
+                    />
+               ),
+               accessor: 'select',
+               Cell: ({ row }: { row: { original: CatalogueItem } }) => (
+                    <input
+                         type="checkbox"
+                         className="form-check-input"
+                         checked={selectedIds.has(row.original.inventoryItemId)}
+                         onChange={() => toggleSelected(row.original.inventoryItemId)}
+                         aria-label={`Select ${row.original.name}`}
+                    />
+               ),
+          },
           {
                Header: 'Item',
                accessor: 'name',
@@ -183,6 +231,15 @@ export default function PharmacyCataloguePage() {
                               <RiShoppingCartLine size={18} />
                               Sell
                          </Link>
+                         <button
+                              type="button"
+                              className="btn btn-primary d-flex align-items-center gap-2"
+                              disabled={selectedIds.size === 0}
+                              onClick={restockSelected}
+                         >
+                              <RiTruckLine size={18} />
+                              Restock selected {selectedIds.size > 0 ? `(${selectedIds.size})` : ''}
+                         </button>
                     </div>
                </div>
 

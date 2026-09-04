@@ -1,11 +1,13 @@
 import { Link } from '../types';
-import { RiDashboardLine, RiFileListLine, RiMoneyDollarCircleLine, RiShieldUserLine, RiStethoscopeLine, RiTimeLine } from '@remixicon/react';
+import { RiDashboardLine, RiFileListLine, RiMedicineBottleLine, RiMoneyDollarCircleLine, RiShieldUserLine, RiStethoscopeLine, RiTestTubeLine, RiTimeLine } from '@remixicon/react';
 
 export const ConsulationLinks: Link[] = [
     {
         title: "Doctor Portal", link: "/doctor", icon: <RiStethoscopeLine />, children: [
             { title: 'Overview', link: '/doctor', icon: <RiDashboardLine /> },
             { title: 'Requested Tests', link: '/doctor/requested-test', icon: <RiFileListLine /> },
+            { title: 'Order Lab Test', link: '/doctor/order-lab', icon: <RiTestTubeLine /> },
+            { title: 'Order Drugs', link: '/doctor/order-drugs', icon: <RiMedicineBottleLine /> },
             { title: 'Permissions', link: '/doctor/permissions', icon: <RiShieldUserLine /> },
             { title: 'Commission', link: '/doctor/commission', icon: <RiMoneyDollarCircleLine /> },
             { title: "Validated Results", link: "/doctor/validated-test-results", icon: <RiFileListLine /> },

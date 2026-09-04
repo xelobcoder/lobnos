@@ -167,6 +167,7 @@ export default function PurchaseOrdersPage() {
      const router = useRouter();
      const searchParams = useSearchParams();
      const restockItemId = searchParams.get('restockItemId');
+     const restockItemIds = searchParams.get('restockItemIds');
      const [restockApplied, setRestockApplied] = useState(false);
      const { applicationsettings } = useApplicationSettings();
      const employeeid = applicationsettings?.user?.employeeid;
@@ -408,15 +409,23 @@ export default function PurchaseOrdersPage() {
           }
      }, [branchid, employeeid]);
 
-     // Deep link from stock screens: open a draft order pre-seeded with the item to restock.
+     // Deep link from stock screens: open a draft order pre-seeded with the item(s) to restock.
      useEffect(() => {
-          if (!restockItemId || restockApplied || inventoryItems.length === 0) return;
-          const item = inventoryItems.find(inventoryItem => inventoryItem.id === restockItemId);
-          if (!item) return;
+          const requestedIds = restockItemIds
+               ? restockItemIds.split(',').map((id) => id.trim()).filter(Boolean)
+               : restockItemId
+                    ? [restockItemId]
+                    : [];
+          if (requestedIds.length === 0 || restockApplied || inventoryItems.length === 0) return;
+
+          const matchedItems = requestedIds
+               .map((id) => inventoryItems.find(inventoryItem => inventoryItem.id === id))
+               .filter((item): item is InventoryItem => Boolean(item));
+          if (matchedItems.length === 0) return;
 
           setOrderForm(prev => ({
                ...prev,
-               items: [{
+               items: matchedItems.map(item => ({
                     itemId: item.id,
                     itemName: item.name,
                     brand: item.brand,
@@ -425,11 +434,11 @@ export default function PurchaseOrdersPage() {
                     unit: item.unit,
                     discountRate: 0,
                     taxRate: 0
-               }]
+               }))
           }));
           setShowOrderModal(true);
           setRestockApplied(true);
-     }, [restockItemId, restockApplied, inventoryItems]);
+     }, [restockItemId, restockItemIds, restockApplied, inventoryItems]);
 
      // Trigger table refresh when filters change
      useEffect(() => {

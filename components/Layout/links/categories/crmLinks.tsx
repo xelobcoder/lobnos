@@ -76,6 +76,11 @@ export const CrmLinks: Link[] = [
                 icon: <RiBillFill />
             },
             {
+                title: "Entity Order Review",
+                link: "/billing/entity-orders",
+                icon: <RiBillFill />
+            },
+            {
                 title: 'Sales Session',
                 link: '/billing/billing-sessions/sales-session',
                 icon: <RiScales2Fill />
