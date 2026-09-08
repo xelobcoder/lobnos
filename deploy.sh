@@ -6,7 +6,7 @@ echo "======================================"
 echo "PrimeLabSys deployment started"
 echo "======================================"
 
-echoecho
+echo
 echo "Fetching the latest changes..."
 git fetch origin
 
