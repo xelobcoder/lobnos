@@ -36,6 +36,12 @@ interface Props {
 	 * ordering clinician regardless of this flag.
 	 */
 	showReviewActions?: boolean;
+	/**
+	 * When false, the previous-orders tracking table is hidden (use on the creation
+	 * page where only ordering matters; the clinician's order history lives on the
+	 * dedicated "My Lab Orders" page). Defaults to true.
+	 */
+	showTracking?: boolean;
 }
 
 /**
@@ -44,7 +50,7 @@ interface Props {
  * to link the order to an in-progress consultation. Prices come from the
  * logged-in clinician's billing strategy (existing billing-strategy endpoints).
  */
-export default function LabOrdersPanel({ patientid, consultationid = null, showReviewActions = false }: Props) {
+export default function LabOrdersPanel({ patientid, consultationid = null, showReviewActions = false, showTracking = true }: Props) {
 	const branchid = useApplicationSettings().applicationsettings?.branchid;
 	const userCtx = useApplicationSettings().applicationsettings?.user;
 	const clinicianid = Number(userCtx?.clinicianid ?? userCtx?.id ?? userCtx?.employeeid ?? 0);
@@ -135,9 +141,9 @@ export default function LabOrdersPanel({ patientid, consultationid = null, showR
 	};
 
 	useEffect(() => {
-		if (patientid) fetchEntityOrders();
+		if (patientid && showTracking) fetchEntityOrders();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [patientid]);
+	}, [patientid, showTracking]);
 
 	const saveEntityOrder = async () => {
 		if (!clinicianid) {
@@ -330,8 +336,9 @@ export default function LabOrdersPanel({ patientid, consultationid = null, showR
 			)}
 
 			{/* Tracking table */}
-			<div className="mt-4">
-				<div className={styles.panelTitle}>Order Tracking</div>
+			{showTracking && (
+				<div className="mt-4">
+					<div className={styles.panelTitle}>Order Tracking</div>
 				<div className={styles.panelSubtitle}>
 					Orders created from this patient by clinicians and organizations, and where each one is in the review → convert flow.
 				</div>
@@ -405,7 +412,8 @@ export default function LabOrdersPanel({ patientid, consultationid = null, showR
 						</tbody>
 					</table>
 				)}
-			</div>
+				</div>
+			)}
 		</div>
 	);
 }

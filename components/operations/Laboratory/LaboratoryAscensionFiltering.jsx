@@ -21,15 +21,23 @@ export default function LaboratoryAscensionFiltering({ ascension_stage, clinicia
 
 
        useEffect(() => {
-              _getAscensionData(ascension_stage, employeeid, branchid,{
+              _getAscensionData(ascension_stage, employeeid, branchid, {
                      clinicianId: clinicianId || null,
               });
               setLoadCounter((prev) => prev + 1);
        }, [ascension_stage, employeeid]);
+       
+       useEffect(() => {
+              setQueryParams((prev) =>
+                     prev.clinicianId === (clinicianId || null)
+                            ? prev
+                            : { ...prev, clinicianId: clinicianId || null }
+              );
+       }, [clinicianId]);
 
        useEffect(() => {
               if (loadCounter > 0) {
-                     _getAscensionData(ascension_stage, employeeid, branchid,{
+                     _getAscensionData(ascension_stage, employeeid, branchid, {
                             clinicianId: clinicianId || null,
                      });
               }
@@ -223,6 +231,7 @@ export default function LaboratoryAscensionFiltering({ ascension_stage, clinicia
                                                  ascensionid: queryParams.ascensionid,
                                                  patientid: queryParams.patientid,
                                                  billingid: queryParams.billingid,
+                                                 clinicianId: clinicianId || null,
                                                  [category.section]: category.value,
                                                  grouped: queryParams.grouped ||
                                                         "grouped",

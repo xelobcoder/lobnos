@@ -3,11 +3,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { Container, Form, Button, Modal } from "react-bootstrap";
-import { customFetch } from "../../../components/Auth/customFetch";
+import { currencyFormatter, customFetch } from "../../../components/Auth/customFetch";
 import { customFetchMutation } from "../../../components/Auth/customFetch";
 import { useApplicationSettings } from "../../../components/Auth/useApplicationContext";
 import { RiRefreshLine, RiInboxLine, RiUser3Line, RiBuildingLine, RiFileList3Line } from "@remixicon/react";
 import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
+import { stat } from "fs";
 
 
 type EntityOrder = {
@@ -56,6 +57,10 @@ export default function EntityOrdersReviewPage() {
 	const [loading, setLoading] = useState(false);
 	const [busyId, setBusyId] = useState<number | null>(null);
 	const [viewOrder, setViewOrder] = useState<EntityOrder | null>(null);
+	const [page, setPage] = useState(1);
+	const [count, setCount] = useState(10);
+	const [totalPages, setTotalPages] = useState(1);
+	const [total, setTotal] = useState(0);
 
 	const fetchOrders = useCallback(async () => {
 		setLoading(true);
@@ -64,19 +69,47 @@ export default function EntityOrdersReviewPage() {
 			if (statusFilter === "pending") params.set("pendingReview", "1");
 			else if (statusFilter !== "all") params.set("status", statusFilter);
 			if (sampleLocation) params.set("sampleLocation", sampleLocation);
+			params.set("page", String(page));
+			params.set("count", String(count));
 			const response = await customFetch(`entityorders?${params.toString()}`);
 			setOrders(response?.result || []);
+			setTotal(Number(response?.total ?? 0));
+			setTotalPages(Number(response?.totalPages ?? 1));
 		} catch {
 			setOrders([]);
 			toast.error("Unable to load entity orders.");
 		} finally {
 			setLoading(false);
 		}
+	}, [statusFilter, sampleLocation, page, count]);
+
+	useEffect(() => {
+		setPage(1);
 	}, [statusFilter, sampleLocation]);
 
 	useEffect(() => {
 		fetchOrders();
 	}, [fetchOrders]);
+
+	const handleServerSide = async (input: any) => {
+		try {
+			const { page: p, count: c } = input;
+			const params = new URLSearchParams();
+			if (statusFilter === "pending") params.set("pendingReview", "1");
+			else if (statusFilter !== "all") params.set("status", statusFilter);
+			if (sampleLocation) params.set("sampleLocation", sampleLocation);
+			params.set("page", String(p));
+			params.set("count", String(c));
+			const response = await customFetch(`entityorders?${params.toString()}`);
+			const { statusCode, result } = response;
+			if (response && statusCode === 200 && Array.isArray(result)) {
+				return { result, error: false };
+			}
+			return { result: [], error: false };
+		} catch (err) {
+			return { result: [], error: true };
+		}
+	};
 
 	const act = async (orderId: number, actionPath: "submit" | "approve" | "hold" | "reject" | "convert" | "cancel", reason?: string) => {
 		setBusyId(orderId);
@@ -147,7 +180,7 @@ export default function EntityOrdersReviewPage() {
 			Header: "Total",
 			id: "total",
 			accessor: (row: EntityOrder) => orderTotal(row),
-			Cell: ({ value }: { value: number }) => <span className="fw-semibold">{value.toFixed(2)}</span>,
+			Cell: ({ value }: { value: number }) => <span className="fw-semibold">{currencyFormatter.format(value)}</span>,
 		},
 		{
 			Header: "Sample",
@@ -231,10 +264,10 @@ export default function EntityOrdersReviewPage() {
 
 	return (
 		<Container fluid className="py-3">
-			<Modal show={!!viewOrder} onHide={() => setViewOrder(null)} centered size="lg">
+			<Modal   show={!!viewOrder} onHide={() => setViewOrder(null)} top size="lg">
 				<Modal.Header closeButton>
 					<Modal.Title className="fs-6">
-					{viewOrderLines.length} test{viewOrderLines.length === 1 ? "" : "s"}
+						{viewOrderLines.length} test{viewOrderLines.length === 1 ? "" : "s"}
 					</Modal.Title>
 				</Modal.Header>
 				<Modal.Body className="px-3">
@@ -263,14 +296,14 @@ export default function EntityOrdersReviewPage() {
 											<td>{line.test_name}</td>
 											<td className="text-center">{line.quantity}</td>
 											<td className="text-end">{Number(line.unit_price).toFixed(2)}</td>
-											<td className="text-end">{(Number(line.unit_price) * Number(line.quantity)).toFixed(2)}</td>
+											<td className="text-end">{currencyFormatter.format(Number(line.unit_price) * Number(line.quantity))}</td>
 										</tr>
 									))}
 								</tbody>
 								<tfoot>
 									<tr className="fw-bold border-top">
 										<td colSpan={4} className="text-end">Total</td>
-										<td className="text-end">{viewOrder ? orderTotal(viewOrder).toFixed(2) : "0.00"}</td>
+										<td className="text-end">{viewOrder ? currencyFormatter.format(orderTotal(viewOrder)) : currencyFormatter.format(0)}</td>
 									</tr>
 								</tfoot>
 							</table>
@@ -305,7 +338,7 @@ export default function EntityOrdersReviewPage() {
 				</div>
 			</div>
 
-			{loading ? (
+			{loading && orders.length === 0 ? (
 				<div className="text-muted small p-4 text-center">Loading orders…</div>
 			) : orders.length === 0 ? (
 				<div className="text-muted small p-5 text-center">
@@ -313,13 +346,22 @@ export default function EntityOrdersReviewPage() {
 					No orders match this filter.
 				</div>
 			) : (
-				<PrimeTable
-					column={columns}
-					data={orders}
-					filtering={true}
-					serverSideFiltering={true}
-					handleSeverSideProcessing={() => { }}
-				/>
+				<>
+					<PrimeTable
+						column={columns}
+						data={orders}
+						filtering={false}
+
+						urlparams={{ statusFilter: statusFilter, sampleLocation: sampleLocation }}
+						serverSideFiltering={true}
+						handleSeverSideProcessing={handleServerSide}
+					/>
+					<div className="d-flex justify-content-between align-items-center text-muted small mt-2 px-1">
+						<span>
+							{loading ? "Refreshing…" : `Showing ${orders.length} of ${total} order${total === 1 ? "" : "s"} — page ${page} of ${totalPages}`}
+						</span>
+					</div>
+				</>
 			)}
 		</Container>
 	);

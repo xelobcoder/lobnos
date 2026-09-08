@@ -206,7 +206,7 @@ export default function DrugOrderPanel({ patientid, consultationid = null }: Pro
 			</Form.Group>
 
 			<div className={styles.submitRow}>
-				<div className={styles.submitHint}>Sending a request immediately reflects it in the pharmacy's fulfillment queue for this patient.</div>
+				<div className={styles.submitHint}>Sending a request immediately reflects it in the pharmacy&apos;s fulfillment queue for this patient.</div>
 				<Button variant="primary" disabled={isSubmittingDrugOrder || drugOrderLines.length === 0} onClick={submitDrugOrder}>
 					{isSubmittingDrugOrder ? "Sending..." : "Send request to pharmacy"}
 				</Button>

@@ -12,7 +12,7 @@ const ConsultationRecordsTable = () => {
     const [loading, setLoading] = useState(false);
     const [pagination, setPagination] = useState({ page: 1, count: 10 });
     const [totalRecords, setTotalRecords] = useState(0);
-    const [selectedRecord, setSelectedRecord] = useState(null);
+    const [selectedRecord, setSelectedRecord] = useState<any>(null);
     const [showModal, setShowModal] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -54,7 +54,7 @@ const ConsultationRecordsTable = () => {
         fetchConsultationRecords();
     }, [pagination]);
 
-    const handleRowClick = (record) => {
+    const handleRowClick = (record: any) => {
         setSelectedRecord(record);
         setShowModal(true);
     };

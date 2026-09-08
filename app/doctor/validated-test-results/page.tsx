@@ -8,6 +8,7 @@ import ValidatedResultTable from "../../../components/operations/Laboratory/vali
 export default function ValidatedResult() {
      const { applicationsettings } = useApplicationSettings();
      const { user, branchid } = applicationsettings
+
      return (
           <div className="p-2 container-fluid">
                <LaboratoryStagesProvider>

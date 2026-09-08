@@ -5,13 +5,14 @@ import { loadOptions } from "../../../lib/appointment";
 import { reactSelectCustomStyles } from "../../Auth/customFetch";
 
 const fieldMapping = {
+	"mobile number": "mobile_number",
+	"fullname": "fullname",
 	"patientid": "patientid",
 	"firstname": "firstname",
 	"lastname": "lastname",
 	"middlename": "middlename",
 	"fullpatientid": "fullpatientid",
 	"email": "email",
-	"mobile_number": "mobile_number",
 	"gender": "gender",
 	"maritalstatus": "marital_status",
 	"patientOrganization": "organization",
@@ -52,8 +53,8 @@ export default function PatientFiltered({ getSelectedPatient, isDisabled = false
 
 
 	const handleSubmitSelected = () => {
-		  getSelectedPatient(selectedPatients.map(p => p.export));
-		  setShowModal(false);
+		getSelectedPatient(selectedPatients.map(p => p.export));
+		setShowModal(false);
 	};
 
 	const loadClientOptions = async (inputValue) => {
@@ -132,7 +133,7 @@ export default function PatientFiltered({ getSelectedPatient, isDisabled = false
 	return (
 		<div style={{ fontFamily: "candara" }} className={wrapped ? "border p-3 rounded bg-white" : ""}>
 			<div className="row g-2">
-				<div className="col-md-2">
+				<div className="col-md-3">
 					<label htmlFor="filterField" className="form-label">Filter By Field</label>
 					<select
 						id="filterField"
@@ -173,7 +174,7 @@ export default function PatientFiltered({ getSelectedPatient, isDisabled = false
 								min={startDate}
 							/>
 						</div>
-						<div className="col-md-4">
+						<div className="col-md-3">
 							<label className="form-label">&nbsp;</label>
 							<button
 								className="btn btn-outline-secondary w-100"
@@ -189,7 +190,7 @@ export default function PatientFiltered({ getSelectedPatient, isDisabled = false
 						</div>
 					</>
 				) : (
-					<div className="col-md-10">
+					<div className="col-md-9">
 						<label className="form-label">&nbsp;</label>
 						{
 							isClient && <AsyncSelect

@@ -2,9 +2,9 @@
 
 import React, { useState } from "react";
 import { Container } from "react-bootstrap";
-import PatientFiltered from "../../../../components/accessories/SectorFileringComponents/CustomerFiltering";
-import DrugOrderPanel from "../../../../components/doctor/DrugOrderPanel";
-import PreviewPatientInformation from "../../../../components/petientsComponent/PreviewPatientInformation";
+import PatientFiltered from "../../../components/accessories/SectorFileringComponents/CustomerFiltering";
+import DrugOrderPanel from "../../../components/doctor/DrugOrderPanel";
+import PreviewPatientInformation from "../../../components/petientsComponent/PreviewPatientInformation";
 
 /**
  * Standalone drug ordering — send a prescription to the pharmacy for a patient
@@ -25,7 +25,7 @@ export default function StandaloneDrugOrderPage() {
 	return (
 		<Container fluid className="py-3">
 			<div className="row g-3">
-				<div className="col-lg-4 col-xl-3">
+				<div className="col-lg-12 col-xl-12">
 					<PatientFiltered isDisabled={false} getSelectedPatient={handleSelectedPatient} />
 				</div>
 				<div className="col-lg-8 col-xl-9">

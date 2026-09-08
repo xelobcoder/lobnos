@@ -25,16 +25,16 @@ export default function StandaloneLabOrderPage() {
 	return (
 		<Container fluid className="py-3">
 			<div className="row g-3">
-				<div className="col-lg-4 col-xl-3">
+				<div className="col-lg-12 col-xl-12">
 					<PatientFiltered isDisabled={false} getSelectedPatient={handleSelectedPatient} />
 				</div>
-				<div className="col-lg-8 col-xl-9">
+				<div className="col-lg-12 col-xl-12">
 					{selectedPatient ? (
 						<>
 							<div className="mb-2">
 								<PreviewPatientInformation patientid={selectedPatient.patientid} compact />
 							</div>
-							<LabOrdersPanel patientid={selectedPatient.patientid} consultationid={null} />
+							<LabOrdersPanel patientid={selectedPatient.patientid} consultationid={null} showTracking={false} />
 						</>
 					) : (
 						<div className="text-muted small py-5 text-center border rounded">
