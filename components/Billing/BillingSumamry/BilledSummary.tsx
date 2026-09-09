@@ -151,6 +151,7 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 	const [isVisible, setIsVisible] = useState<boolean>(true);
 	const role = useApplication()?.user?.role;
 	const isAdmin = role === "admin" || role === "manager"
+	const canViewExpenseMetrics = ["admin", "accountant"].includes((role || "").trim().toLowerCase());
 
 	useEffect(() => {
 		if (summary) {
@@ -276,15 +277,17 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 
 						{/* Second Row - 4 Cards */}
 						<div className="row g-3">
-							<div className="col-md-6 col-lg-3">
-								<AnalyticCard
-									title="Expenses Paid"
-									value={Number(internalSummary.expenses_paid)}
-									Icon={RiMoneyDollarCircleLine}
-									bgColor={cardColors.expenses.bg}
-									iconColor={cardColors.expenses.icon}
-								/>
-							</div>
+							{canViewExpenseMetrics && (
+								<div className="col-md-6 col-lg-3">
+									<AnalyticCard
+										title="Expenses Paid"
+										value={Number(internalSummary.expenses_paid)}
+										Icon={RiMoneyDollarCircleLine}
+										bgColor={cardColors.expenses.bg}
+										iconColor={cardColors.expenses.icon}
+									/>
+								</div>
+							)}
 							<div className="col-md-6 col-lg-3">
 								<AnalyticCard
 									title="Earned Revenue"
@@ -303,15 +306,17 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 									iconColor={cardColors.discount.icon}
 								/>
 							</div>
-							<div className="col-md-6 col-lg-3">
-								<AnalyticCard
-									title="Net Operating Cash"
-									value={Number(internalSummary.net_operating_cash)}
-									Icon={RiBarChartLine}
-									bgColor={cardColors.net.bg}
-									iconColor={cardColors.net.icon}
-								/>
-							</div>
+							{canViewExpenseMetrics && (
+								<div className="col-md-6 col-lg-3">
+									<AnalyticCard
+										title="Net Operating Cash"
+										value={Number(internalSummary.net_operating_cash)}
+										Icon={RiBarChartLine}
+										bgColor={cardColors.net.bg}
+										iconColor={cardColors.net.icon}
+									/>
+								</div>
+							)}
 						</div>
 					</div>
 
@@ -433,28 +438,30 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 								</div>
 							</div>
 
-							<div className="list-group-item px-3 py-2 border-0">
-								<div className="d-flex justify-content-between align-items-center">
-									<div className="d-flex align-items-center gap-2">
-										<div
-											className="d-flex align-items-center justify-content-center"
-											style={{
-												background: cardColors.expenses.bg,
-												padding: "4px",
-												borderRadius: "4px",
-												width: "24px",
-												height: "24px",
-											}}
-										>
-											<RiMoneyDollarCircleLine style={{ fontSize: "0.8rem", color: "white" }} />
+							{canViewExpenseMetrics && (
+								<div className="list-group-item px-3 py-2 border-0">
+									<div className="d-flex justify-content-between align-items-center">
+										<div className="d-flex align-items-center gap-2">
+											<div
+												className="d-flex align-items-center justify-content-center"
+												style={{
+													background: cardColors.expenses.bg,
+													padding: "4px",
+													borderRadius: "4px",
+													width: "24px",
+													height: "24px",
+												}}
+											>
+												<RiMoneyDollarCircleLine style={{ fontSize: "0.8rem", color: "white" }} />
+											</div>
+											<span className="small fw-medium text-muted">Expenses Paid</span>
 										</div>
-										<span className="small fw-medium text-muted">Expenses Paid</span>
+										<span className="fw-semibold text-dark small">
+											{currencyFormatter.format(Number(internalSummary.expenses_paid) || 0)}
+										</span>
 									</div>
-									<span className="fw-semibold text-dark small">
-										{currencyFormatter.format(Number(internalSummary.expenses_paid) || 0)}
-									</span>
 								</div>
-							</div>
+							)}
 
 							<div className="list-group-item px-3 py-2 border-0">
 								<div className="d-flex justify-content-between align-items-center">
@@ -479,28 +486,30 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 								</div>
 							</div>
 
-							<div className="list-group-item px-3 py-2 border-0">
-								<div className="d-flex justify-content-between align-items-center">
-									<div className="d-flex align-items-center gap-2">
-										<div
-											className="d-flex align-items-center justify-content-center"
-											style={{
-												background: cardColors.net.bg,
-												padding: "4px",
-												borderRadius: "4px",
-												width: "24px",
-												height: "24px",
-											}}
-										>
-											<RiBarChartLine style={{ fontSize: "0.8rem", color: "white" }} />
+							{canViewExpenseMetrics && (
+								<div className="list-group-item px-3 py-2 border-0">
+									<div className="d-flex justify-content-between align-items-center">
+										<div className="d-flex align-items-center gap-2">
+											<div
+												className="d-flex align-items-center justify-content-center"
+												style={{
+													background: cardColors.net.bg,
+													padding: "4px",
+													borderRadius: "4px",
+													width: "24px",
+													height: "24px",
+												}}
+											>
+												<RiBarChartLine style={{ fontSize: "0.8rem", color: "white" }} />
+											</div>
+											<span className="small fw-medium text-muted">Net Operating Cash</span>
 										</div>
-										<span className="small fw-medium text-muted">Net Operating Cash</span>
+										<span className={`fw-semibold small ${Number(internalSummary.net_operating_cash) >= 0 ? 'text-success' : 'text-danger'}`}>
+											{currencyFormatter.format(Number(internalSummary.net_operating_cash) || 0)}
+										</span>
 									</div>
-									<span className={`fw-semibold small ${Number(internalSummary.net_operating_cash) >= 0 ? 'text-success' : 'text-danger'}`}>
-										{currencyFormatter.format(Number(internalSummary.net_operating_cash) || 0)}
-									</span>
 								</div>
-							</div>
+							)}
 						</div>
 					</div>
 				</>

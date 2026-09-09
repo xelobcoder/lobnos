@@ -100,9 +100,14 @@ export default function ClientVisit() {
      const [refreshing, setRefreshing] = useState<boolean>(false);
      const [error, setError] = useState<string>('');
      const [selectedAscensionId, setSelectedAscensionId] = useState<number | null>(null);
+     const [selectedAscensionIds, setSelectedAscensionIds] = useState<number[]>([]);
      const [testFilter, setTestFilter] = useState('');
+     const [globalPin, setGlobalPin] = useState('');
      const [entryTokensByAscensionId, setEntryTokensByAscensionId] = useState<Record<number, { csvid: string; ptid: string }>>({});
      const [workflow, setWorkflow] = useState<null | 'collection' | 'sampleValidation' | 'processing' | 'resultDelivery' | 'bulkResultDelivery' | 'resultValidation' | 'bulkResultValidation'>(null);
+     const pinOnResultEntry =
+          applicationsettings?.settings?.pinOnResultEntry == 1 ||
+          applicationsettings?.result?.isPinOnResultEntry == 1;
 
      const allResultsCompleted =
           Array.isArray(testAscensions) &&
@@ -205,23 +210,53 @@ export default function ClientVisit() {
                ? null
                : testAscensions.find(t => t.ascension_id === selectedAscensionId) || null;
 
+     const selectedAscensions = testAscensions.filter(item =>
+          selectedAscensionIds.includes(item.ascension_id)
+     );
+
      useEffect(() => {
-          if (!selectedItem) return;
           if (!patientid) return;
           setEntryTokensByAscensionId(prev => {
-               if (prev[selectedItem.ascension_id]) return prev;
-               return {
-                    ...prev,
-                    [selectedItem.ascension_id]: buildResultEntryTokens(selectedItem.billingid, patientid),
-               };
+               const next = { ...prev };
+               let changed = false;
+               selectedAscensions.forEach(item => {
+                    if (!next[item.ascension_id]) {
+                         next[item.ascension_id] = buildResultEntryTokens(item.billingid, patientid);
+                         changed = true;
+                    }
+               });
+               return changed ? next : prev;
           });
-     }, [selectedItem, patientid]);
+     }, [selectedAscensionIds, testAscensions, patientid]);
 
-     const selectedTokens = selectedItem ? entryTokensByAscensionId[selectedItem.ascension_id] : undefined;
+     const selectSingleTest = (ascensionId: number) => {
+          setSelectedAscensionId(ascensionId);
+          setSelectedAscensionIds([ascensionId]);
+     };
 
-     const canEnterOrUpdateResult =
-          Boolean(selectedItem?.resultEntryStart) ||
-          (Boolean(selectedItem?.samplevalidatedon) && Boolean(selectedItem?.processingEndDate));
+     const toggleTestSelection = (ascensionId: number) => {
+          setSelectedAscensionIds(previous => {
+               if (previous.includes(ascensionId)) {
+                    const next = previous.filter(id => id !== ascensionId);
+                    if (selectedAscensionId === ascensionId) {
+                         setSelectedAscensionId(next[0] ?? null);
+                    }
+                    return next;
+               }
+               setSelectedAscensionId(ascensionId);
+               return [...previous, ascensionId];
+          });
+     };
+
+     const toggleSelectAllTests = () => {
+          if (selectedAscensionIds.length === testAscensions.length) {
+               setSelectedAscensionIds([]);
+               setSelectedAscensionId(null);
+               return;
+          }
+          setSelectedAscensionIds(testAscensions.map(item => item.ascension_id));
+          setSelectedAscensionId(testAscensions[0]?.ascension_id ?? null);
+     };
 
      const filteredAscensions = testFilter.trim()
           ? testAscensions.filter(t =>
@@ -362,10 +397,19 @@ export default function ClientVisit() {
                                    <div className="row g-0">
                                         <div className="col-12 col-lg-3 border-end">
                                              <div className="px-3 py-2 border-bottom d-flex align-items-center justify-content-between bg-body-tertiary">
-                                                  <div className="fw-semibold">Tests</div>
-                                                  <div className="text-muted" style={{ fontSize: '0.85rem' }}>
-                                                       {filteredAscensions.length}/{testAscensions.length}
+                                                  <div>
+                                                       <div className="fw-semibold">Tests</div>
+                                                       <div className="text-muted" style={{ fontSize: '0.8rem' }}>
+                                                            {selectedAscensionIds.length} selected
+                                                       </div>
                                                   </div>
+                                                  <button
+                                                       type="button"
+                                                       className="btn btn-sm btn-outline-primary"
+                                                       onClick={toggleSelectAllTests}
+                                                  >
+                                                       {selectedAscensionIds.length === testAscensions.length ? 'Clear' : 'Select all'}
+                                                  </button>
                                              </div>
                                              <div className="p-3">
                                                   <input
@@ -382,21 +426,27 @@ export default function ClientVisit() {
                                                   <div className="list-group visitTestList">
                                                        {filteredAscensions.map((item) => {
                                                             const isSelected = item.ascension_id === selectedAscensionId;
+                                                            const isChecked = selectedAscensionIds.includes(item.ascension_id);
                                                             const isCompleted = Boolean(item.resultEntryStart && item.resultEntryEnd);
                                                             const isValidated = item.isapproved === 1 || (item.result_validation_stage || '').toLowerCase().includes('validated') || (item.result_validation_stage || '').toLowerCase().includes('approved');
                                                             const isLocked = !item.samplevalidatedon || !item.processingEndDate;
                                                             const badgeClass = isValidated ? 'bg-success' : isCompleted ? 'bg-primary' : item.samplevalidatedon ? 'bg-warning text-dark' : 'bg-secondary';
-                                                            const requestedMode = item.requested_mode;
-                                                            const deliveredMode = item.delivered_mode;
-                                                            const deliveryNotes = item.delivery_notes;
                                                             return (
                                                                  <button
                                                                       key={item.ascension_id}
                                                                       type="button"
                                                                       className={`list-group-item list-group-item-action d-flex align-items-start justify-content-between ${isSelected ? 'active' : ''}`}
-                                                                      onClick={() => setSelectedAscensionId(item.ascension_id)}
+                                                                      onClick={() => selectSingleTest(item.ascension_id)}
                                                                  >
-                                                                      <div style={{ minWidth: 0 }}>
+                                                                      <input
+                                                                           type="checkbox"
+                                                                           className="form-check-input flex-shrink-0 me-2"
+                                                                           checked={isChecked}
+                                                                           aria-label={`Select ${item.test_name}`}
+                                                                           onClick={(event) => event.stopPropagation()}
+                                                                           onChange={() => toggleTestSelection(item.ascension_id)}
+                                                                      />
+                                                                      <div className="text-start flex-grow-1" style={{ minWidth: 0 }}>
                                                                            <div className="fw-semibold text-truncate">{item.test_name}</div>
                                                                            <div style={{ fontSize: '0.85rem' }} className={`${isSelected ? 'text-white-50' : 'text-muted'}`}>
                                                                                 Asc: {item.ascension_id} • Test: {item.testid}
@@ -421,51 +471,79 @@ export default function ClientVisit() {
                                         <div className="col-12 col-lg-6 border-end">
                                              <div className="px-3 py-2 border-bottom d-flex align-items-center justify-content-between bg-body-tertiary">
                                                   <div className="fw-semibold">Result Entry</div>
-                                                  {selectedItem && (
+                                                  {selectedAscensions.length > 0 && (
                                                        <div className="text-muted" style={{ fontSize: '0.85rem' }}>
-                                                            Ascension: {selectedItem.ascension_id}
-
+                                                            {selectedAscensions.length} test{selectedAscensions.length === 1 ? '' : 's'} loaded
                                                        </div>
                                                   )}
                                              </div>
                                              <div className="p-3">
-                                                  {!selectedItem ? (
+                                                  {selectedAscensions.length === 0 ? (
                                                        <div className="alert alert-secondary mb-0" role="alert">
-                                                            Click a test on the left to load the result entry form.
+                                                            Click a test to load one form, or use the checkboxes to load several.
                                                        </div>
                                                   ) : !patientid ? (
                                                        <div className="alert alert-danger mb-0" role="alert">
                                                             Missing patient id.
                                                        </div>
-                                                  ) : !selectedTokens ? (
-                                                       <div className="alert alert-secondary mb-0" role="alert">
-                                                            Preparing result entry...
-                                                       </div>
-                                                  ) : !canEnterOrUpdateResult ? (
-                                                       <div className="alert alert-warning mb-0" role="alert">
-                                                            Result entry is locked until sample validation and processing are completed.
-                                                       </div>
                                                   ) : (
                                                        <div style={{ minWidth: 0 }}>
-                                                            <ResultEntryComponent
-                                                                 operations={{
-                                                                      uiLayout: 3,
-                                                                      testid: selectedItem.testid,
-                                                                      test: selectedItem.test_name,
-                                                                      billingid: selectedTokens.csvid,
-                                                                      patientid: selectedTokens.ptid,
-                                                                      employeeid,
-                                                                      ascensionid: selectedItem.ascension_id,
-                                                                      resultEntryStart: selectedItem.resultEntryStart,
-                                                                      resultEntryEnd: selectedItem.resultEntryEnd,
-                                                                 }}
-                                                                 onSaved={() => loadTestTransactions(true)}
-                                                                 onNavigate={(url: string) => {
-                                                                      if (url.includes('billingid=')) return setWorkflow('bulkResultValidation');
-                                                                      return setWorkflow('resultValidation');
-                                                                 }}
-                                                                 key={selectedItem.ascension_id}
-                                                            />
+                                                            {pinOnResultEntry && (
+                                                                 <div className="border rounded p-3 mb-3 bg-body-tertiary">
+                                                                      <label className="form-label fw-semibold mb-1" htmlFor="shared-result-entry-pin">Result entry PIN</label>
+                                                                      <input
+                                                                           id="shared-result-entry-pin"
+                                                                           type="password"
+                                                                           className="form-control form-control-sm"
+                                                                           placeholder="Enter once for all selected tests"
+                                                                           value={globalPin}
+                                                                           onChange={(event) => setGlobalPin(event.target.value)}
+                                                                           autoComplete="off"
+                                                                           style={{ maxWidth: 260 }}
+                                                                      />
+                                                                 </div>
+                                                            )}
+                                                            {selectedAscensions.map(item => {
+                                                                 const tokens = entryTokensByAscensionId[item.ascension_id];
+                                                                 const canEnterOrUpdateResult =
+                                                                      Boolean(item.resultEntryStart) ||
+                                                                      (Boolean(item.samplevalidatedon) && Boolean(item.processingEndDate));
+
+                                                                 if (!tokens) {
+                                                                      return <div key={item.ascension_id} className="alert alert-secondary">Preparing {item.test_name}...</div>;
+                                                                 }
+                                                                 if (!canEnterOrUpdateResult) {
+                                                                      return (
+                                                                           <div key={item.ascension_id} className="alert alert-warning">
+                                                                                <strong>{item.test_name}:</strong> Result entry is locked until sample validation and processing are completed.
+                                                                           </div>
+                                                                      );
+                                                                 }
+
+                                                                 return (
+                                                                      <ResultEntryComponent
+                                                                           operations={{
+                                                                                uiLayout: 3,
+                                                                                testid: item.testid,
+                                                                                test: item.test_name,
+                                                                                billingid: tokens.csvid,
+                                                                                patientid: tokens.ptid,
+                                                                                employeeid,
+                                                                                ascensionid: item.ascension_id,
+                                                                                resultEntryStart: item.resultEntryStart,
+                                                                                resultEntryEnd: item.resultEntryEnd,
+                                                                                globalPin,
+                                                                           }}
+                                                                           onSaved={() => loadTestTransactions(true)}
+                                                                           onNavigate={(url: string) => {
+                                                                                setSelectedAscensionId(item.ascension_id);
+                                                                                if (url.includes('billingid=')) return setWorkflow('bulkResultValidation');
+                                                                                return setWorkflow('resultValidation');
+                                                                           }}
+                                                                           key={item.ascension_id}
+                                                                      />
+                                                                 );
+                                                            })}
                                                        </div>
                                                   )}
                                              </div>
@@ -664,10 +742,11 @@ export default function ClientVisit() {
                          <SingleTestProcessingWorkflowModal
                               show={workflow === 'processing'}
                               onHide={() => { setWorkflow(null); }}
-                              onSuccess={(shouldClose = true) => { 
+                              onSuccess={(shouldClose = true) => {
                                    loadTestTransactions(true); if (shouldClose) {
                                         setWorkflow(null);
-                                   } }}
+                                   }
+                              }}
                               test={{
                                    billingid: selectedItem.billingid,
                                    patientid,
