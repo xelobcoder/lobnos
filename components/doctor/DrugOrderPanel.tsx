@@ -21,6 +21,8 @@ type DrugOrderLine = {
 	availableStock: number;
 	unit: string;
 };
+type PrescriptionSummary = { id: string; status: string; createdAt: string };
+type PrescriptionItemDetail = { id: string; drugName: string; dose?: string; frequency?: string; quantityOrdered: number; status: string };
 
 const ROUTE_OPTIONS = ["Oral", "IV", "IM", "SC", "Topical", "Rectal", "Inhalation", "Sublingual", "Other"];
 const FREQUENCY_OPTIONS = ["Once daily (OD)", "Twice daily (BD)", "Three times daily (TDS)", "Four times daily (QID)", "Every 6 hours", "Every 8 hours", "Every 12 hours", "At night (Nocte)", "When required (PRN)", "Stat (once)"];
@@ -28,13 +30,64 @@ const FREQUENCY_OPTIONS = ["Once daily (OD)", "Twice daily (BD)", "Three times d
 interface Props {
 	patientid: number | string;
 	consultationid?: number | string | null;
+	/**
+	 * Called after a prescription is saved while there is no consultationid yet (a
+	 * brand-new, not-yet-saved consultation), so the caller can backfill the
+	 * consultation_id onto it once the consultation is first saved.
+	 */
+	onOrderCreatedWithoutConsultation?: (prescriptionId: string) => void;
 }
 
-export default function DrugOrderPanel({ patientid, consultationid = null }: Props) {
+export default function DrugOrderPanel({ patientid, consultationid = null, onOrderCreatedWithoutConsultation }: Props) {
 	const [drugOrderLines, setDrugOrderLines] = useState<DrugOrderLine[]>([]);
 	const [drugOrderNotes, setDrugOrderNotes] = useState("");
 	const [isSubmittingDrugOrder, setIsSubmittingDrugOrder] = useState(false);
 	const [drugOrderError, setDrugOrderError] = useState("");
+	const [prescriptions, setPrescriptions] = useState<PrescriptionSummary[]>([]);
+	const [prescriptionsLoading, setPrescriptionsLoading] = useState(false);
+	const [expandedPrescriptionId, setExpandedPrescriptionId] = useState<string | null>(null);
+	const [expandedItems, setExpandedItems] = useState<PrescriptionItemDetail[]>([]);
+	const [expandLoading, setExpandLoading] = useState(false);
+
+	/** Only this consultation's drug requests, so past unrelated prescriptions don't show. */
+	const fetchPrescriptions = async () => {
+		if (!consultationid) {
+			setPrescriptions([]);
+			return;
+		}
+		setPrescriptionsLoading(true);
+		try {
+			const response = await customFetch(`prescriptions?patientId=${patientid}&consultationId=${consultationid}`);
+			setPrescriptions(response?.data?.prescriptions || []);
+		} catch {
+			setPrescriptions([]);
+		} finally {
+			setPrescriptionsLoading(false);
+		}
+	};
+
+	useEffect(() => {
+		fetchPrescriptions();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [patientid, consultationid]);
+
+	const toggleExpandPrescription = async (id: string) => {
+		if (expandedPrescriptionId === id) {
+			setExpandedPrescriptionId(null);
+			setExpandedItems([]);
+			return;
+		}
+		setExpandedPrescriptionId(id);
+		setExpandLoading(true);
+		try {
+			const response = await customFetch(`prescriptions/${id}`);
+			setExpandedItems(response?.data?.items || []);
+		} catch {
+			setExpandedItems([]);
+		} finally {
+			setExpandLoading(false);
+		}
+	};
 
 	const loadDrugOptions = async (inputValue: string) => {
 		if (!inputValue || inputValue.trim().length === 0) return [];
@@ -105,7 +158,11 @@ export default function DrugOrderPanel({ patientid, consultationid = null }: Pro
 		setIsSubmittingDrugOrder(false);
 		if (response?.success) {
 			toast.success("Drug order sent to the pharmacy.");
+			if (!consultationid && response?.data?.id && onOrderCreatedWithoutConsultation) {
+				onOrderCreatedWithoutConsultation(String(response.data.id));
+			}
 			resetDrugOrderModal();
+			fetchPrescriptions();
 		} else {
 			setDrugOrderError(response?.error?.message || "Unable to send this drug order to the pharmacy.");
 		}
@@ -211,6 +268,65 @@ export default function DrugOrderPanel({ patientid, consultationid = null }: Pro
 					{isSubmittingDrugOrder ? "Sending..." : "Send request to pharmacy"}
 				</Button>
 			</div>
+
+			{consultationid && (
+				<div className="mt-4">
+					<div className={styles.panelTitle}>Drug Request Tracking</div>
+					<div className={styles.panelSubtitle}>Drug requests placed from this consultation.</div>
+					{prescriptionsLoading ? (
+						<div className="text-muted small py-3">Loading requests…</div>
+					) : prescriptions.length === 0 ? (
+						<div className="text-muted small py-3">No drug requests placed from this consultation yet.</div>
+					) : (
+						<table className="table table-sm align-middle mt-2">
+							<thead>
+								<tr>
+									<th>Status</th>
+									<th>Created</th>
+									<th></th>
+								</tr>
+							</thead>
+							<tbody>
+								{prescriptions.map((prescription) => (
+									<React.Fragment key={prescription.id}>
+										<tr>
+											<td>
+												<span className="badge bg-secondary-subtle text-secondary">{prescription.status}</span>
+											</td>
+											<td className="text-muted small">{prescription.createdAt ? new Date(prescription.createdAt).toLocaleDateString() : "—"}</td>
+											<td className="text-end">
+												<Button size="sm" variant="outline-secondary" onClick={() => toggleExpandPrescription(prescription.id)}>
+													{expandedPrescriptionId === prescription.id ? "Hide items" : "View items"}
+												</Button>
+											</td>
+										</tr>
+										{expandedPrescriptionId === prescription.id && (
+											<tr>
+												<td colSpan={3}>
+													{expandLoading ? (
+														<div className="text-muted small py-2">Loading items…</div>
+													) : (
+														<div className="d-flex flex-column gap-1">
+															{expandedItems.map((item) => (
+																<div key={item.id} className="small">
+																	<span className="fw-medium">{item.drugName}</span>
+																	{item.dose ? ` — ${item.dose}` : ""}
+																	{item.frequency ? `, ${item.frequency}` : ""}
+																	{" "}(qty {item.quantityOrdered}) — <span className="text-muted">{item.status}</span>
+																</div>
+															))}
+														</div>
+													)}
+												</td>
+											</tr>
+										)}
+									</React.Fragment>
+								))}
+							</tbody>
+						</table>
+					)}
+				</div>
+			)}
 		</div>
 	);
 }

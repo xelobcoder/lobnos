@@ -8,28 +8,12 @@ const TestActions = ({ id, row, deleteCustomTest }) => {
 
     return (
         <div className="pointer">
-            <Link href={`/settings/applicationsettings/testpanels/testlist/${id}`} className="border-bottom border-primary text-primary">
-                Edit test
+            <Link href={`/settings/applicationsettings/testpanels/testlist/${id}`} className="btn btn-sm btn-outline-primary me-2 mb-1">
+                Manage Test
             </Link>
-            <Link href={`/settings/applicationsettings/testpanels/testlist/${id}/literature?litid=${id}&&testname=${name}`} className="mx-2 border-bottom border-primary text-primary">
-                Add Literature
-            </Link>
-            <Link href={`/settings/applicationsettings/testpanels/testlist/procedure/${id}`} className="border-bottom border-primary text-primary mx-2">
-                Add Manual
-            </Link>
-            {/* {services.isConnectedInventory == 1 &&
-                <Link href={`/inventory/autoLaboratorydeductions?testid=${randomText}${row.original.id}`} className="border-bottom mx-2 border-primary text-primary">
-                    Inventory Template
-                </Link>} */}
-            <span className='border-danger border-bottom text-danger' onClick={() => deleteCustomTest(row.original)}>
+            <button type="button" className="btn btn-sm btn-outline-danger mb-1" onClick={() => deleteCustomTest(row.original)}>
                 Drop Test
-            </span>
-            <Link href={`/settings/applicationsettings/testpanels/testlist/createfields?testid=${id}&&testname=${name}`} className="mx-2 border-bottom border-primary text-primary">
-                Update Fields
-            </Link>
-            <Link href={`/settings/applicationsettings/testpanels/testlist/createcustomtest?testid=${id}&&testname=${name}`} className="border-bottom border-primary text-primary">
-                Update Test
-            </Link>
+            </button>
         </div>
     );
 };

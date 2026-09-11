@@ -5,11 +5,12 @@ import { defaultResultSettings, ResultSettings } from '../../../../components/Re
 import { customFetch, customPost } from '../../../../components/Auth/customFetch';
 import { toast } from 'react-toastify';
 import Loader from '../../../../components/accessories/Loader';
-import { RiSettingsLine, RiPulseLine, RiSaveLine, RiBuildingLine, RiFileSettingsLine } from '@remixicon/react';
+import { RiSettingsLine, RiPulseLine, RiSaveLine, RiBuildingLine, RiFileSettingsLine, RiChatQuoteLine } from '@remixicon/react';
 import { GeneralTab } from '../../../../components/settings/GeneralTab';
 import { CompanyTab } from '../../../../components/settings/CompanyTab';
 import { ReportOptionsTab } from '../../../../components/settings/ReportOptionsTab';
 import { UltrasoundTab } from '../../../../components/settings/UltrasoundTab';
+import { CommentsTab } from '../../../../components/settings/CommentsTab';
 
 
 
@@ -44,6 +45,7 @@ const SettingsForm = () => {
 				testBody: { ...defaultTestBodyColumnNames, ...(response?.testBody || {}) },
 				patientInfo: { ...defaultResultSettings.patientInfo, ...(response?.patientInfo || {}) },
 				companyInfo: { ...defaultResultSettings.companyInfo, ...(response?.companyInfo || {}) },
+				comments: { ...defaultResultSettings.comments, ...(response?.comments || {}) },
 			};
 			setSettings(merged);
 		} catch (error) {
@@ -163,6 +165,12 @@ const SettingsForm = () => {
 							Ultrasound
 						</Nav.Link>
 					</Nav.Item>
+					<Nav.Item>
+						<Nav.Link eventKey="comments" className="d-flex align-items-center">
+							<RiChatQuoteLine size={16} className="me-2" />
+							Comments
+						</Nav.Link>
+					</Nav.Item>
 				</Nav>
 
 				<Tab.Content className="p-3">
@@ -180,6 +188,10 @@ const SettingsForm = () => {
 
 					<Tab.Pane eventKey="ultrasound">
 						<UltrasoundTab settings={settings} handleChange={handleChange} />
+					</Tab.Pane>
+
+					<Tab.Pane eventKey="comments">
+						<CommentsTab settings={settings} handleChange={handleChange} />
 					</Tab.Pane>
 				</Tab.Content>
 			</Tab.Container>

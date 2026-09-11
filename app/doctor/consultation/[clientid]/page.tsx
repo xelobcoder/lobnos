@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { Container, Row, Col, Form, Button, Modal, Offcanvas } from "react-bootstrap";
 import PreviewPatientInformation from "../../../../components/petientsComponent/PreviewPatientInformation";
-import { customFetch, customPost, reactSelectCustomStyles } from "../../../../components/Auth/customFetch";
+import { customFetch, customPost, customFetchMutation, reactSelectCustomStyles } from "../../../../components/Auth/customFetch";
 import Select from "react-select";
 import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
 import PreviousConsulation from "../../../../components/doctors/PreviousConsulation";
@@ -53,10 +53,52 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 	const searchParams = useSearchParams();
 	const consultationid = searchParams?.get("consultationid");
 	const serviceid = searchParams?.get("serviceid");
+	// Mirrors `consultationid`, but can be set immediately (via draft creation, or right after a first save,
+	// before the URL/searchParams catch up) so orders are always tagged with a real consultation.
+	const [activeConsultationId, setActiveConsultationId] = useState<string | null>(consultationid);
+	const [pendingLabOrderIds, setPendingLabOrderIds] = useState<number[]>([]);
+	const [pendingDrugOrderIds, setPendingDrugOrderIds] = useState<string[]>([]);
+	// Captures whether we ARRIVED with a consultationid (truly editing history) vs one we drafted ourselves just now,
+	// so the "New Consultation" vs "Edit Consultation" heading doesn't flip once the draft is created.
+	const arrivedWithConsultationId = useRef(Boolean(consultationid));
+	const draftCreationAttempted = useRef(false);
+
+	useEffect(() => {
+		setActiveConsultationId(consultationid);
+	}, [consultationid]);
+
+	// Create the consultation record immediately for a brand-new consultation, before any note is typed,
+	// so lab/drug orders placed from the very first moment are already tied to a real consultationId.
+	const createDraftConsultation = async () => {
+		try {
+			const response = await customPost('records/consulation', 'POST', {
+				consultation_notes: '',
+				record_type: 'OPD New Cases',
+				patientid,
+				consulationby: employeeid,
+				associatedTransactionid: serviceid ? Number(serviceid) : undefined,
+			});
+			if (response?.recordId) {
+				setActiveConsultationId(String(response.recordId));
+				const query = serviceid ? `?consultationid=${response.recordId}&serviceid=${serviceid}` : `?consultationid=${response.recordId}`;
+				router.replace(`/doctor/consultation/${clientid}${query}`);
+			}
+		} catch (error) {
+			console.error('Failed to initialize consultation record', error);
+		}
+	};
+
+	useEffect(() => {
+		if (consultationid || draftCreationAttempted.current) return;
+		draftCreationAttempted.current = true;
+		createDraftConsultation();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
 	const wordCount = stripHtml(consultationNotesHtml).trim()
 		? stripHtml(consultationNotesHtml).trim().split(/\s+/).length
 		: 0;
-	const isEditingExistingConsultation = Boolean(consultationid);
+	const isEditingExistingConsultation = arrivedWithConsultationId.current;
 	const actionTitle = isEditingExistingConsultation ? 'Edit Consultation' : 'New Consultation';
 	const actionSubtitle = isEditingExistingConsultation
 		? 'Review and refine an existing progress note before saving changes.'
@@ -74,7 +116,13 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 		});
 		setConsultationNotesHtml('');
 		setEditingMode(false);
+		setActiveConsultationId(null);
+		setPendingLabOrderIds([]);
+		setPendingDrugOrderIds([]);
+		arrivedWithConsultationId.current = false;
 		router.replace(`/doctor/consultation/${clientid}`);
+		// Immediately draft a fresh consultation record for this new session too.
+		createDraftConsultation();
 	};
 
 	const handleNotesChange = (value: string) => {
@@ -98,13 +146,36 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 		return Object.keys(newErrors).length === 0;
 	};
 
+	// Backfills any lab/drug orders placed before this consultation had an id (i.e. before its first save).
+	const linkPendingOrdersToConsultation = async (newConsultationId: number) => {
+		if (pendingLabOrderIds.length) {
+			await customFetchMutation("entityorders/link-consultation", "PUT", {
+				orderIds: pendingLabOrderIds,
+				patientId: Number(patientid),
+				consultationId: newConsultationId,
+			});
+			setPendingLabOrderIds([]);
+		}
+		if (pendingDrugOrderIds.length) {
+			await customFetchMutation("prescriptions/link-consultation", "PUT", {
+				prescriptionIds: pendingDrugOrderIds,
+				patientId: Number(patientid),
+				consultationId: newConsultationId,
+			});
+			setPendingDrugOrderIds([]);
+		}
+	};
+
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		if (validateForm()) {
 			setIsSubmitting(true);
 			const compiledConsultationNotes = consultationNotesHtml;
-			const method = consultationid ? 'PUT' : 'POST';
-			const requestUrl = consultationid ? `records/consulation/update?consultationid=${consultationid}` : 'records/consulation';
+			// Use activeConsultationId (set synchronously by the draft-creation effect) rather than the URL
+			// param, which may not have caught up yet right after the draft was created.
+			const targetConsultationId = activeConsultationId;
+			const method = targetConsultationId ? 'PUT' : 'POST';
+			const requestUrl = targetConsultationId ? `records/consulation/update?consultationid=${targetConsultationId}` : 'records/consulation';
 			const payload = {
 				...formData,
 				consultation_notes: compiledConsultationNotes,
@@ -116,8 +187,12 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 			if (response?.message) {
 				toast.success(response.message);
 			}
-			if ((response?.recordId && !consultationid) || (method === 'PUT' && response?.status)) {
-				if (!consultationid) {
+			if ((response?.recordId && !targetConsultationId) || (method === 'PUT' && response?.status)) {
+				if (!targetConsultationId) {
+					if (response?.recordId) {
+						setActiveConsultationId(String(response.recordId));
+						await linkPendingOrdersToConsultation(Number(response.recordId));
+					}
 					setFormData({
 						consultation_notes: "",
 						record_type: "OPD New Cases",
@@ -137,7 +212,9 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 	};
 
 	useEffect(() => {
-		if (consultationid) {
+		// Only fetch/hydrate from the server when we arrived at an existing consultation link — not for
+		// a consultation we just drafted ourselves, which would otherwise overwrite notes being typed.
+		if (consultationid && arrivedWithConsultationId.current) {
 			const fetchConsultationData = async () => {
 				if (!consultationid) return;
 				setEditingMode(true);
@@ -391,7 +468,11 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 											</td>
 											<td>
 												<div className="p-2">
-													<LabOrdersPanel patientid={patientid} consultationid={consultationid ? Number(consultationid) : null} />
+													<LabOrdersPanel
+														patientid={patientid}
+														consultationid={activeConsultationId ? Number(activeConsultationId) : null}
+														onOrderCreatedWithoutConsultation={(orderId) => setPendingLabOrderIds((prev) => [...prev, orderId])}
+													/>
 												</div>
 											</td>
 										</tr>
@@ -411,7 +492,11 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 											</td>
 											<td>
 												<div className="p-2">
-													<DrugOrderPanel patientid={patientid} consultationid={consultationid ? Number(consultationid) : null} />
+													<DrugOrderPanel
+														patientid={patientid}
+														consultationid={activeConsultationId ? Number(activeConsultationId) : null}
+														onOrderCreatedWithoutConsultation={(prescriptionId) => setPendingDrugOrderIds((prev) => [...prev, prescriptionId])}
+													/>
 												</div>
 											</td>
 										</tr>

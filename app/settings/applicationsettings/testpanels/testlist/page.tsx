@@ -79,7 +79,7 @@ export default function TestListDisplay() {
                             setSelectedUserTestIds(updated);
                         }}
                     />
-                    <span>{value} {row.original.shorttext ? `(${row.original.shorttext})` : ""}</span>
+                    <span className="fw-bold text-uppercase">{value} {row.original.shorttext ? `(${row.original.shorttext})` : ""}</span>
                 </div>
             )
         },

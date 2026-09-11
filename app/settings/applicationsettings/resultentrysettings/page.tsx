@@ -5,10 +5,7 @@ import { customFetch, customPost, getResultEntrySettings, ResultEntrydefaultData
 import { toast } from 'react-toastify';
 import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
 import {
-    RiLockLine, RiPinDistanceLine, RiHistoryLine, RiFileListLine,
-    RiTimeLine, RiLockPasswordLine, RiMailLine, RiAlertLine,
-    RiNotification3Line, RiUserAddLine, RiDeleteBin6Line, RiSave3Line,
-    RiSettingsLine, RiShieldCheckLine
+    RiUserAddLine, RiDeleteBin6Line, RiSave3Line, RiShieldCheckLine
 } from '@remixicon/react';
 
 
@@ -50,10 +47,10 @@ const ResultSettingsForm = () => {
     const [loadingUsers, setLoadingUsers] = useState<boolean>(true);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value, type, checked } = e.target;
+        const { name, value } = e.target;
         setFormData(prevData => ({
             ...prevData,
-            [name]: type === 'checkbox' ? (checked ? 1 : 0) : Number(value),
+            [name]: Number(value),
         }));
     };
 
@@ -173,14 +170,8 @@ const ResultSettingsForm = () => {
                 </Button>
             </div>
 
-            <Tab.Container defaultActiveKey="general">
+            <Tab.Container defaultActiveKey="validation">
                 <Nav variant="tabs" className="border-bottom-0 px-3">
-                    <Nav.Item>
-                        <Nav.Link eventKey="general" className="d-flex align-items-center">
-                            <RiSettingsLine size={16} className="me-2" />
-                            General Settings
-                        </Nav.Link>
-                    </Nav.Item>
                     <Nav.Item>
                         <Nav.Link eventKey="validation" className="d-flex align-items-center">
                             <RiShieldCheckLine size={16} className="me-2" />
@@ -190,39 +181,6 @@ const ResultSettingsForm = () => {
                 </Nav>
 
                 <Tab.Content className="p-3">
-                    <Tab.Pane eventKey="general">
-                        <div className="row g-3">
-                            {[
-                                { id: 'resultLockAfter24Hours', label: 'Lock Result After 24 Hours', icon: <RiLockLine /> },
-                                { id: 'isPinOnResultEntry', label: 'PIN Required on Result Entry', icon: <RiPinDistanceLine /> },
-                                { id: 'isPinOnResultViewAfter24Hours', label: 'PIN Required on Result View After 24 Hours', icon: <RiPinDistanceLine /> },
-                                { id: 'showPastTestResult', label: 'Show Past Test Results', icon: <RiHistoryLine /> },
-                                { id: 'allowScientistViewAudit', label: 'Allow Scientist View Audit', icon: <RiFileListLine /> },
-                                { id: 'showTaTAnalysis', label: 'Show TaT Analysis', icon: <RiTimeLine /> },
-                                { id: 'encryptResultAfter24Hours', label: 'Encrypt Result After 24 Hours', icon: <RiLockPasswordLine /> },
-                                { id: 'sendLoginEmailNotificationAfterResultEdit', label: 'Send Login Email Notification After Result Edit', icon: <RiMailLine /> },
-                                { id: 'monitorForCriticalValues', label: 'Monitor for Critical Values', icon: <RiAlertLine /> },
-                                { id: 'notifyClientOnResultReady', label: 'Notify Client on Result Ready', icon: <RiNotification3Line /> }
-                            ].map(({ id, label, icon }) => (
-                                <div key={id} className="col-md-6">
-                                    <div className="border rounded p-3 h-100 d-flex align-items-center justify-content-between">
-                                        <div className="d-flex align-items-center gap-2">
-                                            <span className="text-primary">{icon}</span>
-                                            <span className="fs-7">{label}</span>
-                                        </div>
-                                        <Form.Check
-                                            type="switch"
-                                            id={`${id}Switch`}
-                                            name={id}
-                                            checked={formData[id] === 1}
-                                            onChange={handleChange}
-                                        />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </Tab.Pane>
-
                     <Tab.Pane eventKey="validation">
                         <div className="row g-4">
                             <div className="col-md-6">

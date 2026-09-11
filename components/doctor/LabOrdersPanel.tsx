@@ -42,6 +42,12 @@ interface Props {
 	 * dedicated "My Lab Orders" page). Defaults to true.
 	 */
 	showTracking?: boolean;
+	/**
+	 * Called after an order is saved while there is no consultationid yet (a
+	 * brand-new, not-yet-saved consultation), so the caller can backfill the
+	 * consultation_id onto it once the consultation is first saved.
+	 */
+	onOrderCreatedWithoutConsultation?: (orderId: number) => void;
 }
 
 /**
@@ -50,7 +56,7 @@ interface Props {
  * to link the order to an in-progress consultation. Prices come from the
  * logged-in clinician's billing strategy (existing billing-strategy endpoints).
  */
-export default function LabOrdersPanel({ patientid, consultationid = null, showReviewActions = false, showTracking = true }: Props) {
+export default function LabOrdersPanel({ patientid, consultationid = null, showReviewActions = false, showTracking = true, onOrderCreatedWithoutConsultation }: Props) {
 	const branchid = useApplicationSettings().applicationsettings?.branchid;
 	const userCtx = useApplicationSettings().applicationsettings?.user;
 	const clinicianid = Number(userCtx?.clinicianid ?? userCtx?.id ?? userCtx?.employeeid ?? 0);
@@ -129,9 +135,15 @@ export default function LabOrdersPanel({ patientid, consultationid = null, showR
 	};
 
 	const fetchEntityOrders = async () => {
+		// A brand-new, not-yet-saved consultation has no consultationid yet — there is nothing of
+		// its own to track, so don't fall back to showing this patient's entire order history.
+		if (!consultationid) {
+			setEntityOrders([]);
+			return;
+		}
 		setOrdersLoading(true);
 		try {
-			const response = await customFetch(`entityorders?patientid=${patientid}`);
+			const response = await customFetch(`entityorders?patientid=${patientid}&consultationid=${consultationid}`);
 			setEntityOrders(response?.result || []);
 		} catch {
 			setEntityOrders([]);
@@ -143,7 +155,7 @@ export default function LabOrdersPanel({ patientid, consultationid = null, showR
 	useEffect(() => {
 		if (patientid && showTracking) fetchEntityOrders();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [patientid, showTracking]);
+	}, [patientid, showTracking, consultationid]);
 
 	const saveEntityOrder = async () => {
 		if (!clinicianid) {
@@ -168,6 +180,9 @@ export default function LabOrdersPanel({ patientid, consultationid = null, showR
 		setIsSavingOrder(false);
 		if (response?.status === "success" || response?.data) {
 			toast.success("Lab order saved. It is now pending lab review.");
+			if (!consultationid && response?.data?.id && onOrderCreatedWithoutConsultation) {
+				onOrderCreatedWithoutConsultation(Number(response.data.id));
+			}
 			resetOrderBuilder();
 			fetchEntityOrders();
 		} else {
@@ -339,79 +354,83 @@ export default function LabOrdersPanel({ patientid, consultationid = null, showR
 			{showTracking && (
 				<div className="mt-4">
 					<div className={styles.panelTitle}>Order Tracking</div>
-				<div className={styles.panelSubtitle}>
-					Orders created from this patient by clinicians and organizations, and where each one is in the review → convert flow.
-				</div>
-				{ordersLoading ? (
-					<div className="text-muted small py-3">Loading orders…</div>
-				) : entityOrders.length === 0 ? (
-					<div className="text-muted small py-3">No entity orders yet for this patient. Use “New order” to create one.</div>
-				) : (
-					<table className="table table-sm align-middle mt-2">
-						<thead>
-							<tr>
+					<div className={styles.panelSubtitle}>
+						{consultationid
+							? "Orders placed from this consultation, and where each one is in the review → convert flow."
+							: "Save this progress note first to start tracking lab orders for this consultation."}
+					</div>
+					{ordersLoading ? (
+						<div className="text-muted small py-3">Loading orders…</div>
+					) : entityOrders.length === 0 ? (
+						<div className="text-muted small py-3">
+							{consultationid ? "No lab orders placed from this consultation yet. Use “New order” to create one." : "No lab orders placed from this consultation yet."}
+						</div>
+					) : (
+						<table className="table table-sm align-middle mt-2">
+							<thead>
+								<tr>
 
-								<th>Tests</th>
-								<th>Total</th>
-								<th>Status</th>
-								<th>Created</th>
-								<th></th>
-							</tr>
-						</thead>
-						<tbody>
-							{entityOrders.map((order) => (
-								<tr key={order.id}>
-
-									<td>
-										{(order.lines || []).length > 0 ? (
-											<div className="d-flex flex-column gap-1">
-												{(order.lines || []).map((l, idx) => (
-													<div key={idx} className="small">
-														<span className="fw-medium text-primary">{idx + 1}.</span> {l.test_name}
-													</div>
-												))}
-											</div>
-										) : "—"}
-									</td>
-									<td>{orderTotal(order).toFixed(2)}</td>
-									<td>
-										<span className={`badge ${styles[`orderStatus_${order.status}`] || "bg-secondary-subtle text-secondary"}`}>
-											{order.status}
-										</span>
-										{order.status === "CONVERTED" && order.billing_id && (
-											<span className="text-muted small ms-1">Bill #{order.billing_id}</span>
-										)}
-										{order.status === "ON_HOLD" && order.decision_reason && (
-											<div className="small text-warning-emphasis mt-1">{order.decision_reason}</div>
-										)}
-									</td>
-									<td className="text-muted small">{order.created_at ? new Date(order.created_at).toLocaleDateString() : "—"}</td>
-									<td className="text-nowrap text-end">
-										{order.status === "DRAFT" && (
-											<Button size="sm" variant="primary" disabled={convertingOrderId === order.id} onClick={() => runOrderAction(order.id, "submit")}>
-												Submit
-											</Button>
-										)}
-										{showReviewActions && (order.status === "PENDING" || order.status === "ON_HOLD") && (
-											<>
-												<Button size="sm" variant="outline-success" className="me-1" disabled={convertingOrderId === order.id} onClick={() => runOrderAction(order.id, "approve")}>Approve</Button>
-												<Button size="sm" variant="outline-danger" disabled={convertingOrderId === order.id} onClick={() => {
-													const reason = window.prompt("Reason for rejecting this order?");
-													if (reason) runOrderAction(order.id, "reject", reason);
-												}}>Reject</Button>
-											</>
-										)}
-										{showReviewActions && order.status === "APPROVED" && (
-											<Button size="sm" variant="primary" disabled={convertingOrderId === order.id} onClick={() => runOrderAction(order.id, "convert")}>
-												{convertingOrderId === order.id ? "Converting…" : "Convert to bill"}
-											</Button>
-										)}
-									</td>
+									<th>Tests</th>
+									<th>Total</th>
+									<th>Status</th>
+									<th>Created</th>
+									<th></th>
 								</tr>
-							))}
-						</tbody>
-					</table>
-				)}
+							</thead>
+							<tbody>
+								{entityOrders.map((order) => (
+									<tr key={order.id}>
+
+										<td>
+											{(order.lines || []).length > 0 ? (
+												<div className="d-flex flex-column gap-1">
+													{(order.lines || []).map((l, idx) => (
+														<div key={idx} className="small">
+															<span className="fw-medium text-primary">{idx + 1}.</span> {l.test_name}
+														</div>
+													))}
+												</div>
+											) : "—"}
+										</td>
+										<td>{orderTotal(order).toFixed(2)}</td>
+										<td>
+											<span className={`badge ${styles[`orderStatus_${order.status}`] || "bg-secondary-subtle text-secondary"}`}>
+												{order.status}
+											</span>
+											{order.status === "CONVERTED" && order.billing_id && (
+												<span className="text-muted small ms-1">Bill #{order.billing_id}</span>
+											)}
+											{order.status === "ON_HOLD" && order.decision_reason && (
+												<div className="small text-warning-emphasis mt-1">{order.decision_reason}</div>
+											)}
+										</td>
+										<td className="text-muted small">{order.created_at ? new Date(order.created_at).toLocaleDateString() : "—"}</td>
+										<td className="text-nowrap text-end">
+											{order.status === "DRAFT" && (
+												<Button size="sm" variant="primary" disabled={convertingOrderId === order.id} onClick={() => runOrderAction(order.id, "submit")}>
+													Submit
+												</Button>
+											)}
+											{showReviewActions && (order.status === "PENDING" || order.status === "ON_HOLD") && (
+												<>
+													<Button size="sm" variant="outline-success" className="me-1" disabled={convertingOrderId === order.id} onClick={() => runOrderAction(order.id, "approve")}>Approve</Button>
+													<Button size="sm" variant="outline-danger" disabled={convertingOrderId === order.id} onClick={() => {
+														const reason = window.prompt("Reason for rejecting this order?");
+														if (reason) runOrderAction(order.id, "reject", reason);
+													}}>Reject</Button>
+												</>
+											)}
+											{showReviewActions && order.status === "APPROVED" && (
+												<Button size="sm" variant="primary" disabled={convertingOrderId === order.id} onClick={() => runOrderAction(order.id, "convert")}>
+													{convertingOrderId === order.id ? "Converting…" : "Convert to bill"}
+												</Button>
+											)}
+										</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					)}
 				</div>
 			)}
 		</div>

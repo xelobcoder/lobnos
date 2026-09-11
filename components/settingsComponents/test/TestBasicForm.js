@@ -40,6 +40,17 @@ const BasicInfoForm = ({
       <h5>Basic </h5>
       <hr />
       <div className="form-row grid-reg mt-2">
+        <label className="pls-label">Test Name</label>
+        <input
+          type="text"
+          className="custom-input"
+          value={data.name || ""}
+          onChange={(ev) =>
+            handleChangeWithState(ev, "name", setTestData, data)
+          }
+        />
+      </div>
+      <div className="form-row grid-reg mt-2">
         <label className="pls-label">Category</label>
         <select
           required

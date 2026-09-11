@@ -182,7 +182,7 @@ export default function LabReportPrintingMultiple() {
 
 					if (watermarkOverlay) watermarkOverlay.style.display = 'none';
 
-					const pdf = new jsPDF('p', 'mm', 'a4',true);
+					const pdf = new jsPDF('p', 'mm', 'a4', true);
 					const pageWidth = pdf.internal.pageSize.getWidth();
 					const pageHeight = pdf.internal.pageSize.getHeight();
 					const margin = 10;
@@ -674,14 +674,14 @@ export default function LabReportPrintingMultiple() {
 											if (employeeid) {
 												const ids = getSelectedAscensionIds();
 												await Promise.all(ids.map((id) => trackReportPrint(String(id), employeeid)));
-										}
-										computePrintPageStarters();
-										setTimeout(() => window.print(), 50);
-									}}
-									style={{ marginTop: 12, padding: '6px 16px', borderRadius: 4, border: '1px solid #28a745', background: '#28a745', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 16 }}
-								>
-									Print
-								</button>)}
+											}
+											computePrintPageStarters();
+											setTimeout(() => window.print(), 50);
+										}}
+										style={{ marginTop: 12, padding: '6px 16px', borderRadius: 4, border: '1px solid #28a745', background: '#28a745', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 16 }}
+									>
+										Print
+									</button>)}
 								<button
 									className="no-print"
 									disabled={!pdfUrl || pdfLoading || !!pdfError}
@@ -727,38 +727,38 @@ export default function LabReportPrintingMultiple() {
 								flexDirection: 'column'
 							}}>
 								<div className='result' style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
-								<div ref={headerRef} className="screen-header">
-									<MdsCompanyInformation
-										styles={styles}
-										logourl={resultdata.logourl}
-										resultsettings={resultSettings}
-										companyInfo={resultdata.companyInfo}
-									/>
-									<div className={styles.reportTitleBar}
-										style={{
-											backgroundColor: resultSettings?.mainReportHeaderBgColor,
-											color: resultSettings?.mainReportHeaderColor
-										}}
-									>
-										MEDICAL LABORATORY REPORT
-									</div>
-									<MdsPersonalInformation
-										styles={styles}
-										patientInformation={resultdata.patientInformation}
-										referrerFacility={resultdata.test && resultdata.test.length > 0 ? resultdata.test[0].referrerFacility : null}
-										labRef={`${prefix}${resultdata.billingid}`}
-										isBulk={true}
-										resultsettings={resultSettings}
-									/>
-								</div>
-								<div className="print-content" style={{ flex: 1, position: 'relative' }}>
-									{showWatermark && resultdata?.companyInfo?.name && (
-										<Watermark 
-											text={resultdata.companyInfo.name} 
-											subText={resultdata?.patientInformation?.fullpatientid || ptid}
+									<div ref={headerRef} className="screen-header">
+										<MdsCompanyInformation
+											styles={styles}
+											logourl={resultdata.logourl}
+											resultsettings={resultSettings}
+											companyInfo={resultdata.companyInfo}
 										/>
-									)}
-									{(() => {
+										<div className={styles.reportTitleBar}
+											style={{
+												backgroundColor: resultSettings?.mainReportHeaderBgColor,
+												color: resultSettings?.mainReportHeaderColor
+											}}
+										>
+											MEDICAL LABORATORY REPORT
+										</div>
+										<MdsPersonalInformation
+											styles={styles}
+											patientInformation={resultdata.patientInformation}
+											referrerFacility={resultdata.test && resultdata.test.length > 0 ? resultdata.test[0].referrerFacility : null}
+											labRef={`${prefix}${resultdata.billingid}`}
+											isBulk={true}
+											resultsettings={resultSettings}
+										/>
+									</div>
+									<div className="print-content" style={{ flex: 1, position: 'relative' }}>
+										{showWatermark && resultdata?.companyInfo?.name && (
+											<Watermark
+												text={resultdata.companyInfo.name}
+												subText={resultdata?.patientInformation?.fullpatientid || ptid}
+											/>
+										)}
+										{(() => {
 											const selected = selectedTests.filter(idx => idx >= 0 && idx < resultdata.test.length);
 											let allComments: string[] = [];
 											if (allTestsSelected && resultdata.generalComments) {
@@ -866,7 +866,7 @@ export default function LabReportPrintingMultiple() {
 											if (allComments && allComments.length > 0) {
 												nodes.push(
 													<section key="result-comments" className="test-section extra-section" style={{ marginBottom: 20, paddingBottom: 12, breakInside: 'avoid', pageBreakInside: 'avoid' }}>
-														<UseResultCommentSinglePreview comments={resultdata.generalComments} />
+														<UseResultCommentSinglePreview comments={resultdata.generalComments} resultsettings={resultSettings} />
 													</section>
 												);
 											}

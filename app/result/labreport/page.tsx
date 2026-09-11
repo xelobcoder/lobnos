@@ -3,7 +3,7 @@ import { useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import {  customFetch } from '../../../components/Auth/customFetch';
+import { customFetch } from '../../../components/Auth/customFetch';
 import CompanyHeaders from '../../../components/ResultView/CompanyHeaders';
 import PersonalInformation from '../../../components/ResultView/PersonalInformation';
 import UseClinicalLiteratureReview from '../../../components/ResutlUI/UseClinicalLiteratureReview';
@@ -250,7 +250,7 @@ export default function RESULT_FOR_PRINTING() {
                                 records={resultdata?.records}
                                 resultsettings={resultSettings}
                             />
-                            <UseResultCommentSinglePreview comments={resultdata?.comments} />
+                            <UseResultCommentSinglePreview comments={resultdata?.comments} resultsettings={resultSettings} />
                             <UseClinicalLiteratureReview literature={resultdata?.literatureReview} />
                         </section>
                         <section>

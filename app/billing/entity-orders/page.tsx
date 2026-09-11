@@ -51,7 +51,7 @@ export default function EntityOrdersReviewPage() {
 	const reviewerId = Number(userCtx?.employeeid ?? userCtx?.id ?? 0);
 	const reviewerBranch = useApplicationSettings().applicationsettings?.branchid ?? null;
 
-	const [statusFilter, setStatusFilter] = useState("pending");
+	const [statusFilter, setStatusFilter] = useState("all");
 	const [sampleLocation, setSampleLocation] = useState("");
 	const [orders, setOrders] = useState<EntityOrder[]>([]);
 	const [loading, setLoading] = useState(false);
@@ -264,7 +264,7 @@ export default function EntityOrdersReviewPage() {
 
 	return (
 		<Container fluid className="py-3">
-			<Modal   show={!!viewOrder} onHide={() => setViewOrder(null)} top size="lg">
+			<Modal show={!!viewOrder} onHide={() => setViewOrder(null)} top size="lg">
 				<Modal.Header closeButton>
 					<Modal.Title className="fs-6">
 						{viewOrderLines.length} test{viewOrderLines.length === 1 ? "" : "s"}

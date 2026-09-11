@@ -22,6 +22,7 @@ interface TestFormProps {
 	customtest: number;
 	testid?: number;
 	router: AppRouterInstance;
+	onNavigateTab?: (tab: 'fields' | 'outsourcing') => void;
 }
 
 interface TestData {
@@ -64,7 +65,7 @@ interface TestData {
 	method: string | null;
 }
 
-const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router }) => {
+const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router, onNavigateTab }) => {
 	const { employeeid } = useApplicationSettings().applicationsettings.user;
 	const [sampleType, setSample] = useState<any[]>([]);
 	const [category, setCategory] = useState<any[]>([]);
@@ -110,7 +111,7 @@ const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router }) => 
 				if (!Number.isNaN(directValue) && directValue > 0) {
 					return directValue;
 				}
-				
+
 				const matched = sampleContainers.find((container) => {
 					return (container?.name || '').toString().trim().toLowerCase() ===
 						(sample_container || '').toString().trim().toLowerCase();
@@ -199,7 +200,9 @@ const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router }) => 
 					<div>
 						<button
 							onClick={(ev) => {
-								router.push(`/settings/applicationsettings/testpanels/testlist/${testid}/outsourcingList?testname=${data.name}`);
+								onNavigateTab
+									? onNavigateTab('outsourcing')
+									: router.push(`/settings/applicationsettings/testpanels/testlist/${testid}/outsourcingList?testname=${data.name}`);
 							}}
 							className="btn btn-primary mb-1 btn-sm"
 						>
@@ -207,7 +210,9 @@ const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router }) => 
 						</button>
 						<button
 							onClick={(ev) => {
-								router.push(`/settings/applicationsettings/testpanels/testlist/createfields?testid=${testid}&&testname=${data.name}`);
+								onNavigateTab
+									? onNavigateTab('fields')
+									: router.push(`/settings/applicationsettings/testpanels/testlist/createfields?testid=${testid}&&testname=${data.name}`);
 							}}
 							className="btn btn-light btn-sm mb-1 mx-2"
 						>

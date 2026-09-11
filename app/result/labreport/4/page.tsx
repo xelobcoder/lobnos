@@ -180,8 +180,8 @@ const MDSLancetTemplate: React.FC = () => {
                         if (footerToHide) footerToHide.style.display = 'none';
                     }
                 }).then(canvas => {
-                    const imgData = canvas.toDataURL('image/png',0.75);
-                    const pdf = new jsPDF('p', 'mm', 'a4',true);
+                    const imgData = canvas.toDataURL('image/png', 0.75);
+                    const pdf = new jsPDF('p', 'mm', 'a4', true);
                     const pageWidth = pdf.internal.pageSize.getWidth();
                     const pageHeight = pdf.internal.pageSize.getHeight();
                     const margin = 10;
@@ -452,7 +452,7 @@ const MDSLancetTemplate: React.FC = () => {
                                     {resultdata.hasDrugs && Array.isArray(resultdata.drugList) && resultdata.drugList.length > 0 && <DrugsList hadDrugs={resultdata.hasDrugs} drugList={resultdata.drugList} />}
                                     {!isScan && (<>
                                         <UseClinicalLiteratureReview literature={resultdata?.literatureReview} />
-                                        <UseResultCommentSinglePreview comments={resultdata?.comments} />
+                                        <UseResultCommentSinglePreview comments={resultdata?.comments} resultsettings={resultSettings} />
                                     </>)}
                                 </section>
                                 <section>

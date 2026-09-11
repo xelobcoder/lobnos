@@ -8,6 +8,14 @@ export interface ResultSettings {
      testTableHeaderBackgroundColor: string;
      comments: {
           fontFamily: string;
+          fontSize?: number;
+          color?: string;
+          backgroundColor?: string;
+          fontStyle?: 'normal' | 'italic';
+          fontWeight?: 'normal' | 'bold';
+          textAlign?: 'left' | 'center' | 'right' | 'justify';
+          showHeading?: boolean;
+          headingColor?: string;
      },
      testTableHeaderTextColor: string;
      mainReportHeaderColor: string;
@@ -126,6 +134,14 @@ export const defaultResultSettings: ResultSettings = {
      showEndOfResult: true,
      comments: {
           fontFamily: 'Times New Roman, Times, serif',
+          fontSize: 13,
+          color: 'black',
+          backgroundColor: 'transparent',
+          fontStyle: 'normal',
+          fontWeight: 'normal',
+          textAlign: 'left',
+          showHeading: true,
+          headingColor: 'black',
      },
      template: 1,
      includeWatermark: true,
