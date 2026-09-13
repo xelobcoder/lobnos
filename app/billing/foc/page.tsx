@@ -51,6 +51,9 @@ export default function StaffFocManagementPage() {
 
      // Transactions State
      const [transactions, setTransactions] = useState<any[]>([]);
+     const [transactionTotal, setTransactionTotal] = useState(0);
+     const [transactionPage, setTransactionPage] = useState(1);
+     const [transactionPageSize, setTransactionPageSize] = useState(10);
      const [txStatusFilter, setTxStatusFilter] = useState('');
      const [actionLoading, setActionLoading] = useState<number | null>(null);
 
@@ -81,8 +84,11 @@ export default function StaffFocManagementPage() {
           try {
                setLoading(true);
                const statusQuery = txStatusFilter ? `&status=${txStatusFilter}` : '';
-               const res = await customFetch(`foc/transactions?year=${currentYear}${statusQuery}&count=50&requesterEmployeeid=${employeeid}`);
-               if (res?.result?.transactions) setTransactions(res.result.transactions);
+               const res = await customFetch(`foc/transactions?year=${currentYear}${statusQuery}&page=${transactionPage}&count=${transactionPageSize}&requesterEmployeeid=${employeeid}`);
+               if (res?.result) {
+                    setTransactions(Array.isArray(res.result.transactions) ? res.result.transactions : []);
+                    setTransactionTotal(Number(res.result.total || 0));
+               }
           } catch {
                toast.error('Failed to load FOC transactions.');
           } finally {
@@ -95,7 +101,19 @@ export default function StaffFocManagementPage() {
           fetchFocSummary();
           if (activeTab === 'accounts') fetchAccounts();
           if (activeTab === 'transactions') fetchTransactions();
-     }, [activeTab, canAccess, employeeid, txStatusFilter]);
+     }, [activeTab, canAccess, employeeid, transactionPage, transactionPageSize, txStatusFilter]);
+
+     const transactionPageCount = Math.max(1, Math.ceil(transactionTotal / transactionPageSize));
+
+     const handleTransactionStatusChange = (status: string) => {
+          setTxStatusFilter(status);
+          setTransactionPage(1);
+     };
+
+     const handleTransactionPageSizeChange = (size: number) => {
+          setTransactionPageSize(size);
+          setTransactionPage(1);
+     };
 
      const handleUpdateLimit = async () => {
           if (!editLimitModal.staff || !newLimitInput) return;
@@ -371,7 +389,7 @@ export default function StaffFocManagementPage() {
                                                   size="sm"
                                                   style={{ maxWidth: '200px' }}
                                                   value={txStatusFilter}
-                                                  onChange={(e) => setTxStatusFilter(e.target.value)}
+                                                  onChange={(e) => handleTransactionStatusChange(e.target.value)}
                                              >
                                                   <option value="">All Statuses</option>
                                                   <option value="approved">Approved</option>
@@ -426,10 +444,20 @@ export default function StaffFocManagementPage() {
                                                                                 }
                                                                            >
                                                                                 {tx.status}
-                                                                                <td className="text-muted small">
-                                                                                     {tx.status === 'reversed' ? (tx.reversal_reason || 'No reason recorded') : '-'}
-                                                                                </td>
                                                                            </Badge>
+                                                                      </td>
+                                                                      <td className="text-muted small">
+                                                                           {tx.status === 'reversed' ? (() => {
+                                                                                const reason = tx.reversal_reason || 'No reason recorded';
+                                                                                return (
+                                                                                     <span
+                                                                                          title={reason}
+                                                                                          style={{ display: 'inline-block', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', verticalAlign: 'bottom' }}
+                                                                                     >
+                                                                                          {reason}
+                                                                                     </span>
+                                                                                );
+                                                                           })() : '-'}
                                                                       </td>
                                                                       <td>{tx.requested_by_name || `#${tx.requested_by}`}</td>
                                                                       <td className="text-xs text-muted">
@@ -471,6 +499,48 @@ export default function StaffFocManagementPage() {
                                                        )}
                                                   </tbody>
                                              </Table>
+                                        )}
+                                        {!loading && transactionTotal > 0 && (
+                                             <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mt-3">
+                                                  <small className="text-muted">
+                                                       Showing {((transactionPage - 1) * transactionPageSize) + 1}
+                                                       {' - '}
+                                                       {Math.min(transactionPage * transactionPageSize, transactionTotal)}
+                                                       {' of '}{transactionTotal} transactions
+                                                  </small>
+                                                  <div className="d-flex align-items-center gap-2">
+                                                       <Form.Select
+                                                            size="sm"
+                                                            value={transactionPageSize}
+                                                            onChange={(e) => handleTransactionPageSizeChange(Number(e.target.value))}
+                                                            style={{ width: 'auto' }}
+                                                            aria-label="Transactions per page"
+                                                       >
+                                                            <option value={10}>10 per page</option>
+                                                            <option value={25}>25 per page</option>
+                                                            <option value={50}>50 per page</option>
+                                                       </Form.Select>
+                                                       <Button
+                                                            variant="outline-secondary"
+                                                            size="sm"
+                                                            disabled={transactionPage <= 1}
+                                                            onClick={() => setTransactionPage((page) => page - 1)}
+                                                       >
+                                                            Previous
+                                                       </Button>
+                                                       <span className="small text-muted text-nowrap">
+                                                            Page {transactionPage} of {transactionPageCount}
+                                                       </span>
+                                                       <Button
+                                                            variant="outline-secondary"
+                                                            size="sm"
+                                                            disabled={transactionPage >= transactionPageCount}
+                                                            onClick={() => setTransactionPage((page) => page + 1)}
+                                                       >
+                                                            Next
+                                                       </Button>
+                                                  </div>
+                                             </div>
                                         )}
                                    </Tab.Pane>
                               </Tab.Content>

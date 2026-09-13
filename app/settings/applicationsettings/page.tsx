@@ -58,8 +58,37 @@ interface ApplicationSettingsData {
 	isCommissionEarnedOnNHISBilling: number,
 	isCommissionEarnedOnPHISBilling: number,
 	allowCrmToPrintResult: number;
+	headerColor?: string | null;
+	sidebarColor?: string | null;
+	pageBackgroundColor?: string | null;
+	headerTextColor?: string | null;
+	sidebarTextColor?: string | null;
+	primaryColor?: string | null;
+	secondaryColor?: string | null;
 	ageVariationLimits: string | null
 }
+
+const defaultUiSettings = {
+	fontFamily: 'var(--font-inter)', fontsize: '15', textcolor: '#212529',
+	headerColor: '#ffffff', headerTextColor: '#2c3e50', sidebarColor: '#27ae60',
+	sidebarTextColor: '#ffffff', pageBackgroundColor: '#f8f9fa', primaryColor: '#27ae60', secondaryColor: '#6c757d'
+};
+
+const uiPresets = {
+	"Professional Green": {
+		...defaultUiSettings
+	},
+	"Ocean Blue": {
+		fontFamily: 'var(--font-open-sans)', fontsize: '15', textcolor: '#172033',
+		headerColor: '#0b3d5c', headerTextColor: '#ffffff', sidebarColor: '#126782',
+		sidebarTextColor: '#ffffff', pageBackgroundColor: '#eef6f8', primaryColor: '#0b7285', secondaryColor: '#5c677d'
+	},
+	"Slate Neutral": {
+		fontFamily: 'var(--font-open-sans)', fontsize: '14', textcolor: '#202124',
+		headerColor: '#343a40', headerTextColor: '#ffffff', sidebarColor: '#495057',
+		sidebarTextColor: '#ffffff', pageBackgroundColor: '#f4f5f6', primaryColor: '#495057', secondaryColor: '#868e96'
+	}
+};
 
 export default function ApplicationSettings() {
 	const { applicationsettings, setApplicationSettings } = useApplicationSettings();
@@ -74,6 +103,7 @@ export default function ApplicationSettings() {
 	const [newGroupName, setNewGroupName] = useState('');
 	const [newGroupMin, setNewGroupMin] = useState<string>('');
 	const [newGroupMax, setNewGroupMax] = useState<string>('');
+	const [selectedPreset, setSelectedPreset] = useState('Professional Green');
 
 	useEffect(() => {
 		fetchSettings();
@@ -154,7 +184,18 @@ export default function ApplicationSettings() {
 							: JSON.stringify(response.result.ageVariationLimits))
 						: null;
 					setSettings({
+						...defaultUiSettings,
 						...response.result,
+						fontFamily: response.result.fontFamily || defaultUiSettings.fontFamily,
+						fontsize: response.result.fontsize || defaultUiSettings.fontsize,
+						textcolor: response.result.textcolor || defaultUiSettings.textcolor,
+						headerColor: response.result.headerColor || defaultUiSettings.headerColor,
+						headerTextColor: response.result.headerTextColor || defaultUiSettings.headerTextColor,
+						sidebarColor: response.result.sidebarColor || defaultUiSettings.sidebarColor,
+						sidebarTextColor: response.result.sidebarTextColor || defaultUiSettings.sidebarTextColor,
+						pageBackgroundColor: response.result.pageBackgroundColor || response.result.BackgroundColor || defaultUiSettings.pageBackgroundColor,
+						primaryColor: response.result.primaryColor || defaultUiSettings.primaryColor,
+						secondaryColor: response.result.secondaryColor || defaultUiSettings.secondaryColor,
 						regioncode: response.result.regioncode ? response.result.regioncode.toString() : '',
 						districtcode: response.result.districtcode ? response.result.districtcode.toString() : '',
 						ageVariationLimits,
@@ -202,7 +243,8 @@ export default function ApplicationSettings() {
 						isCommissionEarnedOnOrganizationalBilling: 1,
 						isCommissionEarnedOnNHISBilling: 0,
 						isCommissionEarnedOnPHISBilling: 0,
-						makepdfprintingcompulsory: 0
+						makepdfprintingcompulsory: 0,
+						...defaultUiSettings
 					});
 				}
 			} else {
@@ -246,6 +288,12 @@ export default function ApplicationSettings() {
 				[key]: updatedValue
 			};
 		});
+	};
+
+	const applyPreset = () => {
+		const preset = uiPresets[selectedPreset as keyof typeof uiPresets];
+		if (!preset) return;
+		setSettings((current) => current ? { ...current, ...preset } : current);
 	};
 
 	// Helpers to manage ageVariationLimits JSON stored as string|null
@@ -488,6 +536,41 @@ export default function ApplicationSettings() {
 								placeholder="Font size (px)"
 							/>
 						</Form.Group>
+					</div>
+				</div>
+				<div className="card border mt-3 mb-4 p-3">
+					<div className="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3">
+						<div>
+							<h5 className="mb-1">Interface Appearance</h5>
+							<p className="text-muted small mb-0">Choose a preset or set the colors used across the application.</p>
+						</div>
+						<div className="d-flex gap-2 align-items-end">
+							<Form.Group controlId="uiPreset">
+								<Form.Label>Preset</Form.Label>
+								<Form.Select value={selectedPreset} onChange={(e) => setSelectedPreset(e.target.value)}>
+									{Object.keys(uiPresets).map((preset) => <option key={preset}>{preset}</option>)}
+								</Form.Select>
+							</Form.Group>
+							<Button variant="outline-primary" type="button" onClick={applyPreset}>Apply Preset</Button>
+						</div>
+					</div>
+					<div className="row g-3 mt-1">
+						{[
+							['headerColor', 'Header Color'],
+							['headerTextColor', 'Header Text Color'],
+							['sidebarColor', 'Sidebar Color'],
+							['sidebarTextColor', 'Sidebar Text Color'],
+							['pageBackgroundColor', 'Page Background'],
+							['primaryColor', 'Primary Color'],
+							['secondaryColor', 'Secondary Color'],
+						].map(([name, label]) => (
+							<div className="col-12 col-sm-6 col-lg-3" key={name}>
+								<Form.Group controlId={name}>
+									<Form.Label>{label}</Form.Label>
+									<Form.Control type="color" name={name} value={(settings as any)[name] || '#ffffff'} onChange={handleChange} />
+								</Form.Group>
+							</div>
+						))}
 					</div>
 				</div>
 				<BillingSettingsTab settings={settings} handleChange={handleChange} />

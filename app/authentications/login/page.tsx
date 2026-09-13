@@ -104,7 +104,25 @@ export default function PrimeLabLoginPage() {
 			setMessage('Login successful. Redirecting...');
 
 			if (typeof window !== 'undefined') {
-				localStorage.removeItem('applicationsettings');
+				try {
+					const contextResponse = await fetch('/api/auth/context-retrieval', {
+						method: 'GET',
+						credentials: 'include',
+						cache: 'no-store',
+						headers: { 'Content-Type': 'application/json' },
+					});
+					const contextData = await contextResponse.json();
+					if (contextData?.user) {
+						localStorage.setItem('applicationsettings', JSON.stringify({
+							user: contextData.user,
+							settings: contextData.settings || {},
+						}));
+					} else {
+						throw new Error('Complete application context was not returned');
+					}
+				} catch {
+					localStorage.removeItem('applicationsettings');
+				}
 			}
 
 			const { role } = cookieResult;

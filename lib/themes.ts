@@ -96,6 +96,31 @@ export const applyThemeToDocument = (theme: Theme) => {
      root.setAttribute('data-layout-structure', 'sidebar-full');
 };
 
+export const applyApplicationSettingsToDocument = (settings: any) => {
+     if (typeof document === 'undefined' || !settings) return;
+
+     const root = document.documentElement;
+     const setIfPresent = (name: string, value: unknown) => {
+          if (typeof value === 'string' && value.trim()) root.style.setProperty(name, value.trim());
+     };
+
+     setIfPresent('--theme-font-family', settings.fontFamily);
+     setIfPresent('--theme-font-size', settings.fontsize);
+     setIfPresent('--theme-text-color', settings.textcolor);
+     const headerBackground = settings.headerColor || '#ffffff';
+     const requestedHeaderText = settings.headerTextColor || '#2c3e50';
+     const isLightHeader = /^(#fff(?:fff)?|white|#f[0-9a-f]{5}|#e[0-9a-f]{5})$/i.test(String(headerBackground).trim());
+     const isLightHeaderText = /^(#fff(?:fff)?|white|#f[0-9a-f]{5}|#e[0-9a-f]{5})$/i.test(String(requestedHeaderText).trim());
+
+     setIfPresent('--theme-header-bg', headerBackground);
+     setIfPresent('--theme-header-text', isLightHeader && isLightHeaderText ? '#2c3e50' : requestedHeaderText);
+     setIfPresent('--theme-sidebar-bg', settings.sidebarColor);
+     setIfPresent('--theme-sidebar-text', settings.sidebarTextColor);
+     setIfPresent('--theme-body-bg', settings.pageBackgroundColor || settings.BackgroundColor);
+     setIfPresent('--theme-accent', settings.primaryColor);
+     setIfPresent('--theme-secondary', settings.secondaryColor);
+};
+
 export const availableFonts = [
      { name: 'Inter', value: "var(--font-inter)" },
      { name: 'Roboto', value: "var(--font-roboto)" },

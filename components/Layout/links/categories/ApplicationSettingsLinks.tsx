@@ -75,6 +75,7 @@ export const ApplicationSettingsLinks: Link[] =
             children: [
                 { title: "Sample Types", link: "/settings/applicationsettings/testpanels/sampletypes", icon: <RiTestTubeLine /> },
                 { title: "Test Panels", link: "/settings/applicationsettings/testpanels/testlist", icon: <RiListCheck2 /> },
+                { title: "Customizations", link: "/settings/applicationsettings/customization", icon: < RiTestTubeLine /> },
                 { title: 'Sample Container', link: '/settings/applicationsettings/sample-containers', icon: <RiSteamLine /> },
                 { title: "Registration Fields", link: "/settings/applicationsettings/registrationFields", icon: <RiFileListLine /> },
                 { title: "Result Entry Settings", link: "/settings/applicationsettings/resultentrysettings", icon: <RiFileTextLine /> },
@@ -136,5 +137,5 @@ export const ApplicationSettingsLinks: Link[] =
                 { title: "Backup Security", link: "/settings/records/backup-security", icon: <RiShieldLine /> },
             ]
         },
-        
+
     ];

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
-import { customFetch, customPost } from "../../../../../components/Auth/customFetch";
+import { customFetch } from "../../../../../components/Auth/customFetch";
+import { customPost, customPostFormData } from "../../../../../components/Auth/customPost";
 import RulesLoadingTempleteCreation from "../../../../../components/operations/Ultrasound/RulesLoadingTempleteCreation";
 import { useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
@@ -41,6 +42,9 @@ export default function CreateUltrasonographyTemplates() {
 	const [rule, setRule] = useState<TemplateField[]>([]);
 	const [impression, setImpression] = useState<string>('');
 	const [selectedTest, setSelectedTest] = useState<string | null>(null);
+	const [importFiles, setImportFiles] = useState<File[]>([]);
+	const [isImporting, setIsImporting] = useState(false);
+	const [importSummary, setImportSummary] = useState<any>(null);
 
 	const searchParams = useSearchParams();
 	const isEdit = searchParams?.get("isEdit");
@@ -163,12 +167,57 @@ export default function CreateUltrasonographyTemplates() {
 		}
 	};
 
+	const importTemplatesHandler = async () => {
+		if (!importFiles.length || !user?.employeeid) {
+			toast.error('Select one or more DOCX files first');
+			return;
+		}
+		setIsImporting(true);
+		setImportSummary(null);
+		try {
+			const formData = new FormData();
+			importFiles.forEach((file) => formData.append('files', file));
+			formData.append('employeeid', String(user.employeeid));
+			const response = await customPostFormData('result/entry/ultrasound/templates/import', formData);
+			if (response?.status !== 'success') throw new Error(response?.message || 'Template import failed');
+			setImportSummary(response);
+			setImportFiles([]);
+			toast.success(`${response.summary?.created || 0} template(s) imported`);
+		} catch (error: any) {
+			toast.error(error?.message || 'Template import failed');
+		} finally {
+			setIsImporting(false);
+		}
+	};
+
 	if (isLoading) {
 		return <Loader />;
 	}
 
 	return (
 		<div className="p-2">
+			<div className="p-3 mb-3 border rounded bg-body-secondary">
+				<div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+					<div>
+						<h5 className="mb-1">Batch Import Word Templates</h5>
+						<p className="text-muted small mb-0">Upload DOCX files. Names, ultrasound tests, and body parts are inferred from the file name and content.</p>
+					</div>
+					<button type="button" className="btn btn-outline-primary btn-sm" onClick={importTemplatesHandler} disabled={isImporting || !importFiles.length}>
+						{isImporting ? 'Importing...' : `Import ${importFiles.length || ''} Word File(s)`}
+					</button>
+				</div>
+				<input className="form-control form-control-sm mt-3" type="file" accept=".docx" multiple onChange={(event) => setImportFiles(Array.from(event.target.files || []))} />
+				{importSummary && (
+					<div className="mt-3 small">
+						<strong>Created: {importSummary.summary?.created || 0}</strong>{' | '}
+						Review: {importSummary.summary?.review || 0}{' | '}
+						Failed: {importSummary.summary?.failed || 0}
+						<div className="mt-2">
+							{(importSummary.results || []).map((item: any) => <div key={`${item.file}-${item.status}`} className={item.status === 'created' ? 'text-success' : item.status === 'review' ? 'text-warning' : 'text-danger'}>{item.file}: {item.status}{item.message ? ` - ${item.message}` : ''}</div>)}
+						</div>
+					</div>
+				)}
+			</div>
 			<div className="p-2 bg-secondary-subtle heightedBorder my-2 br-0">
 				Creating Ultrasound Impression Templates
 			</div>
