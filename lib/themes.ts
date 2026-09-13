@@ -173,6 +173,27 @@ export const applyFontSizeToDocument = (fontSizeValue: string) => {
 export const applyFontToDocument = (fontValue: string) => {
      if (typeof document === 'undefined') return;
 
+     const fontFallbacks: Record<string, string> = {
+          '--font-inter': 'Inter, sans-serif',
+          '--font-roboto': 'Roboto, sans-serif',
+          '--font-barlow': 'Barlow, sans-serif',
+          '--font-rajdhani': 'Rajdhani, sans-serif',
+          '--font-raleway': 'Raleway, sans-serif',
+          '--font-roboto-condensed': 'Roboto Condensed, sans-serif',
+          '--font-poppins': 'Poppins, sans-serif',
+          '--font-montserrat': 'Montserrat, sans-serif',
+          '--font-open-sans': 'Open Sans, sans-serif',
+          '--font-lato': 'Lato, sans-serif',
+          '--font-lexend': 'Lexend, sans-serif',
+          '--font-candara': 'Candara, sans-serif',
+          '--font-segoe': 'Segoe UI, Tahoma, sans-serif',
+          '--font-arial': 'Arial, sans-serif',
+          '--font-verdana': 'Verdana, sans-serif',
+     };
+     const fontVariable = fontValue.match(/^var\((--font-[\w-]+)\)$/)?.[1];
+     const resolvedFont = fontVariable
+          ? `var(${fontVariable}, ${fontFallbacks[fontVariable] || 'sans-serif'})`
+          : fontValue;
      const root = document.documentElement;
-     root.style.setProperty('--theme-font-family', fontValue);
+     root.style.setProperty('--theme-font-family', resolvedFont);
 };

@@ -1,12 +1,9 @@
 'use client';
 
-import PersonalInformationRegistration from "./PersonalInfomationRegistration";
+import RegistrationWizard from "./RegistrationWizard";
 
-
-export default function RegistrationForm({ patientid }: { patientid?: number }) {
-
-
+export default function RegistrationForm({ patientid, initialStep }: { patientid?: number; initialStep?: number }) {
     return (
-        <PersonalInformationRegistration />
+        <RegistrationWizard initialPatientId={patientid} initialStep={initialStep} />
     );
 }

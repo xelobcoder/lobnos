@@ -3,4 +3,5 @@ export interface Link {
     link: string;
     icon?: React.ReactNode;
     children?: Link[];
+    roles?: string[];
 }

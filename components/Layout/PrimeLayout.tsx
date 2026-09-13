@@ -55,6 +55,18 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
     const [notifications, setNotifications] = useState<any[]>([]);
     const [unreadCount, setUnreadCount] = useState<number>(0);
     const roleLinks = roleViews[user.role] || [];
+    const normalizedRole = String(user?.role || '').toLowerCase().trim().replace(/_/g, '-');
+    const visibleLinks = useMemo(() => {
+        const filterLinks = (items: LinkType[]): LinkType[] => items
+            .filter((item) => !item.roles || item.roles.some((role) => role.replace(/_/g, '-').toLowerCase() === normalizedRole))
+            .map((item) => ({
+                ...item,
+                children: item.children ? filterLinks(item.children) : item.children,
+            }))
+            .filter((item) => !item.children || item.children.length > 0 || item.link);
+
+        return filterLinks(links || []);
+    }, [links, normalizedRole]);
     const canViewNotifications = ['admin', 'manager', 'super-admin', 'super admin'].includes(String(user?.role || '').toLowerCase().trim());
     const employeeid = user?.employeeid || 0;
     const [currentPath, setCurrentPath] = useState<string>("");
@@ -371,7 +383,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                 {isOpenSideBarShow && (
                     <aside className={`${styles.quickLinksSidebar} ${isMobileSidebarOpen ? styles.mobileSidebarVisible : ''}`}>
                         <nav className={styles.sidebarNav} aria-label="Section navigation">
-                            {Array.isArray(links) && links.map(item => renderNavItem(item))}
+                            {visibleLinks.map(item => renderNavItem(item))}
                         </nav>
                     </aside>
                 )}

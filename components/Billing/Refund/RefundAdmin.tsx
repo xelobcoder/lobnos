@@ -7,7 +7,7 @@ import PrimeTable from '../../accessories/Datatables/PrimeTable';
 import { toast } from "react-toastify";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
-import { RiSearchLine, RiEyeLine } from '@remixicon/react';
+import { RiSearchLine, RiEyeLine, RiFilter3Line } from '@remixicon/react';
 import { filteringRefundsUsingServiceId, handleRefundServerSideProcessing } from "../../serverActions/ActionFiltering";
 import { useRouter } from "next/navigation";
 import { useApplication } from "../../Auth/useApplicationContext";
@@ -203,29 +203,55 @@ export default function RefundAdmin({ initData = [], currentStatus }) {
 
 	return (
 		<div>
-			<section className="row g-2 align-items-end mb-4 bg-body-tertiary p-2 br-5">
-				<div className="col-md-3 col-12 mb-2 mb-md-0">
-					<label className="form-label fw-semibold text-secondary small mb-1">Refund Status</label>
-					<select className="form-select" value={status} onChange={(ev) => { setStatus(ev.target.value as "pending" | "completed") }}>
-						<option value="pending">Pending Refund</option>
-						<option value="completed">Completed Refund</option>
-					</select>
-				</div>
-				<div className="col-md-3 col-12 mb-2 mb-md-0">
-					<label className="form-label fw-semibold text-secondary small mb-1">Order Direction</label>
-					<select className="form-select" value={orderDirection} onChange={e => setOrderDirection(e.target.value as 'ASC' | 'DESC')}>
-						<option value="DESC">Newest First</option>
-						<option value="ASC">Oldest First</option>
-					</select>
-				</div>
-				<div className="col-md-4 col-12 d-flex align-items-end gap-2">
-					<div className="flex-grow-1">
-						<label className="form-label fw-semibold text-secondary small mb-1">Search by Service ID</label>
-						<input className="form-control" type="number" value={search} onChange={(ev) => { setSearch(ev.target.value) }} placeholder="Service ID" />
+			<section
+				className="border rounded-2 p-3 p-lg-4 mb-4"
+				style={{
+					backgroundColor: "var(--theme-card-bg, var(--bs-body-bg))",
+					borderColor: "var(--bs-border-color)",
+				}}
+			>
+				<div className="d-flex align-items-center gap-2 mb-3">
+					<span
+						className="d-inline-flex align-items-center justify-content-center text-primary"
+						style={{ width: "32px", height: "32px", backgroundColor: "var(--bs-primary-bg-subtle)", borderRadius: "6px" }}
+					>
+						<RiFilter3Line size={18} />
+					</span>
+					<div>
+						<h2 className="fs-6 fw-semibold mb-0">Refund Filters</h2>
+						<p className="small text-body-secondary mb-0">Refine the refund list</p>
 					</div>
-					<button type="button" onClick={() => handleGetRefundServiceWithId(search)} className="btn btn-outline-secondary btn-sm mt-3 mt-md-0">
-						<RiSearchLine />
-					</button>
+				</div>
+				<div className="row g-3 align-items-end">
+					<div className="col-12 col-md-6 col-xl-3">
+						<label className="form-label small mb-2">Refund Status</label>
+						<select className="form-select" value={status} onChange={(ev) => { setStatus(ev.target.value as "pending" | "completed") }}>
+							<option value="pending">Pending Refund</option>
+							<option value="completed">Completed Refund</option>
+						</select>
+					</div>
+					<div className="col-12 col-md-6 col-xl-3">
+						<label className="form-label small mb-2">Order Direction</label>
+						<select className="form-select" value={orderDirection} onChange={e => setOrderDirection(e.target.value as 'ASC' | 'DESC')}>
+							<option value="DESC">Newest First</option>
+							<option value="ASC">Oldest First</option>
+						</select>
+					</div>
+					<div className="col-12 col-xl-6">
+						<label className="form-label small mb-2">Service ID</label>
+						<div className="input-group">
+							<input className="form-control" type="number" value={search} onChange={(ev) => { setSearch(ev.target.value) }} placeholder="Search by service ID" />
+							<button
+								type="button"
+								onClick={() => handleGetRefundServiceWithId(search)}
+								className="btn btn-primary d-inline-flex align-items-center justify-content-center"
+								aria-label="Search refunds by service ID"
+								title="Search"
+							>
+								<RiSearchLine size={18} />
+							</button>
+						</div>
+					</div>
 				</div>
 			</section>
 

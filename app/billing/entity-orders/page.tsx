@@ -264,20 +264,61 @@ export default function EntityOrdersReviewPage() {
 
 	return (
 		<Container fluid className="py-3">
-			<Modal show={!!viewOrder} onHide={() => setViewOrder(null)} top size="lg">
-				<Modal.Header closeButton>
-					<Modal.Title className="fs-6">
+			<Modal
+				show={!!viewOrder}
+				onHide={() => setViewOrder(null)}
+				size="lg"
+				animation={false}
+				dialogClassName="pls-modal-top"
+				contentClassName="bg-body border"
+			>
+				<Modal.Header closeButton className="bg-body-tertiary border-bottom">
+					<Modal.Title className="fs-6 fw-semibold">
 						{viewOrderLines.length} test{viewOrderLines.length === 1 ? "" : "s"}
 					</Modal.Title>
 				</Modal.Header>
-				<Modal.Body className="px-3">
+				<Modal.Body className="px-3 bg-body">
 					{viewOrder && (
 						<>
-							<div className="px-3 py-2 border-bottom text-muted small d-flex flex-wrap gap-3">
-								<span><strong>Patient:</strong> {viewOrder.patientName || `Patient #${viewOrder.patient_id}`}</span>
-								<span><strong>Billed to:</strong> {viewOrder.entityName || `${viewOrder.entity_type} #${viewOrder.entity_id}`}</span>
-								<span><strong>Sample:</strong> {viewOrder.sample_location === "referrer" ? "Referrer" : "Center"}</span>
-								<span><strong>Status:</strong> {viewOrder.status}</span>
+							<div className="mb-3 border rounded-2 bg-body text-body overflow-hidden">
+								<div className="bg-body-tertiary py-2 px-3 border-bottom d-flex align-items-center gap-2">
+									<RiFileList3Line size={18} className="text-primary" />
+									<h6 className="mb-0 fw-semibold">Order Information</h6>
+								</div>
+								<div className="p-3">
+									<div className="row g-3 small">
+										<div className="col-12 col-md-6">
+											<div className="h-100 border rounded-2 p-3 d-flex align-items-center gap-2">
+												<RiUser3Line size={18} className="text-secondary opacity-75" />
+												<div>
+													<div className="text-body-secondary mb-1">Patient</div>
+													<div className="fw-semibold text-capitalize">{viewOrder.patientName || `Patient #${viewOrder.patient_id}`}</div>
+												</div>
+											</div>
+										</div>
+										<div className="col-12 col-md-6">
+											<div className="h-100 border rounded-2 p-3 d-flex align-items-center gap-2">
+												<RiBuildingLine size={18} className="text-secondary opacity-75" />
+												<div>
+													<div className="text-body-secondary mb-1">Billed To</div>
+													<div className="fw-semibold text-capitalize">{viewOrder.entityName || `${viewOrder.entity_type} #${viewOrder.entity_id}`}</div>
+												</div>
+											</div>
+										</div>
+										<div className="col-6 col-md-3">
+											<div className="h-100 border rounded-2 p-3">
+												<div className="text-body-secondary mb-1">Sample Location</div>
+												<div className="fw-semibold text-capitalize">{viewOrder.sample_location === "referrer" ? "Referrer" : "Center"}</div>
+											</div>
+										</div>
+										<div className="col-6 col-md-3">
+											<div className="h-100 border rounded-2 p-3">
+												<div className="text-body-secondary mb-1">Status</div>
+												<div className="fw-semibold">{viewOrder.status}</div>
+											</div>
+										</div>
+									</div>
+								</div>
 							</div>
 							<table className="table table-sm table-striped align-middle mb-0">
 								<thead>
@@ -307,11 +348,15 @@ export default function EntityOrdersReviewPage() {
 									</tr>
 								</tfoot>
 							</table>
-							{viewOrder.notes && <div className="px-3 py-2 border-top text-muted small"><strong>Notes:</strong> {viewOrder.notes}</div>}
+							{viewOrder.notes && (
+								<div className="border rounded-2 bg-body-tertiary text-body px-3 py-2 mt-3 small">
+									<strong>Notes:</strong> {viewOrder.notes}
+								</div>
+							)}
 						</>
 					)}
 				</Modal.Body>
-				<Modal.Footer>
+				<Modal.Footer className="bg-body-tertiary border-top">
 					<Button variant="secondary" size="sm" onClick={() => setViewOrder(null)}>Close</Button>
 				</Modal.Footer>
 			</Modal>

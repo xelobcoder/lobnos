@@ -279,6 +279,16 @@ export default function BilledClientsView({
 		{ Header: "RF", accessor: "totalRefunded", title: "Total Refunded", Cell: ({ value }) => <div>{(Number(value) || 0).toFixed(2)}</div> },
 		{ Header: "AP", accessor: "totalpayable", title: "Amount Payable", Cell: ({ value }) => <div>{(Number(value) || 0).toFixed(2)}</div> },
 		{ Header: "PD", accessor: "paidamount", title: "Amount Paid", Cell: ({ value }) => <div>{(Number(value) || 0).toFixed(2)}</div> },
+		{
+			Header: "FOC", accessor: "foc_amount", title: "Staff FOC coverage", Cell: ({ value, row }) => {
+				const amount = Number(value) || 0;
+				return amount > 0 ? (
+					<span className="text-info fw-semibold" title={`Staff FOC transaction #${row.original.foc_transaction_id || 'linked'}`}>
+						FOC {amount.toFixed(2)}
+					</span>
+				) : <span className="text-muted">-</span>;
+			}
+		},
 		{ Header: "OS", accessor: "outstanding", title: "Outstanding Balance", Cell: ({ value }) => (<div><span className={Number(value) > 0 ? "text-danger" : "text-primary"}>{(Number(value) || 0).toFixed(2)}</span></div>) },
 		{ Header: "SC", accessor: "surcharge", title: "Surcharge Amount", Cell: ({ value }) => <div>{(Number(value) || 0).toFixed(2)}</div> },
 		{ Header: "WO", accessor: "writeoff", title: "Write Off Amount", Cell: ({ value }) => <div>{(Number(value) || 0).toFixed(2)}</div> },

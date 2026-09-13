@@ -154,6 +154,14 @@ export const AdminRoleLinks = [
 
 export const FrontdeskRoleLinks = [
      {
+          href: "/crm/overview",
+          icon: <RiDashboardLine size={24} />,
+          text: "Overview of CRM activities and metrics",
+          label: 'CRM Overview',
+          category: 'Core Operations',
+          description: 'Dashboard for CRM overview'
+     },
+     {
           href: '/crm/registration',
           icon: <RiMoneyDollarCircleLine size={24} />,
           text: "Process patient registrations and manage billing workflows efficiently",

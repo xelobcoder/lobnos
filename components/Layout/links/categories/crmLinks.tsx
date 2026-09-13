@@ -119,6 +119,12 @@ export const CrmLinks: Link[] = [
                 title: 'Billing Strategies',
                 link: '/billing/billing-strategy/strategies',
                 icon: <RiScales2Fill />
+            },
+            {
+                title: 'Staff FOC Benefit',
+                link: '/billing/foc',
+                icon: <RiMoneyDollarCircleLine />,
+                roles: ['admin', 'super-admin', 'super_admin', 'accountant']
             }
         ]
     },

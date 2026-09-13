@@ -913,7 +913,13 @@ const BillingSalesLink: Link[] = [
           title: "Night Adjustments",
           link: "/billing/settings/night-adjustments",
           icon: <RiMoonLine />
-     }
+     },
+       {
+             title: "Staff FOC Benefit",
+             link: "/billing/foc",
+             icon: <RiMoneyDollarCircleLine />,
+             roles: ['admin', 'super-admin', 'super_admin', 'accountant']
+         },
 ];
 
 // Inventory Links

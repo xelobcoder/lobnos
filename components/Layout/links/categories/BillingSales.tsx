@@ -15,7 +15,7 @@ import {
 } from '@remixicon/react';
 
 export const BillingSalesLink: Link[] = [
-    { 
+    {
         title: "Customers",
         link: "/crm/customers",
         icon: <RiCustomerService2Line />
@@ -26,12 +26,12 @@ export const BillingSalesLink: Link[] = [
         icon: <RiUserAddLine />
     },
     {
-        title:"Add New Customer",
+        title: "Add New Customer",
         link: "/customers/new",
         icon: <RiUserAddLine />
     },
     {
-        title: "Billing ", 
+        title: "Billing ",
         link: "/billing/patientid",
         icon: <RiBillFill />
     },
@@ -40,7 +40,7 @@ export const BillingSalesLink: Link[] = [
         link: "/billing/entity-orders",
         icon: <RiBillFill />
     },
-   
+
     {
         title: "Expenses",
         link: "/billing/expenses",
@@ -51,16 +51,16 @@ export const BillingSalesLink: Link[] = [
         link: "/billing/expenses/create-new-expense",
         icon: <RiAddCircleLine />
     },
-   
+
     {
         title: "New Merchants",
         link: "/billing/expenses/merchants/create",
         icon: <RiAddBoxLine />
     },
     {
-        title:"Test Price List",
-        link:"/crm/pricelist",
-        icon:<RiMoneyDollarCircleLine/>
+        title: "Test Price List",
+        link: "/crm/pricelist",
+        icon: <RiMoneyDollarCircleLine />
     },
     {
         title: "Packages",
@@ -81,6 +81,12 @@ export const BillingSalesLink: Link[] = [
         title: "Refund Management",
         link: "/billing/refund",
         icon: <RiRefundLine />
+    },
+    {
+        title: "Staff FOC Benefit",
+        link: "/billing/foc",
+        icon: <RiMoneyDollarCircleLine />,
+        roles: ['admin', 'super-admin', 'super_admin', 'accountant']
     },
     {
         title: "Night Adjustments",

@@ -283,9 +283,12 @@ export interface RegistrationFields {
    mobileCountryCode: string;
    whatsappCountryCode: string;
    relativecontactnumber: string;
+   relativecontactname?: string;
    relativeCountryCode: string;
    whatAppcontact: string;
    email: string;
+   occupation?: string;
+   organization?: string;
    marital_status: string;
    mobile_number: string;
    contact_pointer: string;
@@ -308,10 +311,13 @@ export const PatientPersonalInformationFields: RegistrationFields = {
    mobileCountryCode: "+233",
    whatsappCountryCode: "+233",
    relativecontactnumber: "",
+   relativecontactname: "",
    registeredby: "",
    relativeCountryCode: "+233",
    whatAppcontact: "",
    email: "",
+   occupation: "",
+   organization: "",
    marital_status: "",
    contact_pointer: "self",
    years: "",

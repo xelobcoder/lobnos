@@ -50,8 +50,13 @@ export async function middleware(request: NextRequest) {
             const { user, email, settings } = payload as UserPayload;
             const role = user.role || "";
             const currentPath = request.nextUrl.pathname;
+            const normalizedRole = role.toString().toLowerCase().trim();
 
-            if (role === "clinician") {
+            if (currentPath.startsWith('/doctor') && !['clinician', 'admin', 'super admin'].includes(normalizedRole)) {
+                return NextResponse.redirect(new URL('/unauthorized', request.url));
+            }
+
+            if (normalizedRole === "clinician") {
                 if (!currentPath.startsWith('/doctor')) {
                     return NextResponse.redirect(new URL('/doctor', request.url));
                 }

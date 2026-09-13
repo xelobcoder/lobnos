@@ -15,8 +15,8 @@ export interface Service {
   paymentstatus: "pending" | "partial" | "paid"
   categoryTrackId: number;
   clinicianId: number;
-  userAdjustmentType?: 'surcharge' | 'discount'|null;
-  userAdjustedValue?:number;
+  userAdjustmentType?: 'surcharge' | 'discount' | null;
+  userAdjustedValue?: number;
   organizationId: number;
   registrationType: string;
   isDeleted: number;
@@ -52,6 +52,7 @@ export interface Service {
   amountRefunded: string;
   outsourcingOrganization: string | null;
   name: string | boolean;
+  serviceName?: string;
   witnesses: Witness[];
   clinicianName?: string;
   organizationName?: string;

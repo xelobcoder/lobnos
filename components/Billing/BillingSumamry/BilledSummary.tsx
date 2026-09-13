@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { customFetch, currencyFormatter } from "../../Auth/customFetch";
 import { RiFileList3Line, RiWalletLine, RiRefund2Line, RiCheckboxCircleLine, RiAlarmWarningLine, RiMoneyDollarCircleLine, RiBarChartLine, RiEyeLine, RiEyeOffLine, RiCheckLine } from "@remixicon/react";
 import { useApplication } from "../../Auth/useApplicationContext";
+import { Card } from "react-bootstrap";
 
 const COLOR_BORDER = 'var(--bs-border-color)';
 
@@ -57,8 +58,8 @@ export type AnalyticCardProps = {
 	title: string;
 	value: number;
 	Icon: React.ElementType;
-	bgColor: string;
-	iconColor: string;
+	variant: string;
+	subtitle: string;
 	formatAsCurrency?: boolean;
 };
 
@@ -66,52 +67,31 @@ const AnalyticCard = ({
 	title,
 	value,
 	Icon,
-	bgColor,
-	iconColor,
+	variant,
+	subtitle,
 	formatAsCurrency = true,
 }: AnalyticCardProps) => (
-	<div
-		className="border-0 rounded shadow-sm p-4 h-100"
-		style={{
-			backgroundColor: bgColor,
-			transition: 'all 0.2s',
-			cursor: 'pointer',
-			minHeight: '130px',
-			color: 'white'
-		}}
-		onMouseEnter={(e) => {
-			e.currentTarget.style.transform = "translateY(-2px)";
-			e.currentTarget.style.boxShadow = "0 6px 16px rgba(0,0,0,0.15)";
-		}}
-		onMouseLeave={(e) => {
-			e.currentTarget.style.transform = "translateY(0)";
-			e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
-		}}
-	>
-		<div className="d-flex align-items-center mb-3">
-			<div style={{ color: 'white' }} className="me-2">
-				<Icon size={32} />
+	<Card className={`border-0 shadow-sm bg-${variant} bg-gradient text-white rounded-3 h-100`}>
+		<Card.Body className="p-3">
+			<div className="d-flex justify-content-between align-items-center mb-1">
+				<span className="text-xs text-uppercase fw-semibold opacity-75">{title}</span>
+				<Icon size={22} className="opacity-75" />
 			</div>
-			<h6 className="mb-0 fw-semibold" style={{ fontSize: "0.9rem", color: 'rgba(255,255,255,0.95)' }}>
-				{title}
-			</h6>
-		</div>
-		<div className="fw-bold" style={{ fontSize: "1.6rem", color: 'white' }}>
-			{formatAsCurrency ? currencyFormatter.format(Number(value) || 0) : value.toLocaleString()}
-		</div>
-	</div>
+			<h3 className="fw-bold mb-0">
+				{formatAsCurrency ? currencyFormatter.format(Number(value) || 0) : value.toLocaleString()}
+			</h3>
+			<span className="text-xs opacity-75">{subtitle}</span>
+		</Card.Body>
+	</Card>
 );
 
-const cardColors = {
-	totalCost: { bg: "#4f46e5", icon: "#6366f1" },
-	outstanding: { bg: "#ea580c", icon: "#f97316" }, // Orange
-	refunded: { bg: "#be123c", icon: "#e11d48" }, // Crimson
-	expenses: { bg: "#dc2626", icon: "#ef4444" }, // Red
-	accrued: { bg: "#7c3aed", icon: "#8b5cf6" }, // Violet
-	actual: { bg: "#059669", icon: "#10b981" }, // Emerald
-	net: { bg: "#16a34a", icon: "#22c55e" }, // Green
-	discount: { bg: "#f59e0b", icon: "#fbbf24" }, // Amber
-	transactionCount: { bg: "#0891b2", icon: "#06b6d4" }, // Cyan
+const mobileCardColors = {
+	primary: 'var(--bs-primary)',
+	success: 'var(--bs-success)',
+	info: 'var(--bs-info)',
+	warning: 'var(--bs-warning)',
+	danger: 'var(--bs-danger)',
+	secondary: 'var(--bs-secondary)',
 };
 
 type PropsQuery = {
@@ -184,11 +164,11 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 	}, [branchid, from, to, summary]);
 
 	return (
-		<div className="p-3 border border-1 rounded" >
+		<div className="p-3 border rounded-3 bg-body" >
 			<div className="mb-3">
 				<div className="d-flex justify-content-between align-items-center">
 					<div>
-						<h5 className="mb-1 fw-semibold text-dark">Financial Summary</h5>
+						<h5 className="mb-1 fw-bold text-body d-flex align-items-center gap-2"><RiMoneyDollarCircleLine className="text-primary" size={24} />Financial Summary</h5>
 						{branch && (
 							<div className="d-flex align-items-center gap-2">
 								<span className="text-muted small">Branch:</span>
@@ -242,8 +222,8 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 									title="Gross Revenue"
 									value={Number(internalSummary.gross_revenue)}
 									Icon={RiFileList3Line}
-									bgColor={cardColors.totalCost.bg}
-									iconColor={cardColors.totalCost.icon}
+									variant="primary"
+									subtitle="Total billed revenue"
 								/>
 							</div>
 							<div className="col-md-6 col-lg-3">
@@ -251,8 +231,8 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 									title="Cash Collected"
 									value={Number(internalSummary.cash_collected)}
 									Icon={RiWalletLine}
-									bgColor={cardColors.actual.bg}
-									iconColor={cardColors.actual.icon}
+									variant="success"
+									subtitle="Payments received"
 								/>
 							</div>
 							<div className="col-md-6 col-lg-3">
@@ -260,8 +240,8 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 									title="Outstanding"
 									value={Number(internalSummary.outstanding)}
 									Icon={RiAlarmWarningLine}
-									bgColor={cardColors.outstanding.bg}
-									iconColor={cardColors.outstanding.icon}
+									variant="warning"
+									subtitle="Balance awaiting payment"
 								/>
 							</div>
 							<div className="col-md-6 col-lg-3">
@@ -269,8 +249,8 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 									title="Total Refunded"
 									value={Number(internalSummary.total_refunded)}
 									Icon={RiRefund2Line}
-									bgColor={cardColors.refunded.bg}
-									iconColor={cardColors.refunded.icon}
+									variant="danger"
+									subtitle="Refunds processed"
 								/>
 							</div>
 						</div>
@@ -283,8 +263,8 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 										title="Expenses Paid"
 										value={Number(internalSummary.expenses_paid)}
 										Icon={RiMoneyDollarCircleLine}
-										bgColor={cardColors.expenses.bg}
-										iconColor={cardColors.expenses.icon}
+										variant="danger"
+										subtitle="Operational expenses paid"
 									/>
 								</div>
 							)}
@@ -293,8 +273,8 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 									title="Earned Revenue"
 									value={Number(internalSummary.earned_revenue)}
 									Icon={RiCheckboxCircleLine}
-									bgColor={cardColors.accrued.bg}
-									iconColor={cardColors.accrued.icon}
+									variant="info"
+									subtitle="Revenue after adjustments"
 								/>
 							</div>
 							<div className="col-md-6 col-lg-3">
@@ -302,8 +282,8 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 									title="Discount"
 									value={Number(internalSummary.discount)}
 									Icon={RiRefund2Line}
-									bgColor={cardColors.discount.bg}
-									iconColor={cardColors.discount.icon}
+									variant="secondary"
+									subtitle="Discounts applied"
 								/>
 							</div>
 							{canViewExpenseMetrics && (
@@ -312,8 +292,8 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 										title="Net Operating Cash"
 										value={Number(internalSummary.net_operating_cash)}
 										Icon={RiBarChartLine}
-										bgColor={cardColors.net.bg}
-										iconColor={cardColors.net.icon}
+										variant="success"
+										subtitle="Cash after expenses"
 									/>
 								</div>
 							)}
@@ -329,7 +309,7 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 										<div
 											className="d-flex align-items-center justify-content-center"
 											style={{
-												background: cardColors.totalCost.bg,
+												background: mobileCardColors.primary,
 												padding: "4px",
 												borderRadius: "4px",
 												width: "24px",
@@ -352,7 +332,7 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 										<div
 											className="d-flex align-items-center justify-content-center"
 											style={{
-												background: cardColors.actual.bg,
+												background: mobileCardColors.success,
 												padding: "4px",
 												borderRadius: "4px",
 												width: "24px",
@@ -375,7 +355,7 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 										<div
 											className="d-flex align-items-center justify-content-center"
 											style={{
-												background: cardColors.accrued.bg,
+												background: mobileCardColors.info,
 												padding: "4px",
 												borderRadius: "4px",
 												width: "24px",
@@ -398,7 +378,7 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 										<div
 											className="d-flex align-items-center justify-content-center"
 											style={{
-												background: cardColors.outstanding.bg,
+												background: mobileCardColors.warning,
 												padding: "4px",
 												borderRadius: "4px",
 												width: "24px",
@@ -421,7 +401,7 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 										<div
 											className="d-flex align-items-center justify-content-center"
 											style={{
-												background: cardColors.refunded.bg,
+												background: mobileCardColors.danger,
 												padding: "4px",
 												borderRadius: "4px",
 												width: "24px",
@@ -445,7 +425,7 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 											<div
 												className="d-flex align-items-center justify-content-center"
 												style={{
-													background: cardColors.expenses.bg,
+													background: mobileCardColors.danger,
 													padding: "4px",
 													borderRadius: "4px",
 													width: "24px",
@@ -469,7 +449,7 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 										<div
 											className="d-flex align-items-center justify-content-center"
 											style={{
-												background: cardColors.discount.bg,
+												background: mobileCardColors.secondary,
 												padding: "4px",
 												borderRadius: "4px",
 												width: "24px",
@@ -493,7 +473,7 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 											<div
 												className="d-flex align-items-center justify-content-center"
 												style={{
-													background: cardColors.net.bg,
+													background: mobileCardColors.success,
 													padding: "4px",
 													borderRadius: "4px",
 													width: "24px",

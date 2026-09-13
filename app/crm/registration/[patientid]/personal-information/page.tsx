@@ -1,14 +1,15 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useParams } from 'next/navigation';
-import PersonalInfomationRegistration from '../../../../../components/registration/PersonalInfomationRegistration';
-import { customFetch } from '../../../../../components/Auth/customFetch';
+import RegistrationForm from '../../../../../components/registration/RegistrationForm';
 
 export default function PagePersonalInformation() {
+     const { patientid } = useParams();
+     const id = patientid ? Number(patientid) : undefined;
 
      return (
-          <div className="container-fluid px-4 py-3">
-               <PersonalInfomationRegistration />
+          <div className="container-fluid px-2 py-2">
+               <RegistrationForm patientid={id} />
           </div>
      );
 }

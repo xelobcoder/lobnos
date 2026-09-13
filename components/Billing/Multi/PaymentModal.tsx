@@ -62,7 +62,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           entityType: billingdata?.entityType,
           isNHISBilling
      });
-     const [paymentMode, setPaymentMode] = React.useState<'all' | 'items' | 'free' | 'nhis'>(isNHISBilling ? 'nhis' : 'all');
+     const [paymentMode, setPaymentMode] = React.useState<'all' | 'items' | 'free' | 'nhis' | 'foc'>(isNHISBilling ? 'nhis' : 'all');
      const [paySelected, setPaySelected] = React.useState(false);
      const [selectedAmount, setSelectedAmount] = React.useState('');
      const [bulkPerTestMode, setBulkPerTestMode] = React.useState('');
@@ -70,6 +70,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
      const [payAllError, setPayAllError] = React.useState('');
      const [isSyncing, setIsSyncing] = React.useState(false);
      const [isValueSynchronized, setIsValueSynchronized] = React.useState(false);
+
+     // Staff FOC states
+     const [focAccounts, setFocAccounts] = React.useState<any[]>([]);
+     const [selectedFocStaffId, setSelectedFocStaffId] = React.useState<string>('');
+     const [focReason, setFocReason] = React.useState('Staff Medical Benefit');
+     const [focValidationResult, setFocValidationResult] = React.useState<any>(null);
+     const [isValidatingFoc, setIsValidatingFoc] = React.useState(false);
 
      // Free service request states
      const [freeServiceRequestId, setFreeServiceRequestId] = React.useState<number | null>(null);
@@ -220,13 +227,38 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
      }, [selectedAmount, paySelected]);
 
      React.useEffect(() => {
-          if (paymentMode === 'free' || paymentMode === 'nhis') {
+          if (paymentMode === 'free' || paymentMode === 'nhis' || paymentMode === 'foc') {
                setPayAllPayments([{ mode: '', amount: 0 }]);
                setSelectedAmount('');
                setBulkPerTestMode('');
                setSelectedItems(items.map(() => false));
           }
      }, [paymentMode]);
+
+     React.useEffect(() => {
+          if (show) {
+               customFetch('foc/accounts?count=100').then((res) => {
+                    if (res?.result?.accounts && Array.isArray(res.result.accounts)) {
+                         setFocAccounts(res.result.accounts);
+                    }
+               }).catch(() => { });
+          }
+     }, [show]);
+
+     React.useEffect(() => {
+          if (paymentMode === 'foc' && selectedFocStaffId && billingdata?.patientId) {
+               setIsValidatingFoc(true);
+               customPost('foc/validate', 'POST', {
+                    employeeid: Number(selectedFocStaffId),
+                    patientid: Number(billingdata.patientId),
+                    grossAmount: payable,
+               }).then((res) => {
+                    if (res?.result) {
+                         setFocValidationResult(res.result);
+                    }
+               }).catch(() => { }).finally(() => setIsValidatingFoc(false));
+          }
+     }, [paymentMode, selectedFocStaffId, payable, billingdata?.patientId]);
 
      React.useEffect(() => {
           if (paymentMode === 'all') {
@@ -278,6 +310,64 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
      const handlePaymentSyncing = async () => {
           setIsSyncing(true);
+
+          if (paymentMode === 'foc') {
+               if (!selectedFocStaffId) {
+                    setPayAllError('Please select an eligible staff member for FOC benefit.');
+                    setIsSyncing(false);
+                    return;
+               }
+
+               const focCoverage = focValidationResult?.focCoverage || 0;
+               const patientPayable = focValidationResult?.patientPayable || 0;
+
+               const updatedCart = tests.map((test) => ({
+                    ...test,
+                    paidamount: 0,
+                    paymentstatus: patientPayable === 0 ? 'Paid' : 'pending',
+               }));
+
+               const updatedServices = services.map((service) => ({
+                    ...service,
+                    paidamount: 0,
+                    paymentstatus: patientPayable === 0 ? 'Paid' : 'pending',
+               }));
+
+               const newCurrentData = {
+                    ...billingdata,
+                    finalCart: updatedCart,
+                    finalServicesList: updatedServices,
+                    paid: focCoverage,
+                    focStaffId: Number(selectedFocStaffId),
+                    focReason: focReason || 'Staff Medical Benefit',
+                    focCoverage,
+                    paymentDetails: {
+                         mode: 'foc',
+                         focStaffId: Number(selectedFocStaffId),
+                         focReason: focReason || 'Staff Medical Benefit',
+                         amount: focCoverage,
+                    },
+                    payments: [{ mode: 'foc', amount: focCoverage }],
+                    balance: patientPayable,
+                    outstanding: patientPayable,
+                    openPaymentModal: 0,
+               };
+
+               setBillingData(newCurrentData);
+               if (handlesubmit) {
+                    const result = await handlesubmit(newCurrentData);
+                    if (result?.status === true) {
+                         setIsValueSynchronized(true);
+                         setIsSyncing(false);
+                    } else {
+                         setIsSyncing(false);
+                    }
+               } else {
+                    setIsValueSynchronized(true);
+                    setIsSyncing(false);
+               }
+               return;
+          }
 
           if (paymentMode === 'free') {
                const updatedCart = tests.map((test) => {
@@ -732,11 +822,96 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                                                   <input type="radio" className="btn-check" name="paymentMode" id="paySome" checked={paymentMode === 'items'} onChange={() => setPaymentMode('items')} />
                                                   <label className="btn btn-outline-primary" htmlFor="paySome">Partial Payment</label>
 
+                                                  <input type="radio" className="btn-check" name="paymentMode" id="payFOC" checked={paymentMode === 'foc'} onChange={() => setPaymentMode('foc')} />
+                                                  <label className="btn btn-outline-info" htmlFor="payFOC">Staff FOC Benefit</label>
+
                                                   {/* <input type="radio" className="btn-check" name="paymentMode" id="payFree" checked={paymentMode === 'free'} onChange={() => setPaymentMode('free')} />
                                                   <label className="btn btn-outline-success" htmlFor="payFree">Free Service</label> */}
                                              </>
                                         )}
                                    </div>
+
+                                   {paymentMode === 'foc' && (
+                                        <div className="card border-0 bg-light-subtle rounded-3 p-3 mb-3 border-start border-4 border-info shadow-sm">
+                                             <h6 className="fw-bold mb-2 text-info d-flex align-items-center gap-2">
+                                                  <span>🏥</span>
+                                                  <span>Staff Free-of-Charge (FOC) Benefit</span>
+                                             </h6>
+                                             <p className="text-muted text-xs mb-3">
+                                                  Services will be covered by the staff member's annual medical benefit allowance.
+                                             </p>
+
+                                             <div className="row g-3 mb-3">
+                                                  <div className="col-md-12">
+                                                       <label htmlFor="focStaffSelect" className="form-label text-xs fw-semibold text-uppercase text-muted mb-1">
+                                                            Select Staff Beneficiary <span className="text-danger">*</span>
+                                                       </label>
+                                                       <select
+                                                            id="focStaffSelect"
+                                                            className="form-select form-select-sm"
+                                                            value={selectedFocStaffId}
+                                                            onChange={(e) => setSelectedFocStaffId(e.target.value)}
+                                                       >
+                                                            <option value="">-- Select Staff Member --</option>
+                                                            {focAccounts.map((acc: any) => (
+                                                                 <option key={acc.employeeid} value={acc.employeeid}>
+                                                                      {acc.staff_name || `Staff #${acc.employeeid}`} ({acc.staff_role || 'Staff'}) — Remaining: ₵{Number(acc.remaining_amount || 0).toFixed(2)}
+                                                                 </option>
+                                                            ))}
+                                                       </select>
+                                                  </div>
+
+                                                  <div className="col-md-12">
+                                                       <label htmlFor="focReasonInput" className="form-label text-xs fw-semibold text-uppercase text-muted mb-1">
+                                                            Reason / Benefit Remarks
+                                                       </label>
+                                                       <input
+                                                            id="focReasonInput"
+                                                            type="text"
+                                                            className="form-control form-control-sm"
+                                                            value={focReason}
+                                                            onChange={(e) => setFocReason(e.target.value)}
+                                                            placeholder="e.g. Staff Annual Medical Screening"
+                                                       />
+                                                  </div>
+                                             </div>
+
+                                             {isValidatingFoc && (
+                                                  <div className="text-muted text-xs d-flex align-items-center gap-2">
+                                                       <span className="spinner-border spinner-border-sm" role="status"></span>
+                                                       <span>Validating FOC coverage with server...</span>
+                                                  </div>
+                                             )}
+
+                                             {focValidationResult && !isValidatingFoc && (
+                                                  <div className="card border-0 bg-white p-3 rounded-3 shadow-xs">
+                                                       <div className="d-flex justify-content-between align-items-center mb-1 text-xs">
+                                                            <span className="text-muted">Annual FOC Allowance:</span>
+                                                            <span className="fw-semibold">₵{Number(focValidationResult.currentLimit || 0).toFixed(2)}</span>
+                                                       </div>
+                                                       <div className="d-flex justify-content-between align-items-center mb-1 text-xs">
+                                                            <span className="text-muted">FOC Used This Year:</span>
+                                                            <span className="fw-semibold">₵{Number(focValidationResult.usedAmount || 0).toFixed(2)}</span>
+                                                       </div>
+                                                       <div className="d-flex justify-content-between align-items-center mb-1 text-xs">
+                                                            <span className="text-muted">Remaining Balance:</span>
+                                                            <span className="fw-bold text-success">₵{Number(focValidationResult.remainingAmount || 0).toFixed(2)}</span>
+                                                       </div>
+                                                       <hr className="my-2" />
+                                                       <div className="d-flex justify-content-between align-items-center mb-1 text-xs">
+                                                            <span className="fw-semibold text-primary">FOC Benefit Coverage:</span>
+                                                            <span className="fw-bold text-primary">₵{Number(focValidationResult.focCoverage || 0).toFixed(2)}</span>
+                                                       </div>
+                                                       <div className="d-flex justify-content-between align-items-center text-xs">
+                                                            <span className="fw-semibold text-dark">Patient Payable Portion:</span>
+                                                            <span className={`fw-bold ${focValidationResult.patientPayable > 0 ? 'text-danger' : 'text-success'}`}>
+                                                                 ₵{Number(focValidationResult.patientPayable || 0).toFixed(2)}
+                                                            </span>
+                                                       </div>
+                                                  </div>
+                                             )}
+                                        </div>
+                                   )}
 
                                    {paymentMode === 'free' && (
                                         <div>
@@ -1080,8 +1255,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                               Skip Payment
                          </Button>
                          <Button
-                         size="sm"
-                         variant="outline-info"
+                              size="sm"
+                              variant="outline-info"
                          >
                               Result Delivery Configutation
                          </Button>

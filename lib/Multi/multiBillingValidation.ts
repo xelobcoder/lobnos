@@ -84,6 +84,10 @@ export const MultiValidateAndSubmitBillingInformation = async function (
 			organizationId,
 			finalCart = [],
 			finalServicesList = [],
+			focStaffId,
+			focReason,
+			paymentDetails,
+			allowFocOverride,
 		} = billingdata as any;
 
 
@@ -177,6 +181,10 @@ export const MultiValidateAndSubmitBillingInformation = async function (
 			isAdjustment: typeof isAdjustment === 'boolean' ? (isAdjustment ? 1 : 0) : isAdjustment,
 			claimscheckcode,
 			nhismembershipid,
+			focStaffId,
+			focReason,
+			paymentDetails,
+			allowFocOverride,
 		};
 
 		const url = "billing/multi/submit";

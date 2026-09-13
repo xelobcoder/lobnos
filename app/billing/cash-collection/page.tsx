@@ -588,7 +588,7 @@ export default function CashCollection() {
                                                                                           <div className={`fw-bold ${balance > 0 ? 'text-danger' : 'text-muted'}`} style={{ fontSize: '0.9rem', textDecoration: (waive > 0) ? 'line-through' : 'none', opacity: (waive > 0) ? 0.6 : 1 }}>₵{balance.toFixed(2)}</div>
                                                                                           {!isPaid && (waive > 0) && (
                                                                                                <div className="text-primary fw-bold" style={{ fontSize: '0.9rem' }}>
-                                                                                                    Net: ₵{netBalance.toFixed(2)}
+                                                                                                    Net: {netBalance.toFixed(2)}
                                                                                                </div>
                                                                                           )}
                                                                                      </td>
@@ -664,7 +664,7 @@ export default function CashCollection() {
                                                             <div className="d-flex flex-wrap align-items-center gap-2">
                                                                  <div className="me-auto">
                                                                       <div className="fw-bold text-success lh-1" style={{ fontSize: "1.6rem" }}>
-                                                                           ₵{totalReady.toFixed(2)}
+                                                                           {totalReady.toFixed(2)}
                                                                       </div>
                                                                       <div className="d-flex gap-2 mt-1">
                                                                            {totalWaiveOff > 0 && <span className="badge bg-warning text-dark" style={{ fontSize: '0.75rem' }}>Waive-off: ₵{totalWaiveOff.toFixed(2)}</span>}

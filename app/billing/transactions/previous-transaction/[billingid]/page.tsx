@@ -309,7 +309,7 @@ export default function PreviousTransactionSummaryPage() {
 
 
 	const [showRefundModal, setShowRefundModal] = useState(false);
-	const [refundTarget, setRefundTarget] = useState<Service | null>(null);
+	const [refundTarget, setRefundTarget] = useState<any | null>(null);
 	const [refundReason, setRefundReason] = useState('');
 	const [refundReasonType, setRefundReasonType] = useState('');
 	const [refundRequestAmount, setRefundRequestAmount] = useState('');
@@ -393,44 +393,57 @@ export default function PreviousTransactionSummaryPage() {
 			return;
 		}
 		if (refundReasonType === 'Other' && !refundReason.trim()) {
-			toast.error('Please provide a custom reason for the refund');
+			toast.error('Please specify the custom reason for the refund');
 			return;
 		}
 		const amount = parseFloat(refundRequestAmount);
-		if (!amount || amount <= 0) {
+		if (isNaN(amount) || amount <= 0) {
 			toast.error('Please enter a valid refund amount');
 			return;
 		}
-		if (amount > Number(refundTarget.totalcost)) {
-			toast.error('Refund amount cannot exceed the service cost');
+		const maxCost = Number(refundTarget.totalcost || refundTarget.cost || 0);
+		if (maxCost > 0 && amount > maxCost) {
+			toast.error(`Refund amount cannot exceed the service cost (${currencyFormatter.format(maxCost)})`);
 			return;
 		}
+
 		setIsRequesting(true);
-		const { billingid, categoryTrackId, taxIncluded, serviceid, trackId } = refundTarget;
-		const finalReason = refundReasonType === 'Other' ? refundReason : refundReasonType;
+		const { serviceid, categoryTrackId, taxIncluded, trackId } = refundTarget;
+		const targetBillingId = refundTarget.billingid || billingdata.billingid || billingidParam;
+		const customReasonText = refundReason.trim();
+		const finalReason = refundReasonType === 'Other'
+			? customReasonText
+			: (customReasonText ? `${refundReasonType} - ${customReasonText}` : refundReasonType);
+
 		const data = {
-			billingid,
-			categoryTrackId,
-			employeeid,
-			taxIncluded,
-			serviceid,
+			billingid: Number(targetBillingId),
+			categoryTrackId: Number(categoryTrackId || 0),
+			employeeid: Number(employeeid),
+			taxIncluded: taxIncluded ? 1 : 0,
+			serviceid: Number(serviceid),
 			refundMessage: finalReason,
 			refundAmount: amount,
 			trackId
 		};
-		const pushResponse = await customPost(`billing/previous/request/refund/update`, 'POST', data);
-		const { status } = pushResponse;
-		if (status === true) {
-			toast.success("Request for refund submitted successfully");
-			setShowRefundModal(false);
-			setRefundReason('');
-			setRefundReasonType('');
-			setRefundRequestAmount('');
-			await fetchRecords(billingid);
-		} else {
-			toast.error("request for refund failed ");
+
+		try {
+			const pushResponse = await customPost(`billing/previous/request/refund/update`, 'POST', data);
+			const { status, message } = pushResponse || {};
+			if (status === true) {
+				toast.success(message || "Request for refund submitted successfully");
+				setShowRefundModal(false);
+				setRefundReason('');
+				setRefundReasonType('');
+				setRefundRequestAmount('');
+				if (targetBillingId) await fetchRecords(Number(targetBillingId));
+			} else {
+				toast.error(message || "Request for refund failed");
+			}
+		} catch (err: any) {
+			toast.error(err?.message || "An error occurred while submitting refund request");
+		} finally {
+			setIsRequesting(false);
 		}
-		setIsRequesting(false);
 	};
 
 	const getServiceTaxes = (svc: any) => {
@@ -443,76 +456,123 @@ export default function PreviousTransactionSummaryPage() {
 		return taxes;
 	};
 
-	const renderRefundModal = () => (
-		<Modal show={showRefundModal} onHide={() => setShowRefundModal(false)} backdrop="static">
-			<Modal.Header closeButton>
-				<Modal.Title>Request Refund</Modal.Title>
-			</Modal.Header>
-			<Modal.Body>
-				<div className="mb-3">
-					<label htmlFor="refundAmount" className="form-label">Refund Amount <span className="text-danger">*</span></label>
-					<div className="input-group">
-						<span className="input-group-text">₵</span>
-						<input
-							id="refundAmount"
-							type="number"
-							className="form-control"
-							value={refundRequestAmount}
-							onChange={e => setRefundRequestAmount(e.target.value)}
-							min="0"
-							step="0.01"
-							placeholder="Enter refund amount"
-						/>
-					</div>
-					{refundTarget && (
-						<small className="fw-bold text-uppercase">
-							Service cost: ₵{currencyFormatter.format(Number(refundTarget.totalcost) || 0)}
-						</small>
+	const renderRefundModal = () => {
+		const targetItem: any = refundTarget;
+		return (
+			<Modal show={showRefundModal} onHide={() => setShowRefundModal(false)} backdrop="static" animation={false} size="lg" className="topSheetDialog">
+				<Modal.Header closeButton className="border-bottom pb-2">
+					<Modal.Title className="d-flex align-items-center gap-2 text-primary fw-semibold fs-5">
+						<RiRefund2Line size={24} /> Request Service Refund
+					</Modal.Title>
+				</Modal.Header>
+				<Modal.Body className="p-4">
+					{targetItem && (
+						<div className="card border-0 bg-light-subtle rounded-3 p-3 mb-3 border-start border-4 border-primary shadow-sm">
+							<div className="d-flex justify-content-between align-items-center">
+								<div>
+									<div className="text-muted text-xs fw-medium text-uppercase mb-1">Target Service</div>
+									<h6 className="fw-bold mb-1 text-dark">{(targetItem as any)?.name || (targetItem as any)?.serviceName || 'Billed Service'}</h6>
+									<div className="text-muted text-xs">
+										Billing ID: <span className="fw-semibold text-body">#{targetItem.billingid || billingdata.billingid || billingidParam}</span>
+									</div>
+								</div>
+								<div className="text-end">
+									<div className="text-muted text-xs fw-medium text-uppercase mb-1">Service Cost</div>
+									<div className="fs-5 fw-bold text-primary">
+										{currencyFormatter.format(Number(targetItem.totalcost || targetItem.cost) || 0)}
+									</div>
+								</div>
+							</div>
+						</div>
 					)}
-				</div>
-				<div className="mb-3">
-					<label htmlFor="refundReasonType" className="form-label">Reason for Refund <span className="text-danger">*</span></label>
-					<select
-						id="refundReasonType"
-						className="form-select form-select-sm"
-						value={refundReasonType}
-						onChange={(e) => {
-							setRefundReasonType(e.target.value);
-							setRefundReason(e.target.value === 'Other' ? '' : e.target.value);
-						}}
-					>
-						<option value="">-- Select a Reason --</option>
-						{refundReasons.map((reason) => (
-							<option key={reason} value={reason}>
-								{reason}
-							</option>
-						))}
-					</select>
-				</div>
-				{refundReasonType === 'Other' && (
-					<div className="mb-3">
-						<label htmlFor="refundReason" className="form-label">Please Specify <span className="text-danger">*</span></label>
-						<textarea
-							id="refundReason"
-							className="form-control"
-							value={refundReason}
-							onChange={e => setRefundReason(e.target.value)}
-							rows={3}
-							placeholder="Enter custom reason for refund..."
-						/>
+
+					<div className="row g-3 mb-3">
+						<div className="col-md-12">
+							<label htmlFor="refundAmount" className="form-label fw-medium text-xs text-uppercase mb-1">
+								Refund Amount <span className="text-danger">*</span>
+							</label>
+							<div className="input-group">
+								<span className="input-group-text bg-light text-muted fw-bold"></span>
+								<input
+									id="refundAmount"
+									type="number"
+									className="form-control form-control-lg fs-6"
+									value={refundRequestAmount}
+									onChange={e => setRefundRequestAmount(e.target.value)}
+									min="0"
+									step="0.01"
+									placeholder="Enter refund amount"
+								/>
+								{refundTarget && (
+									<Button
+										variant="outline-secondary"
+										size="sm"
+										className="px-3"
+										onClick={() => setRefundRequestAmount(Number(refundTarget.totalcost || refundTarget.cost || 0).toString())}
+									>
+										Full Amount
+									</Button>
+								)}
+							</div>
+						</div>
+
+						<div className="col-md-12">
+							<label htmlFor="refundReasonType" className="form-label fw-medium text-xs text-uppercase mb-1">
+								Reason Category <span className="text-danger">*</span>
+							</label>
+							<select
+								id="refundReasonType"
+								className="form-select form-select-md"
+								value={refundReasonType}
+								onChange={(e) => {
+									setRefundReasonType(e.target.value);
+									if (e.target.value !== 'Other' && !refundReason) {
+										setRefundReason('');
+									}
+								}}
+							>
+								<option value="">-- Select Reason Category --</option>
+								{refundReasons.map((reason) => (
+									<option key={reason} value={reason}>
+										{reason}
+									</option>
+								))}
+							</select>
+						</div>
+
+						<div className="col-md-12">
+							<label htmlFor="refundReason" className="form-label fw-medium text-xs text-uppercase mb-1">
+								Detailed Explanation / Remarks {refundReasonType === 'Other' && <span className="text-danger">*</span>}
+							</label>
+							<textarea
+								id="refundReason"
+								className="form-control"
+								value={refundReason}
+								onChange={e => setRefundReason(e.target.value)}
+								rows={3}
+								placeholder={refundReasonType === 'Other' ? "Specify the exact reason for the refund..." : "Add optional details or remarks for the administrator..."}
+							/>
+						</div>
 					</div>
-				)}
-			</Modal.Body>
-			<Modal.Footer>
-				<Button variant="secondary" onClick={() => setShowRefundModal(false)} disabled={isRequesting}>
-					Cancel
-				</Button>
-				<Button variant="primary" onClick={handleRefundRequest} disabled={isRequesting}>
-					{isRequesting ? <Spinner size="sm" /> : null} Submit Request
-				</Button>
-			</Modal.Footer>
-		</Modal>
-	);
+
+					<div className="alert alert-info border-0 rounded-3 text-xs mb-0 d-flex align-items-center gap-2">
+						<RiAlarmWarningLine size={18} className="flex-shrink-0 text-info" />
+						<div>
+							<strong>Single Witness Workflow:</strong> Submitting this request logs your witness statement. Administrators will review and approve the request before funds can be issued.
+						</div>
+					</div>
+				</Modal.Body>
+				<Modal.Footer className="border-top pt-2">
+					<Button variant="light" className="px-4" onClick={() => setShowRefundModal(false)} disabled={isRequesting}>
+						Cancel
+					</Button>
+					<Button variant="primary" className="px-4 fw-semibold" onClick={handleRefundRequest} disabled={isRequesting}>
+						{isRequesting ? <Spinner size="sm" className="me-1" /> : null} Submit Request
+					</Button>
+				</Modal.Footer>
+			</Modal>
+		);
+	};
 	const renderWitnessModal = () => (
 		<Modal show={showWitnessModal} onHide={() => setShowWitnessModal(false)} backdrop="static">
 			<Modal.Header closeButton>
@@ -889,14 +949,17 @@ export default function PreviousTransactionSummaryPage() {
 			</div>
 		);
 	} else {
-		const cashoutItem = item && item !== null ? {
-			cost: Number(item.cost) || 0,
-			amountIncurredDueTax: Number(item.amountIncurredDueTax) || 0,
-			discount: Number(item.discount) || 0,
-			serviceid: item.serviceid,
-			billingid: item.billingid,
-			totalcost: Number(item.totalcost) || 0
+		const activeItem: any = item;
+		const cashoutItem = activeItem ? {
+			name: activeItem.name || activeItem.serviceName || 'Billed Service',
+			cost: Number(activeItem.cost) || 0,
+			amountIncurredDueTax: Number(activeItem.amountIncurredDueTax) || 0,
+			discount: Number(activeItem.discount) || 0,
+			serviceid: Number(activeItem.serviceid) || 0,
+			billingid: Number(activeItem.billingid) || 0,
+			totalcost: Number(activeItem.totalcost) || 0
 		} : {
+			name: 'Billed Service',
 			cost: 0,
 			amountIncurredDueTax: 0,
 			discount: 0,
@@ -1112,7 +1175,7 @@ export default function PreviousTransactionSummaryPage() {
 																	Refund
 																</Button>
 															)}
-															
+
 															{row.isRefundInitiated === 1 && row.isRefundApproved === 1 && (row.isRefundCompleted !== 1) && (
 																<Button size="sm" variant="success" onClick={() => handleCashOutRefund(row)}>
 																	Cash Out

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { currencyFormatter, customFetch, customPost } from '../../components/Auth/customFetch';
 import { RiMoneyDollarCircleLine, RiCheckDoubleFill, RiCloseCircleFill, RiFileList2Line, RiInboxArchiveLine, RiCalendarEventLine, RiFilter3Line, RiRefreshLine, RiSearchLine, RiAddBoxLine } from '@remixicon/react';
 import PrimeTable from '../accessories/Datatables/PrimeTable';
-import { Offcanvas, Button, ButtonGroup, Modal } from 'react-bootstrap';
+import { Button, ButtonGroup, Modal } from 'react-bootstrap';
 
 const statusMap = {
 	0: { label: 'Pending', color: 'warning', icon: <RiFileList2Line className="me-1" /> },
@@ -12,7 +12,6 @@ const statusMap = {
 
 const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setFilter, handleFilters, branchid, setExpenses }) => {
 	const [localFilter, setLocalFilter] = useState({ ...filter });
-	const [showOffcanvas, setShowOffcanvas] = useState(false);
 	const [selectedExpenses, setSelectedExpenses] = useState([]);
 	const [showBulkModal, setShowBulkModal] = useState(false);
 	const [bulkDecisions, setBulkDecisions] = useState({});
@@ -51,7 +50,6 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 	const handleSearch = () => {
 		setFilter(localFilter);
 		handleFilters();
-		setShowOffcanvas(false);
 	};
 
 	const handleClear = () => {
@@ -59,7 +57,6 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 		setLocalFilter(cleared);
 		setFilter(cleared);
 		handleFilters();
-		setShowOffcanvas(false);
 	};
 
 	const handleBulkActions = () => {
@@ -333,7 +330,7 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 			Header: 'Requested By / Approved By',
 			accessor: 'username',
 			Cell: ({ row }) => (
-				<span className="d-flex flex-column" style={{ fontSize: '0.75rem' ,textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', display: 'block', maxWidth: '200px' }}>
+				<span className="d-flex flex-column" style={{ fontSize: '0.75rem', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', display: 'block', maxWidth: '200px' }}>
 					<span className="d-flex align-items-center mb-1">
 						<strong className="text-muted" style={{ fontSize: '0.85rem' }}>Requested:</strong>
 						<span className="ms-2">{row.original.username}</span>
@@ -358,9 +355,9 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 		{
 			Header: 'Description',
 			accessor: 'description',
-		
+
 			Cell: ({ cell: { value }, row }) => (
-				<span className="text-secondary" style={{ fontSize: '0.75rem' ,textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', display: 'block', maxWidth: '200px' }}>
+				<span className="text-secondary" style={{ fontSize: '0.75rem', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', display: 'block', maxWidth: '200px' }}>
 					{value ? value.toString().slice(0, 100) : 'No description provided'}
 				</span>
 			)
@@ -412,120 +409,301 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 	return (
 		<div>
 			{/* Header with Expense Creation Buttons */}
-			<div className="d-flex justify-content-between align-items-center mb-3">
-				<h5 className="mb-0 fw-semibold text-body">Expense Management</h5>
-				<ButtonGroup>
-					<Button variant="outline-primary"
-						onClick={(ev) => { handleSelectAllExpenses(ev) }}
-						size="sm" className="d-flex align-items-center">
-						Select All Expenses
+			<div
+				className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3"
+				style={{
+					padding: "2px 2px",
+				}}
+			>
+				{/* Title */}
+				<div>
+					<h5
+						className="mb-1"
+						style={{
+							fontSize: "18px",
+							fontWeight: 600,
+							color: "#212529",
+							letterSpacing: "-0.2px",
+						}}
+					>
+						Expense Management
+					</h5>
+
+					<div
+						style={{
+							fontSize: "12px",
+							color: "#6c757d",
+						}}
+					>
+						Manage, create and process expenses
+					</div>
+				</div>
+
+				{/* Action Buttons */}
+				<div
+					className="d-flex align-items-center flex-wrap gap-2"
+				>
+					<Button
+						variant="outline-primary"
+						size="sm"
+						onClick={(ev) => {
+							handleSelectAllExpenses(ev)
+						}}
+						className="d-flex align-items-center justify-content-center"
+						style={{
+							height: "38px",
+							borderRadius: "7px",
+							padding: "0 14px",
+							fontSize: "13px",
+							fontWeight: 500,
+						}}
+					>
+						Select All
 					</Button>
 
-					<Button variant="outline-primary" size="sm" className="d-flex align-items-center"
-						onClick={() => window.location.href = '/billing/expenses/create-new-expense'}>
-						<RiAddBoxLine className="me-1" size={16} />
+					<Button
+						variant="primary"
+						size="sm"
+						onClick={() =>
+							window.location.href =
+							"/billing/expenses/create-new-expense"
+						}
+						className="d-flex align-items-center justify-content-center"
+						style={{
+							height: "38px",
+							borderRadius: "7px",
+							padding: "0 15px",
+							fontSize: "13px",
+							fontWeight: 500,
+							boxShadow: "0 2px 4px rgba(13, 110, 253, 0.15)",
+						}}
+					>
+						<RiAddBoxLine
+							size={16}
+							style={{ marginRight: "6px" }}
+						/>
 						Add Expense
 					</Button>
-					<Button onClick={() => window.location.href = '/billing/expenses/create-multiple-expenses'}
-						variant="outline-success" size="sm" className="d-flex align-items-center">
-						<RiFileList2Line className="me-1" size={16} />
+
+					<Button
+						variant="outline-success"
+						size="sm"
+						onClick={() =>
+							window.location.href =
+							"/billing/expenses/create-multiple-expenses"
+						}
+						className="d-flex align-items-center justify-content-center"
+						style={{
+							height: "38px",
+							borderRadius: "7px",
+							padding: "0 15px",
+							fontSize: "13px",
+							fontWeight: 500,
+						}}
+					>
+						<RiFileList2Line
+							size={16}
+							style={{ marginRight: "6px" }}
+						/>
 						Bulk Upload
 					</Button>
+
 					{selectedExpenses.length > 0 && (
-						<Button variant="outline-warning" size="sm" onClick={handleBulkActions}>
-							Bulk Actions ({selectedExpenses.length})
+						<Button
+							variant="outline-warning"
+							size="sm"
+							onClick={handleBulkActions}
+							className="d-flex align-items-center justify-content-center"
+							style={{
+								height: "38px",
+								borderRadius: "7px",
+								padding: "0 15px",
+								fontSize: "13px",
+								fontWeight: 500,
+							}}
+						>
+							Bulk Actions
+							<span
+								style={{
+									marginLeft: "6px",
+									fontSize: "12px",
+									fontWeight: 600,
+									backgroundColor: "rgba(255, 193, 7, 0.15)",
+									padding: "2px 7px",
+									borderRadius: "10px",
+								}}
+							>
+								{selectedExpenses.length}
+							</span>
 						</Button>
 					)}
-				</ButtonGroup>
+				</div>
 			</div>
+			<div
+				className="mb-3"
+				style={{
+					background: "#fff",
+					border: "1px solid #e9ecef",
+					borderRadius: "10px",
+					padding: "18px",
+					boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
+				}}
+			>
+				<div className="row g-3 align-items-end">
 
-			{/* Filter Button */}
-			<div className="mb-3">
-				<Button
-					variant="outline-secondary"
-					size="sm"
-					onClick={() => setShowOffcanvas(true)}
-					className="d-flex align-items-center"
-				>
-					<RiFilter3Line className="me-2" size={16} />
-					Open Filters
-				</Button>
-			</div>
+					{/* From Date */}
+					<div className="col-12 col-md-6 col-xl-3">
+						<label
+							htmlFor="from-date"
+							className="form-label"
+							style={{
+								fontSize: "13px",
+								fontWeight: 600,
+								color: "#495057",
+								marginBottom: "7px",
+							}}
+						>
+							From Date
+						</label>
 
-			{/* Offcanvas Filters */}
-			<Offcanvas show={showOffcanvas} onHide={() => setShowOffcanvas(false)} placement="end">
-				<Offcanvas.Header closeButton>
-					<Offcanvas.Title className="d-flex align-items-center">
-						<RiFilter3Line className="me-2 text-primary" size={20} />
-						Filter Expenses
-					</Offcanvas.Title>
-				</Offcanvas.Header>
-				<Offcanvas.Body>
-					<div className="row g-3">
-						<div className="col-12">
-							<label htmlFor="from-date" className="form-label mb-1" style={{ fontSize: '0.75rem', fontWeight: '500' }}>
-								<RiCalendarEventLine size={14} className="me-1" />From
-							</label>
-							<input
-								id="from-date"
-								name="from"
-								value={localFilter.from}
-								onChange={handleInputChange}
-								type="date"
-								className="form-control form-control-sm"
-								style={{ fontSize: '0.8rem' }}
-							/>
-						</div>
-						<div className="col-12">
-							<label htmlFor="to-date" className="form-label mb-1" style={{ fontSize: '0.75rem', fontWeight: '500' }}>
-								<RiCalendarEventLine size={14} className="me-1" />To
-							</label>
-							<input
-								id="to-date"
-								name="to"
-								value={localFilter.to}
-								onChange={handleInputChange}
-								type="date"
-								className="form-control form-control-sm"
-								style={{ fontSize: '0.8rem' }}
-							/>
-						</div>
-						<div className="col-12">
-							<label htmlFor="status-select" className="form-label mb-1" style={{ fontSize: '0.75rem', fontWeight: '500' }}>Status</label>
-							<select
-								id="status-select"
-								className="form-select form-select-sm"
-								onChange={handleStatusChange}
-								value={localFilter.status || 'all'}
-								style={{ fontSize: '0.8rem' }}
-							>
-								<option value="all">All</option>
-								<option value="approved">Approved</option>
-								<option value="rejected">Rejected</option>
-								<option value="pending">Pending</option>
-							</select>
-						</div>
-						<div className="col-12 d-flex gap-2">
+						<input
+							id="from-date"
+							name="from"
+							value={localFilter.from}
+							onChange={handleInputChange}
+							type="date"
+							className="form-control"
+							style={{
+								height: "40px",
+								borderRadius: "7px",
+								border: "1px solid #dee2e6",
+								fontSize: "14px",
+								color: "#343a40",
+								backgroundColor: "#fff",
+								boxShadow: "none",
+							}}
+						/>
+					</div>
+
+					{/* To Date */}
+					<div className="col-12 col-md-6 col-xl-3">
+						<label
+							htmlFor="to-date"
+							className="form-label"
+							style={{
+								fontSize: "13px",
+								fontWeight: 600,
+								color: "#495057",
+								marginBottom: "7px",
+							}}
+						>
+							To Date
+						</label>
+
+						<input
+							id="to-date"
+							name="to"
+							value={localFilter.to}
+							onChange={handleInputChange}
+							type="date"
+							className="form-control"
+							style={{
+								height: "40px",
+								borderRadius: "7px",
+								border: "1px solid #dee2e6",
+								fontSize: "14px",
+								color: "#343a40",
+								backgroundColor: "#fff",
+								boxShadow: "none",
+							}}
+						/>
+					</div>
+
+					{/* Status */}
+					<div className="col-12 col-md-6 col-xl-2">
+						<label
+							htmlFor="status-select"
+							className="form-label"
+							style={{
+								fontSize: "13px",
+								fontWeight: 600,
+								color: "#495057",
+								marginBottom: "7px",
+							}}
+						>
+							Status
+						</label>
+
+						<select
+							id="status-select"
+							className="form-select"
+							onChange={handleStatusChange}
+							value={localFilter.status || "all"}
+							style={{
+								height: "40px",
+								borderRadius: "7px",
+								border: "1px solid #dee2e6",
+								fontSize: "14px",
+								color: "#343a40",
+								backgroundColor: "#fff",
+								boxShadow: "none",
+								cursor: "pointer",
+							}}
+						>
+							<option value="all">All Statuses</option>
+							<option value="approved">Approved</option>
+							<option value="rejected">Rejected</option>
+							<option value="pending">Pending</option>
+						</select>
+					</div>
+
+					{/* Actions */}
+					<div className="col-12 col-md-6 col-xl-4">
+						<div
+							className="d-flex gap-2"
+							style={{
+								height: "40px",
+							}}
+						>
 							<button
 								type="button"
 								onClick={handleSearch}
-								className="btn btn-primary btn-sm flex-fill d-flex align-items-center justify-content-center"
-								style={{ fontSize: '0.8rem', padding: '0.375rem 0.5rem' }}
+								className="btn btn-primary d-flex align-items-center justify-content-center gap-2"
+								style={{
+									height: "40px",
+									borderRadius: "7px",
+									padding: "0 18px",
+									fontSize: "14px",
+									fontWeight: 500,
+									boxShadow: "0 2px 4px rgba(13, 110, 253, 0.15)",
+								}}
 							>
-								<RiSearchLine size={14} className="me-1" /> Search
+								<RiSearchLine size={17} />
+								<span>Search</span>
 							</button>
+
 							<button
-								onClick={handleClear}
-								className="btn btn-outline-secondary btn-sm flex-fill d-flex align-items-center justify-content-center"
 								type="button"
-								style={{ fontSize: '0.8rem', padding: '0.375rem 0.5rem' }}
+								onClick={handleClear}
+								className="btn btn-light border d-flex align-items-center justify-content-center gap-2"
+								style={{
+									height: "40px",
+									borderRadius: "7px",
+									padding: "0 18px",
+									fontSize: "14px",
+									fontWeight: 500,
+									color: "#495057",
+									backgroundColor: "#f8f9fa",
+								}}
 							>
-								<RiRefreshLine size={14} className="me-1" /> Clear
+								<RiRefreshLine size={17} />
+								<span>Clear</span>
 							</button>
 						</div>
 					</div>
-				</Offcanvas.Body>
-			</Offcanvas>
+
+				</div>
+			</div>
 
 			{/* Bulk Actions Modal */}
 			<Modal show={showBulkModal} onHide={() => { setShowBulkModal(false); setBulkDecisions({}); setIndividualRejectReasons({}); setIndividualSelectedReasons({}); }} size="lg">
@@ -647,26 +825,16 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 				</Modal.Footer>
 			</Modal>
 
-			{
-				Array.isArray(expenses) && expenses.length === 0 ? (
-					<div className="d-flex flex-column align-items-center justify-content-center bg-light-subtle rounded-3 py-5 my-4 border border-0 shadow-sm" style={{ minHeight: 220 }}>
-						<RiInboxArchiveLine size={48} className="mb-3 text-secondary" />
-						<h4 className="text-secondary mb-1">No Expenses Found</h4>
-						<p className="text-muted">Try adjusting your filters or add a new expense.</p>
-					</div>
-				) : (
-					<div>
-						<PrimeTable
-							column={columns}
-							data={expenses}
-							urlparams={localFilter}
-							filtering={true}
-							serverSideFiltering={true}
-							handleSeverSideProcessing={handleServerSideProcessingForExpenses}
-						/>
-					</div>
-				)
-			}
+			<div>
+				<PrimeTable
+					column={columns}
+					data={expenses}
+					urlparams={localFilter}
+					filtering={true}
+					serverSideFiltering={true}
+					handleSeverSideProcessing={handleServerSideProcessingForExpenses}
+				/>
+			</div>
 		</div >
 	);
 

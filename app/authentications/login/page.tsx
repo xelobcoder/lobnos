@@ -115,7 +115,7 @@ export default function PrimeLabLoginPage() {
 					router.push("/doctor");
 				} else
 					if (role === "customer service representative") {
-						router.push("/crm/customers");
+						router.push("/crm/overview");
 					} else if (role === 'admin') {
 						router.push("/analytics");
 					} else if (role === 'manager') {
