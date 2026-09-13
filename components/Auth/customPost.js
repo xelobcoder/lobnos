@@ -41,27 +41,3 @@ export async function customPost(endpoint, method, data, hash = false) {
         return datasource;
     }
 }
-
-export async function customPostFormData(endpoint, data) {
-    if (process.env.NODE_ENV == "production" && !process.env.NEXT_PUBLIC_ACCESS_TOKEN) {
-        throw new Error("NEXT_PUBLIC_ACCESS_TOKEN MISSING");
-    }
-
-    const response = await fetch(`${process.env.BASEURL}${endpoint}`, {
-        method: "POST",
-        headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
-            mode: "no-cors",
-        },
-        body: data,
-    });
-    const datasource = await response.json();
-    const { status, message } = datasource;
-
-    if (status == 401 && message == "Unauthorized") {
-        window.location.href = "/authentication/login";
-        return;
-    }
-
-    return datasource;
-}

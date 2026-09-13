@@ -1,12 +1,12 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
-import { customFetch } from "../../../../../components/Auth/customFetch";
-import { customPost, customPostFormData } from "../../../../../components/Auth/customPost";
+import { customFetch, customPost } from "../../../../../components/Auth/customFetch";
 import RulesLoadingTempleteCreation from "../../../../../components/operations/Ultrasound/RulesLoadingTempleteCreation";
 import { useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
 import { useApplicationSettings } from "../../../../../components/Auth/useApplicationContext";
 import Loader from "../../../../../components/accessories/Loader";
+import { RiFileList3Line, RiSave3Line, RiSettings3Line } from "@remixicon/react";
 
 interface UltrasoundTest {
 	id: number;
@@ -42,9 +42,6 @@ export default function CreateUltrasonographyTemplates() {
 	const [rule, setRule] = useState<TemplateField[]>([]);
 	const [impression, setImpression] = useState<string>('');
 	const [selectedTest, setSelectedTest] = useState<string | null>(null);
-	const [importFiles, setImportFiles] = useState<File[]>([]);
-	const [isImporting, setIsImporting] = useState(false);
-	const [importSummary, setImportSummary] = useState<any>(null);
 
 	const searchParams = useSearchParams();
 	const isEdit = searchParams?.get("isEdit");
@@ -167,139 +164,135 @@ export default function CreateUltrasonographyTemplates() {
 		}
 	};
 
-	const importTemplatesHandler = async () => {
-		if (!importFiles.length || !user?.employeeid) {
-			toast.error('Select one or more DOCX files first');
-			return;
-		}
-		setIsImporting(true);
-		setImportSummary(null);
-		try {
-			const formData = new FormData();
-			importFiles.forEach((file) => formData.append('files', file));
-			formData.append('employeeid', String(user.employeeid));
-			const response = await customPostFormData('result/entry/ultrasound/templates/import', formData);
-			if (response?.status !== 'success') throw new Error(response?.message || 'Template import failed');
-			setImportSummary(response);
-			setImportFiles([]);
-			toast.success(`${response.summary?.created || 0} template(s) imported`);
-		} catch (error: any) {
-			toast.error(error?.message || 'Template import failed');
-		} finally {
-			setIsImporting(false);
-		}
-	};
-
 	if (isLoading) {
 		return <Loader />;
 	}
 
+	const isReadyToSave = Boolean(selectedTest && associatedbodypart && name.trim() && rule.length > 0 && !rulesLoading);
+	const completionItems = [
+		{ label: 'Template name', complete: Boolean(name.trim()) },
+		{ label: 'Ultrasound scan', complete: Boolean(selectedTest) },
+		{ label: 'Body part', complete: Boolean(associatedbodypart) },
+		{ label: 'Report fields', complete: rule.length > 0 },
+	];
+
 	return (
-		<div className="p-2">
-			<div className="p-3 mb-3 border rounded bg-body-secondary">
-				<div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
-					<div>
-						<h5 className="mb-1">Batch Import Word Templates</h5>
-						<p className="text-muted small mb-0">Upload DOCX files. Names, ultrasound tests, and body parts are inferred from the file name and content.</p>
-					</div>
-					<button type="button" className="btn btn-outline-primary btn-sm" onClick={importTemplatesHandler} disabled={isImporting || !importFiles.length}>
-						{isImporting ? 'Importing...' : `Import ${importFiles.length || ''} Word File(s)`}
-					</button>
+		<div className="container-fluid px-3 py-4" style={{ maxWidth: 1440 }}>
+			<div className="d-flex flex-column bg-white rounded-1 p-3 flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+				<div>
+					<div className="text-uppercase text-muted small fw-semibold mb-1">Ultrasound reporting</div>
+					<h1 className="h4 fw-semibold mb-1 d-flex align-items-center gap-2">
+						<span className="d-inline-flex align-items-center justify-content-center rounded bg-primary-subtle text-primary" style={{ width: 38, height: 38 }}>
+							<RiFileList3Line size={21} />
+						</span>
+						{isEdit ? "Edit Ultrasound Template" : "Create Ultrasound Template"}
+					</h1>
+					<p className="text-muted mb-0">Set the clinical scope, then shape the report fields your sonographers will use.</p>
 				</div>
-				<input className="form-control form-control-sm mt-3" type="file" accept=".docx" multiple onChange={(event) => setImportFiles(Array.from(event.target.files || []))} />
-				{importSummary && (
-					<div className="mt-3 small">
-						<strong>Created: {importSummary.summary?.created || 0}</strong>{' | '}
-						Review: {importSummary.summary?.review || 0}{' | '}
-						Failed: {importSummary.summary?.failed || 0}
-						<div className="mt-2">
-							{(importSummary.results || []).map((item: any) => <div key={`${item.file}-${item.status}`} className={item.status === 'created' ? 'text-success' : item.status === 'review' ? 'text-warning' : 'text-danger'}>{item.file}: {item.status}{item.message ? ` - ${item.message}` : ''}</div>)}
-						</div>
-					</div>
-				)}
+				<div className="d-flex align-items-center gap-2 small text-muted">
+					<span className="rounded-circle bg-success" style={{ width: 8, height: 8 }} />
+					{isEdit ? 'Editing saved template' : 'New template draft'}
+				</div>
 			</div>
-			<div className="p-2 bg-secondary-subtle heightedBorder my-2 br-0">
-				Creating Ultrasound Impression Templates
+
+			<div className="row g-4 align-items-start">
+				<div className="card border-0">
+						<form className="card-body d-flex flex-column gap-3">
+							
+							<div className="col-12">
+								<label htmlFor="template-name" className="form-label small fw-semibold">Template Name</label>
+								<input
+									id="template-name"
+									value={name}
+									onChange={(ev) => setName(ev.target.value)}
+									className="form-control"
+									type="text"
+									placeholder="Enter the pathology or template name"
+								/>
+							</div>
+							<div className="col-12">
+								<label htmlFor="ultrasound-scan" className="form-label small fw-semibold">Ultrasound Scan</label>
+								<select
+									id="ultrasound-scan"
+									className="form-select text-capitalize"
+									value={selectedTest || ''}
+									disabled={!!templateid}
+									onChange={(ev) => setSelectedTest(ev.target.value)}
+								>
+									<option value="">Select an option here</option>
+									{ultrasoundList.map((item) => (
+										<option key={item.id} value={item.id}>{item.name}</option>
+									))}
+								</select>
+							</div>
+							<div className="col-12">
+								<label htmlFor="associated-body-part" className="form-label small fw-semibold">Associated Body Part</label>
+								<select
+									id="associated-body-part"
+									value={associatedbodypart}
+									onChange={(ev) => setBodyPart(ev.target.value)}
+									className="form-select text-capitalize"
+								>
+									<option value="">select body part</option>
+									<option value="Kidney">Kidney</option>
+									<option value="Uterus">Uterus</option>
+									<option value="Ovary">Ovary</option>
+									<option value="Liver">Liver</option>
+									<option value="Gallbladder">Gallbladder</option>
+									<option value="Pancreas">Pancreas</option>
+									<option value="Spleen">Spleen</option>
+									<option value="Bladder">Bladder</option>
+									<option value="Prostate">Prostate</option>
+									<option value="Thyroid">Thyroid</option>
+									<option value="Scrotum">Scrotum</option>
+									<option value="Soft Tissue">Soft Tissue</option>
+									<option value="Other">Other</option>
+								</select>
+							</div>
+							<div className="col-12">
+								<label htmlFor="template-visibility" className="form-label small fw-semibold">Visible to All Sonographers</label>
+								<select
+									id="template-visibility"
+									value={visible}
+									onChange={(ev) => setVisible(Number(ev.target.value))}
+									className="form-select text-capitalize"
+								>
+									<option value={1}>Yes</option>
+									<option value={0}>No</option>
+								</select>
+							</div>
+						</form>
+					</div>
+				<div >
+					<div >
+						<RulesLoadingTempleteCreation
+							rule={rule}
+							impression={impression}
+							setImpression={setImpression}
+							selected={selectedTest}
+							handleFieldChange={handleFieldChange}
+							rulesLoading={rulesLoading}
+						/>
+
+
+						{rule.length > 0 && (
+							<div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mt-4 pt-3 border-top">
+								<div className="small text-muted">{isReadyToSave ? 'All required template settings are complete.' : 'Complete the required settings before saving.'}</div>
+								<button
+									className="btn btn-primary d-inline-flex align-items-center justify-content-center gap-2"
+									onClick={createTemplateHandler}
+									disabled={!isReadyToSave}
+								>
+									<RiSave3Line size={18} />
+									{isEdit ? "Save Template Changes" : "Save Template"}
+								</button>
+							</div>
+						)}
+					</div>
+
+
+				</div>
 			</div>
-			<form className="my-2 heightedBorder text-sm bg-body-secondary p-3 br-0">
-				<div className="grid-reg my-2">
-					<label>Name of Template</label>
-					<input
-						value={name}
-						onChange={(ev) => setName(ev.target.value)}
-						className="custom-input pls-color text-sm"
-						type="text"
-						placeholder="Please type name of pathology or template here"
-					/>
-				</div>
-				<div className="grid-reg">
-					<label>Ultrasound Scan</label>
-					<select
-						className="custom-select pls-color text-sm text-capitalize"
-						value={selectedTest || ''}
-						disabled={!!templateid}
-						onChange={(ev) => setSelectedTest(ev.target.value)}
-					>
-						<option value="">Select an option here</option>
-						{ultrasoundList.map((item) => (
-							<option key={item.id} value={item.id}>{item.name}</option>
-						))}
-					</select>
-				</div>
-				<div className="grid-reg my-2">
-					<label>Associated Body Part</label>
-					<select
-						value={associatedbodypart}
-						onChange={(ev) => setBodyPart(ev.target.value)}
-						className="custom-select text-capitalize pls-color text-sm"
-					>
-						<option value="">select body part</option>
-						<option value="Kidney">Kidney</option>
-						<option value="Uterus">Uterus</option>
-						<option value="Ovary">Ovary</option>
-						<option value="Liver">Liver</option>
-						<option value="Gallbladder">Gallbladder</option>
-						<option value="Pancreas">Pancreas</option>
-						<option value="Spleen">Spleen</option>
-						<option value="Bladder">Bladder</option>
-						<option value="Prostate">Prostate</option>
-						<option value="Thyroid">Thyroid</option>
-						<option value="Scrotum">Scrotum</option>
-						<option value="Soft Tissue">Soft Tissue</option>
-						<option value="Other">Other</option>
-					</select>
-				</div>
-				<div className="grid-reg my-2">
-					<label>Visible to all Sonographers</label>
-					<select
-						value={visible}
-						onChange={(ev) => setVisible(Number(ev.target.value))}
-						className="custom-select pls-color text-sm text-capitalize"
-					>
-						<option value={1}>Yes</option>
-						<option value={0}>No</option>
-					</select>
-				</div>
-			</form>
-
-			<RulesLoadingTempleteCreation
-				rule={rule}
-				impression={impression}
-				setImpression={setImpression}
-				selected={selectedTest}
-				handleFieldChange={handleFieldChange}
-				rulesLoading={rulesLoading}
-			/>
-
-			{rule.length > 0 && (
-				<button
-					className="btn btn-primary btn-sm"
-					onClick={createTemplateHandler}
-					disabled={rulesLoading}
-				>
-					Save Template Information
-				</button>
-			)}
 		</div>
 	);
 }
