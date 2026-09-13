@@ -36,6 +36,31 @@ interface ClinicianInfo {
 	occupation?: string | null;
 }
 
+const CommissionSummaryCard = ({
+	label,
+	value,
+	detail,
+	Icon,
+	variant,
+}: {
+	label: string;
+	value: string | number;
+	detail: string;
+	Icon: React.ElementType;
+	variant: string;
+}) => (
+	<div className={`card border-0 shadow-sm bg-${variant} bg-gradient text-white rounded-3 h-100`}>
+		<div className="card-body p-3">
+			<div className="d-flex justify-content-between align-items-center mb-1">
+				<span className="text-xs text-uppercase fw-semibold opacity-75">{label}</span>
+				<Icon size={22} className="opacity-75" />
+			</div>
+			<h3 className="fw-bold mb-0">{value}</h3>
+			<span className="text-xs opacity-75">{detail}</span>
+		</div>
+	</div>
+);
+
 
 async function getClinicianCommission({ clinicianid, startDate, endDate }: { clinicianid: string, startDate: string, endDate: string }) {
 	try {
@@ -336,40 +361,40 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 			{/* Summary Cards */}
 			<div className="row g-3 mb-4">
 				<div className="col-12 col-sm-6 col-md-3">
-					<div className="border rounded p-3 h-100">
-						<div className="d-flex align-items-center gap-2 mb-1">
-							<RiPhoneLine size={18} className="text-secondary flex-shrink-0" />
-							<span className="text-muted small">Phone</span>
-						</div>
-						<div className="fw-bold fs-6">{clinician_phone || '—'}</div>
-					</div>
+					<CommissionSummaryCard
+						label="Phone"
+						value={clinician_phone || 'N/A'}
+						detail="Primary contact number"
+						Icon={RiPhoneLine}
+						variant="secondary"
+					/>
 				</div>
 				<div className="col-12 col-sm-6 col-md-3">
-					<div className="border rounded p-3 h-100">
-						<div className="d-flex align-items-center gap-2 mb-1">
-							<RiMoneyDollarCircleLine size={18} className="text-success flex-shrink-0" />
-							<span className="text-muted small">Total Commission Earned</span>
-						</div>
-						<div className="fw-bold fs-6">{currencyFormatter.format(summary.total_commission)}</div>
-					</div>
+					<CommissionSummaryCard
+						label="Commission Earned"
+						value={currencyFormatter.format(summary.total_commission)}
+						detail="Commission due in this period"
+						Icon={RiMoneyDollarCircleLine}
+						variant="success"
+					/>
 				</div>
 				<div className="col-12 col-sm-6 col-md-3">
-					<div className="border rounded p-3 h-100">
-						<div className="d-flex align-items-center gap-2 mb-1">
-							<RiServiceLine size={18} className="text-primary flex-shrink-0" />
-							<span className="text-muted small">Total Payable</span>
-						</div>
-						<div className="fw-bold fs-6">{currencyFormatter.format(summary.total_value)}</div>
-					</div>
+					<CommissionSummaryCard
+						label="Total Payable"
+						value={currencyFormatter.format(summary.total_value)}
+						detail="Value of services rendered"
+						Icon={RiServiceLine}
+						variant="primary"
+					/>
 				</div>
 				<div className="col-12 col-sm-6 col-md-3">
-					<div className="border rounded p-3 h-100">
-						<div className="d-flex align-items-center gap-2 mb-1">
-							<RiFileList3Line size={18} className="text-secondary flex-shrink-0" />
-							<span className="text-muted small">Services / Records</span>
-						</div>
-						<div className="fw-bold fs-6">{summary.total_services} <span className="text-muted fw-normal small">/ {commissionData.length} records</span></div>
-					</div>
+					<CommissionSummaryCard
+						label="Services Rendered"
+						value={summary.total_services.toLocaleString()}
+						detail={`${commissionData.length.toLocaleString()} commission records`}
+						Icon={RiFileList3Line}
+						variant="info"
+					/>
 				</div>
 			</div>
 

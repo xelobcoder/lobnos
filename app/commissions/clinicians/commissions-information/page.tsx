@@ -58,12 +58,27 @@ const SkeletonBlock = ({ height, width = '100%', className = '' }: { height: num
      />
 );
 
-const Stat = ({ label, value, icon }: { label: string, value: string | number, icon: React.ReactNode }) => (
-     <div className="border rounded p-3 h-100 d-flex align-items-center gap-3">
-          <span className="text-muted">{icon}</span>
-          <div>
-               <div className="fw-bold">{value}</div>
-               <div className="text-muted small">{label}</div>
+const Stat = ({
+     label,
+     value,
+     detail,
+     Icon,
+     variant,
+}: {
+     label: string;
+     value: string | number;
+     detail: string;
+     Icon: React.ElementType;
+     variant: string;
+}) => (
+     <div className={`card border-0 shadow-sm bg-${variant} bg-gradient text-white rounded-3 h-100`}>
+          <div className="card-body p-3">
+               <div className="d-flex justify-content-between align-items-center mb-1">
+                    <span className="text-xs text-uppercase fw-semibold opacity-75">{label}</span>
+                    <Icon size={22} className="opacity-75" />
+               </div>
+               <h3 className="fw-bold mb-0">{value}</h3>
+               <span className="text-xs opacity-75">{detail}</span>
           </div>
      </div>
 );
@@ -218,40 +233,36 @@ export default function CliniciansCommission() {
                     </div>
                </div>
 
-               {/* Hero stat: the number this page exists for */}
-               <div className="border bg-white rounded p-4 mb-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3" style={{ background: 'var(--bs-tertiary-bg)' }}>
-                    <div>
-                         <span className="text-muted small fw-semibold text-uppercase" style={{ letterSpacing: '0.05em' }}>
-                              Total Commission Earned
-                         </span>
-                         <div className="d-flex align-items-center gap-2 mt-1">
-                              <RiMoneyDollarCircleLine size={32} style={{ color: 'var(--bs-success)' }} />
-                              <span style={{ fontSize: '2.25rem', fontWeight: 800, lineHeight: 1.1 }}>
-                                   {currencyFormatter.format(totalCommissionEarned)}
-                              </span>
+               <div className="card border-0 shadow-sm bg-primary bg-gradient text-white rounded-3 mb-3">
+                    <div className="card-body p-3 p-md-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                         <div>
+                              <div className="d-flex align-items-center gap-2 mb-1">
+                                   <span className="text-xs text-uppercase fw-semibold opacity-75">Total Commission Earned</span>
+                                   <RiMoneyDollarCircleLine size={22} className="opacity-75" />
+                              </div>
+                              <h2 className="fw-bold mb-0">{currencyFormatter.format(totalCommissionEarned)}</h2>
+                              <span className="text-xs opacity-75">Commission payable in this period</span>
                          </div>
+                         <span className="small opacity-75">{dayjs(startDate).format('MMM D, YYYY')} - {dayjs(endDate).format('MMM D, YYYY')}</span>
                     </div>
-                    <span className="text-muted small">
-                         {dayjs(startDate).format('MMM D, YYYY')} – {dayjs(endDate).format('MMM D, YYYY')}
-                    </span>
                </div>
 
                {/* Secondary stats */}
                <div className="row g-3 mb-4">
                     <div className="col-6 col-md-4 col-lg">
-                         <Stat label="Total Payable" value={currencyFormatter.format(totalServiceValue)} icon={<RiServiceLine  />} />
+                         <Stat label="Total Payable" value={currencyFormatter.format(totalServiceValue)} detail="Value of services rendered" Icon={RiServiceLine} variant="info" />
                     </div>
                     <div className="col-6 col-md-4 col-lg">
-                         <Stat label="Total Paid" value={currencyFormatter.format(totalPaidAmount)} icon={<RiMoneyDollarCircleLine />} />
+                         <Stat label="Total Paid" value={currencyFormatter.format(totalPaidAmount)} detail="Payments collected" Icon={RiMoneyDollarCircleLine} variant="success" />
                     </div>
                     <div className="col-6 col-md-4 col-lg">
-                         <Stat label="Services Rendered" value={totalServices.toLocaleString()} icon={<RiServiceLine />} />
+                         <Stat label="Services Rendered" value={totalServices.toLocaleString()} detail="Completed service entries" Icon={RiServiceLine} variant="primary" />
                     </div>
                     <div className="col-6 col-md-4 col-lg">
-                         <Stat label="Active Clinicians" value={uniqueClinicians} icon={<RiUserLine />} />
+                         <Stat label="Active Clinicians" value={uniqueClinicians} detail="Clinicians with commission" Icon={RiUserLine} variant="secondary" />
                     </div>
                     <div className="col-6 col-md-4 col-lg">
-                         <Stat label="Total Records" value={commissionData.length.toLocaleString()} icon={<RiFileList3Line />} />
+                         <Stat label="Total Records" value={commissionData.length.toLocaleString()} detail="Commission records found" Icon={RiFileList3Line} variant="warning" />
                     </div>
                </div>
 

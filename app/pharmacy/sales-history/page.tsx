@@ -123,6 +123,22 @@ export default function PharmacySalesHistoryPage() {
           return { result: [], error: true };
      }, []);
 
+
+     const handleServerProcessing = async (pagination: { page: number, count: number }) => {
+          try {
+               const { page, count } = pagination;
+               const response = await customFetch(`pharmacy/sales-history?page=${page}&count=${count}`);
+               if (response?.success && response.data.sales && Array.isArray(response.data.sales)) {
+                    const currentSales: Sale[] = response.data.sales || [];
+                    return { result: currentSales, error: false };
+               } else {
+                    return { result: [], error: true }
+               }
+          } catch (err) {
+               return { result: [], error: true }
+          }
+     };
+
      useEffect(() => { loadSales(); }, [loadSales]);
 
      const openReversal = (sale: Sale) => {
@@ -249,7 +265,7 @@ export default function PharmacySalesHistoryPage() {
                     filtering={true}
                     serverSideFiltering={true}
                     rowStyling={saleRowStyling}
-                    handleSeverSideProcessing={({ page, count }: { page: number; count: number }) => loadSales(page, count)}
+                    handleSeverSideProcessing={handleServerProcessing}
                />
 
                {target && (
