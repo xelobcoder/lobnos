@@ -189,31 +189,33 @@ function SectionCard({
 function HeroStat({
      label,
      value,
-     icon,
-     color,
+     Icon,
+     variant,
+     detail,
      trend,
      trendInvert,
 }: {
      label: string;
      value: string;
-     icon: React.ReactNode;
-     color: string;
+     Icon: React.ElementType;
+     variant: string;
+     detail: string;
      trend?: unknown;
      trendInvert?: boolean;
 }) {
      return (
-          <div className="border rounded-3 p-3 h-100" style={{ borderColor: COLOR_BORDER }}>
-               <div className="d-flex align-items-start justify-content-between mb-3">
-                    <div
-                         className="d-flex align-items-center justify-content-center rounded-circle"
-                         style={{ width: 40, height: 40, backgroundColor: `color-mix(in oklab, ${color} 15%, transparent)` }}
-                    >
-                         {icon}
+          <div className={`card border-0 shadow-sm bg-${variant} bg-gradient text-white rounded-3 h-100`}>
+               <div className="card-body p-3">
+                    <div className="d-flex justify-content-between align-items-center mb-1">
+                         <span className="text-xs text-uppercase fw-semibold opacity-75">{label}</span>
+                         <Icon size={22} className="opacity-75" />
                     </div>
-                    {trend !== undefined && trend !== null && <TrendChip value={trend} invert={trendInvert} />}
+                    <h3 className="fw-bold mb-0">{value}</h3>
+                    <div className="d-flex justify-content-between align-items-center gap-2">
+                         <span className="text-xs opacity-75">{detail}</span>
+                         {trend !== undefined && trend !== null && <TrendChip value={trend} invert={trendInvert} />}
+                    </div>
                </div>
-               <div className="text-muted small mb-1">{label}</div>
-               <div className="fs-4 fw-bold text-body-emphasis">{value}</div>
           </div>
      );
 }
@@ -419,8 +421,9 @@ export default function PayrollAnalyticsPage() {
                          <HeroStat
                               label="Gross Payroll"
                               value={currencyFormatter.format(financial_kpis?.total_gross_payroll || 0)}
-                              icon={<RiMoneyDollarCircleLine size={20} style={{ color: COLOR_ACCENT }} />}
-                              color={COLOR_ACCENT}
+                              Icon={RiMoneyDollarCircleLine}
+                              variant="primary"
+                              detail="Before deductions"
                               trend={periodComparison?.changes?.gross_payroll_change_pct}
                          />
                     </div>
@@ -428,8 +431,9 @@ export default function PayrollAnalyticsPage() {
                          <HeroStat
                               label="Net Payroll"
                               value={currencyFormatter.format(financial_kpis?.total_net_payroll || 0)}
-                              icon={<RiWalletLine size={20} style={{ color: COLOR_SECONDARY }} />}
-                              color={COLOR_SECONDARY}
+                              Icon={RiWalletLine}
+                              variant="success"
+                              detail="After deductions"
                               trend={periodComparison?.changes?.net_payroll_change_pct}
                          />
                     </div>
@@ -437,8 +441,9 @@ export default function PayrollAnalyticsPage() {
                          <HeroStat
                               label="Total Employees"
                               value={String(financial_kpis?.total_employees ?? 0)}
-                              icon={<RiTeamLine size={20} style={{ color: COLOR_TERTIARY }} />}
-                              color={COLOR_TERTIARY}
+                              Icon={RiTeamLine}
+                              variant="info"
+                              detail="Active in selected period"
                               trend={periodComparison?.changes?.employee_count_change_pct}
                          />
                     </div>
@@ -446,8 +451,9 @@ export default function PayrollAnalyticsPage() {
                          <HeroStat
                               label="Employer Cost"
                               value={currencyFormatter.format(financial_kpis?.total_employer_cost || 0)}
-                              icon={<RiBarChartBoxLine size={20} style={{ color: COLOR_SUCCESS }} />}
-                              color={COLOR_SUCCESS}
+                              Icon={RiBarChartBoxLine}
+                              variant="warning"
+                              detail="Total employer cost"
                          />
                     </div>
                </div>
@@ -799,10 +805,10 @@ export default function PayrollAnalyticsPage() {
                                                             <td className="text-start">
                                                                  <span
                                                                       className={`badge rounded-pill text-capitalize ${item.status === 'completed' || item.status === 'paid'
-                                                                                ? 'text-bg-success'
-                                                                                : item.status === 'pending' || item.status === 'processing'
-                                                                                     ? 'text-bg-warning'
-                                                                                     : 'text-bg-secondary'
+                                                                           ? 'text-bg-success'
+                                                                           : item.status === 'pending' || item.status === 'processing'
+                                                                                ? 'text-bg-warning'
+                                                                                : 'text-bg-secondary'
                                                                            }`}
                                                                  >
                                                                       {item.status}
@@ -915,12 +921,12 @@ export default function PayrollAnalyticsPage() {
                                                                       <td className="text-start">
                                                                            <span
                                                                                 className={`badge rounded-pill text-capitalize ${item.status === 'approved' || item.status === 'paid'
-                                                                                          ? 'text-bg-success'
-                                                                                          : item.status === 'pending'
-                                                                                               ? 'text-bg-warning'
-                                                                                               : item.status === 'rejected'
-                                                                                                    ? 'text-bg-danger'
-                                                                                                    : 'text-bg-secondary'
+                                                                                     ? 'text-bg-success'
+                                                                                     : item.status === 'pending'
+                                                                                          ? 'text-bg-warning'
+                                                                                          : item.status === 'rejected'
+                                                                                               ? 'text-bg-danger'
+                                                                                               : 'text-bg-secondary'
                                                                                      }`}
                                                                            >
                                                                                 {item.status || 'N/A'}
@@ -1135,12 +1141,12 @@ export default function PayrollAnalyticsPage() {
                                                             <td className="text-start">
                                                                  <span
                                                                       className={`badge rounded-pill text-capitalize ${lv.status === 'approved'
-                                                                                ? 'text-bg-success'
-                                                                                : lv.status === 'pending'
-                                                                                     ? 'text-bg-warning'
-                                                                                     : lv.status === 'rejected'
-                                                                                          ? 'text-bg-danger'
-                                                                                          : 'text-bg-secondary'
+                                                                           ? 'text-bg-success'
+                                                                           : lv.status === 'pending'
+                                                                                ? 'text-bg-warning'
+                                                                                : lv.status === 'rejected'
+                                                                                     ? 'text-bg-danger'
+                                                                                     : 'text-bg-secondary'
                                                                            }`}
                                                                  >
                                                                       {lv.status || 'N/A'}

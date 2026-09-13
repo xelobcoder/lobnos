@@ -133,6 +133,15 @@ export default function AnalyticsDashboard() {
           }
      ];
 
+     const summaryMetrics = summary
+          ? [
+               { label: 'Total Items', value: summary.total_items.toLocaleString(), detail: 'Active inventory items', Icon: RiBox3Line, variant: 'primary' },
+               { label: 'Total Value', value: currencyFormatter.format(summary.total_stock_value), detail: 'Current stock value', Icon: RiMoneyDollarCircleLine, variant: 'success' },
+               { label: 'Low Stock Items', value: summary.low_stock_items.toLocaleString(), detail: 'Items needing reordering', Icon: RiAlertLine, variant: 'warning' },
+               { label: 'Active Items', value: summary.active_items.toLocaleString(), detail: 'Items currently in stock', Icon: RiStoreLine, variant: 'info' },
+          ]
+          : [];
+
      if (loading) {
           return (
                <div className="container-fluid p-4">
@@ -175,46 +184,20 @@ export default function AnalyticsDashboard() {
                {/* Key Statistics */}
                {summary && (
                     <div className="row g-3 mb-4">
-                         <div className="col-md-3">
-                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                   <div className="d-flex align-items-center mb-2">
-                                        <RiBox3Line size={20} className="me-2 text-primary" />
-                                        <span className="fw-medium text-muted small">Total Items</span>
+                         {summaryMetrics.map(({ label, value, detail, Icon, variant }) => (
+                              <div className="col-md-3" key={label}>
+                                   <div className={`card border-0 shadow-sm bg-${variant} bg-gradient text-white rounded-3 h-100`}>
+                                        <div className="card-body p-3">
+                                             <div className="d-flex justify-content-between align-items-center mb-1">
+                                                  <span className="text-xs text-uppercase fw-semibold opacity-75">{label}</span>
+                                                  <Icon size={22} className="opacity-75" />
+                                             </div>
+                                             <h3 className="fw-bold mb-0">{value}</h3>
+                                             <span className="text-xs opacity-75">{detail}</span>
+                                        </div>
                                    </div>
-                                   <div className="fs-4 fw-bold text-primary">{summary.total_items.toLocaleString()}</div>
-                                   <div className="small text-muted">Active inventory items</div>
                               </div>
-                         </div>
-                         <div className="col-md-3">
-                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                   <div className="d-flex align-items-center mb-2">
-                                        <RiMoneyDollarCircleLine size={20} className="me-2 text-success" />
-                                        <span className="fw-medium text-muted small">Total Value</span>
-                                   </div>
-                                   <div className="fs-4 fw-bold text-success">{currencyFormatter.format(summary.total_stock_value)}</div>
-                                   <div className="small text-muted">Current stock value</div>
-                              </div>
-                         </div>
-                         <div className="col-md-3">
-                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                   <div className="d-flex align-items-center mb-2">
-                                        <RiAlertLine size={20} className="me-2 text-warning" />
-                                        <span className="fw-medium text-muted small">Low Stock Items</span>
-                                   </div>
-                                   <div className="fs-4 fw-bold text-warning">{summary.low_stock_items}</div>
-                                   <div className="small text-muted">Need reordering</div>
-                              </div>
-                         </div>
-                         <div className="col-md-3">
-                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                   <div className="d-flex align-items-center mb-2">
-                                        <RiStoreLine size={20} className="me-2 text-info" />
-                                        <span className="fw-medium text-muted small">Active Items</span>
-                                   </div>
-                                   <div className="fs-4 fw-bold text-info">{summary.active_items}</div>
-                                   <div className="small text-muted">Currently in stock</div>
-                              </div>
-                         </div>
+                         ))}
                     </div>
                )}
 

@@ -33,6 +33,31 @@ interface QuickAccessCard {
      color: string;
 }
 
+const PayrollSummaryCard = ({
+     title,
+     value,
+     detail,
+     Icon,
+     variant,
+}: {
+     title: string;
+     value: string | number;
+     detail: string;
+     Icon: React.ElementType;
+     variant: string;
+}) => (
+     <div className={`card border-0 shadow-sm bg-${variant} bg-gradient text-white rounded-3 h-100`}>
+          <div className="card-body p-3">
+               <div className="d-flex justify-content-between align-items-center mb-1">
+                    <span className="text-xs text-uppercase fw-semibold opacity-75">{title}</span>
+                    <Icon size={22} className="opacity-75" />
+               </div>
+               <h3 className="fw-bold mb-0">{value}</h3>
+               <span className="text-xs opacity-75">{detail}</span>
+          </div>
+     </div>
+);
+
 const quickAccessCards: QuickAccessCard[] = [
      {
           title: "Payroll Periods",
@@ -128,6 +153,12 @@ export default function PayrollOverviewPage() {
      const totalEmployees = financial_kpis?.total_employees || 0;
      const totalOvertimeHours = overtimeMetrics?.reduce((sum: number, o: any) => sum + parseFloat(o.total_overtime_hours || 0), 0) || 0;
      const totalAttendanceRecords = attendance?.reduce((sum: number, a: any) => sum + parseInt(a.record_count || 0), 0) || 0;
+     const summaryMetrics = [
+          { title: 'Gross Payroll', value: loading ? '...' : currencyFormatter.format(totalBasicSalary), detail: 'Last 3 months', Icon: RiMoneyDollarCircleLine, variant: 'primary' },
+          { title: 'Net Payroll', value: loading ? '...' : currencyFormatter.format(totalNetPayroll), detail: 'After deductions', Icon: RiCheckboxCircleLine, variant: 'success' },
+          { title: 'Total Employees', value: loading ? '...' : totalEmployees.toLocaleString(), detail: 'Active in period', Icon: RiUserLine, variant: 'info' },
+          { title: 'Overtime Hours', value: loading ? '...' : totalOvertimeHours.toFixed(1), detail: 'Last 3 months', Icon: RiTimeLine, variant: 'warning' },
+     ];
 
      return (
           <div className="container-fluid px-4 py-3">
@@ -144,48 +175,11 @@ export default function PayrollOverviewPage() {
 
                {/* Quick Stats */}
                <div className="row g-3 mb-4">
-                    <div className="col-md-3">
-                         <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                              <div className="d-flex align-items-center mb-2">
-                                   <RiMoneyDollarCircleLine size={20} className="me-2 text-primary" />
-                                   <span className="fw-medium text-muted small">Gross Payroll</span>
-                              </div>
-                              <div className="fs-5 fw-bold">
-                                   {loading ? '...' : currencyFormatter.format(totalBasicSalary)}
-                              </div>
-                              <div className="small text-muted">Last 3 months</div>
+                    {summaryMetrics.map((metric) => (
+                         <div className="col-12 col-sm-6 col-xl-3" key={metric.title}>
+                              <PayrollSummaryCard {...metric} />
                          </div>
-                    </div>
-                    <div className="col-md-3">
-                         <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                              <div className="d-flex align-items-center mb-2">
-                                   <RiCheckboxCircleLine size={20} className="me-2 text-success" />
-                                   <span className="fw-medium text-muted small">Net Payroll</span>
-                              </div>
-                              <div className="fs-5 fw-bold">{loading ? '...' : currencyFormatter.format(totalNetPayroll)}</div>
-                              <div className="small text-muted">After deductions</div>
-                         </div>
-                    </div>
-                    <div className="col-md-3">
-                         <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                              <div className="d-flex align-items-center mb-2">
-                                   <RiUserLine size={20} className="me-2 text-warning" />
-                                   <span className="fw-medium text-muted small">Total Employees</span>
-                              </div>
-                              <div className="fs-5 fw-bold">{loading ? '...' : totalEmployees}</div>
-                              <div className="small text-muted">Active in period</div>
-                         </div>
-                    </div>
-                    <div className="col-md-3">
-                         <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                              <div className="d-flex align-items-center mb-2">
-                                   <RiTimeLine size={20} className="me-2 text-info" />
-                                   <span className="fw-medium text-muted small">Overtime Hours</span>
-                              </div>
-                              <div className="fs-5 fw-bold">{loading ? '...' : totalOvertimeHours.toFixed(1)}</div>
-                              <div className="small text-muted">Last 3 months</div>
-                         </div>
-                    </div>
+                    ))}
                </div>
 
                {/* Analytics Summary */}

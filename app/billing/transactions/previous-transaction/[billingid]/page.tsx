@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import { Button, Spinner, Modal } from 'react-bootstrap';
+import { Button, Card, Spinner, Modal } from 'react-bootstrap';
 import RefundServiceShowDetailModal from '../../../../../components/Billing/BillingContextComponents/BillingSourceComponents/RefundServiceShowDetailModal';
 import { currencyFormatter, customFetch, customPost } from '../../../../../components/Auth/customFetch';
 import { DollarSignIcon, CreditCardIcon, CheckCircleIcon, RotateCcwIcon, AlertCircleIcon, RefreshCwIcon, EditIcon, SettingsIcon } from '../../../../../components/Billing/BillingContextComponents/Lib/Icons';
@@ -15,57 +15,25 @@ import { set } from 'react-hook-form';
 import dayjs, { Dayjs } from 'dayjs';
 
 
-const cardColors = {
-	transactionCost: { bg: "#4f46e5", icon: "#6366f1" }, // Indigo
-	totalCost: { bg: "#0891b2", icon: "#06b6d4" }, // Cyan
-	payable: { bg: "#2563eb", icon: "#3b82f6" }, // Blue
-	paid: { bg: "#059669", icon: "#10b981" }, // Emerald
-	refunded: { bg: "#7c3aed", icon: "#8b5cf6" }, // Violet
-	outstanding: { bg: "#ea580c", icon: "#f97316" }, // Orange
-	writeoff: { bg: "#dc2626", icon: "#ef4444" }, // Red
-	balance: { bg: "#16a34a", icon: "#22c55e" }, // Green
-};
-
-
 interface AnalyticCardProps {
 	title: string;
 	value: number;
 	Icon: React.ElementType;
-	bgColor: string;
-	iconColor: string;
+	variant: string;
+	subtitle: string;
 }
 
-const AnalyticCard = ({ title, value, Icon, bgColor, iconColor }: AnalyticCardProps) => (
-	<div
-		className="border-0 rounded shadow-sm p-3 h-100"
-		style={{
-			backgroundColor: bgColor,
-			transition: 'all 0.2s',
-			cursor: 'pointer',
-			minHeight: '110px',
-			color: 'white'
-		}}
-		onMouseEnter={(e) => {
-			e.currentTarget.style.transform = "translateY(-2px)";
-			e.currentTarget.style.boxShadow = "0 6px 16px rgba(0,0,0,0.15)";
-		}}
-		onMouseLeave={(e) => {
-			e.currentTarget.style.transform = "translateY(0)";
-			e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
-		}}
-	>
-		<div className="d-flex align-items-center mb-2">
-			<div style={{ color: 'white' }} className="me-2">
-				<Icon size={28} />
+const AnalyticCard = ({ title, value, Icon, variant, subtitle }: AnalyticCardProps) => (
+	<Card className={`border-0 shadow-sm bg-${variant} bg-gradient text-white rounded-3 h-100`}>
+		<Card.Body className="p-3">
+			<div className="d-flex justify-content-between align-items-center mb-1">
+				<span className="text-xs text-uppercase fw-semibold opacity-75">{title}</span>
+				<Icon size={22} className="opacity-75" />
 			</div>
-			<h6 className="mb-0 fw-semibold" style={{ fontSize: "0.85rem", color: 'rgba(255,255,255,0.95)' }}>
-				{title}
-			</h6>
-		</div>
-		<div className="fw-bold" style={{ fontSize: "1.4rem", color: 'white' }}>
-			{currencyFormatter.format(Number(value) || 0)}
-		</div>
-	</div>
+			<h3 className="fw-bold mb-0">{currencyFormatter.format(Number(value) || 0)}</h3>
+			<span className="text-xs opacity-75">{subtitle}</span>
+		</Card.Body>
+	</Card>
 );
 
 export default function PreviousTransactionSummaryPage() {
@@ -1009,8 +977,8 @@ export default function PreviousTransactionSummaryPage() {
 									title="Trans. Cost"
 									value={Number(billingdata.totalTransactionCost) || 0}
 									Icon={RiCalculatorLine}
-									bgColor={cardColors.transactionCost.bg}
-									iconColor={cardColors.transactionCost.icon}
+									variant="primary"
+									subtitle="Transaction value"
 								/>
 							</div>
 							<div className="col-md-6 col-lg-3">
@@ -1018,8 +986,8 @@ export default function PreviousTransactionSummaryPage() {
 									title="Total Cost"
 									value={Number(billingdata.totalcost) || 0}
 									Icon={RiFileList3Line}
-									bgColor={cardColors.totalCost.bg}
-									iconColor={cardColors.totalCost.icon}
+									variant="info"
+									subtitle="Services and taxes"
 								/>
 							</div>
 							<div className="col-md-6 col-lg-3">
@@ -1027,8 +995,8 @@ export default function PreviousTransactionSummaryPage() {
 									title="Payable"
 									value={Number(billingdata.payable) || 0}
 									Icon={CreditCardIcon}
-									bgColor={cardColors.payable.bg}
-									iconColor={cardColors.payable.icon}
+									variant="primary"
+									subtitle="Amount due"
 								/>
 							</div>
 							<div className="col-md-6 col-lg-3">
@@ -1036,8 +1004,8 @@ export default function PreviousTransactionSummaryPage() {
 									title="Paid"
 									value={Number(billingdata.paid) || 0}
 									Icon={CheckCircleIcon}
-									bgColor={cardColors.paid.bg}
-									iconColor={cardColors.paid.icon}
+									variant="success"
+									subtitle="Payment received"
 								/>
 							</div>
 							<div className="col-md-6 col-lg-3">
@@ -1045,8 +1013,8 @@ export default function PreviousTransactionSummaryPage() {
 									title="Refunded"
 									value={Number(billingdata.totalrefunded) || 0}
 									Icon={RiRefund2Line}
-									bgColor={cardColors.refunded.bg}
-									iconColor={cardColors.refunded.icon}
+									variant="secondary"
+									subtitle="Refunds issued"
 								/>
 							</div>
 							<div className="col-md-6 col-lg-3">
@@ -1054,8 +1022,8 @@ export default function PreviousTransactionSummaryPage() {
 									title="Outstanding"
 									value={Number(billingdata.outstanding) || 0}
 									Icon={RiAlarmWarningLine}
-									bgColor={cardColors.outstanding.bg}
-									iconColor={cardColors.outstanding.icon}
+									variant="warning"
+									subtitle="Balance awaiting payment"
 								/>
 							</div>
 							<div className="col-md-6 col-lg-3">
@@ -1063,8 +1031,8 @@ export default function PreviousTransactionSummaryPage() {
 									title="Written Off"
 									value={Number(billingdata.writeoff) || 0}
 									Icon={EditIcon}
-									bgColor={cardColors.writeoff.bg}
-									iconColor={cardColors.writeoff.icon}
+									variant="danger"
+									subtitle="Amount written off"
 								/>
 							</div>
 							<div className="col-md-6 col-lg-3">
@@ -1072,8 +1040,8 @@ export default function PreviousTransactionSummaryPage() {
 									title="Balance"
 									value={(Number(billingdata.payable) || 0) - (Number(billingdata.paid) || 0)}
 									Icon={RiScalesLine}
-									bgColor={cardColors.balance.bg}
-									iconColor={cardColors.balance.icon}
+									variant="success"
+									subtitle="Payable less paid"
 								/>
 							</div>
 						</div>

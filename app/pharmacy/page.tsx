@@ -93,28 +93,28 @@ export default function PharmacyOverviewPage() {
                     value: currency.format(dashboard.todaySales),
                     detail: `${dashboard.completedSales} completed sales`,
                     Icon: RiBankCardLine,
-                    tone: 'teal' as const,
+                    variant: 'primary',
                },
                {
                     label: 'Recent receipts',
                     value: String(dashboard.recentSales.length).padStart(2, '0'),
                     detail: 'Latest completed sales',
                     Icon: RiShoppingCartLine,
-                    tone: 'amber' as const,
+                    variant: 'info',
                },
                {
                     label: 'Prescription queue',
                     value: '--',
                     detail: 'Available when dispensing is enabled',
                     Icon: RiMedicineBottleLine,
-                    tone: 'success' as const,
+                    variant: 'success',
                },
                {
                     label: 'Stock attention',
                     value: String(dashboard.lowStockItems).padStart(2, '0'),
                     detail: 'Items below reorder point',
                     Icon: RiAlertLine,
-                    tone: 'danger' as const,
+                    variant: 'danger',
                },
           ]
           : [];
@@ -196,29 +196,19 @@ export default function PharmacyOverviewPage() {
                               ))}
                          </>
                     ) : (
-                         metrics.map(({ label, value, detail, Icon, tone }) => {
+                         metrics.map(({ label, value, detail, Icon, variant }) => {
                               return (
                                    <div key={label} className="col-md-3 col-sm-6">
                                         <div
-                                             className="p-3 border rounded-2 h-100"
-                                             style={{ backgroundColor: '#FFFFFF', borderColor: '#212529' }}
+                                             className={`card border-0 shadow-sm bg-${variant} bg-gradient text-white rounded-3 h-100`}
                                         >
-                                             <div className="d-flex align-items-start gap-3">
-                                                  <div
-                                                       className="flex-shrink-0 p-2 rounded-2"
-                                                       style={{ border: '1px solid #212529' }}
-                                                  >
-                                                       <Icon size={24} style={{ color: '#212529' }} />
+                                             <div className="card-body p-3">
+                                                  <div className="d-flex justify-content-between align-items-center mb-1">
+                                                       <span className="text-xs text-uppercase fw-semibold opacity-75">{label}</span>
+                                                       <Icon size={22} className="opacity-75" />
                                                   </div>
-                                                  <div className="flex-grow-1">
-                                                       <small className="text-muted text-uppercase fw-semibold" style={{ fontSize: '0.75rem' }}>
-                                                            {label}
-                                                       </small>
-                                                       <div className="fs-4 fw-bold mb-1 text-dark">
-                                                            {value}
-                                                       </div>
-                                                       <small className="text-muted">{detail}</small>
-                                                  </div>
+                                                  <h3 className="fw-bold mb-0">{value}</h3>
+                                                  <span className="text-xs opacity-75">{detail}</span>
                                              </div>
                                         </div>
                                    </div>

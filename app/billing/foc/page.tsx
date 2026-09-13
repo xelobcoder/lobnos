@@ -426,9 +426,9 @@ export default function StaffFocManagementPage() {
                                                                                 }
                                                                            >
                                                                                 {tx.status}
-                                                                      <td className="text-muted small">
-                                                                           {tx.status === 'reversed' ? (tx.reversal_reason || 'No reason recorded') : '-'}
-                                                                      </td>
+                                                                                <td className="text-muted small">
+                                                                                     {tx.status === 'reversed' ? (tx.reversal_reason || 'No reason recorded') : '-'}
+                                                                                </td>
                                                                            </Badge>
                                                                       </td>
                                                                       <td>{tx.requested_by_name || `#${tx.requested_by}`}</td>

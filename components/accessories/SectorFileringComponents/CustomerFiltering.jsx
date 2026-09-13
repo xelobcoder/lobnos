@@ -5,8 +5,8 @@ import { loadOptions } from "../../../lib/appointment";
 import { reactSelectCustomStyles } from "../../Auth/customFetch";
 
 const fieldMapping = {
-	"mobile number": "mobile_number",
 	"fullname": "fullname",
+	"mobile number": "mobile_number",
 	"patientid": "patientid",
 	"firstname": "firstname",
 	"lastname": "lastname",
@@ -24,7 +24,7 @@ export default function PatientFiltered({ getSelectedPatient, isDisabled = false
 	const [isLoading, setLoading] = useState(false);
 	const [selectedOption, setSelectedOption] = useState(null);
 	const [isClient, setIsClient] = useState(false);
-	const [selectedField, setSelectedField] = useState("firstname");
+	const [selectedField, setSelectedField] = useState("fullname");
 	const [startDate, setStartDate] = useState("");
 	const [endDate, setEndDate] = useState("");
 	const [searchInput, setSearchInput] = useState("");

@@ -202,6 +202,17 @@ export default function TransactionAnalyticsPage() {
           }
      };
 
+     const summaryMetrics = analytics
+          ? [
+               { label: 'Total Transactions', value: analytics.detailed_analytics.core_metrics.transaction_volume.total_transactions.toLocaleString(), detail: 'All recorded transactions', Icon: RiFileListLine, variant: 'primary' },
+               { label: 'Additions', value: analytics.detailed_analytics.core_metrics.transaction_type_distribution.addition.toLocaleString(), detail: 'Stock additions', Icon: RiArrowUpLine, variant: 'success' },
+               { label: 'Consumptions', value: analytics.detailed_analytics.core_metrics.transaction_type_distribution.consumption.toLocaleString(), detail: 'Stock consumed', Icon: RiArrowDownLine, variant: 'warning' },
+               { label: 'Wastage', value: analytics.detailed_analytics.core_metrics.transaction_type_distribution.wastage.toLocaleString(), detail: 'Items wasted', Icon: RiRecycleLine, variant: 'danger' },
+               { label: 'Adjustments', value: analytics.detailed_analytics.core_metrics.transaction_type_distribution.adjustment.toLocaleString(), detail: 'Stock adjustments', Icon: RiBarChartLine, variant: 'info' },
+               { label: 'Transfers', value: analytics.detailed_analytics.core_metrics.transaction_type_distribution.transfer.toLocaleString(), detail: 'Stock transfers', Icon: RiBox3Line, variant: 'secondary' },
+          ]
+          : [];
+
      if (loading) {
           return (
                <div className="container-fluid p-4">
@@ -244,66 +255,20 @@ export default function TransactionAnalyticsPage() {
                {/* Transaction Summary - Updated Style */}
                {analytics && (
                     <div className="row g-3 mb-4">
-                         <div className="col-md-2">
-                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                   <div className="d-flex align-items-center mb-2">
-                                        <RiFileListLine size={20} className="me-2 text-primary" />
-                                        <span className="fw-medium text-muted small">Total Transactions</span>
+                         {summaryMetrics.map(({ label, value, detail, Icon, variant }) => (
+                              <div className="col-12 col-sm-6 col-lg-4 col-xl-2" key={label}>
+                                   <div className={`card border-0 shadow-sm bg-${variant} bg-gradient text-white rounded-3 h-100`}>
+                                        <div className="card-body p-3">
+                                             <div className="d-flex justify-content-between align-items-center mb-1">
+                                                  <span className="text-xs text-uppercase fw-semibold opacity-75">{label}</span>
+                                                  <Icon size={22} className="opacity-75" />
+                                             </div>
+                                             <h3 className="fw-bold mb-0">{value}</h3>
+                                             <span className="text-xs opacity-75">{detail}</span>
+                                        </div>
                                    </div>
-                                   <div className="fs-4 fw-bold text-primary">{analytics.detailed_analytics.core_metrics.transaction_volume.total_transactions.toLocaleString()}</div>
-                                   <div className="small text-muted">All time transactions</div>
                               </div>
-                         </div>
-                         <div className="col-md-2">
-                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                   <div className="d-flex align-items-center mb-2">
-                                        <RiArrowUpLine size={20} className="me-2 text-success" />
-                                        <span className="fw-medium text-muted small">Additions</span>
-                                   </div>
-                                   <div className="fs-4 fw-bold text-success">{analytics.detailed_analytics.core_metrics.transaction_type_distribution.addition.toLocaleString()}</div>
-                                   <div className="small text-muted">Stock additions</div>
-                              </div>
-                         </div>
-                         <div className="col-md-2">
-                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                   <div className="d-flex align-items-center mb-2">
-                                        <RiArrowDownLine size={20} className="me-2 text-warning" />
-                                        <span className="fw-medium text-muted small">Consumptions</span>
-                                   </div>
-                                   <div className="fs-4 fw-bold text-warning">{analytics.detailed_analytics.core_metrics.transaction_type_distribution.consumption.toLocaleString()}</div>
-                                   <div className="small text-muted">Stock consumed</div>
-                              </div>
-                         </div>
-                         <div className="col-md-2">
-                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                   <div className="d-flex align-items-center mb-2">
-                                        <RiRecycleLine size={20} className="me-2 text-danger" />
-                                        <span className="fw-medium text-muted small">Wastage</span>
-                                   </div>
-                                   <div className="fs-4 fw-bold text-danger">{analytics.detailed_analytics.core_metrics.transaction_type_distribution.wastage.toLocaleString()}</div>
-                                   <div className="small text-muted">Items wasted</div>
-                              </div>
-                         </div>
-                         <div className="col-md-2">
-                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                   <div className="d-flex align-items-center mb-2">
-                                        <RiBarChartLine size={20} className="me-2 text-info" />
-                                        <span className="fw-medium text-muted small">Adjustments</span>
-                                   </div>
-                                   <div className="fs-4 fw-bold text-info">{analytics.detailed_analytics.core_metrics.transaction_type_distribution.adjustment.toLocaleString()}</div>
-                                   <div className="small text-muted">Stock adjustments</div>
-                              </div>
-                         </div>
-                         <div className="col-md-2">
-                              <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                   <div className="d-flex align-items-center mb-2">
-                                        <RiBox3Line size={20} className="me-2 text-secondary" />
-                                        <span className="fw-medium text-muted small">Transfers</span>
-                                   </div>
-                                   <div className="fs-4 fw-bold text-secondary">{analytics.detailed_analytics.core_metrics.transaction_type_distribution.transfer.toLocaleString()}</div>
-                                   <div className="small text-muted">Stock transfers</div>
-                              </div>
-                         </div>
+                         ))}
                     </div>
                )}
 

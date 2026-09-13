@@ -58,6 +58,10 @@ export default function PharmacyCashierPage() {
           totals[method] = (totals[method] || 0) + sale.total;
           return totals;
      }, {});
+     const summaryMetrics = [
+          { label: "Today's takings", value: currency.format(dashboard?.todaySales || 0), detail: 'Sales collected today', Icon: RiBankCardLine, variant: 'primary' },
+          { label: 'Completed sales', value: dashboard?.completedSales || 0, detail: 'Transactions completed today', Icon: RiShoppingCartLine, variant: 'success' },
+     ];
 
      return (
           <main className="container-fluid px-4 py-3" style={{ minHeight: '100vh', backgroundColor: '#FAFBFC' }}>
@@ -89,37 +93,37 @@ export default function PharmacyCashierPage() {
                ) : (
                     <>
                          <div className="row g-3 mb-4">
-                              <div className="col-md-6">
-                                   <div className="border h-100 p-3" style={{ borderRadius: '6px', backgroundColor: '#F0FFFE', borderColor: '#BDE9E4' }}>
-                                        <div className="d-flex align-items-center gap-3">
-                                             <RiBankCardLine size={26} style={{ color: '#087F73' }} />
-                                             <div>
-                                                  <span className="text-muted small">Today&apos;s takings</span>
-                                                  <div className="fs-3 fw-bold" style={{ color: '#087F73' }}>{currency.format(dashboard?.todaySales || 0)}</div>
+                              {summaryMetrics.map(({ label, value, detail, Icon, variant }) => (
+                                   <div key={label} className="col-md-6">
+                                        <div className={`card border-0 shadow-sm bg-${variant} bg-gradient text-white rounded-3 h-100`}>
+                                             <div className="card-body p-3">
+                                                  <div className="d-flex justify-content-between align-items-center mb-1">
+                                                       <span className="text-xs text-uppercase fw-semibold opacity-75">{label}</span>
+                                                       <Icon size={22} className="opacity-75" />
+                                                  </div>
+                                                  <h3 className="fw-bold mb-0">{value}</h3>
+                                                  <span className="text-xs opacity-75">{detail}</span>
                                              </div>
                                         </div>
                                    </div>
-                              </div>
-                              <div className="col-md-6">
-                                   <div className="border h-100 p-3" style={{ borderRadius: '6px', backgroundColor: '#FFFBF0', borderColor: '#F2D9A6' }}>
-                                        <span className="text-muted small">Completed sales</span>
-                                        <div className="fs-3 fw-bold" style={{ color: '#B66A09' }}>{dashboard?.completedSales || 0}</div>
-                                   </div>
-                              </div>
+                              ))}
                          </div>
 
-                         <div className="border bg-white" style={{ borderRadius: '6px', borderColor: '#E5E7EB' }}>
-                              <div className="p-3 border-bottom" style={{ borderColor: '#E5E7EB' }}>
+                         <div className="border rounded-3 bg-body">
+                              <div className="p-3 border-bottom bg-body-tertiary">
                                    <h2 className="fs-5 fw-bold mb-0">Payment summary</h2>
                               </div>
                               <div className="p-3">
                                    {Object.keys(paymentTotals).length ? (
                                         <div className="row g-3">
-                                             {Object.entries(paymentTotals).map(([method, total]) => (
+                                             {Object.entries(paymentTotals).map(([method, total], index) => (
                                                   <div key={method} className="col-sm-4">
-                                                       <div className="p-3 h-100" style={{ backgroundColor: '#F4F7F6', borderRadius: '6px' }}>
-                                                            <span className="text-muted small text-capitalize">{method}</span>
-                                                            <div className="fs-5 fw-bold">{currency.format(total)}</div>
+                                                       <div className={`card border-0 shadow-sm bg-${['primary', 'success', 'info', 'secondary'][index % 4]} bg-gradient text-white rounded-3 h-100`}>
+                                                            <div className="card-body p-3">
+                                                                 <span className="text-xs text-uppercase fw-semibold opacity-75 text-capitalize">{method}</span>
+                                                                 <h3 className="fw-bold mb-0">{currency.format(total)}</h3>
+                                                                 <span className="text-xs opacity-75">Payments by method</span>
+                                                            </div>
                                                        </div>
                                                   </div>
                                              ))}

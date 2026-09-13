@@ -107,10 +107,10 @@ export default function PharmacyStockPage() {
      };
 
      const metrics = [
-          { label: 'Tracked items', value: summary.totalItems, Icon: RiMedicineBottleLine },
-          { label: 'Healthy stock', value: summary.inStock, Icon: RiMedicineBottleLine },
-          { label: 'Low stock', value: summary.lowStock, Icon: RiAlarmWarningLine },
-          { label: 'Out of stock', value: summary.outOfStock, Icon: RiAlarmWarningLine },
+          { label: 'Tracked items', value: summary.totalItems, detail: 'Items in the pharmacy catalogue', Icon: RiMedicineBottleLine, variant: 'primary' },
+          { label: 'Healthy stock', value: summary.inStock, detail: 'Items above reorder level', Icon: RiMedicineBottleLine, variant: 'success' },
+          { label: 'Low stock', value: summary.lowStock, detail: 'Items at reorder level', Icon: RiAlarmWarningLine, variant: 'warning' },
+          { label: 'Out of stock', value: summary.outOfStock, detail: 'Items requiring restock', Icon: RiAlarmWarningLine, variant: 'danger' },
      ];
 
      const columns = [
@@ -221,21 +221,16 @@ export default function PharmacyStockPage() {
                </div>
 
                <section className="row g-3 mb-4" aria-label="Pharmacy stock summary">
-                    {metrics.map(({ label, value, Icon }) => (
+                    {metrics.map(({ label, value, detail, Icon, variant }) => (
                          <div key={label} className="col-6 col-lg-3">
-                              <div className="p-3 border rounded-2 h-100" style={{ backgroundColor: '#FFFFFF', borderColor: '#212529' }}>
-                                   <div className="d-flex align-items-start gap-3">
-                                        <div className="flex-shrink-0 p-2 rounded-2" style={{ border: '1px solid #212529' }}>
-                                             <Icon size={24} style={{ color: '#212529' }} />
+                              <div className={`card border-0 shadow-sm bg-${variant} bg-gradient text-white rounded-3 h-100`}>
+                                   <div className="card-body p-3">
+                                        <div className="d-flex justify-content-between align-items-center mb-1">
+                                             <span className="text-xs text-uppercase fw-semibold opacity-75">{label}</span>
+                                             <Icon size={22} className="opacity-75" />
                                         </div>
-                                        <div className="flex-grow-1">
-                                             <small className="text-muted text-uppercase fw-semibold" style={{ fontSize: '0.75rem' }}>
-                                                  {label}
-                                             </small>
-                                             <div className="fs-4 fw-bold mb-1 text-dark">
-                                                  {value}
-                                             </div>
-                                        </div>
+                                        <h3 className="fw-bold mb-0">{value}</h3>
+                                        <span className="text-xs opacity-75">{detail}</span>
                                    </div>
                               </div>
                          </div>

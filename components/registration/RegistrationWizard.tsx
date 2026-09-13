@@ -16,7 +16,8 @@ import {
      RiUserAddLine,
      RiHeartPulseLine,
      RiCheckboxCircleLine,
-     RiImageAddLine} from '@remixicon/react';
+     RiImageAddLine
+} from '@remixicon/react';
 import styles from './RegistrationWizard.module.css';
 import { customFetch, customPost } from '../Auth/customFetch';
 import { useApplication } from '../Auth/useApplicationContext';
@@ -447,18 +448,28 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                               </div>
                          </div>
 
-                         {patientId && (
+                         <div className="d-flex flex-wrap align-items-center gap-2">
                               <Button
-                                   variant="outline-success"
+                                   variant="outline-secondary"
                                    size="sm"
                                    className="fw-semibold d-inline-flex align-items-center gap-1"
-                                   onClick={() => {
-                                        window.location.href = `/billing/patientid/${plsEncryption(patientId.toString())}/multi`;
-                                   }}
+                                   onClick={() => router.push('/crm/customers')}
                               >
-                                   <RiCashFill size={18} /> Proceed to Billing Directly
+                                   <RiUser3Line size={18} /> Customers
                               </Button>
-                         )}
+                              {patientId && (
+                                   <Button
+                                        variant="outline-success"
+                                        size="sm"
+                                        className="fw-semibold d-inline-flex align-items-center gap-1"
+                                        onClick={() => {
+                                             window.location.href = `/billing/patientid/${plsEncryption(patientId.toString())}/multi`;
+                                        }}
+                                   >
+                                        <RiCashFill size={18} /> Proceed to Billing Directly
+                                   </Button>
+                              )}
+                         </div>
                     </div>
 
                     {/* Step Navigation Pills */}

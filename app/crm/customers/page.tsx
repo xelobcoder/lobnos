@@ -1,5 +1,6 @@
 "use client"
 import { useEffect, useState } from 'react';
+import type { ElementType } from 'react';
 import { useRouter } from 'next/navigation';
 import { handleActivation } from '../../../components/Auth/registerclient';
 import { customFetch, customPost, formatDateOrNA, parseDate } from '../../../components/Auth/customFetch';
@@ -8,7 +9,7 @@ import PatientFiltered from '../../../components/accessories/SectorFileringCompo
 import CustomersActions from '../../../components/customer/CustomersActionDropDown';
 import { toast } from 'react-toastify';
 import { plsEncryption } from '../../../lib/encryption';
-import { RiResetLeftFill, RiRefreshLine } from '@remixicon/react';
+import { RiResetLeftFill, RiRefreshLine, RiFileList3Line, RiErrorWarningLine, RiUser3Line, RiUserAddLine } from '@remixicon/react';
 import dayjs from 'dayjs';
 import PrimeTableV2 from '../../../components/accessories/Datatables/PrimeTableV2';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
@@ -38,10 +39,48 @@ interface Customer {
     contact: string;
 }
 
+interface CustomerSummary {
+    totalRecords: number;
+    duplicateRecords: number;
+    uniquePatients: number;
+    registeredToday: number;
+}
+
+const CustomerSummaryCard = ({
+    title,
+    value,
+    subtitle,
+    Icon,
+    variant,
+}: {
+    title: string;
+    value: number;
+    subtitle: string;
+    Icon: ElementType;
+    variant: string;
+}) => (
+    <div className={`card border-0 shadow-sm bg-${variant} bg-gradient text-white rounded-3 h-100`}>
+        <div className="card-body p-3">
+            <div className="d-flex justify-content-between align-items-center mb-1">
+                <span className="text-xs text-uppercase fw-semibold opacity-75">{title}</span>
+                <Icon size={22} className="opacity-75" />
+            </div>
+            <h3 className="fw-bold mb-0">{value.toLocaleString()}</h3>
+            <span className="text-xs opacity-75">{subtitle}</span>
+        </div>
+    </div>
+);
+
 export default function Activator() {
     const [loading, setLoading] = useState(false);
     const [filterLoading, setFilterLoading] = useState(false);
     const [tempStore, setStore] = useState<Customer[]>([]);
+    const [customerSummary, setCustomerSummary] = useState<CustomerSummary>({
+        totalRecords: 0,
+        duplicateRecords: 0,
+        uniquePatients: 0,
+        registeredToday: 0,
+    });
     const [showAdvancedFilter, setShowAdvancedFilter] = useState(false);
     const [advancedFilteringState, setAdvancedFilteringState] = useState({
         firstname: '',
@@ -99,20 +138,20 @@ export default function Activator() {
         window.open(`/operations/laboratory/patientarchives/${encryptedId}?patientid=${encodeURIComponent(patientid)}${nameParam}`);
     }
 
-    const handleRegisterNewClient = () => {
-        const windowWidth = 800;
-        const windowHeight = 600;
-        window.open(`/crm/registration?isOpenSideBarShow=false&isOnlyRegistration=true`, '_blank');
-    }
-
 
 
     const resetFiltering = async () => {
         try {
             setLoading(true)
-            const data = await customFetch(`customers`)
+            const [data, summary] = await Promise.all([
+                customFetch(`customers`),
+                customFetch(`customers/summary`),
+            ]);
             if (data && Array.isArray(data)) {
                 setStore(data)
+            }
+            if (summary && typeof summary === 'object' && !summary.error) {
+                setCustomerSummary(summary);
             }
         } catch (err) {
             toast.error("Error loading new data");
@@ -187,12 +226,17 @@ export default function Activator() {
 
 
     useEffect(() => {
-        customFetch(`customers`)
-            .then((data) => {
-                if (Array.isArray(data)) {
-                    setStore(data)
-                }
-            })
+        Promise.all([
+            customFetch(`customers`),
+            customFetch(`customers/summary`),
+        ]).then(([data, summary]) => {
+            if (Array.isArray(data)) {
+                setStore(data)
+            }
+            if (summary && typeof summary === 'object' && !summary.error) {
+                setCustomerSummary(summary);
+            }
+        })
             .catch((err) => { console.log(err) })
     }, [])
 
@@ -297,13 +341,53 @@ export default function Activator() {
 
     return (
         <div className='p-2'>
+            <div className='row g-3 mb-3'>
+                <div className='col-12 col-sm-6 col-xl-3'>
+                    <CustomerSummaryCard
+                        title="Total Patient Records"
+                        value={customerSummary.totalRecords}
+                        subtitle="All registered records"
+                        Icon={RiFileList3Line}
+                        variant="primary"
+                    />
+                </div>
+                <div className='col-12 col-sm-6 col-xl-3'>
+                    <CustomerSummaryCard
+                        title="Duplicate Records"
+                        value={customerSummary.duplicateRecords}
+                        subtitle="Records needing identity review"
+                        Icon={RiErrorWarningLine}
+                        variant="danger"
+                    />
+                </div>
+                <div className='col-12 col-sm-6 col-xl-3'>
+                    <CustomerSummaryCard
+                        title="Unique Patients"
+                        value={customerSummary.uniquePatients}
+                        subtitle="Distinct patient identities"
+                        Icon={RiUser3Line}
+                        variant="success"
+                    />
+                </div>
+                <div className='col-12 col-sm-6 col-xl-3'>
+                    <CustomerSummaryCard
+                        title="Registered Today"
+                        value={customerSummary.registeredToday}
+                        subtitle="Patients added today"
+                        Icon={RiUserAddLine}
+                        variant="info"
+                    />
+                </div>
+            </div>
             <div className='row g-2 mb-3 align-items-end'>
                 <div className='col-12 col-md-6'>
                     <PatientFiltered isDisabled={false} getSelectedPatient={filteredPatient} />
                 </div>
                 <div className='col-12 col-md-6'>
                     <div className='d-flex flex-column flex-sm-row justify-content-md-end align-items-stretch gap-2'>
-                        <button className='btn btn-success w-100 w-sm-auto' onClick={handleRegisterNewClient}>+ Register New Client</button>
+                        <button className='btn btn-success w-100 w-sm-auto' onClick={() =>  {
+                            router.push('/crm/registration')
+                        }}>+ Register New Client</button>
                         <button className='btn btn-primary w-100 w-sm-auto' onClick={() => setShowAdvancedFilter(!showAdvancedFilter)}>Advanced Filtering</button>
                         <button
                             className='btn btn-outline-secondary w-100 w-sm-auto'
@@ -459,7 +543,7 @@ export default function Activator() {
                         filtering={true}
                         handleSeverSideProcessing={handleSeverSideProcessing}
                         serverSideFiltering={true}
-                
+
                     />}
             </div>
         </div>
