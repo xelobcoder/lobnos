@@ -17,14 +17,6 @@ if [ -f .env ]; then
     cp .env /tmp/pls.env.bak
 fi
 
-if [ -f package.json ]; then
-    cp package.json /tmp/pls.package.json.bak
-fi
-
-if [ -f package-lock.json ]; then
-    cp package-lock.json /tmp/pls.package-lock.json.bak
-fi
-
 if [ -f next.config.js ]; then
     cp next.config.js /tmp/pls.next.config.js.bak
 fi
@@ -38,14 +30,6 @@ echo "Restoring production files..."
 
 if [ -f /tmp/pls.env.bak ]; then
     cp /tmp/pls.env.bak .env
-fi
-
-if [ -f /tmp/pls.package.json.bak ]; then
-    cp /tmp/pls.package.json.bak package.json
-fi
-
-if [ -f /tmp/pls.package-lock.json.bak ]; then
-    cp /tmp/pls.package-lock.json.bak package-lock.json
 fi
 
 if [ -f /tmp/pls.next.config.js.bak ]; then
