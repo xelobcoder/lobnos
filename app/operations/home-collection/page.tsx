@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import { customFetch, customFetchMutation } from '../../../components/Auth/customFetch';
 import { useApplication } from '../../../components/Auth/useApplicationContext';
 import type { LocationValue } from '../../../components/home-collection/GoogleMapPicker';
-import 'leaflet/dist/leaflet.css';
+import '../../../node_modules/leaflet/dist/leaflet.css'; // Ensure Leaflet's CSS is loaded
 import dayjs from 'dayjs';
 
 const GoogleMapPicker = dynamic(() => import('../../../components/home-collection/GoogleMapPicker'), { ssr: false });
