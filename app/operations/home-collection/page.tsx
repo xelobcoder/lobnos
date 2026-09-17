@@ -1,12 +1,15 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { MapContainer, TileLayer, Marker as LeafletMarker, Popup } from 'react-leaflet';
+import dynamic from 'next/dynamic';
 import { customFetch, customFetchMutation } from '../../../components/Auth/customFetch';
 import { useApplication } from '../../../components/Auth/useApplicationContext';
-import GoogleMapPicker, { LocationValue } from '../../../components/home-collection/GoogleMapPicker';
+import type { LocationValue } from '../../../components/home-collection/GoogleMapPicker';
 import 'leaflet/dist/leaflet.css';
 import dayjs from 'dayjs';
+
+const GoogleMapPicker = dynamic(() => import('../../../components/home-collection/GoogleMapPicker'), { ssr: false });
+const DispatchMap = dynamic(() => import('../../../components/home-collection/DispatchMap'), { ssr: false });
 
 type HomeCollectionOrder = {
      id: number;
@@ -274,8 +277,8 @@ export default function HomeCollectionPage() {
                          <tbody>
                               {orders.map((order) => (
                                    <tr key={order.id}>
-                                             <td>{order.patient_name?.trim() || `#${order.patientid}`}</td>
-                                             <td>{dayjs(order.appointment_date).format('YYYY-MM-DD')} {order.appointment_time}</td>
+                                        <td>{order.patient_name?.trim() || `#${order.patientid}`}</td>
+                                        <td>{dayjs(order.appointment_date).format('YYYY-MM-DD')} {order.appointment_time}</td>
                                         <td style={{ maxWidth: 220 }} className="text-truncate">{order.address}</td>
                                         <td style={{ minWidth: 180 }}>
                                              {order.tests?.length ? (
@@ -417,29 +420,3 @@ export default function HomeCollectionPage() {
      );
 }
 
-function DispatchMap({ orders }: { orders: HomeCollectionOrder[] }) {
-     const [mounted, setMounted] = useState(false);
-     useEffect(() => setMounted(true), []);
-
-     const withCoordinates = orders.filter((order) => order.latitude && order.longitude);
-
-     if (!mounted || withCoordinates.length === 0) {
-          return null;
-     }
-
-     const center: [number, number] = [withCoordinates[0].latitude, withCoordinates[0].longitude];
-
-     return (
-          <MapContainer center={center} zoom={11} style={{ width: '100%', height: '360px', borderRadius: '6px' }}>
-               <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-               />
-               {withCoordinates.map((order) => (
-                    <LeafletMarker key={order.id} position={[order.latitude, order.longitude]}>
-                         <Popup>#{order.id} — {order.patient_name || 'Patient'} — {order.status}</Popup>
-                    </LeafletMarker>
-               ))}
-          </MapContainer>
-     );
-}
