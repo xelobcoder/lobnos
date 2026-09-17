@@ -12,7 +12,8 @@ import {
     RiHome2Line,
     RiQuestionMark,
     RiSearchLine,
-    RiRegisteredFill
+    RiRegisteredFill,
+    RiMapPinLine
 } from '@remixicon/react';
 
 export const LaboratoryOperationsLinks: Link[] = [
@@ -39,6 +40,7 @@ export const LaboratoryOperationsLinks: Link[] = [
             { title: "Register New Client", link: "/crm/registration", icon: <RiRegisteredFill /> },
             { title: "Daily Laboratory Request", link: "/operations/laboratory/main/dailyRequest", icon: <RiFileListLine /> },
             { title: "Advanced Search", link: "/operations/laboratory/advanced-search", icon: <RiSearchLine /> },
+            { title: "Home Collection", link: "/operations/home-collection", icon: <RiMapPinLine /> },
         ]
     },
     {

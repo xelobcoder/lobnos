@@ -949,7 +949,7 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                                    <h6 className={styles.sectionTitle}>
                                         <RiMapPinLine size={20} className="text-primary" /> Address & Geographical Location
                                    </h6>
-                                   <p className={styles.sectionSubtitle}>Patient's residential region, district, and digital address</p>
+                                   <p className={styles.sectionSubtitle}>Patient residential region, district, and digital address</p>
                               </div>
                          </div>
 

@@ -5,7 +5,7 @@ import MultiPACKAGESELECT from './MultiPACKAGESELECT';
 import MultiRenderingWithPatientId from "./MultiRenderingWithPatientId";
 import { Button, Spinner, Modal } from "react-bootstrap";
 import { useContext, useState, useEffect } from "react";
-import { customFetch } from "../../Auth/customFetch";
+import { customFetch, customFetchMutation } from "../../Auth/customFetch";
 import { billingContextProps, defaultMultiBillingData, MultiBillingData } from "../../../lib/Multi/MultiTypes";
 import { MultiBillingProvider, MultiBillingContext } from "./MultiBillingContext";
 import MultiSummary from "./MultiSummary";
@@ -14,10 +14,9 @@ import { useApplication } from "../../Auth/useApplicationContext";
 import { toast } from "react-toastify";
 import MultiBillingHeader from './MultiBillingHeader';
 import PreviousRecordsHeader from './PreviousRecordsHeader';
-import { plsEncryption } from "../../../lib/encryption";
 import { MultiValidateAndSubmitBillingInformation } from "../../../lib/Multi/multiBillingValidation";
-import ReceiptOptionsModal from '../ReceiptOptionsModal';
 import { BillingContextPropsProvider, useBillingContextProps } from './BillingContextPropsContext';
+import GoogleMapPicker, { LocationValue } from '../../home-collection/GoogleMapPicker';
 
 
 
@@ -56,9 +55,17 @@ function MultiBillingLayoutContent() {
     const [useServices, setUseServices] = useState(false);
     const [showSummary, setShowSummary] = useState(false);
     const [summaryData, setSummaryData] = useState(null);
-    const [showChoiceModal, setShowChoiceModal] = useState(false);
     const [generatedBillingid, setGeneratedBillingid] = useState<string | number | undefined>(undefined);
-    const [showReceiptOptionsModal, setShowReceiptOptionsModal] = useState(false);
+    const [showSampleLocationModal, setShowSampleLocationModal] = useState(false);
+    const [sampleLocationChoice, setSampleLocationChoice] = useState<'in-center' | 'home'>('in-center');
+    const [homeCollectionLocation, setHomeCollectionLocation] = useState<LocationValue>({ address: '', latitude: 0, longitude: 0 });
+    const [hasPickedHomeCollectionLocation, setHasPickedHomeCollectionLocation] = useState(false);
+    const [homeCollectionDate, setHomeCollectionDate] = useState('');
+    const [homeCollectionTime, setHomeCollectionTime] = useState('');
+    const [homeCollectionError, setHomeCollectionError] = useState('');
+    const [submittingHomeCollection, setSubmittingHomeCollection] = useState(false);
+    const [homeCollectionBillingId, setHomeCollectionBillingId] = useState<number | null>(null);
+    const [homeCollectionPatientId, setHomeCollectionPatientId] = useState<number | null>(null);
 
     const handleSpecialCodeChange = (e) => {
         const value = e.target.value;
@@ -365,30 +372,10 @@ function MultiBillingLayoutContent() {
     }>>([]);
     const [usePerTestDelivery, setUsePerTestDelivery] = useState(false);
 
-    const handleModalClose = () => {
-        setShowChoiceModal(false);
-        setBillingData(prev => ({
-            ...defaultMultiBillingData,
-            billingSource: prev.billingSource,
-            branchid: prev.branchid,
-            patientid: prev.patientid,
-            entitytype: prev.entitytype,
-            entityId: prev.entityId,
-            entityname: prev.entityname
-        }));
+    const openSampleCollectionModal = () => {
+        setSampleLocationChoice('home');
+        setShowSampleLocationModal(true);
     };
-
-    const handleUserChoice = (choice: string) => {
-        setShowChoiceModal(false);
-        if (choice === 'print') {
-            setShowReceiptOptionsModal(true);
-        } else {
-            setBillingData(defaultMultiBillingData);
-            router.push(`/billing/sales/branches/${plsEncryption(branchid.toString())}`);
-        }
-    };
-
-    const closeReceiptModal = () => setShowReceiptOptionsModal(false);
 
     const submitBillingInternal = async (billingdata: MultiBillingData, writeOffConfirmed = false) => {
         if (isSaving) return;
@@ -566,10 +553,60 @@ function MultiBillingLayoutContent() {
             }));
             setShowDeliveryModal(false);
             setPendingSubmit(null);
+            setHomeCollectionBillingId(Number(submittedBillingId));
+            setHomeCollectionPatientId(Number(billingdata.patientid));
+            setSampleLocationChoice('in-center');
+            setHomeCollectionLocation({ address: '', latitude: 0, longitude: 0 });
+            setHasPickedHomeCollectionLocation(false);
+            setHomeCollectionDate('');
+            setHomeCollectionTime('');
+            setHomeCollectionError('');
         } catch (err) {
             toast.error('Failed to save delivery preference');
         } finally {
             setSavingDeliveryPreference(false);
+        }
+    };
+
+    // Binds the just-submitted billing to a home collection order (tests are pulled
+    // from dboservices for this billingid, not re-picked). Skipped entirely for 'in-center'.
+    const confirmSampleLocation = async () => {
+        if (sampleLocationChoice === 'in-center') {
+            setShowSampleLocationModal(false);
+            return;
+        }
+
+        const hasPickupAddress = homeCollectionLocation.address.trim().length > 0;
+        if (!homeCollectionDate || !homeCollectionTime || !hasPickupAddress) {
+            setHomeCollectionError('Appointment date/time and a pickup address are required.');
+            return;
+        }
+
+        const billingIdForHomeCollection = homeCollectionBillingId || Number(generatedBillingid);
+        const patientIdForHomeCollection = homeCollectionPatientId || Number(billingdata.patientid || patientid);
+        if (!billingIdForHomeCollection || !patientIdForHomeCollection) {
+            setHomeCollectionError('Billing ID and patient ID are required to schedule a home collection.');
+            return;
+        }
+
+        setSubmittingHomeCollection(true);
+        setHomeCollectionError('');
+        const response: any = await customFetchMutation('home-collection/orders/from-billing', 'POST', {
+            billingid: billingIdForHomeCollection,
+            patientid: patientIdForHomeCollection,
+            appointment_date: homeCollectionDate,
+            appointment_time: homeCollectionTime,
+            address: homeCollectionLocation.address,
+            latitude: homeCollectionLocation.latitude,
+            longitude: homeCollectionLocation.longitude,
+        });
+        setSubmittingHomeCollection(false);
+
+        if (response?.status === 'success') {
+            toast.success('Home collection scheduled for this billing.');
+            setShowSampleLocationModal(false);
+        } else {
+            setHomeCollectionError(response?.message || 'Unable to schedule the home collection.');
         }
     };
 
@@ -773,7 +810,7 @@ function MultiBillingLayoutContent() {
                             )}
                         </div>
                         <div className="col-12 col-md-3 border-start p-2" style={{ minHeight: 300 }}>
-                            {billingdata.showsummary && <MultiSummary handlesubmit={handleSubmit} generatedBillingid={generatedBillingid} />}
+                            {billingdata.showsummary && <MultiSummary handlesubmit={handleSubmit} generatedBillingid={generatedBillingid} onDetermineSampleCollection={openSampleCollectionModal} />}
                         </div>
                     </div>
                 </div>
@@ -790,16 +827,6 @@ function MultiBillingLayoutContent() {
                 </div>
 
             </div>
-
-            {/* Receipt Options Modal */}
-            {showReceiptOptionsModal && (
-                <ReceiptOptionsModal
-                    open={showReceiptOptionsModal}
-                    close={closeReceiptModal}
-                    patientid={Number(patientid)}
-                    billingid={generatedBillingid ? Number(generatedBillingid) : 0}
-                />
-            )}
 
             <Modal
                 show={showDeliveryModal}
@@ -1004,6 +1031,93 @@ function MultiBillingLayoutContent() {
                         ) : (
                             'Submit & Save'
                         )}
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
+            <Modal
+                show={showSampleLocationModal}
+                onHide={() => {
+                    if (submittingHomeCollection) return;
+                    setShowSampleLocationModal(false);
+                }}
+                backdrop="static"
+                animation={false}
+                dialogClassName="mt-4"
+            >
+                <Modal.Header closeButton>
+                    <Modal.Title className="fs-5 fw-semibold text-body-emphasis">Sample Collection Location</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <div className="text-muted mb-3 small">Where should the sample be taken for this billing?</div>
+                    <div className="btn-group w-100 mb-3" role="group">
+                        <input
+                            type="radio"
+                            className="btn-check"
+                            name="sampleLocationChoice"
+                            id="sampleLocationInCenter"
+                            checked={sampleLocationChoice === 'in-center'}
+                            onChange={() => setSampleLocationChoice('in-center')}
+                        />
+                        <label className="btn btn-outline-primary" htmlFor="sampleLocationInCenter">In-center</label>
+
+                        <input
+                            type="radio"
+                            className="btn-check"
+                            name="sampleLocationChoice"
+                            id="sampleLocationHome"
+                            checked={sampleLocationChoice === 'home'}
+                            onChange={() => setSampleLocationChoice('home')}
+                        />
+                        <label className="btn btn-outline-primary" htmlFor="sampleLocationHome">Home collection</label>
+                    </div>
+
+                    {sampleLocationChoice === 'home' && (
+                        <div>
+                            {homeCollectionError && <div className="alert alert-danger py-2">{homeCollectionError}</div>}
+                            <div className="row g-2 mb-2">
+                                <div className="col-6">
+                                    <label className="form-label">Appointment date</label>
+                                    <input
+                                        type="date"
+                                        className="form-control"
+                                        value={homeCollectionDate}
+                                        onChange={(e) => setHomeCollectionDate(e.target.value)}
+                                    />
+                                </div>
+                                <div className="col-6">
+                                    <label className="form-label">Appointment time</label>
+                                    <input
+                                        type="time"
+                                        className="form-control"
+                                        value={homeCollectionTime}
+                                        onChange={(e) => setHomeCollectionTime(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                            <label className="form-label">Pickup location</label>
+                            <GoogleMapPicker
+                                value={homeCollectionLocation}
+                                onChange={(next) => {
+                                    setHomeCollectionLocation(next);
+                                    setHasPickedHomeCollectionLocation(Boolean(next.address.trim()) || Boolean(next.latitude && next.longitude));
+                                }}
+                                height={260}
+                            />
+                            <small className="text-muted d-block mt-1">
+                                If map search is unavailable, type the pickup address and continue.
+                            </small>
+                        </div>
+                    )}
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button
+                        variant="primary"
+                        onClick={confirmSampleLocation}
+                        disabled={submittingHomeCollection}
+                        className="fw-medium"
+                    >
+                        {submittingHomeCollection ? 'Scheduling…' : sampleLocationChoice === 'home' ? 'Schedule Home Collection' : 'Continue'}
                     </Button>
                 </Modal.Footer>
             </Modal>

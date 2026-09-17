@@ -87,6 +87,76 @@ const uiPresets = {
 		fontFamily: 'var(--font-open-sans)', fontsize: '14', textcolor: '#202124',
 		headerColor: '#343a40', headerTextColor: '#ffffff', sidebarColor: '#495057',
 		sidebarTextColor: '#ffffff', pageBackgroundColor: '#f4f5f6', primaryColor: '#495057', secondaryColor: '#868e96'
+	},
+	"Sunset Coral": {
+		fontFamily: 'var(--font-inter)', fontsize: '15', textcolor: '#2b1d1a',
+		headerColor: '#fff1ee', headerTextColor: '#7a3d34', sidebarColor: '#e76f51',
+		sidebarTextColor: '#ffffff', pageBackgroundColor: '#fffaf7', primaryColor: '#e76f51', secondaryColor: '#f4a261'
+	},
+	"Royal Violet": {
+		fontFamily: 'var(--font-open-sans)', fontsize: '15', textcolor: '#1d1c2a',
+		headerColor: '#f3edff', headerTextColor: '#3d2b7d', sidebarColor: '#6f42c1',
+		sidebarTextColor: '#ffffff', pageBackgroundColor: '#f8f5ff', primaryColor: '#6f42c1', secondaryColor: '#9b7ae9'
+	},
+	"Emerald Luxe": {
+		fontFamily: 'var(--font-inter)', fontsize: '15', textcolor: '#14251d',
+		headerColor: '#edfdf6', headerTextColor: '#194b3d', sidebarColor: '#198754',
+		sidebarTextColor: '#ffffff', pageBackgroundColor: '#f3fff9', primaryColor: '#198754', secondaryColor: '#7cc8a2'
+	},
+	"Midnight Navy": {
+		fontFamily: 'var(--font-open-sans)', fontsize: '14', textcolor: '#e9edf7',
+		headerColor: '#0f172a', headerTextColor: '#f8fafc', sidebarColor: '#1e293b',
+		sidebarTextColor: '#ffffff', pageBackgroundColor: '#e2e8f0', primaryColor: '#334155', secondaryColor: '#64748b'
+	},
+	"Warm Sand": {
+		fontFamily: 'var(--font-inter)', fontsize: '15', textcolor: '#3d2f2a',
+		headerColor: '#fdf4e8', headerTextColor: '#8a5a2b', sidebarColor: '#d9822b',
+		sidebarTextColor: '#ffffff', pageBackgroundColor: '#fffaf4', primaryColor: '#d9822b', secondaryColor: '#e5b25d'
+	},
+	"Rose Blush": {
+		fontFamily: 'var(--font-open-sans)', fontsize: '15', textcolor: '#3a2434',
+		headerColor: '#fff1f5', headerTextColor: '#8a355c', sidebarColor: '#d9468f',
+		sidebarTextColor: '#ffffff', pageBackgroundColor: '#fff7fb', primaryColor: '#d9468f', secondaryColor: '#f5a0c7'
+	},
+	"Tech Cyan": {
+		fontFamily: 'var(--font-open-sans)', fontsize: '15', textcolor: '#062b2a',
+		headerColor: '#e7fbff', headerTextColor: '#0d5c63', sidebarColor: '#0ea5a4',
+		sidebarTextColor: '#ffffff', pageBackgroundColor: '#f2feff', primaryColor: '#0ea5a4', secondaryColor: '#38bdf8'
+	},
+	"Golden Harvest": {
+		fontFamily: 'var(--font-inter)', fontsize: '15', textcolor: '#2d2418',
+		headerColor: '#fff8e6', headerTextColor: '#7c4f0c', sidebarColor: '#d39c00',
+		sidebarTextColor: '#ffffff', pageBackgroundColor: '#fffaf0', primaryColor: '#d39c00', secondaryColor: '#f6c453'
+	},
+	"Ash Silver": {
+		fontFamily: 'var(--font-open-sans)', fontsize: '14', textcolor: '#1f2933',
+		headerColor: '#f8fafc', headerTextColor: '#334155', sidebarColor: '#94a3b8',
+		sidebarTextColor: '#ffffff', pageBackgroundColor: '#f1f5f9', primaryColor: '#64748b', secondaryColor: '#cbd5e1'
+	},
+	"Forest Mist": {
+		fontFamily: 'var(--font-inter)', fontsize: '15', textcolor: '#14241d',
+		headerColor: '#ecfdf5', headerTextColor: '#1d5b47', sidebarColor: '#2d6a4f',
+		sidebarTextColor: '#ffffff', pageBackgroundColor: '#f4fbf7', primaryColor: '#2d6a4f', secondaryColor: '#81c19d'
+	},
+	"Orchid Glow": {
+		fontFamily: 'var(--font-open-sans)', fontsize: '15', textcolor: '#2d1b31',
+		headerColor: '#f9f3ff', headerTextColor: '#6d2f8d', sidebarColor: '#a855f7',
+		sidebarTextColor: '#ffffff', pageBackgroundColor: '#fcf7ff', primaryColor: '#a855f7', secondaryColor: '#d8b4fe'
+	},
+	"Bright Tangerine": {
+		fontFamily: 'var(--font-inter)', fontsize: '15', textcolor: '#2f1b14',
+		headerColor: '#fff6ee', headerTextColor: '#a74e17', sidebarColor: '#f97316',
+		sidebarTextColor: '#ffffff', pageBackgroundColor: '#fffaf5', primaryColor: '#f97316', secondaryColor: '#fdba74'
+	},
+	"Electric Plum": {
+		fontFamily: 'var(--font-open-sans)', fontsize: '15', textcolor: '#1f1227',
+		headerColor: '#f7ebff', headerTextColor: '#5b2a86', sidebarColor: '#9333ea',
+		sidebarTextColor: '#ffffff', pageBackgroundColor: '#faf5ff', primaryColor: '#9333ea', secondaryColor: '#c084fc'
+	},
+	"Citrus Lime": {
+		fontFamily: 'var(--font-inter)', fontsize: '15', textcolor: '#182512',
+		headerColor: '#f5ffe7', headerTextColor: '#3f6b18', sidebarColor: '#65a30d',
+		sidebarTextColor: '#ffffff', pageBackgroundColor: '#f9fff1', primaryColor: '#65a30d', secondaryColor: '#bef264'
 	}
 };
 
@@ -204,8 +274,6 @@ export default function ApplicationSettings() {
 					setSettings({
 						keyid: 1,
 						bulkregistration: 1,
-						fontsize: '14',
-						textcolor: 'black',
 						BackgroundColor: 'wheat',
 						DeactivateBilling24hrs: 0,
 						PaidBillsBeforeTransaction: 0,
@@ -217,7 +285,6 @@ export default function ApplicationSettings() {
 						includeTax: 0,
 						patientIdPrefix: '',
 						allowCrmToPrintResult: 0,
-						fontFamily: '',
 						billingidPrefix: '',
 						services: '',
 						billingsettings: '{"hasNightAdjustment":true,"nightAdjustmentValue":"100","nightAdjustmentMode":"percentage","startTime":"01:00","endTime":"23:00"}',

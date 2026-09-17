@@ -3,7 +3,7 @@ import React, { useContext, useState, useEffect } from "react";
 import { MultiBillingContext } from "./MultiBillingContext";
 import { useApplicationSettings } from "../../Auth/useApplicationContext";
 import ReceiptOptionsModal from "../ReceiptOptionsModal";
-import { RiMoneyDollarCircleLine, RiCloseLine, RiPrinterLine, RiStore3Line } from '@remixicon/react';
+import { RiMoneyDollarCircleLine, RiCloseLine, RiPrinterLine, RiStore3Line, RiMapPinLine } from '@remixicon/react';
 import { useRouter } from "next/navigation";
 import { plsEncryption } from "../../../lib/encryption";
 import { MultiBillingData, defaultMultiBillingData, TestCartItem } from '../../../lib/Multi/MultiTypes';
@@ -14,7 +14,7 @@ import { calculateCorrectionalAdjustment } from '../../../lib/Multi/correctionUt
 import { currencyFormatter } from "../../Auth/customFetch";
 
 
-export default function MultiBillingPageAdditionalInformation({ showChoiceModal: forceShowChoiceModal = false, onBillingSuccess, handlesubmit, generatedBillingId }: { showChoiceModal?: boolean, onBillingSuccess?: (billingid: string, message?: string) => void, handlesubmit?: (data:MultiBillingData) => Promise<any>, generatedBillingId?: string }) {
+export default function MultiBillingPageAdditionalInformation({ showChoiceModal: forceShowChoiceModal = false, onBillingSuccess, handlesubmit, generatedBillingId, onDetermineSampleCollection }: { showChoiceModal?: boolean, onBillingSuccess?: (billingid: string, message?: string) => void, handlesubmit?: (data: MultiBillingData) => Promise<any>, generatedBillingId?: string, onDetermineSampleCollection?: () => void }) {
 	// Outstanding Write-Off Dialog State
 	const [showOutstandingDialog, setShowOutstandingDialog] = useState(false);
 	const [outstandingInfo, setOutstandingInfo] = useState<{
@@ -64,6 +64,8 @@ export default function MultiBillingPageAdditionalInformation({ showChoiceModal:
 		setShowChoiceModal(false);
 		if (choice === 'print') {
 			setShowReceiptOptionsModal(true);
+		} else if (choice === 'home-collection') {
+			onDetermineSampleCollection?.();
 		} else {
 			// Reset billing data after successful billing
 			setBillingData(defaultMultiBillingData);
@@ -73,7 +75,7 @@ export default function MultiBillingPageAdditionalInformation({ showChoiceModal:
 
 	// This function can be called from parent or billing logic to show the modal
 	const handleBillingSuccess = (billingid: string, message?: string) => {
-		setGeneratedBillingid(billingid);
+		setGeneratedBillingIdState(billingid);
 		setShowChoiceModal(true);
 		setBillingData(defaultMultiBillingData);
 		if (onBillingSuccess) onBillingSuccess(billingid, message);
@@ -98,9 +100,11 @@ export default function MultiBillingPageAdditionalInformation({ showChoiceModal:
 				<Modal
 					show={showChoiceModal}
 					onHide={handleModalClose}
-					centered
 					backdrop="static"
 					keyboard={false}
+					animation={false}
+					size="lg"
+					dialogClassName="mt-4"
 				>
 					<Modal.Header closeButton>
 						<Modal.Title className="text-success">✓ Billing Complete</Modal.Title>
@@ -127,6 +131,14 @@ export default function MultiBillingPageAdditionalInformation({ showChoiceModal:
 							>
 								<RiStore3Line size={18} />
 								Return to Customers
+							</Button>
+							<Button
+								variant="outline-primary"
+								onClick={() => handleUserChoice('home-collection')}
+								className="d-flex align-items-center gap-2 px-4 py-2"
+							>
+								<RiMapPinLine size={18} />
+								Determine Sample Collection
 							</Button>
 						</div>
 					</Modal.Body>

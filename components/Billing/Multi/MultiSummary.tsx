@@ -19,9 +19,10 @@ interface MultiSummaryProps {
     summaryData?: any;
     handlesubmit?: (data: MultiBillingData) => Promise<any>;
     generatedBillingid?: string | number;
+    onDetermineSampleCollection?: () => void;
 }
 
-export default function MultiSummary({ summaryData, handlesubmit, generatedBillingid }: MultiSummaryProps) {
+export default function MultiSummary({ summaryData, handlesubmit, generatedBillingid, onDetermineSampleCollection }: MultiSummaryProps) {
     const context = useContext(MultiBillingContext);
     if (!context) throw new Error("MultiBillingContext not found");
     const { billingdata, setBillingData } = context;
@@ -67,10 +68,10 @@ export default function MultiSummary({ summaryData, handlesubmit, generatedBilli
                     </span>
                     <span className="fw-bold">{currencyFormatter.format(data.totaldiscount ?? data.discount)}</span>
                 </div>
-                 <div className="list-group-item d-flex justify-content-between  border-5 border-primary">
+                <div className="list-group-item d-flex justify-content-between  border-5 border-primary">
                     <span className="d-flex align-items-center">
                         <RiWallet3Line className="me-2" />
-                        Actual Amount 
+                        Actual Amount
                     </span>
                     <span className="fw-bold">{currencyFormatter.format(data.actualAmount ? data.actualAmount : 0)}</span>
                 </div>
@@ -97,7 +98,7 @@ export default function MultiSummary({ summaryData, handlesubmit, generatedBilli
                 </div>
             </div>
 
-            <MultiBillingPageAdditionalInformation handlesubmit={handlesubmit} generatedBillingId={generatedBillingid?.toString()} />
+            <MultiBillingPageAdditionalInformation handlesubmit={handlesubmit} generatedBillingId={generatedBillingid?.toString()} onDetermineSampleCollection={onDetermineSampleCollection} />
         </div>
     );
 }

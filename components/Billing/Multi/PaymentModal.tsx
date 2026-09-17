@@ -838,7 +838,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                                                   <span>Staff Free-of-Charge (FOC) Benefit</span>
                                              </h6>
                                              <p className="text-muted text-xs mb-3">
-                                                  Services will be covered by the staff member's annual medical benefit allowance.
+                                                  Services will be covered by the staff members annual medical benefit allowance.
                                              </p>
 
                                              <div className="row g-3 mb-3">

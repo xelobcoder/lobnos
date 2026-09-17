@@ -15,7 +15,8 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export const useTheme = () => {
      const context = useContext(ThemeContext);
      if (context === undefined) {
-          throw new Error('useTheme must be used within a ThemeProvider');
+          console.warn('useTheme called outside a ThemeProvider; falling back to light theme.');
+          return { theme: 'light' as Theme, toggleTheme: () => { } };
      }
      return context;
 };
