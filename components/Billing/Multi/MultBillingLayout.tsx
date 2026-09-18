@@ -14,7 +14,9 @@ import { useApplication } from "../../Auth/useApplicationContext";
 import { toast } from "react-toastify";
 import MultiBillingHeader from './MultiBillingHeader';
 import PreviousRecordsHeader from './PreviousRecordsHeader';
+import { plsEncryption } from "../../../lib/encryption";
 import { MultiValidateAndSubmitBillingInformation } from "../../../lib/Multi/multiBillingValidation";
+import ReceiptOptionsModal from '../ReceiptOptionsModal';
 import { BillingContextPropsProvider, useBillingContextProps } from './BillingContextPropsContext';
 import GoogleMapPicker, { LocationValue } from '../../home-collection/GoogleMapPicker';
 
@@ -55,17 +57,9 @@ function MultiBillingLayoutContent() {
     const [useServices, setUseServices] = useState(false);
     const [showSummary, setShowSummary] = useState(false);
     const [summaryData, setSummaryData] = useState(null);
+    const [showChoiceModal, setShowChoiceModal] = useState(false);
     const [generatedBillingid, setGeneratedBillingid] = useState<string | number | undefined>(undefined);
-    const [showSampleLocationModal, setShowSampleLocationModal] = useState(false);
-    const [sampleLocationChoice, setSampleLocationChoice] = useState<'in-center' | 'home'>('in-center');
-    const [homeCollectionLocation, setHomeCollectionLocation] = useState<LocationValue>({ address: '', latitude: 0, longitude: 0 });
-    const [hasPickedHomeCollectionLocation, setHasPickedHomeCollectionLocation] = useState(false);
-    const [homeCollectionDate, setHomeCollectionDate] = useState('');
-    const [homeCollectionTime, setHomeCollectionTime] = useState('');
-    const [homeCollectionError, setHomeCollectionError] = useState('');
-    const [submittingHomeCollection, setSubmittingHomeCollection] = useState(false);
-    const [homeCollectionBillingId, setHomeCollectionBillingId] = useState<number | null>(null);
-    const [homeCollectionPatientId, setHomeCollectionPatientId] = useState<number | null>(null);
+    const [showReceiptOptionsModal, setShowReceiptOptionsModal] = useState(false);
 
     const handleSpecialCodeChange = (e) => {
         const value = e.target.value;
@@ -372,10 +366,30 @@ function MultiBillingLayoutContent() {
     }>>([]);
     const [usePerTestDelivery, setUsePerTestDelivery] = useState(false);
 
-    const openSampleCollectionModal = () => {
-        setSampleLocationChoice('home');
-        setShowSampleLocationModal(true);
+    const handleModalClose = () => {
+        setShowChoiceModal(false);
+        setBillingData(prev => ({
+            ...defaultMultiBillingData,
+            billingSource: prev.billingSource,
+            branchid: prev.branchid,
+            patientid: prev.patientid,
+            entitytype: prev.entitytype,
+            entityId: prev.entityId,
+            entityname: prev.entityname
+        }));
     };
+
+    const handleUserChoice = (choice: string) => {
+        setShowChoiceModal(false);
+        if (choice === 'print') {
+            setShowReceiptOptionsModal(true);
+        } else {
+            setBillingData(defaultMultiBillingData);
+            router.push(`/billing/sales/branches/${plsEncryption(branchid.toString())}`);
+        }
+    };
+
+    const closeReceiptModal = () => setShowReceiptOptionsModal(false);
 
     const submitBillingInternal = async (billingdata: MultiBillingData, writeOffConfirmed = false) => {
         if (isSaving) return;
@@ -553,14 +567,13 @@ function MultiBillingLayoutContent() {
             }));
             setShowDeliveryModal(false);
             setPendingSubmit(null);
-            setHomeCollectionBillingId(Number(submittedBillingId));
-            setHomeCollectionPatientId(Number(billingdata.patientid));
             setSampleLocationChoice('in-center');
             setHomeCollectionLocation({ address: '', latitude: 0, longitude: 0 });
             setHasPickedHomeCollectionLocation(false);
             setHomeCollectionDate('');
             setHomeCollectionTime('');
             setHomeCollectionError('');
+            setShowSampleLocationModal(true);
         } catch (err) {
             toast.error('Failed to save delivery preference');
         } finally {
@@ -576,24 +589,16 @@ function MultiBillingLayoutContent() {
             return;
         }
 
-        const hasPickupAddress = homeCollectionLocation.address.trim().length > 0;
-        if (!homeCollectionDate || !homeCollectionTime || !hasPickupAddress) {
-            setHomeCollectionError('Appointment date/time and a pickup address are required.');
-            return;
-        }
-
-        const billingIdForHomeCollection = homeCollectionBillingId || Number(generatedBillingid);
-        const patientIdForHomeCollection = homeCollectionPatientId || Number(billingdata.patientid || patientid);
-        if (!billingIdForHomeCollection || !patientIdForHomeCollection) {
-            setHomeCollectionError('Billing ID and patient ID are required to schedule a home collection.');
+        if (!homeCollectionDate || !homeCollectionTime || !hasPickedHomeCollectionLocation) {
+            setHomeCollectionError('Appointment date/time and a pickup location are required.');
             return;
         }
 
         setSubmittingHomeCollection(true);
         setHomeCollectionError('');
         const response: any = await customFetchMutation('home-collection/orders/from-billing', 'POST', {
-            billingid: billingIdForHomeCollection,
-            patientid: patientIdForHomeCollection,
+            billingid: Number(generatedBillingid),
+            patientid: Number(billingdata.patientid),
             appointment_date: homeCollectionDate,
             appointment_time: homeCollectionTime,
             address: homeCollectionLocation.address,
@@ -810,7 +815,7 @@ function MultiBillingLayoutContent() {
                             )}
                         </div>
                         <div className="col-12 col-md-3 border-start p-2" style={{ minHeight: 300 }}>
-                            {billingdata.showsummary && <MultiSummary handlesubmit={handleSubmit} generatedBillingid={generatedBillingid} onDetermineSampleCollection={openSampleCollectionModal} />}
+                            {billingdata.showsummary && <MultiSummary handlesubmit={handleSubmit} generatedBillingid={generatedBillingid} />}
                         </div>
                     </div>
                 </div>
@@ -827,6 +832,16 @@ function MultiBillingLayoutContent() {
                 </div>
 
             </div>
+
+            {/* Receipt Options Modal */}
+            {showReceiptOptionsModal && (
+                <ReceiptOptionsModal
+                    open={showReceiptOptionsModal}
+                    close={closeReceiptModal}
+                    patientid={Number(patientid)}
+                    billingid={generatedBillingid ? Number(generatedBillingid) : 0}
+                />
+            )}
 
             <Modal
                 show={showDeliveryModal}
@@ -1042,8 +1057,7 @@ function MultiBillingLayoutContent() {
                     setShowSampleLocationModal(false);
                 }}
                 backdrop="static"
-                animation={false}
-                dialogClassName="mt-4"
+                centered
             >
                 <Modal.Header closeButton>
                     <Modal.Title className="fs-5 fw-semibold text-body-emphasis">Sample Collection Location</Modal.Title>
@@ -1100,13 +1114,10 @@ function MultiBillingLayoutContent() {
                                 value={homeCollectionLocation}
                                 onChange={(next) => {
                                     setHomeCollectionLocation(next);
-                                    setHasPickedHomeCollectionLocation(Boolean(next.address.trim()) || Boolean(next.latitude && next.longitude));
+                                    setHasPickedHomeCollectionLocation(true);
                                 }}
                                 height={260}
                             />
-                            <small className="text-muted d-block mt-1">
-                                If map search is unavailable, type the pickup address and continue.
-                            </small>
                         </div>
                     )}
                 </Modal.Body>

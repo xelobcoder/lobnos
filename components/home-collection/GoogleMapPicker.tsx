@@ -3,8 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
-// import 'leaflet/dist/leaflet.css';
-import '../../node_modules/leaflet/dist/leaflet.css'; // Ensure Leaflet's CSS is loaded
+import 'leaflet/dist/leaflet.css';
 
 // Leaflet's default marker icon references image paths that don't resolve under
 // Next.js bundling; point them at the CDN copies instead of shipping the assets.

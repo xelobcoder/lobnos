@@ -1,15 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import dynamic from 'next/dynamic';
+import { MapContainer, TileLayer, Marker as LeafletMarker, Popup } from 'react-leaflet';
 import { customFetch, customFetchMutation } from '../../../components/Auth/customFetch';
-import { useApplication } from '../../../components/Auth/useApplicationContext';
-import type { LocationValue } from '../../../components/home-collection/GoogleMapPicker';
-import '../../../node_modules/leaflet/dist/leaflet.css'; // Ensure Leaflet's CSS is loaded
-import dayjs from 'dayjs';
-
-const GoogleMapPicker = dynamic(() => import('../../../components/home-collection/GoogleMapPicker'), { ssr: false });
-const DispatchMap = dynamic(() => import('../../../components/home-collection/DispatchMap'), { ssr: false });
+import GoogleMapPicker, { LocationValue } from '../../../components/home-collection/GoogleMapPicker';
+import 'leaflet/dist/leaflet.css';
 
 type HomeCollectionOrder = {
      id: number;
@@ -24,29 +19,14 @@ type HomeCollectionOrder = {
      assigned_to: number | null;
      staff_name?: string;
      status: string;
-     tests?: HomeCollectionOrderTest[];
-};
-
-type HomeCollectionOrderTest = {
-     id: number;
-     home_collection_id: number;
-     testid: number;
-     test_name_snapshot: string;
-     price: number;
 };
 
 type HomeCollectionStaff = {
      id: number;
      employeeid: number;
      staff_name?: string;
-     vehicle_number?: string;
+     vehicle_number: string;
      is_available: boolean;
-};
-
-type OrderDraft = {
-     assigned_to: string;
-     status: string;
-     saving: boolean;
 };
 
 type TestPanel = {
@@ -69,8 +49,6 @@ const STATUS_BADGE: Record<string, string> = {
 const EMPTY_LOCATION: LocationValue = { address: '', latitude: 0, longitude: 0 };
 
 export default function HomeCollectionPage() {
-     const application = useApplication();
-     const employeeid = application?.user?.employeeid || 0;
      const [orders, setOrders] = useState<HomeCollectionOrder[]>([]);
      const [staff, setStaff] = useState<HomeCollectionStaff[]>([]);
      const [testPanels, setTestPanels] = useState<TestPanel[]>([]);
@@ -80,7 +58,6 @@ export default function HomeCollectionPage() {
      const [error, setError] = useState('');
      const [showForm, setShowForm] = useState(false);
      const [submitting, setSubmitting] = useState(false);
-     const [orderDrafts, setOrderDrafts] = useState<Record<number, OrderDraft>>({});
 
      const [patientId, setPatientId] = useState('');
      const [appointmentDate, setAppointmentDate] = useState('');
@@ -95,15 +72,7 @@ export default function HomeCollectionPage() {
           const query = search?.trim() ? `home-collection/orders?count=100&search=${encodeURIComponent(search.trim())}` : 'home-collection/orders?count=100';
           const response = await customFetch(query);
           if (response?.status === 'success') {
-               const loadedOrders = response.result.orders || [];
-               setOrders(loadedOrders);
-               setOrderDrafts(Object.fromEntries(
-                    loadedOrders.map((order: HomeCollectionOrder) => [order.id, {
-                         assigned_to: order.assigned_to ? String(order.assigned_to) : '',
-                         status: order.status,
-                         saving: false,
-                    }])
-               ));
+               setOrders(response.result.orders || []);
           } else {
                setError(response?.message || 'Unable to load home collection orders.');
           }
@@ -190,49 +159,15 @@ export default function HomeCollectionPage() {
           }
      };
 
-     const updateOrderDraft = (orderId: number, patch: Partial<OrderDraft>) => {
-          setOrderDrafts((current) => ({
-               ...current,
-               [orderId]: {
-                    assigned_to: current[orderId]?.assigned_to || '',
-                    status: current[orderId]?.status || 'Pending',
-                    saving: current[orderId]?.saving || false,
-                    ...patch,
-               },
-          }));
+     const assignStaff = async (orderId: number, employeeId: string) => {
+          if (!employeeId) return;
+          const response = await customFetchMutation(`home-collection/orders/${orderId}/assign`, 'PUT', { assigned_to: Number(employeeId) });
+          if (response?.status === 'success') await loadOrders(patientFilter);
      };
 
-     const saveOrderChanges = async (order: HomeCollectionOrder) => {
-          const draft = orderDrafts[order.id];
-          if (!draft) return;
-          if (!employeeid) {
-               setError('Employee session not found. Please sign in again.');
-               return;
-          }
-
-          setError('');
-          updateOrderDraft(order.id, { saving: true });
-          try {
-               if (draft.assigned_to && draft.assigned_to !== String(order.assigned_to || '')) {
-                    const assignResponse = await customFetchMutation(`home-collection/orders/${order.id}/assign?employeeid=${employeeid}`, 'PUT', { assigned_to: Number(draft.assigned_to) });
-                    if (assignResponse?.status !== 'success') {
-                         setError(assignResponse?.message || 'Unable to assign staff.');
-                         return;
-                    }
-               }
-
-               if (draft.status && draft.status !== order.status) {
-                    const statusResponse = await customFetchMutation(`home-collection/orders/${order.id}/status?employeeid=${employeeid}`, 'PUT', { status: draft.status });
-                    if (statusResponse?.status !== 'success') {
-                         setError(statusResponse?.message || 'Unable to update status.');
-                         return;
-                    }
-               }
-
-               await loadOrders(patientFilter);
-          } finally {
-               updateOrderDraft(order.id, { saving: false });
-          }
+     const updateStatus = async (orderId: number, status: string) => {
+          const response = await customFetchMutation(`home-collection/orders/${orderId}/status`, 'PUT', { status });
+          if (response?.status === 'success') await loadOrders(patientFilter);
      };
 
      const activeOrders = useMemo(() => orders.filter((order) => order.status !== 'Completed' && order.status !== 'Cancelled'), [orders]);
@@ -267,7 +202,6 @@ export default function HomeCollectionPage() {
                                    <th>Patient</th>
                                    <th>Appointment</th>
                                    <th>Address</th>
-                                   <th>Samples</th>
                                    <th>Fee</th>
                                    <th>Assigned staff</th>
                                    <th>Status</th>
@@ -278,30 +212,19 @@ export default function HomeCollectionPage() {
                               {orders.map((order) => (
                                    <tr key={order.id}>
                                         <td>{order.patient_name?.trim() || `#${order.patientid}`}</td>
-                                        <td>{dayjs(order.appointment_date).format('YYYY-MM-DD')} {order.appointment_time}</td>
+                                        <td>{order.appointment_date} {order.appointment_time}</td>
                                         <td style={{ maxWidth: 220 }} className="text-truncate">{order.address}</td>
-                                        <td style={{ minWidth: 180 }}>
-                                             {order.tests?.length ? (
-                                                  <div className="small">
-                                                       {order.tests.map((test) => (
-                                                            <div key={test.id}>{test.test_name_snapshot || `Test #${test.testid}`}</div>
-                                                       ))}
-                                                  </div>
-                                             ) : (
-                                                  <span className="text-muted small">No samples listed</span>
-                                             )}
-                                        </td>
                                         <td>{order.collection_fee}</td>
                                         <td>
                                              <select
                                                   className="form-select form-select-sm"
-                                                  value={orderDrafts[order.id]?.assigned_to ?? ''}
-                                                  onChange={(event) => updateOrderDraft(order.id, { assigned_to: event.target.value })}
+                                                  value={order.assigned_to ?? ''}
+                                                  onChange={(event) => assignStaff(order.id, event.target.value)}
                                              >
                                                   <option value="">Unassigned</option>
                                                   {staff.map((member) => (
                                                        <option key={member.id} value={member.employeeid}>
-                                                            {member.staff_name || `Staff #${member.employeeid}`}{member.vehicle_number ? ` (${member.vehicle_number})` : ''}
+                                                            {member.staff_name || `Staff #${member.employeeid}`} ({member.vehicle_number})
                                                        </option>
                                                   ))}
                                              </select>
@@ -312,26 +235,19 @@ export default function HomeCollectionPage() {
                                         <td>
                                              <select
                                                   className="form-select form-select-sm"
-                                                  value={orderDrafts[order.id]?.status ?? order.status}
-                                                  onChange={(event) => updateOrderDraft(order.id, { status: event.target.value })}
+                                                  value={order.status}
+                                                  onChange={(event) => updateStatus(order.id, event.target.value)}
                                              >
                                                   {Object.keys(STATUS_BADGE).map((status) => (
                                                        <option key={status} value={status}>{status}</option>
                                                   ))}
                                              </select>
-                                             <button
-                                                  className="btn btn-sm btn-primary mt-1"
-                                                  disabled={orderDrafts[order.id]?.saving}
-                                                  onClick={() => saveOrderChanges(order)}
-                                             >
-                                                  {orderDrafts[order.id]?.saving ? 'Saving…' : 'Save'}
-                                             </button>
                                         </td>
                                    </tr>
                               ))}
                               {orders.length === 0 && (
                                    <tr>
-                                        <td colSpan={8} className="text-center text-muted">No home collection orders yet.</td>
+                                        <td colSpan={7} className="text-center text-muted">No home collection orders yet.</td>
                                    </tr>
                               )}
                          </tbody>
@@ -420,3 +336,29 @@ export default function HomeCollectionPage() {
      );
 }
 
+function DispatchMap({ orders }: { orders: HomeCollectionOrder[] }) {
+     const [mounted, setMounted] = useState(false);
+     useEffect(() => setMounted(true), []);
+
+     const withCoordinates = orders.filter((order) => order.latitude && order.longitude);
+
+     if (!mounted || withCoordinates.length === 0) {
+          return null;
+     }
+
+     const center: [number, number] = [withCoordinates[0].latitude, withCoordinates[0].longitude];
+
+     return (
+          <MapContainer center={center} zoom={11} style={{ width: '100%', height: '360px', borderRadius: '6px' }}>
+               <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+               />
+               {withCoordinates.map((order) => (
+                    <LeafletMarker key={order.id} position={[order.latitude, order.longitude]}>
+                         <Popup>#{order.id} — {order.patient_name || 'Patient'} — {order.status}</Popup>
+                    </LeafletMarker>
+               ))}
+          </MapContainer>
+     );
+}
