@@ -38,6 +38,9 @@ interface InventoryItem {
      created_at?: string;
      updated_at?: string;
      category_name?: string;
+     inventory_domain?: 'lab' | 'pharmacy';
+     wholesale_price?: number;
+     sale_price?: number;
      brand_name?: string;
      supplier_name?: string;
      location_name?: string;
@@ -97,7 +100,12 @@ const STATUS_BADGES = {
 export default function InventoryItemsPage() {
      const router = useRouter();
      const searchParams = useSearchParams();
-     const isPharmacyInventory = searchParams.get('category') === 'Pharmacy';
+     const isPharmacyInventory = searchParams.get('category') === 'Pharmacy' || searchParams.get('inventory_domain') === 'pharmacy';
+     const inventoryDomain = isPharmacyInventory ? 'pharmacy' : 'lab';
+     const [stockUpQueue, setStockUpQueue] = useState<string[]>(() => {
+          const requestedIds = searchParams.get('stockUpItemIds') || searchParams.get('stockUpItemId') || '';
+          return requestedIds.split(',').map((id) => id.trim()).filter(Boolean);
+     });
      const { branchid, user } = useApplicationSettings().applicationsettings || {};
      const employeeid = user?.employeeid;
      const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
@@ -116,10 +124,23 @@ export default function InventoryItemsPage() {
      const [error, setError] = useState<string | null>(null);
      const [availableStock, setAvailableStock] = useState<any>(null);
      const [loadingStock, setLoadingStock] = useState(false);
+     const [stockUpItem, setStockUpItem] = useState<InventoryItem | null>(null);
+     const [stockUpForm, setStockUpForm] = useState({
+          supplierId: '',
+          quantity: 1,
+          incomingCost: 0,
+          expiryDate: '',
+          changePricing: false,
+          priceMode: 'percentage' as 'percentage' | 'fixed' | 'manual',
+          adjustmentValue: 0,
+          wholesalePrice: 0,
+          retailPrice: 0,
+     });
 
      // Form states
      const [itemForm, setItemForm] = useState({
           name: '',
+          inventoryDomain: inventoryDomain as 'lab' | 'pharmacy',
           category: '',
           sku: '',
           description: '',
@@ -127,6 +148,7 @@ export default function InventoryItemsPage() {
           currentStock: 0,
           minStock: 0,
           maxStock: 0,
+          wholesalePrice: 0,
           salePrice: 0,
           location_id: '',
           expiryDate: '',
@@ -143,7 +165,7 @@ export default function InventoryItemsPage() {
           try {
                setLoading(true);
                setError(null);
-               const response = await customFetch(`inventory/items?branchid=${branchid}&employeeid=${employeeid}&&page=1&&count=10`);
+               const response = await customFetch(`inventory/items?branchid=${branchid}&employeeid=${employeeid}&inventory_domain=${inventoryDomain}&page=1&count=10`);
                if (response.success) {
                     const transformedData = (response.data || []).map((item: any) => ({
                          ...item,
@@ -183,7 +205,7 @@ export default function InventoryItemsPage() {
 
      const loadSuppliers = async () => {
           try {
-               const response = await customFetch(`inventory/suppliers?branchid=${branchid}&employeeid=${employeeid}`);
+               const response = await customFetch(`inventory/suppliers?branchid=${branchid}&employeeid=${employeeid}&count=500`);
                if (response.success) {
                     setSuppliers(response.data || []);
                }
@@ -247,7 +269,7 @@ export default function InventoryItemsPage() {
                loadStorageLocations();
                loadConsumptionUnits();
           }
-     }, [branchid, employeeid]);
+     }, [branchid, employeeid, inventoryDomain]);
 
      useEffect(() => {
           if (isPharmacyInventory && categories.some((category) => category.name === 'Pharmacy')) {
@@ -263,6 +285,7 @@ export default function InventoryItemsPage() {
                     count: count.toString(),
                     branchid: branchid?.toString() || '',
                     employeeid: employeeid?.toString() || '',
+                    inventory_domain: itemForm.inventoryDomain,
                });
 
                if (sortby) {
@@ -295,6 +318,85 @@ export default function InventoryItemsPage() {
           } catch (error) {
                console.error('Error in server-side processing:', error);
                return { result: [], error: true };
+          }
+     };
+
+     const openStockUp = (item: InventoryItem) => {
+          const wholesalePrice = Number(item.wholesale_price || 0);
+          const retailPrice = Number(item.sale_price || item.salePrice || 0);
+          setStockUpItem(item);
+          setStockUpForm({ supplierId: '', quantity: 1, incomingCost: 0, expiryDate: '', changePricing: false, priceMode: wholesalePrice > 0 && retailPrice > 0 ? 'percentage' : 'manual', adjustmentValue: 0, wholesalePrice, retailPrice });
+     };
+
+     const closeStockUp = () => {
+          const closedId = stockUpItem?.id;
+          setStockUpItem(null);
+          if (closedId) setStockUpQueue((current) => current[0] === closedId ? current.slice(1) : current);
+     };
+
+     useEffect(() => {
+          if (stockUpItem || stockUpQueue.length === 0 || !branchid || !employeeid) return;
+          let active = true;
+          (async () => {
+               try {
+                    const response = await customFetch(`inventory/items/${stockUpQueue[0]}?branchid=${branchid}&employeeid=${employeeid}`);
+                    if (active && response?.success) openStockUp({
+                         ...response.data,
+                         currentStock: response.data.current_stock,
+                         minStock: response.data.min_stock,
+                         maxStock: response.data.max_stock,
+                         category: response.data.category_name,
+                         location: response.data.location_name,
+                         lastUpdated: response.data.last_updated,
+                    });
+                    if (active && !response?.success) setStockUpQueue((current) => current.slice(1));
+               } catch {
+                    if (active) setStockUpQueue((current) => current.slice(1));
+               }
+          })();
+          return () => { active = false; };
+     }, [stockUpItem, stockUpQueue, branchid, employeeid]);
+
+     const updateStockPrice = (mode: 'percentage' | 'fixed' | 'manual', value: number) => {
+          if (!stockUpItem) return;
+          const oldWholesale = Number(stockUpItem.wholesale_price || 0);
+          const oldRetail = Number(stockUpItem.sale_price || stockUpItem.salePrice || 0);
+          setStockUpForm((current) => ({
+               ...current,
+               priceMode: mode,
+               adjustmentValue: value,
+               wholesalePrice: mode === 'manual' ? current.wholesalePrice : Number((mode === 'percentage' ? oldWholesale * (1 + value / 100) : oldWholesale + value).toFixed(2)),
+               retailPrice: mode === 'manual' ? current.retailPrice : Number((mode === 'percentage' ? oldRetail * (1 + value / 100) : oldRetail + value).toFixed(2)),
+          }));
+     };
+
+     const submitStockUp = async () => {
+          if (!stockUpItem || stockUpForm.quantity <= 0 || stockUpForm.incomingCost < 0) {
+               toast.error('Enter a valid quantity and incoming cost.');
+               return;
+          }
+          try {
+               setLoading(true);
+               const response = await customPost(`inventory/items/${stockUpItem.id}/stock-up`, 'POST', {
+                    supplier_id: stockUpForm.supplierId || undefined,
+                    quantity: stockUpForm.quantity,
+                    unit_price: stockUpForm.incomingCost,
+                    received_by: employeeid,
+                    expiry_date: stockUpForm.expiryDate || undefined,
+                    change_pricing: stockUpItem.inventory_domain === 'pharmacy' && stockUpForm.changePricing,
+                    price_policy: stockUpForm.changePricing ? (stockUpForm.priceMode === 'manual' ? 'replace' : 'increase') : 'maintain',
+                    new_wholesale_price: stockUpForm.changePricing ? stockUpForm.wholesalePrice : undefined,
+                    new_sale_price: stockUpForm.changePricing ? stockUpForm.retailPrice : undefined,
+               });
+               if (!response.success) throw new Error(response.error?.message || 'Stock could not be received.');
+               await loadInventoryItems();
+               setStockUpItem(null);
+               setStockUpQueue((current) => current[0] === stockUpItem.id ? current.slice(1) : current);
+               toast.success('Stock received successfully. Batch number was generated automatically.');
+          } catch (stockError: any) {
+               toast.error(stockError.message || 'Stock could not be received.');
+          } finally {
+               setLoading(false);
           }
      };
 
@@ -344,6 +446,7 @@ export default function InventoryItemsPage() {
                accessor: 'id',
                Cell: ({ row }) => (
                     <div className="d-flex gap-1">
+                         <button className="btn btn-sm btn-success" title="Stock Up" onClick={() => openStockUp(row.original)}><RiInboxLine size={14} /></button>
                          <button
                               className="btn btn-sm btn-outline-success"
                               title="Add Brand"
@@ -402,10 +505,12 @@ export default function InventoryItemsPage() {
                     sku: itemForm.sku,
                     description: itemForm.description,
                     category_id: selectedCategory?.id,
+                    inventory_domain: inventoryDomain,
                     consumption_unit: itemForm.consumption_unit,
-                    current_stock: itemForm.currentStock,
+                    current_stock: 0,
                     min_stock: itemForm.minStock,
                     max_stock: itemForm.maxStock,
+                    wholesale_price: itemForm.wholesalePrice,
                     sale_price: itemForm.salePrice,
                     location_id: itemForm.location_id || undefined,
                     expiry_date: itemForm.expiryDate || undefined,
@@ -417,7 +522,7 @@ export default function InventoryItemsPage() {
                const response = await customPost('inventory/items', 'POST', itemData);
 
                if (response.success) {
-                    setInventoryItems(prev => [response.data, ...prev]);
+                    await loadInventoryItems();
                     setShowAddModal(false);
                     resetItemForm();
                     toast.success('Item added successfully!');
@@ -457,9 +562,11 @@ export default function InventoryItemsPage() {
                     sku: itemForm.sku,
                     description: itemForm.description,
                     category_id: selectedCategory?.id,
+                    inventory_domain: itemForm.inventoryDomain,
                     consumption_unit: itemForm.consumption_unit,
                     min_stock: itemForm.minStock,
                     max_stock: itemForm.maxStock,
+                    wholesale_price: itemForm.wholesalePrice,
                     sale_price: itemForm.salePrice,
                     location_id: itemForm.location_id || undefined,
                     expiry_date: itemForm.expiryDate || undefined,
@@ -471,9 +578,7 @@ export default function InventoryItemsPage() {
                const response = await customPost(`inventory/items/${editingItem.id}`, 'PUT', itemData);
 
                if (response.success) {
-                    setInventoryItems(prev => prev.map(item =>
-                         item.id === editingItem.id ? response.data : item
-                    ));
+                    await loadInventoryItems();
                     setShowAddModal(false);
                     setEditingItem(null);
                     resetItemForm();
@@ -522,6 +627,7 @@ export default function InventoryItemsPage() {
      const handleEditItem = (item: any) => {
           setItemForm({
                name: item.name || '',
+               inventoryDomain: item.inventory_domain || inventoryDomain,
                category: item.category || '',
                sku: item.sku || '',
                description: item.description || '',
@@ -529,6 +635,7 @@ export default function InventoryItemsPage() {
                currentStock: item.currentStock || 0,
                minStock: item.minStock || 0,
                maxStock: item.maxStock || 0,
+               wholesalePrice: item.wholesale_price || 0,
                salePrice: item.sale_price || item.salePrice || 0,
                location_id: item.location_id || '',
                expiryDate: item.expiryDate || '',
@@ -696,6 +803,7 @@ export default function InventoryItemsPage() {
      const resetItemForm = () => {
           setItemForm({
                name: '',
+               inventoryDomain: inventoryDomain as 'lab' | 'pharmacy',
                category: '',
                sku: '',
                description: '',
@@ -703,6 +811,7 @@ export default function InventoryItemsPage() {
                currentStock: 0,
                minStock: 0,
                maxStock: 0,
+               wholesalePrice: 0,
                salePrice: 0,
                location_id: '',
                expiryDate: '',
@@ -743,6 +852,30 @@ export default function InventoryItemsPage() {
                     handleSeverSideProcessing={handleServerSideProcessing}
                     serverSideFiltering={true}
                />
+
+               {stockUpItem && (
+                    <div className="modal show d-block" style={{ backgroundColor: 'rgba(23, 33, 38, 0.45)' }} role="dialog" aria-modal="true">
+                         <div className="modal-dialog modal-xl mt-3">
+                              <div className="modal-content" style={{ borderRadius: '6px' }}>
+                                   <div className="modal-header"><div><h5 className="modal-title">Stock Up: {stockUpItem.name}</h5><small className="text-muted">Current stock: {stockUpItem.currentStock} {stockUpItem.consumption_unit_name || stockUpItem.consumption_unit}</small></div><button type="button" className="btn-close" onClick={closeStockUp} /></div>
+                                   <div className="modal-body p-0 table-responsive">
+                                        <table className="table align-middle mb-0" style={{ minWidth: stockUpItem.inventory_domain === 'pharmacy' ? '1320px' : '620px' }}>
+                                             <thead className="table-light"><tr><th>Supplier</th><th>Quantity</th><th>Unit cost</th><th>Expiry</th>{stockUpItem.inventory_domain === 'pharmacy' && <><th>Old wholesale</th><th>Old retail</th><th>Change pricing</th><th>Method / increase</th><th>New wholesale</th><th>New retail</th></>}</tr></thead>
+                                             <tbody><tr>
+                                                  <td><select className="form-select" value={stockUpForm.supplierId} onChange={(event) => setStockUpForm((current) => ({ ...current, supplierId: event.target.value }))}><option value="">General Supplier</option>{suppliers.filter((supplier) => supplier.id !== 'SUP-GENERAL').map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}</select></td>
+                                                  <td><input type="number" min="1" className="form-control" value={stockUpForm.quantity} onChange={(event) => setStockUpForm((current) => ({ ...current, quantity: Number(event.target.value) || 0 }))} /></td>
+                                                  <td><input type="number" min="0" step="0.01" className="form-control" value={stockUpForm.incomingCost} onChange={(event) => setStockUpForm((current) => ({ ...current, incomingCost: Number(event.target.value) || 0 }))} /></td>
+                                                  <td><input type="date" className="form-control" value={stockUpForm.expiryDate} onChange={(event) => setStockUpForm((current) => ({ ...current, expiryDate: event.target.value }))} /></td>
+                                                  {stockUpItem.inventory_domain === 'pharmacy' && <><td>{Number(stockUpItem.wholesale_price || 0).toFixed(2)}</td><td>{Number(stockUpItem.sale_price || stockUpItem.salePrice || 0).toFixed(2)}</td><td><div className="form-check form-switch"><input id="stock-change-price" className="form-check-input" type="checkbox" checked={stockUpForm.changePricing} onChange={(event) => setStockUpForm((current) => ({ ...current, changePricing: event.target.checked }))} /><label className="form-check-label" htmlFor="stock-change-price">Change</label></div></td><td>{stockUpForm.changePricing ? <><select className="form-select" value={stockUpForm.priceMode} onChange={(event) => updateStockPrice(event.target.value as 'percentage' | 'fixed' | 'manual', stockUpForm.adjustmentValue)}><option value="percentage">Percentage</option><option value="fixed">Fixed amount</option><option value="manual">Manual</option></select>{stockUpForm.priceMode !== 'manual' && <input aria-label="Price increase" type="number" min="0" step="0.01" className="form-control mt-1" value={stockUpForm.adjustmentValue} onChange={(event) => updateStockPrice(stockUpForm.priceMode, Number(event.target.value) || 0)} />}</> : '-'}</td><td><input aria-label="New wholesale price" type="number" min="0" step="0.01" className="form-control" value={stockUpForm.wholesalePrice} disabled={!stockUpForm.changePricing || stockUpForm.priceMode !== 'manual'} onChange={(event) => setStockUpForm((current) => ({ ...current, wholesalePrice: Number(event.target.value) || 0 }))} /></td><td><input aria-label="New retail price" type="number" min="0" step="0.01" className="form-control" value={stockUpForm.retailPrice} disabled={!stockUpForm.changePricing || stockUpForm.priceMode !== 'manual'} onChange={(event) => setStockUpForm((current) => ({ ...current, retailPrice: Number(event.target.value) || 0 }))} /></td></>}
+                                             </tr></tbody>
+                                        </table>
+                                        <div className="px-3 py-2 bg-light text-muted small">A batch number will be generated automatically. Leaving supplier blank uses General Supplier.</div>
+                                   </div>
+                                   <div className="modal-footer"><button type="button" className="btn btn-outline-secondary" onClick={closeStockUp}>Cancel</button><button type="button" className="btn btn-success" disabled={loading} onClick={submitStockUp}>{loading ? 'Receiving...' : 'Receive Stock'}</button></div>
+                              </div>
+                         </div>
+                    </div>
+               )}
 
                {/* Add Item Modal */}
                {showAddModal && (
@@ -787,6 +920,17 @@ export default function InventoryItemsPage() {
                                                        />
                                                   </div>
                                                   <div className="mb-3">
+                                                       <label className="form-label">Inventory Type *</label>
+                                                       <select
+                                                            className="form-select"
+                                                            value={itemForm.inventoryDomain}
+                                                            onChange={(e) => setItemForm(prev => ({ ...prev, inventoryDomain: e.target.value as 'lab' | 'pharmacy' }))}
+                                                       >
+                                                            <option value="lab">Laboratory inventory</option>
+                                                            <option value="pharmacy">Pharmacy inventory</option>
+                                                       </select>
+                                                  </div>
+                                                  <div className="mb-3">
                                                        <label className="form-label">Category *</label>
                                                        <select
                                                             className="form-select"
@@ -800,17 +944,10 @@ export default function InventoryItemsPage() {
                                                             ))}
                                                        </select>
                                                   </div>
-                                                  {itemForm.category === 'Pharmacy' && (
-                                                       <div className="mb-3">
-                                                            <label className="form-label">Pharmacy Sale Price *</label>
-                                                            <input
-                                                                 type="number"
-                                                                 className="form-control"
-                                                                 value={itemForm.salePrice}
-                                                                 onChange={(e) => setItemForm(prev => ({ ...prev, salePrice: parseFloat(e.target.value) || 0 }))}
-                                                                 min="0.01"
-                                                                 step="0.01"
-                                                            />
+                                                  {itemForm.inventoryDomain === 'pharmacy' && (
+                                                       <div className="row g-2 mb-3">
+                                                            <div className="col-md-6"><label className="form-label">Wholesale Price</label><input type="number" className="form-control" value={itemForm.wholesalePrice} onChange={(e) => setItemForm(prev => ({ ...prev, wholesalePrice: parseFloat(e.target.value) || 0 }))} min="0" step="0.01" /></div>
+                                                            <div className="col-md-6"><label className="form-label">Retail Price</label><input type="number" className="form-control" value={itemForm.salePrice} onChange={(e) => setItemForm(prev => ({ ...prev, salePrice: parseFloat(e.target.value) || 0 }))} min="0" step="0.01" /></div>
                                                        </div>
                                                   )}
                                              </div>
@@ -831,20 +968,6 @@ export default function InventoryItemsPage() {
                                                        </select>
                                                   </div>
                                                   <div className="row">
-                                                       {!editingItem && (
-                                                            <div className="col-4">
-                                                                 <div className="mb-3">
-                                                                      <label className="form-label">Current Stock</label>
-                                                                      <input
-                                                                           type="number"
-                                                                           className="form-control"
-                                                                           value={itemForm.currentStock}
-                                                                           onChange={(e) => setItemForm(prev => ({ ...prev, currentStock: parseInt(e.target.value) || 0 }))}
-                                                                           min="0"
-                                                                      />
-                                                                 </div>
-                                                            </div>
-                                                       )}
                                                        {editingItem && (
                                                             <div className="col-4">
                                                                  <div className="mb-3">

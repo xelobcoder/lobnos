@@ -87,6 +87,7 @@ interface FormOrderItem {
      brand?: string;
      sku: string;
      quantity: number;
+     unitPrice: number;
      unit: string;
      discountRate: number;
      taxRate: number;
@@ -155,6 +156,8 @@ const STATUS_BADGES = {
      cancelled: { label: 'Cancelled', color: 'danger' }
 };
 
+const GENERAL_SUPPLIER_ID = 'SUP-GENERAL';
+
 const orderRowStyling = {
      type: 'custom',
      getRowClassName: (row) => {
@@ -168,6 +171,7 @@ export default function PurchaseOrdersPage() {
      const searchParams = useSearchParams();
      const restockItemId = searchParams.get('restockItemId');
      const restockItemIds = searchParams.get('restockItemIds');
+     const inventoryDomain = searchParams.get('inventory_domain') === 'pharmacy' ? 'pharmacy' : 'lab';
      const [restockApplied, setRestockApplied] = useState(false);
      const { applicationsettings } = useApplicationSettings();
      const employeeid = applicationsettings?.user?.employeeid;
@@ -218,9 +222,20 @@ export default function PurchaseOrdersPage() {
 
      const loadSuppliers = async () => {
           try {
-               const response = await customFetch(`inventory/suppliers?branchid=${branchid}&employeeid=${employeeid}`);
+               const response = await customFetch(`inventory/suppliers?branchid=${branchid}&employeeid=${employeeid}&count=500`);
                if (response.success) {
-                    setSuppliers(response.data || []);
+                    const loadedSuppliers = response.data || [];
+                    setSuppliers(loadedSuppliers);
+                    const generalSupplier = loadedSuppliers.find((supplier: Supplier) => supplier.id === GENERAL_SUPPLIER_ID);
+                    if (generalSupplier) {
+                         setOrderForm((current) => current.supplierId ? current : {
+                              ...current,
+                              supplierId: generalSupplier.id,
+                              supplierName: generalSupplier.name,
+                              supplierEmail: generalSupplier.email || '',
+                              supplierContact: generalSupplier.contact || '',
+                         });
+                    }
                }
           } catch (err) {
                console.error('Error loading suppliers:', err);
@@ -229,7 +244,7 @@ export default function PurchaseOrdersPage() {
 
      const loadInventoryItems = async () => {
           try {
-               const response = await customFetch(`inventory/items?branchid=${branchid}&employeeid=${employeeid}`);
+               const response = await customFetch(`inventory/items?branchid=${branchid}&employeeid=${employeeid}&inventory_domain=${inventoryDomain}&count=500`);
                if (response.success) {
                     setInventoryItems(response.data || []);
                }
@@ -431,6 +446,7 @@ export default function PurchaseOrdersPage() {
                     brand: item.brand,
                     sku: item.sku,
                     quantity: 1,
+                    unitPrice: 0,
                     unit: item.unit,
                     discountRate: 0,
                     taxRate: 0
@@ -648,7 +664,7 @@ export default function PurchaseOrdersPage() {
           }
      ];
 
-     const handleCreateOrder = async () => {
+     const handleCreateOrder = async (receiveAfterCreate = false) => {
           if (!orderForm.supplierId || orderForm.items.length === 0) {
                toast.error('Please select a supplier and add at least one item');
                return;
@@ -662,6 +678,7 @@ export default function PurchaseOrdersPage() {
                     items: orderForm.items.map(item => ({
                          inventory_item_id: item.itemId,
                          quantity_ordered: item.quantity,
+                         unit_price: item.unitPrice,
                          discount_rate: item.discountRate,
                          tax_rate: item.taxRate,
                          notes: item.notes
@@ -676,6 +693,9 @@ export default function PurchaseOrdersPage() {
                     setShowOrderModal(false);
                     resetOrderForm();
                     toast.success('Order created successfully!');
+                    if (receiveAfterCreate && response.data?.id) {
+                         router.push(`/inventory/orders/receive-ordered-items/${response.data.id}`);
+                    }
                } else {
                     toast.error(`Failed to create order: ${response.error?.message || 'Unknown error'}`);
                }
@@ -1233,11 +1253,12 @@ export default function PurchaseOrdersPage() {
      };
 
      const resetOrderForm = () => {
+          const generalSupplier = suppliers.find((supplier) => supplier.id === GENERAL_SUPPLIER_ID);
           setOrderForm({
-               supplierId: '',
-               supplierName: '',
-               supplierEmail: '',
-               supplierContact: '',
+               supplierId: generalSupplier?.id || '',
+               supplierName: generalSupplier?.name || '',
+               supplierEmail: generalSupplier?.email || '',
+               supplierContact: generalSupplier?.contact || '',
                items: [],
                expectedDeliveryDate: '',
                notes: '',
@@ -1556,7 +1577,7 @@ export default function PurchaseOrdersPage() {
                                                                  className="btn btn-sm btn-outline-primary"
                                                                  onClick={() => setOrderForm(prev => ({
                                                                       ...prev,
-                                                                      items: [...prev.items, { itemId: '', itemName: '', quantity: 1, unit: 'pieces', brand: '', sku: '', discountRate: 0, taxRate: 0 }]
+                                                                      items: [...prev.items, { itemId: '', itemName: '', quantity: 1, unitPrice: 0, unit: 'pieces', brand: '', sku: '', discountRate: 0, taxRate: 0 }]
                                                                  }))}
                                                             >
                                                                  <RiAddLine className="me-1" /> Add Item
@@ -1577,7 +1598,8 @@ export default function PurchaseOrdersPage() {
                                                                                 <tr>
                                                                                      <th style={{ width: '40%' }}>Item</th>
                                                                                      <th style={{ width: '20%' }}>Qty</th>
-                                                                                     <th style={{ width: '20%' }}>Unit</th>
+                                                                                     <th style={{ width: '15%' }}>Unit</th>
+                                                                                     <th style={{ width: '15%' }}>Cost</th>
                                                                                      <th style={{ width: '10%' }}></th>
                                                                                 </tr>
                                                                            </thead>
@@ -1631,6 +1653,9 @@ export default function PurchaseOrdersPage() {
                                                                                                     {item.unit || '-'}
                                                                                                </span>
                                                                                           </td>
+                                                                                          <td>
+                                                                                               <input type="number" min="0" step="0.01" className="form-control form-control-sm" value={item.unitPrice} onChange={(event) => { const items = [...orderForm.items]; items[index] = { ...items[index], unitPrice: Number(event.target.value) || 0 }; setOrderForm((current) => ({ ...current, items })); }} aria-label="Expected purchase unit price" />
+                                                                                          </td>
                                                                                           <td className="text-end">
                                                                                                <button
                                                                                                     className="btn btn-sm btn-link text-danger p-0"
@@ -1668,11 +1693,16 @@ export default function PurchaseOrdersPage() {
                                         <button
                                              type="button"
                                              className="btn btn-outline-primary btn-sm px-4"
-                                             onClick={selectedOrder ? handleUpdateOrder : handleCreateOrder}
+                                             onClick={selectedOrder ? handleUpdateOrder : () => handleCreateOrder(false)}
                                         >
                                              <RiSaveLine className="me-2" />
                                              {selectedOrder ? 'Update Order' : 'Create Order'}
                                         </button>
+                                        {!selectedOrder && (
+                                             <button type="button" className="btn btn-primary btn-sm px-4" onClick={() => handleCreateOrder(true)}>
+                                                  <RiInboxArchiveLine className="me-2" /> Create & receive
+                                             </button>
+                                        )}
                                    </div>
                               </div>
                          </div>

@@ -1,11 +1,12 @@
 'use client';
 
 import { FormEvent, useCallback, useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { RiAlarmWarningLine, RiCloseLine, RiMedicineBottleLine, RiSearchLine, RiTruckLine } from '@remixicon/react';
-import Link from 'next/link';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 import { customFetch } from '../../../components/Auth/customFetch';
+import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
+import PharmacyStockUpModal, { PharmacyStockUpItem } from '../components/PharmacyStockUpModal';
 import styles from '../pharmacy.module.css';
 
 type StockStatus = 'in_stock' | 'low_stock' | 'out_of_stock';
@@ -17,6 +18,7 @@ type StockItem = {
      unit: string;
      availableStock: number;
      minimumStock: number;
+     wholesalePrice: number;
      salePrice: number;
      stockStatus: StockStatus;
 };
@@ -33,7 +35,7 @@ const currency = new Intl.NumberFormat('en-GH', { style: 'currency', currency: '
 const DEFAULT_PAGE_SIZE = 20;
 
 export default function PharmacyStockPage() {
-     const router = useRouter();
+     const employeeId = Number(useApplicationSettings().applicationsettings?.user?.employeeid || 0);
      const searchParams = useSearchParams();
      const lowStockOnly = searchParams.get('filter') === 'low';
 
@@ -43,6 +45,7 @@ export default function PharmacyStockPage() {
      const [summary, setSummary] = useState<StockSummary>({ totalItems: 0, inStock: 0, lowStock: 0, outOfStock: 0 });
      const [error, setError] = useState('');
      const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+     const [stockUpItems, setStockUpItems] = useState<PharmacyStockUpItem[]>([]);
 
      const toggleSelected = (id: string) =>
           setSelectedIds((current) => {
@@ -65,7 +68,7 @@ export default function PharmacyStockPage() {
 
      const restockSelected = () => {
           if (selectedIds.size === 0) return;
-          router.push(`/inventory/orders?restockItemIds=${encodeURIComponent(Array.from(selectedIds).join(','))}`);
+          setStockUpItems(items.filter((item) => selectedIds.has(item.inventoryItemId)));
      };
 
      const loadStock = useCallback(
@@ -158,21 +161,23 @@ export default function PharmacyStockPage() {
                Header: 'Restock',
                accessor: 'inventoryItemId',
                Cell: ({ row }: { row: { original: StockItem } }) => (
-                    <Link
-                         href={`/inventory/orders?restockItemId=${encodeURIComponent(row.original.inventoryItemId)}`}
+                    <button
+                         type="button"
                          className={`btn btn-sm d-inline-flex align-items-center gap-1 ${row.original.stockStatus === 'in_stock' ? 'btn-outline-secondary' : 'btn-outline-primary'
                               }`}
-                         title={`Create a purchase order for ${row.original.name}`}
+                         title={`Stock up ${row.original.name}`}
+                         onClick={() => setStockUpItems([row.original])}
                     >
                          <RiTruckLine size={16} />
                          Restock
-                    </Link>
+                    </button>
                ),
           },
      ];
 
      return (
           <div className={styles.workspace}>
+               {stockUpItems.length > 0 && employeeId > 0 && <PharmacyStockUpModal items={stockUpItems} employeeId={employeeId} onClose={() => setStockUpItems([])} onCompleted={async () => { setSelectedIds(new Set()); await loadStock(1, DEFAULT_PAGE_SIZE, appliedSearch); }} />}
                <div className="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
                     <div>
                          <h4 className="fw-bold mb-1">

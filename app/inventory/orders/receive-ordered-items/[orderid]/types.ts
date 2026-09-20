@@ -12,6 +12,12 @@ interface InventoryItem {
      minStock: number;
      maxStock: number;
      unitPrice: number;
+     previousSalePrice: number;
+     previousWholesalePrice: number;
+     salePrice: number;
+     wholesalePrice: number;
+     priceAdjustmentType: 'percentage' | 'fixed';
+     priceAdjustmentValue: number;
      discountRate: number;
      taxRate: number;
      totalValue: number;
@@ -41,6 +47,7 @@ interface ReceivedItem {
      consumptionUnit?: string;
      selectedUnit?: { id: number; name: string } | null;
      unitsPerPurchaseUnit?: number;
+     preferredPurchaseUnit?: number;
      totalValue: number;
      availableBrands?: string[];
      availableUnits?: { id: number; name: string }[];

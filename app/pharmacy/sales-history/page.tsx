@@ -15,6 +15,9 @@ type SaleLine = {
      quantity: number;
      unitPrice: number;
      lineTotal: number;
+     unitCost: number;
+     lineCost: number;
+     grossProfit: number;
 };
 
 type Sale = {
@@ -23,6 +26,8 @@ type Sale = {
      customerName: string;
      paymentMethod: string;
      total: number;
+     totalCost: number;
+     grossProfit: number;
      status: string;
      completedAt: string | null;
      cashierId: number;
@@ -209,6 +214,8 @@ export default function PharmacySalesHistoryPage() {
           { Header: 'Customer', accessor: 'customerName' },
           { Header: 'Payment', accessor: 'paymentMethod', Cell: ({ value }: { value: string }) => value.replace('_', ' ') },
           { Header: 'Total', accessor: 'total', Cell: ({ value }: { value: number }) => <span className="fw-bold">{currency.format(value)}</span> },
+          { Header: 'Cost', accessor: 'totalCost', Cell: ({ value }: { value: number }) => currency.format(value) },
+          { Header: 'Profit', accessor: 'grossProfit', Cell: ({ value }: { value: number }) => <span className={value >= 0 ? 'text-success fw-bold' : 'text-danger fw-bold'}>{currency.format(value)}</span> },
           { Header: 'Completed', accessor: 'completedAt', Cell: ({ value }: { value: string | null }) => value ? new Date(value).toLocaleString() : '-' },
           {
                Header: 'Status',
@@ -396,7 +403,9 @@ export default function PharmacySalesHistoryPage() {
                                                                            <th>Item</th>
                                                                            <th className="text-end">Qty</th>
                                                                            <th className="text-end">Unit price</th>
+                                                                           <th className="text-end">Unit cost</th>
                                                                            <th className="text-end">Line total</th>
+                                                                           <th className="text-end">Profit</th>
                                                                       </tr>
                                                                  </thead>
                                                                  <tbody>
@@ -408,14 +417,18 @@ export default function PharmacySalesHistoryPage() {
                                                                                 </td>
                                                                                 <td className="text-end">{line.quantity}</td>
                                                                                 <td className="text-end">{currency.format(line.unitPrice)}</td>
+                                                                                <td className="text-end">{currency.format(line.unitCost)}</td>
                                                                                 <td className="text-end fw-semibold">{currency.format(line.lineTotal)}</td>
+                                                                                <td className={`text-end fw-semibold ${line.grossProfit >= 0 ? 'text-success' : 'text-danger'}`}>{currency.format(line.grossProfit)}</td>
                                                                            </tr>
                                                                       ))}
                                                                  </tbody>
                                                                  <tfoot>
                                                                       <tr>
-                                                                           <th colSpan={3} className="text-end">Total</th>
+                                                                           <th colSpan={3} className="text-end">Totals</th>
+                                                                           <th className="text-end">{currency.format(detail.totalCost)}</th>
                                                                            <th className="text-end">{currency.format(detail.total)}</th>
+                                                                           <th className={`text-end ${detail.grossProfit >= 0 ? 'text-success' : 'text-danger'}`}>{currency.format(detail.grossProfit)}</th>
                                                                       </tr>
                                                                  </tfoot>
                                                             </table>

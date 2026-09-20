@@ -13,10 +13,13 @@ import {
      RiShoppingCartLine,
      RiCheckboxCircleLine,
      RiArrowLeftLine,
+     RiPauseLine,
+     RiHistoryLine,
 } from '@remixicon/react';
 import Link from 'next/link';
 import { customFetch, customFetchMutation } from '../../../components/Auth/customFetch';
 import { useApplication } from '../../../components/Auth/useApplicationContext';
+import styles from '../pharmacy.module.css';
 
 type StockStatus = 'in_stock' | 'low_stock' | 'out_of_stock';
 type Medicine = {
@@ -29,6 +32,14 @@ type Medicine = {
      stockStatus: StockStatus;
 };
 type CartLine = Medicine & { quantity: number };
+type HeldSale = {
+     id: string;
+     holdNumber: string;
+     customerName: string;
+     total: number;
+     createdAt: string;
+     lines: Array<{ inventoryItemId: string; name: string; quantity: number; unitPrice: number }>;
+};
 
 const STOCK_LABELS: Record<StockStatus, { text: string; badge: string }> = {
      in_stock: { text: 'In stock', badge: 'text-bg-success' },
@@ -68,6 +79,9 @@ export default function PharmacySellPage() {
      const [error, setError] = useState('');
      const [submitting, setSubmitting] = useState(false);
      const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
+     const [heldSales, setHeldSales] = useState<HeldSale[]>([]);
+     const [showHeldSales, setShowHeldSales] = useState(false);
+     const [activeHeldSaleId, setActiveHeldSaleId] = useState<string | null>(null);
      const searchInputRef = useRef<HTMLInputElement>(null);
 
      const subtotal = cart.reduce((total, line) => total + line.salePrice * line.quantity, 0);
@@ -184,6 +198,60 @@ export default function PharmacySellPage() {
           }
      };
 
+     const loadHeldSales = async () => {
+          const response = await customFetch('pharmacy/sales/held?count=100');
+          if (response?.success) {
+               setHeldSales(response.data.sales || []);
+               setShowHeldSales(true);
+          } else {
+               setError(response?.error?.message || 'Unable to load held sales.');
+          }
+     };
+
+     const holdSale = async () => {
+          if (!cart.length || submitting) return;
+          setSubmitting(true);
+          setError('');
+          const response = await customFetchMutation('pharmacy/sales/held', 'POST', {
+               customerName: customerName || 'Walk-in customer',
+               lines: cart.map((line) => ({ inventoryItemId: line.inventoryItemId, quantity: line.quantity })),
+          });
+          setSubmitting(false);
+          if (response?.success) {
+               setCart([]);
+               setCustomerName('');
+               setActiveHeldSaleId(null);
+               setIsMobileCartOpen(false);
+          } else {
+               setError(response?.error?.message || 'Sale could not be suspended.');
+          }
+     };
+
+     const resumeHeldSale = (heldSale: HeldSale) => {
+          const catalogueById = new Map(catalogueCache.map((item) => [item.inventoryItemId, item]));
+          setCart(heldSale.lines.map((line) => ({
+               ...(catalogueById.get(line.inventoryItemId) || {
+                    inventoryItemId: line.inventoryItemId,
+                    name: line.name,
+                    unit: 'unit',
+                    salePrice: line.unitPrice,
+                    availableStock: line.quantity,
+                    minimumStock: 0,
+                    stockStatus: 'in_stock' as StockStatus,
+               }),
+               quantity: line.quantity,
+          })));
+          setCustomerName(heldSale.customerName === 'Walk-in customer' ? '' : heldSale.customerName);
+          setActiveHeldSaleId(heldSale.id);
+          setShowHeldSales(false);
+     };
+
+     const discardHeldSale = async (heldSaleId: string) => {
+          const response = await customFetchMutation(`pharmacy/sales/held/${heldSaleId}`, 'DELETE', {});
+          if (response?.success) setHeldSales((current) => current.filter((sale) => sale.id !== heldSaleId));
+          else setError(response?.error?.message || 'Held sale could not be removed.');
+     };
+
      const printThermalReceipt = async () => {
           if (!receipt) return;
 
@@ -281,7 +349,8 @@ export default function PharmacySellPage() {
           if (!cart.length || submitting) return;
           setSubmitting(true);
           setError('');
-          const response = await customFetchMutation('pharmacy/sales', 'POST', {
+          const endpoint = activeHeldSaleId ? `pharmacy/sales/held/${activeHeldSaleId}/complete` : 'pharmacy/sales';
+          const response = await customFetchMutation(endpoint, 'POST', {
                idempotencyKey: crypto.randomUUID(),
                customerName: customerName || 'Walk-in customer',
                paymentMethod,
@@ -297,6 +366,7 @@ export default function PharmacySellPage() {
                });
                setCart([]);
                setCustomerName('');
+               setActiveHeldSaleId(null);
                setIsMobileCartOpen(false);
           } else {
                setError(response?.error?.message || 'Sale could not be completed.');
@@ -455,12 +525,20 @@ export default function PharmacySellPage() {
                               </>
                          )}
                     </button>
+                    <button
+                         className="btn btn-outline-dark btn-lg w-100 py-2 fw-semibold mt-2 d-flex align-items-center justify-content-center gap-2"
+                         type="button"
+                         disabled={cart.length === 0 || submitting}
+                         onClick={holdSale}
+                    >
+                         <RiPauseLine size={18} /> Suspend sale
+                    </button>
                </div>
           </div>
      );
 
      return (
-          <main className="container-fluid px-4 py-3" style={{ minHeight: '100vh', backgroundColor: 'var(--bs-body-bg)' }}>
+          <main className={`${styles.posAccessible} container-fluid px-3 px-md-4 py-3`} style={{ minHeight: '100vh', backgroundColor: 'var(--bs-body-bg)' }}>
                {/* Print Request Modal */}
                {receipt && (
                     <div
@@ -503,6 +581,36 @@ export default function PharmacySellPage() {
                     </div>
                )}
 
+               {showHeldSales && (
+                    <div className="modal d-block" role="dialog" aria-modal="true" style={{ backgroundColor: 'rgba(23, 33, 38, 0.5)', zIndex: 1060 }}>
+                         <div className="modal-dialog modal-lg mt-3">
+                              <div className="modal-content" style={{ borderRadius: '6px' }}>
+                                   <div className="modal-header">
+                                        <h2 className="modal-title fs-5">Held sales</h2>
+                                        <button type="button" className="btn-close" onClick={() => setShowHeldSales(false)} aria-label="Close" />
+                                   </div>
+                                   <div className="modal-body p-0">
+                                        {heldSales.length === 0 ? (
+                                             <p className="text-muted p-4 mb-0">No suspended sales.</p>
+                                        ) : (
+                                             <div className="table-responsive">
+                                                  <table className="table align-middle mb-0">
+                                                       <thead><tr><th>Reference</th><th>Customer</th><th>Created</th><th className="text-end">Total</th><th /></tr></thead>
+                                                       <tbody>{heldSales.map((sale) => (
+                                                            <tr key={sale.id}>
+                                                                 <td>{sale.holdNumber}</td><td>{sale.customerName}</td><td>{new Date(sale.createdAt).toLocaleString()}</td><td className="text-end">{currency.format(sale.total)}</td>
+                                                                 <td className="text-end"><button type="button" className="btn btn-sm btn-success me-2" onClick={() => resumeHeldSale(sale)}>Resume</button><button type="button" className="btn btn-sm btn-outline-danger" onClick={() => discardHeldSale(sale.id)} aria-label="Discard held sale"><RiDeleteBinLine size={16} /></button></td>
+                                                            </tr>
+                                                       ))}</tbody>
+                                                  </table>
+                                             </div>
+                                        )}
+                                   </div>
+                              </div>
+                         </div>
+                    </div>
+               )}
+
                {/* Error Alert Overlay */}
                {error && (
                     <div className="alert alert-danger d-flex align-items-start gap-3 p-3 mb-4" role="alert" style={{ borderColor: 'var(--bs-danger)' }}>
@@ -529,6 +637,9 @@ export default function PharmacySellPage() {
                          </div>
 
                          <div className="d-flex align-items-center gap-2">
+                              <button type="button" className="btn btn-sm btn-outline-dark d-flex align-items-center gap-2" onClick={loadHeldSales}>
+                                   <RiHistoryLine size={16} /> Held sales
+                              </button>
                               <div className="text-end d-none d-md-block me-2">
                                    <small className="text-muted small d-block">Operator ID</small>
                                    <strong>{soldBy}</strong>
@@ -539,9 +650,9 @@ export default function PharmacySellPage() {
                          </div>
                     </div>
 
-                    <div className="row g-3">
+                    <div className={styles.posColumns}>
                          {/* Catalogue Panel */}
-                         <div className="col-lg-8">
+                         <div className={styles.posCatalogueColumn}>
                               {/* Search actions */}
                               <div className="card border mb-3" style={{ borderRadius: '6px', borderColor: '#212529' }}>
                                    <div className="card-body p-3 d-flex flex-wrap align-items-center justify-content-between gap-3 bg-white" style={{ borderRadius: '6px' }}>
@@ -673,7 +784,7 @@ export default function PharmacySellPage() {
                          </div>
 
                          {/* Desktop Static Sidebar (Cart Panel) */}
-                         <div className="col-lg-4 d-none d-lg-block">
+                         <div className={`${styles.posCartColumn} d-none d-lg-block`}>
                               <div
                                    className="card border h-100"
                                    style={{ borderRadius: '6px', borderColor: '#212529', minHeight: 'calc(100vh - 150px)' }}

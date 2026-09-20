@@ -64,8 +64,6 @@ export default function HomeCollectionPage() {
      const [appointmentTime, setAppointmentTime] = useState('');
      const [collectionFee, setCollectionFee] = useState('0');
      const [location, setLocation] = useState<LocationValue>(EMPTY_LOCATION);
-     // Longitude near 0 is a valid coordinate here (Ghana sits on the Prime Meridian), so a
-     // truthy check on latitude/longitude can't tell "unset" from "picked at ~0". Track it explicitly.
      const [hasPickedLocation, setHasPickedLocation] = useState(false);
 
      const loadOrders = useCallback(async (search?: string) => {

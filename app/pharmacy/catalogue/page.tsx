@@ -1,11 +1,12 @@
 'use client';
 
 import { FormEvent, useCallback, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { RiCloseLine, RiMedicineBottleLine, RiSearchLine, RiShoppingCartLine, RiTruckLine } from '@remixicon/react';
 import Link from 'next/link';
 import { customFetch } from '../../../components/Auth/customFetch';
+import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
+import PharmacyStockUpModal, { PharmacyStockUpItem } from '../components/PharmacyStockUpModal';
 import styles from '../pharmacy.module.css';
 
 type StockStatus = 'in_stock' | 'low_stock' | 'out_of_stock';
@@ -19,6 +20,7 @@ type CatalogueItem = {
      unit: string;
      availableStock: number;
      minimumStock: number;
+     wholesalePrice: number;
      salePrice: number;
      stockStatus: StockStatus;
 };
@@ -41,7 +43,7 @@ const SORT_FIELDS: { value: SortField; label: string }[] = [
 ];
 
 export default function PharmacyCataloguePage() {
-     const router = useRouter();
+     const employeeId = Number(useApplicationSettings().applicationsettings?.user?.employeeid || 0);
      const [searchTerm, setSearchTerm] = useState('');
      const [appliedSearch, setAppliedSearch] = useState('');
      const [sortBy, setSortBy] = useState<SortField>('name');
@@ -50,6 +52,7 @@ export default function PharmacyCataloguePage() {
      const [total, setTotal] = useState(0);
      const [error, setError] = useState('');
      const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+     const [stockUpItems, setStockUpItems] = useState<PharmacyStockUpItem[]>([]);
 
      const toggleSelected = (id: string) =>
           setSelectedIds((current) => {
@@ -72,7 +75,7 @@ export default function PharmacyCataloguePage() {
 
      const restockSelected = () => {
           if (selectedIds.size === 0) return;
-          router.push(`/inventory/orders?restockItemIds=${encodeURIComponent(Array.from(selectedIds).join(','))}`);
+          setStockUpItems(items.filter((item) => selectedIds.has(item.inventoryItemId)));
      };
 
      const loadCatalogue = useCallback(
@@ -156,21 +159,23 @@ export default function PharmacyCataloguePage() {
                Header: 'Restock',
                accessor: 'inventoryItemId',
                Cell: ({ row }: { row: { original: CatalogueItem } }) => (
-                    <Link
-                         href={`/inventory/orders?restockItemId=${encodeURIComponent(row.original.inventoryItemId)}`}
+                    <button
+                         type="button"
                          className={`btn btn-sm d-inline-flex align-items-center gap-1 ${row.original.stockStatus === 'in_stock' ? 'btn-outline-secondary' : 'btn-outline-primary'
                               }`}
-                         title={`Create a purchase order for ${row.original.name}`}
+                         title={`Stock up ${row.original.name}`}
+                         onClick={() => setStockUpItems([row.original])}
                     >
                          <RiTruckLine size={16} />
                          Restock
-                    </Link>
+                    </button>
                ),
           },
      ];
 
      return (
           <div className={styles.workspace}>
+               {stockUpItems.length > 0 && employeeId > 0 && <PharmacyStockUpModal items={stockUpItems} employeeId={employeeId} onClose={() => setStockUpItems([])} onCompleted={async () => { setSelectedIds(new Set()); await loadCatalogue(1, DEFAULT_PAGE_SIZE, appliedSearch, sortBy, sortDirection); }} />}
                <div className="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
                     <div>
                          <h4 className="fw-bold mb-1">
@@ -227,7 +232,7 @@ export default function PharmacyCataloguePage() {
                               <option value="asc">Ascending</option>
                               <option value="desc">Descending</option>
                          </select>
-                         <Link href="/pharmacy/sell" className="btn btn-success d-flex align-items-center gap-2">
+                         <Link href="/pharmacy/sell?isOpenSideBarShow=false" className="btn btn-success d-flex align-items-center gap-2">
                               <RiShoppingCartLine size={18} />
                               Sell
                          </Link>

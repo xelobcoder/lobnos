@@ -130,7 +130,7 @@ export default function PharmacyOverviewPage() {
                     </div>
                     <Link
                          className="btn btn-primary d-flex align-items-center gap-2"
-                         href="/pharmacy/sell"
+                         href="/pharmacy/sell?isOpenSideBarShow=false"
                     >
                          <RiShoppingCartLine size={18} />
                          <span>New sale</span>
@@ -262,7 +262,7 @@ export default function PharmacyOverviewPage() {
                                              <h5 className="fw-semibold mb-1">No sales yet</h5>
                                              <p className="text-muted small mb-3">Start a new sale to see activity here.</p>
                                              <Link
-                                                  href="/pharmacy/sell"
+                                                  href="/pharmacy/sell?isOpenSideBarShow=false"
                                                   className="btn btn-sm"
                                                   style={{ backgroundColor: '#087F73', color: 'white', borderColor: '#087F73' }}
                                              >
@@ -284,7 +284,7 @@ export default function PharmacyOverviewPage() {
                                    <div className="d-flex flex-column gap-2">
                                         {[
                                              {
-                                                  href: '/pharmacy/sell',
+                                                  href: '/pharmacy/sell?isOpenSideBarShow=false',
                                                   icon: RiShoppingCartLine,
                                                   title: 'Start a sale',
                                                   subtitle: 'Sell over the counter or against a prescription',

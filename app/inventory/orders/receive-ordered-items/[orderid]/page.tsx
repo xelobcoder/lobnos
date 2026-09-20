@@ -1,1106 +1,358 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { RiArrowLeftLine, RiFileTextLine } from '@remixicon/react';
+import {
+     RiArrowLeftLine,
+     RiCheckboxCircleLine,
+     RiErrorWarningLine,
+     RiInboxArchiveLine,
+     RiLoader4Line,
+} from '@remixicon/react';
 import { toast } from 'react-toastify';
-import { customPost, customFetch, customFile, currencyFormatter } from '../../../../../components/Auth/customFetch';
+import { currencyFormatter, customFetch, customPost } from '../../../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../../../components/Auth/useApplicationContext';
-import { InventoryItem, ReceivedItem, PurchaseOrder } from './types';
-import styles from '../../../../../styles/SmsTemplateList.module.css';
+
+type ReceiveItem = {
+     id: string;
+     itemId: string;
+     itemName: string;
+     sku: string;
+     inventoryDomain: 'lab' | 'pharmacy';
+     orderedQuantity: number;
+     quantityReceived: number;
+     remainingQuantity: number;
+     receiveNow: number;
+     purchaseUnitPrice: number;
+     consumptionUnit: string;
+     previousWholesalePrice: number;
+     previousSalePrice: number;
+     wholesalePrice: number;
+     salePrice: number;
+     changePricing: boolean;
+     pricingMode: 'percentage' | 'fixed' | 'manual';
+     adjustmentValue: number;
+     automaticBatch: boolean;
+     batchNumber: string;
+     expiryDate: string;
+     status: string;
+};
+
+type OrderDetails = {
+     id: string;
+     orderNumber: string;
+     supplierName: string;
+     status: string;
+     items: ReceiveItem[];
+};
+
+type PriceDialogState = {
+     itemIndex: number;
+     enabled: boolean;
+     mode: 'percentage' | 'fixed' | 'manual';
+     adjustmentValue: number;
+     wholesalePrice: number;
+     retailPrice: number;
+};
 
 export default function ReceiveOrderedItemsPage() {
      const params = useParams();
      const router = useRouter();
-     const orderId = params?.orderid as string;
+     const orderId = String(params?.orderid || '');
      const { applicationsettings } = useApplicationSettings();
      const { branchid, user } = applicationsettings || {};
      const employeeid = user?.employeeid;
 
-     const [order, setOrder] = useState<PurchaseOrder | null>(null);
+     const [order, setOrder] = useState<OrderDetails | null>(null);
+     const [receivedDate, setReceivedDate] = useState(new Date().toISOString().split('T')[0]);
+     const [conditionStatus, setConditionStatus] = useState('good');
+     const [notes, setNotes] = useState('');
      const [loading, setLoading] = useState(true);
      const [submitting, setSubmitting] = useState(false);
-     const [viewMode, setViewMode] = useState<'list' | 'table'>('table');
-
-     const [receiveForm, setReceiveForm] = useState({
-          invoiceNumber: '',
-          receivedDate: new Date().toISOString().split('T')[0],
-          receivedTime: new Date().toTimeString().slice(0, 5),
-          notes: '',
-          receiptImages: [] as File[],
-          conditionStatus: 'good',
-          qualityCheckPassed: true,
-          items: [] as ReceivedItem[]
-     });
+     const [error, setError] = useState('');
+     const [priceDialog, setPriceDialog] = useState<PriceDialogState | null>(null);
 
      useEffect(() => {
-          if (orderId && branchid && employeeid) {
-               loadOrderDetails();
-          }
+          if (!orderId || !branchid || !employeeid) return;
+          let active = true;
+
+          (async () => {
+               setLoading(true);
+               setError('');
+               try {
+                    const orderResponse = await customFetch(`inventory/orders/${orderId}?branchid=${branchid}&employeeid=${employeeid}`);
+                    if (!active) return;
+                    if (!orderResponse?.success) throw new Error(orderResponse?.error?.message || 'Order could not be loaded.');
+
+                    const data = orderResponse.data;
+                    const items: ReceiveItem[] = (data.items || []).map((item: any) => {
+                         return {
+                              id: item.id,
+                              itemId: item.inventory_item_id,
+                              itemName: item.item_name,
+                              sku: item.item_sku,
+                              inventoryDomain: item.inventory_domain || 'lab',
+                              orderedQuantity: Number(item.quantity_ordered || 0),
+                              quantityReceived: Number(item.quantity_received || 0),
+                              remainingQuantity: Math.max(0, Number(item.quantity_ordered || 0) - Number(item.quantity_received || 0)),
+                              receiveNow: 0,
+                              purchaseUnitPrice: Number(item.unit_price || 0),
+                              consumptionUnit: item.consumption_unit || 'unit',
+                              previousWholesalePrice: Number(item.wholesale_price || 0),
+                              previousSalePrice: Number(item.sale_price || 0),
+                              wholesalePrice: Number(item.wholesale_price || 0),
+                              salePrice: Number(item.sale_price || 0),
+                              changePricing: false,
+                              pricingMode: Number(item.wholesale_price || 0) > 0 && Number(item.sale_price || 0) > 0 ? 'percentage' : 'manual',
+                              adjustmentValue: 0,
+                              automaticBatch: true,
+                              batchNumber: '',
+                              expiryDate: '',
+                              status: item.status,
+                         };
+                    });
+
+                    setOrder({
+                         id: data.id,
+                         orderNumber: data.order_number || data.id,
+                         supplierName: data.supplier?.name || data.supplier_name || 'Supplier',
+                         status: data.status,
+                         items,
+                    });
+               } catch (loadError: any) {
+                    if (active) setError(loadError.message || 'Order could not be loaded.');
+               } finally {
+                    if (active) setLoading(false);
+               }
+          })();
+
+          return () => { active = false; };
      }, [orderId, branchid, employeeid]);
 
-     const loadOrderDetails = async () => {
-          try {
-               // Use the specific order ID endpoint as requested
-               const response = await customFetch(`inventory/orders/${orderId}?branchid=${branchid}&employeeid=${employeeid}`);
+     const updateItem = (index: number, updates: Partial<ReceiveItem>) => {
+          setOrder((current) => current ? {
+               ...current,
+               items: current.items.map((item, itemIndex) => itemIndex === index ? { ...item, ...updates } : item),
+          } : current);
+     };
 
-               if (response.success) {
-                    const apiOrderData = response.data;
+     const receiveAllRemaining = () => {
+          setOrder((current) => current ? {
+               ...current,
+               items: current.items.map((item) => item.status === 'received' ? item : { ...item, receiveNow: item.remainingQuantity }),
+          } : current);
+     };
 
-                    // Map API response (snake_case) to our interface (camelCase)
-                    const orderData: PurchaseOrder = {
-                         id: apiOrderData.id,
-                         orderNumber: apiOrderData.order_number || apiOrderData.id,
-                         supplierId: apiOrderData.supplier_id,
-                         supplierName: apiOrderData.supplier?.name || apiOrderData.supplier_name || 'Unknown Supplier',
-                         supplierEmail: apiOrderData.supplier?.email || apiOrderData.supplier_email || '',
-                         supplierContact: apiOrderData.supplier?.contact || apiOrderData.supplier_contact || '',
-                         supplierPhone: apiOrderData.supplier?.phone || apiOrderData.supplier_phone || '',
-                         supplierAddress: apiOrderData.supplier?.address || apiOrderData.supplier_address || '',
-                         items: apiOrderData.items || [],
-                         status: apiOrderData.status,
-                         orderDate: apiOrderData.order_date,
-                         expectedDeliveryDate: apiOrderData.expected_delivery_date,
-                         actualDeliveryDate: apiOrderData.actual_delivery_date || null,
-                         totalAmount: apiOrderData.total_amount || 0,
-                         taxAmount: apiOrderData.tax_amount || 0,
-                         discountAmount: apiOrderData.discount_amount || 0,
-                         shippingCost: apiOrderData.shipping_cost || 0,
-                         finalAmount: apiOrderData.final_amount || 0,
-                         currency: apiOrderData.currency || 'GHS',
-                         paymentTerms: apiOrderData.payment_terms,
-                         notes: apiOrderData.notes,
-                         createdBy: apiOrderData.created_by,
-                         approvedBy: apiOrderData.approved_by || null,
-                         approvedAt: apiOrderData.approved_at || null,
-                         sentAt: apiOrderData.sent_at || null,
-                         communicationMethod: apiOrderData.communication_method,
-                         communicationNotes: apiOrderData.communication_notes,
-                         createdAt: apiOrderData.created_at,
-                         updatedAt: apiOrderData.updated_at,
-                         itemsCount: apiOrderData.items_count || 0,
-                         receivedItemsCount: apiOrderData.received_items_count || 0
-                    };
+     const openPriceDialog = (itemIndex: number) => {
+          if (!order) return;
+          const item = order.items[itemIndex];
+          setPriceDialog({
+               itemIndex,
+               enabled: item.changePricing,
+               mode: item.pricingMode,
+               adjustmentValue: item.adjustmentValue,
+               wholesalePrice: item.wholesalePrice,
+               retailPrice: item.salePrice,
+          });
+     };
 
-                    setOrder(orderData);
-                    const initialItems: ReceivedItem[] = orderData.items.map((item: any) => ({
-                         id: item.id,
-                         itemId: item.inventory_item_id,
-                         itemName: item.item_name,
-                         brand: item.brand_name,
-                         selectedBrand: item.brand_name || '',
-                         sku: item.item_sku,
-                         orderedQuantity: item.quantity_ordered,
-                         quantityReceived: item.quantity_received || 0,
-                         receivedQuantity: 0,
-                         remainingQuantity: item.quantity_ordered - (item.quantity_received || 0),
-                         unitPrice: item.unit_price || 0,
-                         discountRate: item.discount_rate || 0,
-                         taxRate: item.tax_rate || 0,
-                         batchNumber: '',
-                         expiryDate: '',
-                         unit: item.unit || 'units',
-                         consumptionUnit: item.consumption_unit,
-                         unitsPerPurchaseUnit: 1,
-                         totalValue: 0,
-                         availableBrands: [],
-                         status: item.status || 'ordered'
-                    }));
-                    setReceiveForm(prev => ({ ...prev, items: initialItems }));
-
-                    // Load brands and units for all items
-                    await loadBrandsForItems(initialItems);
-                    await loadUnitsForItems(initialItems);
+     const updatePriceDialog = (updates: Partial<PriceDialogState>) => {
+          setPriceDialog((current) => {
+               if (!current || !order) return current;
+               const next = { ...current, ...updates };
+               const item = order.items[current.itemIndex];
+               if (next.mode !== 'manual' && (updates.mode !== undefined || updates.adjustmentValue !== undefined)) {
+                    next.wholesalePrice = Number((next.mode === 'percentage' ? item.previousWholesalePrice * (1 + next.adjustmentValue / 100) : item.previousWholesalePrice + next.adjustmentValue).toFixed(2));
+                    next.retailPrice = Number((next.mode === 'percentage' ? item.previousSalePrice * (1 + next.adjustmentValue / 100) : item.previousSalePrice + next.adjustmentValue).toFixed(2));
                }
-          } catch (error) {
-               console.error('Error loading order:', error);
-               toast.error('Error loading order details');
-          } finally {
-               setLoading(false);
-          }
+               return next;
+          });
      };
 
-     const loadBrandsForItems = async (items: ReceivedItem[]) => {
-          try {
-               // Load brands for each item in parallel
-               const brandPromises = items.map(async (item) => {
-                    try {
-                         const response = await customFetch(`inventory/brands?inventory_item_id=${item.itemId}&branchid=${branchid}&employeeid=${employeeid}`);
-                         if (response.success) {
-                              return {
-                                   itemId: item.itemId,
-                                   brands: response.data || []
-                              };
-                         }
-                         return {
-                              itemId: item.itemId,
-                              brands: []
-                         };
-                    } catch (error) {
-                         console.error(`Error loading brands for item ${item.itemId}:`, error);
-                         return {
-                              itemId: item.itemId,
-                              brands: []
-                         };
-                    }
-               });
-
-               const brandResults = await Promise.all(brandPromises);
-
-               // Update items with loaded brands
-               setReceiveForm(prev => ({
-                    ...prev,
-                    items: prev.items.map(item => {
-                         const brandResult = brandResults.find(result => result.itemId === item.itemId);
-                         const availableBrands = brandResult ? brandResult.brands.map((brand: any) => brand.name) : [];
-                         let selectedBrand = item.selectedBrand || '';
-
-                         // Auto-select brand if:
-                         // 1. Only one brand is available, or
-                         // 2. The ordered brand matches one of the available brands
-                         if (!selectedBrand && availableBrands.length > 0) {
-                              if (availableBrands.length === 1) {
-                                   selectedBrand = availableBrands[0];
-                              } else if (item.brand && availableBrands.includes(item.brand)) {
-                                   selectedBrand = item.brand;
-                              }
-                         }
-
-                         return {
-                              ...item,
-                              availableBrands,
-                              selectedBrand
-                         };
-                    })
-               }));
-          } catch (error) {
-               console.error('Error loading brands for items:', error);
-               // Don't show error toast as this is not critical functionality
-          }
+     const savePriceDialog = () => {
+          if (!priceDialog) return;
+          updateItem(priceDialog.itemIndex, {
+               changePricing: priceDialog.enabled,
+               pricingMode: priceDialog.mode,
+               adjustmentValue: priceDialog.adjustmentValue,
+               wholesalePrice: priceDialog.wholesalePrice,
+               salePrice: priceDialog.retailPrice,
+          });
+          setPriceDialog(null);
      };
 
-     const loadUnitsForItems = async (items: ReceivedItem[]) => {
-          try {
-               const response = await customFetch(`inventory/units?branchid=${branchid}&employeeid=${employeeid}`);
-               if (response.success) {
-                    const availableUnits = response.data?.units || [];
+     const selectedItems = order?.items.filter((item) => item.status !== 'received' && item.receiveNow > 0) || [];
+     const totalPurchaseCost = selectedItems.reduce((sum, item) => sum + item.receiveNow * item.purchaseUnitPrice, 0);
 
-                    // Update items with available units
-                    setReceiveForm(prev => ({
-                         ...prev,
-                         items: prev.items.map(item => {
-                              let selectedUnit = item.selectedUnit || item.unit || '';
-                              let unitsPerPurchaseUnit = item.unitsPerPurchaseUnit || 1;
-
-                              // Find the unit object if selectedUnit is a string
-                              let selectedUnitObj: { id: number; name: string } | null = null;
-                              if (selectedUnit) {
-                                   selectedUnitObj = availableUnits.find((unit: any) => (unit.name || unit) === selectedUnit) || null;
-                              }
-
-                              // Auto-select unit if only one is available and none selected
-                              if (!selectedUnitObj && availableUnits.length === 1) {
-                                   selectedUnitObj = availableUnits[0];
-                              }
-
-                              // Auto-set conversion factor if selected unit matches consumption unit
-                              if (selectedUnitObj && item.consumptionUnit && selectedUnitObj.name.toLowerCase() === item.consumptionUnit.toLowerCase()) {
-                                   unitsPerPurchaseUnit = 1;
-                              }
-
-                              return {
-                                   ...item,
-                                   availableUnits: availableUnits.map((unit: any) => ({ id: unit.id, name: unit.name || unit })),
-                                   selectedUnit: selectedUnitObj,
-                                   unitsPerPurchaseUnit
-                              };
-                         })
-                    }));
-               }
-          } catch (error) {
-               console.error('Error loading units for items:', error);
-               // Don't show error toast as this is not critical functionality
-          }
-     };
-
-     const handleProcessReceiving = async () => {
-          if (!receiveForm.invoiceNumber || !receiveForm.receivedDate || !receiveForm.receivedTime) {
-               toast.error('Please fill in all required fields');
+     const submitReceiving = async () => {
+          if (!order || submitting || selectedItems.length === 0) return;
+          const invalidItem = selectedItems.find((item) => item.purchaseUnitPrice <= 0);
+          if (invalidItem) {
+               toast.error(`Enter the unit cost for ${invalidItem.itemName}.`);
                return;
           }
-
-          const itemsToReceive = receiveForm.items.filter(item => item.status !== 'received');
-          const completedItems = itemsToReceive.filter(item =>
-               item.receivedQuantity > 0 && item.unitPrice > 0 && item.batchNumber && item.expiryDate
-          );
-
-          const itemsWithQuantity = itemsToReceive.filter(item => item.receivedQuantity > 0);
-          const invalidItems = itemsWithQuantity.filter(item =>
-               !item.unitPrice || !item.batchNumber || !item.expiryDate
-          );
-
-          if (invalidItems.length > 0) {
-               toast.error('Please complete all required fields for items with received quantity > 0');
+          const missingManualBatch = selectedItems.find((item) => !item.automaticBatch && !item.batchNumber.trim());
+          if (missingManualBatch) {
+               toast.error(`Enter a batch number for ${missingManualBatch.itemName}, or enable automatic batch generation.`);
                return;
           }
 
           setSubmitting(true);
+          setError('');
           try {
-               const payload = {
+               const response = await customPost(`inventory/orders/${order.id}/receive`, 'POST', {
                     received_by: employeeid,
-                    received_date: receiveForm.receivedDate,
-                    receipts: receiveForm.items.map(item => ({
+                    received_date: receivedDate,
+                    receipts: selectedItems.map((item) => ({
                          order_item_id: item.id,
-                         quantity_received: item.receivedQuantity,
-                         batch_number: item.batchNumber,
-                         expiry_date: item.expiryDate,
-                         unit_price: item.unitPrice,
-                         condition_status: receiveForm.conditionStatus,
-                         quality_check_passed: receiveForm.qualityCheckPassed,
-                         notes: receiveForm.notes || "Received in good condition",
-                         purchase_unit: item.selectedUnit?.id || item.availableUnits?.find((unit: any) => unit.name === item.unit)?.id || 1,
-                         units_per_purchase_unit: item.unitsPerPurchaseUnit
-                    })).filter(item => item.quantity_received > 0),
-               };
-
-               if (payload.receipts.length === 0) {
-                    toast.error('No items to receive. Please enter received quantities.');
-                    setSubmitting(false);
-                    return;
-               }
-
-               const response = await customPost(`inventory/orders/${orderId}/receive`, 'POST', payload);
-               if (response.success) {
-                    toast.success('Items received successfully!');
-
-                    // Upload receipt images if any were selected
-                    if (receiveForm.receiptImages.length > 0) {
-                         await uploadReceiptImages(response.data);
-                    }
-
-                    // router.push('/inventory/orders');
-               } else {
-                    toast.error(response.message || 'Failed to process receiving');
-               }
-          } catch (error) {
-               console.error('Error processing receiving:', error);
-               toast.error('Error processing receiving');
+                         quantity_received: item.receiveNow,
+                         received_date: receivedDate,
+                         batch_number: item.automaticBatch ? undefined : item.batchNumber.trim() || undefined,
+                         expiry_date: item.expiryDate || undefined,
+                         unit_price: item.purchaseUnitPrice,
+                         units_per_purchase_unit: 1,
+                         new_wholesale_price: item.changePricing ? item.wholesalePrice : undefined,
+                         new_sale_price: item.changePricing ? item.salePrice : undefined,
+                         price_policy: item.changePricing ? (item.pricingMode === 'manual' ? 'replace' : 'increase') : 'maintain',
+                         condition_status: conditionStatus,
+                         quality_check_passed: conditionStatus === 'good' || conditionStatus === 'acceptable',
+                         notes: notes.trim() || undefined,
+                    })),
+               });
+               if (!response?.success) throw new Error(response?.error?.message || response?.message || 'Stock could not be received.');
+               toast.success('Stock received successfully.');
+               router.push('/inventory/orders');
+          } catch (submitError: any) {
+               setError(submitError.message || 'Stock could not be received.');
           } finally {
                setSubmitting(false);
           }
      };
 
-     const uploadReceiptImages = async (responseData: any) => {
-          try {
-               // Extract receipt IDs from the response
-               // Assuming the response contains receipt information
-               const receipts = responseData?.receipts || responseData?.data?.receipts || [];
-               const receiptIds = receipts.map((receipt: any) => receipt.id || receipt.receipt_id);
-
-               if (receiptIds.length === 0) {
-                    console.warn('No receipt IDs found in response, skipping image upload');
-                    return;
-               }
-
-               // Upload images for each receipt
-               const uploadPromises = receiptIds.map(async (receiptId: string) => {
-                    const formData = new FormData();
-                    receiveForm.receiptImages.forEach((file) => {
-                         formData.append('images', file);
-                    });
-
-                    try {
-                         const result = await customFile(`receipts/${receiptId}/upload-image`, formData);
-                         if (!result.success) {
-                              console.error(`Failed to upload images for receipt ${receiptId}:`, result.message);
-                         }
-                         return result;
-                    } catch (error) {
-                         console.error(`Error uploading images for receipt ${receiptId}:`, error);
-                         return { success: false, error: error };
-                    }
-               });
-
-               const uploadResults = await Promise.all(uploadPromises);
-               const successfulUploads = uploadResults.filter(result => result.success).length;
-
-               if (successfulUploads === receiptIds.length) {
-                    toast.success(`Receipt images uploaded successfully for ${successfulUploads} receipt(s)`);
-               } else if (successfulUploads > 0) {
-                    toast.warning(`Images uploaded for ${successfulUploads}/${receiptIds.length} receipts`);
-               } else {
-                    toast.error('Failed to upload receipt images');
-               }
-          } catch (error) {
-               console.error('Error uploading receipt images:', error);
-               toast.error('Error uploading receipt images');
-          }
-     };
-
      if (loading) {
-          return (
-               <div className="min-vh-100 bg-light d-flex align-items-center justify-content-center">
-                    <div className="text-center">
-                         <div className="spinner-border text-primary" style={{ width: '3rem', height: '3rem' }} role="status">
-                              <span className="visually-hidden">Loading...</span>
-                         </div>
-                         <div className="mt-3">
-                              <h5 className="text-muted">Loading Order Details...</h5>
-                              <small className="text-muted">Please wait while we fetch the order information</small>
-                         </div>
-                    </div>
-               </div>
-          );
+          return <main className="min-vh-100 d-flex align-items-center justify-content-center"><div className="text-center"><RiLoader4Line size={36} className="spin mb-2" /><div>Loading order...</div></div></main>;
      }
 
      if (!order) {
-          return (
-               <div className="min-vh-100 bg-light d-flex align-items-center justify-content-center">
-                    <div className="text-center">
-                         <div className="alert alert-warning shadow-sm" role="alert">
-                              <RiFileTextLine size={48} className="text-warning mb-3" />
-                              <h5 className="alert-heading">Order Not Found</h5>
-                              <p className="mb-3">The requested order could not be found or has been deleted.</p>
-                              <button
-                                   className="btn btn-outline-primary"
-                                   onClick={() => router.push('/inventory/orders')}
-                              >
-                                   <RiArrowLeftLine className="me-2" />
-                                   Back to Orders
-                              </button>
-                         </div>
-                    </div>
-               </div>
-          );
+          return <main className="container py-4"><div className="alert alert-danger">{error || 'Order not found.'}</div><button className="btn btn-outline-dark" onClick={() => router.push('/inventory/orders')}><RiArrowLeftLine size={18} /> Back to orders</button></main>;
      }
 
-     const totalReceived = receiveForm.items.reduce((sum, item) => sum + item.totalValue, 0);
-     const completedItems = receiveForm.items.filter(item => {
-          // Items with quantity_received = 0 are considered completed
-          const remaining = item.orderedQuantity - item.quantityReceived;
-          if (item.receivedQuantity === 0 && remaining === 0) return true;
-          // Items with quantity_received > 0 must have all required fields
-          return item.receivedQuantity > 0 && item.unitPrice > 0 && item.batchNumber && item.expiryDate;
-     }).length;
-     const fullyReceivedItems = receiveForm.items.filter(item => item.status === 'received').length;
-     const totalItemsToReceive = receiveForm.items.length - fullyReceivedItems; return (
-          <div className="container-fluid py-4">
-               <div className="row">
-                    <div className="col-12">
-                         <div className="card shadow-sm" style={{ margin: 0 }}>
-                              <div className="card-header d-flex align-items-center justify-content-between">
-                                   <div className="d-flex align-items-center">
-                                        <button
-                                             className="btn btn-link text-primary p-0 me-3"
-                                             onClick={() => router.push('/inventory/orders')}
-                                        >
-                                             <RiArrowLeftLine size={20} />
-                                        </button>
-                                        <div className="me-3">
-                                             <h5 className="mb-1">Receive Ordered Items</h5>
-                                             <small className="text-muted">
-                                                  Order #{order?.orderNumber} | Expected: {order?.expectedDeliveryDate ? new Date(order.expectedDeliveryDate).toLocaleDateString() : 'N/A'}
-                                             </small>
-                                        </div>
-                                        <div>
-                                             <strong>Progress:</strong> {completedItems} / {totalItemsToReceive} items completed
-                                        </div>
-                                        <div className="border border-success fw-bold px-2 py-1">
-                                             <strong>Total:</strong> {currencyFormatter.format(totalReceived)}
-                                        </div>
-                                   </div>
-                                   <div className="d-flex gap-2">
-                                        <button
-                                             className="btn btn-outline-secondary btn-sm"
-                                             onClick={() => router.push('/inventory/orders')}
-                                        >
-                                             Cancel
-                                        </button>
-                                        <button
-                                             className="btn btn-outline-primary btn-sm"
-                                             onClick={handleProcessReceiving}
-                                             disabled={submitting || totalItemsToReceive === 0 || (() => {
-                                                  const itemsWithQuantity = receiveForm.items.filter(item => item.receivedQuantity > 0 && item.status !== 'received');
-                                                  const invalidItems = itemsWithQuantity.filter(item =>
-                                                       !item.unitPrice || !item.batchNumber || !item.expiryDate
-                                                  );
-                                                  return invalidItems.length > 0;
-                                             })()}
-                                        >
-                                             {submitting ? (
-                                                  <>
-                                                       <span className="spinner-border spinner-border-sm me-2" role="status"></span>
-                                                       Processing...
-                                                  </>
-                                             ) : (
-                                                  receiveForm.receiptImages.length > 0
-                                                       ? 'Process Receiving & Upload Images'
-                                                       : 'Process Receiving'
-                                             )}
-                                        </button>
-                                   </div>
-                              </div>
-                              <div className="card-header bg-light border-top">
-                                   <div className="d-flex flex-wrap align-items-center gap-3">
-                                        <div>
-                                             <strong className="small">Status:</strong>
-                                             <span>
-                                                  {order.status}
-                                             </span>
-                                        </div>
-                                        <div>
-                                             <strong className="small">Supplier:</strong> <span className="small">{order.supplierName}</span>
-                                        </div>
-                                        <div>
-                                             <strong className="small">Contact:</strong> <span className="small">{order.supplierContact || 'N/A'}</span>
-                                        </div>
-                                        <div>
-                                             <strong className="small">Email:</strong> <span className="small">{order.supplierEmail || 'N/A'}</span>
-                                        </div>
-                                        <div>
-                                             <strong className="small">Phone:</strong> <span className="small">{order.supplierPhone || 'N/A'}</span>
-                                        </div>
-                                        <div>
-                                             <strong className="small">Order Date:</strong> <span className="small">{new Date(order.orderDate).toLocaleDateString()}</span>
-                                        </div>
-                                        <div>
-                                             <strong className="small">Items Count:</strong> <span className="small">{order.itemsCount}</span>
-                                        </div>
-                                        <div>
-                                             <strong className="small">Received:</strong> <span className="small">{order.receivedItemsCount || 0}</span>
-                                        </div>
-                                   </div>
-                              </div>
-                              <div className="card-body">
-                                   <div className="mb-4">
-                                        <div className="d-flex justify-content-between align-items-center mb-3">
-                                             <h6 className="text-muted mb-0">Items to Receive</h6>
-                                             <div className="btn-group btn-group-sm" role="group">
-                                                  <button
-                                                       type="button"
-                                                       className={`btn ${viewMode === 'list' ? 'btn-primary' : 'btn-outline-primary'}`}
-                                                       onClick={() => setViewMode('list')}
-                                                  >
-                                                       List
-                                                  </button>
-                                                  <button
-                                                       type="button"
-                                                       className={`btn ${viewMode === 'table' ? 'btn-primary' : 'btn-outline-primary'}`}
-                                                       onClick={() => setViewMode('table')}
-                                                  >
-                                                       Table
-                                                  </button>
-                                             </div>
-                                        </div>
+     const dialogItem = priceDialog ? order.items[priceDialog.itemIndex] : null;
 
-                                        {viewMode === 'list' ? (
-                                             <div className="list-group">
-                                                  {receiveForm.items.map((item, index) => (
-                                                       <div key={item.itemId} className="list-group-item">
-                                                            <div className="d-flex justify-content-between align-items-start mb-2">
-                                                                 <div className="flex-grow-1">
-                                                                      <h6 className="mb-1">
-                                                                           <strong>{item.itemName}</strong>
-                                                                           <small className="text-muted ms-2">({item.selectedUnit?.name || item.unit})</small>
-                                                                           {item.consumptionUnit && item.consumptionUnit !== (item.selectedUnit?.name || item.unit) && (
-                                                                                <small className="text-info ms-1">• Consumption: {item.consumptionUnit}</small>
-                                                                           )}
-                                                                           <span>
-                                                                                {item.status.replace('_', ' ')}
-                                                                           </span>
-                                                                      </h6>
-                                                                      <small className="text-muted">SKU: {item.sku} | Ordered: {item.orderedQuantity}</small>
-                                                                      <div className="mt-1">
-                                                                           <small className="text-info">Received: {item.quantityReceived} | Remaining: {item.remainingQuantity}</small>
-                                                                      </div>
-                                                                 </div>
-                                                                 <div className="text-end">
-                                                                      <strong className="text-success">{currencyFormatter.format(item.totalValue)}</strong>
-                                                                 </div>
-                                                            </div>
+     return (
+          <main className="container-fluid py-3 px-lg-4 min-vh-100" style={{ backgroundColor: '#f3f6f4' }}>
+               <header className="d-flex flex-wrap align-items-center justify-content-between gap-3 border-bottom pb-3 mb-3">
+                    <div className="d-flex align-items-center gap-3">
+                         <button type="button" className="btn btn-outline-dark" onClick={() => router.push('/inventory/orders')} aria-label="Back to orders"><RiArrowLeftLine size={20} /></button>
+                         <div><h1 className="h4 mb-1">Receive stock</h1><div className="text-muted">{order.orderNumber} · {order.supplierName}</div></div>
+                    </div>
+                    <button type="button" className="btn btn-outline-primary" onClick={receiveAllRemaining}>Receive all remaining</button>
+               </header>
 
-                                                            <div className="row g-1">
-                                                                 <div className="col-2">
-                                                                      <label className="form-label small">Brand</label>
-                                                                      <select
-                                                                           className="form-select form-select-sm"
-                                                                           value={item.selectedBrand || ''}
-                                                                           disabled={item.status === 'received'}
-                                                                           onChange={(e) => {
-                                                                                const value = e.target.value;
-                                                                                setReceiveForm(prev => {
-                                                                                     const newItems = [...prev.items];
-                                                                                     newItems[index].selectedBrand = value;
-                                                                                     return { ...prev, items: newItems };
-                                                                                });
-                                                                           }}
-                                                                      >
-                                                                           <option value="">Select Brand</option>
-                                                                           {item.availableBrands && item.availableBrands.map((brand, brandIndex) => (
-                                                                                <option key={brandIndex} value={brand}>{brand}</option>
-                                                                           ))}
-                                                                      </select>
-                                                                 </div>
-                                                                 <div className="col-1">
-                                                                      <label className="form-label small">Unit</label>
-                                                                      <select
-                                                                           className="form-select form-select-sm"
-                                                                           value={item.selectedUnit?.name || item.unit || ''}
-                                                                           disabled={item.status === 'received'}
-                                                                           onChange={(e) => {
-                                                                                const value = e.target.value;
-                                                                                const selectedUnitObj = item.availableUnits?.find((unit: any) => unit.name === value);
-                                                                                setReceiveForm(prev => {
-                                                                                     const newItems = [...prev.items];
-                                                                                     newItems[index].selectedUnit = selectedUnitObj || null;
-                                                                                     // Auto-set conversion factor if unit matches consumption unit
-                                                                                     if (value && item.consumptionUnit && value.toLowerCase() === item.consumptionUnit.toLowerCase()) {
-                                                                                          newItems[index].unitsPerPurchaseUnit = 1;
-                                                                                     }
-                                                                                     return { ...prev, items: newItems };
-                                                                                });
-                                                                           }}
-                                                                      >
-                                                                           <option value="">Select Unit</option>
-                                                                           {item.availableUnits && item.availableUnits.map((unit: any, unitIndex: number) => (
-                                                                                <option key={unitIndex} value={unit.name}>{unit.name}</option>
-                                                                           ))}
-                                                                      </select>
-                                                                 </div>
-                                                                 <div className="col-1">
-                                                                      <label className="form-label small">
-                                                                           {item.consumptionUnit && item.selectedUnit && item.consumptionUnit !== item.selectedUnit.name
-                                                                                ? `${item.consumptionUnit}/${item.selectedUnit.name}`
-                                                                                : 'Units/PU'}
-                                                                      </label>
-                                                                      <input
-                                                                           type="number"
-                                                                           className="form-control form-control-sm"
-                                                                           min="1"
-                                                                           value={item.unitsPerPurchaseUnit || 1}
-                                                                           disabled={item.status === 'received'}
-                                                                           onChange={(e) => {
-                                                                                const value = parseInt(e.target.value) || 1;
-                                                                                setReceiveForm(prev => {
-                                                                                     const newItems = [...prev.items];
-                                                                                     newItems[index].unitsPerPurchaseUnit = value;
-                                                                                     return { ...prev, items: newItems };
-                                                                                });
-                                                                           }}
-                                                                      />
-                                                                 </div>
-                                                                 <div className="col-1">
-                                                                      <label className="form-label small">Qty <span className="text-danger">*</span></label>
-                                                                      <input
-                                                                           type="number"
-                                                                           className="form-control form-control-sm"
-                                                                           min="0"
-                                                                           max={item.remainingQuantity}
-                                                                           value={item.receivedQuantity}
-                                                                           disabled={item.status === 'received'}
-                                                                           onChange={(e) => {
-                                                                                const value = parseInt(e.target.value) || 0;
-                                                                                setReceiveForm(prev => {
-                                                                                     const newItems = [...prev.items];
-                                                                                     newItems[index].receivedQuantity = value;
-                                                                                     newItems[index].totalValue = value * newItems[index].unitPrice;
-                                                                                     return { ...prev, items: newItems };
-                                                                                });
-                                                                           }}
-                                                                      />
-                                                                 </div>
-                                                                 <div className="col-1">
-                                                                      <label className="form-label small">Price <span className="text-danger">*</span></label>
-                                                                      <input
-                                                                           type="number"
-                                                                           className="form-control form-control-sm"
-                                                                           min="0"
-                                                                           step="0.01"
-                                                                           value={item.unitPrice}
-                                                                           disabled={item.status === 'received'}
-                                                                           onChange={(e) => {
-                                                                                const value = parseFloat(e.target.value) || 0;
-                                                                                setReceiveForm(prev => {
-                                                                                     const newItems = [...prev.items];
-                                                                                     newItems[index].unitPrice = value;
-                                                                                     newItems[index].totalValue = newItems[index].receivedQuantity * value;
-                                                                                     return { ...prev, items: newItems };
-                                                                                });
-                                                                           }}
-                                                                      />
-                                                                 </div>
-                                                                 <div className="col-1">
-                                                                      <label className="form-label small">Disc %</label>
-                                                                      <input
-                                                                           type="number"
-                                                                           className="form-control form-control-sm"
-                                                                           min="0"
-                                                                           step="0.01"
-                                                                           value={item.discountRate}
-                                                                           disabled={item.status === 'received'}
-                                                                           onChange={(e) => {
-                                                                                const value = parseFloat(e.target.value) || 0;
-                                                                                setReceiveForm(prev => {
-                                                                                     const newItems = [...prev.items];
-                                                                                     newItems[index].discountRate = value;
-                                                                                     return { ...prev, items: newItems };
-                                                                                });
-                                                                           }}
-                                                                      />
-                                                                 </div>
-                                                                 <div className="col-1">
-                                                                      <label className="form-label small">Tax %</label>
-                                                                      <input
-                                                                           type="number"
-                                                                           className="form-control form-control-sm"
-                                                                           min="0"
-                                                                           step="0.01"
-                                                                           value={item.taxRate}
-                                                                           disabled={item.status === 'received'}
-                                                                           onChange={(e) => {
-                                                                                const value = parseFloat(e.target.value) || 0;
-                                                                                setReceiveForm(prev => {
-                                                                                     const newItems = [...prev.items];
-                                                                                     newItems[index].taxRate = value;
-                                                                                     return { ...prev, items: newItems };
-                                                                                });
-                                                                           }}
-                                                                      />
-                                                                 </div>
-                                                                 <div className="col-1">
-                                                                      <label className="form-label small">Batch <span className="text-danger">*</span></label>
-                                                                      <input
-                                                                           type="text"
-                                                                           className="form-control form-control-sm"
-                                                                           value={item.batchNumber}
-                                                                           disabled={item.status === 'received'}
-                                                                           onChange={(e) => {
-                                                                                const value = e.target.value;
-                                                                                setReceiveForm(prev => {
-                                                                                     const newItems = [...prev.items];
-                                                                                     newItems[index].batchNumber = value;
-                                                                                     return { ...prev, items: newItems };
-                                                                                });
-                                                                           }}
-                                                                           placeholder="Batch #"
-                                                                      />
-                                                                 </div>
-                                                                 <div className="col-1">
-                                                                      <label className="form-label small">Expiry <span className="text-danger">*</span></label>
-                                                                      <input
-                                                                           type="date"
-                                                                           className="form-control form-control-sm"
-                                                                           value={item.expiryDate}
-                                                                           disabled={item.status === 'received'}
-                                                                           onChange={(e) => {
-                                                                                const value = e.target.value;
-                                                                                setReceiveForm(prev => {
-                                                                                     const newItems = [...prev.items];
-                                                                                     newItems[index].expiryDate = value;
-                                                                                     return { ...prev, items: newItems };
-                                                                                });
-                                                                           }}
-                                                                      />
-                                                                 </div>
-                                                            </div>
-                                                            <div className="row g-1 mt-2">
-                                                                 <div className="col-8">
-                                                                      {item.availableBrands && item.availableBrands.length > 0 && (
-                                                                           <small className="text-info">
-                                                                                Brands: {item.availableBrands.join(', ')}
-                                                                           </small>
-                                                                      )}
-                                                                 </div>
-                                                                 <div className="col-4 text-end">
-                                                                      <div className="d-flex gap-1 justify-content-end">
-                                                                           <button
-                                                                                className="btn btn-outline-secondary btn-sm"
-                                                                                disabled={item.status === 'received'}
-                                                                                onClick={() => {
-                                                                                     setReceiveForm(prev => {
-                                                                                          const newItems = [...prev.items];
-                                                                                          newItems[index].receivedQuantity = item.remainingQuantity;
-                                                                                          newItems[index].totalValue = item.remainingQuantity * newItems[index].unitPrice;
-                                                                                          return { ...prev, items: newItems };
-                                                                                     });
-                                                                                }}
-                                                                                title="Receive remaining quantity"
-                                                                           >
-                                                                                Receive All
-                                                                           </button>
-                                                                           <button
-                                                                                className="btn btn-outline-danger btn-sm"
-                                                                                disabled={item.status === 'received'}
-                                                                                onClick={() => {
-                                                                                     setReceiveForm(prev => {
-                                                                                          const newItems = [...prev.items];
-                                                                                          newItems[index].receivedQuantity = 0;
-                                                                                          newItems[index].unitPrice = 0;
-                                                                                          newItems[index].discountRate = 0;
-                                                                                          newItems[index].taxRate = 0;
-                                                                                          newItems[index].batchNumber = '';
-                                                                                          newItems[index].expiryDate = '';
-                                                                                          newItems[index].totalValue = 0;
-                                                                                          return { ...prev, items: newItems };
-                                                                                     });
-                                                                                }}
-                                                                                title="Clear all fields"
-                                                                           >
-                                                                                Clear
-                                                                           </button>
-                                                                      </div>
-                                                                 </div>
-                                                            </div>
-                                                       </div>
-                                                  ))}
-                                             </div>
-                                        ) : (
-                                             <div className="table-responsive">
-                                                  <table className={styles.table}>
-                                                       <thead className="table-light">
-                                                            <tr>
-                                                                 <th style={{ width: '18%' }}>Item</th>
-                                                                 <th style={{ width: '4%' }}>Progress</th>
-                                                                 <th style={{ width: '12%' }}>Brand & Unit</th>
-                                                                 <th style={{ width: '8%' }}>Units/PU</th>
-                                                                 <th style={{ width: '8%' }}>Rec. Qty / Unit Price</th>
-                                                                 <th style={{ width: '5%' }}>Discount</th>
-                                                                 <th style={{ width: '5%' }}>Tax</th>
-                                                                 <th style={{ width: '8%' }}>Batch</th>
-                                                                 <th style={{ width: '8%' }}>Expiry</th>
-                                                                 <th style={{ width: '8%' }}>Total</th>
-                                                            </tr>
-                                                       </thead>
-                                                       <tbody>
-                                                            {receiveForm.items.map((item, index) => (
-                                                                 <tr key={item.itemId}>
-                                                                      <td>
-                                                                           <div>
-                                                                                <strong>{item.itemName}</strong>
-                                                                                <br />
-                                                                                <small className="text-muted">
-                                                                                     {item.selectedUnit?.name || item.unit} | SKU: {item.sku}
-                                                                                </small>
-                                                                                {item.consumptionUnit && item.consumptionUnit !== (item.selectedUnit?.name || item.unit) && (
-                                                                                     <>
-                                                                                          <br />
-                                                                                          <small className="text-info">Consumption: {item.consumptionUnit}</small>
-                                                                                     </>
-                                                                                )}
-                                                                                {item.availableBrands && item.availableBrands.length > 0 && (
-                                                                                     <>
-                                                                                          <br />
-                                                                                          <small className="text-info">
-                                                                                               {item.availableBrands.length} brand{item.availableBrands.length > 1 ? 's' : ''} available
-                                                                                          </small>
-                                                                                     </>
-                                                                                )}
-                                                                           </div>
-                                                                      </td>
-                                                                      <td className="text-center">
-                                                                           <div className="small">
-                                                                                <div className="fw-bold">{item.quantityReceived}/{item.orderedQuantity}</div>
-                                                                                <div className="text-muted">({item.remainingQuantity} left)</div>
-                                                                           </div>
-                                                                      </td>
-                                                                      <td>
-                                                                           <div className="d-flex flex-column gap-1">
-                                                                                <div>
-                                                                                     <select
-                                                                                          className="form-select form-select-sm"
-                                                                                          value={item.selectedBrand || ''}
-                                                                                          disabled={item.status === 'received'}
-                                                                                          onChange={(e) => {
-                                                                                               const value = e.target.value;
-                                                                                               setReceiveForm(prev => {
-                                                                                                    const newItems = [...prev.items];
-                                                                                                    newItems[index].selectedBrand = value;
-                                                                                                    return { ...prev, items: newItems };
-                                                                                               });
-                                                                                          }}
-                                                                                     >
-                                                                                          <option value="">Select Brand</option>
-                                                                                          {item.availableBrands && item.availableBrands.map((brand, brandIndex) => (
-                                                                                               <option key={brandIndex} value={brand}>{brand}</option>
-                                                                                          ))}
-                                                                                     </select>
-                                                                                </div>
-                                                                                <div>
-                                                                                     <select
-                                                                                          className="form-select form-select-sm"
-                                                                                          value={item.selectedUnit?.name || item.unit || ''}
-                                                                                          disabled={item.status === 'received'}
-                                                                                          onChange={(e) => {
-                                                                                               const value = e.target.value;
-                                                                                               const selectedUnitObj = item.availableUnits?.find((unit: any) => unit.name === value);
-                                                                                               setReceiveForm(prev => {
-                                                                                                    const newItems = [...prev.items];
-                                                                                                    newItems[index].selectedUnit = selectedUnitObj || null;
-                                                                                                    // Auto-set conversion factor if unit matches consumption unit
-                                                                                                    if (value && item.consumptionUnit && value.toLowerCase() === item.consumptionUnit.toLowerCase()) {
-                                                                                                         newItems[index].unitsPerPurchaseUnit = 1;
-                                                                                                    }
-                                                                                                    return { ...prev, items: newItems };
-                                                                                               });
-                                                                                          }}
-                                                                                     >
-                                                                                          <option value="">Select Unit</option>
-                                                                                          {item.availableUnits && item.availableUnits.map((unit: any, unitIndex: number) => (
-                                                                                               <option key={unitIndex} value={unit.name}>{unit.name}</option>
-                                                                                          ))}
-                                                                                     </select>
-                                                                                </div>
-                                                                           </div>
-                                                                      </td>
-                                                                      <td>
-                                                                           <input
-                                                                                type="number"
-                                                                                className="form-control form-control-sm"
-                                                                                min="1"
-                                                                                value={item.unitsPerPurchaseUnit || 1}
-                                                                                disabled={item.status === 'received'}
-                                                                                onChange={(e) => {
-                                                                                     const value = parseInt(e.target.value) || 1;
-                                                                                     setReceiveForm(prev => {
-                                                                                          const newItems = [...prev.items];
-                                                                                          newItems[index].unitsPerPurchaseUnit = value;
-                                                                                          return { ...prev, items: newItems };
-                                                                                     });
-                                                                                }}
-                                                                           />
-                                                                      </td>
-                                                                      <td>
-                                                                           <div className="d-flex flex-column gap-1">
-                                                                                <div>
-                                                                                     <input
-                                                                                          type="number"
-                                                                                          className="form-control form-control-sm"
-                                                                                          min="0"
-                                                                                          max={item.remainingQuantity}
-                                                                                          value={item.receivedQuantity}
-                                                                                          disabled={item.status === 'received'}
-                                                                                          onChange={(e) => {
-                                                                                               const value = parseInt(e.target.value) || 0;
-                                                                                               setReceiveForm(prev => {
-                                                                                                    const newItems = [...prev.items];
-                                                                                                    newItems[index].receivedQuantity = value;
-                                                                                                    newItems[index].totalValue = value * newItems[index].unitPrice;
-                                                                                                    return { ...prev, items: newItems };
-                                                                                               });
-                                                                                          }}
-                                                                                     />
-                                                                                </div>
-                                                                                <div>
-                                                                                     <input
-                                                                                          type="number"
-                                                                                          className="form-control form-control-sm"
-                                                                                          min="0"
-                                                                                          step="0.01"
-                                                                                          value={item.unitPrice}
-                                                                                          disabled={item.status === 'received'}
-                                                                                          onChange={(e) => {
-                                                                                               const value = parseFloat(e.target.value) || 0;
-                                                                                               setReceiveForm(prev => {
-                                                                                                    const newItems = [...prev.items];
-                                                                                                    newItems[index].unitPrice = value;
-                                                                                                    newItems[index].totalValue = newItems[index].receivedQuantity * value;
-                                                                                                    return { ...prev, items: newItems };
-                                                                                               });
-                                                                                          }}
-                                                                                     />
-                                                                                </div>
-                                                                           </div>
-                                                                      </td>
-                                                                      <td>
-                                                                           <input
-                                                                                type="number"
-                                                                                className="form-control form-control-sm"
-                                                                                min="0"
-                                                                                step="0.01"
-                                                                                value={item.discountRate}
-                                                                                disabled={item.status === 'received'}
-                                                                                onChange={(e) => {
-                                                                                     const value = parseFloat(e.target.value) || 0;
-                                                                                     setReceiveForm(prev => {
-                                                                                          const newItems = [...prev.items];
-                                                                                          newItems[index].discountRate = value;
-                                                                                          return { ...prev, items: newItems };
-                                                                                     });
-                                                                                }}
-                                                                           />
-                                                                      </td>
-                                                                      <td>
-                                                                           <input
-                                                                                type="number"
-                                                                                className="form-control form-control-sm"
-                                                                                min="0"
-                                                                                step="0.01"
-                                                                                value={item.taxRate}
-                                                                                disabled={item.status === 'received'}
-                                                                                onChange={(e) => {
-                                                                                     const value = parseFloat(e.target.value) || 0;
-                                                                                     setReceiveForm(prev => {
-                                                                                          const newItems = [...prev.items];
-                                                                                          newItems[index].taxRate = value;
-                                                                                          return { ...prev, items: newItems };
-                                                                                     });
-                                                                                }}
-                                                                           />
-                                                                      </td>
-                                                                      <td>
-                                                                           <input
-                                                                                type="text"
-                                                                                className="form-control form-control-sm"
-                                                                                value={item.batchNumber}
-                                                                                disabled={item.status === 'received'}
-                                                                                onChange={(e) => {
-                                                                                     const value = e.target.value;
-                                                                                     setReceiveForm(prev => {
-                                                                                          const newItems = [...prev.items];
-                                                                                          newItems[index].batchNumber = value;
-                                                                                          return { ...prev, items: newItems };
-                                                                                     });
-                                                                                }}
-                                                                                placeholder="Batch #"
-                                                                           />
-                                                                      </td>
-                                                                      <td>
-                                                                           <input
-                                                                                type="date"
-                                                                                className="form-control form-control-sm"
-                                                                                value={item.expiryDate}
-                                                                                disabled={item.status === 'received'}
-                                                                                onChange={(e) => {
-                                                                                     const value = e.target.value;
-                                                                                     setReceiveForm(prev => {
-                                                                                          const newItems = [...prev.items];
-                                                                                          newItems[index].expiryDate = value;
-                                                                                          return { ...prev, items: newItems };
-                                                                                     });
-                                                                                }}
-                                                                           />
-                                                                      </td>
-                                                                      <td className="text-end">
-                                                                           <strong className="text-success">{currencyFormatter.format(item.totalValue)}</strong>
-                                                                      </td>
-                                                                 </tr>
-                                                            ))}
-                                                       </tbody>
-                                                  </table>
-                                             </div>
-                                        )}
-                                   </div>
-                              </div>
-                              <div className='border-top p-2'>
-                                   <div className=''>Receiving Details</div>
-                              </div>
-                              <div className="card-body border-top">
-                                   <div className="row g-3">
-                                        <div className="col-md-3">
-                                             <label className="form-label">Invoice Number <span className="text-danger">*</span></label>
-                                             <input
-                                                  type="text"
-                                                  className="form-control"
-                                                  value={receiveForm.invoiceNumber}
-                                                  onChange={(e) => setReceiveForm(prev => ({ ...prev, invoiceNumber: e.target.value }))}
-                                                  placeholder="Enter invoice number"
-                                             />
-                                        </div>
-                                        <div className="col-md-2">
-                                             <label className="form-label">Received Date <span className="text-danger">*</span></label>
-                                             <input
-                                                  type="date"
-                                                  className="form-control"
-                                                  value={receiveForm.receivedDate}
-                                                  onChange={(e) => setReceiveForm(prev => ({ ...prev, receivedDate: e.target.value }))}
-                                             />
-                                        </div>
-                                        <div className="col-md-2">
-                                             <label className="form-label">Received Time <span className="text-danger">*</span></label>
-                                             <input
-                                                  type="time"
-                                                  className="form-control"
-                                                  value={receiveForm.receivedTime}
-                                                  onChange={(e) => setReceiveForm(prev => ({ ...prev, receivedTime: e.target.value }))}
-                                             />
-                                        </div>
-                                        <div className="col-md-2">
-                                             <label className="form-label">Condition Status</label>
-                                             <select
-                                                  className="form-select"
-                                                  value={receiveForm.conditionStatus}
-                                                  onChange={(e) => setReceiveForm(prev => ({ ...prev, conditionStatus: e.target.value }))}
-                                             >
-                                                  <option value="good">Good</option>
-                                                  <option value="acceptable">Acceptable</option>
-                                                  <option value="damaged">Damaged</option>
-                                                  <option value="expired">Expired</option>
-                                             </select>
-                                        </div>
-                                        <div className="col-md-3">
-                                             <label className="form-label">Receipt Images</label>
-                                             <input
-                                                  type="file"
-                                                  className="form-control"
-                                                  multiple
-                                                  accept="image/*"
-                                                  onChange={(e) => {
-                                                       const files = Array.from(e.target.files || []);
-                                                       // Validate file types and sizes
-                                                       const validFiles = files.filter(file => {
-                                                            const isValidType = file.type.startsWith('image/');
-                                                            const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB limit
-                                                            return isValidType && isValidSize;
-                                                       });
+               {error && <div className="alert alert-danger d-flex gap-2"><RiErrorWarningLine size={20} />{error}</div>}
 
-                                                       if (validFiles.length !== files.length) {
-                                                            toast.warning('Some files were skipped. Only images under 5MB are allowed.');
-                                                       }
+               <section className="receiving-surface bg-white border">
+                    <table className="table align-middle mb-0 receiving-table">
+                         <thead><tr><th>Inventory item</th><th>Quantity received</th><th>Unit cost</th><th>Expiry date</th><th>Batch number</th><th>Pricing</th></tr></thead>
+                         <tbody>{order.items.map((item, index) => {
+                              const disabled = item.status === 'received';
+                              const consumptionCost = item.purchaseUnitPrice;
+                              return <tr key={item.id} className={disabled ? 'table-success' : ''}>
+                                   <td data-label="Item" className="item-column"><strong>{item.itemName}</strong><div className="item-meta">SKU {item.sku}</div><div className="stock-meta">{item.remainingQuantity} {item.consumptionUnit} remaining</div>{!disabled && <button type="button" className="btn btn-link p-0 fw-semibold" onClick={() => updateItem(index, { receiveNow: item.remainingQuantity })}>Receive all remaining</button>}</td>
+                                   <td data-label="Quantity">{disabled ? <span className="d-inline-flex align-items-center gap-1 text-success fw-semibold"><RiCheckboxCircleLine size={20} /> Received</span> : <div className="quantity-control"><input aria-label={`Quantity for ${item.itemName}`} type="number" min="0" max={item.remainingQuantity} className="form-control form-control-lg" value={item.receiveNow} onChange={(event) => updateItem(index, { receiveNow: Math.min(item.remainingQuantity, Number(event.target.value) || 0) })} /><span>{item.consumptionUnit}</span></div>}</td>
+                                   <td data-label="Unit cost"><div className="money-input"><span>GH₵</span><input aria-label={`Unit cost for ${item.itemName}`} type="number" min="0" step="0.01" className="form-control form-control-lg" disabled={disabled} value={item.purchaseUnitPrice} onChange={(event) => updateItem(index, { purchaseUnitPrice: Number(event.target.value) || 0 })} /></div></td>
+                                   <td data-label="Expiry"><input aria-label={`Expiry for ${item.itemName}`} type="date" className="form-control form-control-lg" disabled={disabled} value={item.expiryDate} onChange={(event) => updateItem(index, { expiryDate: event.target.value })} /></td>
+                                   <td data-label="Batch"><div className="form-check form-switch"><input id={`auto-batch-${item.id}`} className="form-check-input" type="checkbox" disabled={disabled} checked={item.automaticBatch} onChange={(event) => updateItem(index, { automaticBatch: event.target.checked })} /><label className="form-check-label fw-semibold" htmlFor={`auto-batch-${item.id}`}>Automatic</label></div>{!item.automaticBatch && <input aria-label={`Batch for ${item.itemName}`} className="form-control mt-2" placeholder="Enter batch number" value={item.batchNumber} onChange={(event) => updateItem(index, { batchNumber: event.target.value })} />}</td>
+                                   <td data-label="Pricing"><div className="pricing-summary"><div><span>Wholesale</span><strong>{currencyFormatter.format(item.changePricing ? item.wholesalePrice : item.previousWholesalePrice)}</strong></div><div><span>Retail</span><strong>{currencyFormatter.format(item.changePricing ? item.salePrice : item.previousSalePrice)}</strong></div><button type="button" className={`btn fw-semibold ${item.changePricing ? 'btn-primary' : 'btn-outline-primary'}`} disabled={disabled} onClick={() => openPriceDialog(index)}>{item.changePricing ? 'Edit price change' : 'Change prices'}</button></div></td>
+                              </tr>;
+                         })}</tbody>
+                    </table>
+               </section>
 
-                                                       setReceiveForm(prev => ({ ...prev, receiptImages: validFiles }));
-                                                  }}
-                                             />
-                                             <small className="text-muted">Upload receipt images (max 5MB each)</small>
-                                             {receiveForm.receiptImages.length > 0 && (
-                                                  <div className="mt-1">
-                                                       <small className="text-success">
-                                                            {receiveForm.receiptImages.length} file(s) selected
-                                                       </small>
-                                                  </div>
-                                             )}
-                                        </div>
+               {priceDialog && dialogItem && (
+                    <div className="modal d-block" role="dialog" aria-modal="true" style={{ backgroundColor: 'rgba(23, 33, 38, 0.5)', zIndex: 1060 }}>
+                         <div className="modal-dialog mt-3">
+                              <div className="modal-content price-dialog">
+                                   <div className="modal-header"><div><h2 className="modal-title h5 mb-1">Change selling prices</h2><div className="text-muted">{dialogItem.itemName}</div></div><button type="button" className="btn-close" onClick={() => setPriceDialog(null)} aria-label="Close" /></div>
+                                   <div className="modal-body">
+                                        <div className="current-price-panel mb-4"><div><span>Current wholesale</span><strong>{currencyFormatter.format(dialogItem.previousWholesalePrice)}</strong></div><div><span>Current retail</span><strong>{currencyFormatter.format(dialogItem.previousSalePrice)}</strong></div></div>
+                                        <div className="form-check form-switch mb-4"><input id="enable-price-change" className="form-check-input" type="checkbox" checked={priceDialog.enabled} onChange={(event) => updatePriceDialog({ enabled: event.target.checked })} /><label className="form-check-label fw-semibold" htmlFor="enable-price-change">Change prices when this stock is received</label></div>
+                                        {priceDialog.enabled && <>
+                                             <label className="form-label fw-semibold" htmlFor="price-change-method">How should prices change?</label>
+                                             <select id="price-change-method" className="form-select form-select-lg mb-3" value={priceDialog.mode} onChange={(event) => updatePriceDialog({ mode: event.target.value as PriceDialogState['mode'] })}><option value="percentage">Increase by percentage</option><option value="fixed">Increase by fixed amount</option><option value="manual">Enter prices manually</option></select>
+                                             {priceDialog.mode !== 'manual' && <div className="mb-3"><label className="form-label fw-semibold" htmlFor="price-adjustment">{priceDialog.mode === 'percentage' ? 'Percentage increase' : 'Fixed increase amount'}</label><input id="price-adjustment" type="number" min="0" step="0.01" className="form-control form-control-lg" value={priceDialog.adjustmentValue} onChange={(event) => updatePriceDialog({ adjustmentValue: Number(event.target.value) || 0 })} /></div>}
+                                             <div className="row g-3"><div className="col-6"><label className="form-label fw-semibold" htmlFor="new-wholesale">New wholesale</label><input id="new-wholesale" type="number" min="0" step="0.01" className="form-control form-control-lg" value={priceDialog.wholesalePrice} disabled={priceDialog.mode !== 'manual'} onChange={(event) => updatePriceDialog({ wholesalePrice: Number(event.target.value) || 0 })} /></div><div className="col-6"><label className="form-label fw-semibold" htmlFor="new-retail">New retail</label><input id="new-retail" type="number" min="0" step="0.01" className="form-control form-control-lg" value={priceDialog.retailPrice} disabled={priceDialog.mode !== 'manual'} onChange={(event) => updatePriceDialog({ retailPrice: Number(event.target.value) || 0 })} /></div></div>
+                                             <div className="profit-preview mt-3"><span>Expected profit per item</span><strong>{currencyFormatter.format(priceDialog.retailPrice - dialogItem.purchaseUnitPrice)}</strong></div>
+                                        </>}
                                    </div>
-                                   <div className="row mt-3">
-                                        <div className="col-md-6">
-                                             <label className="form-label">Notes</label>
-                                             <textarea
-                                                  className="form-control"
-                                                  rows={3}
-                                                  value={receiveForm.notes}
-                                                  onChange={(e) => setReceiveForm(prev => ({ ...prev, notes: e.target.value }))}
-                                                  placeholder="Additional notes..."
-                                             />
-                                        </div>
-                                        <div className="col-md-6 d-flex align-items-center">
-                                             <div className="form-check">
-                                                  <input
-                                                       className="form-check-input"
-                                                       type="checkbox"
-                                                       id="qualityCheckPassed"
-                                                       checked={receiveForm.qualityCheckPassed}
-                                                       onChange={(e) => setReceiveForm(prev => ({ ...prev, qualityCheckPassed: e.target.checked }))}
-                                                  />
-                                                  <label className="form-check-label" htmlFor="qualityCheckPassed">
-                                                       Quality Check Passed
-                                                  </label>
-                                             </div>
-                                        </div>
-                                   </div>
+                                   <div className="modal-footer"><button type="button" className="btn btn-outline-secondary btn-lg" onClick={() => setPriceDialog(null)}>Cancel</button><button type="button" className="btn btn-primary btn-lg" onClick={savePriceDialog}>Apply prices</button></div>
                               </div>
                          </div>
                     </div>
-               </div>
+               )}
 
-          </div>
+               <details className="border rounded p-3 mt-3">
+                    <summary className="fw-semibold">Additional receiving details</summary>
+                    <div className="row g-3 mt-1">
+                         <div className="col-md-3"><label className="form-label">Received date</label><input type="date" className="form-control" value={receivedDate} onChange={(event) => setReceivedDate(event.target.value)} /></div>
+                         <div className="col-md-3"><label className="form-label">Condition</label><select className="form-select" value={conditionStatus} onChange={(event) => setConditionStatus(event.target.value)}><option value="good">Good</option><option value="acceptable">Acceptable</option><option value="damaged">Damaged</option><option value="expired">Expired</option></select></div>
+                         <div className="col-md-6"><label className="form-label">Notes</label><textarea className="form-control" rows={2} value={notes} onChange={(event) => setNotes(event.target.value)} /></div>
+                    </div>
+               </details>
+
+               <footer className="position-sticky bottom-0 bg-white border-top mt-4 py-3 d-flex flex-wrap justify-content-between align-items-center gap-3" style={{ zIndex: 10 }}>
+                    <div><strong>{selectedItems.length} item{selectedItems.length === 1 ? '' : 's'} selected</strong><div className="text-muted">Purchase subtotal before tax/discount: {currencyFormatter.format(totalPurchaseCost)}</div></div>
+                    <button type="button" className="btn btn-success btn-lg px-5 d-flex align-items-center gap-2" disabled={submitting || selectedItems.length === 0} onClick={submitReceiving}>{submitting ? <RiLoader4Line size={20} className="spin" /> : <RiInboxArchiveLine size={20} />} Receive stock</button>
+               </footer>
+
+               <style jsx>{`
+                    .receiving-surface { border-radius: 6px; overflow: hidden; }
+                    .receiving-table { width: 100%; table-layout: fixed; --table-accent: #176b4d; font-size: 1rem; }
+                    .receiving-table thead { position: sticky; top: 0; z-index: 2; }
+                    .receiving-table th { background: #e6f0ea; color: #173f31; padding: 14px; border-color: #cbdcd2; font-size: .94rem; font-weight: 700; }
+                    .receiving-table th:nth-child(1) { width: 22%; }
+                    .receiving-table th:nth-child(2) { width: 15%; }
+                    .receiving-table th:nth-child(3) { width: 13%; }
+                    .receiving-table th:nth-child(4) { width: 15%; }
+                    .receiving-table th:nth-child(5) { width: 15%; }
+                    .receiving-table th:nth-child(6) { width: 20%; }
+                    .receiving-table td { padding: 16px 14px; border-color: #e0e8e3; vertical-align: middle; overflow-wrap: anywhere; }
+                    .receiving-table tbody tr:nth-child(even) td { background: #fafcfb; }
+                    .receiving-table tbody tr:hover td { background: #eef6f1; }
+                    .receiving-table .item-column { border-left: 5px solid var(--table-accent); }
+                    .item-column strong { font-size: 1.06rem; }
+                    .item-meta, .stock-meta { color: #52665c; font-size: .86rem; margin-top: 3px; }
+                    .quantity-control { display: grid; grid-template-columns: minmax(72px, 1fr) auto; gap: 8px; align-items: center; }
+                    .quantity-control span { font-weight: 600; color: #4d5e55; }
+                    .money-input { position: relative; }
+                    .money-input span { position: absolute; left: 11px; top: 12px; z-index: 1; color: #52665c; font-size: .9rem; }
+                    .money-input input { padding-left: 42px; }
+                    .pricing-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+                    .pricing-summary > div { background: #f2f6f3; border: 1px solid #d8e3dc; padding: 8px; border-radius: 4px; }
+                    .pricing-summary span { display: block; color: #627269; font-size: .78rem; }
+                    .pricing-summary strong { display: block; margin-top: 2px; }
+                    .pricing-summary button { grid-column: 1 / -1; }
+                    .price-dialog { border-radius: 6px; font-size: 1rem; }
+                    .current-price-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+                    .current-price-panel > div, .profit-preview { background: #eef5f1; border: 1px solid #d2e1d8; border-radius: 4px; padding: 14px; }
+                    .current-price-panel span, .profit-preview span { display: block; color: #56685e; margin-bottom: 4px; }
+                    .current-price-panel strong, .profit-preview strong { font-size: 1.2rem; color: #174b37; }
+                    .spin { animation: spin 1s linear infinite; }
+                    @keyframes spin { to { transform: rotate(360deg); } }
+                    @media (max-width: 900px) {
+                         .receiving-surface { border: 0 !important; background: transparent !important; }
+                         .receiving-table, .receiving-table tbody, .receiving-table tr, .receiving-table td { display: block; width: 100%; }
+                         .receiving-table { table-layout: auto; }
+                         .receiving-table thead { display: none; }
+                         .receiving-table tr { background: #fff; border: 1px solid #cedbd3; border-left: 5px solid var(--table-accent); border-radius: 6px; margin-bottom: 14px; padding: 6px 14px; }
+                         .receiving-table td, .receiving-table .item-column { border: 0; border-bottom: 1px solid #e4ebe7; padding: 13px 0; display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 12px; align-items: center; }
+                         .receiving-table td:last-child { border-bottom: 0; }
+                         .receiving-table td::before { content: attr(data-label); font-weight: 700; color: #3d5046; }
+                         .receiving-table .item-column { display: block; }
+                         .receiving-table .item-column::before { display: none; }
+                         .pricing-summary { width: 100%; }
+                    }
+               `}</style>
+          </main>
      );
 }
