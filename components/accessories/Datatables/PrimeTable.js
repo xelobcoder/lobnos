@@ -60,7 +60,6 @@ export default function PrimeTable({
 
 	useEffect(() => {
 		if (Array.isArray(data)) {
-			setQueryParams({ ...queryParams, count: data.length });
 			setFilteredData(data);
 		}
 	}, [data]);

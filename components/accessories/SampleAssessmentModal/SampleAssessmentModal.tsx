@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { Modal, Spinner } from 'react-bootstrap';
-import { RiCheckboxCircleLine, RiCloseLine } from '@remixicon/react';
+import { RiBarcodeLine, RiCheckboxCircleLine, RiCloseLine, RiSearchLine } from '@remixicon/react';
 import { toast } from 'react-toastify';
 import { customFetch, customFetchMutation } from '../../Auth/customFetch';
 
@@ -20,6 +20,8 @@ export default function SampleAssessmentModal({ show, hide, billingid, removeCli
      const [allSamples, setAllSamples] = useState<Sample[]>([]);
      const [unregisteredGroups, setUnregisteredGroups] = useState<CandidateGroup[]>([]);
      const [loadError, setLoadError] = useState('');
+     const [barcode, setBarcode] = useState('');
+     const [barcodeLoading, setBarcodeLoading] = useState(false);
      const [loading, setLoading] = useState(false);
      const [busyId, setBusyId] = useState<number | null>(null);
      const [rejecting, setRejecting] = useState<Sample | null>(null);
@@ -54,6 +56,23 @@ export default function SampleAssessmentModal({ show, hide, billingid, removeCli
      useEffect(() => { if (show) load(); }, [show, load]);
 
      const toggleChannel = (channel: 'sms' | 'email') => setChannels((current) => current.includes(channel) ? current.filter((item) => item !== channel) : [...current, channel]);
+
+     const findByBarcode = async () => {
+          const lookup = barcode.trim();
+          if (!lookup) return toast.error('Scan or enter a sample barcode or ID.');
+          setBarcodeLoading(true);
+          try {
+               const response = await customFetch(`physical-samples/barcode/${encodeURIComponent(lookup)}`);
+               if (!response?.success) throw new Error(response?.message || 'Sample was not found.');
+               const sample: Sample & { billingid: number } = response.data;
+               if (Number(sample.billingid) !== Number(currentBillingId)) throw new Error(`This sample belongs to billing ${sample.billingid}.`);
+               if (!['collected', 'received'].includes(sample.status)) throw new Error(`This sample is ${sample.status.replace(/_/g, ' ')} and cannot be validated.`);
+               setAllSamples([sample]);
+               setSamples([sample]);
+               setUnregisteredGroups([]);
+          } catch (error: any) { toast.error(error?.message || 'Unable to find sample.'); }
+          finally { setBarcodeLoading(false); }
+     };
 
      const accept = async (sample: Sample) => {
           setBusyId(sample.id);
@@ -99,7 +118,7 @@ export default function SampleAssessmentModal({ show, hide, billingid, removeCli
      return <>
           <Modal show={show} size="xl" backdrop="static" animation={false} onHide={hide} dialogClassName="mt-3">
                <Modal.Header closeButton><div><Modal.Title className="h5">Physical Sample Validation</Modal.Title><div className="text-muted">{patient?.fullname || ''} · Billing {currentBillingId}</div></div></Modal.Header>
-               <Modal.Body>{loading ? <div className="text-center py-5"><Spinner animation="border" /></div>
+               <Modal.Body><div className="border bg-body-tertiary p-3 mb-3" style={{ borderRadius: 6 }}><label className="form-label fw-semibold" htmlFor="sample-barcode-search"><RiBarcodeLine size={18} className="me-1" />Scan or enter sample barcode / ID</label><div className="input-group"><input id="sample-barcode-search" className="form-control" value={barcode} onChange={(event) => setBarcode(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') findByBarcode(); }} autoFocus placeholder="Scan barcode or enter S-... / numeric ID" /><button className="btn btn-primary" type="button" disabled={barcodeLoading || !barcode.trim()} onClick={findByBarcode} title="Find sample"><RiSearchLine size={18} /></button></div></div>{loading ? <div className="text-center py-5"><Spinner animation="border" /></div>
                     : loadError ? <div className="alert alert-danger mb-0"><strong>Could not load this billing&apos;s physical samples.</strong><div>{loadError}</div></div>
                     : samples.length ? <div className="row g-3">{samples.map((sample) => <div className="col-lg-6" key={sample.id}><article className="border p-3 h-100" style={{ borderRadius: 6, borderLeft: '5px solid #176b4d' }}><div className="d-flex justify-content-between"><div><strong>{sample.sample_uid}</strong><div className="text-muted">{sample.sample_type_name || 'Specimen'} · {sample.container_type_name || 'Container'}</div></div><span className="text-capitalize fw-semibold">{sample.status}</span></div><div className="mt-3"><span className="text-muted">This decision applies to:</span><ul className="mb-3">{sample.tests.map((test) => <li key={test.ascensionId}>{test.testName}</li>)}</ul></div><div className="d-flex gap-2"><button className="btn btn-success d-flex gap-2 align-items-center" disabled={busyId === sample.id} onClick={() => accept(sample)}><RiCheckboxCircleLine size={18} /> Accept container</button><button className="btn btn-outline-danger" disabled={busyId === sample.id} onClick={() => setRejecting(sample)}>Reject container</button></div></article></div>)}</div>
                     : waitingForReception.length ? <div className="alert alert-warning mb-0"><strong>Reception has not been completed.</strong><div className="mt-1">{waitingForReception.length} physical container{waitingForReception.length === 1 ? ' is' : 's are'} recorded as {waitingForReception.map((sample) => sample.status.replace(/_/g, ' ')).join(', ')}. Receive {waitingForReception.length === 1 ? 'it' : 'them'} in the Sample Reception workspace before validation.</div></div>

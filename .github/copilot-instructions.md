@@ -161,6 +161,16 @@ if (response?.status === "success" && response?.statusCode === 200) {
 
 ## Component Patterns
 
+### Physical Sample Workflow
+
+- Use `components/phelobotomy/CollectionSampleModal.tsx` for grouped physical-container collection and `components/accessories/SampleAssessmentModal/SampleAssessmentModal.tsx` for container-level sample validation.
+- Collection, reception, and validation are separate workflows. Do not add new calls to legacy per-ascension collection or sample-validation endpoints.
+- The laboratory visit route is `/operations/laboratory/main/dailyRequest/visit`; it must reuse the physical-container components used by phlebotomy.
+- Collection surfaces must expose a printable label for each created physical-sample barcode. Validation surfaces must support scanner input or typed barcode/sample ID through the authenticated physical-sample lookup endpoint.
+- Phlebotomy reporting pages live under `/operations/phelobotomy/{sample-summary,review-requests,rejection-communications}` and use `/api/v1/physical-samples/worklists/*`.
+- Use `DateFilterReusable` for sample report date ranges and match the gradient metric-card structure in `components/Billing/BillingSumamry/BilledSummary.tsx`.
+- Every new list page must use backend pagination with `page` and `count`. Keep the selected count stable between pages and return `{ result, error }` from PrimeTable server handlers without state side effects.
+
 ### Standard Page Structure
 
 ```tsx

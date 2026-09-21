@@ -10,11 +10,11 @@ import ResultEntryComponent from '../../../../../../components/operations/ViewTw
 import { RiCheckLine, RiInformationLine, RiMailLine, RiPhoneLine, RiPrinterLine, RiRefreshLine, RiTruckLine, RiWhatsappLine, RiFileTextLine, RiSendPlaneLine } from '@remixicon/react';
 import {
      BulkResultValidationWorkflowModal,
-     SingleTestCollectionWorkflowModal,
      SingleTestProcessingWorkflowModal,
      SingleTestResultValidationWorkflowModal,
-     SingleTestSampleValidationWorkflowModal
 } from '../../../../../../components/operations/Laboratory/SingleTestWorkflowModals'
+import CollectionSampleModal from '../../../../../../components/phelobotomy/CollectionSampleModal';
+import SampleAssessmentModal from '../../../../../../components/accessories/SampleAssessmentModal/SampleAssessmentModal';
 import SingleWorkFlowResultDeliveryModal from '../../../../../../components/operations/Laboratory/singleWorkFlowDeliveryResult';
 import BulkWorkFlowResultDeliveryModal from '../../../../../../components/operations/Laboratory/bulkWorkFlowDeliveryResult';
 
@@ -708,36 +708,16 @@ export default function ClientVisit() {
                </div>
                {selectedItem && patientid ? (
                     <>
-                         <SingleTestCollectionWorkflowModal
+                         <CollectionSampleModal
                               show={workflow === 'collection'}
-                              onHide={() => { setWorkflow(null); }}
-                              onSuccess={(shouldClose = true) => { loadTestTransactions(true); if (shouldClose) setWorkflow(null); }}
-                              test={{
-                                   billingid: selectedItem.billingid,
-                                   patientid,
-                                   ascensionid: selectedItem.ascension_id,
-                                   testid: selectedItem.testid,
-                                   testname: selectedItem.test_name,
-                                   ascensionDate: selectedItem.ascension_date,
-                                   collectionStartDate: selectedItem.collectionStartDate,
-                                   collectionEndDate: selectedItem.collectionEndDate,
-                              }}
+                              hide={() => { setWorkflow(null); loadTestTransactions(true); }}
+                              collection={{ billingid: selectedItem.billingid, patientid: Number(patientid) }}
+                              employeeid={Number(employeeid)}
                          />
-                         <SingleTestSampleValidationWorkflowModal
+                         <SampleAssessmentModal
                               show={workflow === 'sampleValidation'}
-                              onHide={() => { setWorkflow(null); }}
-                              onSuccess={(shouldClose = true) => { loadTestTransactions(true); if (shouldClose) setWorkflow(null); }}
-                              test={{
-                                   billingid: selectedItem.billingid,
-                                   patientid,
-                                   ascensionid: selectedItem.ascension_id,
-                                   testid: selectedItem.testid,
-                                   testname: selectedItem.test_name,
-                                   ascensionDate: selectedItem.ascension_date,
-                                   samplevalidatedon: selectedItem.samplevalidatedon,
-                                   collectionStartDate: selectedItem.collectionStartDate,
-                                   collectionEndDate: selectedItem.collectionEndDate,
-                              }}
+                              hide={() => { setWorkflow(null); loadTestTransactions(true); }}
+                              billingid={selectedItem.billingid}
                          />
                          <SingleTestProcessingWorkflowModal
                               show={workflow === 'processing'}

@@ -28,10 +28,10 @@ export default function PhelobotomySummaryAnalytics() {
     }, []);
 
     const iconStyles = [
-        { bg: "rgba(33,150,243,0.12)", color: "#2196f3" },
-        { bg: "rgba(76,175,80,0.12)", color: "#4caf50" },   
-        { bg: "rgba(244,67,54,0.12)", color: "#f44336" },   
-        { bg: "rgba(0,188,212,0.12)", color: "#00bcd4" }   
+        { bg: "#1d4ed8", color: "#60a5fa" },
+        { bg: "#166534", color: "#22c55e" },
+        { bg: "#b91c1c", color: "#f87171" },
+        { bg: "#0e7490", color: "#22d3ee" }
     ];
 
     const cards = [
@@ -79,10 +79,12 @@ export default function PhelobotomySummaryAnalytics() {
                 {cards.map((card, idx) => (
                     <div key={idx} className="col-12 col-md-6 col-lg-3">
                         <div 
-                            className="card h-100 border-0 "
+                            className="card h-100 border-0 shadow-sm"
                             style={{ 
-                                borderRadius: '5px',
-                                boxShadow: `0 2px 4px rgba(0,0,0,0.1)`
+                                borderRadius: '8px',
+                                background: card.style.bg,
+                                color: 'white',
+                                minHeight: 140
                             }}
                         >
                             <div className="card-body p-3">
@@ -90,21 +92,21 @@ export default function PhelobotomySummaryAnalytics() {
                                     <div 
                                         className="me-3 d-flex align-items-center justify-content-center"
                                         style={{
-                                            background: card.style.bg,
-                                            color: card.style.color,
-                                            borderRadius: '5px',
+                                            background: card.style.color,
+                                            color: 'white',
+                                            borderRadius: '6px',
                                             width: 40,
                                             height: 40
                                         }}
                                     >
                                         {card.icon}
                                     </div>
-                                    <h3 className="h6 mb-0">{card.label}</h3>
+                                    <h3 className="h6 mb-0" style={{ color: 'rgba(255,255,255,0.9)' }}>{card.label}</h3>
                                 </div>
                                 <div>
                                     <span 
                                         className="fw-bold"
-                                        style={{ fontSize: '2rem', color: '#222' }}
+                                        style={{ fontSize: '1.8rem', color: 'white' }}
                                     >
                                         {card.value}
                                     </span>

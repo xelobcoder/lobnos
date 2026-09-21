@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { Modal, Spinner } from 'react-bootstrap';
-import { RiCheckboxCircleLine, RiCloseLine, RiDropLine, RiFlaskLine, RiPlayCircleLine } from '@remixicon/react';
+import { RiCheckboxCircleLine, RiCloseLine, RiDropLine, RiFlaskLine, RiPlayCircleLine, RiPrinterLine } from '@remixicon/react';
+import Barcode from 'react-barcode';
 import { toast } from 'react-toastify';
 import { customFetch, customFetchMutation } from '../Auth/customFetch';
 
@@ -18,11 +19,24 @@ type CandidateGroup = {
 type PhysicalSample = {
      id: number;
      sample_uid: string;
+     barcode: string;
      status: string;
      sample_type_name?: string;
      container_type_name?: string;
      tests: Array<{ ascensionId: number; testName: string }>;
 };
+
+function SampleBarcode({ sample }: { sample: PhysicalSample }) {
+     const elementId = `sample-barcode-${sample.id}`;
+     const print = () => {
+          const markup = document.getElementById(elementId)?.innerHTML;
+          const printWindow = window.open('', '_blank', 'width=520,height=360');
+          if (!markup || !printWindow) return toast.error('Unable to open the barcode print window.');
+          printWindow.document.write(`<html><head><title>${sample.sample_uid}</title><style>body{font-family:sans-serif;text-align:center;margin:20px}.label{display:inline-block;border:1px solid #111;padding:12px}p{margin:4px 0;font-size:12px}@media print{button{display:none}}</style></head><body><div class="label">${markup}<p>${sample.sample_type_name || 'Specimen'} / ${sample.container_type_name || 'Container'}</p></div><script>window.onload=()=>{window.print();window.close()}<\/script></body></html>`);
+          printWindow.document.close();
+     };
+     return <div className="d-flex align-items-center gap-2 mt-3"><div id={elementId} className="bg-white border px-2 pt-2" style={{ borderRadius: 4 }}><Barcode value={sample.barcode || sample.sample_uid} width={1.4} height={42} fontSize={11} margin={0} /></div><button type="button" className="btn btn-sm btn-outline-secondary" title="Print sample barcode" onClick={print}><RiPrinterLine size={18} /></button></div>;
+}
 type Props = {
      show: boolean;
      hide: () => void;
@@ -132,7 +146,7 @@ export default function CollectionSampleModal({ show, hide, collection, removeCo
                <Modal.Header closeButton className="bg-light"><div><Modal.Title className="h5">Physical Sample Collection</Modal.Title><div className="text-muted">{fullname} ({patientid}) · Billing {billingid}</div></div></Modal.Header>
                <Modal.Body className="p-4">
                     {loading ? <div className="text-center py-5"><Spinner animation="border" /><p className="mt-3 mb-0">Loading sample requirements...</p></div> : <>
-                         {samples.length > 0 && <section className="mb-4"><h2 className="h6 mb-3">Physical samples</h2><div className="row g-3">{samples.map((sample) => <div className="col-lg-6" key={sample.id}><article className="border bg-light p-3 h-100" style={{ borderRadius: 6 }}><div className="d-flex justify-content-between gap-3"><div><strong className="fs-6">{sample.sample_uid}</strong><div className="text-muted">{sample.sample_type_name || 'Specimen'} · {sample.container_type_name || 'Container'}</div></div><span className="text-capitalize fw-semibold">{sample.status.replace(/_/g, ' ')}</span></div><div className="mt-3"><span className="text-muted">Linked tests:</span> {sample.tests.map((test) => test.testName).join(', ')}</div>{sample.status === 'collection_started' && <div className="d-flex flex-wrap gap-2 mt-3"><button type="button" className="btn btn-outline-primary" disabled={busyKey === `sample-${sample.id}`} onClick={() => addContainer(sample)}>+ Add another container</button><button type="button" className="btn btn-success d-flex align-items-center gap-2" disabled={busyKey === `sample-${sample.id}`} onClick={() => completeSample(sample)}><RiCheckboxCircleLine size={19} />{busyKey === `sample-${sample.id}` ? 'Working...' : 'Complete collection'}</button></div>}{['collected', 'received', 'accepted', 'rejected', 'recollection_required'].includes(sample.status) && <div className="alert alert-secondary mt-3 mb-0 py-2">Collection is complete. Reception and validation are handled in their dedicated workspaces.</div>}</article></div>)}</div></section>}
+                         {samples.length > 0 && <section className="mb-4"><h2 className="h6 mb-3">Physical samples</h2><div className="row g-3">{samples.map((sample) => <div className="col-lg-6" key={sample.id}><article className="border bg-light p-3 h-100" style={{ borderRadius: 6 }}><div className="d-flex justify-content-between gap-3"><div><strong className="fs-6">{sample.sample_uid}</strong><div className="text-muted">{sample.sample_type_name || 'Specimen'} · {sample.container_type_name || 'Container'}</div></div><span className="text-capitalize fw-semibold">{sample.status.replace(/_/g, ' ')}</span></div><div className="mt-3"><span className="text-muted">Linked tests:</span> {sample.tests.map((test) => test.testName).join(', ')}</div><SampleBarcode sample={sample} />{sample.status === 'collection_started' && <div className="d-flex flex-wrap gap-2 mt-3"><button type="button" className="btn btn-outline-primary" disabled={busyKey === `sample-${sample.id}`} onClick={() => addContainer(sample)}>+ Add another container</button><button type="button" className="btn btn-success d-flex align-items-center gap-2" disabled={busyKey === `sample-${sample.id}`} onClick={() => completeSample(sample)}><RiCheckboxCircleLine size={19} />{busyKey === `sample-${sample.id}` ? 'Working...' : 'Complete collection'}</button></div>}{['collected', 'received', 'accepted', 'rejected', 'recollection_required'].includes(sample.status) && <div className="alert alert-secondary mt-3 mb-0 py-2">Collection is complete. Reception and validation are handled in their dedicated workspaces.</div>}</article></div>)}</div></section>}
                          {groups.length > 0 ? <section><h2 className="h6 mb-3">Samples to collect</h2><div className="row g-3">{groups.map((group) => <div className="col-lg-6" key={group.requirementKey}><article className="border p-3 h-100" style={{ borderRadius: 6, borderLeft: '5px solid #176b4d' }}><div className="d-flex align-items-start gap-3 mb-3"><div className="bg-success-subtle text-success p-2" style={{ borderRadius: 6 }}><RiDropLine size={24} /></div><div><h3 className="h6 mb-1">{group.sampleType}</h3><div className="text-muted">{group.containerType}</div>{group.suggestedQuantity > 0 && <small className="text-muted">Suggested: {group.suggestedQuantity} {group.unit || ''}</small>}</div></div><div className="border-top border-bottom py-2 mb-3"><div className="small fw-semibold text-muted mb-2">Tests sharing this physical sample</div>{group.ascensions.map((test) => <label className="d-flex align-items-center gap-2 py-1" key={test.ascensionId}><input className="form-check-input" type="checkbox" checked={(selectedByGroup[group.requirementKey] || []).includes(test.ascensionId)} onChange={() => toggleAscension(group.requirementKey, test.ascensionId)} /><span>{test.testName}</span><small className="text-muted ms-auto">Ascension {test.ascensionId}</small></label>)}</div><div className="d-flex flex-wrap gap-2"><button type="button" className="btn btn-outline-primary d-flex align-items-center gap-2" disabled={busyKey === group.requirementKey} onClick={() => createSample(group, 'start')}><RiPlayCircleLine size={19} /> Start collection</button><button type="button" className="btn btn-success d-flex align-items-center gap-2" disabled={busyKey === group.requirementKey} onClick={() => createSample(group, 'collect')}><RiFlaskLine size={19} /> Collect now</button></div></article></div>)}</div></section> : samples.length === 0 ? <div className="text-center py-5"><RiCheckboxCircleLine size={48} className="text-success mb-2" /><h2 className="h5">All samples collected</h2></div> : null}
                     </>}
                </Modal.Body>

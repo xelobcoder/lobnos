@@ -17,9 +17,9 @@ export default function TestsCompletedVsInitiatedVrsUninitiated({ value = [] }) 
     }
 
     const cardColors = {
-        completed: { bg: '#ECF2FF', icon: '#3B82F6' },
-        initiated: { bg: '#E8FDF5', icon: '#10B981' },
-        uninitiated: { bg: '#FFF4ED', icon: '#F97316' },
+        completed: { bg: '#166534', icon: '#22c55e' },
+        initiated: { bg: '#1d4ed8', icon: '#60a5fa' },
+        uninitiated: { bg: '#c2410c', icon: '#fb923c' },
     };
 
     const AnalyticCard = ({
@@ -31,12 +31,13 @@ export default function TestsCompletedVsInitiatedVrsUninitiated({ value = [] }) 
         formatAsCurrency = false,
     }) => (
         <Card
-            className="h-100 border-0"
+            className="h-100 border-0 shadow-sm"
             style={{
                 background: bgColor,
-                borderRadius: '12px',
+                borderRadius: '8px',
                 transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-                height: '89px',
+                height: '140px',
+                color: 'white',
             }}
             onMouseEnter={e => {
                 e.currentTarget.style.transform = 'translateY(-3px)';
@@ -47,13 +48,15 @@ export default function TestsCompletedVsInitiatedVrsUninitiated({ value = [] }) 
                 e.currentTarget.style.boxShadow = 'none';
             }}
         >
-            <Card.Body className="p-2">
-                <div className="d-flex justify-content-between align-items-center mb-1">
+            <Card.Body className="p-3 d-flex flex-column">
+                <div className="d-flex align-items-center gap-2 mb-2">
                     <div
                         style={{
                             backgroundColor: iconColor,
                             padding: '5px',
-                            borderRadius: '8px',
+                            borderRadius: '6px',
+                            width: '34px',
+                            height: '34px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -61,11 +64,12 @@ export default function TestsCompletedVsInitiatedVrsUninitiated({ value = [] }) 
                     >
                         <Icon style={{ fontSize: '1rem', color: 'white' }} />
                     </div>
-                    <h6 className="mb-0 text-muted" style={{ fontSize: '0.75rem' }}>
+                    <h6 className="mb-0 fw-bold" style={{ fontSize: '0.95rem', color: 'rgba(255,255,255,0.9)' }}>
                         {title}
                     </h6>
                 </div>
-                <div style={{ fontSize: '1.25rem' }} className="fw-bold">
+                <hr className="my-2" style={{ borderColor: 'rgba(255,255,255,0.3)' }} />
+                <div style={{ fontSize: '1.8rem' }} className="fw-bold mt-auto">
                     {formatAsCurrency ? value : value}
                 </div>
             </Card.Body>
@@ -74,7 +78,7 @@ export default function TestsCompletedVsInitiatedVrsUninitiated({ value = [] }) 
 
     return (
         <Container fluid className="mb-3">
-            <h2 className="fs-4 fw-bold mb-3 pls-label bg-secondary-subtle p-2 br-5 col-4">
+            <h2 className="fs-6 fw-semibold mb-3">
                 Tests Summary
             </h2>
             <Row xs={1} md={3} className="g-3">

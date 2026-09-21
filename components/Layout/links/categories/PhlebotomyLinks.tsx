@@ -1,5 +1,5 @@
 import { Link } from '../types';
-import { RiSyringeLine, RiCloseCircleLine, RiBarChartBoxLine, RiHome2Line } from '@remixicon/react';
+import { RiSyringeLine, RiCloseCircleLine, RiBarChartBoxLine, RiHome2Line, RiFileListLine, RiQuestionAnswerLine, RiMailLine } from '@remixicon/react';
 
 export const PhlebotomyLinks: Link[] = [
     {
@@ -21,6 +21,21 @@ export const PhlebotomyLinks: Link[] = [
         title: "Sample Validations",
         link: "/operations/laboratory/sample/validation",
         icon: <RiSyringeLine />
+    },
+    {
+        title: "Sample Summary",
+        link: "/operations/phelobotomy/sample-summary",
+        icon: <RiFileListLine />
+    },
+    {
+        title: "Review Requests",
+        link: "/operations/phelobotomy/review-requests",
+        icon: <RiQuestionAnswerLine />
+    },
+    {
+        title: "Rejection Messages",
+        link: "/operations/phelobotomy/rejection-communications",
+        icon: <RiMailLine />
     },
     {
         title: "Rejected Samples",
