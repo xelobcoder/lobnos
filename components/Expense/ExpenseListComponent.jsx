@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { currencyFormatter, customFetch, customPost } from '../../components/Auth/customFetch';
+import { currencyFormatter, customFetch, customFetchMutation } from '../../components/Auth/customFetch';
 import { RiMoneyDollarCircleLine, RiCheckDoubleFill, RiCloseCircleFill, RiFileList2Line, RiInboxArchiveLine, RiCalendarEventLine, RiFilter3Line, RiRefreshLine, RiSearchLine, RiAddBoxLine } from '@remixicon/react';
 import PrimeTable from '../accessories/Datatables/PrimeTable';
 import { Button, ButtonGroup, Modal } from 'react-bootstrap';
@@ -208,17 +208,39 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 				information: status === 'approved' ? 'Approved by admin' : individualRejectReasons[expenseId]
 			}));
 
-			// Send single bulk request
-			const response = await customPost("expense/pending/decision", "POST", bulkPayload);
+			const response = await customFetchMutation("expense/pending/decision", "POST", bulkPayload);
 
-			// Process response
-			if (response && response.results && Array.isArray(response.results)) {
+			if (!response || response.success === false || response.status === 'error') {
+				throw new Error(response?.message || response?.error?.message || 'Expense decisions were not processed');
+			}
+
+			let message = '';
+			let processedSuccessfully = false;
+
+			// Current workflow response: { success, count, decisions, invoices, invoiceErrors }
+			if (response.success === true && Array.isArray(response.decisions)) {
+				processedSuccessfully = response.decisions.length === decisionsToSubmit.length;
+				const approvedCount = response.decisions.filter((decision) => decision.status === 'approved').length;
+				const rejectedCount = response.decisions.filter((decision) => decision.status === 'rejected').length;
+				const parts = [];
+				if (approvedCount) parts.push(`${approvedCount} approved`);
+				if (rejectedCount) parts.push(`${rejectedCount} rejected`);
+				message = `${parts.join(', ') || `${response.count || response.decisions.length} processed`} successfully.`;
+
+				if (Array.isArray(response.invoices) && response.invoices.length > 0) {
+					message += ` ${response.invoices.length} invoice(s) created.`;
+				}
+				if (Array.isArray(response.invoiceErrors) && response.invoiceErrors.length > 0) {
+					message += ` Approval succeeded, but ${response.invoiceErrors.length} invoice operation(s) require retry.`;
+				}
+			} else if (response.results && Array.isArray(response.results)) {
+				// Legacy grouped response retained for compatibility with older servers.
 				const successfulResults = response.results.filter(result => result.success === true);
 				const failedResults = response.results.filter(result => result.success !== true);
 
-				let message = '';
 				if (successfulResults.length > 0) {
 					const totalProcessed = successfulResults.reduce((sum, result) => sum + result.count, 0);
+					processedSuccessfully = totalProcessed === decisionsToSubmit.length && failedResults.length === 0;
 					message += `${totalProcessed} expense(s) processed successfully`;
 
 					// Add invoice information if available
@@ -232,21 +254,22 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 				if (failedResults.length > 0) {
 					message += ` ${failedResults.length} operation(s) failed.`;
 				}
-
-				alert(message);
 			} else {
-				alert('Failed to process expenses');
+				throw new Error(response.message || 'Unexpected approval response from the server');
 			}
 
-			setSelectedExpenses([]);
-			setShowBulkModal(false);
-			setBulkDecisions({});
-			setIndividualRejectReasons({});
-			setIndividualSelectedReasons({});
-			handleFilters(); // Refresh the list
+			alert(message);
+			if (processedSuccessfully) {
+				setSelectedExpenses([]);
+				setShowBulkModal(false);
+				setBulkDecisions({});
+				setIndividualRejectReasons({});
+				setIndividualSelectedReasons({});
+				handleFilters();
+			}
 		} catch (error) {
 			console.error('Error processing bulk decisions:', error);
-			alert('Failed to process some expenses');
+			alert(error?.message || 'Failed to process expenses');
 		}
 	};
 

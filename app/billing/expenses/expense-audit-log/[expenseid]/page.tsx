@@ -40,6 +40,12 @@ interface LogEntry {
   username: string;
 }
 
+interface WorkflowHistory {
+  expense: any;
+  actions: Array<{ id: number; action: string; from_status: string; to_status: string; actor_name?: string; actor_employeeid: number; actor_role?: string; amount: number; reason?: string; created_at: string }>;
+  payments: Array<{ id: number; amount: number; payment_date: string; method: string; payment_reference?: string; payment_account_name?: string; recorded_by_name?: string }>;
+}
+
 const operationStyles = {
   INSERT: {
     bg: 'var(--success-bg)',
@@ -63,6 +69,7 @@ const operationStyles = {
 
 const AuditLogDisplay: React.FC = () => {
   const [auditLogs, setAuditLogs] = useState<LogEntry[]>([]);
+  const [workflowHistory, setWorkflowHistory] = useState<WorkflowHistory | null>(null);
   const [expandedLog, setExpandedLog] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -74,12 +81,16 @@ const AuditLogDisplay: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await customFetch(`expenses/audit/${expenseid}`);
+      const [response, workflowResponse] = await Promise.all([
+        customFetch(`expenses/audit/${expenseid}`),
+        customFetch(`expenses/${expenseid}/workflow-history`),
+      ]);
       if (response && Array.isArray(response)) {
         setAuditLogs(response);
       } else {
         throw new Error('Invalid response format');
       }
+      if (workflowResponse?.success) setWorkflowHistory(workflowResponse.data);
     } catch (err) {
       setError('Failed to load audit logs. Please try again.');
       console.error('Error fetching audit logs:', err);
@@ -180,6 +191,40 @@ const AuditLogDisplay: React.FC = () => {
           Refresh
         </button>
       </div>
+
+      {workflowHistory && (
+        <section className="card border-0 shadow-sm mb-4">
+          <div className="card-body">
+            <div className="d-flex flex-wrap justify-content-between gap-2 mb-3">
+              <div><h2 className="h5 mb-1">Workflow Timeline</h2><p className="text-muted mb-0">Authenticated approvals, rejections, and payments</p></div>
+              <span className="text-capitalize fw-semibold">Current state: {String(workflowHistory.expense.workflow_status || 'pending_approval').replace(/_/g, ' ')}</span>
+            </div>
+            <div className="table-responsive">
+              <table className="table align-middle mb-0">
+                <thead><tr><th>Date</th><th>Action</th><th>Transition</th><th>Actor</th><th>Amount</th><th>Reason / Source</th></tr></thead>
+                <tbody>
+                  {workflowHistory.actions.map((action) => (
+                    <tr key={`action-${action.id}`}>
+                      <td>{formatDate(action.created_at)}</td>
+                      <td className="text-capitalize fw-semibold">{action.action.replace(/_/g, ' ')}</td>
+                      <td className="text-capitalize">{action.from_status.replace(/_/g, ' ')} → {action.to_status.replace(/_/g, ' ')}</td>
+                      <td>{action.actor_name || `Employee ${action.actor_employeeid}`}<small className="text-muted d-block text-capitalize">{action.actor_role || ''}</small></td>
+                      <td>{Number(action.amount || 0).toLocaleString('en-GH', { style: 'currency', currency: 'GHS' })}</td>
+                      <td>{action.reason || '-'}</td>
+                    </tr>
+                  ))}
+                  {workflowHistory.payments.map((payment) => (
+                    <tr key={`payment-${payment.id}`}>
+                      <td>{formatDate(payment.payment_date)}</td><td className="fw-semibold">Payment</td><td>Payment recorded</td><td>{payment.recorded_by_name || 'Recorded user'}</td><td>{Number(payment.amount).toLocaleString('en-GH', { style: 'currency', currency: 'GHS' })}</td><td>{payment.payment_account_name || payment.method}{payment.payment_reference ? ` · ${payment.payment_reference}` : ''}</td>
+                    </tr>
+                  ))}
+                  {!workflowHistory.actions.length && !workflowHistory.payments.length && <tr><td colSpan={6} className="text-muted text-center py-4">No workflow events recorded yet.</td></tr>}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      )}
 
       {filteredLogs.length === 0 ? (
         <motion.div

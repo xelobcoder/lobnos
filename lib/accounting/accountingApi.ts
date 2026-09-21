@@ -378,6 +378,16 @@ export const accountingApi = {
           return customPost(`/api/v1/${BASE}/authority/delegations`, "POST", payload);
      },
 
+     reviseDelegation(id: number, payload: {
+          minAmount?: number | null;
+          maxAmount?: number | null;
+          branchid?: number | null;
+          expiresAt?: string | null;
+          notes?: string | null;
+     }) {
+          return customPost(`/api/v1/${BASE}/authority/delegations/${id}`, "PUT", payload);
+     },
+
      revokeDelegation(id: number) {
           return customPost(`/api/v1/${BASE}/authority/delegations/${id}`, "DELETE", {});
      },

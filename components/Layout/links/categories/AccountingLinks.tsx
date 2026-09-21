@@ -25,7 +25,8 @@ import {
      RiPulseLine,
      RiCalendarCheckLine,
      RiLockLine,
-     RiArchiveLine
+     RiArchiveLine,
+     RiBankCardLine
 } from '@remixicon/react';
 
 export const AccountingLinks: Link[] = [
@@ -73,7 +74,8 @@ export const AccountingLinks: Link[] = [
                { title: "AP Reconciliation", link: "/accounting/reconciliation?ledger=AP", icon: <RiUserShared2Line size={18} /> },
                { title: "Inventory Reconciliation", link: "/accounting/inventory/valuation", icon: <RiArchiveDrawerLine size={18} /> },
                { title: "Bank Reconciliation", link: "/accounting/bank-reconciliation", icon: <RiBankLine size={18} /> },
-               { title: "Bank Accounts", link: "/accounting/bank-accounts", icon: <RiBankLine size={18} /> }
+               { title: "Bank Accounts", link: "/accounting/bank-accounts", icon: <RiBankLine size={18} /> },
+               { title: "Payment Accounts", link: "/accounting/payment-accounts", icon: <RiBankCardLine size={18} /> }
           ]
      },
      {
@@ -114,6 +116,7 @@ export const AccountingLinks: Link[] = [
           children: [
                { title: "Posting Exceptions", link: "/accounting/posting-health", icon: <RiPulseLine size={18} /> },
                { title: "Delegated Authority", link: "/accounting/delegations", icon: <RiShieldCheckLine size={18} /> },
+               { title: "Expense Controls", link: "/accounting/expense-controls", icon: <RiShieldCheckLine size={18} /> },
                { title: "Audit Trail", link: "/accounting/general-ledger", icon: <RiFileList3Line size={18} /> }
           ]
      }

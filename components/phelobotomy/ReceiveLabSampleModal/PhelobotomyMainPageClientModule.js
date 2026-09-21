@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import ListTable from "../ListTable";
 import CollectionSampleModal from "../CollectionSampleModal";
+import ReceiveLabSampleModal from "./ReceiveLabSampleModal";
 import { useApplicationSettings } from "../../Auth/useApplicationContext";
 import {
 	RiHealthBookLine,
@@ -92,7 +93,10 @@ export default function PhelobotomyMainPageClientModule({ data ,filter}) {
 		setCurrentIndex(0);
 	};
 	const closeModal = () => setOpenModal(false);
-	const receiveSample = () => setOpenModal(true);
+	const receiveSample = (item) => {
+		setCollection({ billingid: item.billingid, patientid: item.patientid, fullname: item.fullname });
+		setOpenModal(true);
+	};
 
 	const removeCollectedSample = async (billingid) => {
 		if (!billingid || isNaN(billingid)) return;
@@ -151,6 +155,7 @@ export default function PhelobotomyMainPageClientModule({ data ,filter}) {
 				filter={filter}
 				handleCollectSample={handleCollectSample}
 				setSelectedItems={setSelectedItems}
+				handleReceiveSample={receiveSample}
 				selectedItems={selectedItems}
 				onToggleSelection={handleToggleSelection}
 			/>	
@@ -165,6 +170,7 @@ export default function PhelobotomyMainPageClientModule({ data ,filter}) {
 				currentIndex={currentIndex}
 				onNextItem={handleNextItem}
 			/>
+			<ReceiveLabSampleModal show={openModal} hide={closeModal} collection={collection} />
 		</div>
 	);
 }

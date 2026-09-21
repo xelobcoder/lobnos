@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { currencyFormatter, customFetch, customPost } from '../../components/Auth/customFetch';
+import Link from 'next/link';
+import { currencyFormatter, customFetch, customFetchMutation, customPost } from '../../components/Auth/customFetch';
 import { RiMoneyDollarCircleLine, RiFileList2Line, RiInboxArchiveLine, RiCalendarEventLine, RiFilter3Line, RiRefreshLine, RiSearchLine, RiEyeLine, RiMoneyDollarBoxLine } from '@remixicon/react';
 import PrimeTable from '../accessories/Datatables/PrimeTable';
 import { Offcanvas, Button, Modal, ButtonGroup } from 'react-bootstrap';
@@ -24,11 +25,14 @@ const InvoiceList = ({ branchid, employeeid }) => {
      const [invoicePayments, setInvoicePayments] = useState([]);
      const [loadingPayments, setLoadingPayments] = useState(false);
      const [showPaymentModal, setShowPaymentModal] = useState(false);
+     const [paymentAccounts, setPaymentAccounts] = useState([]);
+     const [paymentFeedback, setPaymentFeedback] = useState(null);
      const [paymentData, setPaymentData] = useState({
           payment_date: '',
           amount: '',
           method: '',
-          status: 'Paid'
+          payment_account_id: '',
+          payment_reference: ''
      });
      const [submittingPayment, setSubmittingPayment] = useState(false);
      const [showReversePaymentModal, setShowReversePaymentModal] = useState(false);
@@ -135,11 +139,15 @@ const InvoiceList = ({ branchid, employeeid }) => {
 
      const handleMakePayment = async (invoice) => {
           setSelectedInvoice(invoice);
+          setPaymentFeedback(null);
           setLoadingPayments(true);
 
           try {
-               // Check if payments already exist for this invoice
-               const paymentsResponse = await customFetch(`expenses/payments?employeeid=${employeeid}&branchid=${branchid}&invoice_id=${invoice.id}`);
+               const [paymentsResponse, accountsResponse] = await Promise.all([
+                    customFetch(`expenses/payments?employeeid=${employeeid}&branchid=${branchid}&invoice_id=${invoice.id}`),
+                    customFetch('expenses/payment-accounts?capability=pay'),
+               ]);
+               setPaymentAccounts(accountsResponse?.success ? accountsResponse.data || [] : []);
                let payments = [];
                if (paymentsResponse && paymentsResponse.data && Array.isArray(paymentsResponse.data)) {
                     payments = paymentsResponse.data;
@@ -151,22 +159,22 @@ const InvoiceList = ({ branchid, employeeid }) => {
                     setInvoicePayments([]);
                }
 
-               // Initialize payment data only if no payments exist
-               if (payments.length === 0) {
-                    setPaymentData({
-                         payment_date: new Date().toISOString().slice(0, 16), // Current date/time
-                         amount: invoice.total_amount.toString(),
-                         method: '',
-                         status: 'Paid'
-                    });
-               }
+               const totalPaid = payments.filter((payment) => payment.status === 'Paid' && !payment.is_reversed).reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+               setPaymentData({
+                    payment_date: new Date().toISOString().slice(0, 16),
+                    amount: Math.max(0, Number(invoice.total_amount || 0) - totalPaid).toFixed(2),
+                    method: '',
+                    payment_account_id: '',
+                    payment_reference: ''
+               });
           } catch (error) {
                setInvoicePayments([]);
                setPaymentData({
                     payment_date: new Date().toISOString().slice(0, 16),
                     amount: invoice.total_amount.toString(),
                     method: '',
-                    status: 'Paid'
+                    payment_account_id: '',
+                    payment_reference: ''
                });
           } finally {
                setLoadingPayments(false);
@@ -188,28 +196,31 @@ const InvoiceList = ({ branchid, employeeid }) => {
                     payment_date: paymentData.payment_date,
                     amount: parseFloat(paymentData.amount),
                     method: paymentData.method,
-                    status: paymentData.status
+                    payment_account_id: Number(paymentData.payment_account_id),
+                    payment_reference: paymentData.payment_reference,
+                    idempotency_key: crypto.randomUUID()
                };
 
-               const response = await customPost(`expenses/payment?employeeid=${employeeid}&branchid=${branchid}`, "POST", payload);
+               const response = await customFetchMutation('expenses/payment', 'POST', payload);
 
-               if (response && response.status && response.status.paymentId) {
-                    alert('Payment submitted successfully!');
+               if (response?.success && response?.data?.paymentId) {
+                    setPaymentFeedback({ type: 'success', message: 'Payment submitted successfully.' });
                     setShowPaymentModal(false);
                     setPaymentData({
                          payment_date: '',
                          amount: '',
                          method: '',
-                         status: 'Paid'
+                         payment_account_id: '',
+                         payment_reference: ''
                     });
                     setSelectedInvoice(null);
                     getInvoiceData();
                } else {
-                    throw new Error('Payment submission failed');
+                    throw new Error(response?.message || response?.error?.message || 'Payment submission failed');
                }
           } catch (error) {
                console.error('Error submitting payment:', error);
-               alert('Failed to submit payment. Please try again.');
+               setPaymentFeedback({ type: 'danger', message: error?.message || 'Failed to submit payment. Please try again.' });
           } finally {
                setSubmittingPayment(false);
           }
@@ -217,6 +228,13 @@ const InvoiceList = ({ branchid, employeeid }) => {
 
      const handlePaymentInputChange = (e) => {
           const { name, value } = e.target;
+          setPaymentFeedback(null);
+          if (name === 'payment_account_id') {
+               const account = paymentAccounts.find((candidate) => Number(candidate.id) === Number(value));
+               const method = account?.account_type === 'cash' ? 'cash' : account?.account_type === 'bank' ? 'bank_transfer' : account?.account_type === 'mobile_money' ? 'mobile_money' : 'other';
+               setPaymentData(prev => ({ ...prev, payment_account_id: value, method }));
+               return;
+          }
           setPaymentData(prev => ({ ...prev, [name]: value }));
      };
 
@@ -736,11 +754,12 @@ const InvoiceList = ({ branchid, employeeid }) => {
                </Modal>
 
                {/* Payment Modal */}
-               <Modal show={showPaymentModal} onHide={() => { setShowPaymentModal(false); setSelectedInvoice(null); setInvoicePayments([]); }} size="md">
+               <Modal show={showPaymentModal} onHide={() => { setShowPaymentModal(false); setSelectedInvoice(null); setInvoicePayments([]); setPaymentFeedback(null); }} size="md" animation={false}>
                     <Modal.Header closeButton>
                          <Modal.Title>Make Payment</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
+                         {paymentFeedback && <div className={`alert alert-${paymentFeedback.type}`} role="alert">{paymentFeedback.message}</div>}
                          {selectedInvoice && (
                               <div>
                                    <div className="mb-3">
@@ -812,6 +831,11 @@ const InvoiceList = ({ branchid, employeeid }) => {
                                                        </tbody>
                                                   </table>
                                              </div>
+                                             {Number(paymentData.amount || 0) > 0 && (
+                                                  <button type="button" className="btn btn-outline-success mt-3" onClick={() => setInvoicePayments([])}>
+                                                       Record another payment ({currencyFormatter.format(Number(paymentData.amount))} outstanding)
+                                                  </button>
+                                             )}
                                         </div>
                                    ) : (
                                         // Show payment form if no payments exist
@@ -827,57 +851,57 @@ const InvoiceList = ({ branchid, employeeid }) => {
                                                        required
                                                   />
                                              </div>
+                                             {paymentAccounts.length === 0 && <div className="alert alert-warning"><strong>You do not have payment access to any active payment account.</strong><div className="mt-2">An administrator must assign this user <strong>Can pay</strong> on a payment source, and grant <strong>Pay expenses</strong> authority with an amount ceiling.</div><div className="d-flex flex-wrap gap-2 mt-3"><Link className="btn btn-sm btn-outline-primary" href="/accounting/payment-accounts">Manage payment accounts</Link><Link className="btn btn-sm btn-outline-secondary" href="/accounting/delegations">Manage delegated authority</Link></div></div>}
                                              <div className="mb-3">
-                                                  <label className="form-label">Amount (GHC)</label>
+                                                  <label className="form-label">Amount (GHS)</label>
                                                   <input
                                                        type="number"
                                                        name="amount"
                                                        className="form-control"
                                                        value={paymentData.amount}
-                                                       readOnly
+                                                       min="0.01"
+                                                       step="0.01"
+                                                       onChange={handlePaymentInputChange}
+                                                       required
                                                   />
                                              </div>
                                              <div className="mb-3">
-                                                  <label className="form-label">Payment Method</label>
+                                                  <label className="form-label">Payment Source</label>
                                                   <select
-                                                       name="method"
+                                                       name="payment_account_id"
                                                        className="form-select"
-                                                       value={paymentData.method}
+                                                       value={paymentData.payment_account_id}
                                                        onChange={handlePaymentInputChange}
                                                        required
                                                   >
-                                                       <option value="">Select payment method</option>
-                                                       <option value="Cash">Cash</option>
-                                                       <option value="Bank Transfer">Bank Transfer</option>
-                                                       <option value="Credit Card">Credit Card</option>
-                                                       <option value="Debit Card">Debit Card</option>
-                                                       <option value="Cheque">Cheque</option>
-                                                       <option value="Mobile Money">Mobile Money</option>
+                                                       <option value="">Select authorized account</option>
+                                                       {paymentAccounts.map((account) => <option key={account.id} value={account.id}>{account.name} ({account.account_type.replace('_', ' ')})</option>)}
                                                   </select>
                                              </div>
                                              <div className="mb-3">
-                                                  <label className="form-label">Status</label>
+                                                  <label className="form-label">Payment Method</label>
                                                   <input
                                                        type="text"
                                                        className="form-control"
-                                                       value={paymentData.status}
+                                                       value={paymentData.method ? paymentData.method.replace('_', ' ') : ''}
                                                        readOnly
                                                   />
                                              </div>
+                                             <div className="mb-3"><label className="form-label">Payment Reference</label><input type="text" name="payment_reference" className="form-control" value={paymentData.payment_reference} onChange={handlePaymentInputChange} placeholder="Transaction, cheque, or receipt reference" /></div>
                                         </form>
                                    )}
                               </div>
                          )}
                     </Modal.Body>
                     <Modal.Footer>
-                         <Button variant="secondary" onClick={() => { setShowPaymentModal(false); setSelectedInvoice(null); setInvoicePayments([]); }}>
+                         <Button variant="secondary" onClick={() => { setShowPaymentModal(false); setSelectedInvoice(null); setInvoicePayments([]); setPaymentFeedback(null); }}>
                               Close
                          </Button>
                          {invoicePayments.length === 0 && !loadingPayments && (
                               <Button
                                    variant="success"
                                    onClick={handlePaymentSubmit}
-                                   disabled={submittingPayment}
+                                   disabled={submittingPayment || !paymentData.payment_account_id || !paymentData.method || Number(paymentData.amount) <= 0}
                               >
                                    {submittingPayment ? (
                                         <>

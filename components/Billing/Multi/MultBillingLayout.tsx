@@ -356,6 +356,18 @@ function MultiBillingLayoutContent() {
     const [deliveryMode, setDeliveryMode] = useState<string>('whatsapp');
     const [deliveryDetail, setDeliveryDetail] = useState<string>('');
     const [pendingSubmit, setPendingSubmit] = useState<null | { billingdata: MultiBillingData; writeOffConfirmed: boolean }>(null);
+    const [showSampleLocationModal, setShowSampleLocationModal] = useState(false);
+    const [sampleLocationChoice, setSampleLocationChoice] = useState<'in-center' | 'home'>('in-center');
+    const [homeCollectionLocation, setHomeCollectionLocation] = useState<LocationValue>({
+        address: '',
+        latitude: 0,
+        longitude: 0,
+    });
+    const [hasPickedHomeCollectionLocation, setHasPickedHomeCollectionLocation] = useState(false);
+    const [homeCollectionDate, setHomeCollectionDate] = useState('');
+    const [homeCollectionTime, setHomeCollectionTime] = useState('');
+    const [homeCollectionError, setHomeCollectionError] = useState('');
+    const [submittingHomeCollection, setSubmittingHomeCollection] = useState(false);
 
     // Per-test delivery preferences
     const [testDeliveryPreferences, setTestDeliveryPreferences] = useState<Array<{
@@ -1057,7 +1069,7 @@ function MultiBillingLayoutContent() {
                     setShowSampleLocationModal(false);
                 }}
                 backdrop="static"
-                centered
+                animation={false}
             >
                 <Modal.Header closeButton>
                     <Modal.Title className="fs-5 fw-semibold text-body-emphasis">Sample Collection Location</Modal.Title>

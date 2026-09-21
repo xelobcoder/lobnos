@@ -6,7 +6,7 @@ import { RiInboxLine, RiTestTubeLine } from '@remixicon/react';
 import { useApplication } from "../Auth/useApplicationContext";
 import { customPost } from "../Auth/customFetch";
 
-export default function ListTable({ data, handleCollectSample, filter, selectedItems = [], setSelectedItems, onToggleSelection }) {
+export default function ListTable({ data, handleCollectSample, handleReceiveSample, filter, selectedItems = [], setSelectedItems, onToggleSelection }) {
 	const isCompleteFlowDisabled = !(useApplication()?.settings?.completeFlow);
 	const employeeid = useApplication()?.user?.employeeid;
 	const branchid = useApplication()?.branchid;
@@ -138,6 +138,7 @@ export default function ListTable({ data, handleCollectSample, filter, selectedI
 						</button>
 					)}
 					{!isCompleteFlowDisabled && (
+						<>
 						<button
 							className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
 							onClick={() => {
@@ -149,8 +150,10 @@ export default function ListTable({ data, handleCollectSample, filter, selectedI
 							}}
 						>
 							<RiTestTubeLine size={16} />
-							<span>Pull Sample</span>
+							<span>Collect Samples</span>
 						</button>
+						<button className="btn btn-outline-primary btn-sm d-flex align-items-center gap-1" onClick={() => handleReceiveSample(row.original)}><RiInboxLine size={16} /><span>Receive Samples</span></button>
+						</>
 					)}
 				</div>
 			),
