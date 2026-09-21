@@ -1,14 +1,15 @@
 "use client"
 import { useEffect, useState } from "react";
 import { customFetch } from "../Auth/customFetch";
-import { 
-    RiTimeLine, 
-    RiCheckDoubleLine, 
-    RiCloseCircleLine, 
-    RiRefreshLine 
+import {
+    RiTimeLine,
+    RiCheckDoubleLine,
+    RiCloseCircleLine,
+    RiRefreshLine,
+    RiTestTubeLine
 } from '@remixicon/react';
 
-const defaultValues = { rejected: null, orders: null, completed: null, pending: null };
+const defaultValues = { rejected: 0, orders: 0, completed: 0, collected: 0, pending: 0, allTimePending: 0 };
 
 export default function PhelobotomySummaryAnalytics() {
     const [data, setData] = useState(defaultValues);
@@ -27,90 +28,73 @@ export default function PhelobotomySummaryAnalytics() {
         return () => { isMounted = false; };
     }, []);
 
-    const iconStyles = [
-        { bg: "#1d4ed8", color: "#60a5fa" },
-        { bg: "#166534", color: "#22c55e" },
-        { bg: "#b91c1c", color: "#f87171" },
-        { bg: "#0e7490", color: "#22d3ee" }
-    ];
-
     const cards = [
         {
-            label: "Pending Cases (24h)",
+            label: "Pending Requests (24h)",
             value: data.pending || 0,
-            icon: <RiTimeLine size={28} />,
-            style: iconStyles[0]
+            subtitle: "Requests awaiting collection",
+            icon: RiTimeLine,
+            variant: "warning"
         },
         {
-            label: "Collected Cases (24h)",
-            value: data.completed || 0,
-            icon: <RiCheckDoubleLine size={28} />,
-            style: iconStyles[1]
+            label: "Collected Containers (24h)",
+            value: data.collected || 0,
+            subtitle: "Containers collected",
+            icon: RiCheckDoubleLine,
+            variant: "success"
         },
         {
-            label: "Rejected Cases (24h)",
+            label: "Rejected Containers (24h)",
             value: data.rejected || 0,
-            icon: <RiCloseCircleLine size={28} />,
-            style: iconStyles[2]
+            subtitle: "Containers rejected",
+            icon: RiCloseCircleLine,
+            variant: "danger"
         },
         {
-            label: "Redrawn Completed (24h)",
+            label: "Review-Upheld Recollections (24h)",
+            value: data.orders || 0,
+            subtitle: "Recollections upheld after review",
+            icon: RiRefreshLine,
+            variant: "info"
+        },
+        {
+            label: "Redraws Collected (24h)",
             value: data.completed || 0,
-            icon: <RiRefreshLine size={28} />,
-            style: iconStyles[3]
+            subtitle: "Redraw containers collected",
+            icon: RiTestTubeLine,
+            variant: "primary"
         },
         {
-            label:"All Time Pending",
+            label: "All-Time Pending Requests",
             value: data.allTimePending || 0,
-            icon: <RiTimeLine size={28} />,
-            style: iconStyles[0]
+            subtitle: "Requests awaiting collection",
+            icon: RiTimeLine,
+            variant: "secondary"
         }
     ];
 
     return (
-        <div className="py-3">
-            <div className="mb-4 pb-2 border-bottom">
-                <h4 className="mb-2 fw-bold" style={{ color: '#1E88E5' }}>Phelobotomy Summary</h4>
-                <p className="text-muted mb-0" style={{ fontSize: '0.9rem' }}>
-                    Overview of phelobotomy sample collection, completion, and rejection statistics for the last 24 hours.
+        <div className="p-3 border rounded-3 bg-body">
+            <div className="mb-3">
+                <h5 className="mb-1 fw-bold text-body d-flex align-items-center gap-2">
+                    <RiTestTubeLine className="text-primary" size={24} />
+                    Phelobotomy Summary
+                </h5>
+                <p className="text-muted small mb-0">
+                    Collection activity and pending requests for the last 24 hours.
                 </p>
             </div>
             <div className="row g-3">
                 {cards.map((card, idx) => (
                     <div key={idx} className="col-12 col-md-6 col-lg-3">
-                        <div 
-                            className="card h-100 border-0 shadow-sm"
-                            style={{ 
-                                borderRadius: '8px',
-                                background: card.style.bg,
-                                color: 'white',
-                                minHeight: 140
-                            }}
-                        >
+                        <div className={`card border-0 shadow-sm bg-${card.variant} bg-gradient text-white rounded-3 h-100`}>
                             <div className="card-body p-3">
-                                <div className="d-flex align-items-center mb-2">
-                                    <div 
-                                        className="me-3 d-flex align-items-center justify-content-center"
-                                        style={{
-                                            background: card.style.color,
-                                            color: 'white',
-                                            borderRadius: '6px',
-                                            width: 40,
-                                            height: 40
-                                        }}
-                                    >
-                                        {card.icon}
-                                    </div>
-                                    <h3 className="h6 mb-0" style={{ color: 'rgba(255,255,255,0.9)' }}>{card.label}</h3>
+                                <div className="d-flex justify-content-between align-items-center mb-1">
+                                    <span className="text-xs text-uppercase fw-semibold opacity-75">{card.label}</span>
+                                    <card.icon size={22} className="opacity-75" />
                                 </div>
-                                <div>
-                                    <span 
-                                        className="fw-bold"
-                                        style={{ fontSize: '1.8rem', color: 'white' }}
-                                    >
-                                        {card.value}
-                                    </span>
-                                </div>
+                                <h3 className="fw-bold mb-0">{Number(card.value).toLocaleString()}</h3>
+                                <span className="text-xs opacity-75">{card.subtitle}</span>
                             </div>
                         </div>
                     </div>
