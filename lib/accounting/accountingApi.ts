@@ -231,6 +231,34 @@ export interface OutboxRow {
      processed_at: string | null;
 }
 
+export type FinancialDayCloseStatus = 'draft' | 'accountant_submitted' | 'returned_to_accountant' | 'manager_approved' | 'finalized';
+
+export interface FinancialDayClose {
+     id: number;
+     branchid: number;
+     financial_date: string;
+     timezone: string;
+     status: FinancialDayCloseStatus;
+     workflow_version: number;
+     accountant_employeeid: number | null;
+     manager_employeeid: number | null;
+     owner_employeeid: number | null;
+     accountant_submitted_at: string | null;
+     manager_decided_at: string | null;
+     finalized_at: string | null;
+     locked_at: string | null;
+     return_reason: string | null;
+     latest_snapshot_hash: string | null;
+     finalized_hash: string | null;
+}
+
+export interface FinancialDayCloseDetail {
+     closure: FinancialDayClose;
+     actions: any[];
+     snapshots: any[];
+     lockedRecords: number;
+}
+
 const BASE = "accounting";
 
 function query(params: Record<string, string | number | undefined | null>): string {
@@ -440,6 +468,26 @@ export const accountingApi = {
 
      periods(from?: string, to?: string): Promise<ApiResponse<AccountingPeriod[]>> {
           return customFetch(`${BASE}/periods${query({ from, to })}`);
+     },
+
+     dailyCloses(filters: { branchId?: number; from?: string; to?: string; status?: FinancialDayCloseStatus; page?: number; count?: number }): Promise<ApiResponse<Paginated<FinancialDayClose>>> {
+          return customFetch(`${BASE}/daily-closes${query(filters)}`);
+     },
+
+     dailyClose(id: number): Promise<ApiResponse<FinancialDayCloseDetail>> {
+          return customFetch(`${BASE}/daily-closes/${id}`);
+     },
+
+     submitDailyClose(financialDate: string, payload: { branchId: number; pin: string; timezone: string; notes?: string; expectedVersion?: number }) {
+          return customPost(`/api/v1/${BASE}/daily-closes/${financialDate}/accountant-submit`, 'POST', payload);
+     },
+
+     decideDailyClose(id: number, payload: { decision: 'approve' | 'reject'; pin: string; reason?: string; notes?: string; expectedVersion: number }) {
+          return customPost(`/api/v1/${BASE}/daily-closes/${id}/manager-decision`, 'POST', payload);
+     },
+
+     finalizeDailyClose(id: number, payload: { pin: string; notes?: string; expectedVersion: number }) {
+          return customPost(`/api/v1/${BASE}/daily-closes/${id}/finalize`, 'POST', payload);
      },
 
      periodTotals(periodCode: string): Promise<ApiResponse<{ debits: number; credits: number; entries: number }>> {

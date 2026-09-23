@@ -230,8 +230,7 @@ export const validatePin = async (employeeid, pin) => {
 		}
 
 		if (pin && isNaN(pin)) return "pin must be full numbers";
-		const url = `prime/validate-user-pin?employeeid=${employeeid}&&pin=${encodeURIComponent(pin)}`;
-		const response = await customFetch(url);
+		const response = await customFetchMutation('prime/validate-user-pin', 'POST', { pin: String(pin), purpose: 'identity_confirmation' });
 		const { status, message } = response;
 		if (status && status == "error") {
 			alert(message || "INVALID PIN");

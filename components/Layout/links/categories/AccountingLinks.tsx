@@ -104,6 +104,7 @@ export const AccountingLinks: Link[] = [
           link: "/accounting/periods",
           icon: <RiCalendarCheckLine size={20} />,
           children: [
+               { title: "Daily Financial Close", link: "/accounting/daily-close", icon: <RiLockLine size={18} /> },
                { title: "Accounting Periods", link: "/accounting/periods", icon: <RiCalendarCheckLine size={18} /> },
                { title: "Year-End Close", link: "/accounting/year-end-close", icon: <RiLockLine size={18} /> },
                { title: "Opening Balances", link: "/accounting/opening-balances", icon: <RiArchiveLine size={18} /> }

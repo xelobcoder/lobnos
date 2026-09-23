@@ -1,10 +1,34 @@
 'use client';
 
+
+import dynamic from 'next/dynamic';
+
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { MapContainer, TileLayer, Marker as LeafletMarker, Popup } from 'react-leaflet';
+// import { MapContainer, TileLayer, Marker as LeafletMarker, Popup } from 'react-leaflet';
+const MapContainer = dynamic(
+  () => import('react-leaflet').then((mod) => mod.MapContainer),
+  { ssr: false }
+);
+
+const TileLayer = dynamic(
+  () => import('react-leaflet').then((mod) => mod.TileLayer),
+  { ssr: false }
+);
+
+const LeafletMarker = dynamic(
+  () => import('react-leaflet').then((mod) => mod.Marker),
+  { ssr: false }
+);
+
+const Popup = dynamic(
+  () => import('react-leaflet').then((mod) => mod.Popup),
+  { ssr: false }
+);
 import { customFetch, customFetchMutation } from '../../../components/Auth/customFetch';
-import GoogleMapPicker, { LocationValue } from '../../../components/home-collection/GoogleMapPicker';
+const GoogleMapPicker = dynamic(() => import('../../../components/home-collection/GoogleMapPicker'), { ssr: false }  );
+import type { LocationValue } from '../../../components/home-collection/v.dev.types';
 import 'leaflet/dist/leaflet.css';
+
 
 type HomeCollectionOrder = {
      id: number;
