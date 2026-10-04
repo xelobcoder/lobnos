@@ -15,7 +15,8 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
 import ReportShell from "../../../components/accounting/ReportShell";
-import { currencyFormatter } from "../../../components/Auth/customFetch";
+import { currencyFormatter, customFetch } from "../../../components/Auth/customFetch";
+import { useApplicationSettings } from "../../../components/Auth/useApplicationContext";
 import { accountingApi } from "../../../lib/accounting/accountingApi";
 
 const PERMISSION_LABELS: Record<string, string> = {
@@ -48,6 +49,17 @@ const AMOUNT_BOUND = [
      "purchase_order.pay",
 ];
 
+const BRANCH_SCOPED = [
+     "expense.pay",
+     "expense.override_approval",
+     "expense.override_sod",
+     "accounting.daily_close.submit",
+     "accounting.daily_close.manager_approve",
+     "accounting.daily_close.finalize",
+     "accounting.daily_close.view_audit",
+     "accounting.financial_correction.execute",
+];
+
 const rowsFrom = <T,>(value: unknown): T[] => {
      if (Array.isArray(value)) return value as T[];
      const data = (value as { data?: unknown } | null)?.data;
@@ -55,15 +67,19 @@ const rowsFrom = <T,>(value: unknown): T[] => {
 };
 
 export default function DelegationsPage() {
+     const { applicationsettings } = useApplicationSettings();
+     const activeBranchId = applicationsettings?.branchid ?? applicationsettings?.user?.branchid ?? applicationsettings?.user?.branch ?? null;
      const [permissions, setPermissions] = useState<string[]>([]);
      const [rows, setRows] = useState<any[]>([]);
      const [employees, setEmployees] = useState<any[]>([]);
+     const [branches, setBranches] = useState<any[]>([]);
      const [busy, setBusy] = useState(false);
      const [editingId, setEditingId] = useState<number | null>(null);
 
      const [form, setForm] = useState({
           employeeid: "",
           permission: "",
+          branchid: activeBranchId == null ? "" : String(activeBranchId),
           minAmount: "",
           maxAmount: "",
           expiresAt: "",
@@ -72,10 +88,11 @@ export default function DelegationsPage() {
 
      const load = useCallback(async () => {
           try {
-               const [permsRes, listRes, employeesRes] = await Promise.all([
+               const [permsRes, listRes, employeesRes, branchesRes] = await Promise.all([
                     accountingApi.authorityPermissions(),
                     accountingApi.delegations(true),
                     accountingApi.authorityEmployees(),
+                    customFetch("branches?count=200&page=1"),
                ]);
 
                const permissionsResult = permsRes?.result;
@@ -85,6 +102,7 @@ export default function DelegationsPage() {
                setPermissions(rowsFrom<string>(permissionsResult));
                setRows(rowsFrom<any>(delegationsResult));
                setEmployees(rowsFrom<any>(employeesResult));
+               setBranches(rowsFrom<any>(branchesRes?.result));
 
                const employeeRows = rowsFrom<any>(employeesResult);
                if (!employeeRows.length) {
@@ -102,6 +120,7 @@ export default function DelegationsPage() {
      }, [load]);
 
      const amountBound = AMOUNT_BOUND.includes(form.permission);
+     const branchRequired = BRANCH_SCOPED.includes(form.permission);
 
      const selectedPermissionLabel =
           PERMISSION_LABELS[form.permission] || form.permission;
@@ -109,6 +128,11 @@ export default function DelegationsPage() {
      const grant = async () => {
           if (!form.employeeid || !form.permission) {
                toast.error("Choose a person and a permission");
+               return;
+          }
+
+          if (branchRequired && !form.branchid) {
+               toast.error("Choose the branch this authority should cover");
                return;
           }
 
@@ -128,6 +152,7 @@ export default function DelegationsPage() {
                const payload = {
                     employeeid: Number(form.employeeid),
                     permission: form.permission,
+                    branchid: branchRequired && form.branchid ? Number(form.branchid) : null,
                     minAmount:
                          amountBound && form.minAmount !== ""
                               ? Number(form.minAmount)
@@ -154,6 +179,7 @@ export default function DelegationsPage() {
                     setForm({
                          employeeid: "",
                          permission: "",
+                         branchid: activeBranchId == null ? "" : String(activeBranchId),
                          minAmount: "",
                          maxAmount: "",
                          expiresAt: "",
@@ -177,6 +203,7 @@ export default function DelegationsPage() {
           setForm({
                employeeid: String(delegation.employeeid),
                permission: String(delegation.permission),
+               branchid: delegation.branchid == null ? "" : String(delegation.branchid),
                minAmount: delegation.min_amount == null ? "" : String(delegation.min_amount),
                maxAmount: delegation.max_amount == null ? "" : String(delegation.max_amount),
                expiresAt: delegation.expires_at ? dayjs(delegation.expires_at).format("YYYY-MM-DD") : "",
@@ -187,7 +214,7 @@ export default function DelegationsPage() {
 
      const cancelEdit = () => {
           setEditingId(null);
-          setForm({ employeeid: "", permission: "", minAmount: "", maxAmount: "", expiresAt: "", notes: "" });
+          setForm({ employeeid: "", permission: "", branchid: activeBranchId == null ? "" : String(activeBranchId), minAmount: "", maxAmount: "", expiresAt: "", notes: "" });
      };
 
      const revoke = async (id: number) => {
@@ -298,6 +325,21 @@ export default function DelegationsPage() {
                          </div>
                     </div>
                ),
+          },
+
+          {
+               Header: "Branch scope",
+               accessor: "branchid",
+               Cell: ({ row }: any) => {
+                    const branchId = row.original.branchid;
+                    if (branchId == null) {
+                         return BRANCH_SCOPED.includes(row.original.permission)
+                              ? <span className="text-danger fw-semibold">Missing branch</span>
+                              : <span className="text-muted">All branches</span>;
+                    }
+                    const branch = branches.find((item) => Number(item.branchid) === Number(branchId));
+                    return <span>{branch?.name || `Branch ${branchId}`}</span>;
+               },
           },
 
           {
@@ -696,6 +738,27 @@ export default function DelegationsPage() {
                                         )}
                                    </select>
                               </div>
+
+                              {branchRequired && (
+                                   <div className="col-12 col-lg-4">
+                                        <label className="form-label fw-semibold small">Branch scope <span className="text-danger">*</span></label>
+                                        <select
+                                             className="form-select"
+                                             value={form.branchid}
+                                             onChange={(e) => setForm({ ...form, branchid: e.target.value })}
+                                             required
+                                        >
+                                             <option value="">Select branch</option>
+                                             {form.branchid && !branches.some((branch: any) => Number(branch.branchid) === Number(form.branchid)) && (
+                                                  <option value={form.branchid}>Active branch ({form.branchid})</option>
+                                             )}
+                                             {branches.map((branch: any) => (
+                                                  <option key={branch.branchid} value={branch.branchid}>{branch.name}</option>
+                                             ))}
+                                        </select>
+                                        <div className="form-text">This payment authority will only work for expenses in the selected branch.</div>
+                                   </div>
+                              )}
 
                               {/* Expiry */}
                               <div className="col-12 col-lg-4">

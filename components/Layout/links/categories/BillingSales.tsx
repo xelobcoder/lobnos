@@ -11,7 +11,8 @@ import {
     RiAddBoxLine,
     RiBox3Line,
     RiRefundLine,
-    RiMoonLine
+    RiMoonLine,
+    RiFileListLine
 } from '@remixicon/react';
 
 export const BillingSalesLink: Link[] = [
@@ -39,6 +40,12 @@ export const BillingSalesLink: Link[] = [
         title: "Entity Order Review",
         link: "/billing/entity-orders",
         icon: <RiBillFill />
+    },
+    {
+        title: "Referral Codes",
+        link: "/crm/referral-codes",
+        icon: <RiFileListLine />,
+        roles: ['admin', 'super-admin', 'super_admin', 'manager', 'accountant', 'crm', 'customer service representative', 'customer representative', 'front desk', 'frontdesk']
     },
 
     {

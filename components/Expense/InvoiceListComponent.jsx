@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { currencyFormatter, customFetch, customFetchMutation, customPost } from '../../components/Auth/customFetch';
 import { RiMoneyDollarCircleLine, RiFileList2Line, RiInboxArchiveLine, RiCalendarEventLine, RiFilter3Line, RiRefreshLine, RiSearchLine, RiEyeLine, RiMoneyDollarBoxLine } from '@remixicon/react';
 import PrimeTable from '../accessories/Datatables/PrimeTable';
@@ -13,6 +14,10 @@ const statusMap = {
 };
 
 const InvoiceList = ({ branchid, employeeid }) => {
+     const router = useRouter();
+     const searchParams = useSearchParams();
+     const payInvoiceId = Number(searchParams.get('payInvoice') || 0);
+     const payExpenseId = Number(searchParams.get('payExpense') || 0);
      const [invoices, setInvoices] = useState([]);
      const [loading, setLoading] = useState(false);
      const [localFilter, setLocalFilter] = useState({ from: '', to: '', status: '' });
@@ -45,17 +50,18 @@ const InvoiceList = ({ branchid, employeeid }) => {
      const [reversalReasonSelect, setReversalReasonSelect] = useState('');
      const [showReversalInfoModal, setShowReversalInfoModal] = useState(false);
      const [selectedReversalInfo, setSelectedReversalInfo] = useState(null);
+     const autoPayHandled = React.useRef(false);
 
      useEffect(() => {
           if (employeeid && branchid) {
                getInvoiceData();
           }
-     }, [employeeid, branchid]);
+     }, [employeeid, branchid, payInvoiceId]);
 
      const getInvoiceData = async () => {
           setLoading(true);
           try {
-               const response = await customFetch(`expenses/invoices?employeeid=${employeeid}&branchid=${branchid}&count=10&page=1`);
+               const response = await customFetch(`expenses/invoices?employeeid=${employeeid}&branchid=${branchid}&count=10&page=1${payInvoiceId ? `&invoiceId=${payInvoiceId}` : ''}${payExpenseId ? `&expenseId=${payExpenseId}` : ''}`);
                if (response && response.data && Array.isArray(response.data)) {
                     setInvoices(response.data);
                } else if (response && Array.isArray(response)) {
@@ -137,14 +143,21 @@ const InvoiceList = ({ branchid, employeeid }) => {
           }
      };
 
-     const handleMakePayment = async (invoice) => {
+     const handleMakePayment = React.useCallback(async (invoice, targetExpenseId = null) => {
           setSelectedInvoice(invoice);
           setPaymentFeedback(null);
           setLoadingPayments(true);
 
           try {
+               let targetExpense = null;
+               if (targetExpenseId) {
+                    if (!invoice.groupId) throw new Error('Expense group details are unavailable for this invoice.');
+                    const expensesResponse = await customFetch(`expenses/group/${invoice.groupId}?employeeid=${employeeid}&branchid=${branchid}`);
+                    targetExpense = (expensesResponse?.expenses || []).find((expense) => Number(expense.id) === Number(targetExpenseId));
+                    if (!targetExpense) throw new Error('The approved expense could not be loaded for payment.');
+               }
                const [paymentsResponse, accountsResponse] = await Promise.all([
-                    customFetch(`expenses/payments?employeeid=${employeeid}&branchid=${branchid}&invoice_id=${invoice.id}`),
+                    customFetch(`expenses/payments?employeeid=${employeeid}&branchid=${branchid}&${targetExpenseId ? `expense_id=${targetExpenseId}` : `invoice_id=${invoice.id}`}`),
                     customFetch('expenses/payment-accounts?capability=pay'),
                ]);
                setPaymentAccounts(accountsResponse?.success ? accountsResponse.data || [] : []);
@@ -162,26 +175,50 @@ const InvoiceList = ({ branchid, employeeid }) => {
                const totalPaid = payments.filter((payment) => payment.status === 'Paid' && !payment.is_reversed).reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
                setPaymentData({
                     payment_date: new Date().toISOString().slice(0, 16),
-                    amount: Math.max(0, Number(invoice.total_amount || 0) - totalPaid).toFixed(2),
+                    amount: Math.max(0, Number(targetExpense?.amount ?? invoice.total_amount ?? 0) - totalPaid).toFixed(2),
                     method: '',
                     payment_account_id: '',
                     payment_reference: ''
                });
           } catch (error) {
                setInvoicePayments([]);
-               setPaymentData({
-                    payment_date: new Date().toISOString().slice(0, 16),
-                    amount: invoice.total_amount.toString(),
-                    method: '',
-                    payment_account_id: '',
-                    payment_reference: ''
-               });
+               if (targetExpenseId) {
+                    setPaymentFeedback({ type: 'danger', message: error?.message || 'Unable to load the approved expense payment details.' });
+                    setPaymentData({
+                         payment_date: new Date().toISOString().slice(0, 16),
+                         amount: '',
+                         method: '',
+                         payment_account_id: '',
+                         payment_reference: ''
+                    });
+               } else {
+                    setPaymentData({
+                         payment_date: new Date().toISOString().slice(0, 16),
+                         amount: invoice.total_amount.toString(),
+                         method: '',
+                         payment_account_id: '',
+                         payment_reference: ''
+                    });
+               }
           } finally {
                setLoadingPayments(false);
           }
 
           setShowPaymentModal(true);
-     };
+     }, [branchid, employeeid]);
+
+     useEffect(() => {
+          if (!payInvoiceId || !payExpenseId || loading || autoPayHandled.current) return;
+          const invoice = invoices.find((item) => Number(item.id) === payInvoiceId);
+          if (!invoice) return;
+          autoPayHandled.current = true;
+          router.replace('/billing/expenses/invoices');
+          if (invoice.status === 'Paid') {
+               setPaymentFeedback({ type: 'info', message: 'This invoice is already fully paid.' });
+               return;
+          }
+          void handleMakePayment(invoice, payExpenseId);
+     }, [invoices, loading, payInvoiceId, payExpenseId, router, handleMakePayment]);
 
      const handlePaymentSubmit = async (e) => {
           e.preventDefault();
@@ -312,7 +349,7 @@ const InvoiceList = ({ branchid, employeeid }) => {
           const filterFrom = from || localFilter.from;
           const filterTo = to || localFilter.to;
 
-          const urlString = `expenses/invoices?employeeid=${employeeid}&branchid=${branchid}&count=${count}&page=${page}&from=${filterFrom}&to=${filterTo}&status=${filterStatus}&&sortby=${sortby}`;
+          const urlString = `expenses/invoices?employeeid=${employeeid}&branchid=${branchid}&count=${count}&page=${page}&from=${filterFrom}&to=${filterTo}&status=${filterStatus}&sortby=${sortby}`;
           try {
                const response = await customFetch(urlString);
                let data = [];

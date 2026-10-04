@@ -1,15 +1,16 @@
 "use client";
 import React, { useEffect, useState, useCallback } from 'react';
+import dayjs from 'dayjs';
 import { currencyFormatter, reactSelectCustomStyles } from '../../Auth/customFetch'; // Assuming reactSelectCustomStyles is defined
 import {
 	LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 	AreaChart, Area
 } from 'recharts';
 import Select from 'react-select';
-import { format } from 'date-fns';
 import { ClinicianAnalyticsCaseSummaryDailyServerSide } from '../../serverActions/ActionFiltering';
 import { RiLineChartLine, RiErrorWarningLine, RiCalendarLine, RiInbox2Line, RiLoader4Line, RiBarChartHorizontalLine, RiNumbersLine, RiRefreshLine, RiBarChartBoxLine, RiUser3Line, RiMapPinLine, RiMailLine, RiPhoneLine } from '@remixicon/react'; // Added more icons
 import Head from 'next/head';
+
 
 interface DailyCaseSummary {
 	date: string;
@@ -73,7 +74,7 @@ const ClinicianAnalyticsCaseSummaryDaily: React.FC<ClinicianAnalyticsCaseSummary
 		setError(null);
 		ClinicianAnalyticsCaseSummaryDailyServerSide(clinicianId, selectedYear.value)
 			.then((response) => {
-			console.log(response)
+				console.log(response)
 				let data: any[] = [];
 				let details = null;
 				if (response && typeof response === 'object' && response.dailyCaseSummary) {
@@ -108,14 +109,14 @@ const ClinicianAnalyticsCaseSummaryDaily: React.FC<ClinicianAnalyticsCaseSummary
 		const trend = dailyData.length > 1 ? (dailyData[dailyData.length - 1].clinician_cases > dailyData[0].clinician_cases ? "Upward" : dailyData[dailyData.length - 1].clinician_cases < dailyData[0].clinician_cases ? "Downward" : "Stable") : "N/A";
 		return {
 			avgClinicianCases: avgClinicianCases.toFixed(1),
-			peakDay: peakEntry ? format(new Date(peakEntry.date), "MMM dd") : "N/A",
+			peakDay: peakEntry ? dayjs(peakEntry.date).format("MMM DD") : "N/A",
 			peakValue: peakEntry ? peakEntry.clinician_cases : 0,
 			trend,
 		};
 	})();
 
 	const chartData = dailyData.map((item) => ({
-		date: format(new Date(item.date), "MMM dd"),
+		date: dayjs(item.date).format("MMM DD"),
 		clinicianCases: Number(item.clinician_cases) || 0,
 		otherCases: Math.max(0, (Number(item.total_cases) || 0) - (Number(item.clinician_cases) || 0)),
 		totalCases: Number(item.total_cases) || 0,

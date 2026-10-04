@@ -9,7 +9,6 @@ export default function HomeCollectionLayout({
 }: {
      children: React.ReactNode;
 }) {
-
      return (
           <Suspense>
                <ApplicationProvider>

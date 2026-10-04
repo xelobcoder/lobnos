@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { currencyFormatter, customFetch, customFetchMutation } from '../../components/Auth/customFetch';
 import { RiMoneyDollarCircleLine, RiCheckDoubleFill, RiCloseCircleFill, RiFileList2Line, RiInboxArchiveLine, RiCalendarEventLine, RiFilter3Line, RiRefreshLine, RiSearchLine, RiAddBoxLine } from '@remixicon/react';
 import PrimeTable from '../accessories/Datatables/PrimeTable';
@@ -17,6 +18,8 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 	const [bulkDecisions, setBulkDecisions] = useState({});
 	const [individualRejectReasons, setIndividualRejectReasons] = useState({});
 	const [individualSelectedReasons, setIndividualSelectedReasons] = useState({});
+	const [paymentFollowUp, setPaymentFollowUp] = useState(null);
+	const router = useRouter();
 
 	const rejectionReasons = [
 		"Insufficient documentation",
@@ -220,7 +223,8 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 			// Current workflow response: { success, count, decisions, invoices, invoiceErrors }
 			if (response.success === true && Array.isArray(response.decisions)) {
 				processedSuccessfully = response.decisions.length === decisionsToSubmit.length;
-				const approvedCount = response.decisions.filter((decision) => decision.status === 'approved').length;
+				const approvedDecisions = response.decisions.filter((decision) => decision.status === 'approved');
+				const approvedCount = approvedDecisions.length;
 				const rejectedCount = response.decisions.filter((decision) => decision.status === 'rejected').length;
 				const parts = [];
 				if (approvedCount) parts.push(`${approvedCount} approved`);
@@ -232,6 +236,14 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 				}
 				if (Array.isArray(response.invoiceErrors) && response.invoiceErrors.length > 0) {
 					message += ` Approval succeeded, but ${response.invoiceErrors.length} invoice operation(s) require retry.`;
+				}
+				if (approvedCount > 0) {
+					const approvedIds = new Set(approvedDecisions.map((decision) => Number(decision.expenseid)));
+					const paymentTargets = (response.invoices || []).flatMap((invoice) => {
+						const expenseIds = (invoice.expenseIds || []).map(Number).filter((id) => approvedIds.has(id));
+						return expenseIds.length ? [{ invoiceId: Number(invoice.invoiceId), invoiceNumber: invoice.invoiceNumber, expenseIds }] : [];
+					});
+					setPaymentFollowUp({ approvedCount, paymentTargets, invoiceErrors: response.invoiceErrors || [] });
 				}
 			} else if (response.results && Array.isArray(response.results)) {
 				// Legacy grouped response retained for compatibility with older servers.
@@ -845,6 +857,29 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 					<Button variant="primary" onClick={handleSubmitBulkDecisions}>
 						Submit Decisions
 					</Button>
+				</Modal.Footer>
+			</Modal>
+
+			<Modal show={!!paymentFollowUp} onHide={() => setPaymentFollowUp(null)} animation={false} dialogClassName="topSheetDialog">
+				<Modal.Header closeButton>
+					<Modal.Title>Expenses approved</Modal.Title>
+				</Modal.Header>
+				<Modal.Body>
+					<p className="mb-2">{paymentFollowUp?.approvedCount === 1 ? 'The expense was approved.' : `${paymentFollowUp?.approvedCount} expenses were approved.`} Would you like to continue to payment?</p>
+					{paymentFollowUp?.invoiceErrors?.length > 0 && <div className="alert alert-warning mb-0">Some invoice operations need retry. You can review available invoices now.</div>}
+				</Modal.Body>
+				<Modal.Footer>
+					<Button variant="outline-secondary" onClick={() => setPaymentFollowUp(null)}>Not now</Button>
+					<Button variant="success" onClick={() => {
+						const targets = paymentFollowUp?.paymentTargets || [];
+						if (targets.length === 1 && targets[0].expenseIds.length === 1) {
+							const target = targets[0];
+							router.push(`/billing/expenses/invoices?payInvoice=${target.invoiceId}&payExpense=${target.expenseIds[0]}`);
+						} else {
+							router.push('/billing/expenses/invoices');
+						}
+						setPaymentFollowUp(null);
+					}}>Make payment</Button>
 				</Modal.Footer>
 			</Modal>
 

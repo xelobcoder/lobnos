@@ -1,13 +1,14 @@
 "use client";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { customFetch, customPost, reactSelectCustomStyles } from "../../../../components/Auth/customFetch";
+import { customFetch, customFetchMutation, customPost, reactSelectCustomStyles } from "../../../../components/Auth/customFetch";
 import Loader from "../../../../components/accessories/Loader";
 import { useSearchParams } from "next/navigation";
 import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
 import Select, { SingleValue } from "react-select";
 import { RiReceiptLine, RiStoreLine, RiPriceTag3Line, RiRefreshLine } from '@remixicon/react';
 import { useRouter } from "next/navigation";
+import { Alert, Button, Modal } from 'react-bootstrap';
 
 interface ExpenseForm {
 	name: string;
@@ -71,6 +72,10 @@ export default function AddNewExpense() {
 	const [isLoading, setLoading] = useState<boolean>(false);
 	const [categories, setCategories] = useState<Category[]>([]);
 	const [merchants, setMerchants] = useState<Merchant[]>([]);
+	const [approvalPromptExpenseId, setApprovalPromptExpenseId] = useState<number | null>(null);
+	const [paymentPrompt, setPaymentPrompt] = useState<{ invoiceId: number; invoiceNumber: string } | null>(null);
+	const [approvalBusy, setApprovalBusy] = useState(false);
+	const [approvalError, setApprovalError] = useState('');
 	const router = useRouter();
 
 	// Validation schema
@@ -137,9 +142,11 @@ export default function AddNewExpense() {
 				submitData
 			);
 
-			if (response && response.status && typeof response.status === 'number') {
-				toast.success("Expense submitted successfully awaiting approval", { autoClose: 2000 });
+			const expenseId = Number(response?.expenseId ?? response?.status);
+			if (Number.isSafeInteger(expenseId) && expenseId > 0) {
 				setFormData({ ...defaultExpense });
+				setApprovalError('');
+				setApprovalPromptExpenseId(expenseId);
 			} else {
 				throw new Error("Submission failed");
 			}
@@ -147,6 +154,40 @@ export default function AddNewExpense() {
 			toast.error("Failed to submit expense. Please try again.", { autoClose: 5000 });
 		} finally {
 			setLoading(false);
+		}
+	};
+
+	const approveCreatedExpense = async () => {
+		if (!approvalPromptExpenseId) return;
+		setApprovalBusy(true);
+		setApprovalError('');
+		try {
+			const response = await customFetchMutation('expense/pending/decision', 'POST', {
+				expenseid: approvalPromptExpenseId,
+				status: 'approved',
+			});
+			if (!response?.success || response?.decision?.status !== 'approved') {
+				throw new Error(response?.message || 'You are not authorized to approve this expense.');
+			}
+
+			const invoice = (response.invoices || []).find((item: any) =>
+				Array.isArray(item.expenseIds) && item.expenseIds.some((id: number | string) => Number(id) === approvalPromptExpenseId)
+			);
+			setApprovalPromptExpenseId(null);
+			if (!invoice?.invoiceId) {
+				if (response?.invoiceErrors?.length) {
+					toast.error('Expense approved, but its invoice could not be generated. Retry from the Expenses page.');
+				} else {
+					toast.success('Expense approved. Open Invoices to continue with payment.');
+				}
+				router.push('/billing/expenses/invoices');
+				return;
+			}
+			setPaymentPrompt({ invoiceId: Number(invoice.invoiceId), invoiceNumber: invoice.invoiceNumber || '' });
+		} catch (error: any) {
+			setApprovalError(error?.message || 'Unable to approve this expense.');
+		} finally {
+			setApprovalBusy(false);
 		}
 	};
 
@@ -427,6 +468,46 @@ export default function AddNewExpense() {
 					</div>
 				</div>
 			</div>
+			<Modal
+				show={approvalPromptExpenseId !== null}
+				onHide={() => { if (!approvalBusy) setApprovalPromptExpenseId(null); }}
+				animation={false}
+				dialogClassName="topSheetDialog"
+			>
+				<Modal.Header closeButton={!approvalBusy}>
+					<Modal.Title>Expense created</Modal.Title>
+				</Modal.Header>
+				<Modal.Body>
+					{approvalError && <Alert variant="danger">{approvalError}</Alert>}
+					Expense created successfully. Would you like to approve this expense now?
+				</Modal.Body>
+				<Modal.Footer>
+					<Button variant="outline-secondary" disabled={approvalBusy} onClick={() => { setApprovalPromptExpenseId(null); toast.info('Expense remains pending approval.'); }}>Not now</Button>
+					<Button variant="primary" disabled={approvalBusy} onClick={() => void approveCreatedExpense()}>
+						{approvalBusy ? 'Approving...' : 'Approve expense'}
+					</Button>
+				</Modal.Footer>
+			</Modal>
+			<Modal
+				show={paymentPrompt !== null}
+				onHide={() => setPaymentPrompt(null)}
+				animation={false}
+				dialogClassName="topSheetDialog"
+			>
+				<Modal.Header closeButton>
+					<Modal.Title>Expense approved</Modal.Title>
+				</Modal.Header>
+				<Modal.Body>
+					Expense approved{paymentPrompt?.invoiceNumber ? ` and added to invoice ${paymentPrompt.invoiceNumber}` : ''}. Would you like to make payment now?
+				</Modal.Body>
+				<Modal.Footer>
+					<Button variant="outline-secondary" onClick={() => setPaymentPrompt(null)}>Not now</Button>
+					<Button variant="success" onClick={() => {
+						if (paymentPrompt) router.push(`/billing/expenses/invoices?payInvoice=${paymentPrompt.invoiceId}&payExpense=${approvalPromptExpenseId}`);
+						setPaymentPrompt(null);
+					}}>Make payment</Button>
+				</Modal.Footer>
+			</Modal>
 		</div>
 	);
 }

@@ -54,6 +54,7 @@ interface ApplicationSettingsData {
 	allowPrintingUnpaid: number,
 	makepdfprintingcompulsory: number,
 	isCommissionEarnedOnClinicianBilling: number,
+	commissionRecipientPolicy: 'clinician' | 'organization',
 	isCommissionEarnedOnOrganizationalBilling: number,
 	isCommissionEarnedOnNHISBilling: number,
 	isCommissionEarnedOnPHISBilling: number,
@@ -269,6 +270,7 @@ export default function ApplicationSettings() {
 						regioncode: response.result.regioncode ? response.result.regioncode.toString() : '',
 						districtcode: response.result.districtcode ? response.result.districtcode.toString() : '',
 						ageVariationLimits,
+						commissionRecipientPolicy: response.result.commissionRecipientPolicy === 'organization' ? 'organization' : 'clinician',
 					});
 				} else {
 					setSettings({
@@ -307,6 +309,7 @@ export default function ApplicationSettings() {
 							adults: { minAge: 18, maxAge: 64, specifier: 'years' }
 						}),
 						isCommissionEarnedOnClinicianBilling: 1,
+						commissionRecipientPolicy: 'clinician',
 						isCommissionEarnedOnOrganizationalBilling: 1,
 						isCommissionEarnedOnNHISBilling: 0,
 						isCommissionEarnedOnPHISBilling: 0,
@@ -641,6 +644,25 @@ export default function ApplicationSettings() {
 					</div>
 				</div>
 				<BillingSettingsTab settings={settings} handleChange={handleChange} />
+				<div className="card border mt-3 mb-4 p-3">
+					<div className="row align-items-center g-3">
+						<div className="col-12 col-lg-7">
+							<h5 className="mb-1">Clinician Referral Commission Recipient</h5>
+							<p className="text-muted small mb-0">Choose who receives commission when a selected clinician is linked to an organization.</p>
+						</div>
+						<div className="col-12 col-lg-5">
+							<Form.Select
+								name="commissionRecipientPolicy"
+								aria-label="Commission recipient for organization-linked clinicians"
+								value={settings.commissionRecipientPolicy || 'clinician'}
+								onChange={handleChange}
+							>
+								<option value="clinician">Individual clinician</option>
+								<option value="organization">Organization</option>
+							</Form.Select>
+						</div>
+					</div>
+				</div>
 				<div className="card-body border mt-3 bg-white br-5 p-3 ">
 					<div className='fw-bold'>Age Variation Limits</div>
 					<div className="">

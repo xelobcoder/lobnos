@@ -62,6 +62,12 @@ export const CrmLinks: Link[] = [
                 title: "Validated Results",
                 link: "/crm/validated",
                 icon: <RiFileListLine />
+            },
+            {
+                title: "Referral Codes",
+                link: "/crm/referral-codes",
+                icon: <RiFileListLine />,
+                roles: ['admin', 'super-admin', 'super_admin', 'manager', 'accountant', 'crm', 'customer service representative', 'customer representative', 'front desk', 'frontdesk']
             }
         ]
     },
