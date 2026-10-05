@@ -1,6 +1,6 @@
 "use client";
 import dayjs from "dayjs";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import ReportShell from "../../../components/accounting/ReportShell";
 import DateFilterReusable from "../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 import { currencyFormatter } from "../../../components/Auth/customFetch";
@@ -21,8 +21,10 @@ export default function ReconciliationPage() {
      const [lines, setLines] = useState<Line[]>([]);
      const [balanced, setBalanced] = useState(true);
      const [loading, setLoading] = useState(false);
+     const latestRequest = useRef(0);
 
      const load = useCallback(async () => {
+          const requestId = ++latestRequest.current;
           setLoading(true);
           try {
                const [ar, ap, trial] = await Promise.all([
@@ -31,6 +33,7 @@ export default function ReconciliationPage() {
                     accountingApi.trialBalance(undefined, asOf),
                ]);
 
+               if (requestId !== latestRequest.current) return;
                setLines([
                     {
                          ledger: "AR",
@@ -52,7 +55,7 @@ export default function ReconciliationPage() {
 
                setBalanced(trial?.result?.totals?.balanced ?? true);
           } finally {
-               setLoading(false);
+               if (requestId === latestRequest.current) setLoading(false);
           }
      }, [asOf]);
 
@@ -77,7 +80,6 @@ export default function ReconciliationPage() {
                                    onDateRangeChange={(_, end) => setAsOf(end)}
                                    label="Period"
                                    className="w-100"
-                                   disabled={loading}
                               />
                          </div>
                     </>

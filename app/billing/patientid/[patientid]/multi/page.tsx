@@ -1,6 +1,6 @@
 "use client";
-import React, { useState } from 'react';
-import { Container, Card, Modal } from 'react-bootstrap';
+import React, { useEffect, useState } from 'react';
+import { Alert, Container, Card, Modal, Spinner } from 'react-bootstrap';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { billingSource } from '../../../../../lib/billingLib';
 import Select from 'react-select';
@@ -14,8 +14,11 @@ interface BillingOption {
 	label: string;
 }
 
+const SIMPLE_BILLING_SOURCE: BillingOption = { value: 1, label: 'General / Cash' };
+
 export default function BillingTypeSelection() {
 	const [selectedBillingSource, setSelectedBillingSource] = useState<BillingOption | null>(null);
+	const [billingMode, setBillingMode] = useState<'loading' | 'simple' | 'advanced' | 'error'>('loading');
 	const [showAddClinicianModal, setShowAddClinicianModal] = useState(false);
 	const [showAddOrgModal, setShowAddOrgModal] = useState(false);
 	const [showCheckClinicianModal, setShowCheckClinicianModal] = useState(false);
@@ -32,6 +35,28 @@ export default function BillingTypeSelection() {
 	const searchParams = useSearchParams();
 	const getParam = (key: string) => searchParams?.get(key) ?? '';
 	const ispricingcheckout = getParam('ispricingcheckout') === '1';
+
+	useEffect(() => {
+		let active = true;
+		customFetch('billing/strategies/mode-capability')
+			.then((response: any) => {
+				if (!active) return;
+				if (response?.status !== 'success' || typeof response?.hasActiveStrategies !== 'boolean') {
+					setBillingMode('error');
+					return;
+				}
+				if (response.hasActiveStrategies) {
+					setBillingMode('advanced');
+				} else {
+					setBillingMode('simple');
+					setSelectedBillingSource(SIMPLE_BILLING_SOURCE);
+				}
+			})
+			.catch(() => {
+				if (active) setBillingMode('error');
+			});
+		return () => { active = false; };
+	}, []);
 
 
 	const options = billingSource.map(source => ({
@@ -197,10 +222,12 @@ export default function BillingTypeSelection() {
 					<Card.Body className="p-4">
 						<div className="text-center mb-4">
 							<RiHealthBookLine size={32} className="text-primary mb-2" />
-							<h5 className="fw-bold mb-1">Select Billing Source</h5>
-							<div className="text-secondary small">Choose the type of billing you want to initiate for this patient.</div>
+							<h5 className="fw-bold mb-1">{billingMode === 'simple' ? 'Simple Billing' : 'Select Billing Source'}</h5>
+							<div className="text-secondary small">{billingMode === 'simple' ? 'Use the facility catalog prices and continue with General / Cash billing.' : 'Choose the type of billing you want to initiate for this patient.'}</div>
 						</div>
-						<div className="mb-4">
+						{billingMode === 'loading' && <div className="text-center py-3"><Spinner size="sm" className="me-2" />Checking billing configuration...</div>}
+						{billingMode === 'error' && <Alert variant="danger">Unable to determine the facility billing configuration. Billing mode was not changed; refresh and try again.</Alert>}
+						{billingMode === 'advanced' && <div className="mb-4">
 							<Select
 								options={options}
 								value={selectedBillingSource}
@@ -211,11 +238,12 @@ export default function BillingTypeSelection() {
 								className="mb-2"
 								formatOptionLabel={formatOptionLabel}
 							/>
-						</div>
+						</div>}
+						{billingMode === 'simple' && <div className="border rounded p-3 mb-4 bg-body-tertiary"><div className="d-flex align-items-center gap-2 fw-semibold"><RiListCheck size={18} />General / Cash</div><div className="text-secondary small mt-1">Facility catalog price; payment method is selected later.</div></div>}
 						<button
 							className="btn btn-primary btn-sm w-100 d-flex align-items-center justify-content-center shadow-sm"
 							onClick={handleGenerateBillingId}
-							disabled={!selectedBillingSource}
+							disabled={billingMode === 'loading' || billingMode === 'error' || !selectedBillingSource}
 							style={{ fontSize: 15, padding: '0.75rem', borderRadius: 6, fontWeight: 600 }}
 						>
 							Continue

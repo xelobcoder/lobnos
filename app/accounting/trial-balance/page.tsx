@@ -1,10 +1,11 @@
 "use client";
 import { RiCheckboxCircleLine, RiErrorWarningLine } from "@remixicon/react";
+import { RiArrowLeftRightLine, RiBankLine, RiScales3Line } from "@remixicon/react";
 import dayjs from "dayjs";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import AccountingSummary from "../../../components/accounting/AccountingSummary";
 import ReportShell, { formatRange } from "../../../components/accounting/ReportShell";
 import { currencyFormatter } from "../../../components/Auth/customFetch";
-import DateFilterReusable from "../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 import { accountingApi, TrialBalanceRow } from "../../../lib/accounting/accountingApi";
 
 function money(value: number): string {
@@ -13,18 +14,20 @@ function money(value: number): string {
 
 export default function TrialBalancePage() {
      const [asOf, setAsOf] = useState(dayjs().format("YYYY-MM-DD"));
-     const [dateFilter, setDateFilter] = useState("Today");
      const [rows, setRows] = useState<TrialBalanceRow[]>([]);
      const [totals, setTotals] = useState({ debits: 0, credits: 0, balanced: true });
      const [loading, setLoading] = useState(false);
      const [error, setError] = useState<string | null>(null);
+     const latestRequest = useRef(0);
 
      // a trial balance is cumulative to a date, not a movement over a range
      const load = useCallback(async () => {
+          const requestId = ++latestRequest.current;
           setLoading(true);
           setError(null);
           try {
                const response = await accountingApi.trialBalance(undefined, asOf);
+               if (requestId !== latestRequest.current) return;
                if (response?.result) {
                     setRows((response.result.rows || []).filter((row) => row.debits !== 0 || row.credits !== 0));
                     setTotals(response.result.totals || { debits: 0, credits: 0, balanced: true });
@@ -34,7 +37,7 @@ export default function TrialBalancePage() {
           } catch (err: any) {
                setError(err?.message || "Unable to load the trial balance");
           } finally {
-               setLoading(false);
+               if (requestId === latestRequest.current) setLoading(false);
           }
      }, [asOf]);
 
@@ -51,18 +54,20 @@ export default function TrialBalancePage() {
      return (
           <ReportShell
                title="Trial Balance"
-               subtitle="Every account with a balance, cumulative to the reporting date"
+               subtitle="Cumulative account balances through the selected date. Earlier postings remain included."
                reportTitle="TRIAL BALANCE"
                range={formatRange(asOf, asOf)}
                filters={
                     <>
                          <div className="col-12 col-md-6">
-                              <DateFilterReusable
-                                   value={dateFilter}
-                                   onChange={setDateFilter}
-                                   onDateRangeChange={(start: string, end: string) => setAsOf(end || start)}
-                                   label="As at"
-                                   className="w-100"
+                              <label htmlFor="trial-balance-as-of" className="form-label mb-1 small text-muted">As at date</label>
+                              <input
+                                   id="trial-balance-as-of"
+                                   type="date"
+                                   className="form-control"
+                                   value={asOf}
+                                   max={dayjs().format("YYYY-MM-DD")}
+                                   onChange={(event) => setAsOf(event.target.value)}
                               />
                          </div>
                     </>
@@ -70,40 +75,16 @@ export default function TrialBalancePage() {
           >
                {error && <div className="alert alert-danger py-2">{error}</div>}
 
-               <div className="row g-2 mb-3">
-                    <div className="col-6 col-md-3">
-                         <div className="border rounded p-4">
-                              <h4>Total Debits</h4>
-                              <hr/>
-                              <h3 className="fw-bold">{money(totals.debits)}</h3>
-                         </div>
-                    </div>
-                    <div className="col-6 col-md-3">
-                         <div className="border rounded p-4">
-                              <h4>Total Credits</h4>
-                              <hr/>
-                              <h3 className="fw-bold">{money(totals.credits)}</h3>
-                         </div>
-                    </div>
-                    <div className="col-6 col-md-3">
-                         <div className="border rounded p-4">
-                              <h4>Difference</h4>
-                              <hr/>
-                              <h3 className={`fw-bold ${totals.balanced ? "text-success" : "text-danger"}`}>
-                                   {money(Math.abs(totals.debits - totals.credits))}
-                              </h3>
-                         </div>
-                    </div>
-                    <div className="col-6 col-md-3">
-                         <div className="border rounded p-4">
-                              <h4>Status</h4>
-                              <hr/>
-                              <h3 className={`fw-bold ${totals.balanced ? "text-success" : "text-danger"}`}>
-                                   {totals.balanced ? "Balanced" : "Out of balance"}
-                              </h3>
-                         </div>
-                    </div>
-               </div>
+               <AccountingSummary
+                    rowClassName="row g-2 mb-3"
+                    columnClassName="col-6 col-md-3"
+                    metrics={[
+                         { label: "Total Debits", value: money(totals.debits), Icon: RiArrowLeftRightLine, variant: "primary", subtitle: "Debit balance total" },
+                         { label: "Total Credits", value: money(totals.credits), Icon: RiBankLine, variant: "success", subtitle: "Credit balance total" },
+                         { label: "Difference", value: money(Math.abs(totals.debits - totals.credits)), Icon: RiScales3Line, variant: totals.balanced ? "info" : "danger", subtitle: "Debits compared with credits" },
+                         { label: "Status", value: totals.balanced ? "Balanced" : "Out of balance", Icon: totals.balanced ? RiCheckboxCircleLine : RiErrorWarningLine, variant: totals.balanced ? "success" : "danger", subtitle: "Trial balance check" },
+                    ]}
+               />
 
                <div className={`alert d-flex align-items-center gap-2 py-2 ${totals.balanced ? "alert-success" : "alert-danger"}`}>
                     {totals.balanced ? <RiCheckboxCircleLine size={18} /> : <RiErrorWarningLine size={18} />}

@@ -56,6 +56,7 @@ export interface MultiBillingData {
 	useSpecialCode?: boolean;
 	specialCode?: string;
 	billingid?: string | number;
+	suspendedDraftId?: number;
 	billingSource: number;
 	claimscheckcode?: number;
 	nhisnumber?: number;
@@ -256,4 +257,5 @@ export interface billingContextProps {
 	adjustmentType?: 'addition' | 'correction' | 'voided' | null,
 	adjustmentReason?: string,
 	specialcode?: string,
+	suspendedDraftId?: number,
 }

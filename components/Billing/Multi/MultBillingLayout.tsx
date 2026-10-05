@@ -4,7 +4,7 @@ import MultiRenderingBillingSourceFields from "./RenderingBillingSourceFields";
 import MultiPACKAGESELECT from './MultiPACKAGESELECT';
 import MultiRenderingWithPatientId from "./MultiRenderingWithPatientId";
 import { Button, Spinner, Modal } from "react-bootstrap";
-import { useContext, useState, useEffect } from "react";
+import { useContext, useState, useEffect, useRef } from "react";
 import { customFetch, customFetchMutation } from "../../Auth/customFetch";
 import { billingContextProps, defaultMultiBillingData, MultiBillingData } from "../../../lib/Multi/MultiTypes";
 import { MultiBillingProvider, MultiBillingContext } from "./MultiBillingContext";
@@ -18,7 +18,8 @@ import { plsEncryption } from "../../../lib/encryption";
 import { MultiValidateAndSubmitBillingInformation } from "../../../lib/Multi/multiBillingValidation";
 import ReceiptOptionsModal from '../ReceiptOptionsModal';
 import { BillingContextPropsProvider, useBillingContextProps } from './BillingContextPropsContext';
-import GoogleMapPicker, { LocationValue } from '../../home-collection/GoogleMapPicker';
+import GoogleMapPicker from '../../home-collection/GoogleMapPicker';
+import { LocationValue } from "../../home-collection/v.dev.types";
 
 
 
@@ -39,7 +40,7 @@ function MultiBillingLayoutContent() {
     const { billingContextProps } = useBillingContextProps();
     const { categorytrackid, entitytype, entityname, entityid, patientid, billingid, isNewTransaction,
         isAdjustment, adjustmentType, adjustmentReason,
-        isRelatedBilling, ispricingcheckout } = billingContextProps
+        isRelatedBilling, ispricingcheckout, suspendedDraftId } = billingContextProps
     const branchid = useApplication().branchid;
     const employeeid = useApplication().user?.employeeid || 0;
     const role = useApplication().user?.role
@@ -60,6 +61,10 @@ function MultiBillingLayoutContent() {
     const [showChoiceModal, setShowChoiceModal] = useState(false);
     const [generatedBillingid, setGeneratedBillingid] = useState<string | number | undefined>(undefined);
     const [showReceiptOptionsModal, setShowReceiptOptionsModal] = useState(false);
+    const [resumeDraft, setResumeDraft] = useState<any>(null);
+    const resumeLoaded = useRef(false);
+    const resumeInitStarted = useRef(false);
+    const [restoredDraftReady, setRestoredDraftReady] = useState(false);
 
     const handleSpecialCodeChange = (e) => {
         const value = e.target.value;
@@ -196,17 +201,20 @@ function MultiBillingLayoutContent() {
 
     // Backend-driven billing: load all info from backend
     const loadBackendBilling = async () => {
-        const includeServices = useServices;
+        const resumeData = resumeDraft?.draft_data;
+        const includeServices = resumeData ? Boolean(resumeData.includeServices) : useServices;
+        const isPackageUsed = resumeData ? Boolean(resumeData.isPackageUsed) : Boolean(billingdata.isPackageUsed);
+        const packageId = resumeData?.packageid ?? billingdata.packageid;
         const servicesList = billingdata.servicesList || [];
         let url;
         const billingIdParam = billingdata.billingid ? `&billingid=${billingdata.billingid}` : '';
         if (billingdata.useSpecialCode && billingdata.specialCode && !specialCodeError) {
             url = `billing/multi/init?` +
                 `&entityType=` +
-                `&isPackageUsed=${billingdata.isPackageUsed}` +
+                `&isPackageUsed=${isPackageUsed}` +
                 `&useServices=${includeServices}` +
                 `&includeServices=${includeServices}` +
-                `&packageid=${billingdata.packageid || ''}` +
+                `&packageid=${packageId || ''}` +
                 `&branchid=${billingdata.branchid || ''}` +
                 `&patientId=${billingdata.patientid || patientid || ''}` +
                 `&entityId=` +
@@ -217,28 +225,30 @@ function MultiBillingLayoutContent() {
         } else if (billingdata.entitytype && billingdata.entityId && Number(billingdata.billingSource || categorytrackid) > 1) {
             url = `billing/multi/init?` +
                 `&entityType=${billingdata.entitytype}` +
-                `&isPackageUsed=${billingdata.isPackageUsed}` +
+                `&isPackageUsed=${isPackageUsed}` +
                 `&useServices=${includeServices}` +
                 `&includeServices=${includeServices}` +
-                `&packageid=${billingdata.packageid || ''}` +
+                `&packageid=${packageId || ''}` +
                 `&branchid=${billingdata.branchid || ''}` +
                 `&patientId=${billingdata.patientid || patientid || ''}` +
                 `&entityId=${billingdata.entityId}` +
                 `&billingSource=${billingdata.billingSource || categorytrackid}` +
+                `&nhisMemberId=${resumeData?.nhismembershipid || billingdata.nhismembershipid || ''}` +
+                `&claimCheckCode=${resumeData?.claimscheckcode || billingdata.claimscheckcode || ''}` +
                 `&ispricingcheckout=${ispricingcheckout}` +
                 billingIdParam;
-        } else if (billingdata.billingSource == 4 && (billingdata.nhismembershipid && billingdata.nhismembershipid > 0) &&
-            (billingdata.claimscheckcode && billingdata.claimscheckcode > 0)) {
+        } else if (billingdata.billingSource == 4 &&
+            ((resumeData?.nhismembershipid || billingdata.nhismembershipid) && (resumeData?.claimscheckcode || billingdata.claimscheckcode))) {
             url = `billing/multi/init?` +
                 `&entityType=nhis` +
-                `&isPackageUsed=${billingdata.isPackageUsed}` +
+                `&isPackageUsed=${isPackageUsed}` +
                 `&useServices=${includeServices}` +
                 `&includeServices=${includeServices}` +
-                `&packageid=${billingdata.packageid || ''}` +
+                `&packageid=${packageId || ''}` +
                 `&branchid=${billingdata.branchid || ''}` +
                 `&patientId=${billingdata.patientid || patientid || ''}` +
-                `&nhisMemberId=${billingdata.nhismembershipid}` +
-                `&claimCheckCode=${billingdata.claimscheckcode}` +
+                `&nhisMemberId=${resumeData?.nhismembershipid || billingdata.nhismembershipid}` +
+                `&claimCheckCode=${resumeData?.claimscheckcode || billingdata.claimscheckcode}` +
                 `&billingSource=4` +
                 `&ispricingcheckout=${ispricingcheckout}` +
                 billingIdParam;
@@ -247,10 +257,10 @@ function MultiBillingLayoutContent() {
         else {
             url = `billing/multi/init?` +
                 `&entityType=general` +
-                `&isPackageUsed=${billingdata.isPackageUsed}` +
+                `&isPackageUsed=${isPackageUsed}` +
                 `&useServices=${includeServices}` +
                 `&includeServices=${includeServices}` +
-                `&packageid=${billingdata.packageid || ''}` +
+                `&packageid=${packageId || ''}` +
                 `&branchid=${billingdata.branchid || ''}` +
                 `&patientId=${billingdata.patientid}` +
                 `&billingSource=1` +
@@ -275,7 +285,7 @@ function MultiBillingLayoutContent() {
             }
 
 
-            if (typeof backendData == "object" && backendData.hasOwnProperty('testList') && Array.isArray(backendData.testList) && backendData.testList.length === 0) {
+            if (typeof backendData == "object" && backendData.hasOwnProperty('testList') && Array.isArray(backendData.testList) && backendData.testList.length === 0 && !resumeDraft && !billingdata.isPackageUsed && !(useServices && Array.isArray(backendData.servicesList) && backendData.servicesList.length > 0)) {
                 toast.error("No tests available for the selected entity or special code.");
                 return;
             }
@@ -296,6 +306,55 @@ function MultiBillingLayoutContent() {
                 allowAdvancePayment: backendData.isPackageUsed ? false : backendData.allowAdvancePayment || false,
                 ispricingcheckout
             };
+
+            if (resumeDraft?.draft_data) {
+                const draftData = resumeDraft.draft_data;
+                const selectedTestIds = new Set((draftData.selectedTestIds || []).map(Number));
+                const savedTestOptions = new Map<number, any>();
+                for (const option of draftData.selectedTestOptions || []) {
+                    const aliases = [option.testid, ...(option.catalogIds || [])]
+                        .map(Number)
+                        .filter((id: number) => Number.isSafeInteger(id) && id > 0);
+                    for (const alias of aliases) savedTestOptions.set(alias, option);
+                }
+                const resumedCart = (backendData.testList || []).flatMap((test: any) => {
+                    const catalogIds = [test.testid, test.id, test.prim_key]
+                        .map(Number)
+                        .filter((id: number) => Number.isSafeInteger(id) && id > 0);
+                    const matchedSavedId = catalogIds.find((id: number) => selectedTestIds.has(id))
+                        ?? catalogIds.find((id: number) => savedTestOptions.has(id));
+                    if (!matchedSavedId) return [];
+                    const savedOptions = savedTestOptions.get(matchedSavedId) || {};
+                    const canonicalTestId = Number(test.testid);
+                    return [{
+                        ...test,
+                        ...savedOptions,
+                        testid: Number.isSafeInteger(canonicalTestId) && canonicalTestId > 0 ? canonicalTestId : matchedSavedId,
+                    }];
+                });
+                if (resumedCart.length !== selectedTestIds.size) {
+                    toast.warning(`${resumedCart.length} of ${selectedTestIds.size} saved tests were found in the current catalog. Unavailable tests may have been removed or renumbered.`);
+                }
+                const selectedServiceIds = new Set((draftData.selectedServiceIds || []).map(Number));
+                const resumedServices = (backendData.servicesList || []).filter((service: any) => selectedServiceIds.has(Number(service.keyid)));
+                updated = {
+                    ...updated,
+                    cart: resumedCart,
+                    servicesProvided: resumedServices,
+                    includeServices: Boolean(draftData.includeServices),
+                    isPackageUsed: Boolean(draftData.isPackageUsed),
+                    packageid: draftData.packageid || undefined,
+                    nhismembershipid: draftData.nhismembershipid || undefined,
+                    claimscheckcode: draftData.claimscheckcode || undefined,
+                    specialCode: draftData.specialCode || undefined,
+                    useSpecialCode: Boolean(draftData.useSpecialCode),
+                    isPromo: Boolean(draftData.isPromo),
+                    promoCode: draftData.promoCode || undefined,
+                    suspendedDraftId: Number(resumeDraft.id),
+                };
+                setUseServices(Boolean(draftData.includeServices));
+                setUsePackage(Boolean(draftData.isPackageUsed));
+            }
 
             if (backendData.entityType && backendData.entityType !== billingdata.entitytype) {
                 const entityTypeToBillingSource = {
@@ -329,7 +388,10 @@ function MultiBillingLayoutContent() {
                 updated.entitytype = backendData.entityType;
             }
             setBillingData(updated);
-            if (billingdata.cart && billingdata.cart.length > 0 && billingdata.isPackageUsed) {
+            if (resumeDraft?.draft_data) {
+                recalculateTotalBill(updated);
+                toast.success('Suspended transaction resumed with current server prices.');
+            } else if (billingdata.cart && billingdata.cart.length > 0 && billingdata.isPackageUsed) {
                 recalculateTotalBill(updated);
             }
         } catch (err) {
@@ -437,6 +499,7 @@ function MultiBillingLayoutContent() {
                 promoCode: billingdata.promoDetails?.code || '',
                 patientid: Number(billingdata.patientid),
                 payments: billingdata.payments,
+                suspendedDraftId: billingdata.suspendedDraftId,
                 billeddate: billingdata.billedagaints,
                 additionalinformation: billingdata.additionalInfo ?? '',
                 isAdjustment: typeof billingdata.isAdjustment === 'boolean' ? (billingdata.isAdjustment ? 1 : 0) : billingdata.isAdjustment,
@@ -560,6 +623,15 @@ function MultiBillingLayoutContent() {
             if (!submittedBillingId) {
                 toast.error(submitResponse?.message || 'Billing submission failed');
                 return;
+            }
+
+            if (billingdata.suspendedDraftId) {
+                const finalizedDraft: any = await customFetchMutation(`billing/suspended/${billingdata.suspendedDraftId}/finalize`, 'POST', {
+                    billingId: Number(submittedBillingId),
+                });
+                if (!finalizedDraft?.success) {
+                    toast.warning('Sale completed, but the suspended draft could not be marked finalized. It will not create another bill if resumed; contact an administrator if it remains listed.');
+                }
             }
 
             const payloadWithBillingId = {
@@ -715,6 +787,47 @@ function MultiBillingLayoutContent() {
     }, []);
 
     useEffect(() => {
+        if (!suspendedDraftId || resumeLoaded.current) return;
+        resumeLoaded.current = true;
+        customFetch(`billing/suspended/${suspendedDraftId}`).then((response: any) => {
+            if (!response?.success || !response?.data?.draft_data) {
+                setBackendError(response?.message || 'Unable to load suspended transaction.');
+                return;
+            }
+            const draft = response.data;
+            const data = draft.draft_data;
+            setBillingData((previous) => ({
+                ...previous,
+                patientid: draft.patientid == null ? previous.patientid : Number(draft.patientid),
+                billingSource: Number(draft.billing_source),
+                entitytype: data.entitytype || draft.entity_type || undefined,
+                entityId: data.entityId || draft.entity_id || undefined,
+                entityname: data.entityname || null,
+                branchid: Number(draft.branchid),
+                suspendedDraftId: Number(draft.id),
+                specialCode: data.specialCode || undefined,
+                useSpecialCode: Boolean(data.useSpecialCode),
+                nhismembershipid: data.nhismembershipid || undefined,
+                claimscheckcode: data.claimscheckcode || undefined,
+                isPackageUsed: Boolean(data.isPackageUsed),
+                packageid: data.packageid || undefined,
+                includeServices: Boolean(data.includeServices),
+                isPromo: Boolean(data.isPromo),
+                promoCode: data.promoCode || undefined,
+            }));
+            setResumeDraft(draft);
+            setUseServices(Boolean(data.includeServices));
+            setUsePackage(Boolean(data.isPackageUsed));
+        }).catch((error: any) => setBackendError(error?.message || 'Unable to load suspended transaction.'));
+    }, [suspendedDraftId]);
+
+    useEffect(() => {
+        if (!resumeDraft || resumeInitStarted.current || (!billingdata.patientid && !ispricingcheckout) || !billingdata.branchid) return;
+        resumeInitStarted.current = true;
+        void loadBackendBilling();
+    }, [resumeDraft, billingdata.patientid, billingdata.branchid, ispricingcheckout]);
+
+    useEffect(() => {
         if (!billingdata?.billingid) return;
         loadDeliveryDefaults(billingdata.billingid);
     }, [billingdata?.billingid]);
@@ -754,6 +867,51 @@ function MultiBillingLayoutContent() {
         }
         return true;
     })();
+
+    const suspendTransaction = async () => {
+        const selectedTestIds = Array.from(new Set((billingdata.cart || []).map((item: any) => Number(item.testid ?? item.id)).filter((id: number) => Number.isSafeInteger(id) && id > 0)));
+        const selectedServiceIds = (billingdata.servicesProvided || []).map((item: any) => Number(item.keyid)).filter((id: number) => id > 0);
+        try {
+            const response: any = await customFetchMutation(
+                suspendedDraftId ? `billing/suspended/${suspendedDraftId}` : 'billing/suspended',
+                suspendedDraftId ? 'PUT' : 'POST',
+                {
+                    patientid: ispricingcheckout ? null : (Number(billingdata.patientid || patientid) || null),
+                    isPricingQuote: Boolean(ispricingcheckout),
+                    billingSource: Number(billingdata.billingSource || categorytrackid),
+                    entitytype: billingdata.entitytype || entitytype || null,
+                    entityId: Number(billingdata.entityId || entityid) || null,
+                    entityname: billingdata.entityname || entityname || null,
+                    referalCode: billingdata.specialCode || null,
+                    specialCode: billingdata.specialCode || null,
+                    useSpecialCode: Boolean(billingdata.useSpecialCode),
+                    selectedTestIds,
+                    selectedServiceIds,
+                    selectedTestOptions: (billingdata.cart || []).map((item: any) => ({
+                        testid: Number(item.testid ?? item.id),
+                        catalogIds: [item.testid, item.id, item.prim_key].map(Number).filter((id: number) => Number.isSafeInteger(id) && id > 0),
+                        name: item.name || null,
+                        outsourceid: item.outsourceid || null,
+                        userAdjustedValue: item.userAdjustedValue ?? null,
+                        userAdjustmentType: item.userAdjustmentType || null,
+                    })),
+                    isPackageUsed: Boolean(billingdata.isPackageUsed),
+                    packageid: billingdata.packageid || null,
+                    includeServices: Boolean(useServices),
+                    nhismembershipid: billingdata.nhismembershipid || null,
+                    claimscheckcode: billingdata.claimscheckcode || null,
+                    isPromo: Boolean(billingdata.isPromo),
+                    promoCode: billingdata.promoCode || null,
+                    notes: billingdata.additionalInfo || null,
+                }
+            );
+            if (!response?.success) throw new Error(response?.message || 'Unable to suspend transaction.');
+            toast.success('Transaction suspended. You can resume it later from Suspended Transactions.');
+            router.push('/billing/suspended-transactions');
+        } catch (error: any) {
+            toast.error(error?.message || 'Unable to suspend transaction.');
+        }
+    };
 
 
     if (loadingBackendBilling) {
@@ -833,6 +991,21 @@ function MultiBillingLayoutContent() {
                 </div>
 
                 <div className="card-footer d-flex justify-content-end">
+                    {ispricingcheckout && billingdata.suspendedDraftId && (
+                        <Button
+                            variant="success"
+                            className="me-2"
+                            size="sm"
+                            onClick={() => router.push(`/billing/patientid?resumeDraftId=${billingdata.suspendedDraftId}&resumeBillingSource=${billingdata.billingSource || categorytrackid}`)}
+                        >
+                            Convert to sale
+                        </Button>
+                    )}
+                    {!billingid && !isAdjustment && (billingdata.cart?.length > 0 || billingdata.servicesProvided?.length > 0 || billingdata.isPackageUsed) && (
+                        <Button variant="outline-secondary" className="me-2" size="sm" onClick={() => void suspendTransaction()}>
+                            Suspend transaction
+                        </Button>
+                    )}
                     {billingdata?.allowAdvancePayment && (
                         <>
                             <Button disabled={billingdata.ispricingcheckout} variant="outline-primary" className="mx-2 " size="sm" onClick={handleAdvancedPayment} >

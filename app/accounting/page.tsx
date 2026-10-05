@@ -16,6 +16,7 @@ import {
 import dayjs from "dayjs";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
+import AccountingSummary from "../../components/accounting/AccountingSummary";
 import { currencyFormatter } from "../../components/Auth/customFetch";
 import { accountingApi, FinancialOverview, OutboxHealth } from "../../lib/accounting/accountingApi";
 import styles from "./page.module.css";
@@ -85,24 +86,16 @@ export default function AccountingOverviewPage() {
                     </div>
                )}
 
-               <div className="row g-3 mb-4">
-                    {[
-                         { label: "Today's revenue", value: performance?.today.revenue, href: "/accounting/income-statement", tone: styles.revenue },
-                         { label: "Today's expenses", value: performance?.today.expenses, href: "/accounting/income-statement", tone: styles.payables },
-                         { label: "Today's profit", value: performance?.today.profit, href: "/accounting/income-statement", tone: styles.profit },
-                         { label: "Cash & bank", value: position?.cashAndBank, href: "/accounting/balance-sheet", tone: styles.receivables },
-                    ].map((card) => (
-                         <div className="col-12 col-sm-6 col-xl-3" key={card.label}>
-                              <Link href={card.href} className={`${styles.metric} ${card.tone} text-decoration-none h-100`}>
-                                   <div className="d-flex justify-content-between align-items-start">
-                                        <div><div className={styles.metricLabel}>{card.label}</div><div className={styles.metricDetail}>Click to drill down</div></div>
-                                        <RiArrowRightLine size={17} />
-                                   </div>
-                                   <div className="fs-4 fw-bold mt-4">{money(card.value)}</div>
-                              </Link>
-                         </div>
-                    ))}
-               </div>
+               <AccountingSummary
+                    rowClassName="row g-3 mb-4"
+                    columnClassName="col-12 col-sm-6 col-xl-3"
+                    metrics={[
+                         { label: "Today's revenue", value: money(performance?.today.revenue), Icon: RiLineChartLine, variant: "primary", subtitle: "Click to drill down", href: "/accounting/income-statement" },
+                         { label: "Today's expenses", value: money(performance?.today.expenses), Icon: RiWallet3Line, variant: "warning", subtitle: "Click to drill down", href: "/accounting/income-statement" },
+                         { label: "Today's profit", value: money(performance?.today.profit), Icon: RiScales3Line, variant: (performance?.today.profit || 0) < 0 ? "danger" : "success", subtitle: "Click to drill down", href: "/accounting/income-statement" },
+                         { label: "Cash & bank", value: money(position?.cashAndBank), Icon: RiWallet3Line, variant: "info", subtitle: "Click to drill down", href: "/accounting/balance-sheet" },
+                    ]}
+               />
 
                <div className="row g-3 mb-4">
                     <div className="col-12">

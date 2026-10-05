@@ -1,7 +1,7 @@
 "use client";
 import { RiCheckboxCircleLine, RiErrorWarningLine } from "@remixicon/react";
 import dayjs from "dayjs";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import ReportShell from "../../../components/accounting/ReportShell";
 import { currencyFormatter } from "../../../components/Auth/customFetch";
 import DateFilterReusable from "../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
@@ -26,18 +26,21 @@ export default function BalanceSheetPage() {
      const [sheet, setSheet] = useState<BalanceSheet | null>(null);
      const [loading, setLoading] = useState(false);
      const [error, setError] = useState<string | null>(null);
+     const latestRequest = useRef(0);
 
      const load = useCallback(async () => {
+          const requestId = ++latestRequest.current;
           setLoading(true);
           setError(null);
           try {
                const response = await accountingApi.balanceSheet(asOf);
+               if (requestId !== latestRequest.current) return;
                if (response?.result) setSheet(response.result);
                else setError(response?.message || "Unable to load the balance sheet");
           } catch (err: any) {
                setError(err?.message || "Unable to load the balance sheet");
           } finally {
-               setLoading(false);
+               if (requestId === latestRequest.current) setLoading(false);
           }
      }, [asOf]);
 
@@ -123,7 +126,7 @@ export default function BalanceSheetPage() {
                                    className="w-100"
                               />
                          </div>
-                        
+
                     </>
                }
           >

@@ -1,6 +1,6 @@
 "use client";
 import dayjs from "dayjs";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import PrimeTable from "../../../../components/accessories/Datatables/PrimeTable";
 import ReportShell from "../../../../components/accounting/ReportShell";
 import { currencyFormatter } from "../../../../components/Auth/customFetch";
@@ -13,15 +13,19 @@ export default function InventoryValuationPage() {
      const [rows, setRows] = useState<any[]>([]);
      const [totals, setTotals] = useState<any>(null);
      const [loading, setLoading] = useState(false);
+     const latestRequest = useRef(0);
 
      const load = useCallback(async () => {
+          const requestId = ++latestRequest.current;
           setLoading(true);
           try {
                const response = await accountingApi.inventoryValuation(asOf);
-               setRows(response?.result?.rows || []);
-               setTotals(response?.result?.totals || null);
+               if (requestId === latestRequest.current) {
+                    setRows(response?.result?.rows || []);
+                    setTotals(response?.result?.totals || null);
+               }
           } finally {
-               setLoading(false);
+               if (requestId === latestRequest.current) setLoading(false);
           }
      }, [asOf]);
 
@@ -53,7 +57,7 @@ export default function InventoryValuationPage() {
                filters={
                     <>
                          <div className="col-12 col-md-6">
-                              <DateFilterReusable value={dateFilter} onChange={setDateFilter} onDateRangeChange={(_, end) => setAsOf(end)} label="Period" className="w-100" disabled={loading} />
+                              <DateFilterReusable value={dateFilter} onChange={setDateFilter} onDateRangeChange={(_, end) => setAsOf(end)} label="Period" className="w-100" />
                          </div>
                     </>
                }
@@ -76,7 +80,7 @@ export default function InventoryValuationPage() {
                     </p>
                )}
 
-               <PrimeTable column={column} data={rows} filtering  handleSeverSideProcessing={undefined} />
+               <PrimeTable column={column} data={rows} filtering handleSeverSideProcessing={undefined} />
           </ReportShell>
      );
 }

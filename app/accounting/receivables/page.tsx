@@ -7,8 +7,8 @@ export default function ReceivablesPage() {
           <SubledgerReport
                ledger="AR"
                title="Accounts Receivable"
-               subtitle="What customers owe, reconciled against the receivables control account"
-               partyLabel="Customer"
+               subtitle="Current unpaid patient bills by bill date"
+               partyLabel="Patient"
           />
      );
 }

@@ -1,6 +1,8 @@
 "use client";
 import dayjs from "dayjs";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { RiBarChartLine, RiMoneyDollarCircleLine, RiRefund2Line, RiWalletLine } from "@remixicon/react";
+import AccountingSummary from "../../../components/accounting/AccountingSummary";
 import ReportShell, { formatRange } from "../../../components/accounting/ReportShell";
 import { currencyFormatter } from "../../../components/Auth/customFetch";
 import DateFilterReusable from "../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
@@ -19,12 +21,15 @@ export default function IncomeStatementPage() {
      const [loading, setLoading] = useState(false);
      const [error, setError] = useState<string | null>(null);
      const [loadedRange, setLoadedRange] = useState({ from, to });
+     const latestRequest = useRef(0);
 
      const load = useCallback(async () => {
+          const requestId = ++latestRequest.current;
           setLoading(true);
           setError(null);
           try {
                const response = await accountingApi.incomeStatement(from, to);
+               if (requestId !== latestRequest.current) return;
                if (response?.result) {
                     setStatement(response.result);
                     setLoadedRange({ from, to });
@@ -32,9 +37,9 @@ export default function IncomeStatementPage() {
                     setError(response?.message || "Unable to load the profit and loss");
                }
           } catch (err: any) {
-               setError(err?.message || "Unable to load the profit and loss");
+               if (requestId === latestRequest.current) setError(err?.message || "Unable to load the profit and loss");
           } finally {
-               setLoading(false);
+               if (requestId === latestRequest.current) setLoading(false);
           }
      }, [from, to]);
 
@@ -102,38 +107,16 @@ export default function IncomeStatementPage() {
           >
                {error && <div className="alert alert-danger py-2">{error}</div>}
 
-               <div className="row g-2 mb-3">
-                    <div className="col-6 col-md-3">
-                         <div className="border rounded p-4">
-                              <h4 >Total Revenue</h4>
-                              <hr />
-                              <h3 className=" fw-bold">{money(totals?.revenue || 0)}</h3>
-                         </div>
-                    </div>
-                    <div className="col-6 col-md-3">
-                         <div className="border rounded p-4">
-                              <h4>Gross Profit</h4>
-                              <hr />
-                              <h3 className=" fw-bold">{money(totals?.grossProfit || 0)}</h3>
-                         </div>
-                    </div>
-                    <div className="col-6 col-md-3">
-                         <div className="border rounded p-4">
-                              <h4>Operating Expenses</h4>
-                              <hr />
-                              <h3 className=" fw-bold">{money(totals?.operatingExpenses || 0)}</h3>
-                         </div>
-                    </div>
-                    <div className="col-6 col-md-3">
-                         <div className="border rounded p-4">
-                              <h4>Net Profit</h4>
-                              <hr />
-                              <h3 className={` fw-bold ${(totals?.netProfit || 0) < 0 ? "text-danger" : "text-success"}`}>
-                                   {money(totals?.netProfit || 0)}
-                              </h3>
-                         </div>
-                    </div>
-               </div>
+               <AccountingSummary
+                    rowClassName="row g-2 mb-3"
+                    columnClassName="col-6 col-md-3"
+                    metrics={[
+                         { label: "Total Revenue", value: money(totals?.revenue || 0), Icon: RiMoneyDollarCircleLine, variant: "primary", subtitle: "Income recognized" },
+                         { label: "Gross Profit", value: money(totals?.grossProfit || 0), Icon: RiBarChartLine, variant: "success", subtitle: "Revenue less cost of sales" },
+                         { label: "Operating Expenses", value: money(totals?.operatingExpenses || 0), Icon: RiWalletLine, variant: "warning", subtitle: "Operating costs" },
+                         { label: "Net Profit", value: money(totals?.netProfit || 0), Icon: RiRefund2Line, variant: (totals?.netProfit || 0) < 0 ? "danger" : "info", subtitle: "After costs and expenses" },
+                    ]}
+               />
 
                <div className="table-responsive">
                     <table className="table align-middle mb-0">

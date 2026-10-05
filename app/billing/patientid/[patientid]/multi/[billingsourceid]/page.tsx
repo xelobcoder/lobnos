@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import BillingPagePatientInformation from '../../../../../../components/Billing/BillingContextComponents/PersonalInfoView';
 import { Alert } from 'react-bootstrap';
+import { useParams, useSearchParams } from 'next/navigation';
 import { plsDecryption } from '../../../../../../lib/encryption';
 import MultiBillingLayout from '../../../../../../components/Billing/Multi/MultBillingLayout';
 import { RiErrorWarningFill } from '@remixicon/react';
@@ -48,13 +49,15 @@ function normalizePatientInfo(raw: any): PatientInfo {
     };
 }
 
-export default function MultiStepBillingSourcePage({ params, searchParams }: any) {
+export default function MultiStepBillingSourcePage() {
     const [patientBasicInformation, setPatientBasicInformation] = useState<any>({});
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const params = useParams();
+    const searchParams = useSearchParams();
 
-    const categorytrackid = parseInt(params.billingsourceid, 10);
-    const ispricingcheckout = searchParams?.ispricingcheckout === '1';
+    const categorytrackid = parseInt(String(params?.billingsourceid || ''), 10);
+    const ispricingcheckout = searchParams.get('ispricingcheckout') === '1';
 
     let patientid: string | null = null;
     if (!ispricingcheckout) {
@@ -62,16 +65,17 @@ export default function MultiStepBillingSourcePage({ params, searchParams }: any
         patientid = plsDecryption(undeCryptedPatientId?.toString() ?? "");
     }
 
-    const entitytype = searchParams?.entitytype ?? null;
-    const entityname = searchParams?.entityname ?? null;
-    const entityid = searchParams?.entityid ?? null;
-    const specialcode = searchParams?.specialcode ?? null;
-    const billingid = searchParams?.billingid ?? null;
-    const isRelatedBilling = searchParams?.isRelatedBilling === 0 || searchParams?.isRelatedBilling === "0" ? false : true;
-    const isNewTransaction = searchParams?.isNewTransaction === 0 || searchParams?.isNewTransaction === "0" ? true : false;
-    const isAdjustment = searchParams?.isAdjustment === 0 || searchParams?.isAdjustment === "0" ? false : true;
-    const adjustmentType = searchParams?.adjustmentType || 'addition';
-    const adjustmentReason = searchParams?.adjustmentReason || '';
+    const entitytype = searchParams.get('entitytype');
+    const entityname = searchParams.get('entityname');
+    const entityid = searchParams.get('entityid');
+    const specialcode = searchParams.get('specialcode');
+    const billingid = searchParams.get('billingid');
+    const isRelatedBilling = searchParams.get('isRelatedBilling') !== '0';
+    const isNewTransaction = searchParams.get('isNewTransaction') === '0';
+    const isAdjustment = ['1', 'true'].includes(searchParams.get('isAdjustment') || '');
+    const adjustmentType = searchParams.get('adjustmentType') || 'addition';
+    const adjustmentReason = searchParams.get('adjustmentReason') || '';
+    const suspendedDraftId = searchParams.get('suspendedDraftId') ? Number(searchParams.get('suspendedDraftId')) : undefined;
 
     useEffect(() => {
         if (!ispricingcheckout && patientid && categorytrackid) {
@@ -125,6 +129,7 @@ export default function MultiStepBillingSourcePage({ params, searchParams }: any
                     billingid: billingid ? parseInt(billingid, 10) : null,
                     isNewTransaction,
                     specialcode,
+                    suspendedDraftId,
                 }}
             />
         </div>

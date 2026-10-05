@@ -14,7 +14,8 @@ import {
     RiScales2Fill,
     RiCalendarEventFill,
     RiStoreLine,
-    RiFileListLine
+    RiFileListLine,
+    RiTimeLine
 } from '@remixicon/react';
 
 export const CrmLinks: Link[] = [
@@ -85,6 +86,11 @@ export const CrmLinks: Link[] = [
                 title: "Entity Order Review",
                 link: "/billing/entity-orders",
                 icon: <RiBillFill />
+            },
+            {
+                title: "Suspended Transactions",
+                link: "/billing/suspended-transactions",
+                icon: <RiTimeLine />
             },
             {
                 title: 'Sales Session',

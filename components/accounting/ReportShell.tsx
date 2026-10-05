@@ -15,7 +15,7 @@ interface Props {
 
 export default function ReportShell({ title, subtitle, reportTitle, range, filters, actions, children }: Props) {
      return (
-          <div className="container-fluid py-5">
+          <div className="container-fluid py-5 ">
                <div className="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
                     <div>
                          <h4 className="mb-1">{title}</h4>
@@ -31,7 +31,7 @@ export default function ReportShell({ title, subtitle, reportTitle, range, filte
                </div>
 
                {filters && (
-                    <div className="card border-0 shadow-sm mb-3">
+                    <div className="card border-0 bg-white mb-3">
                          <div className="card-body py-3">
                               <div className="row g-2 align-items-end">{filters}</div>
                          </div>

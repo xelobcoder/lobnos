@@ -1,8 +1,10 @@
 "use client";
 import { RiRefreshLine, RiRestartLine } from "@remixicon/react";
+import { RiAlarmWarningLine, RiCheckboxCircleLine, RiErrorWarningLine, RiLoaderLine } from "@remixicon/react";
 import dayjs from "dayjs";
 import React, { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import AccountingSummary from "../../../components/accounting/AccountingSummary";
 import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
 import ReportShell from "../../../components/accounting/ReportShell";
 import { accountingApi, OutboxHealth } from "../../../lib/accounting/accountingApi";
@@ -61,7 +63,7 @@ export default function PostingExceptionsPage() {
 
 
      useEffect(() => {
-        load();
+          load();
      }, [status]);
 
      const replay = async (id: number) => {
@@ -81,13 +83,15 @@ export default function PostingExceptionsPage() {
      };
 
      const tiles = [
-          { label: "Pending", value: health?.pending ?? 0, tone: "" },
-          { label: "Failed", value: health?.failed ?? 0, tone: health?.failed ? "text-warning" : "" },
-          { label: "Dead letter", value: health?.deadLetter ?? 0, tone: health?.deadLetter ? "text-danger" : "" },
+          { label: "Pending", value: health?.pending ?? 0, Icon: RiLoaderLine, variant: "info" as const, subtitle: "Awaiting ledger posting" },
+          { label: "Failed", value: health?.failed ?? 0, Icon: RiErrorWarningLine, variant: "warning" as const, subtitle: "Will retry automatically" },
+          { label: "Dead letter", value: health?.deadLetter ?? 0, Icon: RiAlarmWarningLine, variant: "danger" as const, subtitle: "Needs manual attention" },
           {
                label: "Oldest waiting",
                value: health?.oldestPendingMinutes == null ? "-" : `${health.oldestPendingMinutes} min`,
-               tone: (health?.oldestPendingMinutes || 0) > 10 ? "text-warning" : "",
+               Icon: RiCheckboxCircleLine,
+               variant: (health?.oldestPendingMinutes || 0) > 10 ? "warning" as const : "primary" as const,
+               subtitle: "Longest pending posting",
           },
      ];
 
@@ -146,8 +150,8 @@ export default function PostingExceptionsPage() {
                title="Posting Exceptions"
                subtitle="Business records commit immediately; the ledger catches up on a sweep every 60 seconds."
                actions={
-                    <button className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" onClick={load} disabled={loading}>
-                         <RiRefreshLine size={16} /> Refresh
+                    <button className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" onClick={load}>
+                         <RiRefreshLine size={16} /> {loading ? "Refresh again" : "Refresh"}
                     </button>
                }
                filters={
@@ -163,17 +167,11 @@ export default function PostingExceptionsPage() {
                     </div>
                }
           >
-               <div className="row g-2 mb-3">
-                    {tiles.map((tile) => (
-                         <div className="col-6 col-md-3" key={tile.label}>
-                              <div className="border rounded p-4">
-                                   <h5 className="text-uppercase">{tile.label}</h5>
-                                   <hr />
-                                   <div className={`fs-5 fw-bold ${tile.tone}`}>{tile.value}</div>
-                              </div>
-                         </div>
-                    ))}
-               </div>
+               <AccountingSummary
+                    rowClassName="row g-2 mb-3"
+                    columnClassName="col-6 col-md-3"
+                    metrics={tiles}
+               />
 
                {(health?.deadLetter || 0) > 0 && (
                     <div className="alert alert-danger py-2">

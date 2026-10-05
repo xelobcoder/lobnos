@@ -1,6 +1,6 @@
 "use client";
 import dayjs from "dayjs";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import PrimeTable from "../../../../../../components/accessories/Datatables/PrimeTable";
 import ReportShell, { formatRange } from "../../../../../../components/accounting/ReportShell";
 import { currencyFormatter } from "../../../../../../components/Auth/customFetch";
@@ -23,16 +23,19 @@ export default function SubledgerStatementPage({
      const [openingBalance, setOpeningBalance] = useState(0);
      const [closingBalance, setClosingBalance] = useState(0);
      const [loading, setLoading] = useState(false);
+     const latestRequest = useRef(0);
 
      const load = useCallback(async () => {
+          const requestId = ++latestRequest.current;
           setLoading(true);
           try {
                const response = await accountingApi.subledgerStatement(ledger, params.partyType, partyId, from, to, { count: 200 });
+               if (requestId !== latestRequest.current) return;
                setEntries(response?.result?.entries || []);
                setOpeningBalance(response?.result?.openingBalance || 0);
                setClosingBalance(response?.result?.closingBalance || 0);
           } finally {
-               setLoading(false);
+               if (requestId === latestRequest.current) setLoading(false);
           }
      }, [ledger, params.partyType, partyId, from, to]);
 
@@ -94,10 +97,9 @@ export default function SubledgerStatementPage({
                                    onDateRangeChange={(start, end) => { setFrom(start); setTo(end); }}
                                    label="Period"
                                    className="w-100"
-                                   disabled={loading}
                               />
                          </div>
-                         
+
                     </>
                }
           >
@@ -112,7 +114,7 @@ export default function SubledgerStatementPage({
                     </div>
                </div>
 
-               <PrimeTable column={column} data={entries} filtering  handleSeverSideProcessing={undefined} />
+               <PrimeTable column={column} data={entries} filtering handleSeverSideProcessing={undefined} />
           </ReportShell>
      );
 }

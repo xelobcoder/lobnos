@@ -1,0 +1,135 @@
+.section {
+     margin: 1rem 0;
+     color: #202824;
+     break-inside: avoid;
+     page-break-inside: avoid;
+}
+
+.heading {
+     display: flex;
+     align-items: baseline;
+     justify-content: space-between;
+     gap: 1rem;
+     padding: 0 0 0.45rem;
+     border-bottom: 2px solid #405c51;
+}
+
+.title {
+     margin: 0;
+     font-size: 0.95rem;
+     font-weight: 700;
+     text-transform: uppercase;
+}
+
+.count {
+     color: #5c6862;
+     font-size: 0.75rem;
+     white-space: nowrap;
+}
+
+.table {
+     width: 100%;
+     border-collapse: collapse;
+     font-size: 0.88rem;
+}
+
+.table thead th {
+     padding: 0.45rem 0.6rem;
+     border-bottom: 1px solid #aeb8b2;
+     background: #f4f6f4;
+     font-weight: 600;
+}
+
+.table tbody td {
+     padding: 0.4rem 0.6rem;
+     border-bottom: 1px solid #dce1dd;
+     vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+     border-bottom: 1px solid #aeb8b2;
+}
+
+.richContent {
+     overflow-wrap: anywhere;
+}
+
+.richContent :global(p) {
+     margin: 0.35rem 0 0.65rem;
+}
+
+.richContent :global(figure) {
+     max-width: 100%;
+     margin: 0.65rem 0;
+     overflow-x: auto;
+}
+
+.richContent :global(table) {
+     width: 100%;
+     margin: 0.65rem 0;
+     border-collapse: collapse;
+     font-size: 0.88rem;
+     page-break-inside: auto;
+}
+
+.richContent :global(thead th) {
+     padding: 0.45rem 0.6rem;
+     border-bottom: 1px solid #aeb8b2;
+     background: #f4f6f4;
+     font-weight: 600;
+}
+
+.richContent :global(tbody td) {
+     padding: 0.4rem 0.6rem;
+     border-bottom: 1px solid #dce1dd;
+     vertical-align: middle;
+}
+
+.richContent :global(tbody tr:last-child td) {
+     border-bottom: 1px solid #aeb8b2;
+}
+
+.richContent :global(tr) {
+     page-break-inside: avoid;
+}
+
+.sensitive {
+     color: #176344;
+     font-weight: 700;
+}
+
+.resistant {
+     color: #9b2929;
+     font-weight: 700;
+}
+
+.unreported {
+     color: #4f5a54;
+     font-weight: 600;
+}
+
+@media print {
+     .section {
+          margin: 0.8rem 0;
+     }
+
+     .table thead th {
+          background: #f4f6f4 !important;
+          print-color-adjust: exact;
+          -webkit-print-color-adjust: exact;
+     }
+
+     .richContent :global(thead th) {
+          background: #f4f6f4 !important;
+          print-color-adjust: exact;
+          -webkit-print-color-adjust: exact;
+     }
+}
+
+@media (max-width: 575.98px) {
+     .heading {
+          align-items: flex-start;
+          flex-direction: column;
+          gap: 0.2rem;
+     }
+}

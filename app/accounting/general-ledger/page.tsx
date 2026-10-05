@@ -1,7 +1,7 @@
 "use client";
 import dayjs from "dayjs";
 import { useSearchParams } from "next/navigation";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
 import ReportShell from "../../../components/accounting/ReportShell";
 import { currencyFormatter } from "../../../components/Auth/customFetch";
@@ -22,6 +22,7 @@ export default function GeneralLedgerPage() {
      const [sourceModule, setSourceModule] = useState(searchParams.get("sourceModule") || "");
      const [rows, setRows] = useState<any[]>([]);
      const [total, setTotal] = useState(0);
+     const latestRequest = useRef(0);
 
      const handleSeverSideProcessing =
           async ({
@@ -41,13 +42,13 @@ export default function GeneralLedgerPage() {
                          to,
                          accountCode: (overrides?.accountCode ?? accountCode) || undefined,
                          sourceModule: (overrides?.sourceModule ?? sourceModule) || undefined,
-                         page: page ,
+                         page: page,
                          count: count,
                          sortby,
                     });
 
                     const data = response?.result?.data || [];
-                    return { result: data, total: response?.result?.total || 0,error: false };
+                    return { result: data, total: response?.result?.total || 0, error: false };
                } catch (error: any) {
                     console.error("Error fetching general ledger data:", error);
                     return { result: [], total: 0, error: true };
@@ -68,6 +69,7 @@ export default function GeneralLedgerPage() {
                sortby?: string;
                overrides?: { accountCode?: string; sourceModule?: string };
           }) => {
+               const requestId = ++latestRequest.current;
                try {
                     const response = await accountingApi.generalLedger({
                          from,
@@ -80,6 +82,7 @@ export default function GeneralLedgerPage() {
                     });
 
                     const data = response?.result?.data || [];
+                    if (requestId !== latestRequest.current) return;
                     setTotal(response?.result?.total || 0);
                     setRows(data);
                } catch (error: any) {
@@ -90,7 +93,7 @@ export default function GeneralLedgerPage() {
 
 
      useEffect(() => {
-          clientSideProcessing({ page: 1, count: 10});
+          clientSideProcessing({ page: 1, count: 10 });
           // eslint-disable-next-line react-hooks/exhaustive-deps
      }, [from, to, accountCode, sourceModule]);
 
@@ -105,7 +108,7 @@ export default function GeneralLedgerPage() {
                accessor: "journal_entry_id",
                Cell: ({ row }: any) => (
                     <div>
-                    
+
                          <span className="badge bg-light text-dark text-capitalize fw-bold">{row.original.transaction_type}</span>
                     </div>
                ),
@@ -127,7 +130,7 @@ export default function GeneralLedgerPage() {
                     <div className="text-uppercase fw-bold">
                          <div >{row.original.source_module}</div>
                          <small className="text-muted">
-                          {row.original.source_ref || row.original.source_pk}
+                              {row.original.source_ref || row.original.source_pk}
                          </small>
                     </div>
                ),

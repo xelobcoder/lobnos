@@ -1,6 +1,6 @@
 "use client";
 import dayjs from "dayjs";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import PrimeTable from "../../../../components/accessories/Datatables/PrimeTable";
 import ReportShell, { formatRange } from "../../../../components/accounting/ReportShell";
 import { currencyFormatter } from "../../../../components/Auth/customFetch";
@@ -14,14 +14,16 @@ export default function BranchPerformancePage() {
      const [dateFilter, setDateFilter] = useState("This Year");
      const [rows, setRows] = useState<any[]>([]);
      const [loading, setLoading] = useState(false);
+     const latestRequest = useRef(0);
 
      const load = useCallback(async () => {
+          const requestId = ++latestRequest.current;
           setLoading(true);
           try {
                const response = await accountingApi.branchPerformance(from, to);
-               setRows(response?.result || []);
+               if (requestId === latestRequest.current) setRows(response?.result || []);
           } finally {
-               setLoading(false);
+               if (requestId === latestRequest.current) setLoading(false);
           }
      }, [from, to]);
 
@@ -63,11 +65,11 @@ export default function BranchPerformancePage() {
                filters={
                     <>
                          <div className="col-12 col-md-6">
-                              <DateFilterReusable value={dateFilter} onChange={setDateFilter} onDateRangeChange={(start, end) => { setFrom(start); setTo(end); }} label="Period" className="w-100" disabled={loading} />
+                              <DateFilterReusable value={dateFilter} onChange={setDateFilter} onDateRangeChange={(start, end) => { setFrom(start); setTo(end); }} label="Period" className="w-100" />
                          </div>
                          <div className="col-12 col-md-3">
-                              <button className="btn btn-sm btn-primary w-100" onClick={load} disabled={loading}>
-                                   {loading ? "Running..." : "Run report"}
+                              <button className="btn btn-sm btn-primary w-100" onClick={load}>
+                                   {loading ? "Refresh report" : "Run report"}
                               </button>
                          </div>
                     </>

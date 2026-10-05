@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { customFetch } from '../../Auth/customFetch';
-import { Modal, Table, Button, Spinner } from 'react-bootstrap';
+import { customFetch, customFetchMutation } from '../../Auth/customFetch';
+import { Modal, Table, Button, Spinner, Form } from 'react-bootstrap';
 import PrimeTable from '../../accessories/Datatables/PrimeTable';
 import { toast } from 'react-toastify';
 import { handleServerSideQCSessions } from '../../serverActions/ActionFiltering';
@@ -21,6 +21,7 @@ import {
     // ReferenceLine // Already imported, good for explicit limits
 } from 'recharts';
 import { useRouter } from 'next/navigation';
+import { useApplication } from '../../Auth/useApplicationContext';
 
 // --- Professional Color Palette (Inspired by ShadCN/Tailwind) ---
 const CHART_COLORS = {
@@ -111,7 +112,13 @@ export const QCSessionsTable: React.FC = () => {
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [totalPages, setTotalPages] = useState<number>(0);
     const [westgardViolations, setWestgardViolations] = useState<{ [key: string]: WestgardViolation[] }>({});
+    const [reviewingSessionId, setReviewingSessionId] = useState<string | null>(null);
+    const [bypassSession, setBypassSession] = useState<QCSession | null>(null);
+    const [bypassReason, setBypassReason] = useState('');
     const router = useRouter();
+    const currentUser = useApplication()?.user;
+    const employeeId = Number(currentUser?.employeeid);
+    const canBypassQc = ['admin', 'super-admin'].includes(String(currentUser?.role || '').toLowerCase());
 
     useEffect(() => {
         fetchSessions(rows, currentPage);
@@ -256,6 +263,38 @@ export const QCSessionsTable: React.FC = () => {
         router.push(`/operations/laboratory/quality-control/qc-recording/${session.id}/${session.controlMaterialId}`);
     };
 
+    const reviewSession = async (session: QCSession, decision: 'accepted' | 'bypassed', reason?: string) => {
+        if (!employeeId) {
+            toast.error('Your employee session could not be identified.');
+            return false;
+        }
+        setReviewingSessionId(session.id);
+        try {
+            const action = decision === 'accepted' ? 'accept-for-results' : 'bypass-for-results';
+            const response = await customFetchMutation(`qc-sessions/${session.id}/${action}?employeeid=${employeeId}`, 'POST', decision === 'bypassed' ? { reason } : {});
+            if (response?.status !== true) throw new Error(response?.error || 'QC review was not saved');
+            toast.success(decision === 'accepted' ? 'QC accepted for result entry' : 'QC bypass recorded');
+            await fetchSessions(rows, currentPage);
+            return true;
+        } catch (error: any) {
+            toast.error(error?.message || error?.error || 'Could not save QC review');
+            return false;
+        } finally {
+            setReviewingSessionId(null);
+        }
+    };
+
+    const submitBypass = async () => {
+        if (!bypassSession || !bypassReason.trim()) {
+            toast.error('A reason is required to bypass QC.');
+            return;
+        }
+        if (await reviewSession(bypassSession, 'bypassed', bypassReason.trim())) {
+            setBypassSession(null);
+            setBypassReason('');
+        }
+    };
+
     const columns = [
         { accessor: 'control_material_name', Header: 'Material Name' },
         { accessor: 'created_by_username', Header: 'Created By' },
@@ -265,16 +304,33 @@ export const QCSessionsTable: React.FC = () => {
         },
         {
             accessor: 'actions', Header: 'Actions', Cell: ({ row }: { row: { original: QCSession } }) => (
-                <div>
-                    <Button variant="primary" size='sm' onClick={() => fetchReadings(row.original)}>View Readings</Button>
+                <div className="d-flex flex-wrap align-items-center gap-2">
+                    <Button variant="outline-primary" size='sm' onClick={() => fetchReadings(row.original)}>View Readings</Button>
                     <Button
-                        variant="primary"
+                        variant="outline-primary"
                         size="sm"
-                        className='mx-2'
                         onClick={() => handleNewReading(row.original)}
                     >
                         New Reading
                     </Button>
+                    <Button
+                        variant="success"
+                        size="sm"
+                        disabled={reviewingSessionId === row.original.id}
+                        onClick={() => void reviewSession(row.original, 'accepted')}
+                    >
+                        {reviewingSessionId === row.original.id ? <Spinner size="sm" /> : 'Accept QC'}
+                    </Button>
+                    {canBypassQc && (
+                        <Button
+                            variant="outline-danger"
+                            size="sm"
+                            disabled={reviewingSessionId === row.original.id}
+                            onClick={() => setBypassSession(row.original)}
+                        >
+                            Bypass QC
+                        </Button>
+                    )}
                 </div>
             )
         }
@@ -299,6 +355,37 @@ export const QCSessionsTable: React.FC = () => {
             <h3>QC Sessions</h3>
             <PrimeTable column={columns} data={sessions || []} serverSideFiltering={true} handleSeverSideProcessing={handleServerSideQCSessions} filtering={true} />
 
+
+            <Modal
+                show={Boolean(bypassSession)}
+                onHide={() => { setBypassSession(null); setBypassReason(''); }}
+                animation={false}
+                centered={false}
+                dialogClassName="mt-3"
+            >
+                <Modal.Header closeButton>
+                    <Modal.Title>Record QC Bypass</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <p className="mb-2">A reason will be recorded in the QC audit trail.</p>
+                    <Form.Group>
+                        <Form.Label>Reason</Form.Label>
+                        <Form.Control
+                            as="textarea"
+                            rows={3}
+                            value={bypassReason}
+                            onChange={(event) => setBypassReason(event.target.value)}
+                            maxLength={1000}
+                        />
+                    </Form.Group>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="outline-secondary" onClick={() => { setBypassSession(null); setBypassReason(''); }}>Cancel</Button>
+                    <Button variant="danger" disabled={!bypassReason.trim() || reviewingSessionId !== null} onClick={() => void submitBypass()}>
+                        {reviewingSessionId ? <Spinner size="sm" className="me-2" /> : null}Record Bypass
+                    </Button>
+                </Modal.Footer>
+            </Modal>
 
             <Modal show={displayReadingsModal} onHide={hideReadingsModal} size="xl" backdrop="static">
                 <Modal.Header closeButton>

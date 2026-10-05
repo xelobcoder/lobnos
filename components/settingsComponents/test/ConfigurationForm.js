@@ -1,7 +1,7 @@
 import React from "react";
 import { Form } from "react-bootstrap";
 
-const ConfigurationsForm = ({ data, handleSwitch }) => {
+const ConfigurationsForm = ({ data, handleSwitch, canManageQc }) => {
   return (
     <>
       <h5>Configurations</h5>
@@ -69,6 +69,17 @@ const ConfigurationsForm = ({ data, handleSwitch }) => {
           style={{ fontSize: "25px" }}
         />
       </div>
+      {canManageQc && (
+        <div className="form-row grid-reg mt-2">
+          <label className="pls-label">Require QC before result entry</label>
+          <Form.Switch
+            onChange={(ev) => handleSwitch(ev, "requires_qc")}
+            checked={data.requires_qc === 1 || data.requires_qc === true}
+            type="switch"
+            style={{ fontSize: "25px" }}
+          />
+        </div>
+      )}
       {data.hasManual === 1 && (
         <div className="form-row grid-reg mt-2">
           <label className="pls-label">Procedure Code</label>

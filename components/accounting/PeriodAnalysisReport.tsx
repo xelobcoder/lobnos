@@ -1,6 +1,8 @@
 "use client";
 import dayjs from "dayjs";
-import React, { useCallback, useEffect, useState } from "react";
+import { RiBarChartLine } from "@remixicon/react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import AccountingSummary from "./AccountingSummary";
 import PrimeTable from "../accessories/Datatables/PrimeTable";
 import ReportShell, { formatRange } from "./ReportShell";
 import { currencyFormatter } from "../Auth/customFetch";
@@ -22,8 +24,10 @@ export default function PeriodAnalysisReport({ type, title, subtitle }: Props) {
      const [periods, setPeriods] = useState<string[]>([]);
      const [totals, setTotals] = useState<Record<string, number>>({});
      const [loading, setLoading] = useState(false);
+     const latestRequest = useRef(0);
 
      const load = useCallback(async () => {
+          const requestId = ++latestRequest.current;
           setLoading(true);
           try {
                const response =
@@ -32,6 +36,7 @@ export default function PeriodAnalysisReport({ type, title, subtitle }: Props) {
                          : await accountingApi.expenseAnalysis(from, to);
 
                const result = response?.result;
+               if (requestId !== latestRequest.current) return;
                setPeriods(result?.periods || []);
                setTotals(result?.totals || {});
                setRows(
@@ -41,7 +46,7 @@ export default function PeriodAnalysisReport({ type, title, subtitle }: Props) {
                     }))
                );
           } finally {
-               setLoading(false);
+               if (requestId === latestRequest.current) setLoading(false);
           }
      }, [type, from, to]);
 
@@ -83,7 +88,7 @@ export default function PeriodAnalysisReport({ type, title, subtitle }: Props) {
                filters={
                     <>
                          <div className="col-12 col-md-6">
-                              <DateFilterReusable value={dateFilter} onChange={setDateFilter} onDateRangeChange={(start, end) => { setFrom(start); setTo(end); }} label="Period" className="w-100" disabled={loading} />
+                              <DateFilterReusable value={dateFilter} onChange={setDateFilter} onDateRangeChange={(start, end) => { setFrom(start); setTo(end); }} label="Period" className="w-100" />
                          </div>
                          {/* <div className="col-12 col-md-3">
                               <button className="btn btn-sm btn-primary w-100" onClick={load} disabled={loading}>
@@ -93,15 +98,15 @@ export default function PeriodAnalysisReport({ type, title, subtitle }: Props) {
                     </>
                }
           >
-               <div className="mb-2 bg-white">
-                    <div className="border rounded p-4 ">
-                         <h4>Total for period</h4>
-                         <hr />
-                         <h3 className=" fw-bold">{money(totals.total || 0)}</h3>
-                    </div>
-               </div>
+               <AccountingSummary
+                    columnClassName="col-12 col-sm-6 col-xl-3"
+                    metrics={[
+                         { label: "Total for period", value: money(totals.total || 0), Icon: RiBarChartLine, variant: type === "revenue" ? "success" : "warning", subtitle: type === "revenue" ? "Revenue recognized in period" : "Expenses recorded in period" },
+                    ]}
+               />
 
-               <PrimeTable column={column} data={rows} filtering  handleSeverSideProcessing={undefined} />
+               {loading && <div className="small text-muted mb-2" role="status">Updating report…</div>}
+               <PrimeTable column={column} data={rows} filtering handleSeverSideProcessing={undefined} />
           </ReportShell>
      );
 }

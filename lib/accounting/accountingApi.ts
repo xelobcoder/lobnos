@@ -119,6 +119,7 @@ export interface PartyBalance {
      partyType: string;
      partyId: number | null;
      partyName: string | null;
+     patientIdentifier?: string | null;
      documents: number;
      charged: number;
      settled: number;
@@ -142,6 +143,7 @@ export interface AgingRow {
      partyType: string;
      partyId: number | null;
      partyName: string | null;
+     patientIdentifier?: string | null;
      reference: string;
      documentDate: string;
      ageDays: number;
@@ -155,6 +157,9 @@ export interface AgingRow {
 
 export interface Aging {
      rows: AgingRow[];
+     total: number;
+     page: number;
+     count: number;
      totals: {
           current: number;
           days30: number;
@@ -163,6 +168,22 @@ export interface Aging {
           over90: number;
           total: number;
      };
+}
+
+export interface OutstandingDocuments {
+     rows: Array<{
+          partyType: string;
+          partyId: number | null;
+          partyName: string | null;
+          patientIdentifier?: string | null;
+          reference: string;
+          documentDate: string;
+          total: number;
+     }>;
+     total: number;
+     page: number;
+     count: number;
+     totals: { total: number };
 }
 
 
@@ -273,6 +294,9 @@ function query(params: Record<string, string | number | undefined | null>): stri
 }
 
 export const accountingApi = {
+     outstandingReceivables(filters: { from?: string; to?: string; search?: string; page?: number; count?: number; sortby?: string }): Promise<ApiResponse<OutstandingDocuments>> {
+          return customFetch(`${BASE}/reports/receivables${query(filters)}`);
+     },
      trialBalance(from?: string, to?: string, branchId?: number): Promise<ApiResponse<TrialBalance>> {
           return customFetch(`${BASE}/reports/trial-balance${query({ from, to, branchId })}`);
      },
@@ -302,11 +326,29 @@ export const accountingApi = {
           return customFetch(`${BASE}/reports/balance-sheet${query({ asOf, branchId })}`);
      },
 
-     receivableAging(asOf?: string, paging?: { page?: number; count?: number; sortby?: string }): Promise<ApiResponse<Aging>> {
+     receivableAging(asOf?: string, paging?: {
+          page?: number;
+          count?: number;
+          sortby?: string;
+          search?: string;
+          patientId?: number | string;
+          ageBucket?: string;
+          from?: string;
+          to?: string;
+     }): Promise<ApiResponse<Aging>> {
           return customFetch(`${BASE}/reports/receivable-aging${query({ asOf, ...paging })}`);
      },
 
-     payableAging(asOf?: string, paging?: { page?: number; count?: number; sortby?: string }): Promise<ApiResponse<Aging>> {
+     payableAging(asOf?: string, paging?: {
+          page?: number;
+          count?: number;
+          sortby?: string;
+          search?: string;
+          patientId?: number | string;
+          ageBucket?: string;
+          from?: string;
+          to?: string;
+     }): Promise<ApiResponse<Aging>> {
           return customFetch(`${BASE}/reports/payable-aging${query({ asOf, ...paging })}`);
      },
 

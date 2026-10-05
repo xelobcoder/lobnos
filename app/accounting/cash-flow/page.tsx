@@ -1,6 +1,6 @@
 "use client";
 import dayjs from "dayjs";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import ReportShell, { formatRange } from "../../../components/accounting/ReportShell";
 import { currencyFormatter } from "../../../components/Auth/customFetch";
 import DateFilterReusable from "../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
@@ -19,14 +19,16 @@ export default function CashFlowPage() {
      const [dateFilter, setDateFilter] = useState("This Year");
      const [statement, setStatement] = useState<any>(null);
      const [loading, setLoading] = useState(false);
+     const latestRequest = useRef(0);
 
      const load = useCallback(async () => {
+          const requestId = ++latestRequest.current;
           setLoading(true);
           try {
                const response = await accountingApi.cashFlow(from, to);
-               setStatement(response?.result || null);
+               if (requestId === latestRequest.current) setStatement(response?.result || null);
           } finally {
-               setLoading(false);
+               if (requestId === latestRequest.current) setLoading(false);
           }
      }, [from, to]);
 
@@ -52,7 +54,6 @@ export default function CashFlowPage() {
                                    onDateRangeChange={(start, end) => { setFrom(start); setTo(end); }}
                                    label="Period"
                                    className="w-100"
-                                   disabled={loading}
                               />
                          </div>
                     </>

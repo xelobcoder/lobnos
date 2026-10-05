@@ -7,13 +7,15 @@ import ProcedureManualTab from "../../../../../../components/settingsComponents/
 import LiteratureTab from "../../../../../../components/settingsComponents/test/tabs/LiteratureTab";
 import OutsourcingTab from "../../../../../../components/settingsComponents/test/tabs/OutsourcingTab";
 import ReportSettingsTab from "../../../../../../components/settingsComponents/test/tabs/ReportSettingsTab";
+import CalculationTab from "../../../../../../components/settingsComponents/test/tabs/CalculationTab";
 import { customFetch } from "../../../../../../components/Auth/customFetch";
 
-type TestEditorTab = 'details' | 'fields' | 'procedure' | 'literature' | 'outsourcing' | 'reportSettings';
+type TestEditorTab = 'details' | 'fields' | 'calculations' | 'procedure' | 'literature' | 'outsourcing' | 'reportSettings';
 
 const TABS: { key: TestEditorTab; label: string }[] = [
     { key: 'details', label: 'Test Details' },
     { key: 'fields', label: 'Test Fields' },
+    { key: 'calculations', label: 'Calculations' },
     { key: 'procedure', label: 'Procedure Manual' },
     { key: 'literature', label: 'Literature' },
     { key: 'outsourcing', label: 'Outsourcing' },
@@ -68,6 +70,9 @@ export default function SingleTestEdit({ params }: { params: { id: number } }) {
                 )}
                 {activeTab === 'fields' && (
                     <div className="mx-2"><FieldsTab testid={testid} testname={testname} /></div>
+                )}
+                {activeTab === 'calculations' && (
+                    <CalculationTab testid={Number(testid)} testname={testname} />
                 )}
                 {activeTab === 'procedure' && (
                     <ProcedureManualTab testid={testid} />

@@ -8,7 +8,8 @@ import {
 	handleChangeWithState,
 	customPost,
 	getSingleEditTest,
-	getSampleContainerList
+	getSampleContainerList,
+	customFetchMutation
 } from "../../Auth/customFetch";
 import { RiAddLine } from '@remixicon/react';
 import { useApplicationSettings } from "../../Auth/useApplicationContext";
@@ -63,6 +64,7 @@ interface TestData {
 	deviceInterfaceMapping: string | null;
 	reportitle: string;
 	method: string | null;
+	requires_qc: number | boolean;
 }
 
 const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router, onNavigateTab }) => {
@@ -73,6 +75,7 @@ const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router, onNav
 	const [data, setTestData] = useState<TestData | any>({
 		...defaultTestEditValues,
 		iscustom: customtest,
+		requires_qc: 0,
 		deviceInterfaceMapping: null,
 		reportitle: '',
 		method: null
@@ -145,9 +148,24 @@ const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router, onNav
 				sample_container: resolvedSampleContainerId,
 				employeeid,
 			});
-			response.status === "success"
-				? toast.success("Test panel updated successfully", { autoClose: 500 })
-				: toast.error("Test panel not updated", { autoClose: 500 });
+			if (response.status !== "success") {
+				toast.error("Test panel not updated", { autoClose: 500 });
+				return;
+			}
+
+			if (method === 'PUT' && testid) {
+				const qcResponse = await customFetchMutation('testpanel/qc-requirement', 'PUT', {
+					testid: Number(testid),
+					requiresQc: data.requires_qc === 1 || data.requires_qc === true,
+					employeeid,
+				});
+				if (qcResponse?.status !== 'success') {
+					toast.error(qcResponse?.message || 'QC requirement was not saved', { autoClose: 2000 });
+					return;
+				}
+			}
+
+			toast.success("Test panel updated successfully", { autoClose: 500 });
 		} catch (error) {
 			toast.error("An error occurred during submission", { autoClose: 2000 });
 		}
@@ -236,7 +254,7 @@ const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router, onNav
 							sampleContainers={sampleContainers}
 						/>
 						<hr />
-						<ConfigurationForm data={data} handleSwitch={handleSwitch} />
+						<ConfigurationForm data={data} handleSwitch={handleSwitch} canManageQc={method === 'PUT' && Boolean(testid)} />
 						<hr />
 						<TatForm
 							data={data}
