@@ -126,8 +126,10 @@ export default function RESULT_FOR_PRINTING() {
     const ptid = searchParams?.get('ptid') || '';
     const testid = searchParams?.get('testid');
     const csvid = searchParams?.get('csvid');
+    const isScan = searchParams?.get('isScan') || 'false';
+    const isUltrasound = searchParams?.get('isUltrasound') || 'false';
 
-    const url = `result/printout/ascension/getResult?csvid=${csvid}&&employeeid=${employeeid}&&testid=${testid}&&testname=${test}&tenantId=3&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&target=${target}&password=&&isBrowserPrintout=1`;
+    const url = `result/printout/ascension/getResult?csvid=${csvid}&&employeeid=${employeeid}&&testid=${testid}&&testname=${test}&tenantId=3&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=${encodeURIComponent(isUltrasound)}&&isScan=${encodeURIComponent(isScan)}&&is_password_encrypted=false&target=${target}&password=&&isBrowserPrintout=1`;
 
     useEffect(() => {
         setLoader(true);
@@ -212,6 +214,13 @@ export default function RESULT_FOR_PRINTING() {
             <div style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(255,255,255,0.7)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <span style={{ fontSize: 24, fontWeight: 'bold' }}>Generating PDF...</span>
             </div>
+            {/* Inline rules to ensure markdown <figure class="table"> tables expand for screenshots/print */}
+            <style>{`
+                .result figure.table { width: 100% !important; display: block !important; margin: 0 !important; }
+                .result figure.table table { width: 100% !important; table-layout: fixed !important; border-collapse: collapse !important; }
+                .result figure.table table th, .result figure.table table td { padding: 6px !important; font-size: 11pt !important; word-break: break-word !important; }
+                .ultrasound-content figure.table { width: 100% !important; }
+            `}</style>
             {/* Report content */}
             <div className={styles.page} style={{ fontFamily: resultSettings.fontfamily }}>
                 <div className="result">

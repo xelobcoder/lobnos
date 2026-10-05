@@ -1,6 +1,7 @@
 import { Alert } from "react-bootstrap";
 import { customFetch } from "../../../../components/Auth/customFetch";
 import TurnAroundDataTable from "../../../../components/operations/Laboratory/TurnAroundDataTable";
+import PendingResultTATOverview from "../../../../components/operations/Laboratory/PendingResultTATOverview";
 
 export default async function TurnAroundTime() {
     let data = [];
@@ -18,5 +19,10 @@ export default async function TurnAroundTime() {
         );
     }
 
-    return <TurnAroundDataTable data={data} />
+    return (
+        <>
+            <PendingResultTATOverview />
+            <TurnAroundDataTable data={data} />
+        </>
+    );
 }

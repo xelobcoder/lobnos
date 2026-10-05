@@ -3,66 +3,66 @@ import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 
 const editorConfiguration = {
-  toolbar: {
-    items: [
-      "heading",
-      "|",
-      "bold",
-      "italic",
-      "underline",
-      "|",
-      "link",
-      "imageUpload",
-      "blockQuote",
-      "insertTable",
-      "mediaEmbed",
-      "codeBlock",
-      "|",
-      "bulletedList",
-      "numberedList",
-      "|",
-      "outdent",
-      "indent",
-      "|",
-      "undo",
-      "redo",
-    ],
-    shouldNotGroupWhenFull: true,
-  },
-  heading: {
-    options: [
-      { model: "paragraph", title: "Paragraph" },
-      { model: "heading1", view: "h1", title: "Heading 1" },
-      { model: "heading2", view: "h2", title: "Heading 2" },
-      { model: "heading3", view: "h3", title: "Heading 3" },
-      { model: "heading4", view: "h4", title: "Heading 4" },
-      { model: "heading5", view: "h5", title: "Heading 5" },
-      { model: "heading6", view: "h6", title: "Heading 6" },
-    ],
-  },
-  image: {
-    toolbar: ["imageTextAlternative", "imageStyle:full", "imageStyle:side"],
-  },
-  table: {
-    contentToolbar: ["tableColumn", "tableRow", "mergeTableCells"],
-  },
+	toolbar: {
+		items: [
+			"heading",
+			"|",
+			"bold",
+			"italic",
+			"underline",
+			"|",
+			"link",
+			"imageUpload",
+			"blockQuote",
+			"insertTable",
+			"mediaEmbed",
+			"codeBlock",
+			"|",
+			"bulletedList",
+			"numberedList",
+			"|",
+			"outdent",
+			"indent",
+			"|",
+			"undo",
+			"redo",
+		],
+		shouldNotGroupWhenFull: true,
+	},
+	heading: {
+		options: [
+			{ model: "paragraph", title: "Paragraph" },
+			{ model: "heading1", view: "h1", title: "Heading 1" },
+			{ model: "heading2", view: "h2", title: "Heading 2" },
+			{ model: "heading3", view: "h3", title: "Heading 3" },
+			{ model: "heading4", view: "h4", title: "Heading 4" },
+			{ model: "heading5", view: "h5", title: "Heading 5" },
+			{ model: "heading6", view: "h6", title: "Heading 6" },
+		],
+	},
+	image: {
+		toolbar: ["imageTextAlternative", "imageStyle:full", "imageStyle:side"],
+	},
+	table: {
+		contentToolbar: ["tableColumn", "tableRow", "mergeTableCells"],
+	},
 };
 
 editorConfiguration.mediaEmbed = {
-  previewsInData: true,
+	previewsInData: true,
 };
 
 editorConfiguration.language = "en";
 
 export default function MARKDOWN_EDITOR(props) {
-  const [isClient, setIsClient] = React.useState(false);
+	const [isClient, setIsClient] = React.useState(false);
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-  return (
-    <div>
-      <style>{`
+	useEffect(() => {
+		setIsClient(true);
+	}, []);
+	return (
+		<div>
+			<style>{`
                 [data-bs-theme="dark"] .ck.ck-editor__main > .ck-editor__editable {
                     background-color: var(--bs-body-bg) !important;
                     color: var(--bs-body-color) !important;
@@ -287,18 +287,18 @@ export default function MARKDOWN_EDITOR(props) {
                     max-width: 100% !important;
                 }
             `}</style>
-      {isClient && (
-        <CKEditor
-          height={props.height || 700}
-          editor={ClassicEditor}
-          config={editorConfiguration}
-          data={props.initialData || ""}
-          onChange={(event, editor) => {
-            const data = editor.getData();
-            props.updatedata(event, data);
-          }}
-        />
-      )}
-    </div>
-  );
+			{isClient && (
+				<CKEditor
+					height={props.height || 700}
+					editor={ClassicEditor}
+					config={editorConfiguration}
+					data={props.initialData || ""}
+					onChange={(event, editor) => {
+						const data = editor.getData();
+						props.updatedata(event, data);
+					}}
+				/>
+			)}
+		</div>
+	);
 }

@@ -317,6 +317,40 @@
         page-break-after: auto;
     }
 
+    /* Ensure markdown-generated figure.table elements expand to full page width
+       and their inner tables are not constrained when printing scan reports */
+    /* Use a local class to make selectors "pure" for CSS modules, then target global elements */
+    .page :global(.ultrasound-content figure.table),
+    .page :global(figure.table),
+    .page :global(.result figure.table) {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        page-break-inside: avoid !important;
+    }
+
+    .page :global(.ultrasound-content figure.table table),
+    .page :global(figure.table table),
+    .page :global(.result figure.table table) {
+        width: 100% !important;
+        table-layout: fixed !important;
+        border-collapse: collapse !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+
+    .page :global(.ultrasound-content figure.table table th),
+    .page :global(.ultrasound-content figure.table table td),
+    .page :global(figure.table table th),
+    .page :global(figure.table table td),
+    .page :global(.result figure.table table th),
+    .page :global(.result figure.table table td) {
+        padding: 6px !important;
+        font-size: 11pt !important;
+        page-break-inside: avoid !important;
+    }
+
     .printing-button {
         display: none !important;
     }
@@ -366,4 +400,25 @@
 .resulttable {
     width: 100%;
     border-collapse: collapse;
+}
+
+/* Ensure ultrasound HTML tables render full-width in-screen and for html2canvas captures */
+.page :global(.ultrasound-content table),
+.page :global(.ultrasound-content figure.table),
+.page :global(.ultrasound-content figure.table table) {
+    width: 100% !important;
+    table-layout: auto !important;
+    border-collapse: collapse !important;
+}
+
+.page :global(.ultrasound-content table th),
+.page :global(.ultrasound-content table td),
+.page :global(.ultrasound-content figure.table table th),
+.page :global(.ultrasound-content figure.table table td) {
+    padding: 6px !important;
+    font-size: 11pt !important;
+}
+
+.page :global(.ultrasound-content) {
+    overflow-wrap: anywhere;
 }
