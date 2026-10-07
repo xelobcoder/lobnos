@@ -1,34 +1,10 @@
 'use client';
 
-
-import dynamic from 'next/dynamic';
-
 import { useCallback, useEffect, useMemo, useState } from 'react';
-// import { MapContainer, TileLayer, Marker as LeafletMarker, Popup } from 'react-leaflet';
-const MapContainer = dynamic(
-  () => import('react-leaflet').then((mod) => mod.MapContainer),
-  { ssr: false }
-);
-
-const TileLayer = dynamic(
-  () => import('react-leaflet').then((mod) => mod.TileLayer),
-  { ssr: false }
-);
-
-const LeafletMarker = dynamic(
-  () => import('react-leaflet').then((mod) => mod.Marker),
-  { ssr: false }
-);
-
-const Popup = dynamic(
-  () => import('react-leaflet').then((mod) => mod.Popup),
-  { ssr: false }
-);
+import { MapContainer, TileLayer, Marker as LeafletMarker, Popup } from 'react-leaflet';
 import { customFetch, customFetchMutation } from '../../../components/Auth/customFetch';
-const GoogleMapPicker = dynamic(() => import('../../../components/home-collection/GoogleMapPicker'), { ssr: false }  );
-import type { LocationValue } from '../../../components/home-collection/v.dev.types';
+import GoogleMapPicker, { LocationValue } from '../../../components/home-collection/GoogleMapPicker';
 import 'leaflet/dist/leaflet.css';
-
 
 type HomeCollectionOrder = {
      id: number;
@@ -88,6 +64,8 @@ export default function HomeCollectionPage() {
      const [appointmentTime, setAppointmentTime] = useState('');
      const [collectionFee, setCollectionFee] = useState('0');
      const [location, setLocation] = useState<LocationValue>(EMPTY_LOCATION);
+     // Longitude near 0 is a valid coordinate here (Ghana sits on the Prime Meridian), so a
+     // truthy check on latitude/longitude can't tell "unset" from "picked at ~0". Track it explicitly.
      const [hasPickedLocation, setHasPickedLocation] = useState(false);
 
      const loadOrders = useCallback(async (search?: string) => {

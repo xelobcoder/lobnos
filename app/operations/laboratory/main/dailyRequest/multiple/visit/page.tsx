@@ -8,11 +8,11 @@ import ResultEntryComponent from '../../../../../../../components/operations/Vie
 import { RiCheckLine, RiMailLine, RiPrinterLine, RiSendPlaneLine, RiTruckLine } from '@remixicon/react';
 import {
      BulkResultValidationWorkflowModal,
-     SingleTestCollectionWorkflowModal,
-     SingleTestSampleValidationWorkflowModal,
      SingleTestProcessingWorkflowModal,
      SingleTestResultValidationWorkflowModal
 } from '../../../../../../../components/operations/Laboratory/SingleTestWorkflowModals';
+import CollectionSampleModal from '../../../../../../../components/phelobotomy/CollectionSampleModal';
+import SampleAssessmentModal from '../../../../../../../components/accessories/SampleAssessmentModal/SampleAssessmentModal';
 import SingleWorkFlowResultDeliveryModal from '../../../../../../../components/operations/Laboratory/singleWorkFlowDeliveryResult';
 import BulkWorkFlowResultDeliveryModal from '../../../../../../../components/operations/Laboratory/bulkWorkFlowDeliveryResult';
 
@@ -344,8 +344,17 @@ export default function MultipleClientVisit() {
                </div>
                {activeTest && activePatient ? (
                     <>
-                         <SingleTestCollectionWorkflowModal show={workflow === 'collection'} onHide={() => setWorkflow(null)} onSuccess={workflowSuccess} test={{ billingid: activeTest.billingid, patientid: String(activePatient.patient.patientid), ascensionid: activeTest.ascension_id, testid: activeTest.testid, testname: activeTest.test_name, ascensionDate: activeTest.ascension_date, collectionStartDate: activeTest.collectionStartDate, collectionEndDate: activeTest.collectionEndDate }} />
-                         <SingleTestSampleValidationWorkflowModal show={workflow === 'sampleValidation'} onHide={() => setWorkflow(null)} onSuccess={workflowSuccess} test={{ billingid: activeTest.billingid, patientid: String(activePatient.patient.patientid), ascensionid: activeTest.ascension_id, testid: activeTest.testid, testname: activeTest.test_name, ascensionDate: activeTest.ascension_date, samplevalidatedon: activeTest.samplevalidatedon, collectionStartDate: activeTest.collectionStartDate, collectionEndDate: activeTest.collectionEndDate }} />
+                         <CollectionSampleModal
+                              show={workflow === 'collection'}
+                              hide={() => { setWorkflow(null); loadTests(activePatient.patient); }}
+                              collection={{ billingid: activeTest.billingid, patientid: activePatient.patient.patientid, fullname: patientDetails(activePatient.patient).name }}
+                              employeeid={Number(employeeid)}
+                         />
+                         <SampleAssessmentModal
+                              show={workflow === 'sampleValidation'}
+                              hide={() => { setWorkflow(null); loadTests(activePatient.patient); }}
+                              billingid={activeTest.billingid}
+                         />
                          <SingleTestProcessingWorkflowModal show={workflow === 'processing'} onHide={() => setWorkflow(null)} onSuccess={workflowSuccess} test={{ billingid: activeTest.billingid, patientid: String(activePatient.patient.patientid), ascensionid: activeTest.ascension_id, testid: activeTest.testid, testname: activeTest.test_name, ascensionDate: activeTest.ascension_date, processingStartDate: activeTest.processingStartDate, processingEndDate: activeTest.processingEndDate }} />
                          <SingleTestResultValidationWorkflowModal show={workflow === 'resultValidation'} onHide={() => setWorkflow(null)} onSuccess={workflowSuccess} test={{ billingid: activeTest.billingid, patientid: String(activePatient.patient.patientid), ascensionid: activeTest.ascension_id, testid: activeTest.testid, testname: activeTest.test_name, ascensionDate: activeTest.ascension_date, resultEntryStart: activeTest.resultEntryStart, resultEntryEnd: activeTest.resultEntryEnd, isapproved: activeTest.isapproved }} />
                          <SingleWorkFlowResultDeliveryModal item={activeTest} employeeid={employeeid} workflow="resultDelivery" show={workflow === 'resultDelivery'} onHide={() => setWorkflow(null)} onSuccess={workflowSuccess} />
