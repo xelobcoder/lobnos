@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
+import { buildApiUrl } from '../../../lib/apiBaseUrl';
 import { Form, Row, Col, Button, InputGroup } from 'react-bootstrap';
 import {
 	RiUserLine, RiMailLine, RiPhoneLine, RiQuillPenLine, RiMapPinLine,
@@ -132,8 +133,7 @@ export default function CompanyProfile() {
 			formData.append('file', file);
 
 			try {
-				const baseUrl = process.env.NODE_ENV === 'development' ? process.env.DEVELOPMENT_BASEURL : process.env.PRODUCTION_BASEURL;
-				const response = await fetch(`${baseUrl}settings/companyprofile/images`, {
+				const response = await fetch(buildApiUrl('settings/companyprofile/images'), {
 					method: 'POST',
 					body: formData,
 				});
@@ -203,8 +203,7 @@ export default function CompanyProfile() {
 					});
 				}
 
-				const baseUrl = process.env.NODE_ENV === 'development' ? process.env.DEVELOPMENT_BASEURL : process.env.PRODUCTION_BASEURL;
-				const imageResponse = await fetch(`${baseUrl}settings/companyprofile/images`);
+				const imageResponse = await fetch(buildApiUrl('settings/companyprofile/images'));
 				if (imageResponse.ok) {
 					const imageBlob = await imageResponse.blob();
 					if (imageBlob.size > 0) {

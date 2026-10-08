@@ -2,6 +2,7 @@ import Cookies from "js-cookie";
 import moment from "moment";
 import { toast } from "react-toastify";
 import { getRequestContext } from "../serverActions/requestHeaders";
+import { buildApiUrl } from "../../lib/apiBaseUrl";
 
 export async function customFile(endpoint, formbody) {
 	if (
@@ -11,22 +12,17 @@ export async function customFile(endpoint, formbody) {
 		throw new Error("NEXT_PUBLIC_ACCESS_TOKEN MISSING");
 	}
 
-	const url = new URL(
-		`${endpoint}`,
-		process.env.NODE_ENV == "production"
-			? process.env.PRODUCTION_BASEURL
-			: process.env.DEVELOPMENT_BASEURL,
-	);
-	url.searchParams.append("tenantId", process.env.TENANTID);
+	const url = new URL(buildApiUrl(endpoint));
 
 	const context = await getRequestContext();
-	if (
-		!context ||
-		!context["PLS_PRIME_TENANT_SESSION"] ||
-		!context["PLS_SESSION"]
-	) {
+	if (!context?.PLS_PRIME_TENANT_SESSION || !context?.PLS_SESSION) {
 		return { error: "Session not found" };
 	}
+	const tenantId = context?.tenantId;
+	if (!Number.isSafeInteger(tenantId) || tenantId <= 0) {
+		throw new Error("A valid tenant is required for this request");
+	}
+	url.searchParams.set("tenantId", String(tenantId));
 	const { PLS_PRIME_TENANT_SESSION, PLS_SESSION } = context;
 	const response = await fetch(url.toString(), {
 		method: "POST",
@@ -53,13 +49,7 @@ export async function customFile(endpoint, formbody) {
  */
 export async function customFetch(endpoint, isLogin = false) {
 	try {
-		const url = new URL(
-			`/api/v1/${endpoint}`,
-			process.env.NODE_ENV == "production"
-				? process.env.PRODUCTION_BASEURL
-				: process.env.DEVELOPMENT_BASEURL,
-		);
-		url.searchParams.append("tenantId", process.env.TENANTID);
+		const url = new URL(buildApiUrl(endpoint));
 		const context = await getRequestContext();
 		if (
 			!isLogin &&
@@ -76,6 +66,12 @@ export async function customFetch(endpoint, isLogin = false) {
 			}
 			return { error: "Session not found" };
 		}
+
+		const tenantId = context?.tenantId;
+		if (!Number.isSafeInteger(tenantId) || tenantId <= 0) {
+			throw new Error("A valid tenant is required for this request");
+		}
+		url.searchParams.set("tenantId", String(tenantId));
 
 		const { PLS_PRIME_TENANT_SESSION, PLS_SESSION } = context;
 
@@ -118,17 +114,16 @@ export async function customFetch(endpoint, isLogin = false) {
 }
 
 export async function customFetchMutation(endpoint, method, body) {
-	const url = new URL(
-		`/api/v1/${endpoint}`,
-		process.env.NODE_ENV == "production"
-			? process.env.PRODUCTION_BASEURL
-			: process.env.DEVELOPMENT_BASEURL,
-	);
-	url.searchParams.append("tenantId", process.env.TENANTID);
+	const url = new URL(buildApiUrl(endpoint));
 	const context = await getRequestContext();
 	if (!context?.PLS_PRIME_TENANT_SESSION || !context?.PLS_SESSION) {
 		return { error: "Session not found" };
 	}
+	const tenantId = context?.tenantId;
+	if (!Number.isSafeInteger(tenantId) || tenantId <= 0) {
+		throw new Error("A valid tenant is required for this request");
+	}
+	url.searchParams.set("tenantId", String(tenantId));
 
 	const response = await fetch(url.toString(), {
 		method,
@@ -285,6 +280,9 @@ export const Glucoseoptions = ["mg/dl", "mmol/L"];
  * @param {string} endpoint - The endpoint to send the POST request to.
  * @param {string} method - The HTTP method to use for the request (e.g., "POST", "PUT").
  * @param {object} data - The data to send in the request body.
+ * @param {boolean} [hash=false] - Whether to hash the request body.
+ * @param {boolean} [login=false] - Whether this is an unauthenticated login request.
+ * @param {number} [requestedTenantId] - Tenant selected for login.
  * @returns {Promise<object>} - The parsed response from the POST request.
  */
 export async function customPost(
@@ -293,16 +291,11 @@ export async function customPost(
 	data,
 	hash = false,
 	login = false,
+	requestedTenantId = undefined,
 ) {
 	try {
 		var requestBody = data;
-		const url = new URL(
-			`${endpoint}`,
-			process.env.NODE_ENV == "production"
-				? process.env.PRODUCTION_BASEURL
-				: process.env.DEVELOPMENT_BASEURL,
-		);
-		url.searchParams.append("tenantId", "3");
+		const url = new URL(buildApiUrl(endpoint));
 
 		const context = await getRequestContext();
 		if (
@@ -313,6 +306,14 @@ export async function customPost(
 		) {
 			return { error: "Session not found" };
 		}
+
+		const tenantId = requestedTenantId === undefined
+			? context?.tenantId
+			: Number(requestedTenantId);
+		if (!Number.isSafeInteger(tenantId) || tenantId <= 0) {
+			return { error: "A valid tenant is required for this request" };
+		}
+		url.searchParams.set("tenantId", String(tenantId));
 
 		const { PLS_PRIME_TENANT_SESSION, PLS_SESSION } = context;
 		let response = await fetch(url.href, {

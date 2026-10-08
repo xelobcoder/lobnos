@@ -15,6 +15,12 @@
 
 # production
 /build
+/dist/
+/dist-electron/
+/.desktop-runtime/
+/desktop/config/backend.env
+/desktop/config/desktop.env
+/src-tauri/target/
 
 deploy.sh
 

@@ -1,7 +1,7 @@
-import { Card, Form, Button, Spinner } from "react-bootstrap";
-import { useEffect } from "react";
-import { customFetch, customPost } from "../../Auth/customFetch";
-import { RiArrowGoBackFill, RiCheckLine, RiCloseCircleFill, RiResetLeftFill } from '@remixicon/react';
+import { Card, Form, Button, Spinner, Modal } from "react-bootstrap";
+import { useEffect, useState } from "react";
+import { customFetch, customFetchMutation, customPost } from "../../Auth/customFetch";
+import { RiArrowGoBackFill, RiCheckLine, RiCloseCircleFill, RiPauseCircleLine, RiResetLeftFill } from '@remixicon/react';
 import { toast } from 'react-toastify';
 
 // Promo interface and validatePromoCode function
@@ -48,6 +48,46 @@ export default function MultiBillingHeader({
     onReset,
     onReturnToMulti,
 }) {
+    const [showSuspendModal, setShowSuspendModal] = useState(false);
+    const [suspendNote, setSuspendNote] = useState('');
+    const [suspending, setSuspending] = useState(false);
+
+    const handleSuspend = async () => {
+        if (!billingdata.patientid) {
+            toast.error('A patient is required before suspending this sale.');
+            return;
+        }
+        if (!billingdata.cart?.length && !billingdata.servicesList?.length) {
+            toast.error('Start the transaction and select at least one item before suspending.');
+            return;
+        }
+
+        setSuspending(true);
+        try {
+            const response = await customFetchMutation('billing/suspended', 'POST', {
+                patientid: Number(billingdata.patientid),
+                billing_source: Number(billingdata.billingSource),
+                entity_type: billingdata.entitytype || null,
+                entity_id: billingdata.entityId || null,
+                entityname: billingdata.entityname || null,
+                notes: suspendNote.trim() || null,
+                is_pricing_quote: billingdata.ispricingcheckout ? true : false,
+                draft_data: billingdata,
+            });
+            if (!response?.success) {
+                throw new Error(response?.message || 'Unable to suspend this transaction.');
+            }
+            toast.success('Transaction suspended.');
+            setShowSuspendModal(false);
+            setSuspendNote('');
+            onReturnToMulti();
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Unable to suspend this transaction.');
+        } finally {
+            setSuspending(false);
+        }
+    };
+
     // Function to verify promo code
     const handleVerifyPromo = async () => {
         setBillingData(prev => ({ ...prev, promoVerifyLoading: true, promoVerifyMessage: null, promoVerifySuccess: null }));
@@ -208,6 +248,15 @@ export default function MultiBillingHeader({
 
                     
 
+                    <Button
+                        variant="outline-warning"
+                        size="sm"
+                        title="Suspend transaction"
+                        onClick={() => setShowSuspendModal(true)}
+                        disabled={suspending}
+                    >
+                        <RiPauseCircleLine size={20} /> Suspend Sale
+                    </Button>
                     <Button variant="outline-danger" size="sm" title='reset transaction' onClick={onReset}>
                         <RiResetLeftFill size={20} />
                     </Button>
@@ -216,6 +265,34 @@ export default function MultiBillingHeader({
                     </Button>
                 </div>
             </Card.Header>
+
+            <Modal show={showSuspendModal} onHide={() => !suspending && setShowSuspendModal(false)} centered>
+                <Modal.Header closeButton={!suspending}>
+                    <Modal.Title>Suspend Sale</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <p className="mb-2">Save this unfinished transaction so it can be resumed later.</p>
+                    <Form.Label htmlFor="suspend-sale-note">Note (optional)</Form.Label>
+                    <Form.Control
+                        id="suspend-sale-note"
+                        as="textarea"
+                        rows={3}
+                        value={suspendNote}
+                        onChange={event => setSuspendNote(event.target.value)}
+                        placeholder="Add a note for the next person who resumes this sale"
+                        disabled={suspending}
+                    />
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowSuspendModal(false)} disabled={suspending}>
+                        Keep Editing
+                    </Button>
+                    <Button variant="warning" onClick={() => void handleSuspend()} disabled={suspending}>
+                        {suspending && <Spinner as="span" animation="border" size="sm" className="me-2" />}
+                        Suspend Sale
+                    </Button>
+                </Modal.Footer>
+            </Modal>
 
             <Card.Header className="py-3" >
                 <div className="container-fluid px-0">

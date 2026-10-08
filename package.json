@@ -1,6 +1,10 @@
 {
 	"name": "PLS",
+	"productName": "Prime Laboratory System",
 	"version": "1.0.0",
+	"description": "Prime Laboratory System desktop and server-rendered web application",
+	"author": "Prime Laboratory System",
+	"main": "desktop/main.cjs",
 	"private": true,
 	"scripts": {
 		"dev": "node ./node_modules/next/dist/bin/next  dev -p 2377",
@@ -15,6 +19,15 @@
 		"service:stop:win": "powershell -ExecutionPolicy Bypass -File ./scripts/windows/service-control.ps1 -Action stop",
 		"service:restart:win": "powershell -ExecutionPolicy Bypass -File ./scripts/windows/service-control.ps1 -Action restart",
 		"service:status:win": "powershell -ExecutionPolicy Bypass -File ./scripts/windows/service-control.ps1 -Action status",
+		"tauri": "tauri",
+		"tauri:dev": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/windows/build-tauri.ps1 -Action dev",
+		"tauri:build": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/windows/build-tauri.ps1",
+		"desktop:prepare": "node ./desktop/scripts/prepare-runtime.cjs",
+		"desktop:run": "node ./desktop/scripts/prepare-runtime.cjs --skip-build && electron ./desktop/main.cjs",
+		"desktop:dist": "node ./desktop/scripts/prepare-runtime.cjs --require-config && electron-builder",
+		"desktop:dist:win": "node ./desktop/scripts/prepare-runtime.cjs --require-config && electron-builder --win nsis",
+		"desktop:dist:linux": "node ./desktop/scripts/prepare-runtime.cjs --require-config && electron-builder --linux AppImage",
+		"desktop:verify": "node ./desktop/scripts/verify-runtime.cjs",
 		"clean": "rm -rf .next && rm -rf out && rm -rf package-lock.json  && rm -rf node_modules && rm -rf cache",
 		"build:css": ""
 	},
@@ -67,11 +80,15 @@
 		"zod": "^3.24.2"
 	},
 	"devDependencies": {
+		"@electron/rebuild": "^4.2.1",
+		"@tauri-apps/cli": "^2.12.1",
 		"@types/leaflet": "^1.9.22",
 		"@types/node": "22.10.2",
 		"@types/react": "19.2.18",
 		"autoprefixer": "^10.4.21",
 		"cross-env": "^10.0.0",
+		"electron": "^38.2.0",
+		"electron-builder": "^26.0.12",
 		"eslint": "8.21.0",
 		"eslint-config-next": "^14.0.4",
 		"typescript": "5.6.3"

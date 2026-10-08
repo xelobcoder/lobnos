@@ -17,6 +17,7 @@ L.Icon.Default.mergeOptions({
 const DEFAULT_CENTER: [number, number] = [5.6037, -0.187]; // Accra, Ghana - sensible default for an unpicked location
 
 import type { LocationValue } from './v.dev.types';
+export type { LocationValue } from './v.dev.types';
 
 type GoogleMapPickerProps = {
      value: LocationValue;

@@ -2,6 +2,7 @@
 
 import jsPDF from 'jspdf';
 import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from 'react';
+import { apiPath } from '../../../lib/apiBaseUrl';
 import {
      RiAddLine,
      RiCloseLine,
@@ -63,9 +64,7 @@ export default function PharmacySellPage() {
      const company = application?.company;
      const companyName = typeof company === 'string' ? company : company?.name || 'LOBNOS PHARMACY';
      const soldBy = application?.user?.username || 'Pharmacy staff';
-     const companyLogoUrl = process.env.NODE_ENV === 'development'
-          ? `${process.env.DEVELOPMENT_BASEURL}settings/companyprofile/images`
-          : `${process.env.PRODUCTION_BASEURL}settings/companyprofile/images`;
+     const companyLogoUrl = apiPath('settings/companyprofile/images');
 
      const [query, setQuery] = useState('');
      const [loading, setLoading] = useState(false);

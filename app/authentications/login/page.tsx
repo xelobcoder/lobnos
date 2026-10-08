@@ -12,6 +12,7 @@ export default function PrimeLabLoginPage() {
 	const [loginStatus, setLoginStatus] = useState<'idle' | 'error' | 'success'>('idle');
 	const [message, setMessage] = useState<string>('');
 	const [userInformation, setUserInformation] = useState({ username: '', password: '' });
+	const [tenantId, setTenantId] = useState(process.env.TENANTID || '');
 	const [showPassword, setShowPassword] = useState(false);
 	const router = useRouter();
 	const loginModes = [
@@ -29,6 +30,13 @@ export default function PrimeLabLoginPage() {
 
 			const username = userInformation.username;
 			const password = userInformation.password;
+			const parsedTenantId = Number(tenantId);
+			if (!Number.isSafeInteger(parsedTenantId) || parsedTenantId <= 0) {
+				setLoginStatus('error');
+				setMessage('Enter a valid tenant ID');
+				setSubmitting(false);
+				return;
+			}
 
 			let browserInfo = {};
 			if (typeof window !== 'undefined') {
@@ -53,7 +61,14 @@ export default function PrimeLabLoginPage() {
 			}
 
 			const endpoint = loginMode === 'center' ? 'prime/login' : loginMode === 'doctor' ? 'login/clinician' : 'login/patient';
-			const backendResponse = await customPost(endpoint, 'POST', { username, password, browserInfo }, false, true);
+			const backendResponse = await customPost(endpoint, 'POST', { username, password, browserInfo }, false, true, parsedTenantId);
+
+			if (!backendResponse) {
+				setLoginStatus('error');
+				setMessage('Unable to reach the server. Please try again.');
+				setSubmitting(false);
+				return;
+			}
 
 			if (backendResponse.status === "error" &&
 				(backendResponse.message === "License expired or invalid" || backendResponse.message === "License vaalidation failed" ||
@@ -87,7 +102,8 @@ export default function PrimeLabLoginPage() {
 					email: user?.email || username,
 					browserInfo,
 					sessionExpiryTime: sessionExpiryTime || Date.now() + (12 * 60 * 60 * 1000), loginsessionId,
-					settings
+					settings,
+					tenantId: parsedTenantId,
 				}),
 			});
 
@@ -116,6 +132,7 @@ export default function PrimeLabLoginPage() {
 						localStorage.setItem('applicationsettings', JSON.stringify({
 							user: contextData.user,
 							settings: contextData.settings || {},
+							tenantId: contextData.tenantId,
 						}));
 					} else {
 						throw new Error('Complete application context was not returned');
@@ -214,6 +231,25 @@ export default function PrimeLabLoginPage() {
 					)}
 
 					<form className={styles.loginForm}>
+						<div className={styles.formGroup}>
+							<label htmlFor="tenantId" className={styles.formLabel}>Tenant ID</label>
+							<div className={styles.inputWrapper}>
+								<RiHospitalLine size={20} className={styles.inputIcon} />
+								<input
+									id="tenantId"
+									name="tenantId"
+									type="number"
+									min="1"
+									step="1"
+									value={tenantId}
+									onChange={(event) => setTenantId(event.target.value)}
+									className={styles.formInput}
+									placeholder="Enter your organization tenant ID"
+									required
+									autoComplete="organization"
+								/>
+							</div>
+						</div>
 						<div className={styles.formGroup}>
 							<label htmlFor="username" className={styles.formLabel}>
 								{loginMode === 'center' ? 'Center Username' : loginMode === 'doctor' ? 'Doctor Username' : 'Patient Username'}

@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
           }
 
           const context = await getRequestContext();
-          if (!context || !context['PLS_PRIME_TENANT_SESSION'] || !context['PLS_SESSION']) {
+          if (!context || !context['PLS_PRIME_TENANT_SESSION'] || !context['PLS_SESSION'] || !context.tenantId) {
                return new Response(
                     JSON.stringify({ error: 'Session not found', redirect: '/authentications/login' }),
                     {
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
           const { PLS_PRIME_TENANT_SESSION, PLS_SESSION } = context;
 
           const url = new URL(`/api/v1/prime/validate-token`, process.env.NODE_ENV === 'development' ? process.env.DEVELOPMENT_BASEURL : process.env.PRODUCTION_BASEURL);
-          url.searchParams.append('tenantId', process.env.TENANTID || '');
+          url.searchParams.set('tenantId', String(context.tenantId));
           const response = await fetch(url.toString(), {
                headers: {
                     'Cookie': `pls-prime-tenant-session=${sessionCookie}`,
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
           }
 
 
-          return new Response(JSON.stringify(data), {
+          return new Response(JSON.stringify({ ...data, tenantId: context.tenantId }), {
                status: 200,
                headers: { 'Content-Type': 'application/json' },
           });

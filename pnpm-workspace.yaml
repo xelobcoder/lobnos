@@ -1,4 +1,8 @@
+nodeLinker: hoisted
+
 allowBuilds:
+  electron: true
+  electron-winstaller: true
   '@livekit/local-inference': true
   core-js: true
   unrs-resolver: true

@@ -9,6 +9,7 @@ export interface UserPayload {
     };
     email: string;
     settings: any;
+    tenantId?: number;
 }
 
 export async function verifyPrimeToken(token: string) {
@@ -178,4 +179,3 @@ export const config = {
         '/communications'
     ]
 };
-

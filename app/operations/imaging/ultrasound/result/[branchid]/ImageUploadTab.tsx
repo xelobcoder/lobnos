@@ -5,6 +5,7 @@ import { customFile, customFetch, customPost } from '../../../../../../component
 import { toast } from 'react-toastify';
 import { ProgressBar } from 'react-bootstrap';
 import { RiUploadLine, RiImageLine, RiEyeLine, RiDeleteBinLine } from '@remixicon/react';
+import { apiPath } from '../../../../../../lib/apiBaseUrl';
 
 interface SelectedFile {
      id: string;
@@ -36,12 +37,8 @@ interface ImageUploadTabProps {
      const getImageUrl = (filename: string) => {
           if (!filename) return '';
           if (filename.startsWith('http')) return filename;
-          
-          const baseUrl = process.env.NODE_ENV === 'development' 
-               ? process.env.DEVELOPMENT_BASEURL 
-               : process.env.PRODUCTION_BASEURL;
-               
-          return `${baseUrl}ultrasound/images/file/${filename}`;
+
+          return apiPath(`ultrasound/images/file/${filename}`);
      };
 
      const mapResponseToImages = (data: any[]): UploadedImage[] => {

@@ -5,27 +5,63 @@ import { SignJWT, jwtVerify } from 'jose';
 export async function POST(request: NextRequest) {
     try {
         const response = await request.json();
-        const { status, accessToken, user, email, settings, sessionExpiryTime,
-            loginsessionId } = response
+        const { status, accessToken, email, sessionExpiryTime,
+            loginsessionId, tenantId: requestedTenantId } = response;
+        const tenantId = Number(requestedTenantId);
 
-        if (!status || !accessToken || !user) {
+        if (!status || !accessToken || !Number.isSafeInteger(tenantId) || tenantId <= 0) {
             return NextResponse.json({ error: 'Invalid authentication data' }, { status: 400 });
+        }
+
+        const backendBaseUrl = process.env.NODE_ENV === 'development'
+            ? process.env.DEVELOPMENT_BASEURL
+            : process.env.PRODUCTION_BASEURL;
+        if (!backendBaseUrl) {
+            throw new Error('Backend URL is not configured');
+        }
+
+        const validationUrl = new URL('prime/validate-token', backendBaseUrl);
+        validationUrl.searchParams.set('tenantId', String(tenantId));
+        const validationResponse = await fetch(validationUrl, {
+            method: 'GET',
+            headers: {
+                Cookie: `pls-prime-tenant-session=${encodeURIComponent(accessToken)}`,
+                'pls-prime-tenant-session': accessToken,
+                cache: 'no-store',
+            },
+            cache: 'no-store',
+        });
+        const validatedSession = await validationResponse.json();
+        if (!validationResponse.ok || validatedSession?.status !== true) {
+            return NextResponse.json(
+                { error: validatedSession?.message || 'The session could not be verified for this tenant' },
+                { status: 401 },
+            );
+        }
+
+        const user = validatedSession?.user?.user;
+        const settings = validatedSession?.settings;
+        const allowedRoles = ["storekeeper", "sonographer", "accountant", "scientist", "manager", "admin", "customer service representative", "patient", "clinician"];
+        const userRole = user?.role?.toLowerCase();
+        if (!user || !allowedRoles.includes(userRole)) {
+            return NextResponse.json({ error: 'Invalid role' }, { status: 403 });
         }
 
         // Create and sign JWT
         const secret = new TextEncoder().encode(process.env.JWT_SECRET_KEY);
         const signedToken = await new SignJWT({
-            email,
+            email: user.email || email,
             user,
             accessToken,
-            settings
+            settings,
+            tenantId,
         })
             .setProtectedHeader({ alg: 'HS256' })
             .setIssuedAt()
             .setExpirationTime('12h')
             .sign(secret);
 
-        const { payload } = await jwtVerify(signedToken, secret);
+        await jwtVerify(signedToken, secret);
         const effectiveSessionExpiryTime = sessionExpiryTime || Date.now() + (12 * 60 * 60 * 1000);
         const maxAge = Math.max(1, Math.floor((effectiveSessionExpiryTime - Date.now()) / 1000));
         // Set cookies
@@ -55,23 +91,12 @@ export async function POST(request: NextRequest) {
             maxAge
         })
 
-        console.log(response, 'Reponse')
-
-        const allowedRoles = ["storekeeper", "sonographer", "accountant", "scientist", "manager", "admin", "customer service representative", "patient", "clinician"];
-        const userRole = user?.role?.toLowerCase();
-        const isValidRole = allowedRoles.includes(userRole);
-
-        if (isValidRole) {
-            return NextResponse.json({
-                status: true,
-                role: userRole,
-                message: 'Authentication successful'
-            });
-        } else {
-            return NextResponse.json({
-                error: 'Invalid role'
-            }, { status: 403 });
-        }
+        return NextResponse.json({
+            status: true,
+            role: userRole,
+            tenantId,
+            message: 'Authentication successful'
+        });
 
     } catch (error) {
         console.error('Authentication error:', error);

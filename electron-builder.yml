@@ -1,0 +1,53 @@
+appId: com.primelabsys.desktop
+productName: Prime Laboratory System
+copyright: Copyright © Prime Laboratory System
+
+directories:
+  output: dist-electron
+
+files:
+  - desktop/main.cjs
+  - desktop/preload.cjs
+  - desktop/vendor-resolver.cjs
+  - package.json
+  - "!node_modules/**/*"
+
+extraResources:
+  - from: .desktop-runtime/frontend
+    to: runtime/frontend
+  - from: .desktop-runtime/backend
+    to: runtime/backend
+  - from: .desktop-runtime/config
+    to: runtime/config
+
+asar: true
+asarUnpack:
+  - "**/*.node"
+npmRebuild: false
+
+win:
+  executableName: PrimeLaboratorySystem
+  icon: public/android-chrome-512x512.png
+  target:
+    - target: nsis
+      arch:
+        - x64
+
+nsis:
+  artifactName: PLS-Setup-${version}-${arch}.${ext}
+  oneClick: true
+  perMachine: false
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Prime Laboratory System
+  runAfterFinish: true
+
+linux:
+  executableName: prime-laboratory-system
+  icon: public/android-chrome-512x512.png
+  category: Science
+  target:
+    - target: AppImage
+      arch:
+        - x64
+  artifactName: PLS-${version}-${arch}.${ext}
