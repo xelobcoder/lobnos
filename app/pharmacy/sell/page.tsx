@@ -2,7 +2,7 @@
 
 import jsPDF from 'jspdf';
 import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from 'react';
-import { apiPath } from '../../../lib/apiBaseUrl';
+import useCompanyImageUrl from '../../../components/Auth/useCompanyImageUrl';
 import {
      RiAddLine,
      RiCloseLine,
@@ -64,7 +64,7 @@ export default function PharmacySellPage() {
      const company = application?.company;
      const companyName = typeof company === 'string' ? company : company?.name || 'LOBNOS PHARMACY';
      const soldBy = application?.user?.username || 'Pharmacy staff';
-     const companyLogoUrl = apiPath('settings/companyprofile/images');
+     const companyLogoUrl = useCompanyImageUrl();
 
      const [query, setQuery] = useState('');
      const [loading, setLoading] = useState(false);
@@ -267,8 +267,8 @@ export default function PharmacySellPage() {
           };
 
           try {
-               const logoResponse = await fetch(companyLogoUrl);
-               if (logoResponse.ok) {
+               const logoResponse = companyLogoUrl ? await fetch(companyLogoUrl, { cache: 'no-store' }) : null;
+               if (logoResponse?.ok) {
                     const logoBlob = await logoResponse.blob();
                     const logoDataUrl = await new Promise<string>((resolve, reject) => {
                          const reader = new FileReader();

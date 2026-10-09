@@ -1,8 +1,10 @@
 import Image from 'next/image';
 import { useEffect, useState } from "react"
 import { getCompanyInformation } from "../Auth/customFetch"
+import useCompanyImageUrl from "../../Auth/useCompanyImageUrl"
 
 export default function CompanyHeaders({ billingid }) {
+  const logo = useCompanyImageUrl()
   const [company, setCompany] = useState({})
   const { email, phonenumber, address, name, alternativenumber } = company
 
@@ -17,7 +19,7 @@ export default function CompanyHeaders({ billingid }) {
   return (
     <div className="company-info-result">
       <div className="logo">
-        <img src={`${process.env.NODE_ENV === 'development' ? process.env.DEVELOPMENT_BASEURL : process.env.PRODUCTION_BASEURL}/settings/companyprofile/images`} width={150} height={100} alt="company Logo" />
+        {logo && <img src={logo} width={150} height={100} alt="company Logo" />}
       </div>
       <div className='other-information'>
         <div className="company-name">{name}</div>

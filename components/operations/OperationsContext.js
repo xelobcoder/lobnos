@@ -11,7 +11,7 @@ export const OperationsProvider = ({ children }) => {
     const employeeid = user?.employeeid;
     const [operationsKey, setOperationsKey] = useState(null);
     const updateOperations = (key) => { setOperationsKey(key); }
-    const roles = ['admin', 'manager', 'scientist'];
+    const roles = ['admin', 'super-admin', 'manager', 'scientist'];
 
 
     const isAuthorized = () => {

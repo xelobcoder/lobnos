@@ -2,7 +2,7 @@
 
 import jsPDF from "jspdf";
 import { useState, useEffect } from "react";
-import { apiPath } from "../../../../lib/apiBaseUrl";
+import useCompanyImageUrl from "../../../../components/Auth/useCompanyImageUrl";
 import CompanyHeaders, { CompanyHeadersProps } from "../../../../components/ResultView/CompanyHeaders";
 import { customFetch, currencyFormatter, customPost } from "../../../../components/Auth/customFetch";
 import { useTheme } from "../../../../components/ThemeProvider";
@@ -160,7 +160,7 @@ export default function PosReceiptTestPage() {
      const billingid = searchParams?.get('billingid');
      const isPos = searchParams?.get('is_pos') === 'true';
      const { theme } = useTheme();
-     const companyLogoUrl = apiPath('settings/companyprofile/images');
+     const companyLogoUrl = useCompanyImageUrl();
 
      const printedBy = useApplication()?.user?.username;
      const printedByRole = useApplication()?.user?.role;

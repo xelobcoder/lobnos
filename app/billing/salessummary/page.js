@@ -9,7 +9,7 @@ export default function SalesSummaryPage() {
 
   const renderingView = () => {
     if (applicationsettings.user && role) {
-      if (['manager', 'admin'].includes(role)) {
+      if (['manager', 'admin', 'super-admin'].includes(role)) {
         return <GeneralSalesChart />
       } else {
         return <Authorization />

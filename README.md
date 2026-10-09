@@ -26,10 +26,57 @@ password of at least eight characters. Codes are single-use, allow five failed
 attempts, and can be resent after 60 seconds. A tenant needs an active default
 email provider for delivery.
 
-## Super-admin facility onboarding
+## Super-admin client platform
 
-Open **Settings > Platform Administration > Facility onboarding**
+The client platform has three tabs (also listed under **Platform Administration**):
+**Provisioning** (`/settings/facilities`: registry, provisioning, activate/deactivate),
+**Payments & subscriptions** (`/settings/facilities/payments`: select a facility to manage
+access, schedules and payments) and **Audit logs** (`/settings/facilities/audit`: select a
+facility for a paginated, human-readable history). The sections below describe each area.
+
+Open **Settings > Platform Administration > Client platform**
 (`/settings/facilities`) using an authorized platform super-admin account.
+Choose **Manage** beside a registered facility to activate/deactivate it or
+manage subscription payments. Access changes require a reason and are audited.
+The control facility cannot be deactivated, and failed or still-provisioning
+facilities cannot be activated through this page.
+
+For test cleanup, **Delete tenant** opens an explicit confirmation form: enter
+the exact organization identifier and a reason. This permanently removes the
+registry record, not the database. Subscription payments and facility audit
+records are preserved; legacy registry-linked records follow database cascades.
+Platform home and facilities still provisioning cannot be deleted. Use
+deactivation instead when you only want to disable access temporarily.
+
+Configure each client's daily, weekly, monthly, or yearly frequency, amount,
+currency, and schedule start date. Periods are due at their start. Choose
+**Mark paid**, enter the payment date, required reference and optional notes, then confirm.
+This records a full-period payment, not a partial payment or bank reconciliation.
+The page distinguishes paid, unpaid, and overdue periods. Use the viewing date
+to inspect another period range. Payment history survives schedule changes;
+incorrect entries can be voided with a reason rather than erased.
+Each selected facility also has a paginated **Facility audit history** showing
+provisioning stages, access changes, subscription changes, recorded payments,
+and payment corrections, including the initiating tenant/staff IDs and reasons.
+Audit loading is independent of subscription loading.
+**Platform home (protected)** identifies the configured default/control tenant
+where platform administrators sign in. It is protected from self-deactivation;
+the label does not mean the facility has paid or indicate a provisioning stage.
+Later schedule changes must start on an existing period boundary; earlier unpaid
+periods remain owed. Scheduled plans are displayed separately. The page warns
+about older overdue periods outside the viewing range and when payment history
+is limited to the latest 500 records.
+
+Payment status does **not** automatically suspend or reactivate a client.
+Those remain separate super-admin decisions.
+
+Expand **Provision a new facility** to onboard another company.
+Use the status filter alongside search to find clients, or clear both filters.
+The provisioning form shows field-specific errors and focuses the first invalid
+field. You can generate a secure initial password, show/hide it, and choose a
+license-duration preset. After provisioning, copy the generated identifiers
+and administrator username using their Copy buttons. Passwords are not copied
+or included in the success result.
 Enter the company details, select country, state/region, and district, and
 provide an initial administrator name, email, password, and license duration.
 Click **Create and provision facility** once and wait for setup to finish.
@@ -45,7 +92,7 @@ enforces this independently of the navigation and page access checks.
 Server authorization requires the live `super-admin` role in the registered
 default/control tenant, not an administrator in a customer facility.
 The login session endpoint accepts this exact role after backend token
-verification, and super-admin sign-in directs to the facility onboarding page.
+verification, and super-admin sign-in directs to the client platform page.
 The backend needs multi-tenant mode, an active
 `FACILITY_PROVISIONING_PLATFORM_USER_ID`, valid location records, licensing/JWT
 configuration, and MySQL 8 schema-creation permissions.

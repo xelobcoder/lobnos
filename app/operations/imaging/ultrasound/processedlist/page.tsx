@@ -12,7 +12,7 @@ export default function UltrasonograhyCompletedList() {
 
 	if (!employeeid) return null
 
-	if (employeeid && ['admin', 'sonographer'].includes(role) === false) {
+	if (employeeid && ['admin', 'super-admin', 'sonographer'].includes(role) === false) {
 		return <Authorization />
 	}
 

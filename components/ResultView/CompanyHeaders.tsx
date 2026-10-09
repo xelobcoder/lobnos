@@ -1,6 +1,7 @@
 
 import styles from './CompanyHeaders.module.css';
 import { ResultSettings } from './result-settings';
+import { scopedCompanyImageUrl } from '../../lib/companyImage';
 
 export interface CompanyHeadersProps {
 	companyInfo: {
@@ -36,8 +37,8 @@ export default function CompanyHeaders({ companyInfo, logo, resultsettings, subs
 	return (
 		<div className={`${styles['company-info-result']} ${subsequent ? styles.subsequent : ''}`}>
 			<div className="logo" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-				<img
-					src={logo || `${process.env.NODE_ENV === 'development' ? process.env.DEVELOPMENT_BASEURL : process.env.PRODUCTION_BASEURL}/settings/companyprofile/images`}
+				{scopedCompanyImageUrl(logo) && <img
+					src={scopedCompanyImageUrl(logo)}
 					className={styles['company-logo']}
 					alt="Company Logo"
 					style={{ display: 'block', visibility: 'visible' }}
@@ -45,15 +46,10 @@ export default function CompanyHeaders({ companyInfo, logo, resultsettings, subs
 					height={70}
 					crossOrigin="anonymous"
 					onError={(e) => {
-						console.warn('Logo failed to load, retrying...');
 						const target = e.target as HTMLImageElement;
-						setTimeout(() => {
-							const temp = target.src;
-							target.src = '';
-							target.src = temp;
-						}, 500);
+						target.style.visibility = 'hidden';
 					}}
-				/>
+				/>}
 			</div>
 			<div className="other-information">
 				<div style={{

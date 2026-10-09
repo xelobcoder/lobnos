@@ -54,6 +54,14 @@ export async function middleware(request: NextRequest) {
             const currentPath = request.nextUrl.pathname;
             const normalizedRole = role.toString().toLowerCase().trim();
 
+            if (normalizedRole.replace(/[\s_-]/g, '') === 'superadmin') {
+                const response = NextResponse.next();
+                response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate, private');
+                response.headers.set('Pragma', 'no-cache');
+                response.headers.set('Expires', '0');
+                return response;
+            }
+
             if (currentPath === '/settings/facilities' || currentPath.startsWith('/settings/facilities/')) {
                 if (normalizedRole.replace(/[\s_-]/g, '') !== 'superadmin') {
                     return NextResponse.redirect(new URL('/unauthorized', request.url));

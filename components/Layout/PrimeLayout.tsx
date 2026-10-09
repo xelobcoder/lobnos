@@ -19,12 +19,14 @@ import {
 } from '@remixicon/react';
 import { useApplicationSettings } from "../Auth/useApplicationContext";
 import { Link as LinkType } from "./links/types";
+import { navigationPages, superAdminNavigation } from "./links/SuperAdminLinks";
 import { AccountantRoleLinks, AdminRoleLinks, FrontdeskRoleLinks, LaboratoryScientistRoleLinks, PhelobotomyRoleLinks, SonographerRoleLinks } from "../FrontPageView/RoleLinks";
 import { FontSelector } from "./FontSelector";
 import { getFontPreference, applyFontToDocument } from "../../lib/themes";
 import { useTheme } from "../ThemeProvider";
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { customFetch, customFetchMutation } from '../Auth/customFetch';
+import { canAccessFacilityModule } from '../../lib/facilityModuleAccess';
 
 
 interface PrimeLayoutProps {
@@ -33,9 +35,10 @@ interface PrimeLayoutProps {
 }
 
 const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
-    const { company, user, daysToExpiration } = useApplicationSettings().applicationsettings;
+    const { company, user, daysToExpiration, settings } = useApplicationSettings().applicationsettings;
     const { theme, toggleTheme } = useTheme();
     const router = useRouter();
+    const modulePath = usePathname();
 
     const roleViews = {
         "customer service representative": FrontdeskRoleLinks,
@@ -54,19 +57,22 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
     const [isNotificationsOpen, setIsNotificationsOpen] = useState<boolean>(false);
     const [notifications, setNotifications] = useState<any[]>([]);
     const [unreadCount, setUnreadCount] = useState<number>(0);
-    const roleLinks = roleViews[user.role] || [];
     const normalizedRole = String(user?.role || '').toLowerCase().trim().replace(/_/g, '-');
+    const isSuperAdmin = normalizedRole.replace(/[\s-]/g, '') === 'superadmin';
+    const allNavigation = useMemo(() => isSuperAdmin ? superAdminNavigation(Number(user?.branch || 0), Number(user?.employeeid || 0)) : [], [isSuperAdmin, user?.branch, user?.employeeid]);
+    const roleLinks = isSuperAdmin ? navigationPages(allNavigation) : (roleViews[user.role] || []).filter(item => canAccessFacilityModule(item.link || "", settings?.moduleConfiguration));
     const visibleLinks = useMemo(() => {
         const filterLinks = (items: LinkType[]): LinkType[] => items
-            .filter((item) => !item.roles || item.roles.some((role) => role.replace(/_/g, '-').toLowerCase() === normalizedRole))
+            .filter((item) => isSuperAdmin || !item.roles || item.roles.some((role) => role.replace(/_/g, '-').toLowerCase() === normalizedRole))
+            .filter((item) => isSuperAdmin || canAccessFacilityModule(item.link || "", settings?.moduleConfiguration))
             .map((item) => ({
                 ...item,
                 children: item.children ? filterLinks(item.children) : item.children,
             }))
             .filter((item) => !item.children || item.children.length > 0 || item.link);
 
-        return filterLinks(links || []);
-    }, [links, normalizedRole]);
+        return filterLinks(isSuperAdmin ? allNavigation : links || []);
+    }, [links, normalizedRole, isSuperAdmin, allNavigation, settings?.moduleConfiguration]);
     const canViewNotifications = ['admin', 'manager', 'super-admin', 'super admin'].includes(String(user?.role || '').toLowerCase().trim());
     const employeeid = user?.employeeid || 0;
     const [currentPath, setCurrentPath] = useState<string>("");
@@ -389,7 +395,8 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                 )}
                 <main className={styles.mainContent} style={!isOpenSideBarShow ? { margin: 0, padding: 0 } : {}}>
                     <div className={styles.contentWrapper} style={!isOpenSideBarShow ? { padding: 0, margin: '10px', maxWidth: '100%' } : {}}>
-                        {children}
+                        {isSuperAdmin || canAccessFacilityModule(modulePath || "", settings?.moduleConfiguration)
+                            ? children : <div className="alert alert-warning" role="alert">This module is not activated for your facility. Contact your platform administrator.</div>}
                     </div>
                 </main>
             </div>

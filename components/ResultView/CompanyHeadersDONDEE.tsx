@@ -1,5 +1,6 @@
 import styles from './CompanyHeadersDONDEE.module.css';
 import { ResultSettings } from './result-settings';
+import { scopedCompanyImageUrl } from '../../lib/companyImage';
 
 export interface CompanyHeadersDONDEEProps {
      companyInfo: {
@@ -37,8 +38,8 @@ export default function CompanyHeadersDONDEE({ companyInfo, logo, resultsettings
                <div className={styles['header-row']}>
                     {/* Logo on the left */}
                     <div  >
-                         <img
-                              src={logo || `${process.env.NODE_ENV === 'development' ? process.env.DEVELOPMENT_BASEURL : process.env.PRODUCTION_BASEURL}/settings/companyprofile/images`}
+                         {scopedCompanyImageUrl(logo) && <img
+                              src={scopedCompanyImageUrl(logo)}
                               className={styles['company-logo']}
                               alt="Company Logo"
                               style={{ display: 'block', visibility: 'visible' }}
@@ -54,7 +55,7 @@ export default function CompanyHeadersDONDEE({ companyInfo, logo, resultsettings
                                         target.src = temp;
                                    }, 500);
                               }}
-                         />
+                         />}
                     </div>
                     <div
                          className={styles['company-name-dondee']}

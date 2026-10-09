@@ -6,7 +6,8 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Link from 'next/link';
 import { customFetch, customPost } from '../../../../../components/Auth/customFetch';
-import { buildApiUrl } from '../../../../../lib/apiBaseUrl';
+import { companyImageUrl } from '../../../../../lib/companyImage';
+import { getRequestContext } from '../../../../../components/serverActions/requestHeaders';
 import { useApplicationSettings } from '../../../../../components/Auth/useApplicationContext';
 import { PayrollStatusBadge } from '../../../../../components/HR/Payroll/StatusBadges';
 import { WorkflowActions } from '../../../../../components/HR/Payroll/WorkflowActions';
@@ -371,7 +372,8 @@ export default function PayrollPeriodDetailPage() {
           const companyResponse = await customFetch('settings/companyprofile');
           const company = companyResponse?.result || companyResponse || {};
 
-          const logoDataUrl = await loadImageAsDataURL(buildApiUrl('settings/companyprofile/images'));
+          const logoUrl = companyImageUrl((await getRequestContext()).tenantId);
+          const logoDataUrl = logoUrl ? await loadImageAsDataURL(logoUrl) : null;
 
           const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape', compress: true });
           const pageWidth = doc.internal.pageSize.getWidth();

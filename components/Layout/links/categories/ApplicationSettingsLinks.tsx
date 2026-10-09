@@ -33,7 +33,9 @@ export const ApplicationSettingsLinks: Link[] =
             icon: <RiShieldLine />,
             roles: ['super-admin', 'super_admin', 'super admin', 'superadmin'],
             children: [
-                { title: "Client platform", link: "/settings/facilities", icon: <RiBuilding2Line /> }
+                { title: "Client provisioning", link: "/settings/facilities", icon: <RiBuilding2Line /> },
+                { title: "Client payments", link: "/settings/facilities/payments", icon: <RiBuilding2Line /> },
+                { title: "Client audit logs", link: "/settings/facilities/audit", icon: <RiBuilding2Line /> }
             ]
         },
         {

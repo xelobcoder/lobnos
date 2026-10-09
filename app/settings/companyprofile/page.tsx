@@ -1,13 +1,13 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { buildApiUrl } from '../../../lib/apiBaseUrl';
+import useCompanyImageUrl from '../../../components/Auth/useCompanyImageUrl';
 import { Form, Row, Col, Button, InputGroup } from 'react-bootstrap';
 import {
 	RiUserLine, RiMailLine, RiPhoneLine, RiQuillPenLine, RiMapPinLine,
 	RiGlobalLine, RiRoadMapLine, RiSmartphoneLine, RiUploadCloud2Line, RiSaveLine
 } from '@remixicon/react';
-import { customFetch, customPost } from '../../../components/Auth/customFetch';
+import { customFetch, customPost, customFile } from '../../../components/Auth/customFetch';
 import Image from 'next/image';
 import { toast } from 'react-toastify';
 
@@ -51,6 +51,7 @@ export default function CompanyProfile() {
 
 	const [companyData, setCompanyData] = useState(defaultData);
 	const [selectedImage, setSelectedImage] = useState<string | null>(null);
+	const companyLogoUrl = useCompanyImageUrl();
 
 	const addAlternativeNumber = () => {
 		setCompanyData(prev => ({
@@ -128,20 +129,13 @@ export default function CompanyProfile() {
 	const onDrop = async (acceptedFiles: File[]) => {
 		const file = acceptedFiles[0];
 		if (file) {
-			setSelectedImage(URL.createObjectURL(file));
 			const formData = new FormData();
 			formData.append('file', file);
 
 			try {
-				const response = await fetch(buildApiUrl('settings/companyprofile/images'), {
-					method: 'POST',
-					body: formData,
-				});
-				if (!response.ok) {
-					const errorText = await response.text();
-					console.error('Error uploading file:', response.statusText, errorText);
-					alert(`Error uploading file: ${response.statusText}`);
-				}
+				const response = await customFile('settings/companyprofile/images', formData);
+				if (response?.status === 'success') setSelectedImage(URL.createObjectURL(file));
+				else toast.error('Company image upload failed.');
 			} catch (error) {
 				console.error('Error uploading file:', error);
 				alert('An error occurred during file upload.');
@@ -203,17 +197,6 @@ export default function CompanyProfile() {
 					});
 				}
 
-				const imageResponse = await fetch(buildApiUrl('settings/companyprofile/images'));
-				if (imageResponse.ok) {
-					const imageBlob = await imageResponse.blob();
-					if (imageBlob.size > 0) {
-						setSelectedImage(URL.createObjectURL(imageBlob));
-					} else {
-						setSelectedImage(null);
-					}
-				} else {
-					setSelectedImage(null);
-				}
 			} catch (error) {
 				console.error('Error fetching data:', error);
 				setSelectedImage(null);
@@ -229,10 +212,32 @@ export default function CompanyProfile() {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
+	useEffect(() => {
+		const abort = new AbortController();
+		let objectUrl: string | null = null;
+		setSelectedImage(null);
+		if (companyLogoUrl) {
+			fetch(companyLogoUrl, { cache: 'no-store', signal: abort.signal })
+				.then(async response => {
+					if (!response.ok) return;
+					const blob = await response.blob();
+					if (!abort.signal.aborted && blob.size > 0) {
+						objectUrl = URL.createObjectURL(blob);
+						setSelectedImage(objectUrl);
+					}
+				}).catch(() => {});
+		}
+		return () => {
+			abort.abort();
+			if (objectUrl) URL.revokeObjectURL(objectUrl);
+		};
+	}, [companyLogoUrl]);
+
 	const { getRootProps, getInputProps } = useDropzone({
 		onDrop,
 		multiple: false,
-		accept: { 'image/*': ['.jpeg', '.png', '.jpg', '.gif', '.svg'] }
+		accept: { 'image/jpeg': ['.jpeg', '.jpg'], 'image/png': ['.png'] },
+		maxSize: 5 * 1024 * 1024
 	});
 
 	return (
