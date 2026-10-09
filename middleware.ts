@@ -42,6 +42,7 @@ export async function middleware(request: NextRequest) {
 
         if (isValid && isLoginPage && payload) {
             const role = payload.user?.role?.toLowerCase?.() || '';
+            if (role.replace(/[\s_-]/g, '') === 'superadmin') return NextResponse.redirect(new URL('/settings/facilities', request.url));
             if (role === 'clinician') return NextResponse.redirect(new URL('/doctor', request.url));
             if (role === 'patient') return NextResponse.redirect(new URL('/patientportal', request.url));
             return NextResponse.redirect(new URL('/', request.url));
@@ -52,6 +53,15 @@ export async function middleware(request: NextRequest) {
             const role = user.role || "";
             const currentPath = request.nextUrl.pathname;
             const normalizedRole = role.toString().toLowerCase().trim();
+
+            if (currentPath === '/settings/facilities' || currentPath.startsWith('/settings/facilities/')) {
+                if (normalizedRole.replace(/[\s_-]/g, '') !== 'superadmin') {
+                    return NextResponse.redirect(new URL('/unauthorized', request.url));
+                }
+                const response = NextResponse.next();
+                response.headers.set('Cache-Control', 'no-store, private');
+                return response;
+            }
 
             if (currentPath.startsWith('/doctor') && !['clinician', 'admin', 'super admin'].includes(normalizedRole)) {
                 return NextResponse.redirect(new URL('/unauthorized', request.url));

@@ -259,7 +259,7 @@ export default function TierBuilder({ tiers, onTiersChange, commissionType }: Ti
                {tiers.length > 0 ? (
                     <div>
                          <h6 className="fw-semibold mb-2">Configured Tiers</h6>
-                         <PrimeTable column={columns} data={tiers} filtering={false} />
+                         <PrimeTable handleSeverSideProcessing={undefined} column={columns} data={tiers} filtering={false} />
                     </div>
                ) : (
                     <div className="alert alert-info mb-0">

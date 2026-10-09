@@ -92,10 +92,13 @@ export async function customFetch(endpoint, isLogin = false) {
 
 		const source = await response.json();
 
-		// if (typeof source === "object" && source['isExpired'] && source['isExpired'] === true) {
-		// 	handleLogout();
-		// 	return { error: "Session expired" };
-		// }
+		if (typeof window !== "undefined" && source && typeof source === "object" && source.isExpired === true) {
+			if (source.code === "SESSION_REPLACED") {
+				toast.warning(source.message || "You were signed out because your account was used on another device.");
+			}
+			handleLogout();
+			return { error: source.message || "Session expired" };
+		}
 
 		const { status, message, statusCode } = source;
 		if (
@@ -297,7 +300,7 @@ export async function customPost(
 		var requestBody = data;
 		const url = new URL(buildApiUrl(endpoint));
 
-		const context = await getRequestContext();
+		const context = login ? null : await getRequestContext();
 		if (
 			!login &&
 			(!context ||
@@ -308,14 +311,16 @@ export async function customPost(
 		}
 
 		const tenantId = requestedTenantId === undefined
-			? context?.tenantId
+			? (login ? undefined : context?.tenantId)
 			: Number(requestedTenantId);
-		if (!Number.isSafeInteger(tenantId) || tenantId <= 0) {
+		const hasTenant = Number.isSafeInteger(tenantId) && tenantId > 0;
+		// Unauthenticated login/recovery resolves the organization prefix through the backend registry.
+		if (!hasTenant && !login) {
 			return { error: "A valid tenant is required for this request" };
 		}
-		url.searchParams.set("tenantId", String(tenantId));
+		if (hasTenant) url.searchParams.set("tenantId", String(tenantId));
 
-		const { PLS_PRIME_TENANT_SESSION, PLS_SESSION } = context;
+		const { PLS_PRIME_TENANT_SESSION, PLS_SESSION } = context || {};
 		let response = await fetch(url.href, {
 			method: method,
 			headers: {

@@ -3,11 +3,58 @@
 
 ## Tenant-aware login
 
-The login form accepts a tenant ID and uses it for backend authentication. The
-verified tenant is stored in the signed session and is used by the shared API
-request helpers for later requests. `TENANTID` supplies the default shown by
-the login form; users can select another tenant when the frontend serves
-multiple tenants.
+The login form has exactly two inputs: **Username** and **Password**. A username
+contains the public organization identifier, `S` (staff), `C` (clinician), or `P`
+(patient), followed by the local account ID, for example `PLS20154S004`. Account
+IDs are displayed with a minimum of three digits. The server resolves the
+public organization prefix through the organization registry to its internal
+tenant ID (for example, `397773`), then looks up account ID 4 only in that
+tenant's database. New internal tenant IDs are unique random six-digit numbers
+from 100000 to 999999; they are not displayed as the username prefix.
+Legacy short tenant IDs and old account login usernames are automatically
+migrated by the backend during startup; administrators do not need to run a
+migration command. Existing passwords and account IDs are retained. Users whose
+old sessions reference a renumbered tenant must sign in again.
+The verified tenant is stored in the signed session and used by shared API
+request helpers. No central user directory is populated or synchronized.
+
+Click **Forgot password?** beside the password label. Enter the full username
+(pre-filled if entered on the sign-in form) and the registered email address.
+The organization prefix provides tenant scope; the email must match that tenant-local
+account. Enter the emailed six-digit OTP within 10 minutes, then choose a new
+password of at least eight characters. Codes are single-use, allow five failed
+attempts, and can be resent after 60 seconds. A tenant needs an active default
+email provider for delivery.
+
+## Super-admin facility onboarding
+
+Open **Settings > Platform Administration > Facility onboarding**
+(`/settings/facilities`) using an authorized platform super-admin account.
+Enter the company details, select country, state/region, and district, and
+provide an initial administrator name, email, password, and license duration.
+Click **Create and provision facility** once and wait for setup to finish.
+
+The backend creates the organization registry entry, unique six-digit internal
+tenant ID, isolated database, required reference data and runtime configuration,
+license, and tenant-local administrator. The result shows the organization
+identifier, tenant ID, database name, and generated administrator username.
+Passwords are never displayed in the result. Share credentials securely.
+Ordinary facility administrators cannot provision other facilities; the backend
+enforces this independently of the navigation and page access checks.
+
+Server authorization requires the live `super-admin` role in the registered
+default/control tenant, not an administrator in a customer facility.
+The login session endpoint accepts this exact role after backend token
+verification, and super-admin sign-in directs to the facility onboarding page.
+The backend needs multi-tenant mode, an active
+`FACILITY_PROVISIONING_PLATFORM_USER_ID`, valid location records, licensing/JWT
+configuration, and MySQL 8 schema-creation permissions.
+Provisioning uses the supplied `db-exports/primelabmaster/tables-structure`
+exports and allowlisted reference seeds. Include these backend SQL assets in
+deployment; TypeScript compilation does not copy them.
+See the backend `docs/platform-facility-onboarding.md` for deployment setup.
+Provisioning does not send administrator credentials by email. Configure a
+facility email provider before expecting password-recovery email delivery.
 
 ## Electron desktop distribution
 
@@ -55,6 +102,16 @@ pnpm desktop:run
 server, creates a production-only backend dependency tree, and rebuilds native
 backend modules for Electron's bundled Node runtime. The customer does not need
 Node.js, npm, or pnpm.
+
+Staging removes unused `src` trees from the compiled `agent-base`, `fecha`, and
+`zod` dependencies, including their upstream tests and benchmarks. Their
+JavaScript entry points and published declarations are retained. This keeps
+packaged development sources out of the frontend TypeScript check without
+changing compiler settings. To clean an existing unpacked installer:
+
+```powershell
+node desktop\scripts\prune-runtime-sources.cjs dist-electron\win-unpacked\resources\runtime\backend\vendor
+```
 
 The desktop backend binds to `127.0.0.1:2300`. The frontend binds to the first
 available loopback port beginning at `2377`. Startup checks wait for the backend

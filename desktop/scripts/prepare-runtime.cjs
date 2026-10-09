@@ -4,6 +4,7 @@ const { spawnSync } = require("node:child_process");
 const fs = require("node:fs");
 const path = require("node:path");
 const { parse } = require("dotenv");
+const { pruneRuntimeSources } = require("./prune-runtime-sources.cjs");
 
 const frontendRoot = path.resolve(__dirname, "..", "..");
 const backendRoot = path.resolve(
@@ -68,6 +69,7 @@ const frontendNodeModules = path.join(frontendRuntime, "node_modules");
 const frontendVendor = path.join(frontendRuntime, "vendor");
 requirePath(frontendNodeModules, "Next.js standalone dependencies");
 fs.renameSync(frontendNodeModules, frontendVendor);
+pruneRuntimeSources(frontendVendor);
 
 fs.mkdirSync(backendRuntime, { recursive: true });
 for (const fileName of ["package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml"]) {
@@ -158,5 +160,6 @@ const backendNodeModules = path.join(backendRuntime, "node_modules");
 const backendVendor = path.join(backendRuntime, "vendor");
 requirePath(backendNodeModules, "Backend production dependencies");
 fs.renameSync(backendNodeModules, backendVendor);
+pruneRuntimeSources(backendVendor);
 
 process.stdout.write(`Desktop runtime prepared at ${runtimeRoot}\n`);

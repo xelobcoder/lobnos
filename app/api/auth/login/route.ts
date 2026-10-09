@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
 
         const user = validatedSession?.user?.user;
         const settings = validatedSession?.settings;
-        const allowedRoles = ["storekeeper", "sonographer", "accountant", "scientist", "manager", "admin", "customer service representative", "patient", "clinician"];
+        const allowedRoles = ["storekeeper", "sonographer", "accountant", "scientist", "manager", "admin", "super-admin", "customer service representative", "patient", "clinician"];
         const userRole = user?.role?.toLowerCase();
         if (!user || !allowedRoles.includes(userRole)) {
             return NextResponse.json({ error: 'Invalid role' }, { status: 403 });

@@ -14,7 +14,7 @@ export default function AscensionCompletedStage() {
 
 	return (
 		<LaboratoryStagesProvider>
-			<LaboratoryAscensionStages employeeid={user?.employeeid} ascension_stage={'PROCESSING'} branchid={branchid} />
+			<LaboratoryAscensionStages clinicianId={undefined} employeeid={user?.employeeid} ascension_stage={'PROCESSING'} branchid={branchid} />
 			<AscensionProcessingTable  />
 		</LaboratoryStagesProvider>
 	);

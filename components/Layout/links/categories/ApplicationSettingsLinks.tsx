@@ -28,6 +28,15 @@ import {
 export const ApplicationSettingsLinks: Link[] =
     [
         {
+            title: "Platform Administration",
+            link: "",
+            icon: <RiShieldLine />,
+            roles: ['super-admin', 'super_admin', 'super admin', 'superadmin'],
+            children: [
+                { title: "Client platform", link: "/settings/facilities", icon: <RiBuilding2Line /> }
+            ]
+        },
+        {
             title: "User Management",
             link: "",
             icon: <RiUserSettingsLine />,

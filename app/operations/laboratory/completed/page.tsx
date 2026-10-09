@@ -12,7 +12,7 @@ export default function AscensionCompletedStage() {
 
 	return (
 		<LaboratoryStagesProvider>
-			<LaboratoryAscensionStages employeeid={user?.employeeid} ascension_stage={'COMPLETED'} branchid={branchid} />
+			<LaboratoryAscensionStages clinicianId={undefined} employeeid={user?.employeeid} ascension_stage={'COMPLETED'} branchid={branchid} />
 			<AscentionCompletedTable employeeid={user?.employeeid} branchid={branchid} />
 		</LaboratoryStagesProvider>
 	);

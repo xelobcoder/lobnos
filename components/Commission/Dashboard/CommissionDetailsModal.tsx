@@ -3,7 +3,6 @@
 import React from "react";
 import { CommissionTracking } from "../../../lib/commission/commissionApi";
 import { formatCurrency, getStatusBadgeClass } from "../../../lib/commission/commissionHelpers";
-import { RiCloseLine } from "react-icons/ri";
 
 interface CommissionDetailsModalProps {
      commission: CommissionTracking | null;

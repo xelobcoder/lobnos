@@ -65,15 +65,18 @@ export default function MultiStepBillingSourcePage() {
         patientid = plsDecryption(undeCryptedPatientId?.toString() ?? "");
     }
 
-    const entitytype = searchParams.get('entitytype');
-    const entityname = searchParams.get('entityname');
-    const entityid = searchParams.get('entityid');
-    const specialcode = searchParams.get('specialcode');
+    const entitytype = searchParams.get('entitytype') ?? undefined;
+    const entityname = searchParams.get('entityname') ?? undefined;
+    const entityid = searchParams.get('entityid') ?? undefined;
+    const specialcode = searchParams.get('specialcode') ?? undefined;
     const billingid = searchParams.get('billingid');
     const isRelatedBilling = searchParams.get('isRelatedBilling') !== '0';
     const isNewTransaction = searchParams.get('isNewTransaction') === '0';
     const isAdjustment = ['1', 'true'].includes(searchParams.get('isAdjustment') || '');
-    const adjustmentType = searchParams.get('adjustmentType') || 'addition';
+    const requestedAdjustmentType = searchParams.get('adjustmentType');
+    const adjustmentType = requestedAdjustmentType === 'correction' || requestedAdjustmentType === 'voided'
+        ? requestedAdjustmentType
+        : 'addition';
     const adjustmentReason = searchParams.get('adjustmentReason') || '';
     const suspendedDraftId = searchParams.get('suspendedDraftId') ? Number(searchParams.get('suspendedDraftId')) : undefined;
 

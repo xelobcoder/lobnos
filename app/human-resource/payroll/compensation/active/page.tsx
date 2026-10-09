@@ -92,8 +92,8 @@ export default function ActiveCompensationPage() {
                if (sortBy === 'employee') {
                     return (a.employee_name || '').localeCompare(b.employee_name || '');
                } else if (sortBy === 'salary') {
-                    const valueA = a.salary || a.hourly_rate || a.commission_rate || 0;
-                    const valueB = b.salary || b.hourly_rate || b.commission_rate || 0;
+                    const valueA = parseFloat(a.basic_salary) || a.hourly_rate || a.commission_rate || 0;
+                    const valueB = parseFloat(b.basic_salary) || b.hourly_rate || b.commission_rate || 0;
                     return valueB - valueA;
                } else if (sortBy === 'date') {
                     return new Date(b.effective_from).getTime() - new Date(a.effective_from).getTime();

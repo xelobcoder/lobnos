@@ -263,16 +263,50 @@
 }
 
 .forgotPasswordLink {
+  padding: 0;
+  border: 0;
+  background: transparent;
   font-size: 0.875rem;
   color: #2e7d32;
   text-decoration: none;
   font-weight: 500;
+  cursor: pointer;
   transition: color 0.2s ease;
 }
 
 .forgotPasswordLink:hover {
   color: #1b5e20;
   text-decoration: underline;
+}
+
+.recoveryInstructions {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.925rem;
+  line-height: 1.5;
+}
+
+.secondaryButton {
+  min-height: 2.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  background: #fff;
+  color: #374151;
+  font-size: 0.925rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.secondaryButton:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.secondaryButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .signInButton {
