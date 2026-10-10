@@ -2,11 +2,13 @@ import CompanyHeaders from "./CompanyHeaders";
 import CompanyHeadersDONDEE from "./CompanyHeadersDONDEE";
 import CompanyHeadersFULLWIDTH from "./CompanyHeadersFULLWIDTH";
 import { ResultSettings } from "./result-settings";
+import { scopedCompanyImageUrl } from "../../lib/companyImage";
 
 interface MdsCompanyInformationProps {
     companyInfo: {
         name: string;
         address: string;
+        street?: string;
         phonenumber: string;
         email: string;
         prNum: string;
@@ -30,7 +32,7 @@ const MdsCompanyInformation = ({ companyInfo, styles, logourl, resultsettings, s
         return (
             <header className={styles?.header}>
                 <div className={styles?.logoSection}>
-                    <img src={`${logourl}?tenantid=3`} alt="Lab Logo" className={styles?.logo} />
+                    {scopedCompanyImageUrl(logourl) && <img src={scopedCompanyImageUrl(logourl)} alt="Lab Logo" className={styles?.logo} />}
                     <div>
                         <div className={styles?.labNameLarge} style={{ fontSize: resultsettings.companyInfo.namefontsize || '20px', fontFamily: resultsettings.companyInfo.fontFamily || 'inherit' }}>{largeName}</div>
                         <div className={styles?.labNameSub} style={{ fontSize: resultsettings.companyInfo.subnameFontSize || '4px', fontFamily: resultsettings.companyInfo.fontFamily || 'inherit' }}>{subName}</div>
@@ -38,6 +40,7 @@ const MdsCompanyInformation = ({ companyInfo, styles, logourl, resultsettings, s
                 </div>
                 <div className={styles?.labContactHeader}>
                     <div>{companyInfo.address}</div>
+                    {companyInfo.street && <div>{companyInfo.street}</div>}
                     <div className="d-flex">
                         <div>Phone No: {companyInfo.phonenumber} ||  {companyInfo.alternativenumber}</div>
                         <div> Email : {companyInfo.prNum}</div>
@@ -52,6 +55,7 @@ const MdsCompanyInformation = ({ companyInfo, styles, logourl, resultsettings, s
         companyInfo: {
             name: companyInfo.name,
             address: companyInfo.address,
+            street: companyInfo.street,
             phonenumber: Number(companyInfo.phonenumber),
             email: companyInfo.email || companyInfo.prNum,
             alternativenumber: companyInfo.alternativenumber,

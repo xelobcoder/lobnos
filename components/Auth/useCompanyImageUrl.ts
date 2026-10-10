@@ -17,5 +17,5 @@ export default function useCompanyImageUrl(): string {
           });
           return () => { cancelled = true; };
      }, [application]);
-     return image?.application === application ? image.url : '';
+     return image && image.application === application ? image.url : '';
 }

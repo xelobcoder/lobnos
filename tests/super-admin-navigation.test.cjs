@@ -9,7 +9,7 @@ const root = path.join(__dirname, "..");
 function compile(filename, mocks) {
     const exports = {};
     vm.runInNewContext(ts.transpileModule(readFileSync(path.join(root, filename), "utf8"), {
-        compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
+        compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX },
     }).outputText, { exports, require: mocks, TextEncoder, URL, process: { env: { JWT_SECRET_KEY: "synthetic" } } });
     return exports;
 }
@@ -33,7 +33,7 @@ const requestFor = (pathname) => ({
 
 test("signed super-admin can open every formerly restricted module", async () => {
     const middleware = middlewareFor("super-admin");
-    for (const pathname of ["/settings/applicationsettings", "/inventory", "/analytics", "/doctor", "/patientportal", "/communications", "/operations/imaging", "/billing/expenses", "/settings/facilities/payments", "/settings/facilities/audit"]) {
+    for (const pathname of ["/settings/applicationsettings", "/inventory", "/analytics", "/doctor", "/patientportal", "/communications", "/operations/imaging", "/billing/expenses", "/settings/facilities/payments", "/settings/facilities/audit", "/settings/facilities/applications"]) {
         const result = await middleware(requestFor(pathname));
         assert.equal(result.allowed, true, pathname);
         assert.match(result.headers.get("Cache-Control"), /no-store/);
@@ -46,9 +46,10 @@ test("unverified super-admin claims cannot bypass authentication", async () => {
 });
 test("ordinary admins cannot open platform subpages and sonographers retain restrictions", async () => {
     assert.equal((await middlewareFor("admin")(requestFor("/settings/facilities/audit"))).url, "/unauthorized");
+    assert.equal((await middlewareFor("admin")(requestFor("/settings/facilities/applications"))).url, "/unauthorized");
     assert.equal((await middlewareFor("sonographer")(requestFor("/inventory"))).url, "/unauthorized");
 });
-test("apps menu flattens all nested pages and removes duplicate destinations", () => {
+test("navigation page utility flattens nested pages and removes duplicate destinations", () => {
     const navigation = compile(path.join("components", "Layout", "links", "SuperAdminLinks.tsx"), () => ({}));
     const pages = navigation.navigationPages([
         { title: "Settings", link: "", children: [
@@ -61,4 +62,22 @@ test("apps menu flattens all nested pages and removes duplicate destinations", (
     assert.equal(pages.length, 3);
     assert.equal(pages[0].description, "Settings");
     assert.equal(pages[2].label, "Audit logs");
+});
+test("super-admin menu extends the admin module menu with only platform administration", () => {
+    const { AdminRoleLinks, SuperAdminRoleLinks } = compile(
+        path.join("components", "FrontPageView", "RoleLinks.tsx"),
+        (name) => {
+            if (name === "react/jsx-runtime") return require(name);
+            if (name === "@remixicon/react") return new Proxy({}, { get: () => () => null });
+            throw new Error(name);
+        },
+    );
+    assert.equal(SuperAdminRoleLinks.length, AdminRoleLinks.length + 1);
+    for (let index = 0; index < AdminRoleLinks.length; index++) {
+        assert.equal(SuperAdminRoleLinks[index], AdminRoleLinks[index]);
+    }
+    const platform = SuperAdminRoleLinks[AdminRoleLinks.length];
+    assert.equal(platform.label, "Platform Administration");
+    assert.equal(platform.href, "/settings/facilities");
+    assert.equal(new Set(SuperAdminRoleLinks.map(link => link.href)).size, SuperAdminRoleLinks.length);
 });

@@ -7,6 +7,7 @@ export interface CompanyHeadersDONDEEProps {
           email: string;
           phonenumber: number;
           address: string;
+          street?: string;
           name: string;
           alternativenumber?: string;
           motto?: string;
@@ -24,6 +25,7 @@ export default function CompanyHeadersDONDEE({ companyInfo, logo, resultsettings
           email,
           phonenumber,
           address,
+          street,
           alternativenumber,
           motto
      } = companyInfo;
@@ -74,6 +76,9 @@ export default function CompanyHeadersDONDEE({ companyInfo, logo, resultsettings
                                    <span className={styles['contact-label']}></span>
                                    <span className={`${styles['contact-value']} fw-bold text-start`}>{address}</span>
                               </div>
+                              {street && <div className={styles['contact-item']}>
+                                   <span className={styles['contact-value']}>{street}</span>
+                              </div>}
                               <div className={styles['contact-item']}>
                                    <span className={styles['contact-label']}>Tel:</span>
                                    <span className={styles['contact-value']}>

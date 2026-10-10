@@ -51,6 +51,7 @@ export default function CompanyProfile() {
 
 	const [companyData, setCompanyData] = useState(defaultData);
 	const [selectedImage, setSelectedImage] = useState<string | null>(null);
+	const [selectedImageTenant, setSelectedImageTenant] = useState('');
 	const companyLogoUrl = useCompanyImageUrl();
 
 	const addAlternativeNumber = () => {
@@ -134,7 +135,10 @@ export default function CompanyProfile() {
 
 			try {
 				const response = await customFile('settings/companyprofile/images', formData);
-				if (response?.status === 'success') setSelectedImage(URL.createObjectURL(file));
+				if (response?.status === 'success') {
+					setSelectedImageTenant(companyLogoUrl);
+					setSelectedImage(URL.createObjectURL(file));
+				}
 				else toast.error('Company image upload failed.');
 			} catch (error) {
 				console.error('Error uploading file:', error);
@@ -204,13 +208,12 @@ export default function CompanyProfile() {
 		};
 		fetchData();
 
-		return () => {
-			if (selectedImage) {
-				URL.revokeObjectURL(selectedImage);
-			}
-		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
+
+	useEffect(() => () => {
+		if (selectedImage) URL.revokeObjectURL(selectedImage);
+	}, [selectedImage]);
 
 	useEffect(() => {
 		const abort = new AbortController();
@@ -223,6 +226,7 @@ export default function CompanyProfile() {
 					const blob = await response.blob();
 					if (!abort.signal.aborted && blob.size > 0) {
 						objectUrl = URL.createObjectURL(blob);
+						setSelectedImageTenant(companyLogoUrl);
 						setSelectedImage(objectUrl);
 					}
 				}).catch(() => {});
@@ -265,7 +269,7 @@ export default function CompanyProfile() {
 							}}
 						>
 							<input {...getInputProps()} />
-							{selectedImage ? (
+							{selectedImage && selectedImageTenant === companyLogoUrl && companyLogoUrl ? (
 								<Image
 									src={selectedImage}
 									width={150}
@@ -278,7 +282,7 @@ export default function CompanyProfile() {
 								<div className="text-muted">
 									<RiUploadCloud2Line size={48} className="mb-2 text-primary" />
 									<p className="mb-1 fw-semibold">Drag & drop logo here</p>
-									<p className="mb-0 small">or click to select (JPEG, PNG, GIF, SVG)</p>
+									<p className="mb-0 small">or click to select (JPEG/PNG, max 5 MiB)</p>
 								</div>
 							)}
 						</div>

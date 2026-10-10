@@ -8,6 +8,7 @@ export interface CompanyHeadersProps {
 		email: string;
 		phonenumber: number;
 		address: string;
+		street?: string;
 		name: string;
 		alternativenumber?: string;
 		motto?: string;
@@ -27,6 +28,7 @@ export default function CompanyHeaders({ companyInfo, logo, resultsettings, subs
 		email,
 		phonenumber,
 		address,
+		street,
 		alternativenumber,
 		additionalInfo
 	} = companyInfo;
@@ -62,6 +64,7 @@ export default function CompanyHeaders({ companyInfo, logo, resultsettings, subs
 				}} className={styles['company-name']}>{name}</div>
 				<div className={styles['company-address']}>{additionalInfo}</div>
 				<div className={styles['company-address']}>{address}</div>
+				{street && <div className={styles['company-address']}>{street}</div>}
 				<div className={`${styles['company-address']}`}>
 					<span>
 						Tel: 0{phonenumber} || {alternativenumber} {"  "}Email:{email}

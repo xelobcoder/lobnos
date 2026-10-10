@@ -1,6 +1,8 @@
 import { Card, Form, Button, Spinner, Modal } from "react-bootstrap";
 import { useEffect, useState } from "react";
-import { customFetch, customFetchMutation, customPost } from "../../Auth/customFetch";
+import { customFetch, customPost } from "../../Auth/customFetch";
+import { saveSuspendedBilling } from '../../../lib/Multi/suspendedBilling';
+import { useRouter } from 'next/navigation';
 import { RiArrowGoBackFill, RiCheckLine, RiCloseCircleFill, RiPauseCircleLine, RiResetLeftFill } from '@remixicon/react';
 import { toast } from 'react-toastify';
 
@@ -47,40 +49,29 @@ export default function MultiBillingHeader({
     onLoadBackendBilling,
     onReset,
     onReturnToMulti,
+    isSaleSaved = false,
 }) {
     const [showSuspendModal, setShowSuspendModal] = useState(false);
     const [suspendNote, setSuspendNote] = useState('');
     const [suspending, setSuspending] = useState(false);
+    const router = useRouter();
+    useEffect(() => {
+        setSuspendNote(billingdata.suspendNote || '');
+    }, [billingdata.suspendNote]);
 
-    const handleSuspend = async () => {
-        if (!billingdata.patientid) {
-            toast.error('A patient is required before suspending this sale.');
-            return;
-        }
-        if (!billingdata.cart?.length && !billingdata.servicesList?.length) {
-            toast.error('Start the transaction and select at least one item before suspending.');
-            return;
-        }
-
+    const handleSuspend = async (convertToSale = false) => {
+        if (suspending || isSaleSaved) return;
         setSuspending(true);
         try {
-            const response = await customFetchMutation('billing/suspended', 'POST', {
-                patientid: Number(billingdata.patientid),
-                billing_source: Number(billingdata.billingSource),
-                entity_type: billingdata.entitytype || null,
-                entity_id: billingdata.entityId || null,
-                entityname: billingdata.entityname || null,
-                notes: suspendNote.trim() || null,
-                is_pricing_quote: billingdata.ispricingcheckout ? true : false,
-                draft_data: billingdata,
-            });
-            if (!response?.success) {
-                throw new Error(response?.message || 'Unable to suspend this transaction.');
-            }
+            const draftId = await saveSuspendedBilling(billingdata, suspendNote);
             toast.success('Transaction suspended.');
             setShowSuspendModal(false);
             setSuspendNote('');
-            onReturnToMulti();
+            if (convertToSale) {
+                router.push(`/billing/patientid?resumeDraftId=${draftId}&resumeBillingSource=${billingdata.billingSource}`);
+            } else {
+                router.push('/billing/suspended-transactions');
+            }
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Unable to suspend this transaction.');
         } finally {
@@ -252,11 +243,19 @@ export default function MultiBillingHeader({
                         variant="outline-warning"
                         size="sm"
                         title="Suspend transaction"
-                        onClick={() => setShowSuspendModal(true)}
-                        disabled={suspending}
+                        onClick={() => {
+                            setSuspendNote(billingdata.suspendNote || '');
+                            setShowSuspendModal(true);
+                        }}
+                        disabled={suspending || isSaleSaved || Boolean(billingdata.isAdjustment)}
                     >
-                        <RiPauseCircleLine size={20} /> Suspend Sale
+                        <RiPauseCircleLine size={20} /> {billingdata.ispricingcheckout ? 'Suspend Quote' : 'Suspend Sale'}
                     </Button>
+                    {billingdata.ispricingcheckout && (
+                        <Button variant="outline-success" size="sm" disabled={suspending || isSaleSaved} onClick={() => void handleSuspend(true)}>
+                            Convert to Sale
+                        </Button>
+                    )}
                     <Button variant="outline-danger" size="sm" title='reset transaction' onClick={onReset}>
                         <RiResetLeftFill size={20} />
                     </Button>
@@ -268,7 +267,7 @@ export default function MultiBillingHeader({
 
             <Modal show={showSuspendModal} onHide={() => !suspending && setShowSuspendModal(false)} centered>
                 <Modal.Header closeButton={!suspending}>
-                    <Modal.Title>Suspend Sale</Modal.Title>
+                    <Modal.Title>{billingdata.ispricingcheckout ? 'Suspend Quote' : 'Suspend Sale'}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <p className="mb-2">Save this unfinished transaction so it can be resumed later.</p>
@@ -289,7 +288,7 @@ export default function MultiBillingHeader({
                     </Button>
                     <Button variant="warning" onClick={() => void handleSuspend()} disabled={suspending}>
                         {suspending && <Spinner as="span" animation="border" size="sm" className="me-2" />}
-                        Suspend Sale
+                        {billingdata.ispricingcheckout ? 'Suspend Quote' : 'Suspend Sale'}
                     </Button>
                 </Modal.Footer>
             </Modal>

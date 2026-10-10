@@ -41,6 +41,10 @@ export function buildApiUrl(endpoint: string): string {
 	return new URL(endpoint.replace(/^\/+/, ""), getApiBaseUrl()).toString();
 }
 
+export function usesTenantQuery(endpoint: string): boolean {
+	return !/^marketplace(?:\/|\?|$)/.test(endpoint.replace(/^\/+/, ""));
+}
+
 /**
  * Builds a same-origin backend path for URLs that are resolved by the browser
  * after server-side rendering, such as image `src` attributes.

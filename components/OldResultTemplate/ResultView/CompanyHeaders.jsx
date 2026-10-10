@@ -6,7 +6,7 @@ import useCompanyImageUrl from "../../Auth/useCompanyImageUrl"
 export default function CompanyHeaders({ billingid }) {
   const logo = useCompanyImageUrl()
   const [company, setCompany] = useState({})
-  const { email, phonenumber, address, name, alternativenumber } = company
+  const { email, phonenumber, address, street, name, alternativenumber } = company
 
   useEffect(() => {
     try {
@@ -24,6 +24,7 @@ export default function CompanyHeaders({ billingid }) {
       <div className='other-information'>
         <div className="company-name">{name}</div>
         <div className="company-kids fw-bold">Location:{address} </div>
+        {street && <div className="company-kids">{street}</div>}
         <div className="company-kids fw-bold">Email: {email}</div>
         <div className="company-kids text-capitalize">
           <span className="fw-bold">

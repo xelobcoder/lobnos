@@ -19,8 +19,8 @@ import {
 } from '@remixicon/react';
 import { useApplicationSettings } from "../Auth/useApplicationContext";
 import { Link as LinkType } from "./links/types";
-import { navigationPages, superAdminNavigation } from "./links/SuperAdminLinks";
-import { AccountantRoleLinks, AdminRoleLinks, FrontdeskRoleLinks, LaboratoryScientistRoleLinks, PhelobotomyRoleLinks, SonographerRoleLinks } from "../FrontPageView/RoleLinks";
+import { superAdminNavigation } from "./links/SuperAdminLinks";
+import { AccountantRoleLinks, AdminRoleLinks, FrontdeskRoleLinks, LaboratoryScientistRoleLinks, PhelobotomyRoleLinks, SonographerRoleLinks, SuperAdminRoleLinks } from "../FrontPageView/RoleLinks";
 import { FontSelector } from "./FontSelector";
 import { getFontPreference, applyFontToDocument } from "../../lib/themes";
 import { useTheme } from "../ThemeProvider";
@@ -60,7 +60,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
     const normalizedRole = String(user?.role || '').toLowerCase().trim().replace(/_/g, '-');
     const isSuperAdmin = normalizedRole.replace(/[\s-]/g, '') === 'superadmin';
     const allNavigation = useMemo(() => isSuperAdmin ? superAdminNavigation(Number(user?.branch || 0), Number(user?.employeeid || 0)) : [], [isSuperAdmin, user?.branch, user?.employeeid]);
-    const roleLinks = isSuperAdmin ? navigationPages(allNavigation) : (roleViews[user.role] || []).filter(item => canAccessFacilityModule(item.link || "", settings?.moduleConfiguration));
+    const roleLinks = isSuperAdmin ? SuperAdminRoleLinks : (roleViews[user.role] || []).filter(item => canAccessFacilityModule(item.link || "", settings?.moduleConfiguration));
     const visibleLinks = useMemo(() => {
         const filterLinks = (items: LinkType[]): LinkType[] => items
             .filter((item) => isSuperAdmin || !item.roles || item.roles.some((role) => role.replace(/_/g, '-').toLowerCase() === normalizedRole))

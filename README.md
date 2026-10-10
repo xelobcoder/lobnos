@@ -28,11 +28,65 @@ email provider for delivery.
 
 ## Super-admin client platform
 
-The client platform has three tabs (also listed under **Platform Administration**):
+Provisioning requires the facility's report address and offers optional street
+and digital/GPS address details. Select pharmacy, email, SMS, inventory and device
+interfacing activation, each with a monthly price and a shared currency. Select
+single- or multiple-branch support; both initially create the main branch.
+Explicit single-branch facilities cannot add extra branches.
+
+The payments page shows itemized module prices and their enabled-module monthly
+total. **Use module total for monthly schedule** fills the payment form; save it
+to apply the subscription. Existing payments are not rewritten. Email and SMS
+still require provider setup. Explicitly disabled module APIs are blocked and
+their ordinary-user menu entries are hidden; the super-admin menu stays complete.
+Legacy facilities without explicit selections preserve their existing behavior.
+
+The super-admin MENU launcher extends the existing admin module menu with
+**Platform Administration**. It does not list every individual page; module
+pages remain available through their section navigation.
+
+Lab billing supports **Suspend Sale** and **Suspend Quote**. Saved transactions
+appear under **Suspended Transactions** and resume with current prices, selected
+tests/services, billing source and entity. **Convert to Sale** on a price quote
+requests a patient and restores the quote as a new sale. Resuming does not record
+payments; enter them before submitting the sale. Suspending a resumed transaction
+updates its existing draft rather than creating another entry.
+
+The client platform sections are also listed under **Platform Administration**:
 **Provisioning** (`/settings/facilities`: registry, provisioning, activate/deactivate),
+**Website applications** (`/settings/facilities/applications`: review applications,
+approve independent marketplace access, and provision or link a PLS facility),
 **Payments & subscriptions** (`/settings/facilities/payments`: select a facility to manage
 access, schedules and payments) and **Audit logs** (`/settings/facilities/audit`: select a
 facility for a paginated, human-readable history). The sections below describe each area.
+
+Website applications begin pending and are not public or able to sign in until a
+platform super-admin approves them. Open **Website applications**, review the
+facility, and select **Approve application**. In **Approved facilities**, choose
+**Review and provision PLS facility** to prefill the existing provisioning form.
+Review the company details, select the official location, configure modules, and
+enter a new PLS administrator name and password. Confirm the facility identity
+before provisioning; website passwords are never retrieved or reused.
+Alternatively, link an existing active PLS tenant after confirming the identity.
+Existing independent catalog data requires controlled mapping rather than being
+silently discarded. Approval, provisioning and tenant linking are distinct
+audited operations; marketplace approval does not verify payments.
+
+Marketplace APIs derive tenancy from authenticated sessions and do not accept
+the `tenantId` query parameter used by ordinary tenant APIs. The shared request
+helpers retain authentication headers while omitting that parameter only for
+marketplace endpoints.
+
+Select **Manage facility** in Provisioning to configure **Website directory,
+catalog and client login**. Set the public slug, official location, currency and
+approved login URL, then explicitly enable facility and catalog publication.
+The saved profile overrides any environment entry for that tenant, including
+unpublication. Optional comma-separated panel tariff IDs label selected live
+tariffs as panels without changing prices. A linked application and public profile
+must use the same slug. Login hosts must be allowlisted in the website configuration.
+Remote portals require HTTPS; same-machine development can explicitly permit
+loopback HTTP on both services. Existing PLS tenants may publish discovery and
+catalogs without enabling marketplace bookings.
 
 Open **Settings > Platform Administration > Client platform**
 (`/settings/facilities`) using an authorized platform super-admin account.

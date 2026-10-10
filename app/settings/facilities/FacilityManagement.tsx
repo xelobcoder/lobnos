@@ -4,6 +4,7 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import { customFetch, customFetchMutation } from "../../../components/Auth/customFetch";
 import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
 import { ModuleConfigurationForm, MODULE_LABELS, ModuleName } from "./provisioningForm";
+import FacilityPublication from "./FacilityPublication";
 
 export interface ManagedFacility {
      tenantId: number;
@@ -247,6 +248,7 @@ export default function FacilityManagement({ facility, onStatusChange, mode = "f
                          <span className={`fw-semibold text-capitalize ${facility.status.toLowerCase() === "active" ? "text-success" : "text-secondary"}`}>{facility.status}</span>
                     </div>
                </div>
+               <FacilityPublication key={facility.tenantId} facility={facility} />
                <div>
                     {error && <div className="alert alert-danger" role="alert">{error}</div>}
                     {notice && <div className="alert alert-success" role="status">{notice}</div>}

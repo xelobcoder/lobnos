@@ -20,6 +20,7 @@ import ReceiptOptionsModal from '../ReceiptOptionsModal';
 import { BillingContextPropsProvider, useBillingContextProps } from './BillingContextPropsContext';
 import GoogleMapPicker from '../../home-collection/GoogleMapPicker';
 import type { LocationValue } from '../../home-collection/v.dev.types';
+import { finalizeSuspendedBilling, resumeSuspendedBilling } from '../../../lib/Multi/suspendedBilling';
 
 
 
@@ -40,7 +41,7 @@ function MultiBillingLayoutContent() {
     const { billingContextProps } = useBillingContextProps();
     const { categorytrackid, entitytype, entityname, entityid, patientid, billingid, isNewTransaction,
         isAdjustment, adjustmentType, adjustmentReason,
-        isRelatedBilling, ispricingcheckout } = billingContextProps
+        isRelatedBilling, ispricingcheckout, suspendedDraftId } = billingContextProps
     const branchid = useApplication().branchid;
     const employeeid = useApplication().user?.employeeid || 0;
     const role = useApplication().user?.role
@@ -61,6 +62,22 @@ function MultiBillingLayoutContent() {
     const [showChoiceModal, setShowChoiceModal] = useState(false);
     const [generatedBillingid, setGeneratedBillingid] = useState<string | number | undefined>(undefined);
     const [showReceiptOptionsModal, setShowReceiptOptionsModal] = useState(false);
+    const [pendingDraftFinalization, setPendingDraftFinalization] = useState<{ draftId: number; billingId: number } | null>(null);
+    const [finalizingDraft, setFinalizingDraft] = useState(false);
+
+    const retryDraftFinalization = async () => {
+        if (!pendingDraftFinalization || finalizingDraft) return;
+        setFinalizingDraft(true);
+        try {
+            await finalizeSuspendedBilling(pendingDraftFinalization.draftId, pendingDraftFinalization.billingId);
+            setPendingDraftFinalization(null);
+            toast.success('Suspended transaction marked complete.');
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Unable to mark the suspended transaction complete');
+        } finally {
+            setFinalizingDraft(false);
+        }
+    };
 
     const handleSpecialCodeChange = (e) => {
         const value = e.target.value;
@@ -406,6 +423,10 @@ function MultiBillingLayoutContent() {
 
     const submitBillingInternal = async (billingdata: MultiBillingData, writeOffConfirmed = false) => {
         if (isSaving) return;
+        if (generatedBillingid && suspendedDraftId) {
+            toast.info(`This sale has already been saved as billing ${generatedBillingid}. Do not submit it again.`);
+            return;
+        }
 
         if (!billingdata || !billingdata.patientid) {
             return toast.error('Patient ID is required to submit billing');
@@ -426,7 +447,7 @@ function MultiBillingLayoutContent() {
             setIsSaving(true);
             const dataToBeUploaded = {
                 ...billingdata,
-                servicesProvided: billingdata.servicesList,
+                servicesProvided: billingdata.servicesProvided,
                 employeeid: employeeid,
                 branchid: branchid,
                 amountPayable,
@@ -461,10 +482,18 @@ function MultiBillingLayoutContent() {
 
             const { status, message } = response;
 
-            if (status == true || status === 'success') {
+            if (status == true || status === 'success' || response.success === true) {
                 if (typeof window !== 'undefined') {
                     const billingId = response.billingid || response.data?.billingid;
                     setGeneratedBillingid(billingId);
+                    if (billingdata.suspendedDraftId && billingId) {
+                        try {
+                            await finalizeSuspendedBilling(billingdata.suspendedDraftId, Number(billingId));
+                        } catch (error) {
+                            setPendingDraftFinalization({ draftId: billingdata.suspendedDraftId, billingId: Number(billingId) });
+                            toast.error(error instanceof Error ? error.message : 'Sale saved, but the suspended transaction could not be marked complete');
+                        }
+                    }
                 }
             }
             if (status == false) {
@@ -473,7 +502,7 @@ function MultiBillingLayoutContent() {
             return response;
 
         } catch (error) {
-            setIsSaving(false);
+            toast.error(error instanceof Error ? error.message : 'Unable to submit billing');
         } finally {
             setIsSaving(false);
         }
@@ -481,6 +510,10 @@ function MultiBillingLayoutContent() {
 
     const handleSubmit = async (billingdata: MultiBillingData, writeOffConfirmed = false) => {
         if (isSaving) return;
+        if (generatedBillingid && suspendedDraftId) {
+            toast.info(`This sale has already been saved as billing ${generatedBillingid}. Do not submit it again.`);
+            return;
+        }
 
         if (!billingdata || !billingdata.patientid) {
             return toast.error('Patient ID is required to submit billing');
@@ -712,9 +745,31 @@ function MultiBillingLayoutContent() {
     }
 
     useEffect(() => {
-        onMountedRun();
+        if (suspendedDraftId) return;
+        void onMountedRun();
     }, []);
 
+    useEffect(() => {
+        if (!suspendedDraftId) return;
+        let active = true;
+        const restore = async () => {
+            setLoadingBackendBilling(true);
+            setBackendError(null);
+            try {
+                const restored = await resumeSuspendedBilling(suspendedDraftId, patientid, branchid, employeeid, ispricingcheckout);
+                if (!active) return;
+                setBillingData({ ...restored.billingdata, suspendNote: restored.notes });
+                setUseServices(Boolean(restored.billingdata.includeServices));
+                setUsePackage(restored.billingdata.isPackageUsed);
+            } catch (error) {
+                if (active) setBackendError(error instanceof Error ? error.message : 'Unable to resume suspended transaction');
+            } finally {
+                if (active) setLoadingBackendBilling(false);
+            }
+        };
+        void restore();
+        return () => { active = false; };
+    }, [suspendedDraftId, patientid, branchid, employeeid, ispricingcheckout]);
     useEffect(() => {
         if (!billingdata?.billingid) return;
         loadDeliveryDefaults(billingdata.billingid);
@@ -771,6 +826,14 @@ function MultiBillingLayoutContent() {
 
     return (
         <React.Fragment>
+            {pendingDraftFinalization && (
+                <div className="alert alert-warning" role="alert">
+                    Sale {pendingDraftFinalization.billingId} was saved. Its suspended draft still needs to be marked complete; do not submit the sale again.
+                    <Button className="ms-2" size="sm" variant="outline-secondary" disabled={finalizingDraft} onClick={() => void retryDraftFinalization()}>
+                        {finalizingDraft ? 'Marking complete...' : 'Retry marking draft complete'}
+                    </Button>
+                </div>
+            )}
             <div className="card mt-2 multi-billing-card">
                 <MultiBillingHeader
                     billingdata={billingdata}
@@ -789,6 +852,7 @@ function MultiBillingLayoutContent() {
                     onLoadBackendBilling={loadBackendBilling}
                     onReset={handleReset}
                     onReturnToMulti={handleReturnToMulti}
+                    isSaleSaved={Boolean(generatedBillingid && suspendedDraftId)}
                 />
 
                 <PreviousRecordsHeader />

@@ -36,3 +36,48 @@ test("never uses an unscoped legacy or malformed report logo as a fallback", () 
         assert.equal(scopedCompanyImageUrl(logo), "");
     }
 });
+
+const { renderToStaticMarkup } = require("react-dom/server");
+const React = require("react");
+function loadComponent(relative) {
+    const filename = path.join(__dirname, "..", "components", "ResultView", `${relative}.tsx`);
+    const componentExports = {};
+    vm.runInNewContext(ts.transpileModule(readFileSync(filename, "utf8"), {
+        compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX },
+    }).outputText, {
+        exports: componentExports,
+        require: name => {
+            if (name.endsWith(".module.css")) return { default: {} };
+            if (name === "../../lib/companyImage") return exportsObject;
+            if (name.startsWith("./CompanyHeaders")) return loadComponent(name.slice(2));
+            return require(name);
+        },
+    });
+    return componentExports;
+}
+const company = { name: "Test Facility", address: "Tenant address", street: "Tenant street", email: "lab@example.test", phonenumber: "123" };
+for (const component of ["CompanyHeaders", "CompanyHeadersDONDEE", "CompanyHeadersFULLWIDTH"]) {
+    test(`${component} displays tenant address/street and no unscoped logo fallback`, () => {
+        const Header = loadComponent(component).default;
+        const html = renderToStaticMarkup(React.createElement(Header, {
+            companyInfo: company, logo: "/api/v1/settings/companyprofile/images", resultsettings: {},
+        }));
+        assert.ok(html.includes("Tenant address"));
+        assert.ok(html.includes("Tenant street"));
+        assert.ok(!html.includes("<img"));
+        const scoped = renderToStaticMarkup(React.createElement(Header, {
+            companyInfo: company, logo: companyImageUrl(4), resultsettings: {},
+        }));
+        assert.ok(scoped.includes("tenantId=4"));
+    });
+}
+test("split-name report header uses the scoped tenant logo, never a hardcoded tenant", () => {
+    const Header = loadComponent("MdsCompanyInformation").default;
+    const html = renderToStaticMarkup(React.createElement(Header, {
+        companyInfo: company, logourl: companyImageUrl(4), resultsettings: { companyInfo: { breakname: true } },
+    }));
+    assert.ok(html.includes("tenantId=4"));
+    assert.ok(!html.includes("tenantid=3"));
+    assert.ok(html.includes("Tenant address"));
+    assert.ok(html.includes("Tenant street"));
+});

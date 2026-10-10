@@ -1,11 +1,13 @@
 import styles from './CompanyHeadersFULLWIDTH.module.css';
 import { ResultSettings } from './result-settings';
+import { scopedCompanyImageUrl } from '../../lib/companyImage';
 
 export interface CompanyHeadersFULLWIDTHProps {
      companyInfo: {
           email: string;
           phonenumber: number;
           address: string;
+          street?: string;
           name: string;
           alternativenumber?: string;
           additionalInfo?: string;
@@ -23,6 +25,7 @@ export default function CompanyHeadersFULLWIDTH({ companyInfo, logo, resultsetti
           email,
           phonenumber,
           address,
+          street,
           alternativenumber,
           additionalInfo
      } = companyInfo;
@@ -37,10 +40,10 @@ export default function CompanyHeadersFULLWIDTH({ companyInfo, logo, resultsetti
           <div className={`${styles['company-info-fullwidth']} ${subsequent ? styles.subsequent : ''}`}>
                <div className="company-header-content">
                     <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-                         {logo && (
+                         {scopedCompanyImageUrl(logo) && (
                               <div style={{ width: '25%', flexShrink: 0, display: 'flex', justifyContent: 'center' }}>
                                    <img
-                                        src={logo}
+                                        src={scopedCompanyImageUrl(logo)}
                                         alt="Company Logo"
                                         style={{
                                              maxWidth: '100%',
@@ -93,6 +96,7 @@ export default function CompanyHeadersFULLWIDTH({ companyInfo, logo, resultsetti
                          fontFamily: companyNamefontFamily,
                          marginBottom: '2px',
                     }} className={styles['company-address-fullwidth']}>{address}</div>
+                    {street && <div className={styles['company-address-fullwidth']}>{street}</div>}
 
                     <div style={{
                          fontSize: '13px',

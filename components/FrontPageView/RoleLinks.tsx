@@ -152,6 +152,17 @@ export const AdminRoleLinks = [
 ];
 
 
+export const SuperAdminRoleLinks = [
+     ...AdminRoleLinks,
+     {
+          href: '/settings/facilities',
+          icon: <RiShieldCheckLine size={24} />,
+          label: 'Platform Administration',
+          category: 'Administration',
+          description: 'Client provisioning, payments, subscriptions and audit logs'
+     }
+];
+
 export const FrontdeskRoleLinks = [
      {
           href: "/crm/overview",

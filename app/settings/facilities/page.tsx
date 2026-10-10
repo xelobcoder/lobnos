@@ -9,6 +9,7 @@ import { useApplication } from "../../../components/Auth/useApplicationContext";
 import FacilityManagement from "./FacilityManagement";
 import FacilityNav from "./FacilityNav";
 import { FacilityForm, FormErrors, generateFacilityPassword, validateFacilityForm, MODULE_LABELS, ModuleName, defaultModuleConfiguration, moduleMonthlyTotal } from "./provisioningForm";
+import { applicationProvisioningForm, MarketplaceApplication, marketplaceApplicationsSchema } from "./marketplaceApplications";
 
 interface Country { id: number; country_name: string }
 interface State { id: number; country_id: number; state_name: string }
@@ -73,6 +74,8 @@ export default function FacilityOnboardingPage() {
      const [selectedTenantId, setSelectedTenantId] = useState<number | null>(null);
      const [facilityQuery, setFacilityQuery] = useState("");
      const [provisionOpen, setProvisionOpen] = useState(false);
+     const [provisioningApplication, setProvisioningApplication] = useState<MarketplaceApplication | null>(null);
+     const [identityConfirmed, setIdentityConfirmed] = useState(false);
      const [statusFilter, setStatusFilter] = useState("all");
      const [showPassword, setShowPassword] = useState(false);
      const [formErrors, setFormErrors] = useState<FormErrors>({});
@@ -118,9 +121,12 @@ export default function FacilityOnboardingPage() {
           setLoading(true);
           setError("");
           try {
-               const [locations, organizations] = await Promise.all([
+               const applicationId = new URL(window.location.href).searchParams.get("application");
+               if (applicationId !== null && !/^[1-9]\d*$/.test(applicationId)) throw new Error("Invalid website application.");
+               const [locations, organizations, applications] = await Promise.all([
                     customFetch("platform/facilities/options"),
                     customFetch("platform/facilities"),
+                    applicationId ? customFetch("marketplace/platform/facilities?status=approved") : Promise.resolve(null),
                ]);
                if (locations?.status !== "success" || !locations.result ||
                     !Array.isArray(locations.result.countries) || !Array.isArray(locations.result.states) ||
@@ -132,6 +138,17 @@ export default function FacilityOnboardingPage() {
                }
                setOptions(locations.result);
                setFacilities(organizations.result);
+               if (applicationId) {
+                    if (applications?.status !== "success") throw new Error(applications?.message || applications?.error || "Unable to load the approved website application.");
+                    const parsed = marketplaceApplicationsSchema.safeParse(applications.result);
+                    if (!parsed.success) throw new Error("The server returned invalid application data.");
+                    const source = parsed.data.find(item => item.id === Number(applicationId) && item.integration_state === "independent");
+                    if (!source) throw new Error("The application must be approved and not already linked before provisioning.");
+                    setProvisioningApplication(source);
+                    setForm(applicationProvisioningForm(source, EMPTY_FORM));
+                    setIdentityConfirmed(false);
+                    setProvisionOpen(true);
+               }
           } catch (failure) {
                setError(errorMessage(failure));
           } finally {
@@ -185,6 +202,10 @@ export default function FacilityOnboardingPage() {
           if (busy) return;
           setError("");
           setCreated(null);
+          if (provisioningApplication && !identityConfirmed) {
+               setError("Confirm the application belongs to the facility you are provisioning.");
+               return;
+          }
           const errors = validateFacilityForm(form);
           setFormErrors(errors);
           const firstInvalid = (Object.keys(form) as (keyof FacilityForm)[]).find((field) => errors[field]);
@@ -196,12 +217,14 @@ export default function FacilityOnboardingPage() {
           const licenseDays = Number(form.licenseDays);
           setBusy(true);
           try {
-               const response = await customFetchMutation("platform/facilities", "POST", {
+               const endpoint = provisioningApplication ? `marketplace/platform/facilities/${provisioningApplication.id}/provision` : "platform/facilities";
+               const response = await customFetchMutation(endpoint, "POST", {
                     companyName: form.companyName.trim(), email: form.email.trim(), phone: form.phone.trim(),
                     address: form.address.trim(), countryId: Number(form.countryId), stateId: Number(form.stateId),
                     districtId: Number(form.districtId), adminName: form.adminName.trim(),
                     adminEmail: form.adminEmail.trim(), adminPassword: form.adminPassword, licenseDays,
                     street: form.street?.trim(), gpsAddress: form.gpsAddress?.trim(), moduleConfiguration: form.moduleConfiguration,
+                    ...(provisioningApplication ? { identityConfirmed: true } : {}),
                });
                if (response?.status !== "success" || !response.result?.organizationIdentifier ||
                     !response.result?.adminUsername || !response.result?.databaseName ||
@@ -213,6 +236,11 @@ export default function FacilityOnboardingPage() {
                setShowPassword(false);
                setFormErrors({});
                setProvisionOpen(false);
+               setProvisioningApplication(null);
+               setIdentityConfirmed(false);
+               const currentUrl = new URL(window.location.href);
+               currentUrl.searchParams.delete("application");
+               window.history.replaceState(null, "", currentUrl);
                setFacilities((current) => [{
                     tenantId: response.result.tenantId, platformId: response.result.organizationIdentifier,
                     name: form.companyName.trim(), databaseName: response.result.databaseName, status: "active",
@@ -379,6 +407,11 @@ export default function FacilityOnboardingPage() {
                     </section>
                )}
                {provisionOpen && <form ref={provisionRef} id="provision-facility" className="bg-white p-3 border rounded" onSubmit={submit} noValidate>
+                    {provisioningApplication && <div className="alert alert-info">
+                         <h2 className="h6">Provisioning website application: {provisioningApplication.name}</h2>
+                         <p>Review the public company details and select official location records. This provisions a PLS tenant and links the approved application without reusing its website password.</p>
+                         <label className="form-check"><input type="checkbox" className="form-check-input" checked={identityConfirmed} disabled={busy} onChange={event => setIdentityConfirmed(event.target.checked)} /><span className="form-check-label">I verified this application belongs to the facility being provisioned.</span></label>
+                    </div>}
                     <fieldset disabled={loading || busy || options.countries.length === 0} className="py-3">
                          <legend className="h5 fw-semibold mb-3">Company information</legend>
                          <div className="row g-3">

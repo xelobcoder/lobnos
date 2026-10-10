@@ -1,4 +1,4 @@
-type entitytype = 'general' | 'organization' | 'insurance' | 'clinician' | 'phis'
+type entitytype = 'general' | 'organization' | 'insurance' | 'clinician' | 'phis' | 'nhis'
 
 export interface TestCartItem {
 	discountedValue: number;
@@ -25,6 +25,10 @@ export interface TestCartItem {
 	nightAdjustmentStartTime: string;
 	nightAdjustmentEndTime: string;
 	promoDiscount?: number;
+	outsourceid?: number | null;
+	organization?: { outsourceid: number; name?: string };
+	userAdjustedValue?: number | null;
+	userAdjustmentType?: string | null;
 }
 
 export interface ServicesListItem {
@@ -57,6 +61,7 @@ export interface MultiBillingData {
 	specialCode?: string;
 	billingid?: string | number;
 	suspendedDraftId?: number;
+	suspendNote?: string;
 	billingSource: number;
 	claimscheckcode?: number;
 	nhisnumber?: number;

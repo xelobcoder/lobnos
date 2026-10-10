@@ -2,7 +2,7 @@ import Cookies from "js-cookie";
 import moment from "moment";
 import { toast } from "react-toastify";
 import { getRequestContext } from "../serverActions/requestHeaders";
-import { buildApiUrl } from "../../lib/apiBaseUrl";
+import { buildApiUrl, usesTenantQuery } from "../../lib/apiBaseUrl";
 
 export async function customFile(endpoint, formbody) {
 	if (
@@ -71,7 +71,7 @@ export async function customFetch(endpoint, isLogin = false) {
 		if (!Number.isSafeInteger(tenantId) || tenantId <= 0) {
 			throw new Error("A valid tenant is required for this request");
 		}
-		url.searchParams.set("tenantId", String(tenantId));
+		if (usesTenantQuery(endpoint)) url.searchParams.set("tenantId", String(tenantId));
 
 		const { PLS_PRIME_TENANT_SESSION, PLS_SESSION } = context;
 
@@ -126,7 +126,7 @@ export async function customFetchMutation(endpoint, method, body) {
 	if (!Number.isSafeInteger(tenantId) || tenantId <= 0) {
 		throw new Error("A valid tenant is required for this request");
 	}
-	url.searchParams.set("tenantId", String(tenantId));
+	if (usesTenantQuery(endpoint)) url.searchParams.set("tenantId", String(tenantId));
 
 	const response = await fetch(url.toString(), {
 		method,
