@@ -6,6 +6,7 @@ import { z } from "zod";
 import { customFetch, customFetchMutation } from "../../../../components/Auth/customFetch";
 import { useApplication } from "../../../../components/Auth/useApplicationContext";
 import FacilityNav from "../FacilityNav";
+import WebsiteEnquiries from "../WebsiteEnquiries";
 import { MarketplaceApplication, marketplaceApplicationsSchema } from "../marketplaceApplications";
 
 const tenantsSchema = z.array(z.object({
@@ -88,8 +89,10 @@ export default function WebsiteApplicationsPage() {
 
      return <main className="p-2" aria-busy={loading || busy}>
           <FacilityNav />
+          <h1 className="h4 mb-3">Website applications &amp; enquiries</h1>
+          <WebsiteEnquiries />
           <div className="d-flex flex-wrap justify-content-between gap-3 mb-3">
-               <div><h1 className="h4">Website applications</h1><p className="text-muted mb-0">Review independent laboratory applications, approve marketplace access, and provision or link PLS facilities.</p></div>
+               <div><h2 className="h5">Laboratory registration applications</h2><p className="text-muted mb-0">Review independent laboratory applications, approve marketplace access, and provision or link PLS facilities.</p></div>
                <div className="d-flex gap-2">
                     <label className="visually-hidden" htmlFor="application-status">Application status</label>
                     <select id="application-status" className="form-select" value={status} disabled={busy} onChange={event => setStatus(event.target.value)}>
@@ -136,7 +139,12 @@ export default function WebsiteApplicationsPage() {
                          <button className="btn btn-outline-primary" disabled={busy || !tenantId || !identityConfirmed}>Confirm tenant link</button>
                     </form>
                </>}
-               {["provisioning", "provision_failed"].includes(selected.integration_state) && <div className="alert alert-warning" role="status">Provisioning {selected.integration_state === "provisioning" ? "is in progress" : "failed and requires operator review"}. Do not create another tenant or retry setup until the existing provisioning audit and database state have been reviewed.</div>}
+               {selected.integration_state === "provisioning" && <div className="alert alert-warning" role="status">Provisioning is in progress. Refresh the application list after it completes.</div>}
+               {selected.status === "approved" && selected.integration_state === "provision_failed" && <div className="alert alert-warning" role="status">
+                    <h3 className="h6">Facility provisioning failed</h3>
+                    <p>The failed tenant database will be removed before another attempt. Review the details and provide a new administrator password.</p>
+                    <Link className={`btn btn-warning${busy ? " disabled" : ""}`} href={`/settings/facilities?application=${selected.id}`}>Retry facility provisioning</Link>
+               </div>}
                {selected.status === "approved" && <form className="border-top pt-3 mt-3" onSubmit={suspend}>
                     <h3 className="h6">Suspend marketplace access</h3>
                     <label htmlFor="application-suspend-reason" className="form-label">Reason</label>

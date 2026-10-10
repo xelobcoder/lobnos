@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from 'next/link';
 import styles from '../CommissionReport.module.css';
 import { RiUserLine, RiPhoneLine, RiMoneyDollarCircleLine, RiServiceLine, RiFileList3Line } from "@remixicon/react";
@@ -79,24 +79,27 @@ async function getClinicianCommission({ clinicianid, startDate, endDate }: { cli
 
 
 export default function ClinicianCommissionPage({ params }: { params: { clinicianid: string } }) {
-	const today = dayjs().format('YYYY-MM-DD');
+	const defaultStartDate = dayjs().startOf('year').format('YYYY-MM-DD');
+	const defaultEndDate = dayjs().format('YYYY-MM-DD');
 	const employeeid = useApplication()?.user?.employeeid;
 	const branchid = useApplication()?.branchid;
-	const [startDate, setStartDate] = useState(today);
-	const [endDate, setEndDate] = useState(today);
+	const [startDate, setStartDate] = useState(defaultStartDate);
+	const [endDate, setEndDate] = useState(defaultEndDate);
 	const [dateFilter, setDateFilter] = useState('This Year');
+	const requestIdRef = useRef(0);
 	const handleDateRangeChange = (start: string, end: string) => {
 		setStartDate(start);
 		setEndDate(end);
 	};
 	const handleResetFilters = () => {
 		setDateFilter('This Year');
-		// Reset will reload data and recalculate date range from services
-		loadCommissionData();
+		setStartDate(defaultStartDate);
+		setEndDate(defaultEndDate);
 	};
 	const [commissionData, setCommissionData] = useState<CommissionData[]>([]);
 	const [clinicianInfoFromApi, setClinicianInfoFromApi] = useState<ClinicianInfo | null>(null);
 	const [loading, setLoading] = useState(false);
+	const [detailsLoading, setDetailsLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [chartView, setChartView] = useState<'bar' | 'line'>('bar');
 	const [selectedRecords, setSelectedRecords] = useState<Set<number>>(new Set());
@@ -111,10 +114,14 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 	const [bulkPayType, setBulkPayType] = useState<'paid' | 'payable'>('paid');
 	const [bulkPayMethod, setBulkPayMethod] = useState<number | null>(null);
 
-	// Initial data load
 	useEffect(() => {
 		loadCommissionData();
-	}, [params.clinicianid]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [params.clinicianid, startDate, endDate]);
+
+	useEffect(() => {
+		loadPaymentModes().then(modes => setPaymentModes(modes || []));
+	}, []);
 
 	const loadPaymentModes = async () => {
 		try {
@@ -144,18 +151,17 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 	};
 
 	const loadCommissionData = async () => {
+		const requestId = ++requestIdRef.current;
 		setLoading(true);
 		setError(null);
+		setSelectedRecords(new Set());
 		try {
-			// First load with a very broad date range to get all services
-			const broadStart = dayjs().subtract(10, 'year').format('YYYY-MM-DD');
-			const broadEnd = dayjs().add(1, 'year').format('YYYY-MM-DD');
-
 			const commissionRes = await getClinicianCommission({
 				clinicianid: params.clinicianid,
-				startDate: broadStart,
-				endDate: broadEnd
+				startDate,
+				endDate
 			});
+			if (requestId !== requestIdRef.current) return;
 
 			if ((commissionRes as any).error) {
 				setError((commissionRes as any).error);
@@ -164,44 +170,17 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 				const data = commissionRes as CommissionData[];
 				setCommissionData(data);
 
-				if (data.length === 0) {
+				if (data.length === 0 && !clinicianInfoFromApi) {
 					await loadClinicianInfo();
 				}
-
-				// Calculate date range from service dates
-				if (data.length > 0) {
-					const serviceDates = data.map(record => dayjs(record.service_date));
-					const minDate = serviceDates.reduce((min, date) => date.isBefore(min) ? date : min);
-					const maxDate = serviceDates.reduce((max, date) => date.isAfter(max) ? date : max);
-
-					if (minDate && maxDate) {
-						setStartDate(minDate.format('YYYY-MM-DD'));
-						setEndDate(maxDate.format('YYYY-MM-DD'));
-					}
-				} else {
-					// No data, use current month as fallback
-					const currentMonth = dayjs().startOf('month');
-					setStartDate(currentMonth.format('YYYY-MM-DD'));
-					setEndDate(dayjs().format('YYYY-MM-DD'));
-				}
-			}
-
-			// Load payment modes if not already loaded
-			if (paymentModes.length === 0) {
-				const modes = await loadPaymentModes();
-				setPaymentModes(modes || []);
 			}
 		} catch (err: any) {
+			if (requestId !== requestIdRef.current) return;
 			setError(err.message || 'An unknown error occurred');
 			setCommissionData([]);
 		} finally {
-			setLoading(false);
+			if (requestId === requestIdRef.current) setLoading(false);
 		}
-	};
-
-	const handleFilter = (start: string, end: string) => {
-		setStartDate(start);
-		setEndDate(end);
 	};
 
 	const handleSelectRecord = (index: number) => {
@@ -227,7 +206,8 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 	const handleViewDetails = async (record: CommissionData) => {
 		setSelectedRecordsForPayment([record]);
 		setCommissionPayments([]);
-		setLoading(true);
+		setDetailsLoading(true);
+		setShowDetailsModal(true);
 
 		try {
 			const url = `commission-payments/service/${record.serviceid}/commission/payment/history`;
@@ -241,10 +221,8 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 			console.error('Error loading commission payments:', error);
 			setCommissionPayments([]);
 		} finally {
-			setLoading(false);
+			setDetailsLoading(false);
 		}
-
-		setShowDetailsModal(true);
 	};
 
 	// Calculate total commission due for selected records
@@ -430,8 +408,8 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 							label="Filter by"
 							className="col-12 col-lg-auto"
 						/>
-						<button onClick={loadCommissionData} className="btn btn-sm btn-primary" type="button" aria-label="Load commission data">
-							Load Data
+						<button onClick={() => loadCommissionData()} className="btn btn-sm btn-primary" type="button" aria-label="Load commission data" disabled={loading}>
+							{loading ? 'Loading...' : 'Load Data'}
 						</button>
 						<button onClick={handleResetFilters} className="btn btn-sm btn-outline-secondary" type="button" aria-label="Reset date filters">
 							Reset
@@ -454,8 +432,8 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 					</h2>
 
 					<div className="d-flex flex-row align-items-center gap-2">
-						<button onClick={loadCommissionData} className="btn btn-sm btn-primary" type="button" aria-label="Load commission data">
-							Load Data
+						<button onClick={() => loadCommissionData()} className="btn btn-sm btn-primary" type="button" aria-label="Load commission data" disabled={loading}>
+							{loading ? 'Loading...' : 'Load Data'}
 						</button>
 						<button onClick={handleResetFilters} className="btn btn-sm btn-outline-secondary" type="button" aria-label="Reset date filters">
 							Reset
@@ -539,7 +517,7 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 				onHide={() => setShowDetailsModal(false)}
 				commissionPayments={commissionPayments}
 				selectedRecord={selectedRecordsForPayment[0]}
-				loading={loading}
+				loading={detailsLoading}
 				clinicianId={params.clinicianid}
 				paymentModes={paymentModes}
 				onPaymentSuccess={() => {

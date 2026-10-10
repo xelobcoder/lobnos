@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import dayjs from 'dayjs';
 import { Button, Modal, Form } from 'react-bootstrap';
@@ -41,9 +41,10 @@ async function getOrganizationCommission({ organizationid, startDate, endDate }:
 }
 
 export default function OrganizationCommissionDetails({ params }: { params: { organization: string } }) {
-     const today = dayjs().format('YYYY-MM-DD');
-     const [startDate, setStartDate] = useState(today);
-     const [endDate, setEndDate] = useState(today);
+     const defaultStartDate = dayjs().startOf('year').format('YYYY-MM-DD');
+     const defaultEndDate = dayjs().format('YYYY-MM-DD');
+     const [startDate, setStartDate] = useState(defaultStartDate);
+     const [endDate, setEndDate] = useState(defaultEndDate);
      const [dateFilter, setDateFilter] = useState('This Year');
      const [commissionData, setCommissionData] = useState<CommissionData[]>([]);
      const [loading, setLoading] = useState(false);
@@ -64,15 +65,11 @@ export default function OrganizationCommissionDetails({ params }: { params: { or
           name: string,
           mobile: string
      }>({ name: "", mobile : "" })
+     const requestIdRef = useRef(0);
 
-     // Auto-reload every 30 seconds
      useEffect(() => {
-          const interval = setInterval(() => {
-               loadCommissionData();
-               setLastRefreshTime(dayjs().format('HH:mm:ss'));
-          }, 30000);
-          return () => clearInterval(interval);
-     }, [params.organization]);
+          loadPaymentModes().then(modes => setPaymentModes(modes || []));
+     }, []);
 
      const loadPaymentModes = async () => {
           try {
@@ -103,60 +100,42 @@ export default function OrganizationCommissionDetails({ params }: { params: { or
      }
 
      const loadCommissionData = async () => {
+          const requestId = ++requestIdRef.current;
           setLoading(true);
           setError(null);
+          setSelectedRecords(new Set());
           try {
-               // First load with a very broad date range to get all services
-               const broadStart = startDate || dayjs().subtract(1, 'year').format('YYYY-MM-DD');
-               const broadEnd = endDate || dayjs().add(1, 'year').format('YYYY-MM-DD');
-
                const res = await getOrganizationCommission({
                     organizationid: params.organization,
-                    startDate: broadStart,
-                    endDate: broadEnd
+                    startDate,
+                    endDate
                });
+               if (requestId !== requestIdRef.current) return;
 
                if ((res as any).error) {
                     setError((res as any).error);
                     setCommissionData([]);
                } else {
-                    const data = res as CommissionData[];
-                    setCommissionData(data);
-
-                    // Calculate date range from service dates
-                    if (data.length > 0) {
-                         const serviceDates = data.map(record => dayjs(record.service_date));
-                         const minDate = serviceDates.reduce((min, date) => date.isBefore(min) ? date : min);
-                         const maxDate = serviceDates.reduce((max, date) => date.isAfter(max) ? date : max);
-
-                         if (minDate && maxDate) {
-                              setStartDate(minDate.format('YYYY-MM-DD'));
-                              setEndDate(maxDate.format('YYYY-MM-DD'));
-                         }
-                    } else {
-                         // No data, use current month as fallback
-                         const currentMonth = dayjs().startOf('month');
-                         setStartDate(currentMonth.format('YYYY-MM-DD'));
-                         setEndDate(dayjs().format('YYYY-MM-DD'));
-                    }
+                    setCommissionData(res as CommissionData[]);
                }
-               if (paymentModes.length === 0) {
-                    const modes = await loadPaymentModes();
-                    setPaymentModes(modes);
-               }
+               setLastRefreshTime(dayjs().format('HH:mm:ss'));
           } catch (err: any) {
+               if (requestId !== requestIdRef.current) return;
                setError(err.message || 'An unknown error occurred');
                setCommissionData([]);
           } finally {
-               setLoading(false);
+               if (requestId === requestIdRef.current) setLoading(false);
           }
      };
 
-     // Initial data load
+     useEffect(() => {
+          getOrganizationDetails(Number(params.organization));
+     }, [params.organization]);
+
      useEffect(() => {
           loadCommissionData();
-          getOrganizationDetails(Number(params.organization));
-     }, [params.organization]); // Only depend on organization, not dates
+          // eslint-disable-next-line react-hooks/exhaustive-deps
+     }, [params.organization, startDate, endDate]);
 
      const handleDateRangeChange = (start: string, end: string) => {
           setStartDate(start);
@@ -165,7 +144,8 @@ export default function OrganizationCommissionDetails({ params }: { params: { or
 
      const handleResetFilters = () => {
           setDateFilter('This Year');
-          loadCommissionData();
+          setStartDate(defaultStartDate);
+          setEndDate(defaultEndDate);
      };
 
      const handleSelectRecord = (serviceId: number) => {

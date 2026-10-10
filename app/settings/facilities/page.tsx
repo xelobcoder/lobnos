@@ -15,7 +15,11 @@ interface Country { id: number; country_name: string }
 interface State { id: number; country_id: number; state_name: string }
 interface District { id: number; state_id: number; district_name: string }
 interface LocationOptions { countries: Country[]; states: State[]; districts: District[] }
-interface Facility { tenantId: number; platformId: string; name: string; databaseName: string; status: string; isControlTenant?: boolean }
+interface Facility {
+     tenantId: number; platformId: string; name: string; email: string | null; phone: string | null;
+     countryId: number | null; stateId: number | null; districtId: number | null;
+     databaseName: string; status: string; isControlTenant?: boolean;
+}
 interface ProvisionedFacility { organizationIdentifier: string; tenantId: number; databaseName: string; adminUsername: string }
 
 const FacilitySummaryCard = ({
@@ -86,6 +90,7 @@ export default function FacilityOnboardingPage() {
      const [deleteBusy, setDeleteBusy] = useState(false);
      const [deleteError, setDeleteError] = useState("");
      const [deletedMessage, setDeletedMessage] = useState("");
+     const [retryFacility, setRetryFacility] = useState<Facility | null>(null);
      const managementRef = useRef<HTMLDivElement>(null);
      const provisionRef = useRef<HTMLFormElement>(null);
 
@@ -142,10 +147,35 @@ export default function FacilityOnboardingPage() {
                     if (applications?.status !== "success") throw new Error(applications?.message || applications?.error || "Unable to load the approved website application.");
                     const parsed = marketplaceApplicationsSchema.safeParse(applications.result);
                     if (!parsed.success) throw new Error("The server returned invalid application data.");
-                    const source = parsed.data.find(item => item.id === Number(applicationId) && item.integration_state === "independent");
-                    if (!source) throw new Error("The application must be approved and not already linked before provisioning.");
+                    const source = parsed.data.find(item => item.id === Number(applicationId) &&
+                         ["independent", "provision_failed"].includes(item.integration_state));
+                    if (!source) throw new Error("The application must be approved and available for provisioning.");
                     setProvisioningApplication(source);
-                    setForm(applicationProvisioningForm(source, EMPTY_FORM));
+                    const sourceForm = applicationProvisioningForm(source, EMPTY_FORM);
+                    if (source.integration_state === "provision_failed") {
+                         const failed = organizations.result.find((facility: Facility) =>
+                              facility.status.toLowerCase() === "failed" &&
+                              (facility.tenantId === source.linked_tenant_id ||
+                                   (facility.email === source.contact_email && facility.name === source.name)));
+                         if (failed) {
+                              setRetryFacility(failed);
+                              setForm({
+                                   ...sourceForm,
+                                   companyName: failed.name,
+                                   email: failed.email || sourceForm.email,
+                                   phone: failed.phone || sourceForm.phone,
+                                   countryId: failed.countryId ? String(failed.countryId) : "",
+                                   stateId: failed.stateId ? String(failed.stateId) : "",
+                                   districtId: failed.districtId ? String(failed.districtId) : "",
+                              });
+                         } else {
+                              setRetryFacility(null);
+                              setForm(sourceForm);
+                         }
+                    } else {
+                         setRetryFacility(null);
+                         setForm(sourceForm);
+                    }
                     setIdentityConfirmed(false);
                     setProvisionOpen(true);
                }
@@ -197,6 +227,27 @@ export default function FacilityOnboardingPage() {
           }));
      };
 
+     const openRetry = (facility: Facility) => {
+          setRetryFacility(facility);
+          setProvisioningApplication(null);
+          setIdentityConfirmed(false);
+          setCreated(null);
+          setError("");
+          setFormErrors({});
+          setShowPassword(false);
+          setForm({
+               ...EMPTY_FORM,
+               companyName: facility.name,
+               email: facility.email || "",
+               phone: facility.phone || "",
+               countryId: facility.countryId ? String(facility.countryId) : "",
+               stateId: facility.stateId ? String(facility.stateId) : "",
+               districtId: facility.districtId ? String(facility.districtId) : "",
+               moduleConfiguration: defaultModuleConfiguration(),
+          });
+          setProvisionOpen(true);
+     };
+
      const submit = async (event: FormEvent<HTMLFormElement>) => {
           event.preventDefault();
           if (busy) return;
@@ -217,7 +268,13 @@ export default function FacilityOnboardingPage() {
           const licenseDays = Number(form.licenseDays);
           setBusy(true);
           try {
-               const endpoint = provisioningApplication ? `marketplace/platform/facilities/${provisioningApplication.id}/provision` : "platform/facilities";
+               const endpoint = retryFacility && provisioningApplication
+                    ? `marketplace/platform/facilities/${provisioningApplication.id}/retry-provisioning`
+                    : retryFacility
+                    ? `platform/facilities/${retryFacility.tenantId}/retry`
+                    : provisioningApplication?.integration_state === "provision_failed"
+                    ? `marketplace/platform/facilities/${provisioningApplication.id}/retry-provisioning`
+                    : provisioningApplication ? `marketplace/platform/facilities/${provisioningApplication.id}/provision` : "platform/facilities";
                const response = await customFetchMutation(endpoint, "POST", {
                     companyName: form.companyName.trim(), email: form.email.trim(), phone: form.phone.trim(),
                     address: form.address.trim(), countryId: Number(form.countryId), stateId: Number(form.stateId),
@@ -237,14 +294,21 @@ export default function FacilityOnboardingPage() {
                setFormErrors({});
                setProvisionOpen(false);
                setProvisioningApplication(null);
+               setRetryFacility(null);
                setIdentityConfirmed(false);
                const currentUrl = new URL(window.location.href);
                currentUrl.searchParams.delete("application");
                window.history.replaceState(null, "", currentUrl);
-               setFacilities((current) => [{
-                    tenantId: response.result.tenantId, platformId: response.result.organizationIdentifier,
-                    name: form.companyName.trim(), databaseName: response.result.databaseName, status: "active",
-               }, ...current]);
+               setFacilities((current) => retryFacility
+                    ? current.map((facility) => facility.tenantId === retryFacility.tenantId
+                         ? { ...facility, databaseName: response.result.databaseName, status: "active" }
+                         : facility)
+                    : [{
+                         tenantId: response.result.tenantId, platformId: response.result.organizationIdentifier,
+                         name: form.companyName.trim(), email: form.email.trim(), phone: form.phone.trim(),
+                         countryId: Number(form.countryId), stateId: Number(form.stateId), districtId: Number(form.districtId),
+                         databaseName: response.result.databaseName, status: "active",
+                    }, ...current]);
           } catch (failure) {
                setForm((current) => ({ ...current, adminPassword: "" }));
                setShowPassword(false);
@@ -275,6 +339,14 @@ export default function FacilityOnboardingPage() {
      const activeFacilities = facilities.filter((facility) => facility.status.toLowerCase() === "active").length;
      const suspendedFacilities = facilities.filter((facility) => facility.status.toLowerCase() === "suspended").length;
      const facilityColumns = [
+          {
+               Header: "Retry",
+               id: "retry",
+               Cell: ({ row }) => row.original.status.toLowerCase() === "failed" ? (
+                    <button type="button" className="btn btn-sm btn-outline-warning" disabled={busy || deleteBusy}
+                         onClick={() => openRetry(row.original)}>Retry provisioning</button>
+               ) : <span className="text-muted">—</span>,
+          },
           {
                Header: "Delete",
                id: "delete",
@@ -376,7 +448,12 @@ export default function FacilityOnboardingPage() {
                                    <input id="facility-search" type="search" className="form-control" placeholder="Search facilities..." value={facilityQuery} onChange={(event) => setFacilityQuery(event.target.value)} />
                               </div>
                               <div><label htmlFor="facility-status" className="visually-hidden">Filter by status</label><select id="facility-status" className="form-select" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}><option value="all">All statuses</option><option value="active">Active</option><option value="suspended">Suspended</option><option value="failed">Failed</option><option value="provisioning">Provisioning</option></select></div>
-                              <button type="button" disabled={busy} className="btn btn-primary w-100 w-sm-auto" aria-expanded={provisionOpen} aria-controls="provision-facility" onClick={() => { setProvisionOpen(!provisionOpen); setShowPassword(false); }}>{provisionOpen ? "Close form" : "+ Provision Facility"}</button>
+                              <button type="button" disabled={busy} className="btn btn-primary w-100 w-sm-auto" aria-expanded={provisionOpen} aria-controls="provision-facility" onClick={() => {
+                                   setProvisionOpen(!provisionOpen);
+                                   setRetryFacility(null);
+                                   setShowPassword(false);
+                                   if (provisionOpen) setForm(EMPTY_FORM);
+                              }}>{provisionOpen ? "Close form" : "+ Provision Facility"}</button>
                               <button type="button" className="btn btn-outline-secondary w-100 w-sm-auto" disabled={loading || busy} onClick={() => void load()}>{error ? "Retry" : "Refresh"}</button>
                          </div>
                     </div>
@@ -407,6 +484,10 @@ export default function FacilityOnboardingPage() {
                     </section>
                )}
                {provisionOpen && <form ref={provisionRef} id="provision-facility" className="bg-white p-3 border rounded" onSubmit={submit} noValidate>
+                    {retryFacility && <div className="alert alert-warning">
+                         <h2 className="h6">Retry provisioning {retryFacility.platformId}</h2>
+                         <p className="mb-0">The partial tenant database will be permanently removed before this facility is rebuilt. Confirm the locked reservation details and enter the address and administrator credentials for the new attempt.</p>
+                    </div>}
                     {provisioningApplication && <div className="alert alert-info">
                          <h2 className="h6">Provisioning website application: {provisioningApplication.name}</h2>
                          <p>Review the public company details and select official location records. This provisions a PLS tenant and links the approved application without reusing its website password.</p>
@@ -421,7 +502,7 @@ export default function FacilityOnboardingPage() {
                               ] as const).map(([field, label, type]) => (
                                    <div key={field} className="col-md-6">
                                         <label htmlFor={field} className="form-label">{label}</label>
-                                        <input {...fieldProps(field)} id={field} type={type} className={`form-control${formErrors[field] ? " is-invalid" : ""}`} value={form[field]} onChange={(event) => update(field, event.target.value)} maxLength={field === "address" ? 200 : field === "phone" ? 10 : 100} minLength={field === "phone" ? 7 : 1} pattern={field === "phone" ? "[0-9]{7,10}" : undefined} required />
+                                        <input {...fieldProps(field)} id={field} type={type} className={`form-control${formErrors[field] ? " is-invalid" : ""}`} value={form[field]} disabled={Boolean(retryFacility) && field !== "address"} onChange={(event) => update(field, event.target.value)} maxLength={field === "address" ? 200 : field === "phone" ? 10 : 100} minLength={field === "phone" ? 7 : 1} pattern={field === "phone" ? "[0-9]{7,10}" : undefined} required />
                                         {fieldError(field)}
                                         {field === "phone" && <small className="text-muted">7 to 10 digits only, without spaces or a plus sign.</small>}
                                    </div>
@@ -434,7 +515,7 @@ export default function FacilityOnboardingPage() {
                               <p className="small text-muted mb-0">The company address is mandatory and will be printed on facility reports. Street and digital address provide additional location details.</p>
                               <div className="col-md-4">
                                    <label htmlFor="countryId" className="form-label">Country</label>
-                                   <select {...fieldProps("countryId")} id="countryId" className="form-select" value={form.countryId} onChange={(event) => update("countryId", event.target.value)} required>
+                                   <select {...fieldProps("countryId")} id="countryId" className="form-select" value={form.countryId} disabled={Boolean(retryFacility)} onChange={(event) => update("countryId", event.target.value)} required>
                                         <option value="">Select country</option>
                                         {options.countries.map((country) => <option key={country.id} value={country.id}>{country.country_name}</option>)}
                                    </select>
@@ -442,7 +523,7 @@ export default function FacilityOnboardingPage() {
                               </div>
                               <div className="col-md-4">
                                    <label htmlFor="stateId" className="form-label">State / region</label>
-                                   <select {...fieldProps("stateId")} id="stateId" className="form-select" value={form.stateId} disabled={!form.countryId} onChange={(event) => update("stateId", event.target.value)} required>
+                                   <select {...fieldProps("stateId")} id="stateId" className="form-select" value={form.stateId} disabled={Boolean(retryFacility) || !form.countryId} onChange={(event) => update("stateId", event.target.value)} required>
                                         <option value="">{form.countryId ? "Select state / region" : "Select a country first"}</option>
                                         {states.map((state) => <option key={state.id} value={state.id}>{state.state_name}</option>)}
                                    </select>
@@ -450,7 +531,7 @@ export default function FacilityOnboardingPage() {
                               </div>
                               <div className="col-md-4">
                                    <label htmlFor="districtId" className="form-label">District</label>
-                                   <select {...fieldProps("districtId")} id="districtId" className="form-select" value={form.districtId} disabled={!form.stateId} onChange={(event) => update("districtId", event.target.value)} required>
+                                   <select {...fieldProps("districtId")} id="districtId" className="form-select" value={form.districtId} disabled={Boolean(retryFacility) || !form.stateId} onChange={(event) => update("districtId", event.target.value)} required>
                                         <option value="">{form.stateId ? "Select district" : "Select a state first"}</option>
                                         {districts.map((district) => <option key={district.id} value={district.id}>{district.district_name}</option>)}
                                    </select>
@@ -491,10 +572,10 @@ export default function FacilityOnboardingPage() {
                                    <div className="col-md-6"><label htmlFor="licenseDays" className="form-label">License duration (days)</label><input {...fieldProps("licenseDays")} id="licenseDays" type="number" className="form-control" value={form.licenseDays} onChange={(event) => update("licenseDays", event.target.value)} min={1} max={3650} required />{fieldError("licenseDays")}<div className="d-flex flex-wrap gap-2 mt-2">{[30, 90, 365, 730].map((days) => <button key={days} type="button" className={`btn btn-sm ${form.licenseDays === String(days) ? "btn-primary" : "btn-outline-secondary"}`} aria-pressed={form.licenseDays === String(days)} onClick={() => update("licenseDays", String(days))}>{days} days</button>)}</div></div>
                               </div>
                          </div>
-                         <p className="text-muted mt-3">Provisioning may take several minutes. Do not submit again or close this page while setup is running.</p>
+                         <p className="text-muted mt-3">{retryFacility ? "Cleanup and re-provisioning may take several minutes. Do not submit again or close this page while setup is running." : "Provisioning may take several minutes. Do not submit again or close this page while setup is running."}</p>
                          <button type="submit" className="btn btn-primary px-4" disabled={loading || busy || options.countries.length === 0}>
                               {busy && <span className="spinner-border spinner-border-sm me-2" aria-hidden="true" />}
-                              {busy ? "Provisioning facility..." : "Create and provision facility"}
+                              {busy ? (retryFacility ? "Re-provisioning facility..." : "Provisioning facility...") : (retryFacility ? "Remove partial database and retry" : "Create and provision facility")}
                          </button>
                     </fieldset>
                </form>}

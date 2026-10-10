@@ -16,12 +16,41 @@ function compile(filename, context = {}) {
 
 test("marketplace APIs derive tenancy from authentication, not a query parameter", () => {
     const { usesTenantQuery } = compile("lib/apiBaseUrl.ts");
-    for (const endpoint of ["marketplace/platform/facilities?status=pending", "/marketplace/platform/facilities/8/approve", "marketplace/core/facilities/lab/catalog"]) {
+    for (const endpoint of ["marketplace/platform/enquiries?formType=demo&page=1", "marketplace/platform/facilities?status=pending", "/marketplace/platform/facilities/8/approve", "marketplace/core/facilities/lab/catalog"]) {
         assert.equal(usesTenantQuery(endpoint), false);
     }
     for (const endpoint of ["platform/facilities", "settings/companyprofile", "marketplace-other"]) {
         assert.equal(usesTenantQuery(endpoint), true);
     }
+});
+
+test("website enquiries preserve demo details and validate the paginated response", () => {
+    const { websiteEnquiriesSchema } = compile("app/settings/facilities/enquirySchemas.ts", {
+        require: name => {
+            if (name === "zod") return require("zod");
+            throw new Error(name);
+        },
+    });
+    const enquiry = {
+        id: 7, formType: "demo", fullName: "Taylor Example", workEmail: "taylor@example.test",
+        phone: "12345678", organization: "Example Laboratory", country: "Ghana",
+        facilityType: "Independent", facilitiesCount: "1", interests: ["Laboratory management"],
+        subject: "", message: "Please demonstrate the laboratory workflow.", status: "new",
+        submittedAt: "2026-10-10T06:00:00.000Z", receivedAt: "2026-10-10T06:00:01.000Z",
+    };
+    const parsed = websiteEnquiriesSchema.parse({ enquiries: [enquiry], page: 1, hasMore: false });
+    assert.deepEqual(JSON.parse(JSON.stringify(parsed.enquiries[0])), enquiry);
+    assert.equal(websiteEnquiriesSchema.safeParse({ enquiries: [], page: 1, hasMore: false }).success, true);
+    assert.equal(websiteEnquiriesSchema.safeParse({ enquiries: [{ ...enquiry, formType: "registration" }], page: 1, hasMore: false }).success, false);
+    assert.equal(websiteEnquiriesSchema.safeParse({ enquiries: [enquiry], page: 1 }).success, false);
+    const page = readFileSync(path.join(root, "app/settings/facilities/applications/page.tsx"), "utf8");
+    const component = readFileSync(path.join(root, "app/settings/facilities/WebsiteEnquiries.tsx"), "utf8");
+    assert.ok(page.indexOf("if (!isSuperAdmin) return") < page.indexOf("<WebsiteEnquiries />"));
+    assert.match(component, /marketplace\/platform\/enquiries\?formType=/);
+    assert.match(component, /Demo requests &amp; contact enquiries/);
+    assert.match(component, /setPage\(1\)/);
+    assert.match(component, /selected\.message/);
+    assert.doesNotMatch(component, /dangerouslySetInnerHTML/);
 });
 
 test("authenticated marketplace reads and writes preserve session headers without tenant queries", async () => {
