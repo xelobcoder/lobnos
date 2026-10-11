@@ -169,9 +169,12 @@ duplicate the PLS interface.
 - Node.js and pnpm on the build computer
 - The `lobnos` and `lobnos-server` repositories in sibling directories
 - Installed dependencies in both repositories
-- A production backend environment file for standalone installers
+- For generic installers: a protected external issuer keypair (the automated build
+  creates/reuses it); no production environment or database access is required
+- Only for facility-specific standalone installers: a reviewed facility backend env
 
-Create `desktop/config/backend.env` from
+For the recommended generic installer use the backend's `desktop:build:licensed`
+command described below. For an intentional facility-specific standalone build, create `desktop/config/backend.env` from
 `desktop/config/backend.env.example` and enter the deployment's database and
 service settings. This untracked file is copied into the installer and then to
 the user's application-data directory on first launch. Alternatively, set
@@ -183,13 +186,149 @@ For a facility installer, create the untracked
 the example backend configuration; database credentials are not distributed
 to client laptops.
 
-Do not commit production credentials. Standalone installer commands stop before
-packaging when no explicit production configuration is present, preventing an
+Do not commit production credentials. Direct standalone installer commands stop before
+packaging when no explicit configuration is present (the automated generic command
+provides its safe generated config), preventing an
 unusable or accidentally misconfigured customer build. Each installed machine
 can override its configuration in:
 
 - Windows: `%APPDATA%\Prime Laboratory System\config\backend.env`
 - Linux: `~/.config/Prime Laboratory System/config/backend.env`
+
+### Troubleshooting database startup failures
+
+If the desktop reports that the backend stopped before becoming ready, inspect
+the backend messages in Electron's `desktop.log`. MySQL `Access denied` means
+the configured database account was rejected; rebuilding or increasing the
+startup timeout does not repair credentials.
+
+The desktop always runs the backend with `NODE_ENV=production`. Configure
+`PRODUCTION_DB_HOSTNAME`, `PRODUCTION_DB_PORT`, `PRODUCTION_DB_USERNAME`,
+`PRODUCTION_DB_PASSWORD`, and `PRODUCTION_DATABASE` in the backend environment
+file. `DB_*` settings are not used for this initial connection. Tenant
+connections separately use `DB_USERNAME` and `DB_PASSWORD`, with `DB_HOST` and
+`DB_PORT` as registry fallbacks, even in production; verify those settings too.
+For multi-tenant installations, also verify all `SYSTEM_CONFIG_DB_*` settings
+and `SYSTEM_CONFIG_DATABASE` against the control database.
+
+Existing installations retain their application-data configuration across
+rebuilds and reinstalls. Correct the saved `config/backend.env` above and restart
+PLS; updating only `desktop/config/backend.env` does not replace that saved file.
+Also update the build configuration before packaging future installers. Verify
+the account can connect to both configured databases without changing MySQL
+users or grants just to bypass a startup failure.
+
+### Offline signed desktop activation
+
+#### Build once, configure each installation
+
+The recommended reusable Windows build runs from the sibling backend checkout:
+
+```powershell
+pnpm.cmd run desktop:build:licensed
+# Explicit default, if desired:
+$env:PLS_DESKTOP_GENERIC='true'
+```
+
+Store `dist-electron/PLS-Setup-<version>-x64.exe` and distribute that same installer.
+The **GENERIC standalone** package contains a reviewed safe environment with signed
+mode, the issuer public key and a salted scrypt installation-password verifier, not a
+tenant, plaintext password, database/API/email secrets or license state.
+The issuer keypair is generated once/reused in a protected directory outside both
+repositories. No backend database lookup is needed during this build.
+
+Before a real release, configure a new installation password with the backend's
+`pnpm.cmd run desktop:configure-install-password` command. It uses a masked prompt and
+saves only an external verifier; the builder prompts if it is missing and reuses it later.
+Missing/invalid verifier configuration blocks generic runtime preparation/release.
+There is no password command-line argument or environment option.
+
+First run opens trusted local setup before backend launch. Installation authorization
+comes first. Enter only the organization name, installation password and temporary
+**local MySQL 8.x administrator** host, port, username and password. MySQL must already
+be running; there is no universal administrator password. PLS automatically creates
+`Primelabsys`/control databases and a generated dedicated application account, installs the
+complete reviewed schema/routines, runs guarded migrations and reference/runtime seeds,
+and checks readiness. Tenant ID, control database and generated account fields are hidden.
+Existing unowned databases/accounts are refused rather than overwritten or adopted.
+
+Each installation saves its settings at `app.getPath("userData")/config/installation.json`.
+Existing `backend.env` and licensing state are not overwritten. Application credentials
+and the durable retry state in `config/provisioning.json` use Electron safeStorage and
+restricted Windows ACLs; unavailable encryption blocks setup. Neither supplied password
+is stored/logged. Legacy JSON settings are migrated to encrypted storage compatibly.
+Passwords never reach the remote frontend or setup summary. Use native
+**Settings > Database setup** to reverify/retry an owned installation with restart
+confirmation. Keep recovery state after any failure; legacy installations require an
+administrator to restore their original configuration rather than replace their databases.
+
+See the backend [standalone installation guide](../lobnos-server/docs/standalone-installation.md)
+for baseline assets, privileges, retry semantics, validation and release prerequisites.
+
+Each device exports its own activation request and imports its own signed certificate
+bound to device, installation identity and local organization. Tenant query parameters
+cannot select another licensing identity. The package always pins signed mode/public key,
+and generic launch pins standalone mode with local single-organization routing. Do not
+automatically activate clients or copy another installation's `licensing` directory.
+
+For deliberate facility-specific backwards compatibility, use the backend command with
+`--facility-specific --tenant-id <ID>` (or `PLS_DESKTOP_GENERIC=false`) and review the
+facility env before packaging. Only literal `true`/`false` generic values are accepted.
+The generic build rejects local activation and tenant build options. No network license
+service, global activation count, or tamper-proof executable protection is claimed.
+
+The standalone desktop provides a **License** menu with **Export activation
+request** and **Import signed license** actions. These use native file dialogs
+and a backend CLI in the Electron main process; no license-management IPC or
+private signing key is exposed to the web renderer.
+
+For non-generic legacy/facility-specific profiles, set `PLS_LICENSE_TENANT_ID` in the standalone `backend.env` to the registered
+facility's numeric tenant ID. Configure `PLS_LICENSE_MODE=signed` and
+`PLS_LICENSE_PUBLIC_KEY` with the issuer's public Ed25519 PEM key (dotenv supports
+quoted `\n` escapes). Follow the backend's signed-licensing setup to generate the
+issuer key outside the customer installation. Export a request, send
+it to the licensing administrator, and import the signed JSON file they return.
+Restart PLS afterward. The existing database validity and grace-period rules
+continue to apply; importing a certificate does not bypass them.
+
+The backend workflow and issuer CLI commands are documented in the sibling
+backend's [offline licensing guide](../lobnos-server/docs/offline-licensing.md).
+Run `pnpm desktop:prepare` and build a new installer to include these controls;
+an already-installed older executable does not gain the License menu merely
+because the source code changed.
+
+Desktop installation identity and license state are stored under the user's
+application-data `licensing` directory, not in the packaged runtime. Do not
+distribute this directory or reuse another machine's activation request.
+Facility-mode clients have no local activation menu: licensing is enforced by
+the central backend.
+
+Existing deployments default to `legacy` mode until explicitly configured.
+Signed desktop installers pin the mode and issuer public key from their packaged
+configuration. Facility-specific signed installers additionally pin the tenant;
+generic installers take the tenant only from validated local setup. Editing the saved per-user environment
+cannot downgrade that policy or substitute a different signer. Changes to a
+signed installer's trust policy require a new build; customer administrators
+with filesystem access can still tamper with runtime files.
+
+Offline activation cannot enforce a global activation count or immediately
+revoke a disconnected installation. It is not a substitute for a separately
+hosted licensing service or publisher-signed updates. Customer administrators
+can still modify local executables; installation binding and signatures add
+protection but do not make customer-controlled computers tamper-proof.
+
+### Signing Windows releases
+
+Electron Builder supports Authenticode signing when a publisher's code-signing
+certificate is supplied through its supported certificate configuration (for
+example `CSC_LINK` and `CSC_KEY_PASSWORD`). Keep certificate files and passwords
+outside the repository and runtime; use your release environment's secret store.
+Use `pnpm desktop:dist:win:signed` for releases that must be signed. This enables
+Electron Builder's `forceCodeSigning` option so missing credentials fail the
+build rather than producing an unsigned installer. Obtain a publisher
+certificate before using that release command.
+This repository does not manufacture a trusted certificate or implement an
+automatic update service.
 
 ### Build and test the staged runtime
 

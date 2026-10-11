@@ -24,7 +24,11 @@ const nextConfig = {
 			},
 		];
 	},
-	env: {
+	// Generic desktop builds must not embed historical workstation tokens/secrets.
+	env: process.env.PLS_DESKTOP_GENERIC === "true" ? {
+		PRODUCTION_BASEURL: productionBaseUrl,
+		DEVELOPMENT_BASEURL: productionBaseUrl,
+	} : {
 		PRODUCTION_BASEURL: productionBaseUrl,
 		DEVELOPMENT_BASEURL: developmentBaseUrl,
 		NEXT_PUBLIC_ACCESS_TOKEN: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRpZCI6NzQ3NDcsImlhdCI6MTcxMDgxNDQyOCwiZXhwIjoxNzQyMzcyMDI4fQ.X_2uVuilASQyg1kcRZjWtrn7X-r1bc5ZvsiGBhQIqbc`,

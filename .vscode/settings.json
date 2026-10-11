@@ -1,7 +1,7 @@
 {
 	"editor.tabSize": 5,
 	"files.autoSave": "afterDelay",
-	"workbench.colorTheme": "Vira Carbon High Contrast",
+	"workbench.colorTheme":"Visual Studio 2019 Dark",
 	"workbench.editor.pinnedTabSizing": "shrink",
 	"editor.fontSize": 13,
 	"editor.fontFamily": "JetBrains Mono",

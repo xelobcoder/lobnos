@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'none'; form-action 'none'; frame-src 'none'; base-uri 'none'">
+<title>PLS local database setup</title>
+<link rel="stylesheet" href="setup.css">
+<script src="setup-renderer.js" defer></script>
+</head>
+<body>
+<h1>Local installation setup</h1>
+<p id="description">Authorize installation, then supply temporary local MySQL 8 administrator access. PLS creates its databases and a dedicated application account automatically. There is no universal MySQL administrator password.</p>
+<p>Saved application credentials are encrypted for this OS account. The installation password and MySQL administrator password are not saved. Signed device/facility activation is still required. Existing databases not owned by this installation will never be overwritten.</p>
+<form id="setup" autocomplete="off">
+<label>Organization name <input name="organizationName" maxlength="100" required></label>
+<label>Installation authorization password <input name="installationPassword" type="password" maxlength="256" autocomplete="new-password" required></label>
+<fieldset><legend>Temporary local MySQL administrator access</legend>
+<label>Local host <input name="host" value="127.0.0.1" required></label>
+<label>Port <input name="port" value="3306" inputmode="numeric" required></label>
+<label>Administrator username <input name="user" maxlength="256" required></label>
+<label>Administrator password <input name="password" type="password" maxlength="256" autocomplete="new-password"></label>
+</fieldset>
+<p>Database names, application account, organization identity and security keys are generated internally. Do not delete saved provisioning state after a failure; retry with the same organization and local endpoint.</p>
+<button id="save" type="submit" disabled>Authorize and set up automatically</button>
+<p id="status" role="status"></p>
+</form>
+</body></html>
