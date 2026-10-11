@@ -11,15 +11,6 @@ files:
   - desktop/vendor-resolver.cjs
   - desktop/license-commands.cjs
   - desktop/license-policy.cjs
-  - desktop/setup-config.cjs
-  - desktop/setup-auth.cjs
-  - desktop/secure-setup-store.cjs
-  - desktop/standalone-setup.cjs
-  - desktop/provision-command.cjs
-  - desktop/setup-preload.cjs
-  - desktop/setup.html
-  - desktop/setup.css
-  - desktop/setup-renderer.js
   - package.json
   - "!node_modules/**/*"
 

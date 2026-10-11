@@ -70,7 +70,7 @@ interface ApplicationSettingsData {
 }
 
 const defaultUiSettings = {
-	fontFamily: 'var(--font-inter)', fontsize: '15', textcolor: '#212529',
+	fontFamily: 'var(--font-raleway)', fontsize: '15', textcolor: '#212529',
 	headerColor: '#ffffff', headerTextColor: '#2c3e50', sidebarColor: '#27ae60',
 	sidebarTextColor: '#ffffff', pageBackgroundColor: '#f8f9fa', primaryColor: '#27ae60', secondaryColor: '#6c757d'
 };
@@ -90,7 +90,7 @@ const uiPresets = {
 		sidebarTextColor: '#ffffff', pageBackgroundColor: '#f4f5f6', primaryColor: '#495057', secondaryColor: '#868e96'
 	},
 	"Sunset Coral": {
-		fontFamily: 'var(--font-inter)', fontsize: '15', textcolor: '#2b1d1a',
+		fontFamily: 'var(--font-raleway)', fontsize: '15', textcolor: '#2b1d1a',
 		headerColor: '#fff1ee', headerTextColor: '#7a3d34', sidebarColor: '#e76f51',
 		sidebarTextColor: '#ffffff', pageBackgroundColor: '#fffaf7', primaryColor: '#e76f51', secondaryColor: '#f4a261'
 	},
@@ -100,7 +100,7 @@ const uiPresets = {
 		sidebarTextColor: '#ffffff', pageBackgroundColor: '#f8f5ff', primaryColor: '#6f42c1', secondaryColor: '#9b7ae9'
 	},
 	"Emerald Luxe": {
-		fontFamily: 'var(--font-inter)', fontsize: '15', textcolor: '#14251d',
+		fontFamily: 'var(--font-raleway)', fontsize: '15', textcolor: '#14251d',
 		headerColor: '#edfdf6', headerTextColor: '#194b3d', sidebarColor: '#198754',
 		sidebarTextColor: '#ffffff', pageBackgroundColor: '#f3fff9', primaryColor: '#198754', secondaryColor: '#7cc8a2'
 	},
@@ -110,7 +110,7 @@ const uiPresets = {
 		sidebarTextColor: '#ffffff', pageBackgroundColor: '#e2e8f0', primaryColor: '#334155', secondaryColor: '#64748b'
 	},
 	"Warm Sand": {
-		fontFamily: 'var(--font-inter)', fontsize: '15', textcolor: '#3d2f2a',
+		fontFamily: 'var(--font-raleway)', fontsize: '15', textcolor: '#3d2f2a',
 		headerColor: '#fdf4e8', headerTextColor: '#8a5a2b', sidebarColor: '#d9822b',
 		sidebarTextColor: '#ffffff', pageBackgroundColor: '#fffaf4', primaryColor: '#d9822b', secondaryColor: '#e5b25d'
 	},
@@ -125,7 +125,7 @@ const uiPresets = {
 		sidebarTextColor: '#ffffff', pageBackgroundColor: '#f2feff', primaryColor: '#0ea5a4', secondaryColor: '#38bdf8'
 	},
 	"Golden Harvest": {
-		fontFamily: 'var(--font-inter)', fontsize: '15', textcolor: '#2d2418',
+		fontFamily: 'var(--font-raleway)', fontsize: '15', textcolor: '#2d2418',
 		headerColor: '#fff8e6', headerTextColor: '#7c4f0c', sidebarColor: '#d39c00',
 		sidebarTextColor: '#ffffff', pageBackgroundColor: '#fffaf0', primaryColor: '#d39c00', secondaryColor: '#f6c453'
 	},
@@ -135,7 +135,7 @@ const uiPresets = {
 		sidebarTextColor: '#ffffff', pageBackgroundColor: '#f1f5f9', primaryColor: '#64748b', secondaryColor: '#cbd5e1'
 	},
 	"Forest Mist": {
-		fontFamily: 'var(--font-inter)', fontsize: '15', textcolor: '#14241d',
+		fontFamily: 'var(--font-raleway)', fontsize: '15', textcolor: '#14241d',
 		headerColor: '#ecfdf5', headerTextColor: '#1d5b47', sidebarColor: '#2d6a4f',
 		sidebarTextColor: '#ffffff', pageBackgroundColor: '#f4fbf7', primaryColor: '#2d6a4f', secondaryColor: '#81c19d'
 	},
@@ -145,7 +145,7 @@ const uiPresets = {
 		sidebarTextColor: '#ffffff', pageBackgroundColor: '#fcf7ff', primaryColor: '#a855f7', secondaryColor: '#d8b4fe'
 	},
 	"Bright Tangerine": {
-		fontFamily: 'var(--font-inter)', fontsize: '15', textcolor: '#2f1b14',
+		fontFamily: 'var(--font-raleway)', fontsize: '15', textcolor: '#2f1b14',
 		headerColor: '#fff6ee', headerTextColor: '#a74e17', sidebarColor: '#f97316',
 		sidebarTextColor: '#ffffff', pageBackgroundColor: '#fffaf5', primaryColor: '#f97316', secondaryColor: '#fdba74'
 	},
@@ -155,7 +155,7 @@ const uiPresets = {
 		sidebarTextColor: '#ffffff', pageBackgroundColor: '#faf5ff', primaryColor: '#9333ea', secondaryColor: '#c084fc'
 	},
 	"Citrus Lime": {
-		fontFamily: 'var(--font-inter)', fontsize: '15', textcolor: '#182512',
+		fontFamily: 'var(--font-raleway)', fontsize: '15', textcolor: '#182512',
 		headerColor: '#f5ffe7', headerTextColor: '#3f6b18', sidebarColor: '#65a30d',
 		sidebarTextColor: '#ffffff', pageBackgroundColor: '#f9fff1', primaryColor: '#65a30d', secondaryColor: '#bef264'
 	}

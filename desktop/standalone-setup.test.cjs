@@ -15,8 +15,7 @@ const { runProvisionCommand } = require("./provision-command.cjs");
 const storage = { isEncryptionAvailable: () => true,
 	encryptString: value => Buffer.from(value.split("").reverse().join("")),
 	decryptString: value => value.toString().split("").reverse().join("") };
-const input = { organizationName: "Fixture lab", host: "127.0.0.1", port: "3306",
-	user: "fixtureadmin", password: "fixture-admin-credential", installationPassword: "fixture-authorization-only" };
+const input = { installationPassword: "fixture-authorization-only" };
 const verifier = createVerifier(input.installationPassword);
 function fixture(t) {
 	const directory = fs.mkdtempSync(path.join(os.tmpdir(), "pls-provision-test-"));
@@ -46,20 +45,24 @@ test("failures retain the same generated account and retry does not store either
 	assert.equal("admin" in saved, false);
 	assert.equal("installationPassword" in saved, false);
 	const disk = fs.readFileSync(options.pendingFile, "utf8");
-	for (const secret of [input.password, input.installationPassword, saved.accountPassword]) assert.equal(disk.includes(secret), false);
+	for (const secret of [input.installationPassword, saved.accountPassword]) assert.equal(disk.includes(secret), false);
 	const result = await provisionStandalone({ ...options, run: async request => {
 		assert.deepEqual(request.state, first);
 		return { ready: true };
 	} });
+	assert.equal(result.config.PRODUCTION_DB_USERNAME, "primelab");
 	assert.equal(result.config.PRODUCTION_DB_USERNAME, first.account);
 	assert.equal(result.config.MULTI_TENANT, "false");
 	assert.equal(result.config.PRODUCTION_DATABASE, "Primelabsys");
+	assert.equal(result.config.LOCAL_ORGANIZATION_NAME, "Prime Laboratory System");
+	assert.equal(result.loginPassword, "12345");
 	assert.match(result.config.JWT_SECRET_KEY, /^[A-Za-z0-9_-]{43}$/);
 	assert.notEqual(result.config.JWT_SECRET_KEY, result.config.ACCESS_TOKEN_SECRET);
 	assert.deepEqual(frontendRuntimeConfig(result.config), { JWT_SECRET_KEY: result.config.JWT_SECRET_KEY });
 	assert.throws(() => frontendRuntimeConfig({ ...result.config, JWT_SECRET_KEY: "" }), /session key is missing/);
 	assert.deepEqual(frontendRuntimeConfig({}), {});
-	await assert.rejects(provisionStandalone({ ...options, input: { ...input, organizationName: "Other" }, run: async () => assert.fail() }), /pending installation/);
+	// Any pending installation is reused as-is; there are no per-install fields left to disagree about.
+	await assert.rejects(provisionStandalone({ ...options, input: { ...input, unexpected: "value" }, run: async () => assert.fail() }), /Invalid standalone setup/);
 });
 test("protected storage enforces directory/file permissions and rejects corrupt envelopes or fallback encryption", t => {
 	const options = fixture(t);
@@ -82,15 +85,16 @@ function childHarness() {
 }
 test("provisioning uses stdin only, no shell/credential argv, and does not forward raw stderr", async () => {
 	const h = childHarness();
-	const pending = runProvisionCommand(path.resolve("fixture-backend"), { admin: { password: input.password } }, { spawn: h.spawn });
+	const fixtureSecret = "fixture-admin-credential";
+	const pending = runProvisionCommand(path.resolve("fixture-backend"), { state: { accountPassword: fixtureSecret } }, { spawn: h.spawn });
 	const payload = h.child.stdin.read().toString();
 	h.child.stderr.write("raw driver message with a fixture credential");
 	h.child.stdout.end('{"ready":true}\n');
 	h.child.emit("close", 0);
 	assert.deepEqual(await pending, { ready: true });
 	assert.equal(h.args()[2].shell, false);
-	assert.equal(JSON.stringify(h.args()).includes(input.password), false);
-	assert.equal(JSON.parse(payload).admin.password, input.password);
+	assert.equal(JSON.stringify(h.args()).includes(fixtureSecret), false);
+	assert.equal(JSON.parse(payload).state.accountPassword, fixtureSecret);
 });
 test("provisioning rejects nonzero exit, malformed output, explicit readiness failure and timeout", async () => {
 	for (const [code, output] of [[1, '{"ready":false,"message":"Local setup failed during fixture stage."}'], [0, "invalid"], [0, '{"ready":false}']]) {

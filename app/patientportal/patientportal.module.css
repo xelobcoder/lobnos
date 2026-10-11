@@ -19,7 +19,7 @@
 }
 
 .brandTitle {
-  font-family: var(--font-rajdhani);
+  font-family: var(--theme-font-family, var(--font-open-sans));
   font-size: 1.35rem;
   letter-spacing: 0.02em;
   margin: 0;

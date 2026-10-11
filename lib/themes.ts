@@ -22,6 +22,7 @@ export interface Theme {
 }
 
 export const themes: Theme[] = [];
+export const DEFAULT_FONT_FAMILY = 'var(--font-raleway)';
 
 export const getThemeById = (id: string): Theme => {
      const found = themes.find(t => t.id === id);
@@ -104,7 +105,7 @@ export const applyApplicationSettingsToDocument = (settings: any) => {
           if (typeof value === 'string' && value.trim()) root.style.setProperty(name, value.trim());
      };
 
-     setIfPresent('--theme-font-family', settings.fontFamily);
+     setIfPresent('--theme-font-family', normalizeFontFamily(settings.fontFamily));
      setIfPresent('--theme-font-size', settings.fontsize);
      setIfPresent('--theme-text-color', settings.textcolor);
      const headerBackground = settings.headerColor || '#ffffff';
@@ -122,22 +123,21 @@ export const applyApplicationSettingsToDocument = (settings: any) => {
 };
 
 export const availableFonts = [
-     { name: 'Inter', value: "var(--font-inter)" },
-     { name: 'Roboto', value: "var(--font-roboto)" },
-     { name: 'Barlow', value: "var(--font-barlow)" },
-     { name: 'Rajdhani', value: "var(--font-rajdhani)" },
-     { name: 'Raleway', value: "var(--font-raleway)" },
-     { name: 'Roboto Condensed', value: "var(--font-roboto-condensed)" },
-     { name: 'Poppins', value: "var(--font-poppins)" },
-     { name: 'Montserrat', value: "var(--font-montserrat)" },
-     { name: 'Open Sans', value: "var(--font-open-sans)" },
-     { name: 'Lato', value: "var(--font-lato)" },
-     { name: 'Lexend', value: "var(--font-lexend)" },
      { name: 'Candara', value: "var(--font-candara)" },
-     { name: "Segoe UI (Prime Table)", value: "var(--font-segoe)" },
-     { name: 'Arial', value: "var(--font-arial)" },
-     { name: 'Verdana', value: "var(--font-verdana)" },
+     { name: 'Open Sans', value: "var(--font-open-sans)" },
+     { name: 'Segoe UI', value: "var(--font-segoe)" },
+     { name: 'Raleway', value: "var(--font-raleway)" },
 ];
+
+export const normalizeFontFamily = (fontValue: unknown): string => {
+     if (typeof fontValue !== 'string') return DEFAULT_FONT_FAMILY;
+
+     const value = fontValue.trim();
+     const fontName = value.split(',')[0].replace(/["']/g, '').trim().toLowerCase();
+     return availableFonts.find((font) =>
+          font.value === value || font.name.toLowerCase() === fontName
+     )?.value || DEFAULT_FONT_FAMILY;
+};
 
 export const availableSidebarStyles = [
      { id: 'modern', name: 'Modern', description: 'Clean and flat with subtle shadows' }
@@ -170,9 +170,9 @@ export const saveFontPreference = (fontValue: string) => {
 
 export const getFontPreference = (): string => {
      if (typeof window !== 'undefined') {
-          return localStorage.getItem('lobnos-font-preference') || "var(--font-raleway)";
+          return normalizeFontFamily(localStorage.getItem('lobnos-font-preference'));
      }
-     return "var(--font-raleway)";
+     return DEFAULT_FONT_FAMILY;
 };
 
 export const getFontSizePreference = (): string => {
@@ -198,27 +198,6 @@ export const applyFontSizeToDocument = (fontSizeValue: string) => {
 export const applyFontToDocument = (fontValue: string) => {
      if (typeof document === 'undefined') return;
 
-     const fontFallbacks: Record<string, string> = {
-          '--font-inter': 'Inter, sans-serif',
-          '--font-roboto': 'Roboto, sans-serif',
-          '--font-barlow': 'Barlow, sans-serif',
-          '--font-rajdhani': 'Rajdhani, sans-serif',
-          '--font-raleway': 'Raleway, sans-serif',
-          '--font-roboto-condensed': 'Roboto Condensed, sans-serif',
-          '--font-poppins': 'Poppins, sans-serif',
-          '--font-montserrat': 'Montserrat, sans-serif',
-          '--font-open-sans': 'Open Sans, sans-serif',
-          '--font-lato': 'Lato, sans-serif',
-          '--font-lexend': 'Lexend, sans-serif',
-          '--font-candara': 'Candara, sans-serif',
-          '--font-segoe': 'Segoe UI, Tahoma, sans-serif',
-          '--font-arial': 'Arial, sans-serif',
-          '--font-verdana': 'Verdana, sans-serif',
-     };
-     const fontVariable = fontValue.match(/^var\((--font-[\w-]+)\)$/)?.[1];
-     const resolvedFont = fontVariable
-          ? `var(${fontVariable}, ${fontFallbacks[fontVariable] || 'sans-serif'})`
-          : fontValue;
      const root = document.documentElement;
-     root.style.setProperty('--theme-font-family', resolvedFont);
+     root.style.setProperty('--theme-font-family', normalizeFontFamily(fontValue));
 };

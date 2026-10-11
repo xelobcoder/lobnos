@@ -18,18 +18,27 @@ const storage = {
 	decryptString: value => value.toString().split("").reverse().join(""),
 };
 
-function harness(t, confirmation = 1) {
+function harness(t, confirmation = 1, generic = false) {
 	const root = fs.mkdtempSync(path.join(os.tmpdir(), "pls-native-workflow-"));
 	t.after(() => fs.rmSync(root, { recursive: true, force: true }));
 	const resources = path.join(root, "resources");
 	const configDir = path.join(resources, "runtime", "config");
 	fs.mkdirSync(configDir, { recursive: true });
 	const pem = generateKeyPairSync("ed25519").publicKey.export({ type: "spki", format: "pem" });
-	fs.writeFileSync(path.join(configDir, "backend.env"), genericConfig(pem, parse, verifier));
+	let packagedBackend = genericConfig(pem, parse, verifier);
+	if (!generic) {
+		packagedBackend = packagedBackend.replace("PLS_DESKTOP_GENERIC=true", "PLS_DESKTOP_GENERIC=false") +
+			"PLS_LICENSE_TENANT_ID=125\n";
+	}
+	fs.writeFileSync(path.join(configDir, "backend.env"), packagedBackend);
 	fs.writeFileSync(path.join(configDir, "desktop.env"), "PLS_DESKTOP_MODE=standalone\n");
 	const userData = path.join(root, "userData");
 	fs.mkdirSync(path.join(userData, "config"), { recursive: true });
-	fs.writeFileSync(path.join(userData, "config", "backend.env"), "PLS_LICENSE_MODE=legacy\nPLS_LICENSE_PUBLIC_KEY_FILE=evil.pem\nPLS_DESKTOP_STANDALONE=false\nMULTI_TENANT=true\nDEFAULT_TENANT_ID=999\nEXISTING_SECRET=preserve\n");
+	fs.writeFileSync(path.join(userData, "config", "backend.env"),
+		"PLS_LICENSE_MODE=legacy\nPLS_LICENSE_PUBLIC_KEY_FILE=evil.pem\nPLS_DESKTOP_STANDALONE=false\nMULTI_TENANT=true\nDEFAULT_TENANT_ID=999\nEXISTING_SECRET=preserve\n" +
+		"DB_HOST=127.0.0.1\nDB_PORT=2309\nDB_USERNAME=root\nDB_PASSWORD=fixture-db-password\nDATABASE=primelabtestmig\n" +
+		"PRODUCTION_DB_HOSTNAME=127.0.0.1\nPRODUCTION_DB_PORT=2309\nPRODUCTION_DB_USERNAME=root\nPRODUCTION_DB_PASSWORD=fixture-db-password\nPRODUCTION_DATABASE=primelabtestmig\n" +
+		"SYSTEM_CONFIG_DB_HOST=localhost\nSYSTEM_CONFIG_DB_PORT=2309\nSYSTEM_CONFIG_DB_USERNAME=root\nSYSTEM_CONFIG_DB_PASSWORD=fixture-control-password\nSYSTEM_CONFIG_DATABASE=primelabmaster_control\nJWT_SECRET_KEY=fixture-frontend-secret\n");
 	const handlers = new Map();
 	const windows = [];
 	const actions = [];
@@ -94,95 +103,44 @@ function harness(t, confirmation = 1) {
 	};
 	vm.createContext(context);
 	vm.runInContext(fs.readFileSync(path.join(__dirname, "main.cjs"), "utf8") +
-		"\nglobalThis.testApi = { openDatabaseSetup, ensureLocalSetup, loadBackendEnvironment, loadDesktopConfig };", context);
-	const input = {
-		organizationName: "Local lab", installationPassword: "fixture-install-password-only",
-		host: "127.0.0.1", port: "3306", user: "localadmin", password: "fixture-admin-password",
-	};
+		"\nglobalThis.testApi = { loadBackendEnvironment, loadDesktopConfig, setDesktopConfig: value => { desktopConfig = value; } };", context);
+	const input = { installationPassword: "fixture-install-password-only" };
 	return {
 		api: context.testApi, handlers, windows, actions, queries, input, userData, pem,
 		event: () => ({ sender: windows.at(-1).webContents, senderFrame: windows.at(-1).webContents.mainFrame }),
 	};
 }
 
-test("first run waits for native setup, invalid input writes nothing, valid save pins policy without leaking passwords", async t => {
+test("pre-provisioned standalone starts without database setup or provisioning", async t => {
 	const h = harness(t);
-	let completed = false;
-	const pending = h.api.ensureLocalSetup().then(() => { completed = true; });
-	await new Promise(resolve => setImmediate(resolve));
-	assert.equal(completed, false);
-	const summary = h.handlers.get("pls-setup-summary")(h.event());
-	assert.equal(summary.fields.password, "");
-	assert.equal(summary.fields.controlPassword, undefined);
-	assert.equal(summary.fields.database, undefined);
-	const unauthorized = await h.handlers.get("pls-setup-save")(h.event(), { ...h.input, installationPassword: "incorrect" });
-	assert.match(unauthorized.message, /Incorrect installation/);
-	assert.equal(h.queries.length, 0);
-	const rejected = await h.handlers.get("pls-setup-save")(h.event(), { ...h.input, organizationName: "" });
-	assert.match(rejected.message, /Organization name/);
-	assert.equal(h.queries.length, 0);
-	assert.equal(fs.existsSync(path.join(h.userData, "config", "installation.json")), false);
-	await assert.rejects(h.handlers.get("pls-setup-save")({ ...h.event(), sender: {} }, h.input), /Untrusted/);
-	const result = await h.handlers.get("pls-setup-save")(h.event(), h.input);
-	assert.doesNotMatch(JSON.stringify(result), /fixture-admin-password|fixture-install-password-only/);
-	await pending;
+	const desktop = h.api.loadDesktopConfig();
+	h.api.setDesktopConfig(desktop);
+	assert.equal(desktop.PLS_DESKTOP_MODE, "standalone");
 	const env = h.api.loadBackendEnvironment();
 	assert.equal(env.PLS_LICENSE_MODE, "signed");
 	assert.equal(env.PLS_LICENSE_PUBLIC_KEY, h.pem);
 	assert.equal(env.PLS_LICENSE_PUBLIC_KEY_FILE, undefined);
-	assert.match(env.PLS_LICENSE_TENANT_ID, /^[1-9]\d{5}$/);
-	assert.equal(env.DEFAULT_TENANT_ID, env.PLS_LICENSE_TENANT_ID);
+	assert.equal(env.PLS_LICENSE_TENANT_ID, "125");
+	assert.equal(env.DEFAULT_TENANT_ID, "125");
 	assert.equal(env.MULTI_TENANT, "false");
 	assert.equal(env.PLS_DESKTOP_STANDALONE, "true");
-	assert.match(env.PRODUCTION_DB_PASSWORD, /^[A-Za-z0-9_-]{43}$/);
-	const disk = fs.readFileSync(path.join(h.userData, "config", "installation.json"), "utf8");
-	assert.doesNotMatch(disk, /fixture-admin-password|fixture-install-password-only/);
-	assert.equal(disk.includes(env.PRODUCTION_DB_PASSWORD), false);
+	assert.equal(env.DATABASE, "primelabtestmig");
+	assert.equal(env.DB_PORT, "2309");
+	assert.equal(env.DB_USERNAME, "root");
+	assert.equal(env.PRODUCTION_DATABASE, "primelabtestmig");
+	assert.equal(env.PRODUCTION_DB_PORT, "2309");
+	assert.equal(env.PRODUCTION_DB_USERNAME, "root");
+	assert.equal(env.JWT_SECRET_KEY, "fixture-frontend-secret");
+	assert.equal(h.windows.length, 0);
 	assert.equal(h.handlers.size, 0);
-	assert.match(fs.readFileSync(path.join(h.userData, "config", "backend.env"), "utf8"), /EXISTING_SECRET=preserve/);
-	assert.equal(h.windows[0].options.webPreferences.sandbox, true);
-	assert.equal(h.windows[0].options.webPreferences.nodeIntegration, false);
-	assert.equal(h.windows[0].popupHandler({ url: "https://remote.example" }).action, "deny");
-});
-
-test("canceling first run starts no backend and writes no installation settings", async t => {
-	const h = harness(t);
-	const pending = h.api.ensureLocalSetup();
-	h.windows[0].close();
-	await assert.rejects(pending, /setup was canceled/);
+	assert.equal(h.queries.some(query => query && query.provisioning), false);
 	assert.equal(fs.existsSync(path.join(h.userData, "config", "installation.json")), false);
 });
 
-test("repair menu requires confirmation before save/restart and keeps stored secrets out of summary", async t => {
-	const h = harness(t);
-	const pending = h.api.openDatabaseSetup();
-	await h.handlers.get("pls-setup-save")(h.event(), h.input);
-	assert.deepEqual(h.actions.slice(-2), ["relaunch", "quit"]);
-	h.windows[0].close();
-	await pending;
-	const next = h.api.openDatabaseSetup();
-	const summary = h.handlers.get("pls-setup-summary")(h.event());
-	assert.equal(summary.fields.organizationName, "Local lab");
-	assert.equal(summary.fields.tenant, undefined);
-	assert.equal(summary.fields.password, "");
-	assert.equal(summary.fields.controlPassword, undefined);
-	h.windows[1].close();
-	await next;
-});
-
-test("canceling restart preserves existing configuration", async t => {
-	const h = harness(t, 0);
-	const pending = h.api.openDatabaseSetup();
-	const result = await h.handlers.get("pls-setup-save")(h.event(), h.input);
-	assert.match(result.message, /No settings were changed/);
+test("legacy generic auto-provisioning configurations are refused, not run", async t => {
+	const h = harness(t, 1, true);
+	assert.throws(() => h.api.loadDesktopConfig(), /auto-provisioning has been retired/);
+	assert.equal(h.windows.length, 0);
+	assert.equal(h.queries.length, 0);
 	assert.equal(fs.existsSync(path.join(h.userData, "config", "installation.json")), false);
-	assert.deepEqual(h.actions, ["quit"]);
-	h.windows[0].close();
-	await pending;
-});
-
-test("generic desktop policy ignores user attempts to switch to a remote facility URL", t => {
-	const h = harness(t);
-	fs.writeFileSync(path.join(h.userData, "config", "desktop.env"), "PLS_DESKTOP_MODE=facility\nPLS_FACILITY_URL=https://remote.example\n");
-	assert.equal(h.api.loadDesktopConfig().PLS_DESKTOP_MODE, "standalone");
 });

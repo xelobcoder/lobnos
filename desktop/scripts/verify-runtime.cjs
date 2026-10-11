@@ -4,7 +4,6 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { parse } = require("dotenv");
 const { validateLicensePolicy } = require("../license-policy.cjs");
-const { assertGenericConfig, assertGenericReleaseConfig } = require("../generic-config.cjs");
 
 const frontendRoot = path.resolve(__dirname, "..", "..");
 const runtimeRoot = path.join(frontendRoot, ".desktop-runtime");
@@ -36,6 +35,10 @@ if (leaked.length > 0) {
 }
 
 const backendConfigContent = fs.readFileSync(path.join(runtimeRoot, "config", "backend.env"), "utf8");
+const backendConfig = parse(backendConfigContent);
+if (backendConfig.PLS_DESKTOP_GENERIC === "true") {
+	throw new Error("Generic standalone auto-provisioning has been retired. Provision the local database first.");
+}
 if (/-----BEGIN (?:[A-Z]+ )*PRIVATE KEY-----/.test(backendConfigContent)) {
 	throw new Error("Staged backend configuration contains a private key. Never distribute license-signing keys.");
 }
@@ -64,42 +67,9 @@ if (desktopMode === "facility") {
 		);
 	}
 } else {
-	if (parse(backendConfigContent).PLS_DESKTOP_GENERIC === "true") assertGenericConfig(parse(backendConfigContent));
-	if (validateLicensePolicy(parse(backendConfigContent)) === "signed" &&
+	if (validateLicensePolicy(backendConfig) === "signed" &&
 		!fs.existsSync(path.join(runtimeRoot, "backend", "dist", "src", "scripts", "license.js"))) {
 		throw new Error("Signed runtime is missing the compiled licensing CLI. Rebuild and prepare the runtime.");
-	}
-}
-
-if (parse(backendConfigContent).PLS_DESKTOP_GENERIC === "true") {
-	assertGenericReleaseConfig(parse(backendConfigContent));
-	for (const filename of ["standalone-setup.js"]) {
-		if (!fs.existsSync(path.join(runtimeRoot, "backend", "dist", "src", "scripts", filename))) {
-			throw new Error("Generic runtime is missing the compiled standalone provisioning pipeline.");
-		}
-	}
-	require(path.join(runtimeRoot, "backend", "dist", "src", "models", "Tenancy", "FacilityStructureExports.js")).loadFacilityStructureExports();
-	const seeds = ["samplecontainer", "sampletype", "testdetailcategory", "test_panels", "testdetails",
-		"testcreationrules", "testconditiondefinitions", "testconditions", "test_report_settings"];
-	for (const name of seeds) {
-		if (!fs.existsSync(path.join(runtimeRoot, "backend", "db-exports", "primelabmaster", "seeds", `primelabmaster_${name}.sql`))) {
-			throw new Error("Generic runtime is missing reviewed reference catalog assets.");
-		}
-	}
-	const pending = [runtimeRoot];
-	while (pending.length) {
-		const directory = pending.pop();
-		for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
-			const target = path.join(directory, entry.name);
-			if (entry.isDirectory()) pending.push(target);
-			else if (/^\.env(?:\.|$)|^(?:issuer(?:-private|-public)?\.(?:pem|cjs)|license-state\.json|activation-request\.json|signed-certificate\.json)$/i.test(entry.name)) {
-				throw new Error("Generic runtime contains environment, issuer or installation-state files.");
-			}
-		}
-	}
-	const serverConfig = frontendServer.slice(frontendServer.indexOf("const nextConfig"));
-	if (/"(?:NEXT_PUBLIC_ACCESS_TOKEN|HASH_SECRET|JWT_SECRET_KEY)"\s*:/.test(serverConfig)) {
-		throw new Error("Generic frontend runtime contains historical embedded token settings.");
 	}
 }
 

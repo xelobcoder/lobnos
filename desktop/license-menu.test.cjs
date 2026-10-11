@@ -3,15 +3,22 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
+const os = require("node:os");
 const path = require("node:path");
 const vm = require("node:vm");
 
-function createMenuHarness(mode = "standalone", importSize = 1024, canceled = false) {
-	let template;
-	const operations = [];
-	const messages = [];
-	const userData = path.resolve("test-user-data");
-	const window = { setMenuBarVisibility: (visible) => operations.push({ visible }) };
+function createHarness(t, { mode = "standalone", licenseMode = "signed", failActivation = false } = {}) {
+	const userData = fs.mkdtempSync(path.join(os.tmpdir(), "pls-hidden-license-controls-"));
+	t.after(() => fs.rmSync(userData, { recursive: true, force: true }));
+	const applicationMenus = [];
+	const windowOperations = [];
+	const commands = [];
+	const logs = [];
+	const testWindow = {
+		isDestroyed: () => false,
+		setMenuBarVisibility: visible => windowOperations.push({ visible }),
+		setAutoHideMenuBar: enabled => windowOperations.push({ autoHide: enabled }),
+	};
 	const electron = {
 		app: {
 			setName() {},
@@ -20,96 +27,103 @@ function createMenuHarness(mode = "standalone", importSize = 1024, canceled = fa
 			requestSingleInstanceLock: () => false,
 			quit() {},
 		},
-		Menu: {
-			buildFromTemplate: (value) => value,
-			setApplicationMenu: (value) => { template = value; },
-		},
-		dialog: {
-			showSaveDialog: async () => ({ canceled, filePath: path.resolve("request.json") }),
-			showOpenDialog: async () => ({ canceled, filePaths: [path.resolve("license.json")] }),
-			showMessageBox: async (_window, message) => { messages.push(message); },
-		},
+		BrowserWindow: class {},
+		Menu: { setApplicationMenu: menu => applicationMenus.push(menu) },
+		shell: { openExternal() {} },
 	};
-	const fileSystem = {
-		mkdirSync() {},
-		existsSync: target => !String(target).endsWith("installation.json"),
-		readFileSync: () => "production config",
-		statSync: () => ({ size: importSize }),
+	const processMock = {
+		...process,
+		stdout: { write: message => logs.push(message) },
+		resourcesPath: userData,
 	};
 	const context = {
-		require: (name) => {
+		require: name => {
 			if (name === "electron") return electron;
-			if (name === "node:fs") return fileSystem;
 			if (name === "./license-commands.cjs") return {
-				runLicenseCommand: async (options, command, filePath) => operations.push({ options, command, filePath }),
-			};
-			if (name.endsWith(path.join("vendor", "dotenv"))) return {
-				parse: () => ({ PLS_LICENSE_TENANT_ID: "990556", PLS_LICENSE_STORAGE_DIR: "unsafe-build-path" }),
+				runLicenseCommand: async (options, command, filePath) => {
+					commands.push({ options, command, filePath });
+					if (command === "request") {
+						fs.writeFileSync(filePath, JSON.stringify({ version: 1, tenantId: 990556 }));
+					} else if (failActivation) {
+						throw new Error("Signed certificate rejected.");
+					}
+				},
 			};
 			return require(name);
 		},
-		__dirname: __dirname,
-		process: { ...process, stdout: { write() {} } },
-		testWindow: window,
+		__dirname,
+		process: processMock,
+		testWindow,
 		testMode: mode,
+		testLicenseMode: licenseMode,
 	};
 	vm.createContext(context);
 	vm.runInContext(fs.readFileSync(path.join(__dirname, "main.cjs"), "utf8") +
-		"\nmainWindow = testWindow; desktopConfig = { PLS_DESKTOP_MODE: testMode }; configureLicenseMenu();", context);
-	return { template, operations, messages, userData };
+		"\nmainWindow = testWindow; desktopConfig = { PLS_DESKTOP_MODE: testMode }; " +
+		"hideDesktopMenus(); globalThis.prepareFiles = prepareOfflineLicenseFiles;", context);
+	return {
+		prepareFiles: context.prepareFiles,
+		applicationMenus,
+		windowOperations,
+		commands,
+		logs,
+		userData,
+	};
 }
 
-async function flush() {
-	await new Promise((resolve) => setImmediate(resolve));
-}
-
-test("facility clients do not get local activation controls", () => {
-	const harness = createMenuHarness("facility");
-	assert.equal(harness.template, undefined);
+test("desktop application menu and window menu bar are hidden", t => {
+	const harness = createHarness(t);
+	assert.deepEqual(harness.applicationMenus, [null]);
+	assert.deepEqual(harness.windowOperations, [{ visible: false }, { autoHide: true }]);
 });
 
-test("export uses persistent per-installation storage instead of bundled state", async () => {
-	const harness = createMenuHarness();
-	harness.template[0].submenu[0].click();
-	await flush();
-	const operation = harness.operations.find((entry) => entry.command);
-	assert.equal(operation.command, "request");
-	assert.equal(operation.options.env.PLS_LICENSE_STORAGE_DIR, path.join(harness.userData, "licensing"));
-	assert.equal(operation.options.env.PLS_LICENSE_TENANT_ID, "990556");
-	assert.equal(harness.messages[0].type, "info");
+test("signed standalone writes an activation request into the per-user config folder", async t => {
+	const harness = createHarness(t);
+	const backendDirectory = path.join(harness.userData, "runtime", "backend");
+	const env = { PLS_LICENSE_MODE: "signed", PLS_LICENSE_TENANT_ID: "990556" };
+	await harness.prepareFiles(backendDirectory, env);
+	const requestPath = path.join(harness.userData, "config", "PLS-activation-request.json");
+	assert.equal(fs.existsSync(requestPath), true);
+	assert.equal(harness.commands.length, 1);
+	assert.equal(harness.commands[0].command, "request");
+	assert.equal(harness.commands[0].filePath, requestPath);
+	assert.equal(harness.commands[0].options.env.NODE_PATH, path.join(backendDirectory, "vendor"));
+	await harness.prepareFiles(backendDirectory, env);
+	assert.equal(harness.commands.length, 1);
 });
 
-test("signed import uses main-process native dialog and reports success", async () => {
-	const harness = createMenuHarness();
-	harness.template[0].submenu[1].click();
-	await flush();
-	assert.equal(harness.operations.find((entry) => entry.command).command, "activate");
-	assert.match(harness.messages[0].message, /Restart PLS/);
+test("signed certificate is imported from config folder and removed only after success", async t => {
+	const harness = createHarness(t);
+	const configDirectory = path.join(harness.userData, "config");
+	fs.mkdirSync(configDirectory, { recursive: true });
+	const certificatePath = path.join(configDirectory, "PLS-signed-certificate.json");
+	fs.writeFileSync(certificatePath, JSON.stringify({ payload: {}, signature: "fixture" }));
+	await harness.prepareFiles(path.join(harness.userData, "runtime", "backend"),
+		{ PLS_LICENSE_MODE: "signed", PLS_LICENSE_TENANT_ID: "990556" });
+	assert.equal(harness.commands.some(command => command.command === "activate"), true);
+	assert.equal(fs.existsSync(certificatePath), false);
 });
 
-test("oversized license never launches the activation CLI", async () => {
-	const harness = createMenuHarness("standalone", 64 * 1024 + 1);
-	harness.template[0].submenu[1].click();
-	await flush();
-	assert.equal(harness.operations.filter((entry) => entry.command).length, 0);
-	assert.equal(harness.messages[0].type, "error");
-	assert.match(harness.messages[0].message, /64 KB/);
+test("failed certificate import is logged and the certificate remains available", async t => {
+	const harness = createHarness(t, { failActivation: true });
+	const configDirectory = path.join(harness.userData, "config");
+	fs.mkdirSync(configDirectory, { recursive: true });
+	const certificatePath = path.join(configDirectory, "PLS-signed-certificate.json");
+	fs.writeFileSync(certificatePath, JSON.stringify({ payload: {}, signature: "fixture" }));
+	await harness.prepareFiles(path.join(harness.userData, "runtime", "backend"),
+		{ PLS_LICENSE_MODE: "signed", PLS_LICENSE_TENANT_ID: "990556" });
+	assert.equal(fs.existsSync(certificatePath), true);
+	assert.equal(harness.logs.some(line => line.includes("Signed certificate rejected.")), true);
 });
 
-test("canceling a native dialog makes no changes or success notification", async () => {
-	const harness = createMenuHarness("standalone", 1024, true);
-	harness.template[0].submenu[0].click();
-	await flush();
-	harness.template[0].submenu[1].click();
-	await flush();
-	assert.equal(harness.operations.filter((entry) => entry.command).length, 0);
-	assert.equal(harness.messages.length, 0);
-});
+test("facility and legacy modes do not create local activation files", async t => {
+	const facility = createHarness(t, { mode: "facility" });
+	await facility.prepareFiles(path.join(facility.userData, "runtime", "backend"),
+		{ PLS_LICENSE_MODE: "signed" });
+	assert.equal(fs.existsSync(path.join(facility.userData, "config")), false);
 
-test("repeated clicks cannot launch concurrent activation operations", async () => {
-	const harness = createMenuHarness();
-	harness.template[0].submenu[0].click();
-	harness.template[0].submenu[1].click();
-	await flush();
-	assert.equal(harness.operations.filter((entry) => entry.command).length, 1);
+	const legacy = createHarness(t, { licenseMode: "legacy" });
+	await legacy.prepareFiles(path.join(legacy.userData, "runtime", "backend"),
+		{ PLS_LICENSE_MODE: "legacy" });
+	assert.equal(fs.existsSync(path.join(legacy.userData, "config")), false);
 });

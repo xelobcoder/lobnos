@@ -1,4 +1,4 @@
-### LOBNOS INTEGRADED LABORATORY SOFTWARE FOR SMALL TO MEDIUM CLINICAL LABORATORIES ###
+### PRIME LABORATORY SOFTWARE(PLS) INTEGRADED LABORATORY SOFTWARE FOR SMALL TO MEDIUM CLINICAL LABORATORIES ###
  *This is a software for small to large facillity that helps to manage laboratories bith on premises and online *
 
 ## Tenant-aware login
@@ -169,16 +169,16 @@ duplicate the PLS interface.
 - Node.js and pnpm on the build computer
 - The `lobnos` and `lobnos-server` repositories in sibling directories
 - Installed dependencies in both repositories
-- For generic installers: a protected external issuer keypair (the automated build
-  creates/reuses it); no production environment or database access is required
-- Only for facility-specific standalone installers: a reviewed facility backend env
+- A provisioned facility database accessible through the backend `.env`
+- A protected external issuer keypair and installation-password verifier
 
-For the recommended generic installer use the backend's `desktop:build:licensed`
-command described below. For an intentional facility-specific standalone build, create `desktop/config/backend.env` from
-`desktop/config/backend.env.example` and enter the deployment's database and
-service settings. This untracked file is copied into the installer and then to
-the user's application-data directory on first launch. Alternatively, set
-`PLS_DESKTOP_BACKEND_ENV` to an environment-file path when packaging.
+Generic standalone auto-provisioning has been retired. Provision and migrate the
+database on the target computer before running the desktop application. The licensed
+build is facility-specific: it resolves the tenant from the backend `.env`, then maps
+that `.env` database connection into the packaged desktop configuration. For a
+development `.env`, the build uses `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`,
+and `DATABASE`; for production, it uses the corresponding `PRODUCTION_DB_*` settings.
+Control-database settings come from `SYSTEM_CONFIG_DB_*` and `SYSTEM_CONFIG_DATABASE`.
 
 For a facility installer, create the untracked
 `desktop/config/desktop.env` with `PLS_DESKTOP_MODE=facility` and the central
@@ -186,11 +186,10 @@ For a facility installer, create the untracked
 the example backend configuration; database credentials are not distributed
 to client laptops.
 
-Do not commit production credentials. Direct standalone installer commands stop before
-packaging when no explicit configuration is present (the automated generic command
-provides its safe generated config), preventing an
-unusable or accidentally misconfigured customer build. Each installed machine
-can override its configuration in:
+Do not commit production credentials. This facility-specific installer contains the
+database credentials read from `.env`; protect the installer like that credential and
+build it for the machine/environment that will run the database connection. On a new
+installed machine, the saved connection can be managed in:
 
 - Windows: `%APPDATA%\Prime Laboratory System\config\backend.env`
 - Linux: `~/.config/Prime Laboratory System/config/backend.env`
@@ -226,76 +225,64 @@ The recommended reusable Windows build runs from the sibling backend checkout:
 
 ```powershell
 pnpm.cmd run desktop:build:licensed
-# Explicit default, if desired:
-$env:PLS_DESKTOP_GENERIC='true'
 ```
 
-Store `dist-electron/PLS-Setup-<version>-x64.exe` and distribute that same installer.
-The **GENERIC standalone** package contains a reviewed safe environment with signed
-mode, the issuer public key and a salted scrypt installation-password verifier, not a
-tenant, plaintext password, database/API/email secrets or license state.
-The issuer keypair is generated once/reused in a protected directory outside both
-repositories. No backend database lookup is needed during this build.
+Before building, provision the target facility database and finish its schema migrations,
+seeds and registry setup. The build resolves its tenant from the backend `.env` and uses
+the configured database connection. It packages a facility-specific desktop that starts
+both the backend and frontend against that existing database; it never provisions a
+database or creates a MySQL account. Generic standalone auto-provisioning is retired.
 
 Before a real release, configure a new installation password with the backend's
 `pnpm.cmd run desktop:configure-install-password` command. It uses a masked prompt and
-saves only an external verifier; the builder prompts if it is missing and reuses it later.
-Missing/invalid verifier configuration blocks generic runtime preparation/release.
-There is no password command-line argument or environment option.
+saves only an external verifier; the builder reuses it on later builds. The installer
+prompts for this authorization password. It is separate from MySQL credentials and
+signed device activation.
 
-First run opens trusted local setup before backend launch. Installation authorization
-comes first. Enter only the organization name, installation password and temporary
-**local MySQL 8.x administrator** host, port, username and password. MySQL must already
-be running; there is no universal administrator password. PLS automatically creates
-`Primelabsys`/control databases and a generated dedicated application account, installs the
-complete reviewed schema/routines, runs guarded migrations and reference/runtime seeds,
-and checks readiness. Tenant ID, control database and generated account fields are hidden.
-Existing unowned databases/accounts are refused rather than overwritten or adopted.
+The packaged backend connection settings are derived from `.env` and copied into the
+facility-specific desktop configuration. As a result, the installer/runtime contains
+database credentials; protect it as a secret and do not broadly distribute a package
+that contains a MySQL root password. Prefer a dedicated, least-privileged database user
+for a distributable release. On first launch the backend and frontend start directly;
+there is no database setup or provisioning screen.
 
-Each installation saves its settings at `app.getPath("userData")/config/installation.json`.
-Existing `backend.env` and licensing state are not overwritten. Application credentials
-and the durable retry state in `config/provisioning.json` use Electron safeStorage and
-restricted Windows ACLs; unavailable encryption blocks setup. Neither supplied password
-is stored/logged. Legacy JSON settings are migrated to encrypted storage compatibly.
-Passwords never reach the remote frontend or setup summary. Use native
-**Settings > Database setup** to reverify/retry an owned installation with restart
-confirmation. Keep recovery state after any failure; legacy installations require an
-administrator to restore their original configuration rather than replace their databases.
+The existing per-user configuration remains at
+`app.getPath("userData")/config/backend.env` across upgrades. An administrator may
+correct that configuration and restart PLS if connection details change. Do not use the
+desktop app to create databases or modify MySQL users/grants.
 
 See the backend [standalone installation guide](../lobnos-server/docs/standalone-installation.md)
 for baseline assets, privileges, retry semantics, validation and release prerequisites.
 
-Each device exports its own activation request and imports its own signed certificate
-bound to device, installation identity and local organization. Tenant query parameters
-cannot select another licensing identity. The package always pins signed mode/public key,
-and generic launch pins standalone mode with local single-organization routing. Do not
-automatically activate clients or copy another installation's `licensing` directory.
+Each device uses its own activation request and imports its own signed certificate
+bound to device, installation identity and configured facility. The package pins signed
+mode/public key. Do not copy another installation's `licensing` directory or certificate.
 
-For deliberate facility-specific backwards compatibility, use the backend command with
-`--facility-specific --tenant-id <ID>` (or `PLS_DESKTOP_GENERIC=false`) and review the
-facility env before packaging. Only literal `true`/`false` generic values are accepted.
-The generic build rejects local activation and tenant build options. No network license
-service, global activation count, or tamper-proof executable protection is claimed.
+The backend build resolves the facility tenant from the database registry. If needed,
+pass `--tenant-id <ID>` to explicitly pin the facility during the licensed build. No
+network license service, global activation count, or tamper-proof executable protection
+is claimed.
 
-The standalone desktop provides a **License** menu with **Export activation
-request** and **Import signed license** actions. These use native file dialogs
-and a backend CLI in the Electron main process; no license-management IPC or
-private signing key is exposed to the web renderer.
+The desktop hides its License and Settings menus from end users. For administrator
+activation, PLS creates `PLS-activation-request.json` in the per-user config folder.
+Send that file to the licensing administrator. To install the returned certificate,
+place it in the same folder as `PLS-signed-certificate.json` and restart PLS; it is
+validated and imported automatically. On Windows the default folder is
+`%APPDATA%\Prime Laboratory System\config`. The certificate file is removed after
+successful import; a rejected file is retained and the reason is recorded in
+`desktop.log`.
 
-For non-generic legacy/facility-specific profiles, set `PLS_LICENSE_TENANT_ID` in the standalone `backend.env` to the registered
-facility's numeric tenant ID. Configure `PLS_LICENSE_MODE=signed` and
+Configure `PLS_LICENSE_MODE=signed` and
 `PLS_LICENSE_PUBLIC_KEY` with the issuer's public Ed25519 PEM key (dotenv supports
 quoted `\n` escapes). Follow the backend's signed-licensing setup to generate the
-issuer key outside the customer installation. Export a request, send
-it to the licensing administrator, and import the signed JSON file they return.
-Restart PLS afterward. The existing database validity and grace-period rules
-continue to apply; importing a certificate does not bypass them.
+issuer key outside the customer installation. The signed certificate is JSON so its
+validity dates are readable, but changing any signed field invalidates its Ed25519
+signature; the dates cannot be extended by editing the file. The existing database
+validity and grace-period rules continue to apply independently.
 
 The backend workflow and issuer CLI commands are documented in the sibling
 backend's [offline licensing guide](../lobnos-server/docs/offline-licensing.md).
-Run `pnpm desktop:prepare` and build a new installer to include these controls;
-an already-installed older executable does not gain the License menu merely
-because the source code changed.
+Build a new installer to include the hidden file-based activation workflow.
 
 Desktop installation identity and license state are stored under the user's
 application-data `licensing` directory, not in the packaged runtime. Do not

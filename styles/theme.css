@@ -17,7 +17,7 @@
 
     --theme-sidebar-width: 248px;
     --theme-border-radius: 8px;
-    --theme-font-family: var(--font-raleway), var(--font-inter), 'Helvetica Neue', Arial, sans-serif;
+    --theme-font-family: var(--font-raleway), var(--font-open-sans), var(--font-candara), var(--font-segoe), sans-serif;
     --bs-body-font-family: var(--theme-font-family);
 
     --pls-primary: #2e7d32;

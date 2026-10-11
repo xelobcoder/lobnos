@@ -6,19 +6,10 @@ import Select from 'react-select';
 import { currencies } from '../../../../components/accessories/customizations/currencies';
 import { customPost, reactSelectCustomStyles } from '../../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
-import { applyApplicationSettingsToDocument } from '../../../../lib/themes';
+import { applyApplicationSettingsToDocument, availableFonts, DEFAULT_FONT_FAMILY, normalizeFontFamily } from '../../../../lib/themes';
 import { toast } from 'react-toastify';
 
-const fontFamilyOptions = [
-     { value: 'Arial, sans-serif', label: 'Arial' },
-     { value: 'Helvetica, sans-serif', label: 'Helvetica' },
-     { value: '"Times New Roman", serif', label: 'Times New Roman' },
-     { value: '"Courier New", monospace', label: 'Courier New' },
-     { value: '"Georgia", serif', label: 'Georgia' },
-     { value: '"Verdana", sans-serif', label: 'Verdana' },
-     { value: '"Trebuchet MS", sans-serif', label: 'Trebuchet MS' },
-     { value: '"Impact", sans-serif', label: 'Impact' },
-];
+const fontFamilyOptions = availableFonts.map(({ name, value }) => ({ value, label: name }));
 
 export default function ApplicationCustomizationClientLevel() {
      const { applicationsettings, setApplicationSettings } = useApplicationSettings();
@@ -27,7 +18,7 @@ export default function ApplicationCustomizationClientLevel() {
      const [customization, setCustomization] = useState({
           currency: 'GHS',
           decimalPlaces: 3,
-          fontFamily: 'Arial, sans-serif',
+          fontFamily: DEFAULT_FONT_FAMILY,
           fontsize: '15px',
           headerColor: '#ffffff',
           sidebarColor: '#27ae60',
@@ -46,7 +37,7 @@ export default function ApplicationCustomizationClientLevel() {
           if (!settings) return;
           setCustomization((current) => ({
                ...current,
-               fontFamily: settings.fontFamily || current.fontFamily,
+               fontFamily: normalizeFontFamily(settings.fontFamily || current.fontFamily),
                fontsize: settings.fontsize || current.fontsize,
                textColor: settings.textcolor || current.textColor,
                headerColor: settings.headerColor || current.headerColor,

@@ -4,8 +4,18 @@ const fs = require("node:fs");
 const { SetupError, facilityCodeBase } = require("./setup-config.cjs");
 const { writeProtected, readProtected, requireEncryption } = require("./secure-setup-store.cjs");
 
+// Everything except the installation authorization password is fixed/defaulted so the
+// customer never has to supply a database name, host, port, account, or admin credentials.
+// Organization name and the initial administrator login are simple defaults that can be
+// changed from within the application after first login.
+const DEFAULT_ORGANIZATION_NAME = "Prime Laboratory System";
+const DEFAULT_LOGIN_PASSWORD = "12345";
+const LOCAL_HOST = "127.0.0.1";
+const LOCAL_PORT = "2309";
+const LOCAL_ACCOUNT = "primelab";
+
 function validateInitialInput(input) {
-	const fields = ["organizationName", "installationPassword", "host", "port", "user", "password"];
+	const fields = ["installationPassword"];
 	if (!input || typeof input !== "object" || Array.isArray(input) ||
 		Object.keys(input).some(key => !fields.includes(key))) throw new SetupError("Invalid standalone setup fields.");
 	for (const field of fields) {
@@ -13,22 +23,17 @@ function validateInitialInput(input) {
 			throw new SetupError("Invalid standalone setup value.");
 		}
 	}
-	if (!input.organizationName.trim() || input.organizationName !== input.organizationName.trim() ||
-		input.organizationName.length > 100) throw new SetupError("Organization name must contain 1 to 100 characters.");
-	if (!["localhost", "127.0.0.1", "::1"].includes(input.host)) throw new SetupError("Automatic provisioning requires local loopback MySQL; remote hosts are refused.");
-	if (!/^[1-9]\d{0,4}$/.test(input.port) || Number(input.port) > 65535) throw new SetupError("Use a MySQL port from 1 to 65535.");
-	if (!input.user.trim()) throw new SetupError("A local MySQL administrator username is required.");
 	return input;
 }
-function newInstallation(input) {
+function newInstallation() {
 	const installationId = crypto.randomBytes(16).toString("hex");
 	const secret = () => crypto.randomBytes(32).toString("base64url");
 	const tenantId = String(crypto.randomInt(100000, 1000000));
 	return {
-		version: 1, installationId, organizationName: input.organizationName, host: input.host, port: input.port,
-		account: `pls_${installationId.slice(0, 20)}`, accountPassword: secret(),
-		tenantId, organizationId: `LOCAL${tenantId}`, facilityCode: facilityCodeBase(input.organizationName),
-		loginPassword: secret(), jwtSecret: secret(), windowKey: secret(), frontendJwtSecret: secret(),
+		version: 1, installationId, organizationName: DEFAULT_ORGANIZATION_NAME, host: LOCAL_HOST, port: LOCAL_PORT,
+		account: LOCAL_ACCOUNT, accountPassword: secret(),
+		tenantId, organizationId: `LOCAL${tenantId}`, facilityCode: facilityCodeBase(DEFAULT_ORGANIZATION_NAME),
+		loginPassword: DEFAULT_LOGIN_PASSWORD, jwtSecret: secret(), windowKey: secret(), frontendJwtSecret: secret(),
 	};
 }
 function applicationConfig(state) {
@@ -60,16 +65,15 @@ async function provisionStandalone({ input, gate, pendingFile, storage, run, per
 	try { gate.authorize(input?.installationPassword); } catch (error) { throw new SetupError(error.message); }
 	validateInitialInput(input);
 	requireEncryption(storage);
+	// A pending installation always has the same fixed organization/host/port/account, so
+	// any existing pending state is simply reused as-is to retry with the same credentials.
 	let state = fs.existsSync(pendingFile) ? load(pendingFile, storage) : null;
-	if (state && (state.organizationName !== input.organizationName || state.host !== input.host || state.port !== input.port)) {
-		throw new SetupError("A pending installation already owns these settings. Retry with its original organization and MySQL endpoint; do not replace existing databases.");
-	}
 	if (!state) {
-		state = newInstallation(input);
+		state = newInstallation();
 		// Persist generated credentials before any MySQL side effect, so retries use the same account.
 		persist(pendingFile, state, storage);
 	}
-	const result = await run({ state, admin: { host: input.host, port: Number(input.port), user: input.user, password: input.password } });
+	const result = await run({ state });
 	if (!result || result.ready !== true) throw new SetupError("Local database provisioning did not reach readiness.");
 	return { config: applicationConfig(state), adminUsername: `${state.organizationId}S001`, loginPassword: state.loginPassword };
 }

@@ -189,9 +189,9 @@ test("IPC accepts only local setup webContents, main frame and exact URL", () =>
 
 test("setup assets mask passwords and use local-only CSP and a narrow preload", () => {
 	const html = fs.readFileSync(path.join(__dirname, "setup.html"), "utf8");
-	assert.equal((html.match(/type="password"/g) || []).length, 2);
-	assert.match(html, /name="organizationName"/);
-	assert.doesNotMatch(html, /name="tenant"|numeric ID/i);
+	assert.equal((html.match(/type="password"/g) || []).length, 1);
+	assert.match(html, /name="installationPassword"/);
+	assert.doesNotMatch(html, /name="organizationName"|name="tenant"|numeric ID/i);
 	assert.match(html, /connect-src 'none'/);
 	assert.match(html, /script-src 'self'/);
 	assert.doesNotMatch(html, /unsafe-inline|https?:\/\//);

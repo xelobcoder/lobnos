@@ -43,7 +43,7 @@ function runProvisionCommand(backendDirectory, request, dependencies = {}) {
 				resolve({ ready: true });
 			} catch { fail(); }
 		});
-		// Local administrator credentials travel only over the anonymous stdin pipe.
+		// Provisioning state travels only over the anonymous stdin pipe.
 		child.stdin.end(JSON.stringify(request));
 	});
 }

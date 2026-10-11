@@ -6,7 +6,6 @@ const path = require("node:path");
 const { parse } = require("dotenv");
 const { pruneRuntimeSources } = require("./prune-runtime-sources.cjs");
 const { validateLicensePolicy } = require("../license-policy.cjs");
-const { assertGenericConfig, assertGenericReleaseConfig, removeStagedEnvironments } = require("../generic-config.cjs");
 
 const frontendRoot = path.resolve(__dirname, "..", "..");
 const backendRoot = path.resolve(
@@ -51,11 +50,10 @@ function copyDirectory(source, destination) {
 requirePath(path.join(backendRoot, "package.json"), "lobnos-server sibling project");
 const requestedBackendConfig = process.env.PLS_DESKTOP_BACKEND_ENV ||
 	path.join(frontendRoot, "desktop", "config", "backend.env");
-const genericBuild = fs.existsSync(requestedBackendConfig) &&
+const genericBuildRequested = fs.existsSync(requestedBackendConfig) &&
 	parse(fs.readFileSync(requestedBackendConfig, "utf8")).PLS_DESKTOP_GENERIC === "true";
-if (genericBuild) {
-	const config = parse(fs.readFileSync(requestedBackendConfig, "utf8"));
-	assertGenericReleaseConfig(config);
+if (genericBuildRequested) {
+	throw new Error("Generic standalone auto-provisioning has been retired. Provision the local database first and package a facility-specific desktop.");
 }
 
 if (!skipBuild) {
@@ -63,7 +61,6 @@ if (!skipBuild) {
 	run(pnpmCommand, ["run", "build"], frontendRoot, {
 		NODE_ENV: "production",
 		PRODUCTION_BASEURL: "http://127.0.0.1:2300/api/v1/",
-		...(genericBuild ? { PLS_DESKTOP_GENERIC: "true" } : {}),
 	});
 }
 
@@ -97,20 +94,6 @@ run(
 	backendRuntime,
 );
 copyDirectory(path.join(backendRoot, "dist"), path.join(backendRuntime, "dist"));
-if (genericBuild) {
-	const bootstrap = path.join(backendRoot, "dist", "src", "bootstrap");
-	require(path.join(bootstrap, "standalonePipeline.js")).verifyLocalPipelineAssets();
-	const structure = require(path.join(backendRoot, "dist", "src", "models", "Tenancy", "FacilityStructureExports.js")).loadFacilityStructureExports();
-	require(path.join(bootstrap, "standaloneProvisioning.js")).validateProvisionStructure(structure);
-	const catalog = require(path.join(backendRoot, "dist", "src", "models", "Tenancy", "FacilityCatalogSeeds.js")).loadFacilityCatalogSeeds();
-	const assets = path.join(backendRuntime, "db-exports", "primelabmaster");
-	copyDirectory(path.join(backendRoot, "db-exports", "primelabmaster", "tables-structure"), path.join(assets, "tables-structure"));
-	fs.mkdirSync(path.join(assets, "seeds"), { recursive: true });
-	for (const seed of catalog) {
-		const filename = `primelabmaster_${seed.table}.sql`;
-		fs.copyFileSync(path.join(backendRoot, "db-exports", "primelabmaster", "seeds", filename), path.join(assets, "seeds", filename));
-	}
-}
 if (fs.existsSync(path.join(backendRoot, "public"))) {
 	copyDirectory(path.join(backendRoot, "public"), path.join(backendRuntime, "public"));
 }
@@ -137,7 +120,6 @@ if (desktopMode !== "standalone" && desktopMode !== "facility") {
 	throw new Error("PLS_DESKTOP_MODE must be standalone or facility.");
 }
 const isFacilityMode = desktopMode === "facility";
-if (genericBuild && isFacilityMode) throw new Error("Generic installers must use standalone desktop mode.");
 if (isFacilityMode) {
 	if (!desktopConfig.PLS_FACILITY_URL) {
 		throw new Error(
@@ -168,7 +150,6 @@ if (/-----BEGIN (?:[A-Z]+ )*PRIVATE KEY-----/.test(backendConfigContent)) {
 	throw new Error("Backend installer configuration must never contain a license-signing private key.");
 }
 if (!isFacilityMode) {
-	if (parse(backendConfigContent).PLS_DESKTOP_GENERIC === "true") assertGenericConfig(parse(backendConfigContent));
 	if (validateLicensePolicy(parse(backendConfigContent)) === "signed") {
 		requirePath(path.join(backendRuntime, "dist", "src", "scripts", "license.js"), "Compiled signed licensing CLI");
 	}
@@ -193,19 +174,23 @@ fs.copyFileSync(
 	path.join(configRuntime, "desktop.env"),
 );
 
-run(
-	pnpmCommand,
-	[
-		"exec",
-		"electron-rebuild",
-		"--force",
-		"--only",
-		"bcrypt",
-		"--module-dir",
-		backendRuntime,
-	],
-	frontendRoot,
-);
+const bcryptModuleDir = path.join(backendRuntime, "node_modules", "bcrypt");
+const bcryptNativeBuildFile = path.join(bcryptModuleDir, "binding.gyp");
+if (fs.existsSync(bcryptNativeBuildFile)) {
+	run(
+		pnpmCommand,
+		[
+			"exec",
+			"electron-rebuild",
+			"--force",
+			"--only",
+			"bcrypt",
+			"--module-dir",
+			backendRuntime,
+		],
+		frontendRoot,
+	);
+}
 
 const backendNodeModules = path.join(backendRuntime, "node_modules");
 const backendVendor = path.join(backendRuntime, "vendor");
@@ -213,6 +198,5 @@ requirePath(backendNodeModules, "Backend production dependencies");
 fs.renameSync(backendNodeModules, backendVendor);
 pruneRuntimeSources(backendVendor);
 
-if (genericBuild) removeStagedEnvironments(runtimeRoot);
 run(process.execPath, [path.join(__dirname, "verify-runtime.cjs")], frontendRoot);
 process.stdout.write(`Desktop runtime prepared at ${runtimeRoot}\n`);

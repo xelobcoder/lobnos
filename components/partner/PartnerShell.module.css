@@ -11,7 +11,7 @@
      background-color: var(--partner-canvas);
      background-image: radial-gradient(circle at 1px 1px, rgba(23, 33, 38, 0.05) 1px, transparent 0);
      background-size: 22px 22px;
-     font-family: var(--font-lexend), sans-serif;
+     font-family: var(--theme-font-family, var(--font-open-sans));
 }
 
 .topbar {
@@ -153,7 +153,7 @@
      border: 1px solid var(--partner-line);
      border-radius: 3px;
      background: white;
-     font: 9px var(--font-lexend), sans-serif;
+     font: 9px var(--theme-font-family, var(--font-open-sans));
 }
 
 .iconButton {
