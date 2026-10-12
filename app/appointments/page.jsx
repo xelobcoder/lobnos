@@ -1,385 +1,409 @@
 'use client';
-import React, { useState, useEffect } from 'react';
-import { customFetch } from '../../components/Auth/customFetch';
-import Loader from '../../components/accessories/Loader';
-import { Modal, Button, Badge, Form } from 'react-bootstrap';
+
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import dayjs from 'dayjs';
+import moment from 'moment';
+import { Calendar, momentLocalizer } from 'react-big-calendar';
 import {
 	RiArrowLeftSLine,
 	RiArrowRightSLine,
+	RiCalendarCheckLine,
+	RiCalendarEventLine,
 	RiCloseLine,
-	RiEditLine,
-	RiAddLine,
-	RiSaveLine,
-	RiArrowGoForwardLine
+	RiSearchLine,
+	RiTimeLine,
+	RiUserLine,
 } from '@remixicon/react';
-import { EditIcon } from '../../components/Billing/BillingContextComponents/Lib/Icons';
-import { motion } from 'motion/react';
-import dayjs from 'dayjs';
-import 'dayjs/locale/en';
+import { customFetch } from '../../components/Auth/customFetch';
+import styles from './appointments.module.css';
 
-import AppointmentModal from '../../components/appointments/AppointmentModal';
+const calendarLocalizer = momentLocalizer(moment);
 
+const WORKFLOW_TYPES = [
+	{ value: 'all', label: 'All appointment types' },
+	{ value: 'consultation', label: 'Consultation' },
+	{ value: 'laboratory', label: 'Laboratory' },
+	{ value: 'ultrasound', label: 'Ultrasound' },
+	{ value: 'follow_up', label: 'CRM follow-up' },
+];
+
+function getAppointmentType(appointment) {
+	return String(appointment.appointment_type || appointment.type || 'consultation')
+		.toLowerCase()
+		.replace(/[\s-]+/g, '_');
+}
+
+function getTypeLabel(value) {
+	return WORKFLOW_TYPES.find((item) => item.value === value)?.label || 'Consultation';
+}
+
+function getAppointmentDate(appointment) {
+	return dayjs(String(appointment.appointment_date || '').slice(0, 10));
+}
+
+function formatTime(value) {
+	if (!value) return 'Time not set';
+	const parsed = dayjs(`2000-01-01T${value}`);
+	return parsed.isValid() ? parsed.format('h:mm A') : value;
+}
+
+function getPatientName(appointment) {
+	if (!appointment.patientid && appointment.lead_id) {
+		const leadName = [appointment.lead_firstname, appointment.lead_lastname].filter(Boolean).join(' ').trim();
+		return leadName || appointment.lead_name || appointment.lead_company || `Lead #${appointment.lead_id}`;
+	}
+	const name = [
+		appointment.designation,
+		appointment.firstname,
+		appointment.middlename,
+		appointment.lastname,
+	].filter(Boolean).join(' ').trim();
+	return name || (appointment.patientid ? `Patient #${appointment.patientid}` : 'Patient not assigned');
+}
+
+function getWorkflowPath(appointment) {
+	const type = getAppointmentType(appointment);
+	let path = '';
+	if (type === 'laboratory') path = '/operations/laboratory';
+	if (type === 'ultrasound') path = '/operations/imaging/ultrasound';
+	if (type === 'follow_up' && appointment.lead_id) return `/crm/leads/followups/${appointment.lead_id}`;
+	if (!path) return '';
+	const params = new URLSearchParams();
+	if (appointment.patientid) params.set('patientid', appointment.patientid);
+	if (appointment.billingid) params.set('billingid', appointment.billingid);
+	return params.size ? `${path}?${params.toString()}` : path;
+}
+
+function CalendarToolbar({ label, onNavigate, onView, view }) {
+	return (
+		<div className={styles.toolbar}>
+			<div className={styles.periodControls}>
+				<button type="button" className={styles.todayButton} onClick={() => onNavigate('TODAY')}>Today</button>
+				<button type="button" className={styles.iconButton} onClick={() => onNavigate('PREV')} aria-label="Previous period">
+					<RiArrowLeftSLine size={20} />
+				</button>
+				<button type="button" className={styles.iconButton} onClick={() => onNavigate('NEXT')} aria-label="Next period">
+					<RiArrowRightSLine size={20} />
+				</button>
+				<h2>{label}</h2>
+			</div>
+			<div className={styles.viewSwitch} role="group" aria-label="Calendar view">
+				{[['month', 'Month'], ['week', 'Week'], ['day', 'Day'], ['agenda', 'Agenda']].map(([value, text]) => (
+					<button key={value} type="button" aria-pressed={view === value} className={view === value ? styles.viewActive : ''} onClick={() => onView(value)}>{text}</button>
+				))}
+			</div>
+		</div>
+	);
+}
+
+function CalendarEvent({ event }) {
+	const type = getAppointmentType(event.appointment);
+	return (
+		<div className={`${styles.calendarEvent} ${styles[`event_${type}`] || styles.event_consultation}`}>
+			<strong>{event.title}</strong>
+			<span>{getPatientName(event.appointment)}</span>
+		</div>
+	);
+}
 
 export default function Appointment() {
 	const [appointments, setAppointments] = useState([]);
-	const [isDataLoading, setDataLoading] = useState(true);
-	const [currentDate, setCurrentDate] = useState(new Date());
-	const [selectedDate, setSelectedDate] = useState(null);
-	const [showModal, setShowModal] = useState(false);
-	const [selectedAppointments, setSelectedAppointments] = useState([]);
-	const [editedAppointments, setEditedAppointments] = useState([]);
-	const [viewMode, setViewMode] = useState('Month');
-	const [modalMode, setModalMode] = useState('view');
+	const [isLoading, setIsLoading] = useState(true);
+	const [loadError, setLoadError] = useState('');
+	const [currentDate, setCurrentDate] = useState(dayjs());
+	const [selectedDate, setSelectedDate] = useState(dayjs().format('YYYY-MM-DD'));
+	const [viewMode, setViewMode] = useState('month');
+	const [visibleRange, setVisibleRange] = useState(() => ({
+		start: dayjs().startOf('month').startOf('week').format('YYYY-MM-DD'),
+		end: dayjs().endOf('month').endOf('week').format('YYYY-MM-DD'),
+	}));
+	const [typeFilter, setTypeFilter] = useState('all');
+	const [statusFilter, setStatusFilter] = useState('all');
+	const [search, setSearch] = useState('');
+	const [selectedAppointment, setSelectedAppointment] = useState(null);
+
+	const fetchAppointments = useCallback(async () => {
+		setIsLoading(true);
+		setLoadError('');
+		try {
+			const response = await customFetch(`appointments/month?startDate=${visibleRange.start}&endDate=${visibleRange.end}`);
+			if (!Array.isArray(response)) {
+				throw new Error('The appointments service returned an invalid response.');
+			}
+			setAppointments(response);
+		} catch (error) {
+			console.error('Unable to load appointment calendar:', error);
+			setAppointments([]);
+			setLoadError('Appointments could not be loaded. Check your connection and try again.');
+		} finally {
+			setIsLoading(false);
+		}
+	}, [visibleRange]);
 
 	useEffect(() => {
-		const fetchAppointments = async () => {
-			try {
-				const currentMonth = currentDate.getMonth() + 1;
-				const response = await customFetch(`appointments/month?month=${currentMonth}`);
-				if (Array.isArray(response) && response.length > 0) {
-					setAppointments(response);
-				} else {
-					setAppointments([]);
-				}
-			} catch (error) {
-				console.error('Error fetching appointments:', error);
-				setAppointments([]);
-			} finally {
-				setDataLoading(false);
-			}
-		};
 		fetchAppointments();
-	}, [currentDate]);
+	}, [fetchAppointments]);
 
-	// Adjust view mode based on screen width for responsiveness
-	useEffect(() => {
-		const handleResize = () => {
-			if (window.innerWidth < 768) {
-				// For small screens, switch to a simpler view
-				setViewMode('Day');
-			} else {
-				setViewMode('Month');
-			}
-		};
-		window.addEventListener('resize', handleResize);
-		handleResize(); // Set initial view mode
-		return () => window.removeEventListener('resize', handleResize);
-	}, []);
-
-	const navigateToPreviousMonth = () => {
-		const newDate = new Date(currentDate);
-		newDate.setMonth(currentDate.getMonth() - 1);
-		setCurrentDate(newDate);
-		setDataLoading(true);
-	};
-
-	const navigateToNextMonth = () => {
-		const newDate = new Date(currentDate);
-		newDate.setMonth(currentDate.getMonth() + 1);
-		setCurrentDate(newDate);
-		setDataLoading(true);
-	};
-
-	const navigateToToday = () => {
-		setCurrentDate(new Date());
-		setDataLoading(true);
-	};
-
-	const generateCalendarDays = () => {
-		const year = currentDate.getFullYear();
-		const month = currentDate.getMonth();
-		const firstDayOfMonth = new Date(year, month, 1);
-		const dayOfWeek = firstDayOfMonth.getDay();
-		const lastDayOfMonth = new Date(year, month + 1, 0);
-		const daysInMonth = lastDayOfMonth.getDate();
-		const prevMonthDays = [];
-		if (dayOfWeek > 0) {
-			const prevMonth = new Date(year, month, 0);
-			const prevMonthDaysCount = prevMonth.getDate();
-			for (let i = dayOfWeek - 1; i >= 0; i--) {
-				prevMonthDays.push({ date: new Date(year, month - 1, prevMonthDaysCount - i), isCurrentMonth: false });
-			}
-		}
-		const currentMonthDays = [];
-		for (let i = 1; i <= daysInMonth; i++) {
-			currentMonthDays.push({ date: new Date(year, month, i), isCurrentMonth: true });
-		}
-		const totalDaysDisplayed = prevMonthDays.length + currentMonthDays.length;
-		const remainingCells = Math.ceil(totalDaysDisplayed / 7) * 7 - totalDaysDisplayed;
-		const nextMonthDays = [];
-		for (let i = 1; i <= remainingCells; i++) {
-			nextMonthDays.push({ date: new Date(year, month + 1, i), isCurrentMonth: false });
-		}
-		return [...prevMonthDays, ...currentMonthDays, ...nextMonthDays];
-	};
-
-	const getWeekViewDays = () => {
-		const current = new Date(currentDate);
-		const dayIndex = current.getDay();
-		const sunday = new Date(current);
-		sunday.setDate(current.getDate() - dayIndex);
-		const days = [];
-		for (let i = 0; i < 7; i++) {
-			const d = new Date(sunday);
-			d.setDate(sunday.getDate() + i);
-			days.push({ date: d, isCurrentMonth: d.getMonth() === currentDate.getMonth() });
-		}
-		return days;
-	};
-
-	const getFiveDaysView = () => {
-		const days = [];
-		const start = new Date(currentDate);
-		for (let i = 0; i < 5; i++) {
-			const d = new Date(start);
-			d.setDate(start.getDate() + i);
-			days.push({ date: d, isCurrentMonth: d.getMonth() === currentDate.getMonth() });
-		}
-		return days;
-	};
-
-	const getDayView = () => {
-		return [{ date: new Date(currentDate), isCurrentMonth: true }];
-	};
-
-	const getViewDays = () => {
-		if (viewMode === 'Month') {
-			return { days: generateCalendarDays(), columns: 7, isGrid: true };
-		} else if (viewMode === 'Week') {
-			return { days: getWeekViewDays(), columns: 7, isGrid: false };
-		} else if (viewMode === '5 Days') {
-			return { days: getFiveDaysView(), columns: 5, isGrid: false };
-		} else if (viewMode === 'Day') {
-			return { days: getDayView(), columns: 1, isGrid: false };
-		}
-		return { days: [], columns: 0, isGrid: false };
-	};
-
-	const getAppointmentsForDay = (day) => {
-		if (!appointments || appointments.length === 0) return [];
-		return appointments.filter(appointment => {
-			const appointmentDate = new Date(appointment.appointment_date);
-			return (
-				appointmentDate.getDate() === day.date.getDate() &&
-				appointmentDate.getMonth() === day.date.getMonth() &&
-				appointmentDate.getFullYear() === day.date.getFullYear()
-			);
+	const visibleAppointments = useMemo(() => {
+		const query = search.trim().toLowerCase();
+		return appointments.filter((appointment) => {
+			const typeMatches = typeFilter === 'all' || getAppointmentType(appointment) === typeFilter;
+			const status = String(appointment.status || 'pending').toLowerCase();
+			const statusMatches = statusFilter === 'all' || status === statusFilter;
+			const searchMatches = !query || [
+				appointment.title,
+				appointment.purpose,
+				appointment.firstname,
+				appointment.lastname,
+				appointment.practioner_name,
+				appointment.lead_name,
+				appointment.lead_company,
+			].some((value) => String(value || '').toLowerCase().includes(query));
+			return typeMatches && statusMatches && searchMatches;
 		});
+	}, [appointments, typeFilter, statusFilter, search]);
+
+	const selectedDayAppointments = useMemo(() => visibleAppointments
+		.filter((appointment) => getAppointmentDate(appointment).format('YYYY-MM-DD') === selectedDate)
+		.sort((left, right) => String(left.appointment_time || '').localeCompare(String(right.appointment_time || ''))),
+	[visibleAppointments, selectedDate]);
+
+	const appointmentsByDay = useMemo(() => {
+		const byDay = new Map();
+		visibleAppointments.forEach((appointment) => {
+			const date = getAppointmentDate(appointment);
+			if (!date.isValid()) return;
+			const key = date.format('YYYY-MM-DD');
+			byDay.set(key, [...(byDay.get(key) || []), appointment]);
+		});
+		return byDay;
+	}, [visibleAppointments]);
+	const calendarEvents = useMemo(() => visibleAppointments.flatMap((appointment) => {
+		const date = getAppointmentDate(appointment);
+		if (!date.isValid()) return [];
+		const time = String(appointment.appointment_time || '09:00').slice(0, 8);
+		const parsedStart = moment(`${date.format('YYYY-MM-DD')} ${time}`, [
+			'YYYY-MM-DD HH:mm:ss',
+			'YYYY-MM-DD HH:mm',
+			'YYYY-MM-DD H:mm',
+		], true);
+		if (!parsedStart.isValid()) return [];
+		const start = parsedStart.toDate();
+		const duration = Math.max(5, Number(appointment.duration) || 30);
+		return [{
+			title: appointment.title || getTypeLabel(getAppointmentType(appointment)),
+			start,
+			end: moment(start).add(duration, 'minutes').toDate(),
+			appointment,
+		}];
+	}), [visibleAppointments]);
+
+	const pendingAppointments = visibleAppointments.filter((appointment) =>
+		['pending', 'scheduled'].includes(String(appointment.status || 'pending').toLowerCase()),
+	);
+	const nextAppointment = [...visibleAppointments]
+		.filter((appointment) => getAppointmentDate(appointment).isSame(dayjs(), 'day') || getAppointmentDate(appointment).isAfter(dayjs(), 'day'))
+		.sort((left, right) => {
+			const leftDate = `${left.appointment_date} ${left.appointment_time || ''}`;
+			const rightDate = `${right.appointment_date} ${right.appointment_time || ''}`;
+			return leftDate.localeCompare(rightDate);
+		})[0];
+
+	const openAppointment = (appointment) => {
+		setSelectedAppointment(appointment);
+		setSelectedDate(getAppointmentDate(appointment).format('YYYY-MM-DD'));
 	};
 
-	const formatTime = (timeString) => {
-		if (!timeString) return '';
-		if (timeString.includes('AM') || timeString.includes('PM')) return timeString;
-		const [hours, minutes] = timeString.split(':');
-		const hourNum = parseInt(hours, 10);
-		if (hourNum === 0) return `12:${minutes} AM`;
-		else if (hourNum < 12) return `${hourNum}:${minutes} AM`;
-		else if (hourNum === 12) return `12:${minutes} PM`;
-		else return `${hourNum - 12}:${minutes} PM`;
+	const openBooking = () => {
+		const params = new URLSearchParams({ appointment_date: selectedDate });
+		if (typeFilter !== 'all') params.set('appointment_type', typeFilter);
+		window.location.href = `/appointments/book?${params.toString()}`;
 	};
-
-	const handleDayClick = (day) => {
-		const dayAppointments = getAppointmentsForDay(day);
-		setSelectedDate(day.date);
-		setSelectedAppointments(dayAppointments);
-		setEditedAppointments(dayAppointments.map(appt => ({ ...appt })));
-		setShowModal(true);
-		setModalMode('view');
-	};
-
-	const getMonthName = (date) => {
-		return date.toLocaleString('default', { month: 'long' });
-	};
-
-	const getStatusColor = (status) => {
-		switch (status) {
-			case 'Confirmed': return 'success';
-			case 'Pending': return 'warning';
-			case 'Cancelled': return 'danger';
-			default: return 'secondary';
-		}
-	};
-
-	// Wrap each day cell with Framer Motion for animation
-	const renderDayCell = (day, index) => {
-		const dayAppointments = getAppointmentsForDay(day);
-		const today = new Date();
-		const isToday =
-			day.date.getDate() === today.getDate() &&
-			day.date.getMonth() === today.getMonth() &&
-			day.date.getFullYear() === today.getFullYear();
-		const isSelected =
-			selectedDate &&
-			day.date.getDate() === selectedDate.getDate() &&
-			day.date.getMonth() === selectedDate.getMonth() &&
-			day.date.getFullYear() === selectedDate.getFullYear();
-		let cellClasses = "position-relative p-2 day-cell";
-		if (!day.isCurrentMonth) cellClasses += " text-muted bg-light";
-		if (isToday) cellClasses += " bg-primary bg-opacity-10";
-		if (isSelected) cellClasses += " border-primary border-2";
-		return (
-			<motion.div
-				key={day.date.toString()}
-				className={cellClasses}
-				onClick={() => handleDayClick(day)}
-				style={{
-					height: "120px",
-					cursor: "pointer",
-					overflow: "hidden",
-					border: "1px solid #eee"
-				}}
-				initial={{ opacity: 0, y: 20 }}
-				animate={{ opacity: 1, y: 0 }}
-				transition={{ duration: 0.3, delay: index * 0.05 }}
-			>
-				<div className="d-flex justify-content-between align-items-center mb-1">
-					<span
-						className={isToday ? 'badge bg-primary rounded-circle' : ''}
-						style={{
-							width: isToday ? '24px' : 'auto',
-							height: isToday ? '24px' : 'auto',
-							display: isToday ? 'flex' : 'inline',
-							alignItems: isToday ? 'center' : 'initial',
-							justifyContent: isToday ? 'center' : 'initial'
-						}}
-					>
-						{day.date.getDate()}
-					</span>
-				</div>
-				<div className="mt-1 d-flex flex-column gap-1">
-					{dayAppointments.slice(0, 3).map((appointment, idx) => {
-						const statusColor = getStatusColor(appointment.status);
-						return (
-							<div
-								key={idx}
-								className="d-flex align-items-center small py-0 px-1 text-truncate"
-								title={appointment.title}
-								style={{
-									borderLeft: `3px solid var(--bs-${statusColor})`,
-									backgroundColor: `var(--bs-${statusColor}-bg-subtle)`
-								}}
-							>
-								<div className="ms-1">
-									{formatTime(appointment.appointment_time).split(' ')[0]} · {appointment.title}
-								</div>
-							</div>
-						);
-					})}
-					{dayAppointments.length > 3 && (
-						<div className="small text-muted ps-1">
-							+ {dayAppointments.length - 3} more
-						</div>
-					)}
-				</div>
-			</motion.div>
-		);
-	};
-
-	const handleCloseModal = () => setShowModal(false);
-
-	const handleEditChange = (index, field, value) => {
-		const updated = [...editedAppointments];
-		updated[index] = { ...updated[index], [field]: value };
-		setEditedAppointments(updated);
-	};
-
-	const handleSaveChanges = () => {
-		console.log('Saving changes', editedAppointments);
-		setSelectedAppointments(editedAppointments);
-		setModalMode('view');
-	};
-
-	const handleCancelEdit = () => {
-		setEditedAppointments(selectedAppointments.map(appt => ({ ...appt })));
-		setModalMode('view');
-	};
-
-	if (isDataLoading) return <Loader />;
-	const { days } = getViewDays();
-	const weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
 	return (
-		<div className="p-3 container-fluid">
-			<section className="d-flex justify-content-between align-items-center mb-3">
-				<h4>Appointments</h4>
-				<Button onClick={() => window.open('/appointments/book')} variant="primary" size="sm" className="d-flex align-items-center">
-					<i className="bi bi-plus-circle me-1"></i>New Appointment
-				</Button>
-			</section>
-			<div className="border p-2">
-				<div className="card-header d-flex justify-content-between align-items-center br-5 bg-secondary-subtle p-3">
-					<h5 className="mb-0">{getMonthName(currentDate)} {currentDate.getFullYear()}</h5>
-					<div className="d-flex gap-2">
-						<div className="btn-group">
-							<Button onClick={navigateToPreviousMonth} variant="danger" size="sm" aria-label="Previous month">
-								<RiArrowLeftSLine />
-							</Button>
-							<Button onClick={navigateToToday} variant="danger" size="sm">Today</Button>
-							<Button onClick={navigateToNextMonth} variant="danger" size="sm" aria-label="Next month">
-								<RiArrowRightSLine />
-							</Button>
-							<Button onClick={navigateToNextMonth} variant="danger" size="sm" aria-label="Next month">
-								<RiArrowGoForwardLine />
-							</Button>
-						</div>
-						<div className="btn-group">
-							<Button variant={viewMode === 'Day' ? 'primary' : 'outline-primary'} size="sm" onClick={() => setViewMode('Day')}>Day</Button>
-							<Button variant={viewMode === '5 Days' ? 'primary' : 'outline-primary'} size="sm" onClick={() => setViewMode('5 Days')}>5 Days</Button>
-							<Button variant={viewMode === 'Week' ? 'primary' : 'outline-primary'} size="sm" onClick={() => setViewMode('Week')}>Week</Button>
-							<Button variant={viewMode === 'Month' ? 'primary' : 'outline-primary'} size="sm" onClick={() => setViewMode('Month')}>Month</Button>
-						</div>
-					</div>
+		<div className={styles.page}>
+			<div className={styles.heading}>
+				<div>
+					<div className={styles.eyebrow}>CARE COORDINATION</div>
+					<h1>Appointments</h1>
+					<p>Schedule and coordinate patient visits, diagnostics, imaging and follow-ups.</p>
 				</div>
-				<div className="card-body p-0">
-					{viewMode === 'Month' ? (
-						<>
-							<div className="row g-0 text-center bg-light border-bottom">
-								{weekdays.map(day => (
-									<div key={day} className="col p-2 fw-bold small">{day}</div>
-								))}
+				<button type="button" className={styles.primaryAction} onClick={openBooking}>
+					<RiCalendarEventLine size={18} />
+					New appointment
+				</button>
+			</div>
+
+			<div className={styles.summaryGrid}>
+				<article className={styles.summaryCard}>
+					<span className={styles.summaryIcon}><RiCalendarCheckLine size={18} /></span>
+					<div><span>Selected day</span><strong>{selectedDayAppointments.length}</strong></div>
+					<small>{dayjs(selectedDate).format('ddd, D MMM')}</small>
+				</article>
+				<article className={styles.summaryCard}>
+					<span className={`${styles.summaryIcon} ${styles.summaryIconPending}`}><RiTimeLine size={18} /></span>
+					<div><span>Needs confirmation</span><strong>{pendingAppointments.length}</strong></div>
+					<small>pending</small>
+				</article>
+				<article className={`${styles.summaryCard} ${styles.nextSummaryCard}`}>
+					<span className={`${styles.summaryIcon} ${styles.summaryIconNext}`}><RiUserLine size={18} /></span>
+					<div>
+						<span>Next appointment</span>
+						<strong>{nextAppointment ? getPatientName(nextAppointment) : 'Nothing scheduled'}</strong>
+					</div>
+					<small>{nextAppointment ? `${getAppointmentDate(nextAppointment).format('D MMM')} · ${formatTime(nextAppointment.appointment_time)}` : 'You are all caught up'}</small>
+				</article>
+			</div>
+
+			{loadError && (
+				<div className={styles.errorBanner} role="alert">
+					<span>{loadError}</span>
+					<button type="button" onClick={fetchAppointments}>Try again</button>
+				</div>
+			)}
+
+			<div className={styles.workspace}>
+				<section className={styles.calendarPanel} aria-label="Appointment calendar">
+					<div className={styles.filters}>
+						<label className={styles.searchBox}>
+							<RiSearchLine size={17} aria-hidden="true" />
+							<input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search patients, appointments…" aria-label="Search appointments" />
+							{search && <button type="button" onClick={() => setSearch('')} aria-label="Clear search"><RiCloseLine size={16} /></button>}
+						</label>
+						<select value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)} aria-label="Filter by appointment type">
+							{WORKFLOW_TYPES.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
+						</select>
+						<select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} aria-label="Filter by status">
+							<option value="all">All statuses</option>
+							<option value="pending">Pending</option>
+							<option value="confirmed">Confirmed</option>
+							<option value="cancelled">Cancelled</option>
+						</select>
+					</div>
+
+					<div className={styles.calendarCanvas}>
+						<Calendar
+							localizer={calendarLocalizer}
+							events={calendarEvents}
+							date={currentDate.toDate()}
+							view={viewMode}
+							views={['month', 'week', 'day', 'agenda']}
+							onNavigate={(date) => {
+								const nextDate = dayjs(date);
+								setCurrentDate(nextDate);
+								setSelectedDate(nextDate.format('YYYY-MM-DD'));
+								setSelectedAppointment(null);
+							}}
+							onView={(nextView) => setViewMode(nextView)}
+							onRangeChange={(range) => {
+								const start = Array.isArray(range) ? range[0] : range.start;
+								const end = Array.isArray(range) ? range[range.length - 1] : range.end;
+								if (!start || !end) return;
+								setVisibleRange({
+									start: dayjs(start).format('YYYY-MM-DD'),
+									end: dayjs(end).format('YYYY-MM-DD'),
+								});
+							}}
+							onSelectEvent={(event) => openAppointment(event.appointment)}
+							onSelectSlot={({ start }) => {
+								const nextDate = dayjs(start);
+								setSelectedDate(nextDate.format('YYYY-MM-DD'));
+								setSelectedAppointment(null);
+							}}
+							onDrillDown={(date) => {
+								const nextDate = dayjs(date);
+								setCurrentDate(nextDate);
+								setSelectedDate(nextDate.format('YYYY-MM-DD'));
+								setViewMode('day');
+								setSelectedAppointment(null);
+							}}
+							selectable
+							popup
+							components={{
+								toolbar: CalendarToolbar,
+								event: CalendarEvent,
+							}}
+							eventPropGetter={(event) => ({
+								className: `${styles.calendarEventShell} ${styles[`eventShell_${getAppointmentType(event.appointment)}`] || styles.eventShell_consultation}`,
+							})}
+							dayPropGetter={(date) => ({
+								className: [
+									dayjs(date).isSame(dayjs(), 'day') ? styles.calendarToday : '',
+									dayjs(date).format('YYYY-MM-DD') === selectedDate ? styles.calendarSelectedDay : '',
+								].filter(Boolean).join(' '),
+							})}
+							messages={{
+								noEventsInRange: 'No appointments scheduled for this period.',
+								showMore: (count) => `+${count} more`,
+							}}
+						/>
+					</div>
+					{isLoading && <div className={styles.loadingOverlay} role="status">Updating appointments…</div>}
+				</section>
+
+				<aside className={styles.agenda} aria-label="Selected day agenda">
+					<div className={styles.agendaHeader}>
+						<div>
+							<span className={styles.agendaEyebrow}>DAY AGENDA</span>
+							<h2>{dayjs(selectedDate).format('dddd, MMMM D')}</h2>
+						</div>
+						<button type="button" className={styles.agendaAdd} onClick={openBooking} aria-label="Add appointment"><span>+</span></button>
+					</div>
+					<div className={styles.agendaCount}>{selectedDayAppointments.length} {selectedDayAppointments.length === 1 ? 'appointment' : 'appointments'}</div>
+					<div className={styles.agendaList}>
+						{selectedDayAppointments.length === 0 ? (
+							<div className={styles.emptyAgenda}>
+								<span className={styles.emptyIcon}><RiCalendarEventLine size={22} /></span>
+								<strong>Your day is clear</strong>
+								<p>No appointments for this date yet.</p>
+								<button type="button" onClick={openBooking}>Schedule a visit</button>
 							</div>
-							<div className="row g-0">
-								{days.reduce((rows, day, index) => {
-									if (index % 7 === 0) rows.push([]);
-									rows[rows.length - 1].push(day);
-									return rows;
-								}, []).map((week, weekIndex) => (
-									<div key={weekIndex} className="row g-0">
-										{week.map((day, dayIndex) => (
-											<div key={dayIndex} className="col" style={{ minWidth: "14.28%" }}>
-												{renderDayCell(day, dayIndex)}
-											</div>
-										))}
-									</div>
-								))}
+						) : selectedDayAppointments.map((appointment) => {
+							const type = getAppointmentType(appointment);
+							const status = String(appointment.status || 'pending').toLowerCase();
+							const isActive = selectedAppointment?.refid === appointment.refid;
+							return (
+								<button type="button" key={appointment.refid} className={`${styles.agendaItem} ${isActive ? styles.agendaItemActive : ''}`} onClick={() => openAppointment(appointment)}>
+									<span className={`${styles.agendaTimeline} ${styles[`eventBorder_${type}`] || styles.eventBorder_consultation}`} />
+									<span className={styles.agendaItemContent}>
+										<span className={styles.agendaTime}>{formatTime(appointment.appointment_time)} <span>{appointment.duration ? `${appointment.duration} min` : ''}</span></span>
+										<strong>{appointment.title || getTypeLabel(type)}</strong>
+										<span className={styles.agendaPatient}>{getPatientName(appointment)}</span>
+										<span className={styles.agendaMeta}>
+											<span className={`${styles.typeTag} ${styles[`event_${type}`] || styles.event_consultation}`}>{getTypeLabel(type)}</span>
+											<span className={`${styles.statusTag} ${styles[`status_${status}`] || ''}`}>{appointment.status || 'Pending'}</span>
+										</span>
+										{(appointment.practioner_name || appointment.practioner) && <span className={styles.practitioner}>With {appointment.practioner_name || appointment.practioner}</span>}
+									</span>
+								</button>
+							);
+						})}
+					</div>
+					{selectedAppointment && (
+						<div className={styles.detailCard}>
+							<div className={styles.detailTopline}>
+								<span>APPOINTMENT DETAILS</span>
+								<button type="button" onClick={() => setSelectedAppointment(null)} aria-label="Close appointment details"><RiCloseLine size={17} /></button>
 							</div>
-						</>
-					) : (
-						<div className="row g-0">
-							{days.map((day, index) => (
-								<div key={index} className="col p-2" style={{ minWidth: `${100 / weekdays.length}%` }}>
-									<div className="text-center fw-bold mb-2">{day.date.getDate()}</div>
-									{renderDayCell(day, index)}
-								</div>
-							))}
+							<strong>{selectedAppointment.title || getTypeLabel(getAppointmentType(selectedAppointment))}</strong>
+							<p>{selectedAppointment.purpose || 'No additional details provided.'}</p>
+							<div><RiTimeLine size={15} /> {formatTime(selectedAppointment.appointment_time)}{selectedAppointment.duration ? ` · ${selectedAppointment.duration} minutes` : ''}</div>
+							<div><RiUserLine size={15} /> {getPatientName(selectedAppointment)}</div>
+							{selectedAppointment.location && <small>{selectedAppointment.location}</small>}
+							{getWorkflowPath(selectedAppointment) && (
+								<a className={styles.workflowLink} href={getWorkflowPath(selectedAppointment)}>
+									Open {getTypeLabel(getAppointmentType(selectedAppointment)).toLowerCase()} workflow
+								</a>
+							)}
 						</div>
 					)}
-				</div>
+				</aside>
 			</div>
-			<AppointmentModal
-				show={showModal}
-				onHide={handleCloseModal}
-				selectedDate={selectedDate}
-				selectedAppointments={selectedAppointments}
-				editedAppointments={editedAppointments}
-				modalMode={modalMode}
-				setModalMode={setModalMode}
-				handleEditChange={handleEditChange}
-				handleSaveChanges={handleSaveChanges}
-				handleCancelEdit={handleCancelEdit}
-				formatTime={formatTime}
-				getStatusColor={getStatusColor}
-			/>
+			<div className={styles.legend} aria-label="Appointment type legend">
+				{WORKFLOW_TYPES.filter((type) => type.value !== 'all').map((type) => (
+					<span key={type.value}><i className={styles[`legend_${type.value}`]} />{type.label}</span>
+				))}
+			</div>
 		</div>
 	);
 }

@@ -37,7 +37,11 @@ export default function MAIN_LAYOUT({ children }) {
                }
 
                if (!authenticatedUser) throw new Error('Application context was not returned');
-               const freshSettings = { user: authenticatedUser, settings };
+               const freshSettings = {
+                    ...user,
+                    user: authenticatedUser,
+                    settings,
+               };
                setApplicationSettings(freshSettings);
                if (typeof window !== 'undefined') {
                     localStorage.setItem('applicationsettings', JSON.stringify(freshSettings));

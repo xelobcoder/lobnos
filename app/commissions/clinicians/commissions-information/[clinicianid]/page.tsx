@@ -1,579 +1,217 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
-import Link from 'next/link';
-import styles from '../CommissionReport.module.css';
-import { RiUserLine, RiPhoneLine, RiMoneyDollarCircleLine, RiServiceLine, RiFileList3Line } from "@remixicon/react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import dayjs from "dayjs";
-import { Button, Modal, Form } from "react-bootstrap";
+import { Button, Form, Modal } from "react-bootstrap";
 import { toast } from "react-toastify";
-import { customPost, currencyFormatter, customFetch } from "../../../../../components/Auth/customFetch";
+import { RiMoneyDollarCircleLine, RiServiceLine, RiFileList3Line } from "@remixicon/react";
+import { customFetch, customPost, currencyFormatter } from "../../../../../components/Auth/customFetch";
 import { useApplication } from "../../../../../components/Auth/useApplicationContext";
-import DateFilterReusable from "../../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
+import PrimeTable from "../../../../../components/accessories/Datatables/PrimeTable";
+import { ErrorState, LoadingState, PeriodFilter, SummaryMetric, TableCell } from "../ClinicianUi";
 import CommissionLineChart from "../CommissionLineChart";
 import CommissionDetailsModal from "./components/CommissionDetailsModal";
+import styles from "../CommissionReport.module.css";
 
 interface CommissionData {
-	service_date: string;
-	clinician_id: number;
-	clinician_name: string;
-	clinician_phone: string;
-	occupation: string | null;
-	organization: number | null;
-	total_services: number;
-	earned_revenue?: string;
-	cash_collected?: string;
-	total_payable?: string;
-	total_paid?: string;
-	serviceid: number;
-	commission_earned: string;
+    service_date: string;
+    clinician_id: number;
+    clinician_name: string;
+    clinician_phone: string;
+    occupation: string | null;
+    organization: number | null;
+    total_services: number;
+    earned_revenue?: string;
+    cash_collected?: string;
+    total_payable?: string;
+    total_paid?: string;
+    serviceid: number;
+    commission_earned: string;
 }
-
-interface ClinicianInfo {
-	clinician_name?: string;
-	name?: string;
-	clinician_phone?: string;
-	phone?: string;
-	occupation?: string | null;
+interface ClinicianInfo { clinician_name?: string; name?: string; clinician_phone?: string; phone?: string; occupation?: string | null }
+interface CommissionPayment {
+    id: number; batch_payment_id: number; serviceid: number; commission_due: string;
+    amount_allocated: string; waived_amount: string; status: string; created_at: string;
+    commission_percentage: string; type: string; recipient_id: number;
 }
-
-const CommissionSummaryCard = ({
-	label,
-	value,
-	detail,
-	Icon,
-	variant,
-}: {
-	label: string;
-	value: string | number;
-	detail: string;
-	Icon: React.ElementType;
-	variant: string;
-}) => (
-	<div className={`card border-0 shadow-sm bg-${variant} bg-gradient text-white rounded-3 h-100`}>
-		<div className="card-body p-3">
-			<div className="d-flex justify-content-between align-items-center mb-1">
-				<span className="text-xs text-uppercase fw-semibold opacity-75">{label}</span>
-				<Icon size={22} className="opacity-75" />
-			</div>
-			<h3 className="fw-bold mb-0">{value}</h3>
-			<span className="text-xs opacity-75">{detail}</span>
-		</div>
-	</div>
-);
-
-
-async function getClinicianCommission({ clinicianid, startDate, endDate }: { clinicianid: string, startDate: string, endDate: string }) {
-	try {
-		const url = `clinician/anal/commissions/range/single?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}&clinicianId=${encodeURIComponent(clinicianid)}`;
-		const response = await customFetch(url);
-		if (!response || !response.success) {
-			throw new Error('API returned no data or failed.');
-		}
-		// New structure: response.data is a flat array of records
-		const records = Array.isArray(response.data) ? response.data : [];
-		return records as CommissionData[];
-	} catch (error: any) {
-		return { error: error.message || 'An unknown error occurred' };
-	}
-}
-
 
 export default function ClinicianCommissionPage({ params }: { params: { clinicianid: string } }) {
-	const defaultStartDate = dayjs().startOf('year').format('YYYY-MM-DD');
-	const defaultEndDate = dayjs().format('YYYY-MM-DD');
-	const employeeid = useApplication()?.user?.employeeid;
-	const branchid = useApplication()?.branchid;
-	const [startDate, setStartDate] = useState(defaultStartDate);
-	const [endDate, setEndDate] = useState(defaultEndDate);
-	const [dateFilter, setDateFilter] = useState('This Year');
-	const requestIdRef = useRef(0);
-	const handleDateRangeChange = (start: string, end: string) => {
-		setStartDate(start);
-		setEndDate(end);
-	};
-	const handleResetFilters = () => {
-		setDateFilter('This Year');
-		setStartDate(defaultStartDate);
-		setEndDate(defaultEndDate);
-	};
-	const [commissionData, setCommissionData] = useState<CommissionData[]>([]);
-	const [clinicianInfoFromApi, setClinicianInfoFromApi] = useState<ClinicianInfo | null>(null);
-	const [loading, setLoading] = useState(false);
-	const [detailsLoading, setDetailsLoading] = useState(false);
-	const [error, setError] = useState<string | null>(null);
-	const [chartView, setChartView] = useState<'bar' | 'line'>('bar');
-	const [selectedRecords, setSelectedRecords] = useState<Set<number>>(new Set());
-	const [selectedRecordsForPayment, setSelectedRecordsForPayment] = useState<CommissionData[]>([]);
-	const [commissionPayments, setCommissionPayments] = useState<any[]>([]);
-	const [showDetailsModal, setShowDetailsModal] = useState(false);
-	const [paymentModes, setPaymentModes] = useState<{ KeyID: number, PaymentMode: string }[]>([]);
-	const [showBulkPayModal, setShowBulkPayModal] = useState(false);
-	const [bulkPayAmount, setBulkPayAmount] = useState('');
-	const [bulkPayLoading, setBulkPayLoading] = useState(false);
-	const [bulkPayError, setBulkPayError] = useState<string | null>(null);
-	const [bulkPayType, setBulkPayType] = useState<'paid' | 'payable'>('paid');
-	const [bulkPayMethod, setBulkPayMethod] = useState<number | null>(null);
+    const employeeid = useApplication()?.user?.employeeid;
+    const branchid = useApplication()?.branchid;
+    const [startDate, setStartDate] = useState(dayjs().startOf("year").format("YYYY-MM-DD"));
+    const [endDate, setEndDate] = useState(dayjs().format("YYYY-MM-DD"));
+    const [dateFilter, setDateFilter] = useState("This Year");
+    const [reloadKey, setReloadKey] = useState(0);
+    const [commissionData, setCommissionData] = useState<CommissionData[]>([]);
+    const [clinicianInfo, setClinicianInfo] = useState<ClinicianInfo | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [selectedRecords, setSelectedRecords] = useState<Set<number>>(new Set());
+    const [selectedRecord, setSelectedRecord] = useState<CommissionData | null>(null);
+    const [commissionPayments, setCommissionPayments] = useState<CommissionPayment[]>([]);
+    const [detailsLoading, setDetailsLoading] = useState(false);
+    const [detailsError, setDetailsError] = useState<string | null>(null);
+    const [showDetailsModal, setShowDetailsModal] = useState(false);
+    const [paymentModes, setPaymentModes] = useState<{ KeyID: number; PaymentMode: string }[]>([]);
+    const [paymentModesError, setPaymentModesError] = useState<string | null>(null);
+    const [showBulkPayModal, setShowBulkPayModal] = useState(false);
+    const [bulkPayAmount, setBulkPayAmount] = useState("");
+    const [bulkPayMethod, setBulkPayMethod] = useState<number | null>(null);
+    const [bulkPayLoading, setBulkPayLoading] = useState(false);
+    const [bulkPayError, setBulkPayError] = useState<string | null>(null);
+    const submittingRef = useRef(false);
+    const historyRequest = useRef(0);
 
-	useEffect(() => {
-		loadCommissionData();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [params.clinicianid, startDate, endDate]);
+    useEffect(() => {
+        let active = true;
+        setLoading(true); setError(null); setSelectedRecords(new Set());
+        setCommissionData([]); setClinicianInfo(null);
+        customFetch(`clinician/anal/commissions/range/single?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}&clinicianId=${encodeURIComponent(params.clinicianid)}`)
+            .then(async response => {
+                if (!response?.success || !Array.isArray(response.data)) throw new Error("Unable to load clinician commissions.");
+                if (!active) return;
+                setCommissionData(response.data);
+                if (!response.data.length) {
+                    const lookup = await customFetch(`clinicians/getclinician?id=${encodeURIComponent(params.clinicianid)}`);
+                    if (active) setClinicianInfo(Array.isArray(lookup?.result) ? lookup.result[0] || null : null);
+                }
+            }).catch((err: Error) => { if (active) setError(err.message); })
+            .finally(() => { if (active) setLoading(false); });
+        return () => { active = false; };
+    }, [params.clinicianid, startDate, endDate, reloadKey]);
 
-	useEffect(() => {
-		loadPaymentModes().then(modes => setPaymentModes(modes || []));
-	}, []);
+    const loadPaymentModes = useCallback(async () => {
+        setPaymentModesError(null);
+        try {
+            const response = await customFetch("paymentmodes");
+            if (!(response?.status === true || response?.status === "success") || !Array.isArray(response.data) || !response.data.length) throw new Error("Payment methods are unavailable. Reload methods before paying.");
+            setPaymentModes(response.data);
+        } catch (err) {
+            setPaymentModes([]);
+            setPaymentModesError(err instanceof Error ? err.message : "Unable to load payment methods.");
+        }
+    }, []);
+    useEffect(() => { loadPaymentModes(); }, [loadPaymentModes]);
 
-	const loadPaymentModes = async () => {
-		try {
-			const response = await customFetch('paymentmodes');
-			if (!response || !response.status) {
-				console.error('Failed to load payment modes');
-				return [];
-			}
-			const modes = Array.isArray(response.data) ? response.data : [];
-			return modes;
-		} catch (error) {
-			console.error('Error loading payment modes:', error);
-			return [];
-		}
-	};
+    const handleViewDetails = useCallback(async (record: CommissionData) => {
+        const id = ++historyRequest.current;
+        setSelectedRecord(record); setCommissionPayments([]); setDetailsError(null);
+        setDetailsLoading(true); setShowDetailsModal(true);
+        try {
+            const response = await customFetch(`commission-payments/service/${record.serviceid}/commission/payment/history`);
+            if (!(response?.status === true || response?.status === "success") || !Array.isArray(response.data)) throw new Error("Unable to load commission payment history.");
+            if (id === historyRequest.current) setCommissionPayments(response.data);
+        } catch (err) {
+            if (id === historyRequest.current) setDetailsError(err instanceof Error ? err.message : "Unable to load payment history.");
+        } finally { if (id === historyRequest.current) setDetailsLoading(false); }
+    }, []);
 
-	const loadClinicianInfo = async () => {
-		try {
-			const response = await customFetch(`clinicians/getclinician?id=${encodeURIComponent(params.clinicianid)}`);
-			const clinician = Array.isArray(response?.result) ? response.result[0] : null;
-			if (clinician) {
-				setClinicianInfoFromApi(clinician);
-			}
-		} catch (err) {
-			console.error('Error loading clinician information:', err);
-		}
-	};
+    const selectedCommissionDue = Array.from(selectedRecords).reduce((sum, index) => sum + Number(commissionData[index]?.commission_earned || 0), 0);
+    const handleBulkPay = async () => {
+        if (submittingRef.current) return;
+        const amount = Number(bulkPayAmount);
+        if (!bulkPayAmount || !Number.isFinite(amount) || amount < 0 || amount > selectedCommissionDue) {
+            setBulkPayError("Enter an amount from zero up to the selected commission due."); return;
+        }
+        if (!bulkPayMethod || !paymentModes.some(mode => mode.KeyID === bulkPayMethod) || !selectedRecords.size) {
+            setBulkPayError("Select records and an available payment method."); return;
+        }
+        submittingRef.current = true;
+        setBulkPayLoading(true); setBulkPayError(null);
+        try {
+            const payload = {
+                startDate, endDate, commissionDue: selectedCommissionDue, amountPaid: amount,
+                commissionType: "paid", paymentMethod: bulkPayMethod, employeeid,
+                recipient_type: "clinician", branchid, recipientid: params.clinicianid,
+                services: Array.from(selectedRecords).map(index => commissionData[index].serviceid),
+            };
+            const response = await customPost("commission-payments/commission/batch/process-services?employeeid=" + employeeid + "&branchid=" + branchid, "POST", payload);
+            if (response?.status !== true) throw new Error(response?.message || "Failed to process payment.");
+            setShowBulkPayModal(false); setBulkPayAmount(""); setBulkPayMethod(null); setSelectedRecords(new Set());
+            setReloadKey(key => key + 1);
+            toast.success("Commission payment processed successfully!");
+        } catch (err) {
+            setBulkPayError(err instanceof Error ? err.message : "Failed to process payment.");
+        } finally { submittingRef.current = false; setBulkPayLoading(false); }
+    };
 
-	const loadCommissionData = async () => {
-		const requestId = ++requestIdRef.current;
-		setLoading(true);
-		setError(null);
-		setSelectedRecords(new Set());
-		try {
-			const commissionRes = await getClinicianCommission({
-				clinicianid: params.clinicianid,
-				startDate,
-				endDate
-			});
-			if (requestId !== requestIdRef.current) return;
+    const columns = useMemo(() => [
+        { id: "selection", disableSortBy: true, Header: () => (
+            <input type="checkbox" className="form-check-input" aria-label="Select all returned commission records" checked={!!commissionData.length && selectedRecords.size === commissionData.length} disabled={loading} onChange={() => setSelectedRecords(selectedRecords.size === commissionData.length ? new Set() : new Set(commissionData.map((_, index) => index)))} />
+        ), Cell: ({ row }: TableCell<CommissionData>) => (
+            <input type="checkbox" className="form-check-input" aria-label={`Select service ${row.original.serviceid} on ${dayjs(row.original.service_date).format("DD/MM/YYYY")}`} checked={selectedRecords.has(row.index)} disabled={loading} onChange={() => setSelectedRecords(previous => {
+                const next = new Set(previous); if (next.has(row.index)) next.delete(row.index); else next.add(row.index); return next;
+            })} />
+        ) },
+        { Header: "Service date", accessor: "service_date", Cell: ({ value }: TableCell<CommissionData>) => dayjs(value).format("DD/MM/YYYY") },
+        { Header: "Services", accessor: "total_services", Cell: ({ value }: TableCell<CommissionData, number>) => value.toLocaleString() },
+        { Header: "Total payable", id: "total_payable", accessor: (row: CommissionData) => Number(row.earned_revenue ?? row.total_payable ?? 0), Cell: ({ value }: TableCell<CommissionData, number>) => currencyFormatter.format(value) },
+        { Header: "Commission earned", accessor: "commission_earned", Cell: ({ value }: TableCell<CommissionData>) => currencyFormatter.format(Number(value)) },
+        { Header: "Payment", id: "payment", disableSortBy: true, Cell: ({ row }: TableCell<CommissionData>) => <button type="button" className="btn btn-outline-primary btn-sm" onClick={() => handleViewDetails(row.original)}>View Details</button> },
+    ], [commissionData, selectedRecords, loading, handleViewDetails]);
 
-			if ((commissionRes as any).error) {
-				setError((commissionRes as any).error);
-				setCommissionData([]);
-			} else {
-				const data = commissionRes as CommissionData[];
-				setCommissionData(data);
-
-				if (data.length === 0 && !clinicianInfoFromApi) {
-					await loadClinicianInfo();
-				}
-			}
-		} catch (err: any) {
-			if (requestId !== requestIdRef.current) return;
-			setError(err.message || 'An unknown error occurred');
-			setCommissionData([]);
-		} finally {
-			if (requestId === requestIdRef.current) setLoading(false);
-		}
-	};
-
-	const handleSelectRecord = (index: number) => {
-		setSelectedRecords(prev => {
-			const newSet = new Set(prev);
-			if (newSet.has(index)) {
-				newSet.delete(index);
-			} else {
-				newSet.add(index);
-			}
-			return newSet;
-		});
-	};
-
-	const handleSelectAll = () => {
-		if (selectedRecords.size === commissionData.length) {
-			setSelectedRecords(new Set());
-		} else {
-			setSelectedRecords(new Set(commissionData.map((_, idx) => idx)));
-		}
-	};
-
-	const handleViewDetails = async (record: CommissionData) => {
-		setSelectedRecordsForPayment([record]);
-		setCommissionPayments([]);
-		setDetailsLoading(true);
-		setShowDetailsModal(true);
-
-		try {
-			const url = `commission-payments/service/${record.serviceid}/commission/payment/history`;
-			const response = await customFetch(url);
-			if (response && response.status) {
-				setCommissionPayments(response.data || []);
-			} else {
-				setCommissionPayments([]);
-			}
-		} catch (error) {
-			console.error('Error loading commission payments:', error);
-			setCommissionPayments([]);
-		} finally {
-			setDetailsLoading(false);
-		}
-	};
-
-	// Calculate total commission due for selected records
-	const totalBulkCommission = Array.from(selectedRecords).reduce((acc, idx) => {
-		const rec = commissionData[idx];
-		return acc + (rec ? Number(rec.commission_earned) : 0);
-	}, 0);
-	const selectedCommissionDue = totalBulkCommission;
-
-	// Bulk pay handler
-	const handleBulkPay = async () => {
-		setBulkPayLoading(true);
-		setBulkPayError(null);
-		try {
-			if (Number(bulkPayAmount) > selectedCommissionDue) {
-				setBulkPayError('Amount cannot exceed total commission due.');
-				setBulkPayLoading(false);
-				return;
-			}
-			if (!bulkPayMethod) {
-				setBulkPayError('Please select a payment method.');
-				setBulkPayLoading(false);
-				return;
-			}
-
-			const selectedServiceIds = Array.from(selectedRecords).map(idx => commissionData[idx].serviceid);
-			const payload = {
-				startDate,
-				endDate,
-				commissionDue: selectedCommissionDue,
-				amountPaid: Number(bulkPayAmount),
-				commissionType: bulkPayType,
-				paymentMethod: bulkPayMethod,
-				employeeid,
-				recipient_type: 'clinician',
-				branchid,
-				recipientid: params.clinicianid,
-				services: selectedServiceIds
-			};
-
-			const response = await customPost('commission-payments/commission/batch/process-services?employeeid=' + employeeid + '&branchid=' + branchid, 'POST', payload);
-			if (response && response.status == true) {
-				setShowBulkPayModal(false);
-				setBulkPayAmount('');
-				setBulkPayMethod(null);
-				setSelectedRecords(new Set());
-				loadCommissionData();
-				toast.success('Commission payment processed successfully!');
-			} else if (response && response.status === 'error') {
-				toast.error(response.message || 'Failed to process payment.');
-				setBulkPayError(response.message || 'Failed to process payment.');
-			} else {
-				toast.error('Failed to process payment.');
-				setBulkPayError('Failed to process payment.');
-			}
-		} catch (err: any) {
-			setBulkPayError(err.message || 'Unknown error');
-		} finally {
-			setBulkPayLoading(false);
-		}
-	};
-
-	if (error) {
-		return (
-			<main className={styles.container}>
-				<h1 className={styles.title}>Could Not Load Clinician Commission Data</h1>
-				<div className={styles.errorBox}>
-					<RiUserLine size={40} />
-					<div>
-						<p><strong>There was a problem connecting to the API.</strong></p>
-						<p>{error}</p>
-					</div>
-				</div>
-			</main>
-		);
-	}
-
-	const summary = commissionData.reduce((acc, item) => {
-		const totalPayable = Number(item.earned_revenue ?? item.total_payable ?? 0);
-		acc.total_commission += Number(item.commission_earned);
-		acc.total_value += totalPayable;
-		acc.total_services += item.total_services;
-		return acc;
-	}, { total_commission: 0, total_value: 0, total_services: 0 });
-
-	// Default clinician info when no data is available
-	const clinicianLookup = clinicianInfoFromApi as ClinicianInfo | null;
-	const clinician_name = commissionData[0]?.clinician_name || clinicianLookup?.clinician_name || clinicianLookup?.name || `Clinician ${params.clinicianid}`;
-	const clinician_phone = commissionData[0]?.clinician_phone || clinicianLookup?.clinician_phone || clinicianLookup?.phone || 'N/A';
-	const occupation = commissionData[0]?.occupation || clinicianLookup?.occupation || 'N/A';
-	return (
-		<main className={styles.container}>
-			<div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 pb-3 mb-4" style={{ borderBottom: '1px solid var(--bs-border-color)' }}>
-				<h1 className={styles.title} style={{ margin: 0 }}><RiUserLine /> {clinician_name.toUpperCase()} - Commission Details</h1>
-				<div className="d-flex gap-2">
-					<Link
-						href={`/commissions/clinicians/commissions-information/${params.clinicianid}/commission-update`}
-						className="btn btn-outline-primary btn-sm"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						Update Commission Records
-					</Link>
-					<Link
-						href={`/commissions/clinicians/commissions-information/${params.clinicianid}/paid-commissions`}
-						className="btn btn-outline-success btn-sm"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						View Paid Commissions
-					</Link>
-				</div>
-			</div>
-			{/* Summary Cards */}
-			<div className="row g-3 mb-4">
-				<div className="col-12 col-sm-6 col-md-3">
-					<CommissionSummaryCard
-						label="Phone"
-						value={clinician_phone || 'N/A'}
-						detail="Primary contact number"
-						Icon={RiPhoneLine}
-						variant="secondary"
-					/>
-				</div>
-				<div className="col-12 col-sm-6 col-md-3">
-					<CommissionSummaryCard
-						label="Commission Earned"
-						value={currencyFormatter.format(summary.total_commission)}
-						detail="Commission due in this period"
-						Icon={RiMoneyDollarCircleLine}
-						variant="success"
-					/>
-				</div>
-				<div className="col-12 col-sm-6 col-md-3">
-					<CommissionSummaryCard
-						label="Total Payable"
-						value={currencyFormatter.format(summary.total_value)}
-						detail="Value of services rendered"
-						Icon={RiServiceLine}
-						variant="primary"
-					/>
-				</div>
-				<div className="col-12 col-sm-6 col-md-3">
-					<CommissionSummaryCard
-						label="Services Rendered"
-						value={summary.total_services.toLocaleString()}
-						detail={`${commissionData.length.toLocaleString()} commission records`}
-						Icon={RiFileList3Line}
-						variant="info"
-					/>
-				</div>
-			</div>
-
-			{/* Show message when no data is found, but still display filters */}
-			{!commissionData.length && (
-				<div className="alert alert-info" style={{ borderRadius: '0.5rem', margin: '1rem 0' }}>
-					<RiUserLine size={20} className="me-2" />
-					No commission records found for this clinician in the selected date range. Try adjusting the date filters above.
-				</div>
-			)}
-
-			{/* Chart Section */}
-			<div className="border rounded mb-4" style={{ background: 'none' }}>
-				<div className="p-3 p-md-4 pb-0">
-					<div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-2 mb-3">
-						<h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
-							Commission Trend
-						</h2>
-						<div className="btn-group btn-group-sm" role="group" aria-label="Chart view toggle">
-							<button type="button" className={`btn ${chartView === 'bar' ? 'btn-primary active' : 'btn-outline-secondary'}`} onClick={() => setChartView('bar')}>
-								Bar
-							</button>
-							<button type="button" className={`btn ${chartView === 'line' ? 'btn-primary active' : 'btn-outline-secondary'}`} onClick={() => setChartView('line')}>
-								Line
-							</button>
-						</div>
-					</div>
-					<div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2 mb-3">
-						<DateFilterReusable
-							value={dateFilter}
-							onChange={setDateFilter}
-							onDateRangeChange={handleDateRangeChange}
-							label="Filter by"
-							className="col-12 col-lg-auto"
-						/>
-						<button onClick={() => loadCommissionData()} className="btn btn-sm btn-primary" type="button" aria-label="Load commission data" disabled={loading}>
-							{loading ? 'Loading...' : 'Load Data'}
-						</button>
-						<button onClick={handleResetFilters} className="btn btn-sm btn-outline-secondary" type="button" aria-label="Reset date filters">
-							Reset
-						</button>
-					</div>
-				</div>
-				<div className="p-3 p-md-4 pt-0" style={{ background: 'none' }}>
-					<div className="CommissionLineChart-to-pdf">
-						<CommissionLineChart data={commissionData} view={chartView} />
-					</div>
-				</div>
-			</div>
-
-			{/* Detailed Commission Records */}
-			<div className="border rounded" style={{ backgroundColor: 'var(--theme-card-bg)' }}>
-				<div className="p-3 p-md-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2" style={{ borderBottom: '1px solid var(--bs-border-color)' }}>
-					<h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
-						<RiFileList3Line className="me-2" />
-						Detailed Commission Records
-					</h2>
-
-					<div className="d-flex flex-row align-items-center gap-2">
-						<button onClick={() => loadCommissionData()} className="btn btn-sm btn-primary" type="button" aria-label="Load commission data" disabled={loading}>
-							{loading ? 'Loading...' : 'Load Data'}
-						</button>
-						<button onClick={handleResetFilters} className="btn btn-sm btn-outline-secondary" type="button" aria-label="Reset date filters">
-							Reset
-						</button>
-					</div>
-				</div>
-				<details className="px-3 px-md-4 py-2" style={{ borderBottom: '1px solid var(--bs-border-color)' }}>
-					<summary className="text-muted small" style={{ cursor: 'pointer' }}>What do these columns mean?</summary>
-					<div className="row gx-2 small text-muted mt-2">
-						<div className="col-md-6 mb-1"><strong>Total payable:</strong> <span className="ms-1">amount payable by the services referred by the clinician for that date.</span></div>
-						<div className="col-md-6 mb-1"><strong>Total services:</strong> <span className="ms-1">total number of services referred by the clinician for that date.</span></div>
-						<div className="col-md-6"><strong>Commission (Earned by Paid):</strong> <span className="ms-1">commission due based on the amount actually paid for the services referred.</span></div>
-						<div className="col-md-6"><strong>Commission (Earned by Payable):</strong> <span className="ms-1">commission calculated based on the total payable amount for the services referred.</span></div>
-					</div>
-				</details>
-				<div className="p-3 p-md-4" style={{ backgroundColor: 'var(--theme-card-bg)' }}>
-
-					{/* Bulk Pay Button */}
-					{selectedRecords.size > 0 && (
-						<div className="mb-3">
-							<Button variant="success" size="sm" onClick={() => setShowBulkPayModal(true)}>
-								Pay Commission for Selected ({selectedRecords.size})
-							</Button>
-						</div>
-					)}
-					<div className="table-responsive">
-						<table className="table table-sm table-hover table-striped small">
-							<thead className="sticky-top bg-body-tertiary">
-								<tr>
-									<th className="py-2 text-center">
-										<input
-											type="checkbox"
-											checked={selectedRecords.size === commissionData.length && commissionData.length > 0}
-											onChange={handleSelectAll}
-											className="form-check-input"
-										/>
-									</th>
-									<th className="py-2">Service Date</th>
-									<th className="py-2 text-start">Services</th>
-									<th className="py-2 text-start">Total Payable</th>
-									<th className="py-2 text-start">Commission Earned</th>
-									<th className="py-2 text-center">Payment</th>
-								</tr>
-							</thead>
-							<tbody>
-								{commissionData.map((record, idx) => (
-									<tr key={idx} className={selectedRecords.has(idx) ? 'table-active' : ''}>
-										<td className="py-2 text-center">
-											<input
-												type="checkbox"
-												checked={selectedRecords.has(idx)}
-												onChange={() => handleSelectRecord(idx)}
-												className="form-check-input"
-											/>
-										</td>
-										<td className="py-2">{dayjs(record.service_date).format('DD/MM/YYYY')}</td>
-										<td className="py-2 text-start">{record.total_services}</td>
-										<td className="py-2 text-start">{currencyFormatter.format(Number(record.earned_revenue ?? record.total_payable ?? 0))}</td>
-										<td className="py-2 text-start">{currencyFormatter.format(Number(record.commission_earned))}</td>
-										<td className="py-2 text-center">
-											<button
-												type="button"
-												className="btn btn-outline-primary btn-sm"
-												onClick={() => handleViewDetails(record)}
-
-											>
-												View Details
-											</button>
-										</td>
-									</tr>
-								))}
-							</tbody>
-						</table>
-					</div>
-				</div>
-			</div>
-
-			{/* Commission Details Modal */}
-			<CommissionDetailsModal
-				show={showDetailsModal}
-				onHide={() => setShowDetailsModal(false)}
-				commissionPayments={commissionPayments}
-				selectedRecord={selectedRecordsForPayment[0]}
-				loading={detailsLoading}
-				clinicianId={params.clinicianid}
-				paymentModes={paymentModes}
-				onPaymentSuccess={() => {
-					loadCommissionData();
-				}}
-			/>
-
-			{/* Bulk Pay Modal */}
-			<Modal show={showBulkPayModal} backdrop="static" onHide={() => setShowBulkPayModal(false)}>
-				<Modal.Header closeButton className="py-2">
-					<Modal.Title className="fs-6 fw-semibold text-body-emphasis">
-						Pay Commission for Selected Records
-					</Modal.Title>
-				</Modal.Header>
-				<Modal.Body className="py-2">
-					<div className="mb-2 small">
-						<div className="mb-2">
-							<strong>Period:</strong> {startDate} &mdash; {endDate}
-						</div>
-						<div className="mb-3">
-							<strong>Selected Records:</strong> {selectedRecords.size} &nbsp;|&nbsp; <strong>Total Commission Earned:</strong> {currencyFormatter.format(selectedCommissionDue)}
-						</div>
-						<Form.Group className="mb-3">
-							<Form.Label className="small">Payment Method</Form.Label>
-							<Form.Select value={bulkPayMethod ?? ''} onChange={e => setBulkPayMethod(Number(e.target.value))} className="form-select form-select-sm">
-								<option value="">Select payment method</option>
-								{paymentModes.map(mode => (
-									<option key={mode.KeyID} value={mode.KeyID}>{mode.PaymentMode}</option>
-								))}
-							</Form.Select>
-						</Form.Group>
-					</div>
-					<Form.Group className="mb-3">
-						<Form.Label className="small">Amount to Pay</Form.Label>
-						<Form.Control
-							type="number"
-							min="0"
-							max={selectedCommissionDue}
-							value={bulkPayAmount}
-							onChange={e => setBulkPayAmount(e.target.value)}
-							placeholder="Enter amount to pay"
-							className="form-control form-control-sm"
-						/>
-						<Form.Text className="text-muted small">Amount must be less than or equal to total commission due.</Form.Text>
-					</Form.Group>
-					{bulkPayError && <div className="text-danger small mb-2">{bulkPayError}</div>}
-				</Modal.Body>
-				<Modal.Footer className="py-2">
-					<Button variant="outline-secondary" size="sm" onClick={() => setShowBulkPayModal(false)} disabled={bulkPayLoading} className="small">
-						Cancel
-					</Button>
-					<Button variant="outline-primary" size="sm" onClick={handleBulkPay} disabled={bulkPayLoading || !bulkPayAmount} className="small">
-						{bulkPayLoading ? 'Processing...' : 'Pay Commission'}
-					</Button>
-				</Modal.Footer>
-			</Modal>
-		</main>
-	);
+    const known = !loading && !error;
+    const name = commissionData[0]?.clinician_name || clinicianInfo?.clinician_name || clinicianInfo?.name || `Clinician ${params.clinicianid}`;
+    return (
+        <div className={styles.container} aria-busy={loading}>
+            <header className="mb-3">
+                <div className="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <h1 className={styles.title}>{name} — commissions</h1>
+                    <div className="d-flex flex-wrap gap-2">
+                        <Link href={`/commissions/clinicians/commissions-information/${params.clinicianid}/commission-update`} className="btn btn-outline-primary btn-sm" target="_blank" rel="noopener noreferrer">Update Commission Records</Link>
+                        <Link href={`/commissions/clinicians/commissions-information/${params.clinicianid}/paid-commissions`} className="btn btn-outline-success btn-sm" target="_blank" rel="noopener noreferrer">View Paid Commissions</Link>
+                    </div>
+                </div>
+                <p className="small text-muted mb-0">Phone: {commissionData[0]?.clinician_phone || clinicianInfo?.clinician_phone || clinicianInfo?.phone || "N/A"} · Occupation: {commissionData[0]?.occupation || clinicianInfo?.occupation || "N/A"}</p>
+            </header>
+            {error && <ErrorState message={error} onRetry={() => setReloadKey(key => key + 1)} />}
+            <div className="row g-3 mb-3">
+                <div className="col-12 col-md-4"><SummaryMetric title="Commission earned" value={known ? currencyFormatter.format(commissionData.reduce((sum, row) => sum + Number(row.commission_earned), 0)) : "—"} subtitle="Due in returned records" Icon={RiMoneyDollarCircleLine} variant="success" /></div>
+                <div className="col-12 col-md-4"><SummaryMetric title="Service value" value={known ? currencyFormatter.format(commissionData.reduce((sum, row) => sum + Number(row.earned_revenue ?? row.total_payable ?? 0), 0)) : "—"} subtitle="In returned records" Icon={RiServiceLine} variant="primary" /></div>
+                <div className="col-12 col-md-4"><SummaryMetric title="Services" value={known ? commissionData.reduce((sum, row) => sum + row.total_services, 0).toLocaleString() : "—"} subtitle="In returned records" Icon={RiFileList3Line} variant="info" /></div>
+            </div>
+            <div className={styles.toolbar}>
+                <PeriodFilter value={dateFilter} onChange={setDateFilter} disabled={loading || showBulkPayModal} onDateRangeChange={(start, end) => { setStartDate(start); setEndDate(end); }} />
+                <button type="button" className="btn btn-outline-secondary btn-sm" disabled={loading || showBulkPayModal} onClick={() => setReloadKey(key => key + 1)}>Refresh</button>
+                <button type="button" className="btn btn-outline-secondary btn-sm" disabled={loading || showBulkPayModal} onClick={() => { setDateFilter("This Year"); setStartDate(dayjs().startOf("year").format("YYYY-MM-DD")); setEndDate(dayjs().format("YYYY-MM-DD")); }}>Reset</button>
+                {!!selectedRecords.size && <Button variant="success" size="sm" onClick={() => { setBulkPayError(null); setShowBulkPayModal(true); }}>Pay Commission for Selected ({selectedRecords.size.toLocaleString()})</Button>}
+            </div>
+            {loading ? <LoadingState /> : !error && <>
+                <h2 className="h6">Commission trend</h2>
+                <CommissionLineChart data={commissionData} view="line" />
+                <h2 className="h6 mt-3">Commission records</h2>
+                <details className="mb-2 small">
+                    <summary>What do these columns mean?</summary>
+                    <p className="text-muted mt-2 mb-0">Total payable is the value of referred services. Commission earned is due based on the amount actually paid for those services. Search and selection apply to the returned records.</p>
+                </details>
+                {commissionData.length ? <PrimeTable column={columns} data={commissionData} filtering={true} serverSideFiltering={false} handleSeverSideProcessing={undefined} /> : <p className={styles.emptyState}>No commission records found for this clinician in the selected period.</p>}
+            </>}
+            <CommissionDetailsModal show={showDetailsModal} onHide={() => { historyRequest.current++; setShowDetailsModal(false); }} commissionPayments={commissionPayments} selectedRecord={selectedRecord} loading={detailsLoading} error={detailsError} onRetry={() => { if (selectedRecord) handleViewDetails(selectedRecord); }} clinicianId={params.clinicianid} paymentModes={paymentModes} onPaymentSuccess={() => setReloadKey(key => key + 1)} />
+            <Modal show={showBulkPayModal} backdrop="static" keyboard={!bulkPayLoading} onHide={() => { if (!bulkPayLoading) setShowBulkPayModal(false); }} aria-labelledby="bulk-commission-title">
+                <Modal.Header closeButton={!bulkPayLoading}><Modal.Title id="bulk-commission-title" className="h6">Pay commission for selected records</Modal.Title></Modal.Header>
+                <Modal.Body aria-busy={bulkPayLoading}>
+                    <p className="small">Period: {startDate} – {endDate}<br />Selected records: {selectedRecords.size.toLocaleString()} · Commission due: {currencyFormatter.format(selectedCommissionDue)}</p>
+                    {paymentModesError && <ErrorState message={paymentModesError} onRetry={loadPaymentModes} />}
+                    <Form id="bulk-commission-form" onSubmit={event => { event.preventDefault(); handleBulkPay(); }}>
+                        <Form.Group controlId="bulk-payment-method" className="mb-3">
+                            <Form.Label className="small">Payment method</Form.Label>
+                            <Form.Select size="sm" required disabled={bulkPayLoading || !paymentModes.length} value={bulkPayMethod ?? ""} onChange={e => setBulkPayMethod(Number(e.target.value) || null)}>
+                                <option value="">Select payment method</option>{paymentModes.map(mode => <option key={mode.KeyID} value={mode.KeyID}>{mode.PaymentMode}</option>)}
+                            </Form.Select>
+                        </Form.Group>
+                        <Form.Group controlId="bulk-payment-amount" className="mb-3">
+                            <Form.Label className="small">Amount to pay</Form.Label>
+                            <Form.Control type="number" size="sm" required min="0" max={selectedCommissionDue} step="0.01" disabled={bulkPayLoading} value={bulkPayAmount} onChange={e => setBulkPayAmount(e.target.value)} aria-describedby="bulk-amount-help" />
+                            <Form.Text id="bulk-amount-help">Amount must not exceed the selected commission due.</Form.Text>
+                        </Form.Group>
+                    </Form>
+                    {bulkPayError && <ErrorState message={bulkPayError} />}
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="outline-secondary" size="sm" disabled={bulkPayLoading} onClick={() => setShowBulkPayModal(false)}>Cancel</Button>
+                    <Button type="submit" form="bulk-commission-form" variant="primary" size="sm" disabled={bulkPayLoading || !bulkPayAmount || !bulkPayMethod || !paymentModes.length}>{bulkPayLoading ? "Processing…" : "Pay Commission"}</Button>
+                </Modal.Footer>
+            </Modal>
+        </div>
+    );
 }

@@ -54,6 +54,10 @@ export interface AppointmentData {
 	purpose: string;
 	appointment_time: string;
 	location: string;
+	appointment_type?: "consultation" | "laboratory" | "ultrasound" | "follow_up";
+	lead_id?: number | null;
+	billingid?: number | null;
+	patientid?: number | null;
 	employeeid?: string | number;
 	title: string;
 	preference: string | OptionType;
@@ -106,6 +110,10 @@ export const APPOINTMENT_DEFAULT_DATA: AppointmentData = {
 	purpose: "",
 	appointment_time: "",
 	location: "Tamale",
+	appointment_type: "consultation",
+	lead_id: null,
+	billingid: null,
+	patientid: null,
 	title: "",
 	preference: "in person",
 	inviteMethod: "sms",
@@ -159,6 +167,7 @@ export const durationOptions: OptionType[] = [
 export const inviteMethod: OptionType[] = [
 	{ value: "sms", label: "sms" },
 	{ value: "email", label: "email" },
+	{ value: "both", label: "email and SMS" },
 	{ value: "whatapp", label: "whatapp" },
 	{ value: 'phonecall', label: 'phone call' }
 ];
@@ -182,6 +191,9 @@ export const handleSubmitForm = async (
 				inviteMethod: (data.inviteMethod as OptionType)?.value ?? data.inviteMethod,
 				location: data.location,
 				patientid: data.patientid ?? (data.patient && data.patient.id),
+				appointment_type: data.appointment_type || "consultation",
+				lead_id: data.lead_id || null,
+				billingid: data.billingid || null,
 				practioner: typeof data.practioner === 'object' ? (data.practioner.employeeid ?? data.practioner) : data.practioner,
 				preference: (data.preference as OptionType)?.value ?? data.preference,
 				purpose: data.purpose,
@@ -224,13 +236,15 @@ export function validateAppointmentData(data: Record<string, any>): string[] {
 		"duration",
 		"inviteMethod",
 		"location",
-		"patientid",
 		"practioner",
 		"preference",
 		"purpose",
 		"title"
 	];
 	const missing: string[] = [];
+	if (!data.patientid && !data.lead_id) {
+		missing.push("patient or CRM lead");
+	}
 	for (const key of required) {
 		const val = data[key];
 		if (val === undefined || val === null || (typeof val === 'string' && val.trim().length === 0)) {

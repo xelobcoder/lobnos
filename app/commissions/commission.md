@@ -3,6 +3,23 @@
 ## Overview
 The Commission Payments API provides comprehensive management for commission tracking and payments for clinician and organization services in a modular structure. Commission payments are tracked separately from individual payment transactions, allowing for detailed payment history and installment tracking.
 
+## Commissions workspace
+
+The `/commissions` overview groups navigation into **Review pending commissions**
+(organization, clinician, and untracked records) and **Payments and reporting**
+(commission payments and analytics). Each destination is a keyboard-accessible
+link. The overview does not display financial totals or change payment behavior.
+
+### Commission payment report filters
+
+The `/commissions/commission-payments` report defaults to all recipients for the
+current year. Organization and clinician filters select recipient types across
+the facility, not an individual recipient. Date presets and custom ranges filter
+the batch commission period (`start_date >= startDate`, `end_date <= endDate`),
+not the payment timestamp. Reset restores all recipients and the current year.
+Filter changes reset pagination to page 1; summary cards describe the current
+page of returned batches. API failures appear as errors, not empty results.
+
 ## Database Structure
 
 ### Commission Payments Table

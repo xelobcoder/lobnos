@@ -67,7 +67,7 @@ interface ApplicationSettingsData {
 	primaryColor?: string | null;
 	secondaryColor?: string | null;
 	ageVariationLimits: string | null
-	workspaceLayout?: 'classic' | 'zoho' | 'claude';
+	workspaceLayout?: 'classic' | 'zoho' | 'claude' | 'ribbon';
 }
 
 const defaultUiSettings = {
@@ -169,13 +169,17 @@ export default function ApplicationSettings() {
 		.includes(String(user?.role || '').toLowerCase().trim());
 
 	const [settings, setSettings] = useState<ApplicationSettingsData | null>(null);
-	const [workspaceLayout, setWorkspaceLayout] = useState<'classic' | 'zoho' | 'claude'>(
-		applicationsettings.settings?.workspaceLayout === 'zoho' || applicationsettings.settings?.workspaceLayout === 'claude'
+	const [workspaceLayout, setWorkspaceLayout] = useState<'classic' | 'zoho' | 'claude' | 'ribbon'>(
+		applicationsettings.settings?.workspaceLayout === 'zoho' || applicationsettings.settings?.workspaceLayout === 'claude' || applicationsettings.settings?.workspaceLayout === 'ribbon'
 			? applicationsettings.settings.workspaceLayout
 			: 'classic'
 	);
 	const [savingWorkspaceLayout, setSavingWorkspaceLayout] = useState(false);
 	const [workspaceLayoutMessage, setWorkspaceLayoutMessage] = useState<{ type: 'success' | 'danger'; text: string } | null>(null);
+	useEffect(() => {
+		const value = applicationsettings.settings?.workspaceLayout;
+		setWorkspaceLayout(value === 'zoho' || value === 'claude' || value === 'ribbon' ? value : 'classic');
+	}, [applicationsettings.settings?.workspaceLayout]);
 	const [regions, setRegions] = useState<any[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
@@ -377,6 +381,7 @@ export default function ApplicationSettings() {
 	};
 
 	const saveWorkspaceLayout = async () => {
+		if (savingWorkspaceLayout) return;
 		try {
 			setSavingWorkspaceLayout(true);
 			setWorkspaceLayoutMessage(null);
@@ -620,10 +625,10 @@ export default function ApplicationSettings() {
 
 			<Form onSubmit={handleSubmit}>
 				{canManageWorkspaceLayout && (
-					<div className="card border mt-3 mb-4 p-3">
+					<section className="border-bottom mt-3 mb-4 pb-3" aria-labelledby="workspace-layout-heading">
 						<div className="row align-items-center g-3">
 							<div className="col-12 col-lg-7">
-								<h5 className="mb-1">Facility Workspace Layout</h5>
+								<h5 id="workspace-layout-heading" className="mb-1">Facility Workspace Layout</h5>
 								<p className="text-muted small mb-0">
 									Choose the shared layout for everyone using this facility. Other users see it the next time they sign in or refresh.
 								</p>
@@ -634,14 +639,17 @@ export default function ApplicationSettings() {
 									<Form.Select
 										id="workspace-layout"
 										value={workspaceLayout}
+										disabled={savingWorkspaceLayout}
 										onChange={(event) => {
-											setWorkspaceLayout(event.target.value as 'classic' | 'zoho' | 'claude');
+											const value = event.target.value;
+											if (value === 'classic' || value === 'zoho' || value === 'claude' || value === 'ribbon') setWorkspaceLayout(value);
 											setWorkspaceLayoutMessage(null);
 										}}
 									>
 										<option value="classic">Classic</option>
 										<option value="zoho">Zoho Books-inspired</option>
 										<option value="claude">Claude-inspired</option>
+										<option value="ribbon">Office-inspired ribbon</option>
 									</Form.Select>
 									<Button
 										type="button"
@@ -655,11 +663,11 @@ export default function ApplicationSettings() {
 							</div>
 						</div>
 						{workspaceLayoutMessage && (
-							<Alert variant={workspaceLayoutMessage.type} className="mt-3 mb-0" role="status">
+							<Alert variant={workspaceLayoutMessage.type} className="mt-3 mb-0" role={workspaceLayoutMessage.type === 'danger' ? 'alert' : 'status'}>
 								{workspaceLayoutMessage.text}
 							</Alert>
 						)}
-					</div>
+					</section>
 				)}
 				<div className="row mb-4">
 					<div className="col-md-4">

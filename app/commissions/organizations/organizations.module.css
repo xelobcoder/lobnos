@@ -1,0 +1,28 @@
+.page {
+    min-width: 0;
+    color: var(--bs-body-color);
+}
+
+.dateFilter select {
+    min-height: 34px;
+    font-size: 0.875rem;
+}
+
+.trend {
+    width: 100%;
+    min-width: 0;
+}
+
+@media (max-width: 575.98px) {
+    .actions > button,
+    .actions > a {
+        flex: 1 1 auto;
+    }
+}
+
+@media print {
+    .actions,
+    .dateFilter {
+        display: none;
+    }
+}

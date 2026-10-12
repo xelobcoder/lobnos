@@ -80,7 +80,7 @@
 .claudeLayout .companyName {
     display: block;
     max-width: min(720px, 58vw);
-    color: #282724;
+    color: var(--theme-header-text);
     font-size: 15px !important;
     font-weight: 500;
     line-height: 1.4;
@@ -94,12 +94,12 @@
 .claudeLayout .headerIconBtn {
     border-color: transparent;
     border-radius: 8px;
-    color: #5e5b55;
+    color: var(--workspace-text);
 }
 
 .claudeLayout .headerIconBtn:hover {
-    background: #eeede9;
-    color: #282724;
+    background: var(--workspace-hover);
+    color: var(--theme-header-text);
 }
 
 .shell .header button,
@@ -185,7 +185,7 @@
     width: 272px;
     height: 100vh;
     height: 100dvh;
-    border-right-color: #eeece8;
+    border-right-color: var(--workspace-border);
     box-shadow: 1px 0 3px rgba(38, 36, 32, 0.025);
 }
 
@@ -221,7 +221,7 @@
 
 .claudeBrandText strong {
     overflow: hidden;
-    color: #292824;
+    color: var(--workspace-text);
     font-size: 12px;
     font-weight: 600;
     text-overflow: ellipsis;
@@ -230,7 +230,7 @@
 
 .claudeBrandText span {
     overflow: hidden;
-    color: #8c8982;
+    color: var(--workspace-muted);
     font-size: 11px;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -252,26 +252,26 @@
 }
 
 .claudeCollapseButton:hover {
-    background: #eeede9;
-    color: #34322e;
+    background: var(--workspace-hover);
+    color: var(--workspace-text);
 }
 
 .claudeAppsButton {
     min-height: 39px;
     margin: 2px 12px 8px;
     padding: 8px 12px;
-    border: 1px solid #e9e7e2;
+    border: 1px solid var(--workspace-border);
     border-radius: 9px;
-    background: #fff;
-    color: #44413b;
+    background: var(--workspace-content-bg);
+    color: var(--workspace-text);
     font-size: 12px;
     font-weight: 500;
 }
 
 .claudeAppsButton:hover {
-    border-color: #dedbd4;
-    background: #fff;
-    color: #26241f;
+    border-color: var(--workspace-border);
+    background: var(--workspace-content-bg);
+    color: var(--workspace-text);
 }
 
 .claudeLayout .navigation {
@@ -283,13 +283,13 @@
     gap: 9px;
     padding: 7px 10px;
     border-radius: 8px;
-    color: #57544e;
+    color: var(--workspace-text);
     font-size: 12px;
     line-height: 1.45;
 }
 
 .claudeLayout .item:hover {
-    background: #efeee9;
+    background: var(--workspace-hover);
 }
 
 .claudeLayout .group {
@@ -298,7 +298,7 @@
 
 .claudeLayout .icon {
     flex-basis: 18px;
-    color: #8d8a83;
+    color: var(--workspace-muted);
 }
 
 .claudeLayout .icon svg {
@@ -318,13 +318,13 @@
 }
 
 .claudeLayout .active {
-    background: #eae8e2;
-    color: #292824;
+    background: var(--workspace-selected);
+    color: var(--workspace-selected-text);
     font-weight: 500;
 }
 
 .claudeLayout .active:hover {
-    background: #e5e3dc;
+    background: var(--workspace-selected);
 }
 
 .claudeAccount {
@@ -335,16 +335,16 @@
     margin-top: auto;
     padding: 10px 14px;
     border: 0;
-    border-top: 1px solid #eae8e3;
+    border-top: 1px solid var(--workspace-border);
     background: transparent;
-    color: #5d5a54;
+    color: var(--workspace-text);
     font: inherit;
     text-align: left;
     cursor: pointer;
 }
 
 .claudeAccount:hover {
-    background: #efeee9;
+    background: var(--workspace-hover);
 }
 
 .claudeAvatar {
@@ -354,8 +354,8 @@
     width: 30px;
     height: 30px;
     border-radius: 50%;
-    background: #e9e5dc;
-    color: #514d45;
+    background: var(--workspace-selected);
+    color: var(--workspace-selected-text);
     font-size: 12px;
     font-weight: 600;
 }
@@ -376,13 +376,13 @@
 }
 
 .claudeAccountText strong {
-    color: #37352f;
+    color: var(--workspace-text);
     font-size: 12px;
     font-weight: 550;
 }
 
 .claudeAccountText small {
-    color: #8b8881;
+    color: var(--workspace-muted);
     font-size: 11px;
 }
 
@@ -578,15 +578,20 @@
 }
 
 .claudeLayout.collapsed .claudeSidebarHeader {
-    justify-content: center;
-    padding-inline: 7px;
+    justify-content: space-between;
+    gap: 0;
+    padding-inline: 5px;
 }
 
 .claudeLayout.collapsed .claudeBrandText,
-.claudeLayout.collapsed .claudeCollapseButton,
 .claudeLayout.collapsed .claudeAccountText,
 .claudeLayout.collapsed .claudeAccount > svg {
     display: none;
+}
+
+.claudeLayout.collapsed .claudeCollapseButton {
+    flex-basis: 26px;
+    width: 26px;
 }
 
 .claudeLayout.collapsed .claudeAppsButton,
@@ -597,7 +602,7 @@
 }
 
 .claudeLayout.collapsed .claudeAccount {
-    border-top: 1px solid #eae8e3;
+    border-top: 1px solid var(--workspace-border);
 }
 
 .shell.collapsed .brand,

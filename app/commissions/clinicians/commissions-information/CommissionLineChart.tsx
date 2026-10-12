@@ -5,8 +5,8 @@ import dayjs from "dayjs";
 import { currencyFormatter } from "../../../../components/Auth/customFetch";
 
 // Colors from monthlySalesTrend
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
-const COLOR_BAR = 'oklch(0.646 0.222 41.116)';
+const COLOR_ACCENT = 'var(--bs-primary)';
+const COLOR_BAR = 'var(--bs-primary)';
 const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
 const COLOR_BORDER = 'var(--bs-border-color)';
 
@@ -29,7 +29,7 @@ export default function CommissionLineChart({ data, view }: CommissionLineChartP
 			const dateKey = dayjs(item.service_date).format("YYYY-MM-DD");
 			const amount = Number(item.commission_earned);
 
-			if (!Number.isFinite(amount) || amount <= 0) {
+			if (!Number.isFinite(amount)) {
 				return acc;
 			}
 
@@ -47,13 +47,14 @@ export default function CommissionLineChart({ data, view }: CommissionLineChartP
 	}, [data]);
 
 	// Use view prop if provided, otherwise auto-switch
-	let useBar = chartData.length > 12;
+	let useBar = false;
 	if (view === 'bar') useBar = true;
 	if (view === 'line') useBar = false;
 	const ChartComponent = useBar ? BarChart : LineChart;
 
+	if (!chartData.length) return <p className="text-muted py-3">No commission trend data for this period.</p>;
 	return (
-		<div style={{ width: "100%", height: 350, marginBottom: 32 }}>
+		<div role="img" aria-label="Commission earned by service date. Exact values are in the records table below." style={{ width: "100%", height: 350 }}>
 			<ResponsiveContainer>
 				<ChartComponent data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 45 }} barGap={useBar ? 4 : undefined} barCategoryGap={useBar ? "20%" : undefined}>
 					<CartesianGrid strokeDasharray="3 3" stroke={COLOR_BORDER} vertical={false} />
@@ -66,7 +67,7 @@ export default function CommissionLineChart({ data, view }: CommissionLineChartP
 								return (
 									<div style={{
 										background: "var(--bs-body-bg)", border: `1px solid ${COLOR_BORDER}`,
-										borderRadius: 8, padding: 12, minWidth: 120, fontSize: 13, color: "var(--bs-body-color)"
+										borderRadius: 6, padding: 12, minWidth: 120, fontSize: 13, color: "var(--bs-body-color)"
 									}}>
 										<div style={{ marginBottom: 6 }}>
 											<span style={{ color: COLOR_TEXT_MUTED, fontSize: 12 }}>Date</span>
@@ -91,6 +92,7 @@ export default function CommissionLineChart({ data, view }: CommissionLineChartP
 							fill={COLOR_BAR}
 							radius={4}
 							maxBarSize={100}
+							isAnimationActive={false}
 						/>
 					) : (
 						<Line
@@ -101,6 +103,7 @@ export default function CommissionLineChart({ data, view }: CommissionLineChartP
 							strokeWidth={3}
 							dot={{ r: 4 }}
 							activeDot={{ r: 6 }}
+							isAnimationActive={false}
 						/>
 					)}
 				</ChartComponent>

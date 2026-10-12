@@ -2,6 +2,10 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import styles from './PrimeLayout.module.css';
 import workspaceStyles from './WorkspaceLayout.module.css';
+import ribbonStyles from './RibbonLayout.module.css';
+import RibbonNavigation from './RibbonNavigation';
+import NextLink from 'next/link';
+import { findActiveNavigationPath } from '../../lib/ribbonNavigation';
 import {
     RiMenuLine,
     RiMenu3Line,
@@ -60,9 +64,12 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
         ? 'claude'
         : settings?.workspaceLayout === 'zoho'
             ? 'zoho'
-            : 'classic';
+            : settings?.workspaceLayout === 'ribbon'
+                ? 'ribbon'
+                : 'classic';
     const isWorkspaceLayout = activeLayout !== 'classic';
     const isClaudeLayout = activeLayout === 'claude';
+    const isRibbonLayout = activeLayout === 'ribbon';
     const [openNavigationGroup, setOpenNavigationGroup] = useState<string | null>(null);
     const [isFontSelectorOpen, setIsFontSelectorOpen] = useState<boolean>(false);
     const [isAppsOpen, setIsAppsOpen] = useState<boolean>(false);
@@ -86,6 +93,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
         return filterLinks(isSuperAdmin ? allNavigation : links || []);
     }, [links, normalizedRole, isSuperAdmin, allNavigation, settings?.moduleConfiguration]);
     const canViewNotifications = ['admin', 'manager', 'super-admin', 'super admin'].includes(String(user?.role || '').toLowerCase().trim());
+    const activeNavigationPath = useMemo(() => findActiveNavigationPath(visibleLinks, modulePath || ''), [visibleLinks, modulePath]);
     const employeeid = user?.employeeid || 0;
     const [currentPath, setCurrentPath] = useState<string>("");
     const isOpenSideBarShow = useSearchParams().get("isOpenSideBarShow") !== "false";
@@ -93,6 +101,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
     useEffect(() => {
         setCurrentPath(modulePath || '');
         setOpenNavigationGroup(null);
+        setIsMobileSidebarOpen(false);
     }, [modulePath]);
 
     useEffect(() => {
@@ -153,7 +162,8 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
 
     const handleNavigation = (path: string) => {
         if (window.location.pathname !== path) {
-            window.location.href = path;
+            if (isRibbonLayout) router.push(path);
+            else window.location.href = path;
         }
         setIsMobileSidebarOpen(false);
         setIsAppsOpen(false);
@@ -285,7 +295,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                             {isExpanded ? <RiArrowDownSLine size={16} /> : <RiArrowRightSLine size={16} />}
                         </span>
                     </button>
-                    {isExpanded && (
+                    {isExpanded && !isCompact && (
                         <div id={submenuId} className={workspaceStyles.submenu} role="group" aria-label={item.title}>
                             {item.children?.map((child, index) => renderWorkspaceNavItem(child, `${key}-${index}`, depth + 1))}
                         </div>
@@ -311,17 +321,18 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
     };
 
     return (
-        <div className={`${styles.container} ${isWorkspaceLayout ? `${workspaceStyles.shell} ${isClaudeLayout ? workspaceStyles.claudeLayout : ''}` : ''} ${isQuickLinksCollapsed ? `${styles.quickLinksCollapsed} ${workspaceStyles.collapsed}` : styles.quickLinksExpanded} ${isMobileSidebarOpen ? `${styles.mobileSidebarOpen} ${workspaceStyles.mobileOpen}` : ''} ${!isOpenSideBarShow ? workspaceStyles.sidebarHidden : ''}`}>
-            <header className={`${styles.darkHeader} ${isWorkspaceLayout ? workspaceStyles.header : ''}`}>
+        <div className={`${styles.container} ${isWorkspaceLayout ? `${workspaceStyles.shell} ${isClaudeLayout ? workspaceStyles.claudeLayout : ''} ${isRibbonLayout ? ribbonStyles.layout : ''}` : ''} ${isQuickLinksCollapsed ? `${styles.quickLinksCollapsed} ${workspaceStyles.collapsed}` : styles.quickLinksExpanded} ${isMobileSidebarOpen ? `${styles.mobileSidebarOpen} ${workspaceStyles.mobileOpen}` : ''} ${!isOpenSideBarShow ? `${workspaceStyles.sidebarHidden} ${ribbonStyles.sidebarHidden}` : ''}`}>
+            {isRibbonLayout && <a href="#workspace-main" className={ribbonStyles.skipLink}>Skip to workspace</a>}
+            <header className={`${styles.darkHeader} ${isWorkspaceLayout ? workspaceStyles.header : ''} ${isRibbonLayout ? ribbonStyles.header : ''}`}>
                 <div className={`${styles.headerContent} ${isWorkspaceLayout ? workspaceStyles.headerContent : ''}`}>
                     <div className={`${styles.headerLeft} ${isWorkspaceLayout ? workspaceStyles.headerLeft : ''}`}>
                         {isWorkspaceLayout && !isClaudeLayout && (
                             <div className={workspaceStyles.headerBrand} aria-label="Prime Laboratory Software">
-                                <span className={workspaceStyles.headerBrandMark} aria-hidden="true">PLS</span>
+                                <span className={`${workspaceStyles.headerBrandMark} ${isRibbonLayout ? ribbonStyles.brandMark : ''}`} aria-hidden="true">PLS</span>
                                 <span className={workspaceStyles.headerBrandName}>Prime Laboratory Software</span>
                             </div>
                         )}
-                        {isOpenSideBarShow && !isClaudeLayout && (
+                        {isOpenSideBarShow && !isClaudeLayout && !isRibbonLayout && (
                             <button
                                 type="button"
                                 className={`${styles.sidebarToggleHeader} d-none d-md-inline-flex`}
@@ -333,18 +344,18 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                                 {isQuickLinksCollapsed ? <RiArrowRightLine size={16} /> : <RiArrowLeftLine size={16} />}
                             </button>
                         )}
-                        <button
+                        {!isRibbonLayout && <button
                             type="button"
                             className={`${styles.mobileMenuButton} ${isWorkspaceLayout ? workspaceStyles.mobileMenuButton : ''}`}
                             onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
                             aria-label="Toggle navigation menu"
                         >
                             <RiMenuLine size={20} />
-                        </button>
+                        </button>}
 
                         <div className={styles.brandBlock}>
                             <div className={styles.companyRow}>
-                                <h1 className={`${styles.companyName} ${isWorkspaceLayout ? workspaceStyles.companyName : ''}`} title={company || ''}>
+                                <h1 className={`${styles.companyName} ${isWorkspaceLayout ? workspaceStyles.companyName : ''} ${isRibbonLayout ? ribbonStyles.companyName : ''}`} title={company || ''}>
                                     {company || 'Organization'}
                                 </h1>
                             </div>
@@ -406,7 +417,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                                     aria-expanded={isNotificationsOpen}
                                 >
                                     <RiNotification3Line size={17} />
-                                    {unreadCount > 0 && <span className={styles.notificationBadge}>{unreadCount > 99 ? '99+' : unreadCount}</span>}
+                                    {unreadCount > 0 && <span className="small">{unreadCount > 99 ? '99+' : unreadCount}</span>}
                                 </button>
                                 {isNotificationsOpen && (
                                     <div className={styles.notificationPanel} role="dialog" aria-label="Notifications">
@@ -460,10 +471,13 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                 </div>
             </header>
 
-            <div className={`${styles.twoColumnLayout} ${isWorkspaceLayout ? workspaceStyles.body : ''}`} style={!isOpenSideBarShow ? { width: '100%' } : {}}>
-                {isMobileSidebarOpen && <div className={styles.mobileOverlay} onClick={() => setIsMobileSidebarOpen(false)} />}
+            {isRibbonLayout && isOpenSideBarShow && <RibbonNavigation links={visibleLinks} pathname={modulePath || ''}
+                onNavigate={() => setIsMobileSidebarOpen(false)} />}
 
-                {isOpenSideBarShow && (
+            <div className={`${styles.twoColumnLayout} ${isWorkspaceLayout ? workspaceStyles.body : ''}`} style={!isOpenSideBarShow ? { width: '100%' } : {}}>
+                {!isRibbonLayout && isMobileSidebarOpen && <div className={styles.mobileOverlay} onClick={() => setIsMobileSidebarOpen(false)} />}
+
+                {isOpenSideBarShow && !isRibbonLayout && (
                     <aside className={`${styles.quickLinksSidebar} ${isWorkspaceLayout ? workspaceStyles.sidebar : ''} ${isMobileSidebarOpen ? styles.mobileSidebarVisible : ''}`}>
                         {isWorkspaceLayout ? (
                             <>
@@ -542,8 +556,17 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                         )}
                     </aside>
                 )}
-                <main className={`${styles.mainContent} ${isWorkspaceLayout ? workspaceStyles.main : ''}`} style={!isOpenSideBarShow ? { margin: 0, padding: 0 } : {}}>
-                    <div className={`${styles.contentWrapper} ${isWorkspaceLayout ? workspaceStyles.content : ''}`} style={!isOpenSideBarShow ? { padding: 0, margin: '10px', maxWidth: '100%' } : {}}>
+                <main className={`${styles.mainContent} ${isWorkspaceLayout ? workspaceStyles.main : ''} ${isRibbonLayout ? ribbonStyles.main : ''}`} id="workspace-main" tabIndex={isRibbonLayout ? -1 : undefined} style={!isOpenSideBarShow ? { margin: 0, padding: 0 } : {}}>
+                    <div className={`${styles.contentWrapper} ${isWorkspaceLayout ? workspaceStyles.content : ''} ${isRibbonLayout ? ribbonStyles.content : ''}`} style={!isOpenSideBarShow ? { padding: 0, margin: '10px', maxWidth: '100%' } : {}}>
+                        {isRibbonLayout && isOpenSideBarShow && activeNavigationPath.length > 0 && <nav aria-label="Breadcrumb">
+                            <ol className={ribbonStyles.breadcrumb}>
+                                {activeNavigationPath.map((item, index) => <li key={`${item.title}-${index}`}>
+                                    {index < activeNavigationPath.length - 1 && item.link
+                                        ? <NextLink href={item.link} prefetch={false}>{item.title}</NextLink>
+                                        : <span aria-current={index === activeNavigationPath.length - 1 ? 'page' : undefined}>{item.title}</span>}
+                                </li>)}
+                            </ol>
+                        </nav>}
                         {isSuperAdmin || canAccessFacilityModule(modulePath || "", settings?.moduleConfiguration)
                             ? children : <div className="alert alert-warning" role="alert">This module is not activated for your facility. Contact your platform administrator.</div>}
                     </div>

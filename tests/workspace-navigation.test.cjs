@@ -27,9 +27,12 @@ test('new layout uses Zoho-style Inter navigation typography', () => {
 
 test('context refresh unwraps the validated user before updating the application context', () => {
     const mainLayout = readFileSync(path.join(__dirname, '..', 'components', 'Layout', 'MainLayout.tsx'), 'utf8');
+    const primeLayout = readFileSync(path.join(__dirname, '..', 'components', 'Layout', 'PrimeLayout.tsx'), 'utf8');
     assert.match(mainLayout, /const authenticatedUser = user\?\.user \?\? user;/);
     assert.match(mainLayout, /if \(!authenticatedUser\)/);
-    assert.match(mainLayout, /const freshSettings = \{ user: authenticatedUser, settings \};/);
+    assert.match(mainLayout, /const freshSettings = \{\s+\.\.\.user,\s+user: authenticatedUser,\s+settings,/);
+    assert.match(primeLayout, /const \{ company, user, daysToExpiration, settings \} = useApplicationSettings\(\)\.applicationsettings;/);
+    assert.match(primeLayout, /\{company \|\| 'Organization'\}/);
 });
 
 test('Claude layout has its own light, warm sidebar treatment', () => {
@@ -39,7 +42,7 @@ test('Claude layout has its own light, warm sidebar treatment', () => {
     assert.match(styles, /\.claudeLayout \{[\s\S]*?grid-template-areas: "sidebar header" "sidebar content"/);
     assert.match(styles, /\.claudeLayout \{[\s\S]*?--workspace-sidebar-bg: #f9f8f6/);
     assert.match(styles, /\.claudeLayout \.sidebar \{[\s\S]*?height: 100dvh;/);
-    assert.match(styles, /\.claudeLayout \.active \{[\s\S]*?background: #eae8e2/);
+    assert.match(styles, /\.claudeLayout \.active \{[\s\S]*?background: var\(--workspace-selected\)/);
     assert.match(html, /claudeSidebarHeader/);
     assert.match(html, /claudeAppsButton/);
     assert.match(html, /claudeAccount/);
@@ -80,12 +83,20 @@ function renderLayout(preference, actions = [], options = {}) {
             useEffect: () => {},
             useMemo: callback => callback(),
             useCallback: callback => callback,
+            useRef: initial => ({ current: initial }),
+            useId: () => 'ribbon-test',
         };
         if (name.endsWith('.module.css')) return {
             __esModule: true,
-            default: new Proxy({}, { get: (_, key) => `${options.scopedCSS ? (name.includes('WorkspaceLayout') ? 'w_' : 'p_') : ''}${String(key)}` }),
+            default: new Proxy({}, { get: (_, key) => `${options.scopedCSS ? (name.includes('WorkspaceLayout') ? 'w_' : name.includes('RibbonLayout') ? 'r_' : 'p_') : ''}${String(key)}` }),
         };
         if (name === '@remixicon/react') return require(name);
+        if (name === 'next/link') return {
+            __esModule: true,
+            default: ({ prefetch, ...props }) => React.createElement('a', props),
+        };
+        if (name.endsWith('ribbonNavigation')) return compile(path.join('lib', 'ribbonNavigation.ts'), require);
+        if (name.endsWith('RibbonNavigation')) return compile(path.join('components', 'Layout', 'RibbonNavigation.tsx'), mocks).default;
         if (name.endsWith('useApplicationContext')) return { useApplicationSettings: () => ({
             applicationsettings: {
                 company: 'Test laboratory',
@@ -200,7 +211,7 @@ test('all presentations retain role and module filtering', () => {
         { title: 'Restricted', link: '/restricted', roles: ['super-admin'] },
         { title: 'Disabled', link: '/disabled' },
     ];
-    for (const preference of ['classic', 'zoho', 'claude']) {
+    for (const preference of ['classic', 'zoho', 'claude', 'ribbon']) {
         const html = renderLayout(preference, [], { links, deniedPaths: ['/disabled'] });
         assert.match(html, />Allowed<\/span>/);
         assert.doesNotMatch(html, /Restricted|Disabled/);
@@ -208,12 +219,12 @@ test('all presentations retain role and module filtering', () => {
 });
 
 test('super-admin retains the same complete platform navigation in all layouts', () => {
-    for (const preference of ['classic', 'zoho', 'claude']) {
+    for (const preference of ['classic', 'zoho', 'claude', 'ribbon']) {
         const options = {
             role: 'super-admin',
             platformLinks: [{ title: 'Platform and settings', link: '', children: [{ title: 'Audit logs', link: '/settings/facilities/audit' }] }],
         };
-        const html = renderLayout(preference, preference === 'classic' ? [] : ['Platform and settings'], options);
+        const html = renderLayout(preference, preference === 'classic' || preference === 'ribbon' ? [] : ['Platform and settings'], options);
         assert.match(html, /Platform and settings/);
         assert.match(html, /Audit logs/);
     }
@@ -225,11 +236,15 @@ test('facility setting selects the same layout for every signed-in user without 
         ['classic', /container /],
         ['zoho', /class="container shell/],
         ['claude', /claudeLayout/],
+        ['ribbon', /Workspace ribbon/],
     ]) {
         const html = renderLayout(selected, [], { workspaceLayout: selected, role: 'scientist' });
         assert.match(html, expected);
         assert.doesNotMatch(html, /Use the new layout|Use the classic layout|New layout|Classic layout/);
-        for (const title of PayrollLinks.map(item => item.title)) assert.ok(html.includes(title));
+        const headings = selected === 'ribbon'
+            ? compile(path.join('lib', 'ribbonNavigation.ts'), require).buildRibbonTabs(PayrollLinks).map(tab => tab.title)
+            : PayrollLinks.map(item => item.title);
+        for (const title of headings) assert.ok(html.includes(title), `Missing navigation heading: ${title}`);
     }
     assert.match(settings, /workspace-layout/);
     assert.match(settings, /workspaceLayout/);
@@ -248,4 +263,36 @@ test('sidebar-hidden pages do not acquire new navigation or branding', () => {
     assert.doesNotMatch(html, /<aside\b/);
     assert.match(html, /sidebarHidden/);
     assert.match(html, /Page content/);
+});
+
+test('ribbon exposes nested navigation in command groups without a redundant sidebar', () => {
+    const links = [
+        { title: 'Orders', link: '', children: [
+            { title: 'Results', link: '', children: [{ title: 'Review', link: '/review' }] },
+            { title: 'Samples', link: '', children: [{ title: 'Collection', link: '/collection' }] },
+        ] },
+    ];
+    const html = renderLayout('ribbon', [], { links, pathname: '/review/123' });
+    assert.doesNotMatch(html, /<aside|Toggle navigation menu|Collapse navigation/);
+    assert.match(html, /role="group" aria-label="Results"/);
+    assert.match(html, /role="group" aria-label="Samples"/);
+    assert.match(html, /href="\/review"[^>]*aria-current="page"/);
+    assert.match(html, /href="\/collection"/);
+});
+
+test('ribbon stays absent from sidebar-hidden pages and existing content is preserved', () => {
+    const html = renderLayout('ribbon', [], { hideSidebar: true });
+    assert.doesNotMatch(html, /Workspace ribbon|Breadcrumb|<aside/);
+    assert.match(html, /Page content/);
+});
+
+test('ribbon groups never reintroduce restricted or disabled descendants', () => {
+    const links = [{ title: 'Operations', link: '', children: [
+        { title: 'Allowed page', link: '/allowed' },
+        { title: 'Owner only', link: '/owner', roles: ['admin'] },
+        { title: 'Disabled module', link: '/disabled' },
+    ] }];
+    const html = renderLayout('ribbon', [], { links, role: 'scientist', pathname: '/allowed', deniedPaths: ['/disabled'] });
+    assert.match(html, /Allowed page/);
+    assert.doesNotMatch(html, /Owner only|Disabled module|href="\/owner"|href="\/disabled"/);
 });

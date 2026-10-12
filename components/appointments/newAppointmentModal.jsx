@@ -16,7 +16,7 @@ import {
 	loadOptions,
 	onChangePractioner,
 } from "../../lib/appointment";
-import { getInstitutionUsers, reactSelectCustomStyles } from "../Auth/customFetch";
+import { customFetch, getInstitutionUsers, reactSelectCustomStyles } from "../Auth/customFetch";
 import SpinningLoading from "../accessories/UIAccessories/spinningLoading";
 import { useSearchParams } from "next/navigation";
 import AppointmentSlots from "./DisplayAppointmentSlot";
@@ -26,30 +26,37 @@ import { useApplication } from "../Auth/useApplicationContext";
 
 export default function NewAppointment() {
 	const [appointment, setAppointment] = useState(APPOINTMENT_DEFAULT_DATA);
-	const [selected, setSelected] = useState(false);
 	const [patient, setPatient] = useState(patientData);
 	const [evening_slots, setEvening] = useState(eveningSlot);
 	const [morning, setMorning] = useState(morningSlot);
 	const [afternoon, setAfternoon] = useState(afternoonSlot);
 	const [employees, setEmployees] = useState([]);
+	const [leads, setLeads] = useState([]);
+	const [contactType, setContactType] = useState("patient");
 	const [isloadingEmployees, setLoadingEmployes] = useState(true);
-	const searchedPatientid = useSearchParams().get("patientid");
+	const searchParams = useSearchParams();
+	const searchedPatientid = searchParams.get("patientid");
+	const searchedLeadId = searchParams.get("lead_id");
+	const appointmentDate = searchParams.get("appointment_date");
+	const appointmentType = searchParams.get("appointment_type");
 	const [disableFilter, setDisableFilter] = useState(false);
 	const employeeid = useApplication()?.user?.employeeid;
 
 	const getSelectedPatient = (value) => {
 		if (typeof value == "object" && "patientid" in value) {
 			setPatient(value);
-			setSelected(true);
 		}
 	};
 
-	console.log(employeeid, "employeeid");
-	
 	const handleFormSubmit = (e) => {
 		e.preventDefault();
 		if (!employeeid) return toast.error("Employee ID is required to schedule an appointment", { position: "top-center" });
-		handleSubmitForm({ ...appointment, patientid: patient.patientid, employeeid }, toast);
+		handleSubmitForm({
+			...appointment,
+			patientid: contactType === "patient" ? patient.patientid : null,
+			lead_id: contactType === "lead" ? Number(appointment.lead_id) : null,
+			employeeid
+		}, toast);
 	};
 
 	useEffect(() => {
@@ -58,10 +65,9 @@ export default function NewAppointment() {
 
 	useEffect(() => {
 		if (searchedPatientid) {
-			loadOptions(searchedPatientid)
+			loadOptions(searchedPatientid, "patientid")
 				.then((user) => {
 					setPatient(user[0]);
-					setSelected(true);
 				})
 				.catch((err) => {
 					console.log(err, "err");
@@ -71,6 +77,36 @@ export default function NewAppointment() {
 				});
 		}
 	}, [searchedPatientid]);
+
+	useEffect(() => {
+		if (appointmentDate) {
+			const [year, month, day] = appointmentDate.split("-").map(Number);
+			if (year && month && day) {
+				setAppointment((current) => ({ ...current, appointment_date: new Date(year, month - 1, day) }));
+			}
+		}
+		if (appointmentType && ["consultation", "laboratory", "ultrasound", "follow_up"].includes(appointmentType)) {
+			setAppointment((current) => ({ ...current, appointment_type: appointmentType }));
+		}
+		if (searchedLeadId) {
+			setContactType("lead");
+			setAppointment((current) => ({ ...current, lead_id: Number(searchedLeadId) }));
+		}
+	}, [appointmentDate, appointmentType, searchedLeadId]);
+
+	useEffect(() => {
+		if (contactType !== "lead" || !employeeid) return;
+		customFetch(`leads?employeeid=${employeeid}&page=1&count=100&sortby=DESC`)
+			.then((response) => {
+				const items = response?.data?.data;
+				if (response?.success && Array.isArray(items)) setLeads(items);
+				else setLeads([]);
+			})
+			.catch((error) => {
+				console.error("Unable to load CRM leads for appointment booking:", error);
+				toast.error("CRM leads could not be loaded.");
+			});
+	}, [contactType, employeeid]);
 
 	const handleSlotClick = (value) => {
 		setAppointment({ ...appointment, appointment_time: value });
@@ -83,8 +119,81 @@ export default function NewAppointment() {
 
 				</div>
 				<Container>
+					<div className="col-6 mb-3">
+						<label htmlFor="appointment-type">Appointment workflow</label>
+						<select
+							id="appointment-type"
+							className="form-select"
+							value={appointment.appointment_type || "consultation"}
+							onChange={(event) => setAppointment({
+								...appointment,
+								appointment_type: event.target.value,
+								billingid: null
+							})}>
+							<option value="consultation">Consultation</option>
+							<option value="laboratory">Laboratory</option>
+							<option value="ultrasound">Ultrasound</option>
+							<option value="follow_up">CRM follow-up</option>
+						</select>
+					</div>
+					<div className="col-6 mb-3">
+						<label htmlFor="appointment-contact-type">Link appointment to</label>
+						<select
+							id="appointment-contact-type"
+							className="form-select"
+							value={contactType}
+							onChange={(event) => {
+								setContactType(event.target.value);
+								setPatient(patientData);
+								setSelected(false);
+								setAppointment((current) => ({
+									...current,
+									patientid: null,
+									lead_id: null,
+									billingid: null
+								}));
+							}}>
+							<option value="patient">Patient</option>
+							<option value="lead">CRM lead</option>
+						</select>
+					</div>
 					<div className="col-6">
-						<PatientFiltering getSelectedPatient={getSelectedPatient} isDisabled={disableFilter} />
+						{contactType === "patient" ? (
+							<PatientFiltering getSelectedPatient={getSelectedPatient} isDisabled={disableFilter} />
+						) : (
+							<div className="form-row mb-3">
+								<label htmlFor="appointment-lead">CRM lead</label>
+								<select
+									id="appointment-lead"
+									className="form-select"
+									value={appointment.lead_id || ""}
+									onChange={(event) => setAppointment({ ...appointment, lead_id: event.target.value ? Number(event.target.value) : null })}>
+									<option value="">Select a lead</option>
+									{leads.map((lead) => (
+										<option key={lead.id} value={lead.id}>
+											{[lead.firstname, lead.lastname].filter(Boolean).join(" ") || lead.company_name || lead.contact_person || `Lead #${lead.id}`}
+										</option>
+									))}
+								</select>
+								{leads.length === 0 && <small className="text-muted">No CRM leads were found for your account.</small>}
+							</div>
+						)}
+						{contactType === "patient" && (appointment.appointment_type === "laboratory" || appointment.appointment_type === "ultrasound") && (
+							<div className="form-row mb-3">
+								<label htmlFor="appointment-billing">Billing ID (optional)</label>
+								<input
+									id="appointment-billing"
+									type="number"
+									min="1"
+									className="form-control"
+									value={appointment.billingid || ""}
+									onChange={(event) => setAppointment({
+										...appointment,
+										billingid: event.target.value ? Number(event.target.value) : null
+									})} />
+								<small className="text-muted">Link the lab or ultrasound booking to an existing patient billing record.</small>
+							</div>
+						)}
 					</div>
 					<div >
 						<div className="col-6">
