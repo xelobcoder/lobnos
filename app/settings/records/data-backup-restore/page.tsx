@@ -5,6 +5,7 @@ import { Row, Col, Button, Alert, Modal } from 'react-bootstrap';
 import { RiShieldCheckLine, RiAddLine, RiDatabaseLine } from '@remixicon/react';
 import Link from 'next/link';
 import { customFetch, customPost } from '../../../../components/Auth/customFetch';
+import { buildApiUrl } from '../../../../lib/apiBaseUrl';
 import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
 import { toast } from 'react-toastify';
 
@@ -361,8 +362,7 @@ export default function DataBackupRestorePage() {
           if (!backupToDownload) return;
 
           try {
-               const baseUrl = process.env.NEXT_PUBLIC_BASEURL;
-               const url = new URL(`${API_BASE}/logs/${backupToDownload.id}/download`, baseUrl);
+               const url = new URL(buildApiUrl(`${API_BASE}/logs/${backupToDownload.id}/download`));
                if (process.env.NEXT_PUBLIC_TENANTID) {
                     url.searchParams.append("tenantId", process.env.NEXT_PUBLIC_TENANTID);
                }
@@ -373,7 +373,6 @@ export default function DataBackupRestorePage() {
                const response = await fetch(url.toString(), {
                     method: 'GET',
                     headers: {
-                         'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
                          'cache': 'no-cache,must-revalidate,no-store,max-age=60,s-maxage=0'
                     },
                     cache: 'no-cache',

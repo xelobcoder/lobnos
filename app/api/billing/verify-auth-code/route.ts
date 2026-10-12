@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { getBackendAuthorization } from '../../../../lib/serverBackendAccess';
 
 export async function POST(request: NextRequest) {
      try {
@@ -29,10 +30,11 @@ export async function POST(request: NextRequest) {
                url.searchParams.append('billingId', billingId);
           }
 
+          const authorization = getBackendAuthorization();
           const response = await fetch(url.toString(), {
                method: 'POST',
                headers: {
-                    'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
+                    ...(authorization ? { Authorization: authorization } : {}),
                     'Content-Type': 'application/json',
                     'cache': 'no-cache,must-revalidate,no-store,max-age=60,s-maxage=0'
                },

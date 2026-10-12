@@ -5,13 +5,6 @@ import { getRequestContext } from "../serverActions/requestHeaders";
 import { buildApiUrl, usesTenantQuery } from "../../lib/apiBaseUrl";
 
 export async function customFile(endpoint, formbody) {
-	if (
-		process.env.NODE_ENV == "production" &&
-		!process.env.NEXT_PUBLIC_ACCESS_TOKEN
-	) {
-		throw new Error("NEXT_PUBLIC_ACCESS_TOKEN MISSING");
-	}
-
 	const url = new URL(buildApiUrl(endpoint));
 
 	const context = await getRequestContext();
@@ -27,7 +20,6 @@ export async function customFile(endpoint, formbody) {
 	const response = await fetch(url.toString(), {
 		method: "POST",
 		headers: {
-			Authorization: `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
 			cache: "no-cache,must-revalidate,no-store,max-age=60,s-maxage=0",
 			"pls-prime-tenant-session": PLS_PRIME_TENANT_SESSION,
 			"pls-session": PLS_SESSION,
@@ -77,7 +69,6 @@ export async function customFetch(endpoint, isLogin = false) {
 
 		const response = await fetch(url.toString(), {
 			headers: {
-				Authorization: `Bearer ${PLS_SESSION ? PLS_SESSION : ""}`,
 				"Content-Type": "application/json",
 				cache: "no-cache,must-revalidate,no-store,max-age=60,s-maxage=0",
 				"pls-prime-tenant-session": PLS_PRIME_TENANT_SESSION
@@ -131,7 +122,6 @@ export async function customFetchMutation(endpoint, method, body) {
 	const response = await fetch(url.toString(), {
 		method,
 		headers: {
-			Authorization: `Bearer ${context.PLS_SESSION}`,
 			"Content-Type": "application/json",
 			"pls-prime-tenant-session": context.PLS_PRIME_TENANT_SESSION,
 			"pls-session": context.PLS_SESSION,
@@ -186,9 +176,8 @@ export async function handleLogout(setIsLoggingOut) {
 
 export async function InventoryFetch(endpoint) {
 	try {
-		let response = await fetch(`${process.env.PSL_INVEN_ROUTE}/${endpoint}`, {
+		let response = await fetch(`/api/inventory/${endpoint}`, {
 			headers: {
-				Authorization: `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
 				"Content-Type": "application/json",
 				cache: "no-cache,must-revalidate,no-store,max-age=60,s-maxage=0",
 			},
@@ -325,8 +314,6 @@ export async function customPost(
 			method: method,
 			headers: {
 				"content-type": "application/json",
-				Authorization: PLS_SESSION ? `Bearer ${PLS_SESSION} ` : "",
-				mode: "no-cors",
 				"pls-prime-tenant-session": PLS_PRIME_TENANT_SESSION
 					? PLS_PRIME_TENANT_SESSION
 					: "",

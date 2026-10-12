@@ -17,10 +17,6 @@ if [ -f .env ]; then
     cp .env /tmp/pls.env.bak
 fi
 
-if [ -f next.config.js ]; then
-    cp next.config.js /tmp/pls.next.config.js.bak
-fi
-
 echo
 echo "Pulling updates..."
 git pull --autostash
@@ -32,13 +28,13 @@ if [ -f /tmp/pls.env.bak ]; then
     cp /tmp/pls.env.bak .env
 fi
 
-if [ -f /tmp/pls.next.config.js.bak ]; then
-    cp /tmp/pls.next.config.js.bak next.config.js
-fi
-
 echo
 echo "Installing dependencies..."
 pnpm install
+
+echo
+echo "Running application tests..."
+pnpm run test
 
 echo
 echo "Building the application..."

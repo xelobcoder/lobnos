@@ -19,7 +19,10 @@ Logs are written to:
 
 - Windows machine with Administrator access (UAC prompt will appear during install/start/stop).
 - Node.js installed and available in PATH.
-- A valid `.env` file in the project root.
+- A valid `.env` file in the project root, including the backend URLs and
+  `JWT_SECRET_KEY`. `PLS_BACKEND_ACCESS_TOKEN` is optional and is needed only
+  when the backend requires a service bearer token. Keep credentials server-side;
+  do not add them to `next.config.js` or commit the `.env` file.
 - Project dependencies installed (`npm install`).
 
 ## Step 1: Install NSSM (Required Once Per Machine)
@@ -39,6 +42,7 @@ This tries to install NSSM using `winget`, `choco`, or `scoop`. If none are avai
 The service runs in production mode and requires a Next.js build output (`.next/BUILD_ID`).
 
 ```powershell
+npm test
 npm run build
 ```
 
@@ -100,7 +104,8 @@ npm run service:install:win
 
 ### Service installs but site doesn’t load
 
-- Confirm backend URLs in `.env` are correct.
+- Confirm backend URLs in `.env` are correct. If the backend requires a service
+  bearer token, configure the server-only `PLS_BACKEND_ACCESS_TOKEN`.
 - Ensure port `2377` is open/available on the machine.
 - Check service logs:
   - `logs/lobnos-service-out.log`
@@ -122,4 +127,3 @@ If an older service was installed under a different name, uninstall that old ser
 powershell -ExecutionPolicy Bypass -File .\scripts\windows\uninstall-service.ps1 -ServiceName "<OLD_SERVICE_NAME>"
 npm run service:install:win
 ```
-

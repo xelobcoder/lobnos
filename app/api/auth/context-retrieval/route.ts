@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { getRequestContext } from '../../../../components/serverActions/requestHeaders';
+import { getBackendAuthorization } from '../../../../lib/serverBackendAccess';
 
 export async function GET(request: NextRequest) {
      try {
@@ -27,10 +28,11 @@ export async function GET(request: NextRequest) {
 
           const url = new URL(`/api/v1/prime/validate-token`, process.env.NODE_ENV === 'development' ? process.env.DEVELOPMENT_BASEURL : process.env.PRODUCTION_BASEURL);
           url.searchParams.set('tenantId', String(context.tenantId));
+          const authorization = getBackendAuthorization();
           const response = await fetch(url.toString(), {
                headers: {
                     'Cookie': `pls-prime-tenant-session=${sessionCookie}`,
-                    'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
+                    ...(authorization ? { Authorization: authorization } : {}),
                     'Content-Type': 'application/json',
                     'cache': 'no-cache,must-revalidate,no-store,max-age=60,s-maxage=0',
                     "pls-prime-tenant-session": PLS_PRIME_TENANT_SESSION,

@@ -29,8 +29,8 @@
 		"desktop:dist:win:signed": "node ./desktop/scripts/prepare-runtime.cjs --require-config && electron-builder --win nsis --config.forceCodeSigning=true",
 		"desktop:dist:linux": "node ./desktop/scripts/prepare-runtime.cjs --require-config && electron-builder --linux AppImage",
 		"desktop:verify": "node ./desktop/scripts/verify-runtime.cjs",
-		"clean": "rm -rf .next && rm -rf out && rm -rf package-lock.json  && rm -rf node_modules && rm -rf cache",
-		"build:css": ""
+		"clean": "node ./scripts/clean.cjs",
+		"test": "node --test tests/*.test.cjs"
 	},
 	"dependencies": {
 		"@ckeditor/ckeditor5-build-classic": "^40.2.0",

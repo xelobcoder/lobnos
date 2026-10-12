@@ -40,8 +40,9 @@ log/
 logs/
 
 # local env files
-.env*.local
 .env
+.env.*
+!.env.example
 
 # launcher sensitive files
 launcher/launcher.config
@@ -60,7 +61,6 @@ launcher/*.exe
 *.tsbuildinfo
 next-env.d.ts
 .qodo
-.env
 certificates
 
 # launcher .next folder (if copied for embedding)

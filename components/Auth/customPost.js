@@ -11,10 +11,9 @@
  * @returns {Promise<object>} - The parsed response from the POST request.
  */
 
+import { buildApiUrl } from "../../lib/apiBaseUrl";
+
 export async function customPost(endpoint, method, data, hash = false) {
-    if (process.env.NODE_ENV == "production" && !process.env.NEXT_PUBLIC_ACCESS_TOKEN) {
-        throw new Error("NEXT_PUBLIC_ACCESS_TOKEN MISSING");
-    }
     var requestBody = data;
     if (hash && hash === true) {
         if (process.env.HASH_KEY != undefined) {
@@ -23,12 +22,10 @@ export async function customPost(endpoint, method, data, hash = false) {
             throw new Error("HASH_KEY not set in NODE_ENV");
         }
     }
-    let response = await fetch(`${process.env.BASEURL}${endpoint}`, {
+    let response = await fetch(buildApiUrl(endpoint), {
         method: method,
         headers: {
             "content-type": "application/json",
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
-            mode: "no-cors",
         },
         body: JSON.stringify(requestBody),
     });
