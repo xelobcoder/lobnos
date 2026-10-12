@@ -15,7 +15,7 @@ export default function LicenseExpiredPage() {
                          <div className={styles.brandContent}>
                               <div className={styles.brandLogo}>
                                    <RiShieldCrossFill size={48} className={styles.logoIcon} />
-                                   <span className={styles.brandTitle}>Prime Lab System (PLS)</span>
+                                   <span className={styles.brandTitle}>Prime Laboratory Software (PLS)</span>
                               </div>
                               <div className={styles.brandText}>
                                    <h1 className={styles.heroTitle}>Advanced Laboratory Management System</h1>
@@ -46,7 +46,7 @@ export default function LicenseExpiredPage() {
                                    <RiBankCardLine size={48} className="text-warning mb-3" />
                                    <h5 className="card-title text-warning">Renew Your License</h5>
                                    <p className="card-text mb-3">
-                                        Make payment to renew your license and continue using Prime Lab System.
+                                        Make payment to renew your license and continue using Prime Laboratory Software.
                                    </p>
                                    <div className="bg-light p-3 rounded mb-3">
                                         <div className="mb-2">
@@ -71,7 +71,7 @@ export default function LicenseExpiredPage() {
                          </div>
 
                          <div className={styles.footer}>
-                              <p>© {new Date().getFullYear()} Prime Laboratory System. All rights reserved.</p>
+                              <p>© {new Date().getFullYear()} Prime Laboratory Software. All rights reserved.</p>
                          </div>
                     </div>
                </div>

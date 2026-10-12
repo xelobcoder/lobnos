@@ -1,8 +1,8 @@
-# Prime Laboratory System (PLS) - Feature Overview
+# Prime Laboratory Software (PLS) - Feature Overview
 
 ## Introduction
 
-Prime Laboratory System (PLS) Version 2.0 is a comprehensive Laboratory Information Management System (LIMS) designed for modern healthcare facilities. This document outlines all the implemented features and modules available in our software.
+Prime Laboratory Software (PLS) Version 2.0 is a comprehensive Laboratory Information Management System (LIMS) designed for modern healthcare facilities. This document outlines all the implemented features and modules available in our software.
 
 ---
 
@@ -471,6 +471,6 @@ Prime Laboratory System (PLS) Version 2.0 is a comprehensive Laboratory Informat
 
 ---
 
-*Prime Laboratory System v2.0 - Professional Laboratory Information Management System*
+*Prime Laboratory Software v2.0 - Professional Laboratory Information Management System*
 
-*© 2025 Prime Laboratory System. All rights reserved.*
+*© 2025 Prime Laboratory Software. All rights reserved.*

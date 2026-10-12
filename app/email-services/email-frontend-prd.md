@@ -1,4 +1,4 @@
-# Prime Laboratory System (PLS)
+# Prime Laboratory Software (PLS)
 # Email Module Frontend PRD
 
 Version: 1.0  
@@ -664,7 +664,7 @@ Request body:
   "username": "lab@example.com",
   "password": "app-password",
   "fromEmail": "lab@example.com",
-  "fromName": "Prime Laboratory System",
+  "fromName": "Prime Laboratory Software",
   "isDefault": true,
   "isActive": true,
   "createdBy": 1,
@@ -709,7 +709,7 @@ Expected success response:
       "username": "lab@example.com",
       "password": "app-password",
       "from_email": "lab@example.com",
-      "from_name": "Prime Laboratory System",
+      "from_name": "Prime Laboratory Software",
       "is_default": true,
       "is_active": true
     }

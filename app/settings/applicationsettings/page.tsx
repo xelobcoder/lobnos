@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Alert, Form } from 'react-bootstrap';
 import { RiSaveLine, RiSettings4Line } from '@remixicon/react';
-import { customFetch, customPost, reloadApplicationSettingsCache } from '../../../components/Auth/customFetch';
+import { customFetch, customFetchMutation, customPost, reloadApplicationSettingsCache } from '../../../components/Auth/customFetch';
 import Loader from '../../../components/isLoading';
 import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
 import { BillingSettingsTab } from '../../../components/settings/applicationsettings/BillingSettingsTab';
@@ -67,6 +67,7 @@ interface ApplicationSettingsData {
 	primaryColor?: string | null;
 	secondaryColor?: string | null;
 	ageVariationLimits: string | null
+	workspaceLayout?: 'classic' | 'zoho' | 'claude';
 }
 
 const defaultUiSettings = {
@@ -164,8 +165,17 @@ const uiPresets = {
 export default function ApplicationSettings() {
 	const { applicationsettings, setApplicationSettings } = useApplicationSettings();
 	const { user } = applicationsettings;
+	const canManageWorkspaceLayout = ['admin', 'super-admin', 'super_admin', 'super admin', 'superadmin']
+		.includes(String(user?.role || '').toLowerCase().trim());
 
 	const [settings, setSettings] = useState<ApplicationSettingsData | null>(null);
+	const [workspaceLayout, setWorkspaceLayout] = useState<'classic' | 'zoho' | 'claude'>(
+		applicationsettings.settings?.workspaceLayout === 'zoho' || applicationsettings.settings?.workspaceLayout === 'claude'
+			? applicationsettings.settings.workspaceLayout
+			: 'classic'
+	);
+	const [savingWorkspaceLayout, setSavingWorkspaceLayout] = useState(false);
+	const [workspaceLayoutMessage, setWorkspaceLayoutMessage] = useState<{ type: 'success' | 'danger'; text: string } | null>(null);
 	const [regions, setRegions] = useState<any[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
@@ -364,6 +374,38 @@ export default function ApplicationSettings() {
 		const preset = uiPresets[selectedPreset as keyof typeof uiPresets];
 		if (!preset) return;
 		setSettings((current) => current ? { ...current, ...preset } : current);
+	};
+
+	const saveWorkspaceLayout = async () => {
+		try {
+			setSavingWorkspaceLayout(true);
+			setWorkspaceLayoutMessage(null);
+			const response = await customFetchMutation(
+				'applicationsettings/workspace-layout',
+				'PATCH',
+				{ workspaceLayout }
+			);
+			if (response?.status !== 'success') {
+				setWorkspaceLayoutMessage({
+					type: 'danger',
+					text: response?.message || 'Unable to save the facility layout.',
+				});
+				return;
+			}
+
+			setApplicationSettings({
+				...applicationsettings,
+				settings: { ...applicationsettings.settings, workspaceLayout },
+			});
+			setWorkspaceLayoutMessage({
+				type: 'success',
+				text: 'Layout preference saved for everyone at this facility.',
+			});
+		} catch {
+			setWorkspaceLayoutMessage({ type: 'danger', text: 'Unable to save the facility layout.' });
+		} finally {
+			setSavingWorkspaceLayout(false);
+		}
 	};
 
 	// Helpers to manage ageVariationLimits JSON stored as string|null
@@ -577,6 +619,48 @@ export default function ApplicationSettings() {
 			{success && <Alert variant="success" className="mb-4">Settings updated successfully!</Alert>}
 
 			<Form onSubmit={handleSubmit}>
+				{canManageWorkspaceLayout && (
+					<div className="card border mt-3 mb-4 p-3">
+						<div className="row align-items-center g-3">
+							<div className="col-12 col-lg-7">
+								<h5 className="mb-1">Facility Workspace Layout</h5>
+								<p className="text-muted small mb-0">
+									Choose the shared layout for everyone using this facility. Other users see it the next time they sign in or refresh.
+								</p>
+							</div>
+							<div className="col-12 col-lg-5">
+								<Form.Label htmlFor="workspace-layout">Workspace layout</Form.Label>
+								<div className="d-flex gap-2">
+									<Form.Select
+										id="workspace-layout"
+										value={workspaceLayout}
+										onChange={(event) => {
+											setWorkspaceLayout(event.target.value as 'classic' | 'zoho' | 'claude');
+											setWorkspaceLayoutMessage(null);
+										}}
+									>
+										<option value="classic">Classic</option>
+										<option value="zoho">Zoho Books-inspired</option>
+										<option value="claude">Claude-inspired</option>
+									</Form.Select>
+									<Button
+										type="button"
+										variant="outline-primary"
+										disabled={savingWorkspaceLayout || workspaceLayout === (applicationsettings.settings?.workspaceLayout || 'classic')}
+										onClick={saveWorkspaceLayout}
+									>
+										{savingWorkspaceLayout ? 'Saving…' : 'Save'}
+									</Button>
+								</div>
+							</div>
+						</div>
+						{workspaceLayoutMessage && (
+							<Alert variant={workspaceLayoutMessage.type} className="mt-3 mb-0" role="status">
+								{workspaceLayoutMessage.text}
+							</Alert>
+						)}
+					</div>
+				)}
 				<div className="row mb-4">
 					<div className="col-md-4">
 						<Form.Group controlId="fontFamily">

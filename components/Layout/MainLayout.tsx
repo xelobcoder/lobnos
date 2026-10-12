@@ -1,5 +1,5 @@
 'use client'
-import { useEffect } from 'react';;
+import { useCallback, useEffect } from 'react';
 import { useApplicationSettings } from '../Auth/useApplicationContext';
 
 
@@ -9,16 +9,15 @@ import { useApplicationSettings } from '../Auth/useApplicationContext';
 export default function MAIN_LAYOUT({ children }) {
      const { applicationsettings, setApplicationSettings } = useApplicationSettings();
 
-     const getRetrieval = async function () {
+     const getRetrieval = useCallback(async function () {
           const cached = typeof window !== 'undefined' ? localStorage.getItem('applicationsettings') : null;
           if (cached) {
                try {
                     const user = JSON.parse(cached);
                     if (user && Object.keys(user).length > 0) {
                          setApplicationSettings(user);
-                         return;
                     }
-               } catch (e) {
+               } catch {
                     localStorage.removeItem('applicationsettings');
                }
           }
@@ -30,14 +29,15 @@ export default function MAIN_LAYOUT({ children }) {
                });
                const data = await retrieveContext.json();
                const { user, error, redirect, settings } = data;
+               const authenticatedUser = user?.user ?? user;
 
                if (error && redirect) {
                     window.location.href = redirect;
                     return null;
                }
 
-               if (!user) throw new Error('Application context was not returned');
-               const freshSettings = { user, settings };
+               if (!authenticatedUser) throw new Error('Application context was not returned');
+               const freshSettings = { user: authenticatedUser, settings };
                setApplicationSettings(freshSettings);
                if (typeof window !== 'undefined') {
                     localStorage.setItem('applicationsettings', JSON.stringify(freshSettings));
@@ -45,14 +45,12 @@ export default function MAIN_LAYOUT({ children }) {
           } catch (error) {
                throw error;
           }
-     }
+     }, [setApplicationSettings]);
 
 
      useEffect(() => {
-          if (!applicationsettings) {
-               getRetrieval();
-          }
-     }, [applicationsettings]);
+          getRetrieval();
+     }, [getRetrieval]);
 
 
 

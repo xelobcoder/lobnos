@@ -332,7 +332,7 @@ export default function PrimeLabLoginPage() {
 					<div className={styles.brandContent}>
 						<div className={styles.brandLogo}>
 							<RiShieldCrossFill size={48} className={styles.logoIcon} />
-							<span className={styles.brandTitle}>Prime Lab System (PLS)</span>
+							<span className={styles.brandTitle}>Prime Laboratory Software (PLS)</span>
 						</div>
 						<div className={styles.brandText}>
 							<h1 className={styles.heroTitle}>Advanced Laboratory Management System</h1>
@@ -545,7 +545,7 @@ export default function PrimeLabLoginPage() {
 					)}
 
 					<div className={styles.footer}>
-						<p>© {new Date().getFullYear()} Prime Laboratory System. All rights reserved.</p>
+						<p>© {new Date().getFullYear()} Prime Laboratory Software. All rights reserved.</p>
 					</div>
 				</div>
 			</div>

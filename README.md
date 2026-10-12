@@ -1,6 +1,27 @@
 ### PRIME LABORATORY SOFTWARE(PLS) INTEGRADED LABORATORY SOFTWARE FOR SMALL TO MEDIUM CLINICAL LABORATORIES ###
  *This is a software for small to large facillity that helps to manage laboratories bith on premises and online *
 
+## Layout preference
+
+The product name is **Prime Laboratory Software (PLS)**. Legacy repository names
+and saved preference keys are technical identifiers, not product branding.
+Desktop installation settings and licenses retain their original Electron
+user-data directory so the corrected display name does not relocate them.
+
+Tenant administrators select the facility-wide workspace layout in
+**Application Settings**. The setting applies to all users in that facility and
+is not a per-user preference. The available presentations are **Classic**,
+**Zoho Books-inspired**, and **Claude-inspired**.
+
+All presentations use the same permitted navigation links, names, order and
+hierarchy. Zoho Books-inspired uses a full-width dark application header and a
+light sidebar with indented, icon-bearing subpages and blue active-page
+selection. Claude-inspired uses a warm neutral sidebar and header. Sections
+can be opened on demand, with one section open at a time. No replacement
+categories or page dropdowns are introduced. Collapsing the whole sidebar
+leaves accessible icon buttons, and opening a group expands it again. The
+existing applications launcher remains available.
+
 ## Tenant-aware login
 
 The login form has exactly two inputs: **Username** and **Password**. A username
@@ -460,7 +481,7 @@ Windows 10 or Windows 11 SDK, before running either command. The launcher checks
 for the linker and SDK libraries and reports incomplete installations explicitly.
 
 The generated installer is placed under `src-tauri/target/release/bundle/nsis`.
-When `.env` points to `localhost`, the Lobnos Next.js server must be running on
+When `.env` points to `localhost`, the PLS Next.js server must be running on
 the target computer. For a server-hosted deployment, set `LOBNOS_APP_URL` to
 the deployed HTTPS URL before building.
 

@@ -62,7 +62,7 @@ const currency = new Intl.NumberFormat('en-GH', { style: 'currency', currency: '
 export default function PharmacySellPage() {
      const application = useApplication();
      const company = application?.company;
-     const companyName = typeof company === 'string' ? company : company?.name || 'LOBNOS PHARMACY';
+     const companyName = typeof company === 'string' ? company : company?.name || 'PLS PHARMACY';
      const soldBy = application?.user?.username || 'Pharmacy staff';
      const companyLogoUrl = useCompanyImageUrl();
 

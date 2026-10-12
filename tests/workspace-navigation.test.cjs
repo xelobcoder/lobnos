@@ -1,0 +1,251 @@
+const assert = require('node:assert/strict');
+const { readFileSync } = require('node:fs');
+const path = require('node:path');
+const test = require('node:test');
+const vm = require('node:vm');
+const ts = require('typescript');
+
+function compile(relativePath, mocks, globals = {}) {
+    const exports = {};
+    vm.runInNewContext(ts.transpileModule(readFileSync(path.join(__dirname, '..', relativePath), 'utf8'), {
+        compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
+    }).outputText, { exports, require: mocks, ...globals });
+    return exports;
+}
+
+const { PayrollLinks } = compile(path.join('components', 'Layout', 'links', 'categories', 'PayrollLinks.tsx'), require);
+
+test('new layout uses Zoho-style Inter navigation typography', () => {
+    const styles = readFileSync(path.join(__dirname, '..', 'components', 'Layout', 'WorkspaceLayout.module.css'), 'utf8');
+    const rootLayout = readFileSync(path.join(__dirname, '..', 'app', 'layout.tsx'), 'utf8');
+    assert.match(rootLayout, /import \{ Inter,/);
+    assert.match(rootLayout, /inter\.variable/);
+    assert.match(styles, /font-family: var\(--font-inter\), Inter, "Source Sans Pro", Helvetica, Arial, sans-serif/);
+    assert.match(styles, /font-size: 13px;\s+font-weight: 400;\s+line-height: 1\.6;/);
+    assert.match(styles, /\.active \{[\s\S]*?font-weight: 400;/);
+});
+
+test('context refresh unwraps the validated user before updating the application context', () => {
+    const mainLayout = readFileSync(path.join(__dirname, '..', 'components', 'Layout', 'MainLayout.tsx'), 'utf8');
+    assert.match(mainLayout, /const authenticatedUser = user\?\.user \?\? user;/);
+    assert.match(mainLayout, /if \(!authenticatedUser\)/);
+    assert.match(mainLayout, /const freshSettings = \{ user: authenticatedUser, settings \};/);
+});
+
+test('Claude layout has its own light, warm sidebar treatment', () => {
+    const styles = readFileSync(path.join(__dirname, '..', 'components', 'Layout', 'WorkspaceLayout.module.css'), 'utf8');
+    const html = renderLayout('claude');
+    assert.match(html, /claudeLayout/);
+    assert.match(styles, /\.claudeLayout \{[\s\S]*?grid-template-areas: "sidebar header" "sidebar content"/);
+    assert.match(styles, /\.claudeLayout \{[\s\S]*?--workspace-sidebar-bg: #f9f8f6/);
+    assert.match(styles, /\.claudeLayout \.sidebar \{[\s\S]*?height: 100dvh;/);
+    assert.match(styles, /\.claudeLayout \.active \{[\s\S]*?background: #eae8e2/);
+    assert.match(html, /claudeSidebarHeader/);
+    assert.match(html, /claudeAppsButton/);
+    assert.match(html, /claudeAccount/);
+    assert.match(styles, /\.claudeLayout \.companyName \{[\s\S]*?text-overflow: ellipsis/);
+    assert.match(styles, /\.claudeLayout \.companyName \{\s+display: block !important;\s+max-width: 44vw;/);
+});
+
+test('new layout shows child icons with Zoho-style indentation and active treatment', () => {
+    const styles = readFileSync(path.join(__dirname, '..', 'components', 'Layout', 'WorkspaceLayout.module.css'), 'utf8');
+    assert.match(styles, /\.shell \.sidebar \{[\s\S]*?width: 250px;/);
+    assert.match(styles, /\.submenu \{[\s\S]*?margin: 0;\s+padding: 0;\s+\}/);
+    assert.doesNotMatch(styles.match(/\.submenu \{[\s\S]*?\}/)[0], /border-left/);
+    assert.match(styles, /\.submenu \.item \{[\s\S]*?padding: 8px 12px 8px 35px/);
+    assert.doesNotMatch(styles, /\.submenu \.child \.icon\s*\{\s*display:\s*none/);
+    assert.match(styles, /\.item\.child \.icon svg \{[\s\S]*?width: 16px;\s+height: 16px;/);
+    assert.match(styles, /\.active \{[\s\S]*?background: #408dfb;\s+color: #fff;/);
+    assert.doesNotMatch(styles.match(/\.active \{[\s\S]*?\}/)[0], /box-shadow/);
+});
+
+function renderLayout(preference, actions = [], options = {}) {
+    const React = require('react');
+    const { renderToStaticMarkup } = require('react-dom/server');
+    const state = [];
+    let stateIndex = 0;
+    const savedPreferences = [];
+    const location = { pathname: options.pathname || '/human-resource/payroll/periods', href: '' };
+    const links = options.links || PayrollLinks;
+    const navigation = { superAdminNavigation: () => options.platformLinks || links };
+    const mocks = (name) => {
+        if (name === 'react/jsx-runtime') return require(name);
+        if (name === 'react') return {
+            ...React,
+            useState: initial => {
+                const index = stateIndex++;
+                if (!(index in state)) state[index] = initial === 'classic' ? preference : initial;
+                return [state[index], value => { state[index] = typeof value === 'function' ? value(state[index]) : value; }];
+            },
+            useEffect: () => {},
+            useMemo: callback => callback(),
+            useCallback: callback => callback,
+        };
+        if (name.endsWith('.module.css')) return {
+            __esModule: true,
+            default: new Proxy({}, { get: (_, key) => `${options.scopedCSS ? (name.includes('WorkspaceLayout') ? 'w_' : 'p_') : ''}${String(key)}` }),
+        };
+        if (name === '@remixicon/react') return require(name);
+        if (name.endsWith('useApplicationContext')) return { useApplicationSettings: () => ({
+            applicationsettings: {
+                company: 'Test laboratory',
+                user: { role: options.role || 'admin', username: 'Tester' },
+                settings: {
+                    workspaceLayout: options.workspaceLayout || preference,
+                },
+            },
+        }) };
+        if (name.endsWith('RoleLinks')) return { AdminRoleLinks: [], SuperAdminRoleLinks: [] };
+        if (name.endsWith('SuperAdminLinks')) return navigation;
+        if (name.endsWith('ThemeProvider')) return { useTheme: () => ({ theme: 'light', toggleTheme: () => {} }) };
+        if (name === 'next/navigation') return {
+            usePathname: () => location.pathname,
+            useRouter: () => ({ push: () => {} }),
+            useSearchParams: () => new URLSearchParams(options.hideSidebar ? 'isOpenSideBarShow=false' : ''),
+        };
+        if (name.endsWith('facilityModuleAccess')) return { canAccessFacilityModule: destination => !options.deniedPaths?.includes(destination) };
+        if (name.endsWith('FontSelector')) return { FontSelector: () => null };
+        if (name.endsWith('themes') || name.endsWith('customFetch')) return {};
+        throw new Error(`Unexpected import: ${name}`);
+    };
+    const component = compile(path.join('components', 'Layout', 'PrimeLayout.tsx'), mocks, {
+        URLSearchParams,
+        window: { location, localStorage: { setItem: (key, value) => savedPreferences.push({ key, value }) } },
+    });
+    const props = { links, children: React.createElement('div', null, 'Page content') };
+    const render = () => {
+        stateIndex = 0;
+        return component.default(props);
+    };
+    const findButton = (node, label) => {
+        if (Array.isArray(node)) return node.map(child => findButton(child, label)).find(Boolean);
+        if (!node || typeof node !== 'object') return undefined;
+        if (node.type === 'button' && (node.props['aria-label'] === label || node.props.title === label)) return node;
+        return findButton(node.props?.children, label);
+    };
+    let tree = render();
+    for (const action of actions) {
+        const button = findButton(tree, action);
+        assert.ok(button, `Missing action: ${action}`);
+        button.props.onClick();
+        tree = render();
+    }
+    const html = renderToStaticMarkup(tree);
+    return options.result ? { html, location, savedPreferences } : html;
+}
+
+function titles(items) {
+    return items.flatMap(item => [item.title, ...titles(item.children || [])]);
+}
+
+test('new sidebar preserves every existing payroll label in its original order', () => {
+    const html = renderLayout('zoho');
+    const aside = html.match(/<aside\b[\s\S]*?<\/aside>/)[0];
+    let position = 0;
+    for (const title of PayrollLinks.map(item => item.title)) {
+        const next = aside.indexOf(`>${title}</span>`, position);
+        assert.ok(next >= position, `Missing or reordered link: ${title}`);
+        position = next + title.length;
+    }
+    assert.doesNotMatch(aside, />Clinical<|>Administration<|>Finance</);
+    assert.doesNotMatch(html, /workspaceToolbar|Go to page/);
+    assert.match(html, /Prime Laboratory Software/);
+    assert.doesNotMatch(aside, /Lobnos/);
+    assert.match(html, /aria-label="All Periods" aria-current="page"/);
+    assert.doesNotMatch(aside, />All Compensations<\/span>/);
+});
+
+test('active section opens by default and only one sibling section stays open', () => {
+    const initial = renderLayout('zoho');
+    assert.match(initial, />All Periods<\/span>/);
+    assert.doesNotMatch(initial, />All Compensations<\/span>/);
+    const nextSection = renderLayout('zoho', ['Compensation']);
+    assert.match(nextSection, />All Compensations<\/span>/);
+    assert.doesNotMatch(nextSection, />All Periods<\/span>/);
+});
+
+test('navigation group can be collapsed and reopened', () => {
+    const collapsed = renderLayout('zoho', ['Payroll Periods']);
+    assert.doesNotMatch(collapsed, />All Periods<\/span>/);
+    assert.doesNotMatch(collapsed, />All Compensations<\/span>/);
+    const reopened = renderLayout('zoho', ['Payroll Periods', 'Payroll Periods']);
+    assert.match(reopened, />All Periods<\/span>/);
+});
+
+test('every existing destination remains navigable', () => {
+    const visit = (items, groups = []) => {
+        for (const item of items) {
+            if (item.children?.length) visit(item.children, [...groups, item.title]);
+            else {
+                const { location } = renderLayout('zoho', [...groups, item.title], { result: true, pathname: '/other-page' });
+                assert.equal(location.href, item.link, item.title);
+            }
+        }
+    };
+    visit(PayrollLinks);
+});
+
+test('compact group buttons expand the sidebar and reveal their original pages', () => {
+    const compact = renderLayout('zoho', ['Collapse navigation']);
+    assert.match(compact, /collapsed/);
+    assert.match(compact, /aria-label="Payroll Periods" aria-expanded="false"/);
+    const expanded = renderLayout('zoho', ['Collapse navigation', 'Payroll Periods']);
+    assert.match(expanded, /aria-label="Payroll Periods" aria-expanded="true"/);
+    assert.match(expanded, />All Periods<\/span>/);
+});
+
+test('all presentations retain role and module filtering', () => {
+    const links = [
+        { title: 'Allowed', link: '/allowed' },
+        { title: 'Restricted', link: '/restricted', roles: ['super-admin'] },
+        { title: 'Disabled', link: '/disabled' },
+    ];
+    for (const preference of ['classic', 'zoho', 'claude']) {
+        const html = renderLayout(preference, [], { links, deniedPaths: ['/disabled'] });
+        assert.match(html, />Allowed<\/span>/);
+        assert.doesNotMatch(html, /Restricted|Disabled/);
+    }
+});
+
+test('super-admin retains the same complete platform navigation in all layouts', () => {
+    for (const preference of ['classic', 'zoho', 'claude']) {
+        const options = {
+            role: 'super-admin',
+            platformLinks: [{ title: 'Platform and settings', link: '', children: [{ title: 'Audit logs', link: '/settings/facilities/audit' }] }],
+        };
+        const html = renderLayout(preference, preference === 'classic' ? [] : ['Platform and settings'], options);
+        assert.match(html, /Platform and settings/);
+        assert.match(html, /Audit logs/);
+    }
+});
+
+test('facility setting selects the same layout for every signed-in user without a personal toggle', () => {
+    const settings = readFileSync(path.join(__dirname, '..', 'app', 'settings', 'applicationsettings', 'page.tsx'), 'utf8');
+    for (const [selected, expected] of [
+        ['classic', /container /],
+        ['zoho', /class="container shell/],
+        ['claude', /claudeLayout/],
+    ]) {
+        const html = renderLayout(selected, [], { workspaceLayout: selected, role: 'scientist' });
+        assert.match(html, expected);
+        assert.doesNotMatch(html, /Use the new layout|Use the classic layout|New layout|Classic layout/);
+        for (const title of PayrollLinks.map(item => item.title)) assert.ok(html.includes(title));
+    }
+    assert.match(settings, /workspace-layout/);
+    assert.match(settings, /workspaceLayout/);
+    assert.match(settings, /canManageWorkspaceLayout/);
+});
+
+test('apps launcher and mobile drawer controls remain functional', () => {
+    const apps = renderLayout('zoho', ['Open apps menu from navigation']);
+    assert.match(apps, /role="dialog"[^>]*aria-modal="true"[^>]*aria-labelledby="apps-launcher-title"/);
+    const mobile = renderLayout('zoho', ['Toggle navigation menu']);
+    assert.match(mobile, /mobileOpen/);
+});
+
+test('sidebar-hidden pages do not acquire new navigation or branding', () => {
+    const html = renderLayout('zoho', [], { hideSidebar: true });
+    assert.doesNotMatch(html, /<aside\b/);
+    assert.match(html, /sidebarHidden/);
+    assert.match(html, /Page content/);
+});

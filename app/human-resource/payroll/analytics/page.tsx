@@ -154,7 +154,7 @@ const statusColorForPct = (value: number, goodAt = 80, warnAt = 50) => {
      return COLOR_DANGER;
 };
 
-/** Standard card wrapper matching the Lobnos LIMS chart UI standard. */
+/** Standard card wrapper matching the PLS chart UI standard. */
 function SectionCard({
      title,
      icon,
@@ -1295,4 +1295,3 @@ export default function PayrollAnalyticsPage() {
           </div>
      );
 }
-

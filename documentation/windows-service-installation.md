@@ -1,6 +1,6 @@
 # Windows Service Installation (Frontend)
 
-This guide explains how to install and manage the Lobnos frontend as a Windows Service so it runs in the background and starts automatically when the PC boots.
+This guide explains how to install and manage the PLS frontend as a Windows Service so it runs in the background and starts automatically when the PC boots.
 
 ## What This Creates
 

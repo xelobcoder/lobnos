@@ -59,7 +59,7 @@ function harness(t, confirmation = 1, generic = false) {
 	}
 	const electron = {
 		safeStorage: storage,
-		app: { isPackaged: true, setName() {}, getPath: () => userData,
+		app: { isPackaged: true, setName() {}, setPath() {}, getPath: () => userData,
 			requestSingleInstanceLock: () => false, quit: () => actions.push("quit"), relaunch: () => actions.push("relaunch") },
 		BrowserWindow: Window,
 		ipcMain: { handle: (name, fn) => handlers.set(name, fn), removeHandler: name => handlers.delete(name) },

@@ -1,6 +1,6 @@
 appId: com.primelabsys.desktop
-productName: Prime Laboratory System
-copyright: Copyright © Prime Laboratory System
+productName: Prime Laboratory Software
+copyright: Copyright © Prime Laboratory Software
 
 directories:
   output: dist-electron
@@ -42,7 +42,7 @@ nsis:
   perMachine: false
   createDesktopShortcut: true
   createStartMenuShortcut: true
-  shortcutName: Prime Laboratory System
+  shortcutName: Prime Laboratory Software
   runAfterFinish: true
 
 linux:

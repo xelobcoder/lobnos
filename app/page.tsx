@@ -24,7 +24,7 @@ export default function page() {
                                                   <RiFlaskLine size={56} className="text-warning pulse-animation" />
                                              </div>
                                              <div className="ms-3">
-                                                  <h1 className="display-3 fw-bold mb-0 text-white">Prime Laboratory System</h1>
+                                                  <h1 className="display-3 fw-bold mb-0 text-white">Prime Laboratory Software</h1>
                                                   <div className="d-flex align-items-center mt-2">
                                                        <span className="badge bg-warning text-dark fs-6 fw-bold px-3 py-2">PLS</span>
                                                        <span className="text-white-50 ms-3 small">Version 2.0</span>

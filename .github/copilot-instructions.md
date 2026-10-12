@@ -1,4 +1,11 @@
-# Lobnos LIMS - AI Coding Agent Instructions
+# Prime Laboratory Software (PLS) - AI Coding Agent Instructions
+
+## Product identity
+
+- The product is **Prime Laboratory Software**, abbreviated **PLS**. Use this name in UI, documentation, product metadata, and agent descriptions.
+- Do not call the product Lobnos or Prime Laboratory System.
+- Existing repository paths, imports, service identifiers, environment variables, and saved preference keys may retain legacy names for compatibility; they are not product branding.
+- Use pnpm, not npm, for project commands.
 
 ## Architecture Overview
 
@@ -332,11 +339,11 @@ try {
 - `features.md` - Feature documentation
 - `backend-implementation-guide.md` - API contracts
 
-# Lobnos LIMS - Standard Chart UI Format
+# Prime Laboratory Software (PLS) - Standard Chart UI Format
 
 ## Overview
 
-This document describes the standard UI format for charts in the Lobnos LIMS analytics module. This format ensures consistency across all chart implementations while allowing for varying data structures. The daily sales trend chart serves as the reference implementation.
+This document describes the standard UI format for charts in the Prime Laboratory Software (PLS) analytics module. This format ensures consistency across all chart implementations while allowing for varying data structures. The daily sales trend chart serves as the reference implementation.
 
 ## General Structure
 

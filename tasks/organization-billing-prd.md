@@ -4,12 +4,12 @@
 
 **Status:** Draft for product and engineering review  
 **Owner:** Product / PrimeLab Systems  
-**Target product:** Lobnos LIMS  
+**Target product:** Prime Laboratory Software (PLS)\
 **Last updated:** 2026-09-01
 
 ## 1. Executive Summary
 
-Lobnos supports staff selecting an organization or clinician as a billing source, but those partners do not have a purpose-built workflow for creating and tracking their own orders. The proposed Partner Workspace gives each approved organization or clinician a secure, entity-scoped portal for patient registration, laboratory ordering, billing submission, sample handoff, and result retrieval.
+PLS supports staff selecting an organization or clinician as a billing source, but those partners do not have a purpose-built workflow for creating and tracking their own orders. The proposed Partner Workspace gives each approved organization or clinician a secure, entity-scoped portal for patient registration, laboratory ordering, billing submission, sample handoff, and result retrieval.
 
 The center remains the operational authority. It owns contract prices, approves or rejects submitted bills, receives or collects samples, performs testing, validates and signs results, and releases final reports. Laboratory processing is blocked at the API and UI levels until a bill is approved.
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Expense Analytics API provides comprehensive expense analysis capabilities for the Lobnos Professional Version. It includes time-based analytics (daily, weekly, monthly, quarterly, yearly), top performer rankings, and comparative analysis.
+The Expense Analytics API provides comprehensive expense analysis capabilities for the Prime Laboratory Software (PLS). It includes time-based analytics (daily, weekly, monthly, quarterly, yearly), top performer rankings, and comparative analysis.
 
 ## Base URL
 ```

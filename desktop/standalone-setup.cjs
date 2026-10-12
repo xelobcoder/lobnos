@@ -8,7 +8,7 @@ const { writeProtected, readProtected, requireEncryption } = require("./secure-s
 // customer never has to supply a database name, host, port, account, or admin credentials.
 // Organization name and the initial administrator login are simple defaults that can be
 // changed from within the application after first login.
-const DEFAULT_ORGANIZATION_NAME = "Prime Laboratory System";
+const DEFAULT_ORGANIZATION_NAME = "Prime Laboratory Software";
 const DEFAULT_LOGIN_PASSWORD = "12345";
 const LOCAL_HOST = "127.0.0.1";
 const LOCAL_PORT = "2309";

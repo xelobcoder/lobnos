@@ -1,11 +1,11 @@
 ---
-description: "PLS owner UI rules for Lobnos pages, components, forms, dashboards, tables, charts, filters, status displays, responsive layouts and accessibility."
+description: "PLS owner UI rules for PLS pages, components, forms, dashboards, tables, charts, filters, status displays, responsive layouts and accessibility."
 applyTo: "app/**/*.{tsx,jsx},components/**/*.{tsx,jsx}"
 ---
 
 # PLS UI implementation contract
 
-This is the required UI contract for new and modified Lobnos/PLS interfaces. It applies automatically to React pages and components. Existing code is evidence for individual patterns, not permission to copy every legacy choice.
+This is the required UI contract for new and modified PLS interfaces. It applies automatically to React pages and components. Existing code is evidence for individual patterns, not permission to copy every legacy choice.
 
 ## 1. Owner rules
 

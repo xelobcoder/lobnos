@@ -6,7 +6,14 @@ import '../node_modules/react-toastify/dist/ReactToastify.min.css';
 import '../node_modules/react-datepicker/dist/react-datepicker.min.css'
 import PrimeToast from "../components/accessories/PrimeToast";
 import { ThemeProvider } from '../components/ThemeProvider';
-import { Open_Sans, Raleway } from 'next/font/google';
+import { Inter, Open_Sans, Raleway } from 'next/font/google';
+
+const inter = Inter({
+     subsets: ['latin'],
+     weight: ['400', '500', '600', '700'],
+     variable: '--font-inter',
+     display: 'swap',
+});
 
 const raleway = Raleway({
      subsets: ['latin'],
@@ -28,7 +35,7 @@ export default function SRootLayout({
 }) {
 
      return (
-          <html lang="en" className={`${raleway.variable} ${openSans.variable}`} style={{ '--font-candara': 'Candara, sans-serif', '--font-segoe': '"Segoe UI", Tahoma, sans-serif' } as React.CSSProperties}>
+          <html lang="en" className={`${inter.variable} ${raleway.variable} ${openSans.variable}`} style={{ '--font-candara': 'Candara, sans-serif', '--font-segoe': '"Segoe UI", Tahoma, sans-serif' } as React.CSSProperties}>
                <head></head>
                <body>
                     <ThemeProvider>

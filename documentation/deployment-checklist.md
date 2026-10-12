@@ -1,6 +1,6 @@
 # Production Deployment Checklist
 
-Use this checklist for releases of the Lobnos web application and its backend
+Use this checklist for releases of the PLS web application and its backend
 proxy changes. Do not mark a step complete until it has been verified on the
 target environment.
 

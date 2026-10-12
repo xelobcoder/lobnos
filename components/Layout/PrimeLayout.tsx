@@ -1,6 +1,7 @@
 ﻿'use client';
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import styles from './PrimeLayout.module.css';
+import workspaceStyles from './WorkspaceLayout.module.css';
 import {
     RiMenuLine,
     RiMenu3Line,
@@ -16,6 +17,9 @@ import {
     RiErrorWarningLine,
     RiTimeLine,
     RiNotification3Line,
+    RiLayout2Line,
+    RiArrowDownSLine,
+    RiArrowRightSLine,
 } from '@remixicon/react';
 import { useApplicationSettings } from "../Auth/useApplicationContext";
 import { Link as LinkType } from "./links/types";
@@ -52,6 +56,14 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
 
     const [isQuickLinksCollapsed, setIsQuickLinksCollapsed] = useState<boolean>(false);
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
+    const activeLayout = settings?.workspaceLayout === 'claude'
+        ? 'claude'
+        : settings?.workspaceLayout === 'zoho'
+            ? 'zoho'
+            : 'classic';
+    const isWorkspaceLayout = activeLayout !== 'classic';
+    const isClaudeLayout = activeLayout === 'claude';
+    const [openNavigationGroup, setOpenNavigationGroup] = useState<string | null>(null);
     const [isFontSelectorOpen, setIsFontSelectorOpen] = useState<boolean>(false);
     const [isAppsOpen, setIsAppsOpen] = useState<boolean>(false);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState<boolean>(false);
@@ -60,7 +72,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
     const normalizedRole = String(user?.role || '').toLowerCase().trim().replace(/_/g, '-');
     const isSuperAdmin = normalizedRole.replace(/[\s-]/g, '') === 'superadmin';
     const allNavigation = useMemo(() => isSuperAdmin ? superAdminNavigation(Number(user?.branch || 0), Number(user?.employeeid || 0)) : [], [isSuperAdmin, user?.branch, user?.employeeid]);
-    const roleLinks = isSuperAdmin ? SuperAdminRoleLinks : (roleViews[user.role] || []).filter(item => canAccessFacilityModule(item.link || "", settings?.moduleConfiguration));
+    const roleLinks = isSuperAdmin ? SuperAdminRoleLinks : (roleViews[user.role] || []).filter(item => canAccessFacilityModule(item.href || "", settings?.moduleConfiguration));
     const visibleLinks = useMemo(() => {
         const filterLinks = (items: LinkType[]): LinkType[] => items
             .filter((item) => isSuperAdmin || !item.roles || item.roles.some((role) => role.replace(/_/g, '-').toLowerCase() === normalizedRole))
@@ -79,8 +91,9 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
     const isOpenSideBarShow = useSearchParams().get("isOpenSideBarShow") !== "false";
 
     useEffect(() => {
-        setCurrentPath(window.location.pathname);
-    }, []);
+        setCurrentPath(modulePath || '');
+        setOpenNavigationGroup(null);
+    }, [modulePath]);
 
     useEffect(() => {
         const savedFont = getFontPreference();
@@ -239,12 +252,76 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
         );
     };
 
+    const containsCurrentPage = (item: LinkType): boolean =>
+        item.link === modulePath || Boolean(item.children?.some(containsCurrentPage));
+
+    const renderWorkspaceNavItem = (item: LinkType, key: string, depth = 0): React.ReactNode => {
+        const hasChildren = Boolean(item.children?.length);
+        const isActive = item.link === modulePath;
+        const containsActive = containsCurrentPage(item);
+        const isExpanded = openNavigationGroup === null ? containsActive : openNavigationGroup === key;
+        const isCompact = isQuickLinksCollapsed && !isMobileSidebarOpen;
+        const submenuId = `workspace-nav-${key}`;
+        const icon = item.icon || <RiLayout2Line size={16} />;
+
+        if (hasChildren) {
+            return (
+                <div key={key} className={workspaceStyles.group}>
+                    <button
+                        type="button"
+                        className={`${workspaceStyles.item} ${workspaceStyles.groupButton} ${containsActive ? workspaceStyles.currentGroup : ''}`}
+                        onClick={() => {
+                            if (isQuickLinksCollapsed) setIsQuickLinksCollapsed(false);
+                            setOpenNavigationGroup(isExpanded && !isCompact ? '' : key);
+                        }}
+                        title={item.title}
+                        aria-label={item.title}
+                        aria-expanded={isExpanded && !isCompact}
+                        aria-controls={submenuId}
+                    >
+                        <span className={workspaceStyles.icon}>{icon}</span>
+                        <span className={workspaceStyles.label}>{item.title}</span>
+                        <span className={workspaceStyles.chevron} aria-hidden="true">
+                            {isExpanded ? <RiArrowDownSLine size={16} /> : <RiArrowRightSLine size={16} />}
+                        </span>
+                    </button>
+                    {isExpanded && (
+                        <div id={submenuId} className={workspaceStyles.submenu} role="group" aria-label={item.title}>
+                            {item.children?.map((child, index) => renderWorkspaceNavItem(child, `${key}-${index}`, depth + 1))}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        return (
+            <button
+                key={key}
+                type="button"
+                className={`${workspaceStyles.item} ${depth > 0 ? workspaceStyles.child : ''} ${isActive ? workspaceStyles.active : ''}`}
+                onClick={() => handleNavigation(item.link)}
+                title={item.title}
+                aria-label={item.title}
+                aria-current={isActive ? 'page' : undefined}
+            >
+                <span className={workspaceStyles.icon}>{icon}</span>
+                <span className={workspaceStyles.label}>{item.title}</span>
+            </button>
+        );
+    };
+
     return (
-        <div className={`${styles.container} ${isQuickLinksCollapsed ? styles.quickLinksCollapsed : styles.quickLinksExpanded} ${isMobileSidebarOpen ? styles.mobileSidebarOpen : ''}`}>
-            <header className={styles.darkHeader}>
-                <div className={styles.headerContent}>
-                    <div className={styles.headerLeft}>
-                        {isOpenSideBarShow && (
+        <div className={`${styles.container} ${isWorkspaceLayout ? `${workspaceStyles.shell} ${isClaudeLayout ? workspaceStyles.claudeLayout : ''}` : ''} ${isQuickLinksCollapsed ? `${styles.quickLinksCollapsed} ${workspaceStyles.collapsed}` : styles.quickLinksExpanded} ${isMobileSidebarOpen ? `${styles.mobileSidebarOpen} ${workspaceStyles.mobileOpen}` : ''} ${!isOpenSideBarShow ? workspaceStyles.sidebarHidden : ''}`}>
+            <header className={`${styles.darkHeader} ${isWorkspaceLayout ? workspaceStyles.header : ''}`}>
+                <div className={`${styles.headerContent} ${isWorkspaceLayout ? workspaceStyles.headerContent : ''}`}>
+                    <div className={`${styles.headerLeft} ${isWorkspaceLayout ? workspaceStyles.headerLeft : ''}`}>
+                        {isWorkspaceLayout && !isClaudeLayout && (
+                            <div className={workspaceStyles.headerBrand} aria-label="Prime Laboratory Software">
+                                <span className={workspaceStyles.headerBrandMark} aria-hidden="true">PLS</span>
+                                <span className={workspaceStyles.headerBrandName}>Prime Laboratory Software</span>
+                            </div>
+                        )}
+                        {isOpenSideBarShow && !isClaudeLayout && (
                             <button
                                 type="button"
                                 className={`${styles.sidebarToggleHeader} d-none d-md-inline-flex`}
@@ -258,7 +335,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                         )}
                         <button
                             type="button"
-                            className={styles.mobileMenuButton}
+                            className={`${styles.mobileMenuButton} ${isWorkspaceLayout ? workspaceStyles.mobileMenuButton : ''}`}
                             onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
                             aria-label="Toggle navigation menu"
                         >
@@ -267,18 +344,18 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
 
                         <div className={styles.brandBlock}>
                             <div className={styles.companyRow}>
-                                <h1 className={styles.companyName} title={company || ''}>
+                                <h1 className={`${styles.companyName} ${isWorkspaceLayout ? workspaceStyles.companyName : ''}`} title={company || ''}>
                                     {company || 'Organization'}
                                 </h1>
                             </div>
                         </div>
                     </div>
 
-                    <div className={styles.headerCenter}></div>
+                    <div className={`${styles.headerCenter} ${isWorkspaceLayout ? workspaceStyles.headerCenter : ''}`}></div>
 
-                    <div className={styles.headerActions}>
+                    <div className={`${styles.headerActions} ${isWorkspaceLayout ? workspaceStyles.headerActions : ''}`}>
                         <div className={`${styles.accountSummary} d-none d-md-flex`}>
-                            <div className={styles.accountPrimary} title={`${user?.username || ''}(${roleLabel})`}>
+                            <div className={`${styles.accountPrimary} ${isWorkspaceLayout ? workspaceStyles.accountName : ''}`} title={`${user?.username || ''}(${roleLabel})`}>
                                 {user?.username || 'User'}({roleLabel})
                             </div>
                             {daysToExpiration !== undefined && daysToExpiration !== null ? (
@@ -291,7 +368,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                                 </div>
                             ) : null}
                         </div>
-                        <div className={styles.headerIconGroup} role="toolbar" aria-label="Account actions">
+                        <div className={`${styles.headerIconGroup} ${isWorkspaceLayout ? workspaceStyles.headerToolbar : ''}`} role="toolbar" aria-label="Account actions">
                             <button
                                 type="button"
                                 className={styles.headerIconBtn}
@@ -383,18 +460,90 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                 </div>
             </header>
 
-            <div className={styles.twoColumnLayout} style={!isOpenSideBarShow ? { width: '100%' } : {}}>
+            <div className={`${styles.twoColumnLayout} ${isWorkspaceLayout ? workspaceStyles.body : ''}`} style={!isOpenSideBarShow ? { width: '100%' } : {}}>
                 {isMobileSidebarOpen && <div className={styles.mobileOverlay} onClick={() => setIsMobileSidebarOpen(false)} />}
 
                 {isOpenSideBarShow && (
-                    <aside className={`${styles.quickLinksSidebar} ${isMobileSidebarOpen ? styles.mobileSidebarVisible : ''}`}>
-                        <nav className={styles.sidebarNav} aria-label="Section navigation">
-                            {visibleLinks.map(item => renderNavItem(item))}
-                        </nav>
+                    <aside className={`${styles.quickLinksSidebar} ${isWorkspaceLayout ? workspaceStyles.sidebar : ''} ${isMobileSidebarOpen ? styles.mobileSidebarVisible : ''}`}>
+                        {isWorkspaceLayout ? (
+                            <>
+                                {isClaudeLayout && (
+                                    <div className={workspaceStyles.claudeSidebarHeader}>
+                                        <div className={workspaceStyles.claudeBrandMark} aria-hidden="true">PLS</div>
+                                        <div className={workspaceStyles.claudeBrandText}>
+                                            <strong>Prime Laboratory Software</strong>
+                                            <span>{company || 'Workspace'}</span>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            className={workspaceStyles.claudeCollapseButton}
+                                            onClick={() => setIsQuickLinksCollapsed(!isQuickLinksCollapsed)}
+                                            aria-label={isQuickLinksCollapsed ? "Expand navigation" : "Collapse navigation"}
+                                            title={isQuickLinksCollapsed ? "Expand navigation" : "Collapse navigation"}
+                                        >
+                                            {isQuickLinksCollapsed ? <RiArrowRightLine size={17} /> : <RiArrowLeftLine size={17} />}
+                                        </button>
+                                    </div>
+                                )}
+                                {isClaudeLayout && (
+                                    <button
+                                        type="button"
+                                        className={`${workspaceStyles.appsButton} ${workspaceStyles.claudeAppsButton}`}
+                                        onClick={() => setIsAppsOpen(true)}
+                                        aria-label="Open apps menu from navigation"
+                                        aria-haspopup="dialog"
+                                        aria-expanded={isAppsOpen}
+                                    >
+                                        <RiLayout2Line size={18} />
+                                        <span className={workspaceStyles.label}>All applications</span>
+                                    </button>
+                                )}
+                                <nav className={workspaceStyles.navigation} aria-label="Section navigation">
+                                    {visibleLinks.map((item, index) => renderWorkspaceNavItem(item, String(index)))}
+                                </nav>
+                                {isClaudeLayout ? (
+                                    <button
+                                        type="button"
+                                        className={workspaceStyles.claudeAccount}
+                                        onClick={() => handleNavigation(`/human-resource/profile?employeeid=${employeeid}&&isOpenSideBarShow=false`)}
+                                        aria-label="Open profile"
+                                    >
+                                        <span className={workspaceStyles.claudeAvatar} aria-hidden="true">
+                                            {(user?.username || 'U').trim().charAt(0).toUpperCase()}
+                                        </span>
+                                        <span className={workspaceStyles.claudeAccountText}>
+                                            <strong>{user?.username || 'User'}</strong>
+                                            <small>{roleLabel}</small>
+                                        </span>
+                                        <RiArrowRightSLine size={16} />
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        className={workspaceStyles.appsButton}
+                                        onClick={() => {
+                                            setIsMobileSidebarOpen(false);
+                                            setIsAppsOpen(true);
+                                        }}
+                                        aria-label="Open apps menu from navigation"
+                                        aria-haspopup="dialog"
+                                        aria-expanded={isAppsOpen}
+                                        title="All apps"
+                                    >
+                                        <RiLayout2Line size={20} />
+                                        <span className={workspaceStyles.label}>All applications</span>
+                                    </button>
+                                )}
+                            </>
+                        ) : (
+                            <nav className={styles.sidebarNav} aria-label="Section navigation">
+                                {visibleLinks.map(item => renderNavItem(item))}
+                            </nav>
+                        )}
                     </aside>
                 )}
-                <main className={styles.mainContent} style={!isOpenSideBarShow ? { margin: 0, padding: 0 } : {}}>
-                    <div className={styles.contentWrapper} style={!isOpenSideBarShow ? { padding: 0, margin: '10px', maxWidth: '100%' } : {}}>
+                <main className={`${styles.mainContent} ${isWorkspaceLayout ? workspaceStyles.main : ''}`} style={!isOpenSideBarShow ? { margin: 0, padding: 0 } : {}}>
+                    <div className={`${styles.contentWrapper} ${isWorkspaceLayout ? workspaceStyles.content : ''}`} style={!isOpenSideBarShow ? { padding: 0, margin: '10px', maxWidth: '100%' } : {}}>
                         {isSuperAdmin || canAccessFacilityModule(modulePath || "", settings?.moduleConfiguration)
                             ? children : <div className="alert alert-warning" role="alert">This module is not activated for your facility. Contact your platform administrator.</div>}
                     </div>

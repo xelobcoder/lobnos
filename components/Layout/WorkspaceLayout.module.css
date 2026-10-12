@@ -1,0 +1,779 @@
+.shell {
+    --header-height: 64px;
+    --theme-header-bg: #18212f;
+    --theme-header-text: #e7edf5;
+    --theme-header-border: #394351;
+    --workspace-sidebar-bg: #f4f6f9;
+    --workspace-border: #e1e6ee;
+    --workspace-text: #354256;
+    --workspace-muted: #738095;
+    --workspace-hover: #e9edf3;
+    --workspace-selected: #e2edff;
+    --workspace-selected-text: #175cd3;
+    --workspace-content-bg: #fff;
+    display: grid;
+    grid-template-areas: "header header" "sidebar content";
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: var(--header-height) minmax(0, 1fr);
+    font-family: var(--font-inter), Inter, "Source Sans Pro", Helvetica, Arial, sans-serif;
+    font-size: 13px;
+    line-height: 1.6;
+    background: var(--workspace-content-bg);
+}
+
+:global(html[data-layout-structure="sidebar-full"]) .shell {
+    grid-template-areas: "header header" "sidebar content";
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: var(--header-height) minmax(0, 1fr);
+}
+
+.claudeLayout {
+    --theme-header-bg: #f9f8f6;
+    --theme-header-text: #282724;
+    --theme-header-border: #e8e6e1;
+    --workspace-sidebar-bg: #f9f8f6;
+    --workspace-border: #e8e6e1;
+    --workspace-text: #3f3e3a;
+    --workspace-muted: #85837d;
+    --workspace-hover: #eeede9;
+    --workspace-selected: #e9e7e1;
+    --workspace-selected-text: #282724;
+    --workspace-content-bg: #fff;
+    grid-template-areas: "sidebar header" "sidebar content";
+    grid-template-columns: 272px minmax(0, 1fr);
+    grid-template-rows: 58px minmax(0, 1fr);
+}
+
+.shell .body {
+    display: contents;
+}
+
+.shell .header {
+    grid-area: header;
+    width: 100%;
+    height: var(--header-height);
+    min-height: var(--header-height);
+    background: var(--theme-header-bg);
+    font-family: inherit;
+    border-bottom: 1px solid #263244;
+}
+
+.claudeLayout .header {
+    border-bottom-color: var(--workspace-border);
+    padding-inline: 24px;
+}
+
+.claudeLayout .headerBrand {
+    display: none;
+}
+
+.claudeLayout .headerContent {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 20px;
+}
+
+.claudeLayout .headerLeft {
+    width: 100%;
+    gap: 12px;
+}
+
+.claudeLayout .companyName {
+    display: block;
+    max-width: min(720px, 58vw);
+    color: #282724;
+    font-size: 15px !important;
+    font-weight: 500;
+    line-height: 1.4;
+    text-overflow: ellipsis;
+}
+
+.claudeLayout .accountSummary {
+    display: none !important;
+}
+
+.claudeLayout .headerIconBtn {
+    border-color: transparent;
+    border-radius: 8px;
+    color: #5e5b55;
+}
+
+.claudeLayout .headerIconBtn:hover {
+    background: #eeede9;
+    color: #282724;
+}
+
+.shell .header button,
+.shell .header a {
+    font-family: inherit;
+}
+
+.headerContent {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 16px;
+}
+
+.headerCenter {
+    display: none;
+}
+
+.headerLeft {
+    gap: 14px;
+}
+
+.headerBrand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 0 auto;
+    min-width: 0;
+    padding-right: 18px;
+    border-right: 1px solid #394351;
+}
+
+.headerBrandMark {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    border-radius: 7px;
+    background: #2366da;
+    color: white;
+    font-size: 10px;
+    font-weight: 750;
+    letter-spacing: -0.03em;
+}
+
+.headerBrandName {
+    color: #f2f5fa;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: normal;
+    white-space: nowrap;
+}
+
+.shell .companyName {
+    color: #f2f5fa;
+    font-size: 15px !important;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+.shell .accountName {
+    color: #e7edf5;
+    font-size: 13px;
+    font-weight: 400;
+}
+
+.shell .sidebar {
+    grid-area: sidebar;
+    width: 250px;
+    height: calc(100vh - var(--header-height));
+    height: calc(100dvh - var(--header-height));
+    background: var(--workspace-sidebar-bg) !important;
+    border-right: 1px solid var(--workspace-border);
+    font-family: inherit;
+    color: var(--workspace-text);
+    overflow: hidden;
+    z-index: 110;
+}
+
+.claudeLayout .sidebar {
+    display: flex;
+    flex-direction: column;
+    width: 272px;
+    height: 100vh;
+    height: 100dvh;
+    border-right-color: #eeece8;
+    box-shadow: 1px 0 3px rgba(38, 36, 32, 0.025);
+}
+
+.claudeSidebarHeader {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-height: 68px;
+    padding: 12px 14px 10px 17px;
+}
+
+.claudeBrandMark {
+    display: grid;
+    place-items: center;
+    flex: 0 0 31px;
+    width: 31px;
+    height: 31px;
+    border-radius: 9px;
+    background: #d97757;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 750;
+    letter-spacing: -0.04em;
+}
+
+.claudeBrandText {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.35;
+}
+
+.claudeBrandText strong {
+    overflow: hidden;
+    color: #292824;
+    font-size: 12px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.claudeBrandText span {
+    overflow: hidden;
+    color: #8c8982;
+    font-size: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.claudeCollapseButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 30px;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: #77746e;
+    cursor: pointer;
+}
+
+.claudeCollapseButton:hover {
+    background: #eeede9;
+    color: #34322e;
+}
+
+.claudeAppsButton {
+    min-height: 39px;
+    margin: 2px 12px 8px;
+    padding: 8px 12px;
+    border: 1px solid #e9e7e2;
+    border-radius: 9px;
+    background: #fff;
+    color: #44413b;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.claudeAppsButton:hover {
+    border-color: #dedbd4;
+    background: #fff;
+    color: #26241f;
+}
+
+.claudeLayout .navigation {
+    padding: 4px 10px 16px;
+}
+
+.claudeLayout .item {
+    min-height: 36px;
+    gap: 9px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    color: #57544e;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.claudeLayout .item:hover {
+    background: #efeee9;
+}
+
+.claudeLayout .group {
+    margin-bottom: 2px;
+}
+
+.claudeLayout .icon {
+    flex-basis: 18px;
+    color: #8d8a83;
+}
+
+.claudeLayout .icon svg {
+    width: 17px;
+    height: 17px;
+}
+
+.claudeLayout .submenu .item {
+    min-height: 33px;
+    padding: 6px 9px 6px 34px;
+    font-size: 12px;
+}
+
+.claudeLayout .submenu .item.child .icon svg {
+    width: 15px;
+    height: 15px;
+}
+
+.claudeLayout .active {
+    background: #eae8e2;
+    color: #292824;
+    font-weight: 500;
+}
+
+.claudeLayout .active:hover {
+    background: #e5e3dc;
+}
+
+.claudeAccount {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 62px;
+    margin-top: auto;
+    padding: 10px 14px;
+    border: 0;
+    border-top: 1px solid #eae8e3;
+    background: transparent;
+    color: #5d5a54;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.claudeAccount:hover {
+    background: #efeee9;
+}
+
+.claudeAvatar {
+    display: grid;
+    place-items: center;
+    flex: 0 0 30px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #e9e5dc;
+    color: #514d45;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.claudeAccountText {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.35;
+}
+
+.claudeAccountText strong,
+.claudeAccountText small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.claudeAccountText strong {
+    color: #37352f;
+    font-size: 12px;
+    font-weight: 550;
+}
+
+.claudeAccountText small {
+    color: #8b8881;
+    font-size: 11px;
+}
+
+.shell.collapsed .sidebar {
+    width: 72px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-height: 84px;
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--workspace-border);
+}
+
+.brandMark {
+    display: grid;
+    place-items: center;
+    flex: 0 0 32px;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #2366da;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.brandText {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.brandText strong {
+    font-size: 13px;
+    font-weight: 650;
+    letter-spacing: -0.03em;
+    line-height: 1.35;
+}
+
+.brandText small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--workspace-muted);
+    font-size: 11px;
+}
+
+.navigation {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 12px 12px 16px;
+    scrollbar-width: thin;
+    scrollbar-color: #c8d0dc transparent;
+}
+
+.group {
+    margin-bottom: 4px;
+}
+
+.item {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--workspace-text);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.6;
+    text-align: left;
+    cursor: pointer;
+}
+
+.item:hover {
+    background: var(--workspace-hover);
+}
+
+.claudeLayout .item {
+    min-height: 40px;
+    border-radius: 8px;
+}
+
+.item:focus-visible,
+.appsButton:focus-visible {
+    outline: 2px solid #2366da;
+    outline-offset: -2px;
+}
+
+.groupButton,
+.currentGroup {
+    font-weight: 400;
+}
+
+.currentGroup {
+    color: var(--workspace-selected-text);
+}
+
+.icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 20px;
+    color: var(--workspace-muted);
+}
+
+.icon svg {
+    width: 19px;
+    height: 19px;
+}
+
+.label {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.chevron {
+    display: flex;
+    flex: 0 0 16px;
+    color: var(--workspace-muted);
+}
+
+.submenu {
+    margin: 0;
+    padding: 0;
+}
+
+.submenu .item {
+    min-height: 37px;
+    padding: 8px 12px 8px 35px;
+    font-size: 13px;
+    line-height: 1.6;
+    border-radius: 8px;
+}
+
+.item.child .icon svg {
+    width: 16px;
+    height: 16px;
+}
+
+.active {
+    background: #408dfb;
+    color: #fff;
+    font-weight: 400;
+}
+
+.claudeLayout .active {
+    background: var(--workspace-selected);
+    color: var(--workspace-selected-text);
+}
+
+.appsButton {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    flex-shrink: 0;
+    padding: 16px 24px;
+    border: 0;
+    border-top: 1px solid var(--workspace-border);
+    background: transparent;
+    color: var(--workspace-muted);
+    font: inherit;
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.appsButton:hover {
+    background: var(--workspace-hover);
+    color: var(--workspace-selected-text);
+}
+
+.shell.collapsed .label,
+.shell.collapsed .brandText,
+.shell.collapsed .chevron,
+.shell.collapsed .submenu {
+    display: none;
+}
+
+.claudeLayout.collapsed {
+    grid-template-columns: 72px minmax(0, 1fr);
+}
+
+.claudeLayout.collapsed .claudeSidebarHeader {
+    justify-content: center;
+    padding-inline: 7px;
+}
+
+.claudeLayout.collapsed .claudeBrandText,
+.claudeLayout.collapsed .claudeCollapseButton,
+.claudeLayout.collapsed .claudeAccountText,
+.claudeLayout.collapsed .claudeAccount > svg {
+    display: none;
+}
+
+.claudeLayout.collapsed .claudeAppsButton,
+.claudeLayout.collapsed .claudeAccount {
+    justify-content: center;
+    margin-inline: 7px;
+    padding-inline: 0;
+}
+
+.claudeLayout.collapsed .claudeAccount {
+    border-top: 1px solid #eae8e3;
+}
+
+.shell.collapsed .brand,
+.shell.collapsed .item,
+.shell.collapsed .appsButton {
+    justify-content: center;
+    padding-inline: 8px;
+}
+
+.shell .main {
+    grid-area: content;
+    height: calc(100vh - var(--header-height));
+    height: calc(100dvh - var(--header-height));
+    min-width: 0;
+    background: var(--workspace-content-bg);
+    overflow-y: auto;
+}
+
+.shell .content {
+    padding: 28px 32px;
+    max-width: 1700px;
+}
+
+.shell.sidebarHidden,
+:global(html[data-layout-structure="sidebar-full"]) .shell.sidebarHidden {
+    grid-template-areas: "header" "content";
+    grid-template-columns: minmax(0, 1fr);
+}
+
+:global(html[data-bs-theme="dark"]) .shell {
+    --workspace-sidebar-bg: #202b3b;
+    --workspace-border: #344156;
+    --workspace-text: #d5deeb;
+    --workspace-muted: #9cabc1;
+    --workspace-hover: #2a374a;
+    --workspace-selected: #243e62;
+    --workspace-selected-text: #a0c5ff;
+    --workspace-content-bg: #151e2b;
+}
+
+@media (max-width: 768px) {
+    .shell,
+    :global(html[data-layout-structure="sidebar-full"]) .shell {
+        grid-template-areas: "header" "content";
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .claudeLayout,
+    :global(html[data-layout-structure="sidebar-full"]) .claudeLayout {
+        grid-template-areas: "header" "content";
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: 58px minmax(0, 1fr);
+    }
+
+    .shell .sidebar {
+        position: fixed;
+        top: var(--header-height);
+        bottom: 0;
+        left: 0;
+        width: min(280px, 86vw) !important;
+        height: calc(100dvh - var(--header-height));
+        transform: translateX(-105%);
+        transition: transform 0.2s ease;
+        box-shadow: 12px 0 32px rgba(15, 23, 42, 0.18);
+    }
+
+    .claudeLayout .sidebar {
+        height: calc(100dvh - var(--header-height));
+    }
+
+    .shell.mobileOpen .sidebar {
+        transform: translateX(0);
+    }
+
+    .shell.collapsed .label,
+    .shell.collapsed .brandText,
+    .shell.collapsed .chevron {
+        display: flex;
+    }
+
+    .shell.collapsed .submenu {
+        display: block;
+    }
+
+    .headerBrand {
+        padding-right: 8px;
+    }
+
+    .headerBrandName {
+        display: none;
+    }
+
+    .claudeLayout .companyName {
+        max-width: 44vw;
+        font-size: 13px !important;
+    }
+
+    .claudeLayout .headerLeft {
+        gap: 8px;
+    }
+
+    .claudeLayout .headerActions {
+        gap: 4px;
+    }
+
+    .shell .header {
+        padding-inline: 8px;
+    }
+
+    .headerLeft {
+        gap: 8px;
+    }
+
+    .shell .companyName {
+        display: none !important;
+    }
+
+    .claudeLayout .companyName {
+        display: block !important;
+        max-width: 44vw;
+    }
+
+    .shell .mobileMenuButton {
+        width: 28px;
+        height: 28px;
+        padding: 0;
+    }
+
+    .headerToolbar {
+        gap: 3px;
+    }
+
+    .headerToolbar button {
+        width: 26px;
+        height: 26px;
+    }
+
+    .shell.collapsed .brand,
+    .shell.collapsed .item,
+    .shell.collapsed .appsButton {
+        justify-content: flex-start;
+        padding-inline: 12px;
+    }
+
+    .shell .content {
+        padding: 18px 14px;
+    }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .shell .sidebar {
+        transition: none;
+    }
+}
+
+@media print {
+    .shell,
+    :global(html[data-layout-structure="sidebar-full"]) .shell {
+        display: block;
+        height: auto;
+        max-height: none;
+        overflow: visible;
+    }
+
+    .shell .sidebar,
+    .shell .header {
+        display: none !important;
+    }
+
+    .shell .main {
+        height: auto;
+        overflow: visible;
+    }
+
+    .shell .content {
+        padding: 0;
+    }
+}

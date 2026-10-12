@@ -1,6 +1,6 @@
 # Inventory Item Analytics API Documentation
 
-This document describes the item-specific analytics endpoints available in the Lobnos Server API. These endpoints provide detailed analytics for individual inventory items.
+This document describes the item-specific analytics endpoints available in the Prime Laboratory Software (PLS) backend API. These endpoints provide detailed analytics for individual inventory items.
 
 ## Base URL
 ```

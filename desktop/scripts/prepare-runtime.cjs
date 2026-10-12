@@ -47,7 +47,7 @@ function copyDirectory(source, destination) {
 	fs.cpSync(source, destination, { recursive: true, force: true });
 }
 
-requirePath(path.join(backendRoot, "package.json"), "lobnos-server sibling project");
+requirePath(path.join(backendRoot, "package.json"), "PLS backend sibling project");
 const requestedBackendConfig = process.env.PLS_DESKTOP_BACKEND_ENV ||
 	path.join(frontendRoot, "desktop", "config", "backend.env");
 const genericBuildRequested = fs.existsSync(requestedBackendConfig) &&
@@ -65,7 +65,7 @@ if (!skipBuild) {
 }
 
 requirePath(path.join(frontendRoot, ".next", "standalone", "server.js"), "Next.js standalone server");
-requirePath(path.join(backendRoot, "dist", "src", "start.js"), "Compiled lobnos-server entry point");
+requirePath(path.join(backendRoot, "dist", "src", "start.js"), "Compiled PLS backend entry point");
 
 fs.rmSync(runtimeRoot, { recursive: true, force: true });
 fs.mkdirSync(runtimeRoot, { recursive: true });

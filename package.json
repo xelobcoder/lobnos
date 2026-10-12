@@ -1,9 +1,9 @@
 {
 	"name": "PLS",
-	"productName": "Prime Laboratory System",
+	"productName": "Prime Laboratory Software",
 	"version": "1.0.0",
-	"description": "Prime Laboratory System desktop and server-rendered web application",
-	"author": "Prime Laboratory System",
+	"description": "Prime Laboratory Software desktop and server-rendered web application",
+	"author": "Prime Laboratory Software",
 	"main": "desktop/main.cjs",
 	"private": true,
 	"scripts": {

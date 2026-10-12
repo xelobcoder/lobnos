@@ -31,7 +31,9 @@ function backendConfigs() {
 	return { packaged, user };
 }
 
-app.setName("Prime Laboratory System");
+app.setName("Prime Laboratory Software");
+// Keep existing installation settings and licenses in their original location.
+app.setPath("userData", path.join(app.getPath("appData"), "Prime Laboratory System"));
 
 function runtimeRoot() {
 	return app.isPackaged
@@ -256,7 +258,7 @@ function startNodeService(name, entryPoint, cwd, env) {
 		writeLog(`[${name}] exited (code=${code}, signal=${signal || "none"})`);
 		if (!shuttingDown && servicesReady) {
 			showFailure(
-				`${name} stopped unexpectedly. Restart Prime Laboratory System. See ${path.join(
+				`${name} stopped unexpectedly. Restart Prime Laboratory Software. See ${path.join(
 					app.getPath("logs"),
 					"desktop.log",
 				)} for details.`,
@@ -356,9 +358,9 @@ function waitForHttpUrl(url, serviceName) {
 
 function loadingPage(message = "Starting PLS services...") {
 	return `data:text/html;charset=utf-8,${encodeURIComponent(`<!doctype html>
-<html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'"><title>Prime Laboratory System</title>
+<html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'"><title>Prime Laboratory Software</title>
 <style>body{margin:0;background:#0b3558;color:#fff;font:16px system-ui;display:grid;place-items:center;height:100vh}.card{text-align:center}.spinner{width:40px;height:40px;margin:24px auto;border:4px solid #ffffff55;border-top-color:#fff;border-radius:50%;animation:s 1s linear infinite}@keyframes s{to{transform:rotate(360deg)}}</style></head>
-<body><div class="card"><h1>Prime Laboratory System</h1><div class="spinner"></div><p>${message}</p></div></body></html>`)}`;
+<body><div class="card"><h1>Prime Laboratory Software</h1><div class="spinner"></div><p>${message}</p></div></body></html>`)}`;
 }
 
 function errorPage(message) {
@@ -403,7 +405,7 @@ function configureWebContents(contents) {
 			return {
 				action: "allow",
 				overrideBrowserWindowOptions: {
-					title: "Prime Laboratory System",
+					title: "Prime Laboratory Software",
 					width: 1280,
 					height: 820,
 					minWidth: 900,
@@ -435,7 +437,7 @@ function configureWebContents(contents) {
 
 function createWindow() {
 	mainWindow = new BrowserWindow({
-		title: "Prime Laboratory System",
+		title: "Prime Laboratory Software",
 		width: 1440,
 		height: 900,
 		minWidth: 1024,
@@ -512,7 +514,7 @@ if (!app.requestSingleInstanceLock()) {
 		logStream = fs.createWriteStream(path.join(app.getPath("logs"), "desktop.log"), {
 			flags: "a",
 		});
-		writeLog(`Prime Laboratory System ${app.getVersion()} starting`);
+		writeLog(`Prime Laboratory Software ${app.getVersion()} starting`);
 		createWindow();
 		try {
 			desktopConfig = loadDesktopConfig();

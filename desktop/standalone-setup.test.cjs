@@ -54,7 +54,7 @@ test("failures retain the same generated account and retry does not store either
 	assert.equal(result.config.PRODUCTION_DB_USERNAME, first.account);
 	assert.equal(result.config.MULTI_TENANT, "false");
 	assert.equal(result.config.PRODUCTION_DATABASE, "Primelabsys");
-	assert.equal(result.config.LOCAL_ORGANIZATION_NAME, "Prime Laboratory System");
+	assert.equal(result.config.LOCAL_ORGANIZATION_NAME, "Prime Laboratory Software");
 	assert.equal(result.loginPassword, "12345");
 	assert.match(result.config.JWT_SECRET_KEY, /^[A-Za-z0-9_-]{43}$/);
 	assert.notEqual(result.config.JWT_SECRET_KEY, result.config.ACCESS_TOKEN_SECRET);

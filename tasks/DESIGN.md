@@ -1,8 +1,8 @@
-# Lobnos Partner Billing – UI/UX Design Specification
+# PLS Partner Billing – UI/UX Design Specification
 
 **Status:** Design Reference
 
-**Target Product:** Lobnos LIMS – Partner Workspace, Pharmacy, and Laboratory Extensions
+**Target Product:** Prime Laboratory Software (PLS) – Partner Workspace, Pharmacy, and Laboratory Extensions
 
 **Last Updated:** 2026-09-01 (rev. 2 — closed gaps against the PRD, flow maps, and subtasks)
 
@@ -965,6 +965,6 @@ Use Bootstrap 5 custom properties for consistency:
 - [Product Requirements Document (PRD)](./organization-billing-prd.md)
 - [Workflow Maps](./flowmap.md)
 - [Implementation Subtasks](./organization-billing-subtasks.md)
-- Lobnos LIMS: [Chart UI Standard](./chart-ui-standard.md)
-- Lobnos LIMS: [Copilot Instructions](../../.github/copilot-instructions.md)
+- Prime Laboratory Software (PLS): [Chart UI Standard](./chart-ui-standard.md)
+- Prime Laboratory Software (PLS): [Copilot Instructions](../../.github/copilot-instructions.md)
 

@@ -459,7 +459,7 @@ export default function BackupSecurityPage() {
                                                                  if (storagePathError) validateStoragePath(e.target.value);
                                                             }}
                                                             onBlur={(e) => validateStoragePath(e.target.value)}
-                                                            placeholder="Enter full path for backup storage (e.g., C:\Lobnos\Backups or /home/user/backups)"
+                                                            placeholder="Enter full path for backup storage (e.g., C:\PLS\Backups or /home/user/backups)"
                                                             isInvalid={!!storagePathError}
                                                        />
                                                        <Form.Control.Feedback type="invalid">

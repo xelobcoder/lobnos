@@ -22,6 +22,7 @@ function createHarness(t, { mode = "standalone", licenseMode = "signed", failAct
 	const electron = {
 		app: {
 			setName() {},
+			setPath() {},
 			getPath: () => userData,
 			isPackaged: false,
 			requestSingleInstanceLock: () => false,
