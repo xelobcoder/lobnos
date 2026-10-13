@@ -1,11 +1,22 @@
 "use client";
 
-import React, { useId, useMemo, useRef, useState } from "react";
+import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { RiArrowDownSLine, RiArrowUpSLine, RiLayout2Line } from "@remixicon/react";
 import type { Link as NavigationLink } from "./links/types";
 import { buildRibbonGroups, buildRibbonTabs, findActiveNavigationPath } from "../../lib/ribbonNavigation";
 import styles from "./RibbonLayout.module.css";
+
+const COLLAPSE_STORAGE_KEY = "pls.ribbon.collapsed";
+const LARGE_TILE_LIMIT = 3;
+
+function readStoredCollapse(): boolean {
+    try {
+        return window.localStorage.getItem(COLLAPSE_STORAGE_KEY) === "true";
+    } catch {
+        return false;
+    }
+}
 
 export default function RibbonNavigation({ links, pathname, onNavigate }: {
     links: NavigationLink[];
@@ -18,17 +29,39 @@ export default function RibbonNavigation({ links, pathname, onNavigate }: {
     const currentTab = tabs.find(tab => tab.items.includes(activePath[0])) || tabs[0];
     const [selection, setSelection] = useState({ pathname, tabId: currentTab?.id });
     const [collapsed, setCollapsed] = useState(false);
+    const [flyout, setFlyout] = useState(false);
     const tabButtons = useRef<Array<HTMLButtonElement | null>>([]);
     const selected = (selection.pathname === pathname && tabs.find(tab => tab.id === selection.tabId)) || currentTab;
     const groups = selected ? buildRibbonGroups(selected.items, selected.title) : [];
-    const chooseTab = (index: number) => {
+    const openTab = (index: number) => {
         setSelection({ pathname, tabId: tabs[index].id });
+        if (collapsed) setFlyout(true);
+    };
+    const chooseTab = (index: number) => {
+        openTab(index);
         tabButtons.current[index]?.focus();
     };
+    const applyCollapsed = (value: boolean) => {
+        setCollapsed(value);
+        setFlyout(false);
+        try {
+            window.localStorage.setItem(COLLAPSE_STORAGE_KEY, String(value));
+        } catch {
+            // Storage is optional; the ribbon still works for this session.
+        }
+    };
+
+    useEffect(() => setCollapsed(readStoredCollapse()), []);
 
     if (!tabs.length) return null;
 
-    return <section className={styles.ribbon} aria-label="Workspace ribbon">
+    return <section className={styles.ribbon} aria-label="Workspace ribbon"
+        onKeyDown={event => {
+            if (event.key === "Escape" && flyout) setFlyout(false);
+        }}
+        onBlur={event => {
+            if (flyout && !event.currentTarget.contains(event.relatedTarget as Node | null)) setFlyout(false);
+        }}>
         <div className={styles.tabRow}>
             <div className={styles.tabs} role="tablist" aria-label="Section commands">
                 {tabs.map((tab, index) => <button key={tab.id} type="button" role="tab"
@@ -36,7 +69,7 @@ export default function RibbonNavigation({ links, pathname, onNavigate }: {
                     aria-selected={selected?.id === tab.id} tabIndex={selected?.id === tab.id ? 0 : -1}
                     ref={element => { tabButtons.current[index] = element; }}
                     className={styles.tab} title={tab.title}
-                    onClick={() => setSelection({ pathname, tabId: tab.id })}
+                    onClick={() => openTab(index)}
                     onKeyDown={event => {
                         let target: number;
                         if (event.key === "ArrowRight") target = (index + 1) % tabs.length;
@@ -52,17 +85,19 @@ export default function RibbonNavigation({ links, pathname, onNavigate }: {
             </div>
             <button type="button" className={styles.toggle} aria-expanded={!collapsed}
                 aria-controls={`${id}-commands`} aria-label={collapsed ? "Expand ribbon" : "Collapse ribbon"}
-                title={collapsed ? "Expand ribbon" : "Collapse ribbon"} onClick={() => setCollapsed(value => !value)}>
+                title={collapsed ? "Expand ribbon" : "Collapse ribbon"} onClick={() => applyCollapsed(!collapsed)}>
                 {collapsed ? <RiArrowDownSLine size={18} aria-hidden="true" /> : <RiArrowUpSLine size={18} aria-hidden="true" />}
             </button>
         </div>
         <div id={`${id}-commands`} role="tabpanel" aria-labelledby={`${id}-${selected?.id}`}
-            className={styles.commands} hidden={collapsed}>
+            className={flyout ? `${styles.commands} ${styles.flyout}` : styles.commands} hidden={collapsed && !flyout}>
             {groups.map((group, index) => <div key={`${group.title}-${index}`} className={styles.commandGroup}
                 role="group" aria-label={group.title}>
-                <div className={styles.commandList}>
+                <div className={group.commands.length > LARGE_TILE_LIMIT
+                    ? `${styles.commandList} ${styles.compact}` : styles.commandList}>
                     {group.commands.map((command, commandIndex) => <Link key={`${command.link}-${commandIndex}`}
-                        href={command.link} prefetch={false} onClick={onNavigate}
+                        href={command.link} prefetch={false}
+                        onClick={() => { setFlyout(false); onNavigate(); }}
                         className={styles.command} title={command.title}
                         aria-current={activePath.at(-1) === command ? "page" : undefined}>
                         <span className={styles.commandIcon} aria-hidden="true">{command.icon || <RiLayout2Line size={18} />}</span>

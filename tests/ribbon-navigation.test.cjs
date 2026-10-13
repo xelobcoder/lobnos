@@ -7,12 +7,12 @@ const ts = require('typescript');
 const React = require('react');
 const { renderToStaticMarkup } = require('react-dom/server');
 
-function compile(file, requireModule) {
+function compile(file, requireModule, context = {}) {
     const exports = {};
     const output = ts.transpileModule(readFileSync(path.join(__dirname, '..', file), 'utf8'), {
         compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
     }).outputText;
-    vm.runInNewContext(output, { exports, require: requireModule });
+    vm.runInNewContext(output, { exports, require: requireModule, ...context });
     return exports;
 }
 const navigation = compile(path.join('lib', 'ribbonNavigation.ts'), require);
@@ -48,8 +48,8 @@ test('active path chooses the deepest route using path boundaries and ignores qu
     assert.deepEqual(Array.from(navigation.findActiveNavigationPath(duplicated, '/lab'), item => item.title), ['Laboratory', 'Home']);
 });
 
-function harness(pathname = '/lab/pending', inputLinks = links) {
-    const states = [], refs = [];
+function harness(pathname = '/lab/pending', inputLinks = links, storage) {
+    const states = [], refs = [], effects = [];
     let cursor = 0;
     let navigations = 0;
     const mocks = name => {
@@ -57,6 +57,7 @@ function harness(pathname = '/lab/pending', inputLinks = links) {
             ...React,
             useId: () => 'test-ribbon',
             useMemo: callback => callback(),
+            useEffect: callback => { effects.push(callback); },
             useRef: initial => {
                 const index = cursor++;
                 return refs[index] ||= { current: initial };
@@ -72,9 +73,10 @@ function harness(pathname = '/lab/pending', inputLinks = links) {
         if (name === 'next/link') return { __esModule: true, default: ({ prefetch, ...props }) => React.createElement('a', props) };
         return require(name);
     };
-    const Ribbon = compile(path.join('components', 'Layout', 'RibbonNavigation.tsx'), mocks).default;
+    const Ribbon = compile(path.join('components', 'Layout', 'RibbonNavigation.tsx'), mocks,
+        storage ? { window: { localStorage: storage } } : {}).default;
     const props = { links: inputLinks, pathname, onNavigate: () => navigations++ };
-    const render = () => { cursor = 0; return Ribbon(props); };
+    const render = () => { cursor = 0; effects.length = 0; return Ribbon(props); };
     const find = (node, predicate) => {
         if (Array.isArray(node)) return node.map(child => find(child, predicate)).find(Boolean);
         if (!node || typeof node !== 'object') return;
@@ -84,9 +86,12 @@ function harness(pathname = '/lab/pending', inputLinks = links) {
     return {
         render, props,
         html: () => renderToStaticMarkup(render()),
+        mount: () => { render(); for (const effect of effects) effect(); },
+        panel: () => find(render(), node => node.props?.role === 'tabpanel'),
         tab: label => find(render(), node => node.props?.role === 'tab' && node.props.children === label),
         toggle: () => find(render(), node => node.props?.['aria-controls'] === 'test-ribbon-commands' && node.props?.role !== 'tab'),
         command: href => find(render(), node => node.props?.href === href),
+        group: label => find(render(), node => node.props?.role === 'group' && node.props['aria-label'] === label),
         get navigations() { return navigations; },
     };
 }
@@ -173,4 +178,61 @@ test('Word-style commands retain accessible icons and full labels above the grou
     assert.match(css, /--ribbon-chrome: var\(--bs-tertiary-bg\)/);
     assert.match(css, /\.groupTitle \{[\s\S]*?text-align: center;/);
     assert.doesNotMatch(h.html(), /ribbon-rows|badge|rounded-pill/);
+});
+
+const denseLinks = [
+    { title: 'Overview', link: '/lab' },
+    { title: 'Operations', link: '', children: [
+        { title: 'Orders', link: '', children: [
+            { title: 'Pending requests', link: '/lab/pending' },
+            { title: 'Approved requests', link: '/lab/approved' },
+            { title: 'Rejected requests', link: '/lab/rejected' },
+            { title: 'Archived requests', link: '/lab/archived' },
+        ] },
+        { title: 'Samples', link: '', children: [{ title: 'Collection', link: '/lab/collection' }] },
+    ] },
+];
+
+test('crowded groups switch to compact command rows while small groups keep large tiles', () => {
+    const h = harness('/lab/pending', denseLinks);
+    const list = node => node.props.children[0].props.className;
+    assert.equal(list(h.group('Orders')), 'commandList compact');
+    assert.equal(list(h.group('Samples')), 'commandList');
+    const css = readFileSync(path.join(__dirname, '..', 'components', 'Layout', 'RibbonLayout.module.css'), 'utf8');
+    assert.match(css, /\.commandList\.compact \{[\s\S]*?grid-template-rows: repeat\(3,/);
+    assert.match(css, /\.compact \.command \{[\s\S]*?flex-direction: row;/);
+    assert.match(css, /\.compact \.commandIcon svg \{\s*width: 18px;\s*height: 18px;/);
+});
+
+test('a collapsed ribbon opens the clicked tab as a flyout and closes it after navigating', () => {
+    const h = harness();
+    h.toggle().props.onClick();
+    assert.ok(h.panel().props.hidden);
+    h.tab('Reporting').props.onClick();
+    const panel = h.panel();
+    assert.equal(panel.props.hidden, false);
+    assert.equal(panel.props.className, 'commands flyout');
+    h.command('/lab/history').props.onClick();
+    assert.equal(h.navigations, 1);
+    assert.ok(h.panel().props.hidden);
+    h.tab('Reporting').props.onClick();
+    h.render().props.onKeyDown({ key: 'Escape' });
+    assert.ok(h.panel().props.hidden);
+    const css = readFileSync(path.join(__dirname, '..', 'components', 'Layout', 'RibbonLayout.module.css'), 'utf8');
+    assert.match(css, /\.commands\.flyout:not\(\[hidden\]\) \{[\s\S]*?position: absolute;/);
+});
+
+test('the collapse preference is restored on mount and saved when toggled', () => {
+    const store = new Map([['pls.ribbon.collapsed', 'true']]);
+    const storage = {
+        getItem: key => (store.has(key) ? store.get(key) : null),
+        setItem: (key, value) => { store.set(key, value); },
+    };
+    const h = harness('/lab/pending', links, storage);
+    assert.equal(h.toggle().props['aria-expanded'], true);
+    h.mount();
+    assert.equal(h.toggle().props['aria-expanded'], false);
+    h.toggle().props.onClick();
+    assert.equal(store.get('pls.ribbon.collapsed'), 'false');
+    assert.equal(h.toggle().props['aria-expanded'], true);
 });

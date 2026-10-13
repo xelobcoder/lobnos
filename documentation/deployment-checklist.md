@@ -101,13 +101,21 @@ detector or record-specific actions are introduced.
 The ribbon uses theme tokens, keyboard-operable tabs (Left/Right, Home/End),
 a skip-to-workspace link, and breadcrumbs
 derived from the closest configured route. It introduces no stored patient or
-record context. Tab selection and ribbon collapse are transient UI state;
-the chosen facility layout is persisted by the existing settings endpoint.
+record context. Tab selection is transient UI state; the collapsed/expanded
+ribbon state is remembered per browser in `localStorage`
+(`pls.ribbon.collapsed`), and the chosen facility layout is persisted by the
+existing settings endpoint. When storage is unavailable the ribbon simply
+starts expanded.
 Tabs and command groups scroll within the ribbon on small screens, and the
-entire command strip can be collapsed to reclaim workspace height.
+entire command strip can be collapsed to reclaim workspace height. While
+collapsed, choosing a tab opens its commands as a temporary flyout over the
+workspace that closes on navigation, Escape, or focus loss.
 The ribbon follows Word-style command placement: 32px icons above centered,
 wrapping labels in a single command row, with group captions below and vertical
-separators between groups. Segoe UI is scoped to this layout (including its
+separators between groups. Groups with more than three commands switch to
+Word-style small buttons instead: 18px icons beside single-line labels, stacked
+three per column, so dense sections stay readable without long horizontal
+scrolling. Segoe UI is scoped to this layout (including its
 form controls), with Arial as the non-Windows fallback. The command surface
 uses the theme's body background; tabs and workspace use its soft neutral
 tertiary background. Dark mode uses the same semantic tokens. Existing layouts
