@@ -193,20 +193,31 @@ export default function FacilityOnboardingPage() {
 
      const confirmDelete = async (event: FormEvent<HTMLFormElement>) => {
           event.preventDefault();
-          if (!deleteFacility || deleteBusy) return;
+          if (!deleteFacility || deleteBusy || busy) return;
           setDeleteBusy(true);
           setDeleteError("");
           try {
                const result = await customFetchMutation(`platform/facilities/${deleteFacility.tenantId}`, "DELETE", {
                     confirmation: deleteConfirmation, reason: deleteReason.trim(),
                });
-               if (result?.status !== "success" || result.result?.deleted !== true) {
+               if (result?.status !== "success" || result.result?.deleted !== true ||
+                    typeof result.result.databasePreserved !== "boolean") {
                     throw new Error(result?.message || result?.error || "Unable to delete the tenant.");
                }
                setFacilities((current) => current.filter((facility) => facility.tenantId !== deleteFacility.tenantId));
                if (selectedTenantId === deleteFacility.tenantId) setSelectedTenantId(null);
                if (created?.tenantId === deleteFacility.tenantId) setCreated(null);
-               setDeletedMessage(`${deleteFacility.platformId} was removed from the registry. Its database was preserved.`);
+               if (retryFacility?.tenantId === deleteFacility.tenantId) {
+                    setRetryFacility(null);
+                    setForm((current) => ({ ...current, adminPassword: "" }));
+                    setShowPassword(false);
+               }
+               if (provisioningApplication?.linked_tenant_id === deleteFacility.tenantId) {
+                    setProvisioningApplication((current) => current ? { ...current, linked_tenant_id: null } : null);
+               }
+               setDeletedMessage(`${deleteFacility.platformId} was removed from the registry. ${result.result.databasePreserved
+                    ? "Its database was preserved."
+                    : "Its partial database was permanently deleted. You can provision the facility again using the same company email."}`);
                setDeleteFacility(null);
           } catch (failure) {
                setDeleteError(errorMessage(failure));
@@ -250,7 +261,7 @@ export default function FacilityOnboardingPage() {
 
      const submit = async (event: FormEvent<HTMLFormElement>) => {
           event.preventDefault();
-          if (busy) return;
+          if (busy || deleteBusy) return;
           setError("");
           setCreated(null);
           if (provisioningApplication && !identityConfirmed) {
@@ -353,7 +364,7 @@ export default function FacilityOnboardingPage() {
                Cell: ({ row }) => (
                     <button type="button" className="btn btn-sm btn-outline-danger"
                          disabled={busy || deleteBusy || row.original.isControlTenant || row.original.status === "provisioning"}
-                         title={row.original.isControlTenant ? "Platform home cannot be deleted" : row.original.status === "provisioning" ? "Wait for provisioning to finish" : "Remove registry record; preserve database"}
+                         title={row.original.isControlTenant ? "Platform home cannot be deleted" : row.original.status === "provisioning" ? "Wait for provisioning to finish" : row.original.status === "failed" ? "Permanently delete the partial database and registry record" : "Remove registry record; preserve database"}
                          onClick={() => {
                               setDeleteFacility(row.original);
                               setDeleteConfirmation("");
@@ -448,7 +459,7 @@ export default function FacilityOnboardingPage() {
                                    <input id="facility-search" type="search" className="form-control" placeholder="Search facilities..." value={facilityQuery} onChange={(event) => setFacilityQuery(event.target.value)} />
                               </div>
                               <div><label htmlFor="facility-status" className="visually-hidden">Filter by status</label><select id="facility-status" className="form-select" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}><option value="all">All statuses</option><option value="active">Active</option><option value="suspended">Suspended</option><option value="failed">Failed</option><option value="provisioning">Provisioning</option></select></div>
-                              <button type="button" disabled={busy} className="btn btn-primary w-100 w-sm-auto" aria-expanded={provisionOpen} aria-controls="provision-facility" onClick={() => {
+                              <button type="button" disabled={busy || deleteBusy} className="btn btn-primary w-100 w-sm-auto" aria-expanded={provisionOpen} aria-controls="provision-facility" onClick={() => {
                                    setProvisionOpen(!provisionOpen);
                                    setRetryFacility(null);
                                    setShowPassword(false);
@@ -460,16 +471,19 @@ export default function FacilityOnboardingPage() {
                </section>
                {error && <div className="alert alert-danger mb-3 d-flex justify-content-between gap-2" role="alert"><span>{error}</span><button type="button" className="btn-close" aria-label="Dismiss error" onClick={() => setError("")} /></div>}
                {deletedMessage && <div className="alert alert-success" role="status">{deletedMessage}</div>}
-               {deleteFacility && <form className="border border-danger rounded p-3 mb-3 bg-white" onSubmit={confirmDelete} aria-label="Confirm tenant deletion">
+               {deleteFacility && <form className="border-top border-danger pt-3 mb-3" onSubmit={confirmDelete} aria-label="Confirm tenant deletion" aria-describedby="delete-consequences">
                     <h2 className="h5 text-danger">Delete {deleteFacility.name}</h2>
-                    <p>This permanently removes the tenant registry record and prevents tenant access. Its database, subscription payments and facility audit records are preserved. Linked legacy migration/provisioning records may be removed by database constraints. This is not deactivation.</p>
+                    <p id="delete-consequences">{deleteFacility.status === "failed"
+                         ? <>This permanently deletes the partial database <strong>{deleteFacility.databaseName}</strong> and removes the failed tenant registry record. Database deletion cannot be undone. You can then provision the facility again using the same company email.</>
+                         : <>This permanently removes the tenant registry record and prevents tenant access. Its database is preserved.</>}
+                         {" "}Subscription payments and facility audit records are preserved. Linked legacy migration/provisioning records may be removed by database constraints. This is not deactivation.</p>
                     <label className="form-label" htmlFor="delete-confirmation">Enter {deleteFacility.platformId} to confirm</label>
                     <input id="delete-confirmation" className="form-control mb-2" value={deleteConfirmation} disabled={deleteBusy} onChange={(event) => setDeleteConfirmation(event.target.value)} autoComplete="off" required />
                     <label className="form-label" htmlFor="delete-reason">Reason</label>
                     <input id="delete-reason" className="form-control mb-2" value={deleteReason} disabled={deleteBusy} onChange={(event) => setDeleteReason(event.target.value)} minLength={3} maxLength={500} required />
                     {deleteError && <div className="alert alert-danger" role="alert">{deleteError}</div>}
                     <div className="d-flex gap-2">
-                         <button type="submit" className="btn btn-danger" disabled={deleteBusy || deleteConfirmation !== deleteFacility.platformId || deleteReason.trim().length < 3}>{deleteBusy ? "Deleting..." : "Confirm deletion"}</button>
+                         <button type="submit" className="btn btn-danger" disabled={busy || deleteBusy || deleteConfirmation !== deleteFacility.platformId || deleteReason.trim().length < 3}>{deleteBusy ? "Deleting..." : deleteFacility.status === "failed" ? "Delete database and tenant" : "Confirm deletion"}</button>
                          <button type="button" className="btn btn-outline-secondary" disabled={deleteBusy} onClick={() => setDeleteFacility(null)}>Cancel</button>
                     </div>
                </form>}
@@ -493,7 +507,7 @@ export default function FacilityOnboardingPage() {
                          <p>Review the public company details and select official location records. This provisions a PLS tenant and links the approved application without reusing its website password.</p>
                          <label className="form-check"><input type="checkbox" className="form-check-input" checked={identityConfirmed} disabled={busy} onChange={event => setIdentityConfirmed(event.target.checked)} /><span className="form-check-label">I verified this application belongs to the facility being provisioned.</span></label>
                     </div>}
-                    <fieldset disabled={loading || busy || options.countries.length === 0} className="py-3">
+                    <fieldset disabled={loading || busy || deleteBusy || options.countries.length === 0} className="py-3">
                          <legend className="h5 fw-semibold mb-3">Company information</legend>
                          <div className="row g-3">
                               {([

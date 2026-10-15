@@ -65,5 +65,89 @@ test("tenant deletion requires explicit confirmation and protects platform home"
     assert.match(page, /customFetchMutation\(`platform\/facilities\/\$\{deleteFacility\.tenantId\}`, "DELETE"/);
     assert.match(page, /result\.result\?\.deleted !== true/);
     assert.match(page, /setFacilities\(\(current\) => current\.filter/);
-    assert.match(page, /Its database, subscription payments and facility audit records are preserved/);
+    assert.match(page, /deleteFacility\.status === "failed"/);
+    assert.match(page, /This permanently deletes the partial database/);
+    assert.match(page, /Database deletion cannot be undone/);
+    assert.match(page, /Its database is preserved/);
+    assert.match(page, /Subscription payments and facility audit records are preserved/);
+    assert.match(page, /Delete database and tenant/);
+});
+
+const pageFilename = path.join(__dirname, "..", "app", "settings", "facilities", "page.tsx");
+const pageSource = readFileSync(pageFilename, "utf8");
+const pageAst = ts.createSourceFile(pageFilename, pageSource, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+let deletionHandler;
+const findDeletionHandler = (node) => {
+    if (ts.isVariableDeclaration(node) && node.name.getText(pageAst) === "confirmDelete") {
+        deletionHandler = node.initializer.getText(pageAst);
+    }
+    ts.forEachChild(node, findDeletionHandler);
+};
+findDeletionHandler(pageAst);
+
+const runDeletion = async (payload, options = {}) => {
+    const facility = { tenantId: 654321, platformId: "NRAM11", status: "failed" };
+    const state = {
+        facilities: [facility], selectedTenantId: facility.tenantId, created: { tenantId: facility.tenantId },
+        retryFacility: facility, provisioningApplication: { linked_tenant_id: facility.tenantId },
+        form: { adminPassword: "do-not-retain" }, deleteFacility: facility, showPassword: true,
+    };
+    const context = {
+        deleteFacility: facility, deleteBusy: false, busy: false, deleteConfirmation: facility.platformId,
+        deleteReason: " Retry from scratch ", selectedTenantId: facility.tenantId, created: state.created,
+        retryFacility: facility, provisioningApplication: state.provisioningApplication,
+        customFetchMutation: async (...args) => {
+            state.request = args;
+            if (options.error) throw new Error(options.error);
+            return payload;
+        },
+        errorMessage: (error) => error.message,
+    };
+    for (const key of ["facilities", "selectedTenantId", "created", "retryFacility", "provisioningApplication",
+        "form", "deleteFacility", "showPassword", "deletedMessage", "deleteError", "deleteBusy"]) {
+        context[`set${key[0].toUpperCase()}${key.slice(1)}`] = (value) => {
+            state[key] = typeof value === "function" ? value(state[key]) : value;
+        };
+    }
+    vm.runInNewContext(ts.transpileModule(`const confirmDelete = ${deletionHandler}; globalThis.handler = confirmDelete;`, {
+        compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
+    }).outputText, context);
+    await context.handler({ preventDefault() {} });
+    return state;
+};
+
+test("failed database deletion uses the confirmed response and clears stale retry state", async () => {
+    const state = await runDeletion({ status: "success", result: { deleted: true, databasePreserved: false } });
+    assert.equal(state.request[0], "platform/facilities/654321");
+    assert.equal(state.request[1], "DELETE");
+    assert.equal(state.request[2].reason, "Retry from scratch");
+    assert.equal(state.facilities.length, 0);
+    assert.equal(state.retryFacility, null);
+    assert.equal(state.provisioningApplication.linked_tenant_id, null);
+    assert.equal(state.form.adminPassword, "");
+    assert.equal(state.showPassword, false);
+    assert.match(state.deletedMessage, /partial database was permanently deleted/);
+    assert.match(state.deletedMessage, /same company email/);
+    assert.equal(state.deleteBusy, false);
+});
+
+test("registry-only deletion never claims that the database was dropped", async () => {
+    const state = await runDeletion({ status: "success", result: { deleted: true, databasePreserved: true } });
+    assert.match(state.deletedMessage, /database was preserved/);
+    assert.doesNotMatch(state.deletedMessage, /permanently deleted/);
+});
+
+test("cleanup errors and unconfirmed database outcomes do not remove the visible facility", async () => {
+    for (const [payload, options] of [
+        [{ status: "success", result: { deleted: true } }, {}],
+        [{ status: "error", message: "Cleanup unavailable" }, {}],
+        [null, { error: "Network unavailable" }],
+    ]) {
+        const state = await runDeletion(payload, options);
+        assert.equal(state.facilities.length, 1);
+        assert.ok(state.deleteFacility);
+        assert.ok(state.deleteError);
+        assert.equal(state.deletedMessage, undefined);
+        assert.equal(state.deleteBusy, false);
+    }
 });
