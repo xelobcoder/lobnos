@@ -36,6 +36,7 @@ export const ApplicationSettingsLinks: Link[] =
                 { title: "Client provisioning", link: "/settings/facilities", icon: <RiBuilding2Line /> },
                 { title: "Website applications", link: "/settings/facilities/applications", icon: <RiBuilding2Line /> },
                 { title: "Client payments", link: "/settings/facilities/payments", icon: <RiBuilding2Line /> },
+                { title: "Client SMS configuration", link: "/settings/facilities/sms", icon: <RiBuilding2Line /> },
                 { title: "Client audit logs", link: "/settings/facilities/audit", icon: <RiBuilding2Line /> }
             ]
         },

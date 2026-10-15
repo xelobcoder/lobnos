@@ -7,6 +7,7 @@ import Loader from '../../../components/isLoading';
 import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
 import { BillingSettingsTab } from '../../../components/settings/applicationsettings/BillingSettingsTab';
 import { availableFonts } from '../../../lib/themes';
+import { canAccessFacilityModule } from '../../../lib/facilityModuleAccess';
 import Link from 'next/link';
 
 
@@ -39,6 +40,7 @@ interface ApplicationSettingsData {
 	fontFamily: string;
 	billingidPrefix: string;
 	services: string;
+	moduleConfiguration?: string | null;
 	billingsettings: string;
 	regioncode: string;
 	districtcode: string;
@@ -592,6 +594,7 @@ export default function ApplicationSettings() {
 
 	if (loading) return <Loader />;
 	if (!settings) return <div>No settings available. Error: {error}</div>;
+	const smsEntitled = canAccessFacilityModule('/communications/sms', settings.moduleConfiguration);
 
 	return (
 		<div className="container-fluid p-4">
@@ -624,6 +627,32 @@ export default function ApplicationSettings() {
 			{success && <Alert variant="success" className="mb-4">Settings updated successfully!</Alert>}
 
 			<Form onSubmit={handleSubmit}>
+				<section className="card border mb-4 p-3" aria-labelledby="sms-module-heading">
+					<div className="row align-items-center g-3">
+						<div className="col-12 col-lg-8">
+							<h5 id="sms-module-heading" className="mb-1">SMS Module</h5>
+							<p className="text-muted small mb-0">
+								Activate SMS messaging for this facility. An active provider configuration is also required before messages can be sent.
+							</p>
+							{!smsEntitled && (
+								<p className="text-warning small mb-0 mt-2">
+									SMS is not included in this facility&apos;s enabled modules. Contact the platform administrator to add it.
+								</p>
+							)}
+						</div>
+						<div className="col-12 col-lg-4">
+							<Form.Check
+								type="switch"
+								id="smsActivated"
+								name="smsActivated"
+								label={settings.smsActivated === 1 ? 'SMS module active' : 'SMS module inactive'}
+								checked={settings.smsActivated === 1}
+								disabled={!smsEntitled}
+								onChange={handleChange}
+							/>
+						</div>
+					</div>
+				</section>
 				{canManageWorkspaceLayout && (
 					<section className="border-bottom mt-3 mb-4 pb-3" aria-labelledby="workspace-layout-heading">
 						<div className="row align-items-center g-3">

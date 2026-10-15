@@ -33,8 +33,16 @@ test("activation gates cover existing email, SMS, pharmacy, inventory and device
         assert.equal(canAccessFacilityModule(route, "{"), false, route);
     }
     assert.equal(canAccessFacilityModule("/operations/laboratory/main/dailyRequest", disabled), true);
+    assert.equal(canAccessFacilityModule("/communications/sms/dashboard", null, { smsActivated: 0 }), false);
+    assert.equal(canAccessFacilityModule("/communications/sms/dashboard", null, { smsActivated: 1 }), true);
     disabled.modules.email.enabled = true;
     assert.equal(canAccessFacilityModule("/email-services", disabled), true);
+});
+test("application settings exposes the operational SMS activation switch", () => {
+    const page = readFileSync(path.join(root, "app", "settings", "applicationsettings", "page.tsx"), "utf8");
+    assert.match(page, /name="smsActivated"/);
+    assert.match(page, /SMS module active/);
+    assert.match(page, /canAccessFacilityModule\('\/communications\/sms'/);
 });
 test("provisioning exposes all requested modules, report address and branch support", () => {
     const page = readFileSync(path.join(root, "app", "settings", "facilities", "page.tsx"), "utf8");

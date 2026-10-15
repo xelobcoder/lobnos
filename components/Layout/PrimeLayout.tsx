@@ -79,11 +79,13 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
     const normalizedRole = String(user?.role || '').toLowerCase().trim().replace(/_/g, '-');
     const isSuperAdmin = normalizedRole.replace(/[\s-]/g, '') === 'superadmin';
     const allNavigation = useMemo(() => isSuperAdmin ? superAdminNavigation(Number(user?.branch || 0), Number(user?.employeeid || 0)) : [], [isSuperAdmin, user?.branch, user?.employeeid]);
-    const roleLinks = isSuperAdmin ? SuperAdminRoleLinks : (roleViews[user.role] || []).filter(item => canAccessFacilityModule(item.href || "", settings?.moduleConfiguration));
+    const roleLinks = isSuperAdmin ? SuperAdminRoleLinks : (roleViews[user.role] || []).filter(item =>
+        canAccessFacilityModule(item.href || "", settings?.moduleConfiguration, { smsActivated: settings?.smsActivated }));
     const visibleLinks = useMemo(() => {
         const filterLinks = (items: LinkType[]): LinkType[] => items
             .filter((item) => isSuperAdmin || !item.roles || item.roles.some((role) => role.replace(/_/g, '-').toLowerCase() === normalizedRole))
-            .filter((item) => isSuperAdmin || canAccessFacilityModule(item.link || "", settings?.moduleConfiguration))
+            .filter((item) => isSuperAdmin || canAccessFacilityModule(item.link || "", settings?.moduleConfiguration,
+                { smsActivated: settings?.smsActivated }))
             .map((item) => ({
                 ...item,
                 children: item.children ? filterLinks(item.children) : item.children,
@@ -91,7 +93,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
             .filter((item) => !item.children || item.children.length > 0 || item.link);
 
         return filterLinks(isSuperAdmin ? allNavigation : links || []);
-    }, [links, normalizedRole, isSuperAdmin, allNavigation, settings?.moduleConfiguration]);
+    }, [links, normalizedRole, isSuperAdmin, allNavigation, settings?.moduleConfiguration, settings?.smsActivated]);
     const canViewNotifications = ['admin', 'manager', 'super-admin', 'super admin'].includes(String(user?.role || '').toLowerCase().trim());
     const activeNavigationPath = useMemo(() => findActiveNavigationPath(visibleLinks, modulePath || ''), [visibleLinks, modulePath]);
     const employeeid = user?.employeeid || 0;
@@ -567,7 +569,8 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                                 </li>)}
                             </ol>
                         </nav>}
-                        {isSuperAdmin || canAccessFacilityModule(modulePath || "", settings?.moduleConfiguration)
+                        {isSuperAdmin || canAccessFacilityModule(modulePath || "", settings?.moduleConfiguration,
+                            { smsActivated: settings?.smsActivated })
                             ? children : <div className="alert alert-warning" role="alert">This module is not activated for your facility. Contact your platform administrator.</div>}
                     </div>
                 </main>
