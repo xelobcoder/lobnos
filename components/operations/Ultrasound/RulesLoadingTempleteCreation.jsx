@@ -5,18 +5,18 @@ export default function RulesLoadingTempleteCreation({ rule, setImpression, impr
 
        if (!selected) return null
 
-       if (rulesLoading) return <div className="p-2 text-center bg-secondary-subtle  heightedBorder pls-color">Please wait Loading Template...</div>
+       if (rulesLoading) return <div className="py-3 text-muted" role="status" aria-busy="true">Loading template fields...</div>
        return (
               <div>
-                     <section id="rule-section">
+                     <section id="rule-section" aria-label="Ultrasound report fields">
                             {Array.isArray(rule) && rule.length > 0 && rule.map((item, index) => {
                                    return (
-                                          <div className='my-3 list-group' key={index}>
-                                                 <div className="fw-bold pls-color list-group-item bg-secondary-subtle">{item.name || item.field}</div>
-                                                 <div className="list-group-item">
+                                          <section className="my-3 pb-3 border-bottom" key={index} aria-labelledby={`ultrasound-field-${item.fieldid || index}`}>
+                                                 <h3 id={`ultrasound-field-${item.fieldid || index}`} className="h6 fw-semibold mb-2">{item.name || item.field}</h3>
+                                                 <div>
                                                         <MARKDOWN_EDITOR updatedata={(ev, data) => { handleFieldChange(data, index) }} initialData={item.value} />
                                                  </div>
-                                          </div>
+                                          </section>
                                    )
                             })}
                      </section>

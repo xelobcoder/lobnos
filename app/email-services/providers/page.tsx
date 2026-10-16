@@ -62,7 +62,7 @@ export default function EmailProvidersPage() {
                port: Number(providerForm.port),
                secure: Boolean(providerForm.secure),
                username: providerForm.username.trim(),
-               password: providerForm.password,
+               password: providerForm.password?.trim() ? providerForm.password : undefined,
                fromEmail: providerForm.fromEmail,
                fromName: providerForm.fromName,
                isDefault: Boolean(providerForm.isDefault),
@@ -112,6 +112,19 @@ export default function EmailProvidersPage() {
           }
      };
 
+     const sendTestEmail = async (item: EmailProvider) => {
+          if (!item.id) return;
+          const to = window.prompt('Send a test email to which address?', item.fromEmail || '');
+          if (!to?.trim()) return;
+          try {
+               const response = await callMutate(`email/providers/${item.id}/test-email`, 'POST', { to: to.trim() });
+               if (response?.delivered === true) toast.success('Test email sent');
+               else toast.error(response?.message || 'Test email failed');
+          } catch (err: any) {
+               toast.error(err?.message || 'Test email failed');
+          }
+     };
+
      const providerColumns = [
           { Header: 'Name', accessor: 'name' },
           { Header: 'Type', accessor: 'providerType', Cell: ({ row }: any) => <span className="text-uppercase">{row.original.providerType}</span> },
@@ -127,6 +140,7 @@ export default function EmailProvidersPage() {
                     <div className="d-flex gap-1 flex-wrap">
                          <Button size="sm" variant="outline-primary" onClick={() => { setProviderModalMode('edit'); setProviderForm({ ...row.original, password: '' }); setProviderModalOpen(true); }}>Edit</Button>
                          <Button size="sm" variant="outline-success" onClick={() => testProvider(row.original)}><RiTestTubeLine size={14} /></Button>
+                         <Button size="sm" variant="outline-info" onClick={() => sendTestEmail(row.original)}>Send test</Button>
                          <Button size="sm" variant="outline-danger" onClick={() => deleteProvider(row.original)}><RiDeleteBinLine size={14} /></Button>
                     </div>
                ),
@@ -177,7 +191,7 @@ export default function EmailProvidersPage() {
                                    <Form.Group>
                                         <Form.Label>Password</Form.Label>
                                         <div className="d-flex gap-1">
-                                             <Form.Control type={showProviderPassword ? 'text' : 'password'} value={providerForm.password || ''} onChange={(e) => setProviderForm((prev) => ({ ...prev, password: e.target.value }))} />
+                                             <Form.Control type={showProviderPassword ? 'text' : 'password'} value={providerForm.password || ''} placeholder={providerModalMode === 'edit' && providerForm.hasPassword ? 'Saved - leave blank to keep' : ''} onChange={(e) => setProviderForm((prev) => ({ ...prev, password: e.target.value }))} />
                                              <Button variant="outline-secondary" onClick={() => setShowProviderPassword((prev) => !prev)}>{showProviderPassword ? 'Hide' : 'Show'}</Button>
                                         </div>
                                    </Form.Group>

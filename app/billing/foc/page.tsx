@@ -18,13 +18,13 @@ import {
 } from '@remixicon/react';
 import { currencyFormatter, customFetch, customPost } from '../../../components/Auth/customFetch';
 import { useApplication } from '../../../components/Auth/useApplicationContext';
+import { roleAllowed } from '../../../components/Auth/roles';
 
 export default function StaffFocManagementPage() {
      const user = useApplication()?.user;
      const router = useRouter();
      const employeeid = user?.employeeid;
-     const normalizedRole = (user?.role || '').toLowerCase().trim().replace(/_/g, '-');
-     const canAccess = ['admin', 'super-admin', 'superadmin', 'accountant'].includes(normalizedRole);
+     const canAccess = roleAllowed(user?.role, ['admin', 'accountant']);
      const isAdmin = canAccess;
 
      useEffect(() => {

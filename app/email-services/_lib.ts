@@ -28,6 +28,7 @@ export type EmailProvider = {
      secure?: boolean;
      username: string;
      password?: string;
+     hasPassword?: boolean;
      fromEmail?: string;
      from_email?: string;
      fromName?: string;

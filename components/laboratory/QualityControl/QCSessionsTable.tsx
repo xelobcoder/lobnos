@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { customFetch, customFetchMutation } from '../../Auth/customFetch';
+import { roleAllowed } from '../../Auth/roles';
 import { Modal, Table, Button, Spinner, Form } from 'react-bootstrap';
 import PrimeTable from '../../accessories/Datatables/PrimeTable';
 import { toast } from 'react-toastify';
@@ -118,7 +119,7 @@ export const QCSessionsTable: React.FC = () => {
     const router = useRouter();
     const currentUser = useApplication()?.user;
     const employeeId = Number(currentUser?.employeeid);
-    const canBypassQc = ['admin', 'super-admin'].includes(String(currentUser?.role || '').toLowerCase());
+    const canBypassQc = roleAllowed(currentUser?.role, ['admin']);
 
     useEffect(() => {
         fetchSessions(rows, currentPage);

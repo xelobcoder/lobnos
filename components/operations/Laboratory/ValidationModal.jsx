@@ -6,6 +6,7 @@ import UseCustomResultTemplating from "../../ResutlUI/useCustomResultTemplating"
 import UseResultCommentSingle from "../../ResutlUI/useResultCommentSingle";
 import { customFetch, customPost, getResultEntrySettings, ResultEntrydefaultData, validatePin } from "../../Auth/customFetch";
 import { useApplicationSettings } from "../../Auth/useApplicationContext";
+import { roleAllowed } from "../../Auth/roles";
 import { getAscensionStaffApproved } from "./Lib";
 
 
@@ -280,7 +281,7 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
                                    {Array.isArray(staff) && staff.length > 0 && staff.map((item, index) => (
                                         <ListGroup.Item key={index} className="text-capitalize pls-color d-flex justify-content-between">
                                              <span>{item.username}</span>
-                                             {role == "admin" && <span><button className="btn  btn-outline-danger btn-sm" disabled>Remove Validation</button></span>}
+                                             {roleAllowed(role, ["admin"]) && <span><button className="btn  btn-outline-danger btn-sm" disabled>Remove Validation</button></span>}
                                         </ListGroup.Item>
                                    ))}
                               </ListGroup>

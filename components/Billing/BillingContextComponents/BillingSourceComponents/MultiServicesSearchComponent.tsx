@@ -3,13 +3,14 @@ import Select from 'react-select';
 import { RiAddLine } from '@remixicon/react';
 import { MultiBillingContext } from '../../Multi/MultiBillingContext';
 import { useApplication } from '../../../Auth/useApplicationContext';
+import { roleAllowed } from '../../../Auth/roles';
 
 export default function MultiServicesSearchComponent({ updatefunction }) {
     const context = useContext(MultiBillingContext);
     const billingdata = context?.billingdata;
     const applicatonsettings = useApplication();
     const role = applicatonsettings?.user?.role;
-    const isAllowCrmToGiveDisocunt = ['manager', 'admin'].includes(role || '') ?
+    const isAllowCrmToGiveDisocunt = roleAllowed(role, ['manager', 'admin']) ?
         true : parseInt(applicatonsettings?.settings?.AllowCrmToGiveDisocunt || "0") == 1 ? true : false;
     const servicesList = billingdata?.servicesList || []
     const includeServices = billingdata?.includeServices;

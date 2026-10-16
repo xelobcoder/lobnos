@@ -324,6 +324,11 @@ export default function FacilityOnboardingPage() {
                setForm((current) => ({ ...current, adminPassword: "" }));
                setShowPassword(false);
                setError(errorMessage(failure));
+               // A failed attempt leaves a "failed" registry row; refresh so its Retry/Delete actions appear immediately.
+               try {
+                    const refreshed = await customFetch("platform/facilities");
+                    if (refreshed?.status === "success" && Array.isArray(refreshed.result)) setFacilities(refreshed.result);
+               } catch { /* the original error stays visible */ }
           } finally {
                setBusy(false);
           }

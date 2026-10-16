@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { toast } from 'react-toastify';
 import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
 import { customPost, customFetch } from '../../../../components/Auth/customFetch';
+import { roleAllowed } from '../../../../components/Auth/roles';
 
 type EncryptionAlgorithm = 'AES-128' | 'AES-256' | 'ChaCha20';
 
@@ -132,7 +133,7 @@ export default function BackupSecurityPage() {
      }, []);
 
      // Admin access control
-     if (!user || user.role !== 'admin') {
+     if (!user || !roleAllowed(user.role, ['admin'])) {
           return (
                <div className="min-vh-100 d-flex flex-column">
                     <div className="flex-grow-1 d-flex align-items-center justify-content-center bg-light">

@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 import PrimeTable from "../../components/accessories/Datatables/PrimeTable";
 import { customPost, customFile,customFetch } from "../../components/Auth/customFetch";
 import { useApplication } from "../../components/Auth/useApplicationContext";
+import { roleAllowed } from "../../components/Auth/roles";
 import BasicInformationClinician from "../../components/Clinicians/BasicInformationClinician";
 
 const getClinicianId = (clinician: Clinician) => clinician.id || clinician.clinician_id || 0;
@@ -144,7 +145,7 @@ export default function ClinicianList() {
     const [filterLoading, setFilterLoading] = useState(false);
 
     const role = useApplication().user.role;
-    const isAdmin = role === 'admin' || role === 'superadmin';
+    const isAdmin = roleAllowed(role, ['admin']);
     const router = useRouter();
 
     const getClinicianData = async () => {

@@ -9,6 +9,7 @@ import ReportIncidentTab from './ReportIncidentTab';
 import ManageIncidentsTab from './ManageIncidentsTab';
 import AuditTrailTab from './AuditTrailTab';
 import { useApplication, useApplicationSettings } from '../../../components/Auth/useApplicationContext';
+import { roleAllowed } from '../../../components/Auth/roles';
 import { RiAddBoxFill } from '@remixicon/react';
 
 interface Incident {
@@ -92,7 +93,7 @@ const statusOptions = [
 
 export default function IncidentReportingPage() {
      const user = useApplication()?.user;
-     const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'manager';
+     const isAdmin = roleAllowed(user?.role, ['admin', 'manager']);
      const [incidents, setIncidents] = useState<Incident[]>([]);
      const [loading, setLoading] = useState(true);
      const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);

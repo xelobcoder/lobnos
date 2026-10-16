@@ -33,6 +33,7 @@ import { getFontPreference, applyFontToDocument } from "../../lib/themes";
 import { useTheme } from "../ThemeProvider";
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { customFetch, customFetchMutation } from '../Auth/customFetch';
+import { roleAllowed } from '../Auth/roles';
 import { canAccessFacilityModule } from '../../lib/facilityModuleAccess';
 
 
@@ -81,7 +82,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
         canAccessFacilityModule(item.href || "", settings?.moduleConfiguration, { smsActivated: settings?.smsActivated }));
     const visibleLinks = useMemo(() => {
         const filterLinks = (items: LinkType[]): LinkType[] => items
-            .filter((item) => isSuperAdmin || !item.roles || item.roles.some((role) => role.replace(/_/g, '-').toLowerCase() === normalizedRole))
+            .filter((item) => !item.roles || roleAllowed(user?.role, item.roles))
             .filter((item) => isSuperAdmin || canAccessFacilityModule(item.link || "", settings?.moduleConfiguration,
                 { smsActivated: settings?.smsActivated }))
             .map((item) => ({
@@ -91,8 +92,8 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
             .filter((item) => !item.children || item.children.length > 0 || item.link);
 
         return filterLinks(links || []);
-    }, [links, normalizedRole, isSuperAdmin, settings?.moduleConfiguration, settings?.smsActivated]);
-    const canViewNotifications = ['admin', 'manager', 'super-admin', 'super admin'].includes(String(user?.role || '').toLowerCase().trim());
+    }, [links, user?.role, isSuperAdmin, settings?.moduleConfiguration, settings?.smsActivated]);
+    const canViewNotifications = roleAllowed(user?.role, ['admin', 'manager']);
     const activeNavigationPath = useMemo(() => findActiveNavigationPath(visibleLinks, modulePath || ''), [visibleLinks, modulePath]);
     const employeeid = user?.employeeid || 0;
     const [currentPath, setCurrentPath] = useState<string>("");

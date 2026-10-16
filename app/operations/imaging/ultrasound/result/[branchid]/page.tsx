@@ -8,6 +8,7 @@ import Loader from '../../../../../../components/accessories/Loader';
 import { toast } from 'react-toastify';
 import PreviewPatientInformation from '../../../../../../components/petientsComponent/PreviewPatientInformation';
 import { useApplicationSettings } from '../../../../../../components/Auth/useApplicationContext';
+import { isSuperAdminRole } from '../../../../../../components/Auth/roles';
 import Select from 'react-select';
 import { reactSelectCustomStyles } from '../../../../../../components/Auth/customFetch';
 import { RiFileTextLine, RiImageLine, RiHistoryLine, RiFileList2Line } from '@remixicon/react';
@@ -184,7 +185,7 @@ export default function EnterResultUltrasound() {
           try {
                if (update === 'true' && fields.length > 0) {
                     const firstResult = fields[0];
-                    if (firstResult.employeeid !== user?.employeeid && user?.role !== 'admin') {
+                    if (firstResult.employeeid !== user?.employeeid && user?.role !== 'admin' && !isSuperAdminRole(user?.role)) {
                          toast.error('You are not authorized to update this result.');
                          return;
                     }
@@ -242,7 +243,7 @@ export default function EnterResultUltrasound() {
                toast.error('Please enter at least 5 characters for clinical history');
                return;
           }
-          const response = await customPost('ultrasound/chx', 'POST', { ascensionid, clinical_history: clinicalHistory });
+          const response = await customPost('ultrasound/chx', 'POST', { ascensionid, clinical_history: clinicalHistory, employeeid: user?.employeeid });
           return response?.status ? toast.success(response.message) : toast.error(response?.message || 'Unable to save clinical history');
      };
 

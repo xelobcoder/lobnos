@@ -8,6 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Modal, Button, Form } from "react-bootstrap";
 import { handleDatePicker, handleSeverSideProcessing } from "../serverActions/ActionFiltering";
 import { useApplication, useApplicationSettings } from "../Auth/useApplicationContext";
+import { roleAllowed } from "../Auth/roles";
 import { RiCalendarEventLine, RiTableLine, RiBarChartBoxLine } from "@remixicon/react";
 import styles from './../../styles/SmsTemplateList.module.css'
 import { billingSource } from "../../lib/billingLib";
@@ -82,7 +83,7 @@ export default function BilledClientsView({
 
 	const user = useApplication()?.user;
 	const userRole = user?.role?.toLowerCase();
-	const isAdmin = userRole === 'admin' || userRole === 'superadmin' || userRole === 'accountant' || userRole === 'manager' || userRole === 'super-admin';
+	const isAdmin = roleAllowed(userRole, ['admin', 'accountant', 'manager']);
 
 	const predefinedReasons = [
 		"Add missing service/test",

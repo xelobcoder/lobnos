@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { customPost, customFetch } from "../../../../../components/Auth/customFetch";
 import { useApplication } from "../../../../../components/Auth/useApplicationContext";
+import { roleAllowed } from "../../../../../components/Auth/roles";
 
 interface Lead {
      id: number;
@@ -140,7 +141,7 @@ export default function LeadFollowups() {
 
      const canDeleteFollowup = (followup: FollowUp) => {
           if (!user) return false;
-          const isAdmin = user.role === 'admin' || user.role === 'super-admin';
+          const isAdmin = roleAllowed(user.role, ['admin']);
           if (isAdmin) return true;
 
           const isCreator = user.employeeid === followup.created_by;

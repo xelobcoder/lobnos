@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { useApplication } from "../Auth/useApplicationContext";
+import { roleAllowed } from "../Auth/roles";
 
 const ACCOUNTING_ROLES = ["admin", "super_admin", "super-admin", "accountant"];
 const OWNER_ROLES = ["admin", "super_admin", "super-admin"];
@@ -30,7 +31,7 @@ export default function AccountingGuard({
           );
      }
 
-     const allowed = ownerOnly ? OWNER_ROLES.includes(role) : ACCOUNTING_ROLES.includes(role);
+     const allowed = roleAllowed(role, ownerOnly ? OWNER_ROLES : ACCOUNTING_ROLES);
 
      if (!allowed) {
           return (
@@ -54,5 +55,5 @@ export default function AccountingGuard({
 
 export function useIsAccountingOwner(): boolean {
      const user = useApplication()?.user;
-     return OWNER_ROLES.includes(String(user?.role || "").toLowerCase().trim());
+     return roleAllowed(user?.role, OWNER_ROLES);
 }

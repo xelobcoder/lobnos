@@ -2,6 +2,7 @@ import { createContext} from 'react';
 import { useState } from 'react';
 import Authorization from '../accessories/authorization';
 import { useApplicationSettings } from '../Auth/useApplicationContext';
+import { roleAllowed } from '../Auth/roles';
 
 const OperationsContext = createContext();
 const OperaProvider = OperationsContext.Provider;
@@ -15,7 +16,7 @@ export const OperationsProvider = ({ children }) => {
 
 
     const isAuthorized = () => {
-        if (!roles.includes(user?.role)) return <Authorization />
+        if (!roleAllowed(user?.role, roles)) return <Authorization />
         else return (
             <OperaProvider value={{ operationsKey, updateOperations, employeeid: employeeid }} >
                 {children}

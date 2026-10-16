@@ -33,14 +33,17 @@ interface AccessHistoryTableProps {
 export default function AccessHistoryTable({ employeeid, ascensionid, shouldLoad }: AccessHistoryTableProps) {
      const [accessRequests, setAccessRequests] = useState<AccessRequest[]>([]);
      const [isLoading, setIsLoading] = useState(false);
+     const [error, setError] = useState<string | null>(null);
 
      const fetchAccessRequests = async (params = {}) => {
           if (!ascensionid) {
                setAccessRequests([]);
+               setError(null);
                return { result: [] };
           }
           try {
                setIsLoading(true);
+               setError(null);
                const queryParams = new URLSearchParams({
                     ...params
                });
@@ -50,12 +53,16 @@ export default function AccessHistoryTable({ employeeid, ascensionid, shouldLoad
                     setAccessRequests(response.data);
                     return { result: response.data };
                } else {
-                    return { result: [] };
+                    const message = response?.message || 'Unable to load access request history.';
+                    setError(message);
+                    return { result: [], error: true };
                }
           } catch (error) {
                console.error('Failed to fetch access requests:', error);
-               toast.error('Failed to load access requests');
-               return { error: 'Failed to load access requests' };
+               const message = 'Failed to load access requests.';
+               setError(message);
+               toast.error(message);
+               return { result: [], error: true };
           } finally {
                setIsLoading(false);
           }
@@ -123,35 +130,42 @@ export default function AccessHistoryTable({ employeeid, ascensionid, shouldLoad
           {
                Header: 'Status',
                accessor: 'status',
-               Cell: ({ value }) => {
+               Cell: ({ value }: { value: string }) => {
                     switch (value) {
                          case 'pending':
-                              return <span className="badge bg-warning">Pending</span>;
+                              return <span className="fw-semibold">Pending</span>;
                          case 'approved':
                          case 'granted':
-                              return <span className="badge bg-success">Approved</span>;
+                              return <span className="fw-semibold text-success">Approved</span>;
                          case 'rejected':
-                              return <span className="badge bg-danger">Rejected</span>;
+                              return <span className="fw-semibold text-danger">Rejected</span>;
                          case 'revoked':
-                              return <span className="badge bg-secondary">Revoked</span>;
+                              return <span className="fw-semibold text-secondary">Revoked</span>;
                          case 'expired':
-                              return <span className="badge bg-dark">Expired</span>;
+                              return <span className="fw-semibold text-secondary">Expired</span>;
                          default:
-                              return <span className="badge bg-secondary">{value}</span>;
+                              return <span className="fw-semibold">{value}</span>;
                     }
                }
           }
      ];
 
-
-
      return (
-          <div className="border br-5 p-3" style={{ border: '1px solid #dee2e6' }}>
-               <h6 className="fw-bold text-uppercase mb-3" style={{ color: '#6c757d', fontSize: '0.9rem' }}>
-                    <RiFileTextLine className="me-2" />Recent Access Requests
-               </h6>
+          <section aria-labelledby="recent-access-requests-heading" aria-busy={isLoading}>
+               <h3 id="recent-access-requests-heading" className="h6 fw-semibold mb-3">
+                    <RiFileTextLine className="me-2" aria-hidden="true" />Recent access requests
+               </h3>
+               {!ascensionid ? (
+                    <p className="text-muted mb-0">An imaging case is required to view access requests.</p>
+               ) : error ? (
+                    <div className="alert alert-danger d-flex flex-wrap align-items-center justify-content-between gap-2" role="alert">
+                         <span>{error}</span>
+                         <button type="button" className="btn btn-outline-danger btn-sm" onClick={() => fetchAccessRequests()} disabled={isLoading}>Retry</button>
+                    </div>
+               ) : (
+                    <div className="w-100">
                {isLoading ? (
-                    <div className="text-center py-4">
+                    <div className="text-center py-4" role="status">
                          <div className="spinner-border spinner-border-sm text-primary" role="status">
                               <span className="visually-hidden">Loading...</span>
                          </div>
@@ -168,9 +182,8 @@ export default function AccessHistoryTable({ employeeid, ascensionid, shouldLoad
                          />
                     </div>
                )}
-               {(!accessRequests || accessRequests.length === 0) && !isLoading && (
-                    <p className="text-muted text-center mb-0" style={{ fontSize: '0.85rem' }}>No access requests found.</p>
+                    </div>
                )}
-          </div>
+          </section>
      );
 }

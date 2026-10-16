@@ -11,6 +11,7 @@ import { MultiBillingProvider, MultiBillingContext } from "./MultiBillingContext
 import MultiSummary from "./MultiSummary";
 import { useRouter, useParams } from "next/navigation";
 import { useApplication } from "../../Auth/useApplicationContext";
+import { roleAllowed } from "../../Auth/roles";
 import { toast } from "react-toastify";
 import MultiBillingHeader from './MultiBillingHeader';
 import PreviousRecordsHeader from './PreviousRecordsHeader';
@@ -739,7 +740,7 @@ function MultiBillingLayoutContent() {
             adjustmentType: adjustmentType || 'addition',
             adjustmentReason: adjustmentReason || '',
             showRelatedBilling: billingid ? true : false,
-            showdetails: role === 'admin' || role === 'superadmin' || role == "manager",
+            showdetails: roleAllowed(role, ['admin', 'manager']),
             previousRecordsSummary: summaryObj,
         }));
     }

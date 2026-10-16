@@ -11,6 +11,7 @@ import { useParams } from 'next/navigation';
 import styles from '../../../../../styles/SmsTemplateList.module.css'
 import { Service, Witness } from '../../../../../types/serviceTypes';
 import { useApplication } from '../../../../../components/Auth/useApplicationContext';
+import { roleAllowed } from '../../../../../components/Auth/roles';
 import { set } from 'react-hook-form';
 import dayjs, { Dayjs } from 'dayjs';
 
@@ -1197,7 +1198,7 @@ export default function PreviousTransactionSummaryPage() {
 									return '';
 								};
 								// Only allow refund all or write off if role is admin or manager
-								const canRefundAllOrWriteOff = role === 'admin' || role === 'manager';
+								const canRefundAllOrWriteOff = roleAllowed(role, ['admin', 'manager']);
 								return <>
 									<Button
 										size='sm'

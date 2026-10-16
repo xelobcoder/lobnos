@@ -7,6 +7,7 @@ import { customFetch } from "../../Auth/customFetch";
 import Link from "next/link";
 import { hasPreviousRecords } from "../../../lib/billingLib";
 import { useApplicationSettings } from "../../Auth/useApplicationContext";
+import { roleAllowed } from "../../Auth/roles";
 
 export default function TrTable({ toast }) {
 	const { billingdata, recalculateTotalBill } = useContext(BillingContext);
@@ -124,7 +125,7 @@ export default function TrTable({ toast }) {
 		}
 		else if (OutsourcingCompaniesList.length == 0 && !loadingOutsource && selected?.isoutsourced == 1 && !billingdata.cart.find((item, index) => item.id == selected?.id)) {
 			return (<div>
-				{role && ['manager', 'admin'].includes(role) ?
+				{role && roleAllowed(role, ['manager', 'admin']) ?
 					<div>
 						organization not added for test <br /><Link href={`/settings/testpanel/testlist/${selected?.id}/outsourcingList?testname=R${selected?.name}`}>
 						<RiLinkUnlinkM size={16} /> Add Outsourcing organization
@@ -170,7 +171,7 @@ export default function TrTable({ toast }) {
 			<td>
 				<input
 					onChange={(ev) => { handleDiscount(ev) }}
-					disabled={!['manager', 'admin'].includes(role)}
+					disabled={!roleAllowed(role, ['manager', 'admin'])}
 					className="custom-input" type="number" step={0.1} max={selected != null ? selected.discountedValue : ''} />
 			</td>
 			<td>

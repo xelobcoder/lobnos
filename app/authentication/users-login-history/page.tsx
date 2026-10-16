@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react'
 import ApplicationUserLoginHx from '../../../components/settingsComponents/ApllicationUserLoginHx'
 import { customFetch } from '../../../components/Auth/customFetch';
 import { useApplication } from '../../../components/Auth/useApplicationContext';
+import Loader from '../../../components/isLoading';
+import { toast } from 'react-toastify';
 
 export default function UserPage() {
      const [employeesList, setusers] = useState<any[]>([]);
@@ -23,6 +25,7 @@ export default function UserPage() {
                }
           } catch (error) {
                console.error('Error fetching user login history:', error);
+               toast.error('Failed to load login history', { position: 'top-right', autoClose: 2000 });
                sethistory([]);
           }
      }
@@ -72,8 +75,8 @@ export default function UserPage() {
 
 
      return (
-          <div>
-               <select onChange={handleEmployeeChange} className="mb-3 col-5">
+          <div className="container-fluid p-4">
+               <select onChange={handleEmployeeChange} className="form-select form-select-sm mb-3 w-auto">
                     <option value="">Select Employee</option>
                     {employeesList.map((employee) => (
                          <option key={employee.employeeid} value={employee.employeeid}>
@@ -82,9 +85,9 @@ export default function UserPage() {
                     ))}
                </select>
                {loading ? (
-                    <div>Loading...</div>
+                    <Loader />
                ) : (
-                    <ApplicationUserLoginHx history={history} employeeid={employeeid} />
+                    <ApplicationUserLoginHx history={history} employeeid={employeeid} onChanged={getHistory} />
                )}
           </div>
      )

@@ -1,4 +1,5 @@
 import { useApplication } from "../components/Auth/useApplicationContext";
+import { isSuperAdminRole } from "../components/Auth/roles";
 import PrimeLayout from "../components/Layout/PrimeLayout";
 import FrontPageAdminView from "../components/FrontPageView/adminView";
 import FrontPageFrontdeskView from "../components/FrontPageView/frontdeskView";
@@ -19,7 +20,7 @@ export default function Index() {
      phelobotomist: FrontPagePhelobotomyView,
   };
 
-  const RoleComponent = roleViews[user.role];
+  const RoleComponent = isSuperAdminRole(user.role) ? FrontPageAdminView : roleViews[user.role];
 
   if (!daysToExpiration || daysToExpiration <= 0) {
     return (

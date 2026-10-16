@@ -5,7 +5,8 @@ import {
     RiBarChartBoxLine,
     RiFileAddLine,
     RiFileListLine,
-    RiShieldCheckLine
+    RiShieldCheckLine,
+    RiHistoryLine
 } from '@remixicon/react';
 
 export const ImagingLinks: Link[] = [
@@ -13,5 +14,7 @@ export const ImagingLinks: Link[] = [
     { title: 'Processed List', link: '/operations/imaging/ultrasound/processedlist', icon: <RiListCheck2 /> },
     { title: 'Create Templates', link: '/operations/imaging/ultrasound/templates', icon: <RiFileAddLine /> },
     { title: 'Ultrasound Templates', link: '/operations/imaging/ultrasound/templates/list', icon: <RiFileListLine /> },
+    { title: 'Imaging Analytics', link: '/analytics/imaging', icon: <RiBarChartBoxLine /> },
+    { title: 'Result Audit Trail', link: '/operations/imaging/audit', icon: <RiHistoryLine />, roles: ['admin'] },
     { title: 'Incident Reporting', link: '/compliance/incident-reporting', icon: <RiShieldCheckLine /> },
 ];

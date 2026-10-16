@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { customFetch, currencyFormatter } from "../../Auth/customFetch";
 import { RiFileList3Line, RiWalletLine, RiRefund2Line, RiCheckboxCircleLine, RiAlarmWarningLine, RiMoneyDollarCircleLine, RiBarChartLine, RiEyeLine, RiEyeOffLine, RiCheckLine } from "@remixicon/react";
 import { useApplication } from "../../Auth/useApplicationContext";
+import { roleAllowed } from "../../Auth/roles";
 import { Card } from "react-bootstrap";
 
 const COLOR_BORDER = 'var(--bs-border-color)';
@@ -130,8 +131,8 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 	const [branch, setBranch] = useState<Branch | null>(null);
 	const [isVisible, setIsVisible] = useState<boolean>(true);
 	const role = useApplication()?.user?.role;
-	const isAdmin = role === "admin" || role === "manager"
-	const canViewExpenseMetrics = ["admin", "accountant"].includes((role || "").trim().toLowerCase());
+	const isAdmin = roleAllowed(role, ["admin", "manager"])
+	const canViewExpenseMetrics = roleAllowed(role, ["admin", "accountant"]);
 
 	useEffect(() => {
 		if (summary) {

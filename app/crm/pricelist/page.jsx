@@ -6,6 +6,7 @@ import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
 import { RiAddBoxFill, RiDownloadLine } from "@remixicon/react";
 import { useRouter } from 'next/navigation'
 import { useApplicationSettings } from "../../../components/Auth/useApplicationContext";
+import { roleAllowed } from "../../../components/Auth/roles";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -15,7 +16,7 @@ export default function PriceListCheck() {
      const router = useRouter();
      const { applicationsettings } = useApplicationSettings();
      const userRole = applicationsettings?.user?.role?.toLowerCase();
-     const canDownload = userRole === 'admin' || userRole === 'manager';
+     const canDownload = roleAllowed(userRole, ['admin', 'manager']);
      const checkoutLink = `/billing/patientid/checkout/multi?ispricingcheckout=1`
 
      useEffect(() => {

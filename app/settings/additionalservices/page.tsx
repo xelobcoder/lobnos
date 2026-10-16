@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { fetchServices } from "../../../lib/billingLib";
 import { useApplicationSettings } from "../../../components/Auth/useApplicationContext";
 import { toast } from "react-toastify";
+import { roleAllowed } from "../../../components/Auth/roles";
 import { Spinner } from 'react-bootstrap';
 import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
 
@@ -82,7 +83,7 @@ export default function AdditionalServicesPage() {
 	};
 
 	const handleDelete = async (serviceId) => {
-		if (!role || role !== "admin") {
+		if (!role || !roleAllowed(role, ["admin"])) {
 			return toast.warning('Authorization to delete Denied!!!!!!');
 		}
 		const confirmation = confirm('Do you want to delete service? It might be associated with transactions and cause errors or inconsistencies in your journal.');

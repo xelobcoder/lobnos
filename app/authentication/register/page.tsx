@@ -13,6 +13,7 @@ import {
      validateFormData,
 } from "../../../components/Auth/customFetch";
 import { useApplication } from "../../../components/Auth/useApplicationContext";
+import { roleAllowed } from "../../../components/Auth/roles";
 import Loader from "../../../components/accessories/Loader";
 import { loadAllSectionPayloads, clearSectionDrafts, hydrateSectionDraftsFromUser, SECTION_CONFIGS } from "./sectionDraft";
 import { designation as designationOptions } from "../../../components/registration/fields/Util";
@@ -97,7 +98,7 @@ export default function AuthenticationIndexPage() {
      const [branches, setBranches] = useState<Branch[]>([]);
      const currentUser = useApplication()?.user;
      const currentUserEmployeeid = currentUser?.employeeid;
-     const canResetPassword = ['admin', 'manager'].includes(String(currentUser?.role || '').toLowerCase());
+     const canResetPassword = roleAllowed(currentUser?.role, ['admin', 'manager']);
      const [temporaryPassword, setTemporaryPassword] = useState<string>("");
 
      const numericOnlyFields = new Set(["mobile", "altMobile", "pin"]);

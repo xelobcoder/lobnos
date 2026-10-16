@@ -1,9 +1,10 @@
 import React from "react";
-import { Button, Dropdown } from 'react-bootstrap';
-import { RiMoreLine, RiCheckLine, RiCloseLine, RiPrinterFill, RiDoorClosedFill } from '@remixicon/react';
+import { Button } from 'react-bootstrap';
+import { RiPrinterFill, RiDoorClosedFill } from '@remixicon/react';
 import { useUltrasoundContext } from "./UltrasoundContext";
 import { generateRandomTextAndNumbers, PrepareResultEntryHeader } from "../../Auth/customFetch";
 import PrimeTable from '../../accessories/Datatables/PrimeTable';
+import Loader from '../../accessories/Loader';
 import { useApplication } from "../../Auth/useApplicationContext";
 import { handleServerSideProcessingAscensionData } from "../../serverActions/ActionFiltering";
 import dayjs from 'dayjs';
@@ -21,14 +22,6 @@ export default function AscentionUltrasoundUnCompletedTable({ stage }) {
 
 
 	const columns = [
-		{
-			Header: '#',
-			accessor: 'select',
-			Cell: ({ row }) => (
-				<input type="checkbox" />
-			),
-			width: 20,
-		},
 		{
 			Header: 'Ascension Date',
 			accessor: 'ascension_date',
@@ -76,13 +69,7 @@ export default function AscentionUltrasoundUnCompletedTable({ stage }) {
 		{
 			Header: 'Payment Status',
 			accessor: 'clientstatus',
-			Cell: ({ value }) => {
-				return (
-					<span style={{ color: "#000", fontWeight: 700 }}>
-						{value?.toUpperCase()}
-					</span>
-				);
-			},
+			Cell: ({ value }) => <span className="fw-semibold">{value?.toUpperCase() || "Unknown"}</span>,
 			width: 100,
 		},
 		{
@@ -97,20 +84,20 @@ export default function AscentionUltrasoundUnCompletedTable({ stage }) {
 					<div>
 						{isCompleted ? (
 							<div>
-								<span >Completed</span>
-								<div >
+								<span className="fw-semibold">Completed</span>
+								<div className="small text-muted">
 									{dayjs(start).format('DD-MM-YY HH:mm:ss')}
 								</div>
 							</div>
 						) : start ? (
 							<div>
-								<span >In Progress</span>
-								<div >
+								<span className="fw-semibold">In progress</span>
+								<div className="small text-muted">
 									Started: {dayjs(start).format('DD-MM-YY HH:mm:ss')}
 								</div>
 							</div>
 						) : (
-							<span>Not Started</span>
+							<span className="text-muted">Not started</span>
 						)}
 					</div>
 				);
@@ -135,12 +122,12 @@ export default function AscentionUltrasoundUnCompletedTable({ stage }) {
 				// replace with your action buttons
 				<>
 					<div>
-						<Button variant="outline-primary" size="sm" className="me-1 fw-bold" onClick={() => PrepareResultEntryHeader(row.original, true, branchid, false)} disabled={row.original.clientstatus === 'pending'}>
-							<RiDoorClosedFill />	{row.original.resultEntryStart ? 'Cont. Entry' : 'Enter Result'}
+						<Button type="button" variant="outline-primary" size="sm" className="me-1 fw-bold" onClick={() => PrepareResultEntryHeader(row.original, true, branchid, false)} disabled={row.original.clientstatus === 'pending'}>
+							<RiDoorClosedFill aria-hidden="true" />	{row.original.resultEntryStart ? 'Continue entry' : 'Enter result'}
 						</Button>
 						{stage == "ULTRASOUND_COMPLETED" && row.original.resultEntryEnd && (
-							<Button variant="outline-success" size="sm" className="fw-bold" onClick={() => handlePrintResult(row.original)}>
-								<RiPrinterFill />	Print Result
+							<Button type="button" variant="outline-success" size="sm" className="fw-bold" onClick={() => handlePrintResult(row.original)}>
+								<RiPrinterFill aria-hidden="true" />	Print result
 							</Button>
 						)}
 
@@ -173,11 +160,16 @@ export default function AscentionUltrasoundUnCompletedTable({ stage }) {
 	];
 
 	if (isLoading) {
-		return <div className="text-center heightedBorder p-2 bg-secondary-subtle">Loading .......................</div>;
+		return (
+			<div className="p-3" role="status" aria-busy="true">
+				<Loader />
+				<span className="visually-hidden">Loading ultrasound worklist</span>
+			</div>
+		);
 	}
 
 	return (
-		<div>
+		<section aria-label="Ultrasound worklist" aria-busy={isLoading}>
 			<PrimeTable
 				column={columns}
 				data={collection}
@@ -197,22 +189,7 @@ export default function AscentionUltrasoundUnCompletedTable({ stage }) {
 				}}
 				serverSideFiltering={true}
 				handleSeverSideProcessing={handleServerSideProcessingAscensionData}
-				rowStyling={{
-					type: "custom",
-					getRowStyle: (row) => {
-						const status = String(row.clientstatus ?? "").trim().toLowerCase();
-
-						if (status.includes("partial")) {
-							return { backgroundColor: "#fff3cd", color: "#664d03" };
-						}
-
-						if (status.includes("pending")) {
-							return { backgroundColor: "#f8d7da", color: "#842029" };
-						}
-
-						return {};
-					},
-				}} />
-		</div>
+			/>
+		</section>
 	);
 }

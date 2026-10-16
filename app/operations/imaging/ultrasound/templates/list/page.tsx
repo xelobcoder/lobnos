@@ -1,12 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { customFetch } from "../../../../../../components/Auth/customFetch";
 import Link from "next/link";
-import { updatePagination } from "../../../../../../components/Auth/customFetch";
-import Pagination from '../../../../../../components/accessories/pagination';
 import ShowTableCount from "../../../../../../components/operations/Laboratory/ShowCountTable";
 import { useApplicationSettings } from "../../../../../../components/Auth/useApplicationContext";
 import PrimeTable from "../../../../../../components/accessories/Datatables/PrimeTable";
+import Loader from "../../../../../../components/accessories/Loader";
+import { toast } from "react-toastify";
 
 
 interface TemplateItem {
@@ -27,28 +27,30 @@ export default function UltrasoundTemplatesList() {
 	const [query, setQuery] = useState({ count: 10, page: 1 });
 	const [error, setError] = useState<string | null>(null);
 
-	useEffect(() => {
-		if (employeeid) {
-			const fetchData = async () => {
-				try {
-					setLoading(true);
-					const data = await customFetch(
-						`result/entry/ultrasound/templates/list?page=${query.page}&count=${query.count}&employeeid=${employeeid}`
-					);
-					if (Array.isArray(data)) {
-						setTemplateList(data);
-					}
-				} catch (err) {
-					console.error("Error fetching data:", err);
-					setError("Failed to load data.");
-					setTemplateList([]);
-				} finally {
-					setLoading(false);
-				}
-			};
-			fetchData();
+	const fetchData = useCallback(async () => {
+		if (!employeeid) return;
+		try {
+			setLoading(true);
+			setError(null);
+			const data = await customFetch(
+				`result/entry/ultrasound/templates/list?page=${query.page}&count=${query.count}&employeeid=${employeeid}`
+			);
+			if (!Array.isArray(data)) {
+				throw new Error("The template list response was invalid.");
+			}
+			setTemplateList(data);
+		} catch (err) {
+			console.error("Error fetching ultrasound templates:", err);
+			setError("Unable to load ultrasound templates. Try again.");
+			setTemplateList([]);
+		} finally {
+			setLoading(false);
 		}
 	}, [employeeid, query]);
+
+	useEffect(() => {
+		void fetchData();
+	}, [fetchData]);
 
 	const columns = [
 		{
@@ -72,9 +74,7 @@ export default function UltrasoundTemplatesList() {
 			Header: 'Visibility',
 			accessor: 'visibletoAll',
 			Cell: ({ value }) => (
-				<span className={`badge bg-${value ? "success" : "secondary"}`}>
-					{value ? "Visible to All" : "Restricted"}
-				</span>
+				<span className="fw-semibold">{value ? "Visible to all" : "Restricted"}</span>
 			),
 		},
 		{
@@ -88,12 +88,6 @@ export default function UltrasoundTemplatesList() {
 		},
 	];
 
-	const updateFunction = (value) => {
-		updatePagination(value, setQuery, query);
-	};
-
-
-
 	const handleserverSidefilteringTemplates = async (filters: {
 		count: number, page: number, sortby:
 		"ASC" | "DESC"
@@ -105,10 +99,12 @@ export default function UltrasoundTemplatesList() {
 			if (Array.isArray(response)) {
 				return { result: response, error: false };
 			} else {
-				return { result: [], error: false };
+				toast.error("Unable to load ultrasound templates. The server returned an invalid response.");
+				return { result: [], error: true };
 			}
 		} catch (err) {
-			console.error("Error fetching data:", err);
+			console.error("Error fetching ultrasound templates:", err);
+			toast.error("Unable to load ultrasound templates. Try again.");
 			return { result: [], error: true };
 		}
 	}
@@ -117,29 +113,40 @@ export default function UltrasoundTemplatesList() {
 
 	if (isLoading) {
 		return (
-			<div className="text-center heightedBorder p-2 bg-secondary-subtle">
-				Loading Data.......................
+			<div className="p-3" role="status" aria-busy="true">
+				<Loader />
+				<span className="visually-hidden">Loading ultrasound templates</span>
 			</div>
 		);
 	}
 
 	if (error) {
-		return <div>Error: {error}</div>;
+		return (
+			<div className="alert alert-danger d-flex flex-wrap justify-content-between align-items-center gap-2" role="alert">
+				<span>{error}</span>
+				<button type="button" className="btn btn-outline-danger btn-sm" onClick={() => void fetchData()}>
+					Retry
+				</button>
+			</div>
+		);
 	}
 
 	return (
-		<div>
-			<h5 className="heightedBorder p-2 my-2 bg-body-secondary">Ultrasound Templates</h5>
-			<ShowTableCount queryParams={query} setQueryParams={setQuery} />
-			<div className="table-container">
-				<PrimeTable
-					column={columns}
-					data={templateList}
-					filtering={false}
-					handleSeverSideProcessing={handleserverSidefilteringTemplates}
-					serverSideFiltering={true}
-				/>
+		<main className="container-fluid px-3 py-3">
+			<header className="border-bottom pb-3 mb-3">
+				<h1 className="h4 fw-semibold mb-1">Ultrasound templates</h1>
+				<p className="text-muted mb-0">Review and update reporting templates.</p>
+			</header>
+			<div className="d-flex justify-content-end mb-2">
+				<ShowTableCount queryParams={query} setQueryParams={setQuery} />
 			</div>
-		</div>
+			<PrimeTable
+				column={columns}
+				data={templateList}
+				filtering={false}
+				handleSeverSideProcessing={handleserverSidefilteringTemplates}
+				serverSideFiltering={true}
+			/>
+		</main>
 	);
 }

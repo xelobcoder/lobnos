@@ -7,6 +7,7 @@ import Link from "next/link";
 import BilledClientsView from "../../../../../components/Billing/BilledClientsView";
 import { useApplication } from "../../../../../components/Auth/useApplicationContext";
 import { useRouter, useSearchParams } from "next/navigation";
+import { roleAllowed } from "../../../../../components/Auth/roles";
 import { handleDatePicker } from "../../../../../components/serverActions/ActionFiltering";
 import { RiSearchLine } from "@remixicon/react";
 import { useApplicationSettings } from "../../../../../components/Auth/useApplicationContext";
@@ -24,7 +25,7 @@ export default function DailySalesViewCustomerRepresentative({ params, searchPar
 	const { user } = useApplication();
 	const router = useRouter();
 	const role = user?.role?.toLowerCase();
-	const canViewAdvancedSales = ["admin", "accountant", "superadmin"].includes(role || "");
+	const canViewAdvancedSales = roleAllowed(role, ["admin", "accountant"]);
 	const isDailyRestrictedView = !!role && !canViewAdvancedSales;
 	const getTodayDateString = () => {
 		const today = new Date();

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { hasPreviousRecords } from "../../../lib/billingLib";
 import { MultiBillingContext } from "./MultiBillingContext";
 import { useApplication } from "../../Auth/useApplicationContext";
+import { roleAllowed } from "../../Auth/roles";
 import { customFetch, reactSelectCustomStyles } from "../../Auth/customFetch";
 
 
@@ -22,7 +23,7 @@ export default function MultiTrTable() {
     const [OutsourcingCompaniesList, setOutSourcedCompanies] = useState<any[]>([]);
     const { cart } = billingdata;
     const applicationsettings = useApplication()?.settings;
-    const allowCrmDiscount = ['manager', 'admin'].includes(role) ? true :
+    const allowCrmDiscount = roleAllowed(role, ['manager', 'admin']) ? true :
         applicationsettings?.AllowCrmToGiveDisocunt == 1 ? true : false;
 
     const options = OutsourcingCompaniesList.map(org => ({
@@ -132,7 +133,7 @@ export default function MultiTrTable() {
         }
         else if (OutsourcingCompaniesList.length == 0 && !loadingOutsource && selected?.isoutsourced == 1 && !billingdata.cart.find((item: any) => item.id == selected?.id)) {
             return (<div>
-                {role && ['manager', 'admin'].includes(role) ?
+                {role && roleAllowed(role, ['manager', 'admin']) ?
                     <div>
                         organization not added for test
                         <br />

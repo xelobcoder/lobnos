@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import { useApplicationSettings } from '../../../components/Auth/useApplicationContext'
 import { useRouter } from 'next/navigation';
+import { roleAllowed } from '../../../components/Auth/roles';
 
 export default function RefundManagement() {
     const [loading, setLoading] = useState(true);
@@ -18,7 +19,7 @@ export default function RefundManagement() {
 
 
 
-    if (role === 'admin') {
+    if (roleAllowed(role, ['admin'])) {
         return router.push(`refund/refundAdmin/${employeeid}`)
     } else {
         return router.push(`refund/${employeeid}`)

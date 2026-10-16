@@ -4,6 +4,7 @@ import { fetchServices } from '../../../../lib/billingLib';
 import { currencyFormatter } from '../../../Auth/customFetch';
 import { RiAddLine } from '@remixicon/react';
 import { useApplicationSettings } from '../../../Auth/useApplicationContext';
+import { roleAllowed } from '../../../Auth/roles';
 
 export default function ServicesSearchComponent({ updatefunction }) {
     const [servicesList, setServicesList] = useState([]);
@@ -45,7 +46,7 @@ export default function ServicesSearchComponent({ updatefunction }) {
                 />
             </td>
             <td>
-                <input disabled={role != "admin"}
+                <input disabled={!roleAllowed(role, ["admin"])}
                     onChange={(ev) => { setSelectedServices({ ...selectedServices, discount: ev.target.value }) }}
                     className='custom-input col-8' type='number' />
             </td>

@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import { ProgressBar } from 'react-bootstrap';
 import { RiUploadLine, RiImageLine, RiEyeLine, RiDeleteBinLine } from '@remixicon/react';
 import { apiPath } from '../../../../../../lib/apiBaseUrl';
+import { useApplicationSettings } from '../../../../../../components/Auth/useApplicationContext';
 
 interface SelectedFile {
      id: string;
@@ -29,6 +30,8 @@ interface ImageUploadTabProps {
      testid?: string | null;
      patientid?: string | null;
 }export default function ImageUploadTab({ ascensionid, testid, patientid }: ImageUploadTabProps) {
+     const { applicationsettings } = useApplicationSettings();
+     const employeeid = applicationsettings?.user?.employeeid;
      const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
      const [selectedFiles, setSelectedFiles] = useState<SelectedFile[]>([]);
      const [uploadingImages, setUploadingImages] = useState(false);
@@ -108,6 +111,7 @@ interface ImageUploadTabProps {
                formData.append('ascensionid', ascensionid || '');
                formData.append('testid', testid || '');
                formData.append('patientid', patientid || '');
+               if (employeeid) formData.append('employeeid', String(employeeid));
 
                const response = await customFile('ultrasound/images/upload', formData);
                
@@ -144,7 +148,7 @@ interface ImageUploadTabProps {
 
      const handleDeleteImage = async (imageId) => {
           try {
-               await customPost(`ultrasound/images/${imageId}`, 'DELETE', {});
+               await customPost(`ultrasound/images/${imageId}`, 'DELETE', { employeeid });
                setUploadedImages(prev => prev.filter(img => img.id !== imageId));
                toast.success('Image deleted successfully');
           } catch (error) {

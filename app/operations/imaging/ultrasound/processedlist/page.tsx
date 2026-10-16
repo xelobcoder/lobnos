@@ -3,6 +3,7 @@ import { UltrasoundStagesProvider } from '../../../../../components/operations/U
 import UltrasoundAscensionFiltering from '../../../../../components/operations/Ultrasound/UtrasoundFiltering';
 import AscentionUltrasoundUnCompletedTable from '../../../../../components/operations/Ultrasound/UncompletedUltrasoundWaitingListTable';
 import { useApplicationSettings } from '../../../../../components/Auth/useApplicationContext';
+import { roleAllowed } from '../../../../../components/Auth/roles';
 import Authorization from '../../../../../components/accessories/authorization';
 
 
@@ -12,7 +13,7 @@ export default function UltrasonograhyCompletedList() {
 
 	if (!employeeid) return null
 
-	if (employeeid && ['admin', 'super-admin', 'sonographer'].includes(role) === false) {
+	if (employeeid && roleAllowed(role, ['admin', 'sonographer']) === false) {
 		return <Authorization />
 	}
 

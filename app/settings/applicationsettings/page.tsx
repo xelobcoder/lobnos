@@ -9,6 +9,7 @@ import { BillingSettingsTab } from '../../../components/settings/applicationsett
 import { availableFonts } from '../../../lib/themes';
 import { canAccessFacilityModule } from '../../../lib/facilityModuleAccess';
 import Link from 'next/link';
+import { roleAllowed } from '../../../components/Auth/roles';
 
 
 
@@ -167,8 +168,7 @@ const uiPresets = {
 export default function ApplicationSettings() {
 	const { applicationsettings, setApplicationSettings } = useApplicationSettings();
 	const { user } = applicationsettings;
-	const canManageWorkspaceLayout = ['admin', 'super-admin', 'super_admin', 'super admin', 'superadmin']
-		.includes(String(user?.role || '').toLowerCase().trim());
+	const canManageWorkspaceLayout = roleAllowed(user?.role, ['admin']);
 
 	const [settings, setSettings] = useState<ApplicationSettingsData | null>(null);
 	const [workspaceLayout, setWorkspaceLayout] = useState<'classic' | 'zoho' | 'claude' | 'ribbon'>(

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import DatePickerRange from "../../../components/accessories/DatePickerRange";
 import DateFilterReusable from "../Laboratory/ResuableFilter/DateFilterReusable";
 import { useUltrasoundContext } from "./UltrasoundContext";
 import { handleDateRangeSelection } from "../Laboratory/AscensionFilteringComponent";
@@ -18,12 +17,6 @@ export default function UltrasoundAscensionFiltering({ ascension_stage, employee
                      _getAscensionData(ascension_stage, employeeid, queryParams);
               }
        }, [queryParams.page, queryParams.count]);
-
-
-       const updateDateValues = (values) => {
-              const [start, end] = values;
-              setQueryParams((prev) => ({ ...prev, _dateFrom: start, _dateEnd: end }));
-       };
 
 
        const handleLoadData = () => {
@@ -101,10 +94,11 @@ export default function UltrasoundAscensionFiltering({ ascension_stage, employee
 
 
        return (
-              <div className="mb-2">
-                     <div className="row g-2 align-items-center">
-                            <div className="col-12 col-lg-2">
-                                   <select onChange={(ev) => {
+              <section className="mb-3" aria-label="Filter ultrasound worklist">
+                     <div className="row g-2 align-items-end">
+                            <div className="col-12 col-sm-6 col-lg-2">
+                                   <label htmlFor="ultrasound-filter-field" className="form-label small fw-semibold mb-1">Filter field</label>
+                                   <select id="ultrasound-filter-field" onChange={(ev) => {
                                           if (ev.target.value == "none") {
                                                  handleSettingCategory("none", "");
                                           } else {
@@ -114,7 +108,7 @@ export default function UltrasoundAscensionFiltering({ ascension_stage, employee
                                                  }
                                           }
 
-                                   }} className="form-select ">
+                                   }} className="form-select">
                                           <option value="none">Filter By</option>
                                           <option value="ascensionid">Ascension ID</option>
                                           <option value="patientname">Patient Name</option>
@@ -124,24 +118,19 @@ export default function UltrasoundAscensionFiltering({ ascension_stage, employee
                                    </select>
                             </div>
 
-                            <div className="col-12 col-lg-2">
-                                   <input className="form-control "
+                            <div className="col-12 col-sm-6 col-lg-3">
+                                   <label htmlFor="ultrasound-filter-value" className="form-label small fw-semibold mb-1">Filter value</label>
+                                   <input id="ultrasound-filter-value" className="form-control"
                                           value={category.value}
                                           onChange={(ev) => {
                                                  handleSettingCategory(category.section, ev.target.value);
 
                                           }}
-                                          placeholder="Enter Value to Filter" />
+                                          placeholder="Enter a value"
+                                          aria-label="Filter value"
+                                          disabled={!category.section || category.section === "testname"} />
                             </div>
-
-                            <div className="col-12 col-lg-2">
-                                   <DatePickerRange
-                                          start={queryParams._dateFrom}
-                                          end={queryParams._dateEnd}
-                                          getRange={updateDateValues}
-                                   />
-                            </div>
-                            <div className="col-12 col-lg-2">
+                            <div className="col-12 col-sm-6 col-lg-3">
                                    <DateFilterReusable
                                           value={dateFilter}
                                           onChange={setDateFilter}
@@ -157,8 +146,10 @@ export default function UltrasoundAscensionFiltering({ ascension_stage, employee
                                    />
                             </div>
                             <div className="col-12 col-lg-2">
+                                   <label htmlFor="ultrasound-sort-order" className="form-label small fw-semibold mb-1">Sort by date</label>
                                    <select
-                                          className="form-select "
+                                          id="ultrasound-sort-order"
+                                          className="form-select"
                                           value={queryParams.sortby}
                                           onChange={(ev) =>
                                                  setQueryParams((prev) => ({
@@ -171,15 +162,16 @@ export default function UltrasoundAscensionFiltering({ ascension_stage, employee
                                           <option value="ASC">Sort by Date (Oldest First)</option>
                                    </select>
                             </div>
-                            <div className="col-12  col-lg-2 ">
+                            <div className="col-12 col-sm-6 col-lg-2">
                                    <button
+                                          type="button"
                                           onClick={handleLoadData}
-                                          className="btn btn-primary btn-sm p-2 px-5 text-uppercase"
+                                          className="btn btn-primary btn-sm w-100"
                                    >
-                                          {"<"} Load Data {"/>"}
+                                          Load data
                                    </button>
                             </div>
                      </div>
-              </div>
+              </section>
        );
 }

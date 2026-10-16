@@ -3,30 +3,31 @@ import React from 'react';
 import PrimeTable from '../accessories/Datatables/PrimeTable';
 import { useApplicationSettings } from '../Auth/useApplicationContext';
 import { handleLoginHistoryServerProcessing } from '../serverActions/ActionFiltering';
-import { customFetch } from '../Auth/customFetch';
+import { customFetchMutation } from '../Auth/customFetch';
+import { roleAllowed } from '../Auth/roles';
 
-export default function ApplicationUserLoginHx({ history, employeeid }) {
+export default function ApplicationUserLoginHx({ history, employeeid, onChanged }: { history: any[]; employeeid: any; onChanged?: () => void }) {
     const { applicationsettings } = useApplicationSettings();
     const { role } = applicationsettings.user;
     const formatDate = (value: string) => {
         return `${new Date(value).toLocaleDateString()} ${new Date(value).toLocaleTimeString()}`;
     };
 
-
-
-    const handleEmployeeLogout = async (userid) => {
-        const confirmLogout = window.confirm("Are you sure you want to sign out this user?");
-        if (confirmLogout) {
-            const response = await customFetch(`security/user/logout?userid=${userid}&&employeeid=${employeeid}`);
-            const { status } = response;
-            if (status && status == true) {
+    const handleSessionLogout = async (sessionKey: number, username: string) => {
+        if (!window.confirm(`Sign out ${username} from this session? They will be signed out on their next request.`)) return;
+        const reason = window.prompt("Reason for signing this user out (optional):") ?? "";
+        try {
+            const response = await customFetchMutation(`security/sessions/${sessionKey}/force-logout`, "POST", { reason });
+            if (response?.status === "success") {
                 alert("User has been signed out successfully.");
-                handleLoginHistoryServerProcessing({ employeeid, page: 1, count: 10 });
+                onChanged?.();
             } else {
-                alert("Failed to sign out the user. Please try again.");
+                alert(response?.message || "Failed to sign out the user. Please try again.");
             }
+        } catch {
+            alert("Failed to sign out the user. Please try again.");
         }
-    }
+    };
 
     const columns = [
         { Header: "employee", accessor: 'username' },
@@ -37,8 +38,10 @@ export default function ApplicationUserLoginHx({ history, employeeid }) {
         { Header: "system timeout", accessor: 'logoutTime', Cell: ({ value }) => formatDate(value) },
         {
             Header: 'status', accessor: '', Cell: ({ row }) => {
-                if (row.original.loggedout == 0) return <span className="bg-success br-5 text-white p-1">loggedIn</span>;
-                else return <span className="bg-danger br-5 text-white p-1">LoggedOut</span>;
+                const { isActive, forcedLogoutByName, forcedLogoutBy, forcedLogoutAt, forcedLogoutReason } = row.original;
+                if (isActive) return <span className="bg-success br-5 text-white p-1">loggedIn</span>;
+                if (forcedLogoutAt) return <span className="bg-warning br-5 p-1" title={forcedLogoutReason || ''}>Signed out by {forcedLogoutByName || `#${forcedLogoutBy}`}</span>;
+                return <span className="bg-danger br-5 text-white p-1">LoggedOut</span>;
             }
         },
         {
@@ -49,7 +52,8 @@ export default function ApplicationUserLoginHx({ history, employeeid }) {
         },
         {
             Header: 'action', accessor: '', Cell: ({ row }) => {
-                return <button disabled={role != "admin" && role != "manager"} onClick={() => handleEmployeeLogout(row.original.employeeid)} className="btn btn-danger btn-sm">sign out user</button>;
+                const { keyid, username, isActive } = row.original;
+                return <button disabled={!isActive || !roleAllowed(role, ["admin", "manager"])} onClick={() => handleSessionLogout(keyid, username)} className="btn btn-danger btn-sm">sign out user</button>;
             }
         }
     ];
