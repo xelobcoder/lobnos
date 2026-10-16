@@ -2,13 +2,14 @@
 
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import type { ElementType } from "react";
-import { RiBuildingLine, RiCheckboxCircleLine, RiErrorWarningLine } from "@remixicon/react";
+import { RiBuildingLine, RiCheckboxCircleLine, RiErrorWarningLine, RiTimeLine } from "@remixicon/react";
+import Link from "next/link";
 import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
 import { customFetch, customFetchMutation } from "../../../components/Auth/customFetch";
 import { useApplication } from "../../../components/Auth/useApplicationContext";
 import FacilityManagement from "./FacilityManagement";
 import FacilityNav from "./FacilityNav";
-import { FacilityForm, FormErrors, generateFacilityPassword, validateFacilityForm, MODULE_LABELS, ModuleName, defaultModuleConfiguration, moduleMonthlyTotal } from "./provisioningForm";
+import { applyModuleCatalogPrices, FacilityForm, FormErrors, generateFacilityPassword, isModulePricingCatalogEntry, validateFacilityForm, MODULE_LABELS, ModuleName, ModulePricingCatalogEntry, defaultModuleConfiguration, moduleMonthlyTotal } from "./provisioningForm";
 import { applicationProvisioningForm, MarketplaceApplication, marketplaceApplicationsSchema } from "./marketplaceApplications";
 
 interface Country { id: number; country_name: string }
@@ -28,23 +29,35 @@ const FacilitySummaryCard = ({
      subtitle,
      Icon,
      variant,
+     selected,
+     disabled,
+     onClick,
 }: {
      title: string;
-     value: number;
+     value: number | null;
      subtitle: string;
      Icon: ElementType;
      variant: string;
+     selected: boolean;
+     disabled: boolean;
+     onClick: () => void;
 }) => (
-     <div className={`card border-0 shadow-sm bg-${variant} bg-gradient text-white rounded-3 h-100`}>
-          <div className="card-body p-3">
-               <div className="d-flex justify-content-between align-items-center mb-1">
+     <button
+          type="button"
+          className={`card border-0 ${selected ? "shadow-lg" : "shadow-sm"} bg-${variant} bg-gradient text-white text-start rounded-3 h-100 w-100`}
+          aria-pressed={selected}
+          disabled={disabled}
+          onClick={onClick}
+     >
+          <span className="card-body d-block p-3">
+               <span className="d-flex justify-content-between align-items-center mb-1">
                     <span className="text-xs text-uppercase fw-semibold opacity-75">{title}</span>
                     <Icon size={22} className="opacity-75" />
-               </div>
-               <h3 className="fw-bold mb-0">{value.toLocaleString()}</h3>
+               </span>
+               <span className="h3 d-block fw-bold mb-0">{value === null ? "—" : value.toLocaleString()}</span>
                <span className="text-xs opacity-75">{subtitle}</span>
-          </div>
-     </div>
+          </span>
+     </button>
 );
 
 const EMPTY_FORM: FacilityForm = {
@@ -64,14 +77,16 @@ const EMPTY_FORM: FacilityForm = {
 
 const errorMessage = (error: unknown) => error instanceof Error ? error.message : "Facility onboarding failed. Please try again.";
 const normalizeRole = (role: unknown) => String(role || "").toLowerCase().replace(/[\s_-]/g, "");
-
 export default function FacilityOnboardingPage() {
      const application = useApplication();
      const isSuperAdmin = normalizeRole(application?.user?.role) === "superadmin";
      const [form, setForm] = useState<FacilityForm>(EMPTY_FORM);
      const [options, setOptions] = useState<LocationOptions>({ countries: [], states: [], districts: [] });
      const [facilities, setFacilities] = useState<Facility[]>([]);
+     const [pricingCatalog, setPricingCatalog] = useState<ModulePricingCatalogEntry[]>([]);
+     const [pricingError, setPricingError] = useState("");
      const [loading, setLoading] = useState(true);
+     const [hasLoadedFacilities, setHasLoadedFacilities] = useState(false);
      const [busy, setBusy] = useState(false);
      const [error, setError] = useState("");
      const [created, setCreated] = useState<ProvisionedFacility | null>(null);
@@ -81,6 +96,7 @@ export default function FacilityOnboardingPage() {
      const [provisioningApplication, setProvisioningApplication] = useState<MarketplaceApplication | null>(null);
      const [identityConfirmed, setIdentityConfirmed] = useState(false);
      const [statusFilter, setStatusFilter] = useState("all");
+     const [showControlTenant, setShowControlTenant] = useState(false);
      const [showPassword, setShowPassword] = useState(false);
      const [formErrors, setFormErrors] = useState<FormErrors>({});
      const [copiedKey, setCopiedKey] = useState("");
@@ -128,10 +144,11 @@ export default function FacilityOnboardingPage() {
           try {
                const applicationId = new URL(window.location.href).searchParams.get("application");
                if (applicationId !== null && !/^[1-9]\d*$/.test(applicationId)) throw new Error("Invalid website application.");
-               const [locations, organizations, applications] = await Promise.all([
+               const [locations, organizations, applications, pricing] = await Promise.all([
                     customFetch("platform/facilities/options"),
                     customFetch("platform/facilities"),
                     applicationId ? customFetch("marketplace/platform/facilities?status=approved") : Promise.resolve(null),
+                    customFetch("platform/facilities/module-pricing?all=true"),
                ]);
                if (locations?.status !== "success" || !locations.result ||
                     !Array.isArray(locations.result.countries) || !Array.isArray(locations.result.states) ||
@@ -143,6 +160,22 @@ export default function FacilityOnboardingPage() {
                }
                setOptions(locations.result);
                setFacilities(organizations.result);
+               setHasLoadedFacilities(true);
+               const catalog = pricing?.status === "success" && Array.isArray(pricing.result) &&
+                    pricing.result.every(isModulePricingCatalogEntry) ? pricing.result : [];
+               if (catalog.length) {
+                    const initialPricing = catalog.find(entry => entry.currency === "GHS") || catalog[0];
+                    setPricingCatalog(catalog);
+                    setPricingError("");
+                    setForm(current => ({
+                         ...current,
+                         moduleConfiguration: applyModuleCatalogPrices(
+                              current.moduleConfiguration || defaultModuleConfiguration(), initialPricing),
+                    }));
+               } else {
+                    setPricingCatalog([]);
+                    setPricingError(pricing?.message || pricing?.error || "Unable to load universal module prices. Configure a price catalog before provisioning.");
+               }
                if (applicationId) {
                     if (applications?.status !== "success") throw new Error(applications?.message || applications?.error || "Unable to load the approved website application.");
                     const parsed = marketplaceApplicationsSchema.safeParse(applications.result);
@@ -152,6 +185,10 @@ export default function FacilityOnboardingPage() {
                     if (!source) throw new Error("The application must be approved and available for provisioning.");
                     setProvisioningApplication(source);
                     const sourceForm = applicationProvisioningForm(source, EMPTY_FORM);
+                    const initialPricing = catalog.find(entry => entry.currency === "GHS") || catalog[0];
+                    if (initialPricing && sourceForm.moduleConfiguration) {
+                         sourceForm.moduleConfiguration = applyModuleCatalogPrices(sourceForm.moduleConfiguration, initialPricing);
+                    }
                     if (source.integration_state === "provision_failed") {
                          const failed = organizations.result.find((facility: Facility) =>
                               facility.status.toLowerCase() === "failed" &&
@@ -181,6 +218,7 @@ export default function FacilityOnboardingPage() {
                }
           } catch (failure) {
                setError(errorMessage(failure));
+               setHasLoadedFacilities(false);
           } finally {
                setLoading(false);
           }
@@ -238,6 +276,27 @@ export default function FacilityOnboardingPage() {
           }));
      };
 
+     const selectFacilityCurrency = (currency: string) => {
+          const selected = pricingCatalog.find(entry => entry.currency === currency);
+          if (!selected) return;
+          setForm(current => ({
+               ...current,
+               moduleConfiguration: applyModuleCatalogPrices(
+                    current.moduleConfiguration || defaultModuleConfiguration(), selected),
+          }));
+          setFormErrors(current => ({ ...current, moduleConfiguration: undefined }));
+     };
+
+     const blankFacilityForm = (): FacilityForm => {
+          const pricing = pricingCatalog.find(entry => entry.currency === "GHS") || pricingCatalog[0];
+          return {
+               ...EMPTY_FORM,
+               moduleConfiguration: pricing
+                    ? applyModuleCatalogPrices(defaultModuleConfiguration(), pricing)
+                    : defaultModuleConfiguration(),
+          };
+     };
+
      const openRetry = (facility: Facility) => {
           setRetryFacility(facility);
           setProvisioningApplication(null);
@@ -247,14 +306,13 @@ export default function FacilityOnboardingPage() {
           setFormErrors({});
           setShowPassword(false);
           setForm({
-               ...EMPTY_FORM,
+               ...blankFacilityForm(),
                companyName: facility.name,
                email: facility.email || "",
                phone: facility.phone || "",
                countryId: facility.countryId ? String(facility.countryId) : "",
                stateId: facility.stateId ? String(facility.stateId) : "",
                districtId: facility.districtId ? String(facility.districtId) : "",
-               moduleConfiguration: defaultModuleConfiguration(),
           });
           setProvisionOpen(true);
      };
@@ -268,7 +326,18 @@ export default function FacilityOnboardingPage() {
                setError("Confirm the application belongs to the facility you are provisioning.");
                return;
           }
-          const errors = validateFacilityForm(form);
+          const selectedPricing = pricingCatalog.find(entry => entry.currency === form.moduleConfiguration?.currency);
+          if (!selectedPricing) {
+               setError("Choose a currency with configured universal module prices before provisioning.");
+               return;
+          }
+          const submissionForm = {
+               ...form,
+               moduleConfiguration: form.moduleConfiguration
+                    ? applyModuleCatalogPrices(form.moduleConfiguration, selectedPricing)
+                    : undefined,
+          };
+          const errors = validateFacilityForm(submissionForm);
           setFormErrors(errors);
           const firstInvalid = (Object.keys(form) as (keyof FacilityForm)[]).find((field) => errors[field]);
           if (firstInvalid) {
@@ -287,11 +356,11 @@ export default function FacilityOnboardingPage() {
                     ? `marketplace/platform/facilities/${provisioningApplication.id}/retry-provisioning`
                     : provisioningApplication ? `marketplace/platform/facilities/${provisioningApplication.id}/provision` : "platform/facilities";
                const response = await customFetchMutation(endpoint, "POST", {
-                    companyName: form.companyName.trim(), email: form.email.trim(), phone: form.phone.trim(),
-                    address: form.address.trim(), countryId: Number(form.countryId), stateId: Number(form.stateId),
-                    districtId: Number(form.districtId), adminName: form.adminName.trim(),
-                    adminEmail: form.adminEmail.trim(), adminPassword: form.adminPassword, licenseDays,
-                    street: form.street?.trim(), gpsAddress: form.gpsAddress?.trim(), moduleConfiguration: form.moduleConfiguration,
+                    companyName: submissionForm.companyName.trim(), email: submissionForm.email.trim(), phone: submissionForm.phone.trim(),
+                    address: submissionForm.address.trim(), countryId: Number(submissionForm.countryId), stateId: Number(submissionForm.stateId),
+                    districtId: Number(submissionForm.districtId), adminName: submissionForm.adminName.trim(),
+                    adminEmail: submissionForm.adminEmail.trim(), adminPassword: submissionForm.adminPassword, licenseDays,
+                    street: submissionForm.street?.trim(), gpsAddress: submissionForm.gpsAddress?.trim(), moduleConfiguration: submissionForm.moduleConfiguration,
                     ...(provisioningApplication ? { identityConfirmed: true } : {}),
                });
                if (response?.status !== "success" || !response.result?.organizationIdentifier ||
@@ -300,7 +369,7 @@ export default function FacilityOnboardingPage() {
                     throw new Error(response?.message || response?.error || "The server did not confirm facility provisioning.");
                }
                setCreated(response.result);
-               setForm(EMPTY_FORM);
+               setForm(blankFacilityForm());
                setShowPassword(false);
                setFormErrors({});
                setProvisionOpen(false);
@@ -347,13 +416,22 @@ export default function FacilityOnboardingPage() {
      const districts = options.districts.filter((district) => Number(district.state_id) === Number(form.stateId));
      const selectedFacility = facilities.find((facility) => facility.tenantId === selectedTenantId);
      const normalizedQuery = facilityQuery.trim().toLowerCase();
+     const clientFacilities = facilities.filter((facility) => !facility.isControlTenant);
      const visibleFacilities = facilities.filter((facility) =>
+          (showControlTenant || !facility.isControlTenant) &&
           (statusFilter === "all" || facility.status.toLowerCase() === statusFilter) &&
           [facility.name, facility.platformId, String(facility.tenantId), facility.status]
                .some((value) => value.toLowerCase().includes(normalizedQuery))
      );
-     const activeFacilities = facilities.filter((facility) => facility.status.toLowerCase() === "active").length;
-     const suspendedFacilities = facilities.filter((facility) => facility.status.toLowerCase() === "suspended").length;
+     const facilitiesByStatus = (status: string) =>
+          clientFacilities.filter((facility) => facility.status.toLowerCase() === status).length;
+     const focusFacilities = (status: string) => {
+          setFacilityQuery("");
+          setStatusFilter(status);
+          setShowControlTenant(false);
+          document.getElementById("registered-facilities")?.scrollIntoView({ behavior: "smooth", block: "start" });
+     };
+     const summaryReady = hasLoadedFacilities && !loading;
      const facilityColumns = [
           {
                Header: "Retry",
@@ -422,40 +500,80 @@ export default function FacilityOnboardingPage() {
      ];
      return (
           <main className="p-2" aria-busy={busy}>
-               <FacilityNav />
-               <section className="row g-3 mb-3" aria-label="Facility overview">
-                    <div className="col-12 col-sm-6 col-xl-4">
+               <header className="mb-3">
+                    <h1 className="h4 fw-semibold mb-1">Client platform</h1>
+                    <p className="text-muted small mb-2">Monitor facility status and open platform-management tasks.</p>
+                    <FacilityNav />
+               </header>
+               <section className="mb-3" aria-labelledby="facility-overview-title">
+                    <h2 id="facility-overview-title" className="h5 fw-semibold mb-2">Facility overview</h2>
+                    <div className="row g-3">
+                    <div className="col-12 col-sm-6 col-xl">
                          <FacilitySummaryCard
-                              title="Registered Facilities"
-                              value={loading ? 0 : facilities.length}
-                              subtitle="All provisioned facilities"
+                              title="Client facilities"
+                              value={summaryReady ? clientFacilities.length : null}
+                              subtitle="Excludes the protected platform home"
                               Icon={RiBuildingLine}
                               variant="primary"
+                              selected={statusFilter === "all"}
+                              disabled={!summaryReady}
+                              onClick={() => focusFacilities("all")}
                          />
                     </div>
-                    <div className="col-12 col-sm-6 col-xl-4">
+                    <div className="col-12 col-sm-6 col-xl">
                          <FacilitySummaryCard
                               title="Active Facilities"
-                              value={loading ? 0 : activeFacilities}
+                              value={summaryReady ? facilitiesByStatus("active") : null}
                               subtitle="Facilities with access enabled"
                               Icon={RiCheckboxCircleLine}
                               variant="success"
+                              selected={statusFilter === "active"}
+                              disabled={!summaryReady}
+                              onClick={() => focusFacilities("active")}
                          />
                     </div>
-                    <div className="col-12 col-sm-6 col-xl-4">
+                    <div className="col-12 col-sm-6 col-xl">
                          <FacilitySummaryCard
                               title="Suspended Facilities"
-                              value={loading ? 0 : suspendedFacilities}
+                              value={summaryReady ? facilitiesByStatus("suspended") : null}
                               subtitle="Facilities with access disabled"
                               Icon={RiErrorWarningLine}
-                              variant="danger"
+                              variant="secondary"
+                              selected={statusFilter === "suspended"}
+                              disabled={!summaryReady}
+                              onClick={() => focusFacilities("suspended")}
                          />
+                    </div>
+                    <div className="col-12 col-sm-6 col-xl">
+                         <FacilitySummaryCard
+                              title="Provisioning"
+                              value={summaryReady ? facilitiesByStatus("provisioning") : null}
+                              subtitle="Setup in progress"
+                              Icon={RiTimeLine}
+                              variant="primary"
+                              selected={statusFilter === "provisioning"}
+                              disabled={!summaryReady}
+                              onClick={() => focusFacilities("provisioning")}
+                         />
+                    </div>
+                    <div className="col-12 col-sm-6 col-xl">
+                         <FacilitySummaryCard
+                              title="Failed"
+                              value={summaryReady ? facilitiesByStatus("failed") : null}
+                              subtitle="Retry or review setup"
+                              Icon={RiErrorWarningLine}
+                              variant="danger"
+                              selected={statusFilter === "failed"}
+                              disabled={!summaryReady}
+                              onClick={() => focusFacilities("failed")}
+                         />
+                    </div>
                     </div>
                </section>
                <section className="row g-2 mb-3 align-items-end" aria-label="Facility controls">
                     <div className="col-12 col-md-5">
-                         <h1 className="h4 fw-semibold mb-1">Client platform</h1>
-                         <p className="text-muted small mb-0">Provision facilities and manage client access. Subscriptions and audit logs have their own tabs.</p>
+                         <h2 className="h5 fw-semibold mb-1">Facility directory</h2>
+                         <p className="text-muted small mb-0">Provision facilities and manage client access.</p>
                     </div>
                     <div className="col-12 col-md-7">
                          <div className="d-flex flex-column flex-sm-row justify-content-md-end align-items-stretch gap-2">
@@ -468,13 +586,19 @@ export default function FacilityOnboardingPage() {
                                    setProvisionOpen(!provisionOpen);
                                    setRetryFacility(null);
                                    setShowPassword(false);
-                                   if (provisionOpen) setForm(EMPTY_FORM);
+                                   if (provisionOpen) setForm(blankFacilityForm());
                               }}>{provisionOpen ? "Close form" : "+ Provision Facility"}</button>
+                              <Link href="/settings/facilities/pricing" className="btn btn-outline-primary w-100 w-sm-auto">Manage module pricing</Link>
                               <button type="button" className="btn btn-outline-secondary w-100 w-sm-auto" disabled={loading || busy} onClick={() => void load()}>{error ? "Retry" : "Refresh"}</button>
                          </div>
+                         <label className="form-check mt-2">
+                              <input className="form-check-input" type="checkbox" checked={showControlTenant} onChange={(event) => setShowControlTenant(event.target.checked)} />
+                              <span className="form-check-label">Show protected platform home facility</span>
+                         </label>
                     </div>
                </section>
                {error && <div className="alert alert-danger mb-3 d-flex justify-content-between gap-2" role="alert"><span>{error}</span><button type="button" className="btn-close" aria-label="Dismiss error" onClick={() => setError("")} /></div>}
+               {pricingError && <div className="alert alert-warning mb-3" role="alert">{pricingError} <Link href="/settings/facilities/pricing">Open the Module pricing tab</Link>.</div>}
                {deletedMessage && <div className="alert alert-success" role="status">{deletedMessage}</div>}
                {deleteFacility && <form className="border-top border-danger pt-3 mb-3" onSubmit={confirmDelete} aria-label="Confirm tenant deletion" aria-describedby="delete-consequences">
                     <h2 className="h5 text-danger">Delete {deleteFacility.name}</h2>
@@ -512,7 +636,7 @@ export default function FacilityOnboardingPage() {
                          <p>Review the public company details and select official location records. This provisions a PLS tenant and links the approved application without reusing its website password.</p>
                          <label className="form-check"><input type="checkbox" className="form-check-input" checked={identityConfirmed} disabled={busy} onChange={event => setIdentityConfirmed(event.target.checked)} /><span className="form-check-label">I verified this application belongs to the facility being provisioned.</span></label>
                     </div>}
-                    <fieldset disabled={loading || busy || deleteBusy || options.countries.length === 0} className="py-3">
+                    <fieldset disabled={loading || busy || deleteBusy || options.countries.length === 0 || pricingCatalog.length === 0} className="py-3">
                          <legend className="h5 fw-semibold mb-3">Company information</legend>
                          <div className="row g-3">
                               {([
@@ -561,7 +685,7 @@ export default function FacilityOnboardingPage() {
                               <h2 className="h5">Modules and branches</h2>
                               <div className="row g-3 mb-3">
                                    <div className="col-md-6"><label className="form-label" htmlFor="branch-mode">Branch support</label><select id="branch-mode" className="form-select" value={form.moduleConfiguration?.branchMode} onChange={event => setForm(current => ({ ...current, moduleConfiguration: { ...(current.moduleConfiguration || defaultModuleConfiguration()), branchMode: event.target.value as "single" | "multiple" } }))}><option value="single">Single branch</option><option value="multiple">Multiple branches</option></select><small className="text-muted">The main branch is created in both modes. Multiple-branch mode permits adding branches later.</small></div>
-                                   <div className="col-md-6"><label className="form-label" htmlFor="module-currency">Module pricing currency</label><input id="module-currency" className="form-control" value={form.moduleConfiguration?.currency} pattern="[A-Z]{3}" maxLength={3} required onChange={event => setForm(current => ({ ...current, moduleConfiguration: { ...(current.moduleConfiguration || defaultModuleConfiguration()), currency: event.target.value.toUpperCase() } }))} /></div>
+                                   <div className="col-md-6"><label className="form-label" htmlFor="module-currency">Module pricing currency</label><select id="module-currency" className="form-select" value={form.moduleConfiguration?.currency || ""} required onChange={event => selectFacilityCurrency(event.target.value)}><option value="">Select currency</option>{pricingCatalog.map(entry => <option key={entry.currency} value={entry.currency}>{entry.currency}</option>)}</select></div>
                               </div>
                               <div id="moduleConfiguration" tabIndex={-1} className="table-responsive">
                                    <table className="table"><thead><tr><th>Module</th><th>Activated</th><th>Monthly price</th></tr></thead><tbody>
@@ -571,16 +695,13 @@ export default function FacilityOnboardingPage() {
                                                   const config = current.moduleConfiguration || defaultModuleConfiguration();
                                                   return { ...current, moduleConfiguration: { ...config, modules: { ...config.modules, [module]: { ...config.modules[module], enabled: event.target.checked } } } };
                                              })} /></td>
-                                             <td><input className="form-control" aria-label={`${MODULE_LABELS[module]} monthly price`} inputMode="decimal" value={form.moduleConfiguration?.modules[module].monthlyPrice || "0.00"} pattern="(0|[1-9][0-9]{0,9})(\.[0-9]{1,2})?" required onChange={event => setForm(current => {
-                                                  const config = current.moduleConfiguration || defaultModuleConfiguration();
-                                                  return { ...current, moduleConfiguration: { ...config, modules: { ...config.modules, [module]: { ...config.modules[module], monthlyPrice: event.target.value } } } };
-                                             })} /></td>
+                                             <td>{form.moduleConfiguration?.currency} {form.moduleConfiguration?.modules[module].monthlyPrice || "0.00"}</td>
                                         </tr>)}
                                    </tbody></table>
                               </div>
                               {fieldError("moduleConfiguration")}
                               <p className="fw-semibold">Enabled modules monthly total: {form.moduleConfiguration?.currency} {form.moduleConfiguration ? moduleMonthlyTotal(form.moduleConfiguration) || "Invalid amount" : "0.00"}</p>
-                              <p className="text-muted small">Module charges are itemized on the payment page. The subscription amount remains separately configurable; email/SMS delivery still requires provider setup.</p>
+                              <p className="text-muted small">Module prices come from the universal catalog and are locked for this estimate. Module charges are itemized on the payment page; the subscription amount remains separately configurable. Existing facilities keep their saved prices unless their module configuration is saved again. Email/SMS delivery still requires provider setup.</p>
                          </div>
                          <div className="border-top mt-4 pt-4">
                               <h2 className="h5 fw-semibold mb-3">Initial facility administrator</h2>
@@ -601,10 +722,10 @@ export default function FacilityOnboardingPage() {
                <section id="registered-facilities" className="mb-3">
                     <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-2">
                          <div>
-                              <h2 className="h5 fw-semibold mb-1">Registered facilities</h2>
-                              <p className="text-muted small mb-0">Review client status and open access management.</p>
+                              <h2 className="h5 fw-semibold mb-1">Client facilities</h2>
+                              <p className="text-muted small mb-0">Select a facility to review its status and open access management.</p>
                          </div>
-                         <span className="small text-muted text-nowrap">{loading ? "Loading..." : `${visibleFacilities.length} of ${facilities.length} facilities`}</span>
+                         <span className="small text-muted text-nowrap">{loading ? "Loading..." : `${visibleFacilities.length} of ${showControlTenant ? facilities.length : clientFacilities.length} facilities`}</span>
                     </div>
                     {visibleFacilities.length > 0 && <PrimeTable
                          column={facilityColumns}
@@ -614,9 +735,9 @@ export default function FacilityOnboardingPage() {
                          handleSeverSideProcessing={null}
                     />}
                     {!loading && visibleFacilities.length === 0 && <div className="text-center py-5 px-3 border rounded-3 bg-body">
-                         <p className="h5 mb-2">{error ? "Facilities unavailable" : facilities.length === 0 ? "No facilities yet" : "No matching facilities"}</p>
-                         <p className="text-muted mb-0">{error ? "Retry loading the facility list before making changes." : facilities.length === 0 ? "Provision your first facility using the form above." : "Try another name, organization identifier, tenant ID, or status."}</p>
-                         {facilities.length > 0 && <button type="button" className="btn btn-outline-secondary mt-3" onClick={() => { setFacilityQuery(""); setStatusFilter("all"); }}>Clear filters</button>}
+                         <p className="h5 mb-2">{error ? "Facilities unavailable" : clientFacilities.length === 0 ? "No client facilities yet" : "No matching facilities"}</p>
+                         <p className="text-muted mb-0">{error ? "Retry loading the facility list before making changes." : clientFacilities.length === 0 ? "Provision your first facility using the form above." : "Try another name, organization identifier, tenant ID, or status."}</p>
+                         {facilities.length > 0 && <button type="button" className="btn btn-outline-secondary mt-3" onClick={() => { setFacilityQuery(""); setStatusFilter("all"); setShowControlTenant(false); }}>Clear filters</button>}
                     </div>}
                </section>
                {selectedFacility && <div ref={managementRef}><button type="button" className="btn btn-outline-secondary mb-2" onClick={() => setSelectedTenantId(null)}>Close management</button><FacilityManagement key={selectedFacility.tenantId} mode="access" facility={selectedFacility} onStatusChange={(tenantId, status) => setFacilities((current) => current.map((facility) => facility.tenantId === tenantId ? { ...facility, status } : facility))} /></div>}

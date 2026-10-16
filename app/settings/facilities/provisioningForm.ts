@@ -5,17 +5,52 @@ export interface FacilityForm {
      street?: string; gpsAddress?: string;
      moduleConfiguration?: ModuleConfigurationForm;
 }
-export const MODULE_LABELS = { pharmacy: "Pharmacy", email: "Email", sms: "SMS", inventory: "Inventory", deviceInterfacing: "Device interfacing" } as const;
+export const MODULE_LABELS = {
+     pharmacy: "Pharmacy",
+     email: "Email",
+     sms: "SMS",
+     inventory: "Inventory",
+     deviceInterfacing: "Device interfacing",
+     commissions: "Commissions",
+     analytics: "Analytics",
+     appointments: "Appointments",
+     expenses: "Expenses",
+     consultations: "Consultations",
+     imaging: "Imaging",
+} as const;
 export type ModuleName = keyof typeof MODULE_LABELS;
 export interface ModuleConfigurationForm {
      branchMode: "single" | "multiple"; currency: string;
      modules: Record<ModuleName, { enabled: boolean; monthlyPrice: string }>;
+}
+export interface ModulePricingCatalogEntry {
+     currency: string;
+     modules: Record<ModuleName, string>;
+}
+export function isModulePricingCatalogEntry(value: unknown): value is ModulePricingCatalogEntry {
+     if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+     const entry = value as Partial<ModulePricingCatalogEntry>;
+     const modules = entry.modules;
+     if (typeof entry.currency !== "string" || !/^[A-Z]{3}$/.test(entry.currency) || !modules) return false;
+     return (Object.keys(MODULE_LABELS) as ModuleName[]).every(module =>
+               typeof modules[module] === "string" &&
+               /^(0|[1-9]\d{0,9})(?:\.\d{1,2})?$/.test(modules[module]));
+}
+export function applyModuleCatalogPrices(config: ModuleConfigurationForm, pricing: ModulePricingCatalogEntry): ModuleConfigurationForm {
+     const modules = { ...config.modules };
+     for (const module of Object.keys(MODULE_LABELS) as ModuleName[]) {
+          modules[module] = { ...modules[module], monthlyPrice: pricing.modules[module] };
+     }
+     return { ...config, currency: pricing.currency, modules };
 }
 export const defaultModuleConfiguration = (): ModuleConfigurationForm => ({
      branchMode: "single", currency: "GHS", modules: {
           pharmacy: { enabled: false, monthlyPrice: "0.00" }, email: { enabled: false, monthlyPrice: "0.00" },
           sms: { enabled: false, monthlyPrice: "0.00" }, inventory: { enabled: false, monthlyPrice: "0.00" },
           deviceInterfacing: { enabled: false, monthlyPrice: "0.00" },
+          commissions: { enabled: false, monthlyPrice: "0.00" }, analytics: { enabled: false, monthlyPrice: "0.00" },
+          appointments: { enabled: false, monthlyPrice: "0.00" }, expenses: { enabled: false, monthlyPrice: "0.00" },
+          consultations: { enabled: false, monthlyPrice: "0.00" }, imaging: { enabled: false, monthlyPrice: "0.00" },
      },
 });
 export function moduleMonthlyTotal(config: ModuleConfigurationForm): string {

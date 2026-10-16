@@ -583,10 +583,10 @@ export default function ApplicationSettings() {
 				setTimeout(() => setSuccess(false), 3000);
 				await reloadApplicationSettingsCache(setApplicationSettings);
 			} else {
-				setError('Failed to update application settings');
+				setError(response?.message || response?.error || 'Failed to update application settings');
 			}
 		} catch (err) {
-			setError('Error updating application settings');
+			setError(err instanceof Error ? err.message : 'Error updating application settings');
 		} finally {
 			setSaving(false);
 		}

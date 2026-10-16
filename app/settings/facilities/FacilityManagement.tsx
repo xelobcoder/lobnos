@@ -3,7 +3,7 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { customFetch, customFetchMutation } from "../../../components/Auth/customFetch";
 import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
-import { ModuleConfigurationForm, MODULE_LABELS, ModuleName } from "./provisioningForm";
+import { applyModuleCatalogPrices, defaultModuleConfiguration, isModulePricingCatalogEntry, ModuleConfigurationForm, ModulePricingCatalogEntry, MODULE_LABELS, ModuleName, moduleMonthlyTotal } from "./provisioningForm";
 import FacilityPublication from "./FacilityPublication";
 
 export interface ManagedFacility {
@@ -48,6 +48,9 @@ export default function FacilityManagement({ facility, onStatusChange, mode = "f
      const endpoint = `platform/facilities/${facility.tenantId}`;
      const showPayments = mode === "full";
      const [data, setData] = useState<Subscription | null>(null);
+     const [moduleConfiguration, setModuleConfiguration] = useState<ModuleConfigurationForm>(defaultModuleConfiguration());
+     const [pricingCatalog, setPricingCatalog] = useState<ModulePricingCatalogEntry[]>([]);
+     const [editingModules, setEditingModules] = useState(false);
      const [plan, setPlan] = useState<Plan>({ frequency: "monthly", amount: "", currency: "", startDate: today() });
      const [asOf, setAsOf] = useState(today());
      const [loading, setLoading] = useState(true);
@@ -67,12 +70,32 @@ export default function FacilityManagement({ facility, onStatusChange, mode = "f
           setLoading(true);
           setError("");
           try {
-               const response = await customFetch(`${endpoint}/subscription?asOf=${queryDate}`);
+               const [response, pricingResponse] = await Promise.all([
+                    customFetch(`${endpoint}/subscription?asOf=${queryDate}`),
+                    customFetch("platform/facilities/module-pricing?all=true"),
+               ]);
                extractResult(response, "Unable to load the client subscription.");
                if (!response.result || !Array.isArray(response.result.periods) || !Array.isArray(response.result.history)) {
                     throw new Error("The server returned an invalid subscription response.");
                }
-               setData(response.result);
+               const catalog = pricingResponse?.status === "success" && Array.isArray(pricingResponse.result)
+                    ? pricingResponse.result.filter(isModulePricingCatalogEntry)
+                    : [];
+               setPricingCatalog(catalog);
+               const defaults = defaultModuleConfiguration();
+               const savedModules = response.result.moduleConfiguration;
+               const normalizedModules = savedModules ? {
+                    ...defaults,
+                    ...savedModules,
+                    modules: { ...defaults.modules, ...savedModules.modules },
+               } : null;
+               setData({ ...response.result, moduleConfiguration: normalizedModules });
+               setModuleConfiguration(normalizedModules ? {
+                    branchMode: normalizedModules.branchMode,
+                    currency: normalizedModules.currency,
+                    modules: normalizedModules.modules,
+               } : defaults);
+               setEditingModules(false);
                if (response.result.plan) setPlan(response.result.plan);
           } catch (failure) {
                setError(failureMessage(failure));
@@ -112,6 +135,52 @@ export default function FacilityManagement({ facility, onStatusChange, mode = "f
                setPeriodStart("");
                await load();
           }
+     };
+
+     const saveModules = async (event: FormEvent) => {
+          event.preventDefault();
+          const selectedPricing = pricingCatalog.find(entry => entry.currency === moduleConfiguration.currency);
+          if (!selectedPricing) {
+               setError("Configure universal module prices for this currency before saving the module subscription.");
+               return;
+          }
+          const pricedConfiguration = applyModuleCatalogPrices(moduleConfiguration, selectedPricing);
+          const total = moduleMonthlyTotal(pricedConfiguration);
+          if (!total || Number(total) > 9999999999.99) {
+               setError("The selected modules exceed the supported monthly total.");
+               return;
+          }
+          if (await mutate("PUT", "modules", pricedConfiguration, "Facility module configuration saved.")) {
+               setEditingModules(false);
+               await load();
+          }
+     };
+
+     const cancelModuleEdit = () => {
+          const defaults = defaultModuleConfiguration();
+          const savedModules = data?.moduleConfiguration;
+          setModuleConfiguration(savedModules ? {
+               ...defaults,
+               ...savedModules,
+               modules: { ...defaults.modules, ...savedModules.modules },
+          } : defaults);
+          setEditingModules(false);
+     };
+
+     const startModuleEdit = () => {
+          const currentConfiguration = data?.moduleConfiguration || defaultModuleConfiguration();
+          const selectedPricing = pricingCatalog.find(entry => entry.currency === currentConfiguration.currency);
+          if (!selectedPricing) {
+               setError(`Universal module prices are not configured for ${currentConfiguration.currency}.`);
+               return;
+          }
+          setModuleConfiguration(applyModuleCatalogPrices(currentConfiguration, selectedPricing));
+          setEditingModules(true);
+     };
+
+     const selectModuleCurrency = (currency: string) => {
+          const selectedPricing = pricingCatalog.find(entry => entry.currency === currency);
+          if (selectedPricing) setModuleConfiguration(current => applyModuleCatalogPrices(current, selectedPricing));
      };
 
      const changeStatus = async (event: FormEvent) => {
@@ -264,7 +333,7 @@ export default function FacilityManagement({ facility, onStatusChange, mode = "f
                     {showPayments && <>
                     <div className="d-flex justify-content-between flex-wrap align-items-end gap-2 mb-3">
                          <h3 className="h6 fw-semibold mb-0">Subscription and payments</h3>
-                         <form onSubmit={(event) => { event.preventDefault(); setPeriodStart(""); setQueryDate(asOf); if (asOf === queryDate) void load(); }} className="d-flex gap-2 align-items-end">
+                         <form onSubmit={(event) => { event.preventDefault(); setPeriodStart(""); setQueryDate(asOf); if (asOf === queryDate) void load(); }} className="d-flex flex-column flex-sm-row gap-2 align-items-sm-end">
                               <div><label htmlFor="asOf" className="form-label">View periods around</label><input id="asOf" type="date" className="form-control" value={asOf} onChange={(event) => setAsOf(event.target.value)} required disabled={disabled} /></div>
                               <button className="btn btn-outline-secondary" disabled={disabled}>Refresh periods</button>
                          </form>
@@ -272,17 +341,44 @@ export default function FacilityManagement({ facility, onStatusChange, mode = "f
                     {loading && <p role="status">Loading subscription...</p>}
                     {!loading && !data && <button className="btn btn-outline-primary" onClick={() => void load()} disabled={busy}>Retry subscription</button>}
                     {data && <>
-                         {data.moduleConfiguration && <section className="border rounded p-3 mb-3">
-                              <h3 className="h6">Activated modules and monthly costs</h3>
-                              <p>Branch support: {data.moduleConfiguration.branchMode === "multiple" ? "Multiple branches" : "Single branch"}</p>
-                              <table className="table"><thead><tr><th>Module</th><th>Status</th><th>Monthly price</th></tr></thead><tbody>
-                                   {(Object.keys(MODULE_LABELS) as ModuleName[]).map(module => <tr key={module}><td>{MODULE_LABELS[module]}</td><td>{data.moduleConfiguration!.modules[module].enabled ? "Activated" : "Not activated"}</td><td>{data.moduleConfiguration!.currency} {data.moduleConfiguration!.modules[module].monthlyPrice}</td></tr>)}
-                              </tbody></table>
-                              <p className="fw-semibold">Enabled modules total: {data.moduleConfiguration.currency} {data.moduleConfiguration.monthlyTotal} / month</p>
-                              <button type="button" className="btn btn-outline-primary" disabled={disabled || Number(data.moduleConfiguration.monthlyTotal) === 0} onClick={() => setPlan(current => ({ ...current, frequency: "monthly", amount: data.moduleConfiguration!.monthlyTotal, currency: data.moduleConfiguration!.currency }))}>Use module total for monthly schedule</button>
-                              <p className="text-muted small mt-2">This fills the schedule form. Save it to apply the amount; existing payments are not changed.</p>
-                         </section>}
-                         {!data.plan && <p className="alert alert-info">No payment schedule is configured for this client.</p>}
+                         <section className="border-top pt-3 mb-4" aria-labelledby="module-costs-heading">
+                              <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                                   <div>
+                                        <h3 id="module-costs-heading" className="h6 fw-semibold mb-1">Facility modules and pricing</h3>
+                                        <p className="text-muted small mb-0">Manage enabled features separately from the recurring payment schedule.</p>
+                                   </div>
+                                   {!editingModules && <button type="button" className="btn btn-outline-primary" disabled={disabled || !["active", "suspended"].includes(facility.status.toLowerCase())} onClick={startModuleEdit}>
+                                        {data.moduleConfiguration ? "Edit module subscription" : "Configure modules"}
+                                   </button>}
+                              </div>
+                              {editingModules ? <form onSubmit={saveModules}>
+                                   <fieldset disabled={disabled}>
+                                        <div className="row g-3 mb-3">
+                                             <div className="col-md-6"><label htmlFor="facility-branch-mode" className="form-label">Branch support</label><select id="facility-branch-mode" className="form-select" value={moduleConfiguration.branchMode} onChange={event => setModuleConfiguration(current => ({ ...current, branchMode: event.target.value as "single" | "multiple" }))}><option value="single">Single branch</option><option value="multiple">Multiple branches</option></select></div>
+                                             <div className="col-md-6"><label htmlFor="facility-module-currency" className="form-label">Module pricing currency</label><select id="facility-module-currency" className="form-select" value={moduleConfiguration.currency} required onChange={event => selectModuleCurrency(event.target.value)}>{pricingCatalog.map(entry => <option key={entry.currency} value={entry.currency}>{entry.currency}</option>)}</select></div>
+                                        </div>
+                                        <div className="table-responsive"><table className="table table-sm align-middle text-start"><thead><tr><th scope="col">Module</th><th scope="col">Enabled</th><th scope="col">Monthly price</th></tr></thead><tbody>
+                                             {(Object.keys(MODULE_LABELS) as ModuleName[]).map(module => <tr key={module}>
+                                                  <th scope="row">{MODULE_LABELS[module]}</th>
+                                                  <td><input type="checkbox" aria-label={`Enable ${MODULE_LABELS[module]}`} checked={moduleConfiguration.modules[module].enabled} onChange={event => setModuleConfiguration(current => ({ ...current, modules: { ...current.modules, [module]: { ...current.modules[module], enabled: event.target.checked } } }))} /></td>
+                                                  <td>{moduleConfiguration.currency} {moduleConfiguration.modules[module].monthlyPrice}</td>
+                                             </tr>)}
+                                        </tbody></table></div>
+                                        <p className="fw-semibold">Enabled modules total: {moduleConfiguration.currency} {moduleMonthlyTotal(moduleConfiguration) || "Invalid amount"} / month</p>
+                                        <div className="d-flex flex-wrap gap-2"><button type="submit" className="btn btn-primary">{busy ? "Saving..." : "Save module subscription"}</button><button type="button" className="btn btn-outline-secondary" disabled={busy} onClick={cancelModuleEdit}>Cancel</button></div>
+                                        <p className="text-muted small mt-2 mb-0">Module prices use the universal catalog for the selected currency. Saving module access snapshots those catalog rates; the recurring payment schedule below must be changed separately if the billed amount should change.</p>
+                                   </fieldset>
+                              </form> : data.moduleConfiguration ? <>
+                                   <p>Branch support: {data.moduleConfiguration.branchMode === "multiple" ? "Multiple branches" : "Single branch"}</p>
+                                   <div className="table-responsive"><table className="table table-sm text-start"><thead><tr><th scope="col">Module</th><th scope="col">Status</th><th scope="col">Monthly price</th></tr></thead><tbody>
+                                        {(Object.keys(MODULE_LABELS) as ModuleName[]).map(module => <tr key={module}><th scope="row">{MODULE_LABELS[module]}</th><td>{data.moduleConfiguration!.modules[module].enabled ? "Activated" : "Not activated"}</td><td>{data.moduleConfiguration!.currency} {data.moduleConfiguration!.modules[module].monthlyPrice}</td></tr>)}
+                                   </tbody></table></div>
+                                   <p className="fw-semibold">Enabled modules total: {data.moduleConfiguration.currency} {data.moduleConfiguration.monthlyTotal} / month</p>
+                                   <button type="button" className="btn btn-outline-primary" disabled={disabled || Number(data.moduleConfiguration.monthlyTotal) === 0} onClick={() => setPlan(current => ({ ...current, frequency: "monthly", amount: data.moduleConfiguration!.monthlyTotal, currency: data.moduleConfiguration!.currency }))}>Use module total for monthly schedule</button>
+                                   <p className="text-muted small mt-2">Module pricing is separate from the recurring payment schedule. This fills the monthly schedule amount; save that schedule separately. Existing payments remain unchanged.</p>
+                              </> : <p className="text-muted mb-0">No module pricing configuration is available for this client.</p>}
+                         </section>
+                         {!data.plan && <p className="alert alert-info" role="status">No payment schedule is configured for this client.</p>}
                          <form onSubmit={savePlan} className="mb-4">
                               <fieldset disabled={disabled}>
                                    <legend className="h6">Payment schedule</legend>
@@ -293,16 +389,16 @@ export default function FacilityManagement({ facility, onStatusChange, mode = "f
                                         <div className="col-md-3"><label htmlFor="planStartDate" className="form-label">Schedule start date</label><input id="planStartDate" type="date" className="form-control" value={plan.startDate} onChange={(event) => setPlan({ ...plan, startDate: event.target.value })} required /></div>
                                    </div>
                                    <p className="text-muted mt-2">Each payment covers one full period, due at its start. A later start date schedules a change on an existing period boundary. Earlier unpaid periods and payment history remain owed or recorded. Correcting the latest schedule cannot invalidate existing payments; void affected payments first if needed.</p>
-                                   <button className="btn btn-primary">Save payment schedule</button>
+                                   <button className="btn btn-primary" disabled={disabled}>{busy ? "Saving..." : "Save payment schedule"}</button>
                               </fieldset>
                          </form>
                          {data.schedule?.length > 0 && <div className="table-responsive mb-3">
-                              <h3 className="h6">Scheduled plans</h3>
+                              <h3 className="h6 fw-semibold">Scheduled plans</h3>
                               <PrimeTable column={scheduleColumns} data={data.schedule} filtering={true} serverSideFiltering={false} handleSeverSideProcessing={null} />
                          </div>}
-                         <h3 className="h6">Payment periods</h3>
+                         <h3 className="h6 fw-semibold">Payment periods</h3>
                          {data.window && <p className="text-muted">Showing {data.window.from} to {data.window.to}. Change the viewing date to inspect another range.</p>}
-                         {data.overdueBeforeWindow > 0 && <p className="alert alert-warning">{data.overdueBeforeWindow} unpaid overdue periods exist before this displayed range. Choose an earlier viewing date to review them.</p>}
+                         {data.overdueBeforeWindow > 0 && <p className="alert alert-warning" role="status">{data.overdueBeforeWindow} unpaid overdue periods exist before this displayed range. Choose an earlier viewing date to review them.</p>}
                          {data.periods.length > 0
                               ? <PrimeTable column={periodColumns} data={data.periods} filtering={true} serverSideFiltering={false} handleSeverSideProcessing={null} />
                               : <p className="text-muted">No payment periods in this range.</p>}
@@ -318,8 +414,8 @@ export default function FacilityManagement({ facility, onStatusChange, mode = "f
                                    <button type="button" className="btn btn-outline-secondary mt-3 ms-2" onClick={() => setPeriodStart("")}>Cancel</button>
                               </fieldset>
                          </form>}
-                         <h3 className="h6">Payment history</h3>
-                         {data.historyTruncated && <p className="alert alert-info">Showing the latest 500 payment records. Older records are retained by the server but are not included in this view.</p>}
+                         <h3 className="h6 fw-semibold">Payment history</h3>
+                         {data.historyTruncated && <p className="alert alert-info" role="status">Showing the latest 500 payment records. Older records are retained by the server but are not included in this view.</p>}
                          {data.history.length > 0
                               ? <PrimeTable column={paymentColumns} data={data.history} filtering={true} serverSideFiltering={false} handleSeverSideProcessing={null} />
                               : <p className="text-muted">No recorded payments.</p>}

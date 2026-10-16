@@ -83,8 +83,8 @@ export default function FacilityPublication({ facility }: { facility: ManagedFac
                setBusy(false);
           }
      };
-     return <section className="border rounded bg-white p-3 mt-3" aria-label="Website publication">
-          <div className="d-flex justify-content-between gap-2"><h2 className="h5">Website directory, catalog and client login</h2><button className="btn btn-sm btn-outline-secondary" disabled={loading || busy} onClick={() => setRefresh(value => value + 1)}>Reload profile</button></div>
+     return <section className="border-top pt-3 mt-3" aria-labelledby="website-publication-title" aria-busy={loading || busy}>
+          <div className="d-flex justify-content-between gap-2"><h2 id="website-publication-title" className="h5 fw-semibold">Website directory, catalog and client login</h2><button type="button" className="btn btn-sm btn-outline-secondary" disabled={loading || busy} onClick={() => setRefresh(value => value + 1)}>Reload profile</button></div>
           <p className="small text-muted">Publish this active PLS facility explicitly. Prices remain sourced from its own test configuration. Only approved destinations are displayed; no tenant credentials are shared with the website.</p>
           {error && <div className="alert alert-danger" role="alert">{error}</div>}
           {notice && <div className="alert alert-success" role="status">{notice}</div>}
