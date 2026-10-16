@@ -377,3 +377,5 @@ Before claiming the UI is complete:
 - [ ] Report exact checks run. `git diff --check` proves only whitespace cleanliness; it is not visual or behavioral validation.
 
 The specialized workflow is available through [PLS UI Designer](../agents/pls-ui-design.agent.md).
+
+DONT BUILD THE APPLICATION UNLESS YOU ASK FOR PERMISSION

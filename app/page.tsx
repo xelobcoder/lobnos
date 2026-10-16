@@ -11,7 +11,7 @@ import {
 export default function page() {
 
      return (
-          <div className="max-vh-100 bg-light">
+          <div className="home-page">
                {/* Hero Section */}
                <section className="hero-section position-relative overflow-hidden py-5">
                     <div className="hero-background"></div>
@@ -50,7 +50,7 @@ export default function page() {
                                         </Link>
                                    </div>
                               </div>
-                              <div className="col-lg-6">
+                              <div className="col-lg-6 d-none d-lg-block">
                                    <div className="hero-image-wrapper">
                                         <img
                                              src="/lab.jfif"
@@ -74,9 +74,29 @@ export default function page() {
 
                <style jsx>{`
         /* Hero Section Styles */
+        .home-page {
+          height: 100vh;
+          height: 100dvh;
+          overflow: hidden;
+        }
+
         .hero-section {
-          min-height: 90vh;
+          display: flex;
+          align-items: center;
+          height: 100%;
+          min-height: 0;
           background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 50%, #4caf50 100%);
+          padding-block: 1rem !important;
+        }
+
+        .hero-section .row {
+          padding-block: 0.5rem !important;
+        }
+
+        .hero-image {
+          max-height: 55vh;
+          width: 100%;
+          object-fit: cover;
         }
         
         .hero-background::before {
@@ -297,10 +317,6 @@ export default function page() {
         
         /* Responsive adjustments */
         @media (max-width: 991px) {
-          .hero-section {
-            min-height: auto;
-          }
-          
           .floating-badge {
             display: none;
           }
@@ -313,6 +329,7 @@ export default function page() {
             font-size: 2rem;
           }
         }
+
       `}</style>
           </div>
      )
