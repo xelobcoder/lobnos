@@ -9,7 +9,7 @@ import { customFetch, customFetchMutation } from "../../../components/Auth/custo
 import { useApplication } from "../../../components/Auth/useApplicationContext";
 import FacilityManagement from "./FacilityManagement";
 import FacilityNav from "./FacilityNav";
-import { applyModuleCatalogPrices, FacilityForm, FormErrors, generateFacilityPassword, isModulePricingCatalogEntry, validateFacilityForm, MODULE_LABELS, ModuleName, ModulePricingCatalogEntry, defaultModuleConfiguration, moduleMonthlyTotal } from "./provisioningForm";
+import { applyModuleCatalogPrices, FacilityForm, FormErrors, generateFacilityPassword, parseModulePricingCatalogEntry, validateFacilityForm, MODULE_LABELS, ModuleName, ModulePricingCatalogEntry, defaultModuleConfiguration, moduleMonthlyTotal } from "./provisioningForm";
 import { applicationProvisioningForm, MarketplaceApplication, marketplaceApplicationsSchema } from "./marketplaceApplications";
 
 interface Country { id: number; country_name: string }
@@ -161,8 +161,12 @@ export default function FacilityOnboardingPage() {
                setOptions(locations.result);
                setFacilities(organizations.result);
                setHasLoadedFacilities(true);
-               const catalog = pricing?.status === "success" && Array.isArray(pricing.result) &&
-                    pricing.result.every(isModulePricingCatalogEntry) ? pricing.result : [];
+               const parsedCatalog = pricing?.status === "success" && Array.isArray(pricing.result)
+                    ? pricing.result.map(parseModulePricingCatalogEntry)
+                    : [];
+               const catalog = parsedCatalog.every((entry): entry is ModulePricingCatalogEntry => entry !== null)
+                    ? parsedCatalog
+                    : [];
                if (catalog.length) {
                     const initialPricing = catalog.find(entry => entry.currency === "GHS") || catalog[0];
                     setPricingCatalog(catalog);
@@ -185,9 +189,11 @@ export default function FacilityOnboardingPage() {
                     if (!source) throw new Error("The application must be approved and available for provisioning.");
                     setProvisioningApplication(source);
                     const sourceForm = applicationProvisioningForm(source, EMPTY_FORM);
-                    const initialPricing = catalog.find(entry => entry.currency === "GHS") || catalog[0];
-                    if (initialPricing && sourceForm.moduleConfiguration) {
-                         sourceForm.moduleConfiguration = applyModuleCatalogPrices(sourceForm.moduleConfiguration, initialPricing);
+                    const applicationPricing = catalog.find(entry => entry.currency === source.currency.toUpperCase());
+                    if (applicationPricing && sourceForm.moduleConfiguration) {
+                         sourceForm.moduleConfiguration = applyModuleCatalogPrices(sourceForm.moduleConfiguration, applicationPricing);
+                    } else if (sourceForm.moduleConfiguration) {
+                         setPricingError(`Configure universal prices for the approved application's ${source.currency.toUpperCase()} currency before provisioning or retrying.`);
                     }
                     if (source.integration_state === "provision_failed") {
                          const failed = organizations.result.find((facility: Facility) =>
@@ -198,9 +204,6 @@ export default function FacilityOnboardingPage() {
                               setRetryFacility(failed);
                               setForm({
                                    ...sourceForm,
-                                   companyName: failed.name,
-                                   email: failed.email || sourceForm.email,
-                                   phone: failed.phone || sourceForm.phone,
                                    countryId: failed.countryId ? String(failed.countryId) : "",
                                    stateId: failed.stateId ? String(failed.stateId) : "",
                                    districtId: failed.districtId ? String(failed.districtId) : "",
@@ -322,7 +325,7 @@ export default function FacilityOnboardingPage() {
           if (busy || deleteBusy) return;
           setError("");
           setCreated(null);
-          if (provisioningApplication && !identityConfirmed) {
+          if (provisioningApplication?.integration_state === "independent" && !identityConfirmed) {
                setError("Confirm the application belongs to the facility you are provisioning.");
                return;
           }
@@ -361,7 +364,7 @@ export default function FacilityOnboardingPage() {
                     districtId: Number(submissionForm.districtId), adminName: submissionForm.adminName.trim(),
                     adminEmail: submissionForm.adminEmail.trim(), adminPassword: submissionForm.adminPassword, licenseDays,
                     street: submissionForm.street?.trim(), gpsAddress: submissionForm.gpsAddress?.trim(), moduleConfiguration: submissionForm.moduleConfiguration,
-                    ...(provisioningApplication ? { identityConfirmed: true } : {}),
+                    ...(provisioningApplication?.integration_state === "independent" ? { identityConfirmed: true } : {}),
                });
                if (response?.status !== "success" || !response.result?.organizationIdentifier ||
                     !response.result?.adminUsername || !response.result?.databaseName ||
@@ -632,9 +635,13 @@ export default function FacilityOnboardingPage() {
                          <p className="mb-0">The partial tenant database will be permanently removed before this facility is rebuilt. Confirm the locked reservation details and enter the address and administrator credentials for the new attempt.</p>
                     </div>}
                     {provisioningApplication && <div className="alert alert-info">
-                         <h2 className="h6">Provisioning website application: {provisioningApplication.name}</h2>
-                         <p>Review the public company details and select official location records. This provisions a PLS tenant and links the approved application without reusing its website password.</p>
-                         <label className="form-check"><input type="checkbox" className="form-check-input" checked={identityConfirmed} disabled={busy} onChange={event => setIdentityConfirmed(event.target.checked)} /><span className="form-check-label">I verified this application belongs to the facility being provisioned.</span></label>
+                         <h2 className="h6">{provisioningApplication.integration_state === "provision_failed" ? "Retrying approved website application" : "Provisioning website application"}: {provisioningApplication.name}</h2>
+                         {provisioningApplication.integration_state === "provision_failed"
+                              ? <p className="mb-0">Retry is matched to the approved application's company name, email, phone, address, administrator email, and currency. These details cannot be changed; choose official location records if they are not already available.</p>
+                              : <>
+                                   <p>Review the public company details and select official location records. This provisions a PLS tenant and links the approved application without reusing its website password.</p>
+                                   <label className="form-check"><input type="checkbox" className="form-check-input" checked={identityConfirmed} disabled={busy} onChange={event => setIdentityConfirmed(event.target.checked)} /><span className="form-check-label">I verified this application belongs to the facility being provisioned.</span></label>
+                              </>}
                     </div>}
                     <fieldset disabled={loading || busy || deleteBusy || options.countries.length === 0 || pricingCatalog.length === 0} className="py-3">
                          <legend className="h5 fw-semibold mb-3">Company information</legend>
@@ -645,7 +652,7 @@ export default function FacilityOnboardingPage() {
                               ] as const).map(([field, label, type]) => (
                                    <div key={field} className="col-md-6">
                                         <label htmlFor={field} className="form-label">{label}</label>
-                                        <input {...fieldProps(field)} id={field} type={type} className={`form-control${formErrors[field] ? " is-invalid" : ""}`} value={form[field]} disabled={Boolean(retryFacility) && field !== "address"} onChange={(event) => update(field, event.target.value)} maxLength={field === "address" ? 200 : field === "phone" ? 10 : 100} minLength={field === "phone" ? 7 : 1} pattern={field === "phone" ? "[0-9]{7,10}" : undefined} required />
+                                        <input {...fieldProps(field)} id={field} type={type} className={`form-control${formErrors[field] ? " is-invalid" : ""}`} value={form[field]} disabled={Boolean(provisioningApplication) || (Boolean(retryFacility) && field !== "address")} onChange={(event) => update(field, event.target.value)} maxLength={field === "address" ? 200 : field === "phone" ? 10 : 100} minLength={field === "phone" ? 7 : 1} pattern={field === "phone" ? "[0-9]{7,10}" : undefined} required />
                                         {fieldError(field)}
                                         {field === "phone" && <small className="text-muted">7 to 10 digits only, without spaces or a plus sign.</small>}
                                    </div>

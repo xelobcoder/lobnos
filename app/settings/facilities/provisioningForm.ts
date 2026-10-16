@@ -17,8 +17,12 @@ export const MODULE_LABELS = {
      expenses: "Expenses",
      consultations: "Consultations",
      imaging: "Imaging",
+     billing: "Billing",
+     registration: "Registration",
+     laboratoryOperations: "Laboratory operations",
 } as const;
 export type ModuleName = keyof typeof MODULE_LABELS;
+const coreModules: ModuleName[] = ["pharmacy", "email", "sms", "inventory", "deviceInterfacing"];
 export interface ModuleConfigurationForm {
      branchMode: "single" | "multiple"; currency: string;
      modules: Record<ModuleName, { enabled: boolean; monthlyPrice: string }>;
@@ -27,19 +31,29 @@ export interface ModulePricingCatalogEntry {
      currency: string;
      modules: Record<ModuleName, string>;
 }
-export function isModulePricingCatalogEntry(value: unknown): value is ModulePricingCatalogEntry {
-     if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+export function parseModulePricingCatalogEntry(value: unknown): ModulePricingCatalogEntry | null {
+     if (!value || typeof value !== "object" || Array.isArray(value)) return null;
      const entry = value as Partial<ModulePricingCatalogEntry>;
      const modules = entry.modules;
-     if (typeof entry.currency !== "string" || !/^[A-Z]{3}$/.test(entry.currency) || !modules) return false;
-     return (Object.keys(MODULE_LABELS) as ModuleName[]).every(module =>
-               typeof modules[module] === "string" &&
-               /^(0|[1-9]\d{0,9})(?:\.\d{1,2})?$/.test(modules[module]));
+     if (typeof entry.currency !== "string" || !/^[A-Z]{3}$/.test(entry.currency) ||
+          !modules || typeof modules !== "object" || Array.isArray(modules)) return null;
+     const normalizedModules = {} as Record<ModuleName, string>;
+     for (const moduleName of Object.keys(MODULE_LABELS) as ModuleName[]) {
+          const price = modules[moduleName];
+          if (price === undefined && !coreModules.includes(moduleName)) {
+               normalizedModules[moduleName] = "0.00";
+          } else if (typeof price === "string" && /^(0|[1-9]\d{0,9})(?:\.\d{1,2})?$/.test(price)) {
+               normalizedModules[moduleName] = price;
+          } else {
+               return null;
+          }
+     }
+     return { currency: entry.currency, modules: normalizedModules };
 }
 export function applyModuleCatalogPrices(config: ModuleConfigurationForm, pricing: ModulePricingCatalogEntry): ModuleConfigurationForm {
      const modules = { ...config.modules };
-     for (const module of Object.keys(MODULE_LABELS) as ModuleName[]) {
-          modules[module] = { ...modules[module], monthlyPrice: pricing.modules[module] };
+     for (const moduleName of Object.keys(MODULE_LABELS) as ModuleName[]) {
+          modules[moduleName] = { ...modules[moduleName], monthlyPrice: pricing.modules[moduleName] };
      }
      return { ...config, currency: pricing.currency, modules };
 }
@@ -51,6 +65,8 @@ export const defaultModuleConfiguration = (): ModuleConfigurationForm => ({
           commissions: { enabled: false, monthlyPrice: "0.00" }, analytics: { enabled: false, monthlyPrice: "0.00" },
           appointments: { enabled: false, monthlyPrice: "0.00" }, expenses: { enabled: false, monthlyPrice: "0.00" },
           consultations: { enabled: false, monthlyPrice: "0.00" }, imaging: { enabled: false, monthlyPrice: "0.00" },
+          billing: { enabled: false, monthlyPrice: "0.00" }, registration: { enabled: false, monthlyPrice: "0.00" },
+          laboratoryOperations: { enabled: false, monthlyPrice: "0.00" },
      },
 });
 export function moduleMonthlyTotal(config: ModuleConfigurationForm): string {

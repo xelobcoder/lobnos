@@ -1,13 +1,11 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { Row, Col, Form, Button, Badge } from 'react-bootstrap';
 import {
     RiStethoscopeLine,
     RiImageLine,
     RiTeamLine,
     RiRefreshLine,
-    RiArrowLeftRightLine,
     RiBarChartLine,
     RiPieChartLine
 } from '@remixicon/react';
@@ -29,6 +27,28 @@ import { toast } from 'react-toastify';
 import { customFetch } from '../../../components/Auth/customFetch';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 import Loader from '../../../components/isLoading';
+import DateFilterReusable from '../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable';
+
+type SummaryCardProps = {
+    title: string;
+    value: number;
+    subtitle: string;
+    variant: string;
+    Icon: React.ElementType;
+};
+
+const SummaryCard = ({ title, value, subtitle, variant, Icon }: SummaryCardProps) => (
+    <div className={`card border-0 shadow-sm bg-${variant} bg-gradient text-white rounded-3 h-100`}>
+        <div className="card-body p-3">
+            <div className="d-flex justify-content-between align-items-center mb-1">
+                <span className="text-xs text-uppercase fw-semibold opacity-75">{title}</span>
+                <Icon size={22} className="opacity-75" aria-hidden="true" />
+            </div>
+            <h3 className="fw-bold mb-0">{value.toLocaleString()}</h3>
+            <span className="text-xs opacity-75">{subtitle}</span>
+        </div>
+    </div>
+);
 
 // UI Constants to match existing analytics (Commissions/Compliance)
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
@@ -53,6 +73,7 @@ interface ImagingAnalytics {
 export default function ImagingAnalyticsPage() {
     const [startDate, setStartDate] = useState(dayjs().startOf('month').format('YYYY-MM-DD'));
     const [endDate, setEndDate] = useState(dayjs().format('YYYY-MM-DD'));
+    const [dateFilter, setDateFilter] = useState('This Month');
     const [showModality, setShowModality] = useState(true);
     const [showDay, setShowDay] = useState(false);
     const [data, setData] = useState<ImagingAnalytics | null>(null);
@@ -85,6 +106,7 @@ export default function ImagingAnalyticsPage() {
     const handleResetFilters = () => {
         setStartDate(dayjs().startOf('month').format('YYYY-MM-DD'));
         setEndDate(dayjs().format('YYYY-MM-DD'));
+        setDateFilter('This Month');
         setShowModality(true);
         setShowDay(false);
     };
@@ -101,113 +123,80 @@ export default function ImagingAnalyticsPage() {
         {
             Header: 'Role',
             accessor: 'role',
-            Cell: ({ row }) => <Badge bg="light" text="dark" className="text-capitalize">{row.original.role || '-'}</Badge>,
+            Cell: ({ row }) => <span className="text-capitalize">{row.original.role || '-'}</span>,
         },
         { Header: 'Cases', accessor: 'casesWorked' },
         { Header: 'Ultrasound', accessor: 'ultrasoundCases' },
     ];
 
     return (
-        <div className="container-fluid p-4 min-vh-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-            <div className="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h2 className="mb-1">
-                        <RiImageLine className="me-2" />
-                        Imaging Analytics Dashboard
-                    </h2>
-                    <p className="text-muted mb-0">Cases with results entered, ultrasound volume and work per user</p>
-                </div>
-                <div className="d-flex gap-2 align-items-center">
-                    <Form.Group className="mb-0">
-                        <Form.Control
-                            type="date"
-                            size="sm"
-                            className="border-0 bg-light"
-                            value={startDate}
-                            max={endDate}
-                            onChange={(e) => setStartDate(e.target.value)}
-                        />
-                    </Form.Group>
-                    <RiArrowLeftRightLine size={16} className="text-muted mx-1" />
-                    <Form.Group className="mb-0">
-                        <Form.Control
-                            type="date"
-                            size="sm"
-                            className="border-0 bg-light"
-                            value={endDate}
-                            min={startDate}
-                            onChange={(e) => setEndDate(e.target.value)}
-                        />
-                    </Form.Group>
-                    <Form.Check
-                        id="bd-modality"
-                        type="checkbox"
-                        label="By modality"
-                        className="small ms-2"
-                        checked={showModality}
-                        onChange={(e) => setShowModality(e.target.checked)}
-                    />
-                    <Form.Check
-                        id="bd-day"
-                        type="checkbox"
-                        label="By day"
-                        className="small"
-                        checked={showDay}
-                        onChange={(e) => setShowDay(e.target.checked)}
-                    />
-                    <Button variant="outline-secondary" size="sm" className="ms-2 border-0" onClick={fetchAnalytics}>
-                        <RiRefreshLine size={18} />
-                    </Button>
-                    <Button variant="outline-secondary" size="sm" className="ms-2 border-0" onClick={handleResetFilters}>
-                        <RiRefreshLine size={16} className="me-1" /> Clear Filters
-                    </Button>
-                </div>
+        <div className="container-fluid px-4 py-3">
+            <div className="mb-3">
+                <h2 className="fs-5 fw-semibold mb-1 d-flex align-items-center">
+                    <RiImageLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" aria-hidden="true" />
+                    Imaging Analytics
+                </h2>
+                <p className="text-muted small mb-0">
+                    Cases with results entered, ultrasound volume and work per user for {dayjs(startDate).format('DD MMM YYYY')} to {dayjs(endDate).format('DD MMM YYYY')}.
+                </p>
             </div>
 
-            {error && <div className="alert alert-danger mb-4">{error}</div>}
+            {error && <div className="alert alert-danger mb-3" role="alert">{error}</div>}
+
+            {data && !isLoading && (
+                <div className="row g-3 mb-3">
+                    <div className="col-12 col-md-4">
+                        <SummaryCard title="Cases with Results" value={data.totalCasesWithResults} subtitle="All imaging modalities" variant="primary" Icon={RiImageLine} />
+                    </div>
+                    <div className="col-12 col-md-4">
+                        <SummaryCard title="Ultrasound Cases" value={data.totalUltrasoundCases} subtitle="Subset of the total" variant="success" Icon={RiStethoscopeLine} />
+                    </div>
+                    <div className="col-12 col-md-4">
+                        <SummaryCard title="Staff Involved" value={casesByUser.length} subtitle="Distinct result-entry users" variant="info" Icon={RiTeamLine} />
+                    </div>
+                </div>
+            )}
+
+            <div className="d-flex flex-column flex-lg-row align-items-lg-center gap-2 mb-3">
+                <DateFilterReusable
+                    value={dateFilter}
+                    onChange={setDateFilter}
+                    onDateRangeChange={(newStart, newEnd) => {
+                        setStartDate(newStart);
+                        setEndDate(newEnd);
+                    }}
+                    label="Filter by"
+                    className="w-auto"
+                />
+                <div className="form-check mb-0">
+                    <input className="form-check-input" type="checkbox" id="bd-modality" checked={showModality} onChange={(e) => setShowModality(e.target.checked)} />
+                    <label className="form-check-label small" htmlFor="bd-modality">By modality</label>
+                </div>
+                <div className="form-check mb-0">
+                    <input className="form-check-input" type="checkbox" id="bd-day" checked={showDay} onChange={(e) => setShowDay(e.target.checked)} />
+                    <label className="form-check-label small" htmlFor="bd-day">By day</label>
+                </div>
+                <button type="button" className="btn btn-sm btn-primary d-flex align-items-center" onClick={fetchAnalytics}>
+                    <RiRefreshLine size={16} className="me-1" /> Load Data
+                </button>
+                <button type="button" className="btn btn-sm btn-outline-secondary d-flex align-items-center" onClick={handleResetFilters}>
+                    <RiRefreshLine size={16} className="me-1" /> Reset
+                </button>
+            </div>
 
             {isLoading ? <Loader /> : data && (
                 <>
-                    <Row className="g-3 mb-4">
-                        <Col md={4}>
-                            <div className="border rounded p-3 h-100 shadow-none">
-                                <div className="d-flex align-items-center mb-2">
-                                    <RiImageLine size={20} className="me-2 text-primary" />
-                                    <span className="fw-medium text-muted small">Cases with Results</span>
-                                </div>
-                                <div className="fs-4 fw-bold text-primary">{data.totalCasesWithResults.toLocaleString()}</div>
-                                <div className="small text-muted">All imaging modalities</div>
-                            </div>
-                        </Col>
-                        <Col md={4}>
-                            <div className="border rounded p-3 h-100 shadow-none">
-                                <div className="d-flex align-items-center mb-2">
-                                    <RiStethoscopeLine size={20} className="me-2 text-success" />
-                                    <span className="fw-medium text-muted small">Ultrasound Cases</span>
-                                </div>
-                                <div className="fs-4 fw-bold text-success">{data.totalUltrasoundCases.toLocaleString()}</div>
-                                <div className="small text-muted">Subset of the total</div>
-                            </div>
-                        </Col>
-                        <Col md={4}>
-                            <div className="border rounded p-3 h-100 shadow-none">
-                                <div className="d-flex align-items-center mb-2">
-                                    <RiTeamLine size={20} className="me-2 text-warning" />
-                                    <span className="fw-medium text-muted small">Staff Involved</span>
-                                </div>
-                                <div className="fs-4 fw-bold text-warning">{casesByUser.length.toLocaleString()}</div>
-                                <div className="small text-muted">Distinct result-entry users</div>
-                            </div>
-                        </Col>
-                    </Row>
 
-                    <Row className="g-4 mb-4">
-                        <Col lg={showModality && casesByModality.length > 0 ? 8 : 12}>
-                            <div className="border rounded p-4 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                <h6 className="fw-bold mb-4 d-flex align-items-center">
-                                    <RiBarChartLine size={20} className="me-2 text-primary" />
-                                    Cases Worked per User
-                                </h6>
+                    <div className="row g-3 mb-3">
+                        <div className={showModality && casesByModality.length > 0 ? 'col-12 col-lg-8' : 'col-12'}>
+                            <div className="card h-100" style={{ borderRadius: '0.75rem', borderColor: SHADCN_BORDER }}>
+                                <div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: SHADCN_BORDER }}>
+                                    <h3 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
+                                        <RiBarChartLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" aria-hidden="true" />
+                                        Cases Worked per User
+                                    </h3>
+                                </div>
+                                <div className="card-body p-3 p-md-4">
                                 {casesByUser.length === 0 ? (
                                     <p className="text-muted text-center my-5">No cases in this period</p>
                                 ) : (
@@ -225,16 +214,20 @@ export default function ImagingAnalyticsPage() {
                                         </ResponsiveContainer>
                                     </div>
                                 )}
+                                </div>
                             </div>
-                        </Col>
+                        </div>
 
                         {showModality && casesByModality.length > 0 && (
-                            <Col lg={4}>
-                                <div className="border rounded p-4 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                    <h6 className="fw-bold mb-4 d-flex align-items-center">
-                                        <RiPieChartLine size={20} className="me-2 text-warning" />
-                                        Cases per Modality
-                                    </h6>
+                            <div className="col-12 col-lg-4">
+                                <div className="card h-100" style={{ borderRadius: '0.75rem', borderColor: SHADCN_BORDER }}>
+                                    <div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: SHADCN_BORDER }}>
+                                        <h3 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
+                                            <RiPieChartLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" aria-hidden="true" />
+                                            Cases per Modality
+                                        </h3>
+                                    </div>
+                                    <div className="card-body p-3 p-md-4">
                                     <div style={{ height: '250px' }}>
                                         <ResponsiveContainer width="100%" height="100%">
                                             <PieChart>
@@ -259,17 +252,21 @@ export default function ImagingAnalyticsPage() {
                                             </div>
                                         ))}
                                     </div>
+                                    </div>
                                 </div>
-                            </Col>
+                            </div>
                         )}
-                    </Row>
+                    </div>
 
                     {showDay && casesByDay.length > 0 && (
-                        <div className="border rounded p-4 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                            <h6 className="fw-bold mb-4 d-flex align-items-center">
-                                <RiBarChartLine size={20} className="me-2 text-success" />
-                                Cases per Day
-                            </h6>
+                        <div className="card mb-3" style={{ borderRadius: '0.75rem', borderColor: SHADCN_BORDER }}>
+                            <div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: SHADCN_BORDER }}>
+                                <h3 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
+                                    <RiBarChartLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" aria-hidden="true" />
+                                    Cases per Day
+                                </h3>
+                            </div>
+                            <div className="card-body p-3 p-md-4">
                             <div style={{ height: '300px' }}>
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={casesByDay} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
@@ -283,22 +280,21 @@ export default function ImagingAnalyticsPage() {
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
+                            </div>
                         </div>
                     )}
 
-                    <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                        <h6 className="fw-bold mb-4 d-flex align-items-center">
-                            <RiTeamLine size={20} className="me-2 text-primary" />
-                            Work per User
-                        </h6>
-                        <PrimeTable
-                            column={userColumns}
-                            data={casesByUser}
-                            filtering={false}
-                            serverSideFiltering={false}
-                            handleSeverSideProcessing={null}
-                        />
-                    </div>
+                    <h3 className="fs-6 fw-semibold d-flex align-items-center mb-2">
+                        <RiTeamLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" aria-hidden="true" />
+                        Work per User
+                    </h3>
+                    <PrimeTable
+                        column={userColumns}
+                        data={casesByUser}
+                        filtering={false}
+                        serverSideFiltering={false}
+                        handleSeverSideProcessing={null}
+                    />
                 </>
             )}
         </div>

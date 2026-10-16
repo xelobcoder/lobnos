@@ -4,13 +4,13 @@ import { FormEvent, useEffect, useState } from "react";
 import { customFetch, customFetchMutation } from "../../../components/Auth/customFetch";
 import { useApplication } from "../../../components/Auth/useApplicationContext";
 import {
-     isModulePricingCatalogEntry, MODULE_LABELS, ModuleName, ModulePricingCatalogEntry,
+     MODULE_LABELS, ModuleName, ModulePricingCatalogEntry, parseModulePricingCatalogEntry,
 } from "./provisioningForm";
 import FacilityNav from "./FacilityNav";
 
 const emptyModulePrices = (): Record<ModuleName, string> => {
      const prices = {} as Record<ModuleName, string>;
-     for (const module of Object.keys(MODULE_LABELS) as ModuleName[]) prices[module] = "0.00";
+     for (const moduleName of Object.keys(MODULE_LABELS) as ModuleName[]) prices[moduleName] = "0.00";
      return prices;
 };
 const normalizeRole = (role: unknown) => String(role || "").toLowerCase().replace(/[\s_-]/g, "");
@@ -38,13 +38,16 @@ export default function ModulePricingCatalogEditor() {
           setError("");
           void customFetch("platform/facilities/module-pricing?all=true").then(response => {
                if (!active) return;
-               if (response?.status !== "success" || !Array.isArray(response.result) ||
-                    !response.result.every(isModulePricingCatalogEntry)) {
+               if (response?.status !== "success" || !Array.isArray(response.result)) {
                     throw new Error(response?.message || response?.error || "Unable to load universal module prices.");
                }
-               const entries = response.result as ModulePricingCatalogEntry[];
-               setCatalog(entries);
-               const initial = entries.find(entry => entry.currency === "GHS") || entries[0];
+               const parsedEntries = response.result.map(parseModulePricingCatalogEntry);
+               const catalogEntries = parsedEntries.filter((entry): entry is ModulePricingCatalogEntry => entry !== null);
+               if (catalogEntries.length !== parsedEntries.length) {
+                    throw new Error(response?.message || response?.error || "The server returned invalid universal module prices.");
+               }
+               setCatalog(catalogEntries);
+               const initial = catalogEntries.find(entry => entry.currency === "GHS") || catalogEntries[0];
                if (initial) {
                     setCurrency(initial.currency);
                     setDraft({ ...initial.modules });
@@ -96,10 +99,13 @@ export default function ModulePricingCatalogEditor() {
                     currency,
                     modules: draft,
                });
-               if (response?.status !== "success" || !isModulePricingCatalogEntry(response.result)) {
+               if (response?.status !== "success") {
                     throw new Error(response?.message || response?.error || "Unable to save universal module prices.");
                }
-               const saved = response.result as ModulePricingCatalogEntry;
+               const saved = parseModulePricingCatalogEntry(response.result);
+               if (!saved) {
+                    throw new Error(response?.message || response?.error || "The server returned invalid saved module prices.");
+               }
                setCatalog(current => [
                     ...current.filter(entry => entry.currency !== saved.currency),
                     saved,
@@ -150,7 +156,7 @@ export default function ModulePricingCatalogEditor() {
                                         <thead><tr><th scope="col">Module</th><th scope="col">Universal monthly price ({currency})</th></tr></thead>
                                         <tbody>{(Object.keys(MODULE_LABELS) as ModuleName[]).map(module => <tr key={module}>
                                              <th scope="row">{MODULE_LABELS[module]}</th>
-                                             <td><input className="form-control" aria-label={`${MODULE_LABELS[module]} universal monthly price`} inputMode="decimal" value={draft[module]} pattern="(0|[1-9][0-9]{0,9})(\\.[0-9]{1,2})?" required disabled={busy} onChange={event => setDraft(current => ({ ...current, [module]: event.target.value }))} /></td>
+                                             <td><input className="form-control" aria-label={`${MODULE_LABELS[module]} universal monthly price`} inputMode="decimal" value={draft[module]} pattern="(0|[1-9][0-9]{0,9})(\.[0-9]{1,2})?" required disabled={busy} onChange={event => setDraft(current => ({ ...current, [module]: event.target.value }))} /></td>
                                         </tr>)}</tbody>
                                    </table>
                               </div>

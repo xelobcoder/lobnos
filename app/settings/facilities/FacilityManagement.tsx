@@ -3,7 +3,7 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { customFetch, customFetchMutation } from "../../../components/Auth/customFetch";
 import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
-import { applyModuleCatalogPrices, defaultModuleConfiguration, isModulePricingCatalogEntry, ModuleConfigurationForm, ModulePricingCatalogEntry, MODULE_LABELS, ModuleName, moduleMonthlyTotal } from "./provisioningForm";
+import { applyModuleCatalogPrices, defaultModuleConfiguration, parseModulePricingCatalogEntry, ModuleConfigurationForm, ModulePricingCatalogEntry, MODULE_LABELS, ModuleName, moduleMonthlyTotal } from "./provisioningForm";
 import FacilityPublication from "./FacilityPublication";
 
 export interface ManagedFacility {
@@ -79,7 +79,7 @@ export default function FacilityManagement({ facility, onStatusChange, mode = "f
                     throw new Error("The server returned an invalid subscription response.");
                }
                const catalog = pricingResponse?.status === "success" && Array.isArray(pricingResponse.result)
-                    ? pricingResponse.result.filter(isModulePricingCatalogEntry)
+                    ? pricingResponse.result.map(parseModulePricingCatalogEntry).filter((entry): entry is ModulePricingCatalogEntry => entry !== null)
                     : [];
                setPricingCatalog(catalog);
                const defaults = defaultModuleConfiguration();
