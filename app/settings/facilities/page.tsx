@@ -637,7 +637,7 @@ export default function FacilityOnboardingPage() {
                     {provisioningApplication && <div className="alert alert-info">
                          <h2 className="h6">{provisioningApplication.integration_state === "provision_failed" ? "Retrying approved website application" : "Provisioning website application"}: {provisioningApplication.name}</h2>
                          {provisioningApplication.integration_state === "provision_failed"
-                              ? <p className="mb-0">Retry is matched to the approved application's company name, email, phone, address, administrator email, and currency. These details cannot be changed; choose official location records if they are not already available.</p>
+                              ? <p className="mb-0">You can edit the company details before retrying. The location of a previously reserved facility cannot be changed.</p>
                               : <>
                                    <p>Review the public company details and select official location records. This provisions a PLS tenant and links the approved application without reusing its website password.</p>
                                    <label className="form-check"><input type="checkbox" className="form-check-input" checked={identityConfirmed} disabled={busy} onChange={event => setIdentityConfirmed(event.target.checked)} /><span className="form-check-label">I verified this application belongs to the facility being provisioned.</span></label>
@@ -652,7 +652,7 @@ export default function FacilityOnboardingPage() {
                               ] as const).map(([field, label, type]) => (
                                    <div key={field} className="col-md-6">
                                         <label htmlFor={field} className="form-label">{label}</label>
-                                        <input {...fieldProps(field)} id={field} type={type} className={`form-control${formErrors[field] ? " is-invalid" : ""}`} value={form[field]} disabled={Boolean(provisioningApplication) || (Boolean(retryFacility) && field !== "address")} onChange={(event) => update(field, event.target.value)} maxLength={field === "address" ? 200 : field === "phone" ? 10 : 100} minLength={field === "phone" ? 7 : 1} pattern={field === "phone" ? "[0-9]{7,10}" : undefined} required />
+                                        <input {...fieldProps(field)} id={field} type={type} className={`form-control${formErrors[field] ? " is-invalid" : ""}`} value={form[field]} disabled={provisioningApplication ? provisioningApplication.integration_state !== "provision_failed" : (Boolean(retryFacility) && field !== "address")} onChange={(event) => update(field, event.target.value)} maxLength={field === "address" ? 200 : field === "phone" ? 10 : 100} minLength={field === "phone" ? 7 : 1} pattern={field === "phone" ? "[0-9]{7,10}" : undefined} required />
                                         {fieldError(field)}
                                         {field === "phone" && <small className="text-muted">7 to 10 digits only, without spaces or a plus sign.</small>}
                                    </div>

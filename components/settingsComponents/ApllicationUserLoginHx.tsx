@@ -17,7 +17,7 @@ export default function ApplicationUserLoginHx({ history, employeeid, onChanged 
         if (!window.confirm(`Sign out ${username} from this session? They will be signed out on their next request.`)) return;
         const reason = window.prompt("Reason for signing this user out (optional):") ?? "";
         try {
-            const response = await customFetchMutation(`security/sessions/${sessionKey}/force-logout`, "POST", { reason });
+            const response = await customFetchMutation(`security/sessions/${sessionKey}/force-logout`, "POST", { reason, employeeid: applicationsettings.user.employeeid });
             if (response?.status === "success") {
                 alert("User has been signed out successfully.");
                 onChanged?.();
