@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "identifier": "primelabsys.com",
   "build": {
-    "devUrl": "https://localhost:3000",
+    "devUrl": "https://localhost:2377",
     "beforeBuildCommand": ""
   },
   "app": {
@@ -14,7 +14,7 @@
         "width": 800,
         "height": 600,
         "resizable": true,
-        "url": "https://localhost:3000",
+        "url": "https://localhost:2377",
         "fullscreen": false
       }
     ],

@@ -33,7 +33,7 @@ const requestFor = (pathname) => ({
 
 test("signed super-admin can open every formerly restricted module", async () => {
     const middleware = middlewareFor("super-admin");
-    for (const pathname of ["/settings/applicationsettings", "/inventory", "/analytics", "/doctor", "/patientportal", "/communications", "/operations/imaging", "/billing/expenses", "/settings/facilities/payments", "/settings/facilities/audit", "/settings/facilities/applications"]) {
+    for (const pathname of ["/settings/applicationsettings", "/inventory", "/analytics", "/doctor", "/patientportal", "/communications", "/operations/imaging", "/billing/expenses", "/settings/facilities/payments", "/settings/facilities/audit", "/settings/facilities/applications", "/settings/facilities/devices"]) {
         const result = await middleware(requestFor(pathname));
         assert.equal(result.allowed, true, pathname);
         assert.match(result.headers.get("Cache-Control"), /no-store/);
@@ -47,6 +47,7 @@ test("unverified super-admin claims cannot bypass authentication", async () => {
 test("ordinary admins cannot open platform subpages and sonographers retain restrictions", async () => {
     assert.equal((await middlewareFor("admin")(requestFor("/settings/facilities/audit"))).url, "/unauthorized");
     assert.equal((await middlewareFor("admin")(requestFor("/settings/facilities/applications"))).url, "/unauthorized");
+    assert.equal((await middlewareFor("admin")(requestFor("/settings/facilities/devices"))).url, "/unauthorized");
     assert.equal((await middlewareFor("sonographer")(requestFor("/inventory"))).url, "/unauthorized");
 });
 test("navigation page utility flattens nested pages and removes duplicate destinations", () => {

@@ -37,6 +37,7 @@ export const ApplicationSettingsLinks: Link[] =
                 { title: "Website applications", link: "/settings/facilities/applications", icon: <RiBuilding2Line /> },
                 { title: "Client payments", link: "/settings/facilities/payments", icon: <RiBuilding2Line /> },
                 { title: "Client SMS configuration", link: "/settings/facilities/sms", icon: <RiBuilding2Line /> },
+                { title: "Medical Device Interfacing", link: "/settings/facilities/devices", icon: <RiSettings4Line /> },
                 { title: "Client audit logs", link: "/settings/facilities/audit", icon: <RiBuilding2Line /> }
             ]
         },

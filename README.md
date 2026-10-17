@@ -74,6 +74,14 @@ payments; enter them before submitting the sale. Suspending a resumed transactio
 updates its existing draft rather than creating another entry.
 
 The client platform sections are also listed under **Platform Administration**:
+**Medical Device Interfacing** (`/settings/facilities/devices`: select a facility to
+add, edit, activate/deactivate or delete its analyzer definitions, ports, connection
+mode, TLS settings and tenant-local test IDs). This reuses the existing settings
+editor, but saves through platform-authorized routes to the selected facility's
+database. Changes appear in that facility's Device Manager device discovery;
+they do not enable its interfacing module or bypass licensing. Mutations record
+the authenticated platform administrator in the facility audit history.
+
 **Provisioning** (`/settings/facilities`: registry, provisioning, activate/deactivate),
 **Website applications** (`/settings/facilities/applications`: review applications,
 approve independent marketplace access, and provision or link a PLS facility),

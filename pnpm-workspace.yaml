@@ -6,3 +6,8 @@ allowBuilds:
   '@livekit/local-inference': true
   core-js: true
   unrs-resolver: true
+  optipng-bin: true
+  pngquant-bin: true
+  sharp: true
+  tauri: true
+  zopflipng-bin: true

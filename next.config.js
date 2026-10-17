@@ -8,7 +8,7 @@ const developmentBaseUrl =
 /** @type {import('next').NextConfig} */
 const nextConfig = {
 	reactStrictMode: true,
-	output: "standalone",
+	// output: "standalone",
 	env: {
 		PRODUCTION_BASEURL: productionBaseUrl,
 		DEVELOPMENT_BASEURL:
