@@ -133,6 +133,12 @@ export const availableFonts = [
      { name: 'Source Sans', value: "var(--font-source-sans)" },
      { name: 'Poppins', value: "var(--font-poppins)" },
      { name: 'Inter', value: "var(--font-inter)" },
+     { name: 'IBM Plex Sans', value: "var(--font-ibm-plex-sans)" },
+     { name: 'Noto Sans', value: "var(--font-noto-sans)" },
+     { name: 'Work Sans', value: "var(--font-work-sans)" },
+     { name: 'DM Sans', value: "var(--font-dm-sans)" },
+     { name: 'Public Sans', value: "var(--font-public-sans)" },
+     { name: 'Fira Sans', value: "var(--font-fira-sans)" },
 ];
 
 export const normalizeFontFamily = (fontValue: unknown): string => {

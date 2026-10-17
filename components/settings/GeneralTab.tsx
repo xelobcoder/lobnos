@@ -2,6 +2,7 @@
 import React from 'react';
 import { Form, Col, Row } from 'react-bootstrap';
 import { ResultSettings } from '../ResultView/result-settings';
+import { layoutFontFamilies, fontFamilyLabel } from './layoutFontFamilies';
 
 
 interface GeneralTabProps {
@@ -25,6 +26,7 @@ const fontFamilies = [
      'Candara, Calibri, Segoe, Segoe UI, Optima, Arial, sans-serif',
      'Cambria, Georgia, serif',
      'Ralleway, Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
+     ...layoutFontFamilies,
 ];
 
 export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, handleChange }) => {
@@ -45,7 +47,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, handleChange }
                                    className="custom-select"
                               >
                                    {fontFamilies.map((f) => (
-                                        <option key={f} value={f}>{f}</option>
+                                        <option key={f} value={f}>{fontFamilyLabel(f)}</option>
                                    ))}
                               </Form.Select>
                          </div>
@@ -63,7 +65,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, handleChange }
                                    className="custom-select"
                               >
                                    {fontFamilies.map((f) => (
-                                        <option key={f} value={f}>{f}</option>
+                                                                           <option key={f} value={f}>{fontFamilyLabel(f)}</option>
                                    ))}
                               </Form.Select>
                          </div>
@@ -322,7 +324,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, handleChange }
                                    className="custom-select"
                               >
                                    {fontFamilies.map((f) => (
-                                        <option key={f} value={f}>{f}</option>
+                                                                           <option key={f} value={f}>{fontFamilyLabel(f)}</option>
                                    ))}
                               </Form.Select>
                          </div>

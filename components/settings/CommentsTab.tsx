@@ -2,6 +2,7 @@
 import React from 'react';
 import { Form } from 'react-bootstrap';
 import { ResultSettings } from '../ResultView/result-settings';
+import { layoutFontFamilies, fontFamilyLabel } from './layoutFontFamilies';
 
 interface CommentsTabProps {
      settings: ResultSettings;
@@ -23,6 +24,7 @@ const fontFamilies = [
      'Candara, Calibri, Segoe, Segoe UI, Optima, Arial, sans-serif',
      'Cambria, Georgia, serif',
      'Ralleway, Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
+     ...layoutFontFamilies,
 ];
 
 export const CommentsTab: React.FC<CommentsTabProps> = ({ settings, handleChange }) => {
@@ -83,7 +85,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ settings, handleChange
                                    className="custom-select"
                               >
                                    {fontFamilies.map((f) => (
-                                        <option key={f} value={f}>{f}</option>
+                                        <option key={f} value={f}>{fontFamilyLabel(f)}</option>
                                    ))}
                               </Form.Select>
                          </div>

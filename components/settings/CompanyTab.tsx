@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Form } from 'react-bootstrap';
 import { ResultSettings } from '../ResultView/result-settings';
+import { layoutFontFamilies, fontFamilyLabel } from './layoutFontFamilies';
 
 const fontFamilies = [
      'Arial, Helvetica, sans-serif',
@@ -21,6 +22,7 @@ const fontFamilies = [
      'Quicksand, sans-serif',
      'Cambria, Georgia, serif',
      'Ralleway, Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
+     ...layoutFontFamilies,
 ];
 
 interface CompanyTabProps {
@@ -148,7 +150,7 @@ export const CompanyTab: React.FC<CompanyTabProps> = ({ settings, handleChange }
                                    className="custom-select"
                               >
                                    {fontFamilies.map((f) => (
-                                        <option key={f} value={f}>{f}</option>
+                                        <option key={f} value={f}>{fontFamilyLabel(f)}</option>
                                    ))}
                               </Form.Select>
                          </div>
