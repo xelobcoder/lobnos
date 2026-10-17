@@ -281,7 +281,7 @@ export default function MedicalDevicesInterfacing({ endpoint = "devices/interfac
                     ))}
                </div>
 
-               {error && <Alert variant="danger">{error}</Alert>}
+               {error && <Alert variant="danger" role="alert">{error}</Alert>}
 
                <section className="mb-4" aria-labelledby="device-configuration-heading">
                     <h5 id="device-configuration-heading" className="h6 border-bottom pb-2 mb-3 fw-semibold">
@@ -293,7 +293,7 @@ export default function MedicalDevicesInterfacing({ endpoint = "devices/interfac
                          <Form onSubmit={handleSubmit(onSubmit)}>
                               <div className="row g-3">
                                    <div className="col-md-6">
-                                        <Form.Group>
+                                        <Form.Group controlId="device-name">
                                              <Form.Label>Device Name</Form.Label>
                                              <Form.Control
                                                   type="text"
@@ -306,7 +306,7 @@ export default function MedicalDevicesInterfacing({ endpoint = "devices/interfac
                                    </div>
 
                                    <div className="col-md-6">
-                                        <Form.Group>
+                                        <Form.Group controlId="device-ip">
                                              <Form.Label>IP Address</Form.Label>
                                              <Form.Control
                                                   type="text"
@@ -319,7 +319,7 @@ export default function MedicalDevicesInterfacing({ endpoint = "devices/interfac
                                    </div>
 
                                    <div className="col-md-3">
-                                        <Form.Group>
+                                        <Form.Group controlId="device-dial-port">
                                              <Form.Label>Dial Port</Form.Label>
                                              <Form.Control
                                                   type="text"
@@ -332,14 +332,14 @@ export default function MedicalDevicesInterfacing({ endpoint = "devices/interfac
                                    </div>
 
                                    <div className="col-md-3">
-                                        <Form.Group>
+                                        <Form.Group controlId="device-listen-port">
                                              <Form.Label>Listen Port</Form.Label>
                                              <Form.Control type="text" {...register("listen_port")} placeholder="5002" />
                                         </Form.Group>
                                    </div>
 
                                    <div className="col-md-3">
-                                        <Form.Group>
+                                        <Form.Group controlId="device-connection-mode">
                                              <Form.Label>Connection Mode</Form.Label>
                                              <Form.Select {...register("connection_mode")} value={selectedMode ?? "pull"}>
                                                   <option value="pull">Pull</option>
@@ -351,21 +351,21 @@ export default function MedicalDevicesInterfacing({ endpoint = "devices/interfac
                                    </div>
 
                                    <div className="col-md-3">
-                                        <Form.Group>
+                                        <Form.Group controlId="device-test-id">
                                              <Form.Label>Test ID</Form.Label>
                                              <Form.Control type="text" {...register("testid")} placeholder="Optional" />
                                         </Form.Group>
                                    </div>
 
                                    <div className="col-md-4">
-                                        <Form.Group>
+                                        <Form.Group controlId="device-last-known-ip">
                                              <Form.Label>Last Known IP</Form.Label>
                                              <Form.Control type="text" {...register("last_known_ip")} placeholder="Optional" />
                                         </Form.Group>
                                    </div>
 
                                    <div className="col-md-4">
-                                        <Form.Group>
+                                        <Form.Group controlId="device-use-tls">
                                              <Form.Label>Use TLS</Form.Label>
                                              <div className="d-flex align-items-center mt-2">
                                                   <Form.Check type="switch" {...register("use_tls")} />
@@ -375,7 +375,7 @@ export default function MedicalDevicesInterfacing({ endpoint = "devices/interfac
                                    </div>
 
                                    <div className="col-md-4">
-                                        <Form.Group>
+                                        <Form.Group controlId="device-active">
                                              <Form.Label>Status</Form.Label>
                                              <div className="d-flex align-items-center mt-2">
                                                   <Form.Check type="switch" {...register("active")} />
@@ -385,7 +385,7 @@ export default function MedicalDevicesInterfacing({ endpoint = "devices/interfac
                                    </div>
 
                                    <div className="col-12">
-                                        <Form.Group>
+                                        <Form.Group controlId="device-information">
                                              <Form.Label>Device Information</Form.Label>
                                              <Form.Control as="textarea" rows={4} {...register("device_info")} placeholder="Optional device metadata, serial number, notes, or endpoint details" />
                                         </Form.Group>
@@ -493,7 +493,7 @@ export default function MedicalDevicesInterfacing({ endpoint = "devices/interfac
                                                                       >
                                                                            {isActive ? <RiCloseCircleLine size={14} aria-hidden="true" /> : <RiCheckLine size={14} aria-hidden="true" />}
                                                                       </Button>
-                                                                 </section>
+                                                                 </div>
                                                             </td>
                                                        </tr>
                                                   );
@@ -503,7 +503,7 @@ export default function MedicalDevicesInterfacing({ endpoint = "devices/interfac
                               </div>
                          )}
                     </div>
-               </div>
+               </section>
 
                <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered>
                     <Modal.Header closeButton>

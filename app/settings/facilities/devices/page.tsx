@@ -1,6 +1,5 @@
 "use client";
 
-import { RiHospitalLine } from "@remixicon/react";
 import FacilityPicker from "../FacilityPicker";
 import MedicalDevicesInterfacing from "../../../../components/settings/MedicalDevicesInterfacing";
 
@@ -10,10 +9,8 @@ export default function FacilityMedicalDevicesPage() {
                <header className="border-bottom pb-3 mb-3">
                     <div className="row g-3 align-items-center">
                          <div className="col-12 col-lg-6">
-                              <div className="d-flex align-items-center gap-2 mb-1">
-                                   <RiHospitalLine size={22} className="text-primary flex-shrink-0" aria-hidden="true" />
-                                   <h3 id="facility-devices-heading" className="h5 fw-semibold mb-0 text-break">{facility.name}</h3>
-                              </div>
+                              <p className="small text-muted mb-1">Selected facility</p>
+                              <h3 id="facility-devices-heading" className="h5 fw-semibold mb-1 text-break">{facility.name}</h3>
                               <p id="facility-devices-description" className="small text-muted mb-0">Device configurations are saved to this facility only.</p>
                          </div>
                          <div className="col-12 col-lg-6">
