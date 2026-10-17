@@ -643,6 +643,203 @@
     --workspace-content-bg: #151e2b;
 }
 
+.slackLayout {
+    --theme-header-bg: #ffffff;
+    --theme-header-text: #1d1c1d;
+    --theme-header-border: #dedede;
+    --workspace-sidebar-bg: #4a154b;
+    --workspace-border: #613563;
+    --workspace-text: #f8f4f8;
+    --workspace-muted: #d4bfd5;
+    --workspace-hover: rgb(249 237 255 / 12%);
+    --workspace-selected: #f9edff;
+    --workspace-selected-text: #3f0e40;
+    --workspace-content-bg: #f8f8f8;
+    grid-template-rows: 58px minmax(0, 1fr);
+    --theme-font-family: var(--font-lato), Lato, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --bs-body-font-family: var(--theme-font-family);
+    font-family: var(--theme-font-family);
+    line-height: 1.45;
+}
+
+.slackLayout button,
+.slackLayout input,
+.slackLayout select,
+.slackLayout textarea,
+.slackLayout table {
+    font-family: inherit;
+}
+
+.slackLayout .header {
+    border-bottom-color: var(--workspace-border);
+}
+
+.slackLayout .headerBrand {
+    border-right-color: #e5e5e5;
+}
+
+.slackLayout .headerBrandMark {
+    border-radius: 8px;
+    background: #4a154b;
+}
+
+.slackLayout .headerBrandName,
+.slackLayout .companyName,
+.slackLayout .accountName {
+    color: var(--theme-header-text);
+}
+
+.slackLayout .sidebar {
+    width: 272px;
+}
+
+.slackSidebarHeader {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 58px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--workspace-border);
+}
+
+.slackBrandMark {
+    display: grid;
+    place-items: center;
+    flex: 0 0 30px;
+    width: 30px;
+    height: 30px;
+    border: 1px solid rgb(255 255 255 / 55%);
+    border-radius: 7px;
+    color: #ffffff;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+}
+
+.slackWorkspaceName {
+    overflow: hidden;
+    color: var(--workspace-text);
+    font-size: 14px;
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.slackLayout .navigation {
+    padding: 10px 10px 16px;
+    scrollbar-color: #8a638b transparent;
+}
+
+.slackLayout .group {
+    margin-bottom: 5px;
+}
+
+.slackLayout .groupButton {
+    min-height: 30px;
+    padding: 5px 9px;
+    border-radius: 6px;
+    color: var(--workspace-muted);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+
+.slackLayout .groupButton:hover,
+.slackLayout .groupButton[aria-expanded="true"] {
+    color: var(--workspace-text);
+}
+
+.slackLayout .groupButton.currentGroup {
+    color: var(--workspace-text);
+}
+
+.slackLayout .item {
+    min-height: 32px;
+    gap: 9px;
+    padding: 5px 9px;
+    border-radius: 6px;
+    color: var(--workspace-text);
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.slackLayout .item:hover {
+    background: var(--workspace-hover);
+}
+
+.slackLayout .icon,
+.slackLayout .chevron {
+    color: var(--workspace-muted);
+}
+
+.slackLayout .item:hover .icon,
+.slackLayout .item:hover .chevron {
+    color: var(--workspace-text);
+}
+
+.slackLayout .submenu {
+    margin-inline-start: 18px;
+    padding-inline-start: 8px;
+    border-inline-start: 1px solid var(--workspace-border);
+}
+
+.slackLayout .submenu .submenu {
+    margin-inline-start: 10px;
+}
+
+.slackLayout .submenu .item {
+    min-height: 30px;
+    padding: 4px 9px;
+    font-size: 13px;
+}
+
+.slackLayout .active,
+.slackLayout .active:hover {
+    background: var(--workspace-selected);
+    color: var(--workspace-selected-text);
+    font-weight: 700;
+}
+
+.slackLayout .active .icon,
+.slackLayout .active .chevron {
+    color: var(--workspace-selected-text);
+}
+
+.slackLayout .appsButton {
+    min-height: 50px;
+    padding: 12px 18px;
+    border-top-color: var(--workspace-border);
+    color: var(--workspace-muted);
+}
+
+.slackLayout .appsButton:hover {
+    color: var(--workspace-text);
+}
+
+.slackLayout .item:focus-visible,
+.slackLayout .appsButton:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: -3px;
+}
+
+:global(html[data-bs-theme="dark"]) .slackLayout {
+    --theme-header-bg: #1a1d21;
+    --theme-header-text: #f8f8f8;
+    --theme-header-border: #35373b;
+    --workspace-sidebar-bg: #3f1240;
+    --workspace-border: #59305a;
+    --workspace-text: #f8f4f8;
+    --workspace-muted: #d4bfd5;
+    --workspace-hover: rgb(249 237 255 / 12%);
+    --workspace-selected: #f9edff;
+    --workspace-selected-text: #3f0e40;
+    --workspace-content-bg: #1a1d21;
+}
+
+:global(html[data-bs-theme="dark"]) .slackLayout .headerBrand {
+    border-right-color: #35373b;
+}
+
 @media (max-width: 768px) {
     .shell,
     :global(html[data-layout-structure="sidebar-full"]) .shell {

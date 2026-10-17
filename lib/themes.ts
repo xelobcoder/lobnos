@@ -127,6 +127,12 @@ export const availableFonts = [
      { name: 'Open Sans', value: "var(--font-open-sans)" },
      { name: 'Segoe UI', value: "var(--font-segoe)" },
      { name: 'Raleway', value: "var(--font-raleway)" },
+     { name: 'Lato', value: "var(--font-lato)" },
+     { name: 'Roboto', value: "var(--font-roboto)" },
+     { name: 'Nunito Sans', value: "var(--font-nunito-sans)" },
+     { name: 'Source Sans', value: "var(--font-source-sans)" },
+     { name: 'Poppins', value: "var(--font-poppins)" },
+     { name: 'Inter', value: "var(--font-inter)" },
 ];
 
 export const normalizeFontFamily = (fontValue: unknown): string => {

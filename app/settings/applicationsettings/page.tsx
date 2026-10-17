@@ -70,7 +70,7 @@ interface ApplicationSettingsData {
 	primaryColor?: string | null;
 	secondaryColor?: string | null;
 	ageVariationLimits: string | null
-	workspaceLayout?: 'classic' | 'zoho' | 'claude' | 'ribbon';
+	workspaceLayout?: 'classic' | 'zoho' | 'claude' | 'ribbon' | 'slack';
 }
 
 const defaultUiSettings = {
@@ -171,8 +171,8 @@ export default function ApplicationSettings() {
 	const canManageWorkspaceLayout = roleAllowed(user?.role, ['admin']);
 
 	const [settings, setSettings] = useState<ApplicationSettingsData | null>(null);
-	const [workspaceLayout, setWorkspaceLayout] = useState<'classic' | 'zoho' | 'claude' | 'ribbon'>(
-		applicationsettings.settings?.workspaceLayout === 'zoho' || applicationsettings.settings?.workspaceLayout === 'claude' || applicationsettings.settings?.workspaceLayout === 'ribbon'
+	const [workspaceLayout, setWorkspaceLayout] = useState<'classic' | 'zoho' | 'claude' | 'ribbon' | 'slack'>(
+		applicationsettings.settings?.workspaceLayout === 'zoho' || applicationsettings.settings?.workspaceLayout === 'claude' || applicationsettings.settings?.workspaceLayout === 'ribbon' || applicationsettings.settings?.workspaceLayout === 'slack'
 			? applicationsettings.settings.workspaceLayout
 			: 'classic'
 	);
@@ -180,7 +180,7 @@ export default function ApplicationSettings() {
 	const [workspaceLayoutMessage, setWorkspaceLayoutMessage] = useState<{ type: 'success' | 'danger'; text: string } | null>(null);
 	useEffect(() => {
 		const value = applicationsettings.settings?.workspaceLayout;
-		setWorkspaceLayout(value === 'zoho' || value === 'claude' || value === 'ribbon' ? value : 'classic');
+		setWorkspaceLayout(value === 'zoho' || value === 'claude' || value === 'ribbon' || value === 'slack' ? value : 'classic');
 	}, [applicationsettings.settings?.workspaceLayout]);
 	const [regions, setRegions] = useState<any[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -560,15 +560,31 @@ export default function ApplicationSettings() {
 			settings.districtcode?.toString() ?? ''
 		);
 
-		const payload = {
-			...settings,
-			regioncode: region ? region.id : null,
-			districtcode: district ? district.id : null,
-		};
-
 		try {
 			setSaving(true);
 			setError(null);
+
+			let services: unknown = settings.services;
+			if (typeof services === 'string') {
+				const trimmedServices = services.trim();
+				if (!trimmedServices) {
+					services = undefined;
+				} else {
+					try {
+						services = JSON.parse(trimmedServices);
+					} catch {
+						setError('Service settings must contain valid JSON');
+						return;
+					}
+				}
+			}
+
+			const payload = {
+				...settings,
+				services,
+				regioncode: region ? region.id : null,
+				districtcode: district ? district.id : null,
+			};
 
 			// Validate age variation limits before submit
 			const validation = validateAgeVariation();
@@ -671,7 +687,7 @@ export default function ApplicationSettings() {
 										disabled={savingWorkspaceLayout}
 										onChange={(event) => {
 											const value = event.target.value;
-											if (value === 'classic' || value === 'zoho' || value === 'claude' || value === 'ribbon') setWorkspaceLayout(value);
+											if (value === 'classic' || value === 'zoho' || value === 'claude' || value === 'ribbon' || value === 'slack') setWorkspaceLayout(value);
 											setWorkspaceLayoutMessage(null);
 										}}
 									>
@@ -679,6 +695,7 @@ export default function ApplicationSettings() {
 										<option value="zoho">Zoho Books-inspired</option>
 										<option value="claude">Claude-inspired</option>
 										<option value="ribbon">Office-inspired ribbon</option>
+										<option value="slack">Slack-inspired workspace</option>
 									</Form.Select>
 									<Button
 										type="button"

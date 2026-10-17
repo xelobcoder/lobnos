@@ -66,10 +66,13 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
             ? 'zoho'
             : settings?.workspaceLayout === 'ribbon'
                 ? 'ribbon'
-                : 'classic';
+            : settings?.workspaceLayout === 'slack'
+                ? 'slack'
+            : 'classic';
     const isWorkspaceLayout = activeLayout !== 'classic';
     const isClaudeLayout = activeLayout === 'claude';
     const isRibbonLayout = activeLayout === 'ribbon';
+    const isSlackLayout = activeLayout === 'slack';
     const [openNavigationGroup, setOpenNavigationGroup] = useState<string | null>(null);
     const [isFontSelectorOpen, setIsFontSelectorOpen] = useState<boolean>(false);
     const [isAppsOpen, setIsAppsOpen] = useState<boolean>(false);
@@ -322,7 +325,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
     };
 
     return (
-        <div className={`${styles.container} ${isWorkspaceLayout ? `${workspaceStyles.shell} ${isClaudeLayout ? workspaceStyles.claudeLayout : ''} ${isRibbonLayout ? ribbonStyles.layout : ''}` : ''} ${isQuickLinksCollapsed ? `${styles.quickLinksCollapsed} ${workspaceStyles.collapsed}` : styles.quickLinksExpanded} ${isMobileSidebarOpen ? `${styles.mobileSidebarOpen} ${workspaceStyles.mobileOpen}` : ''} ${!isOpenSideBarShow ? `${workspaceStyles.sidebarHidden} ${ribbonStyles.sidebarHidden}` : ''}`}>
+        <div className={`${styles.container} ${isWorkspaceLayout ? `${workspaceStyles.shell} ${isClaudeLayout ? workspaceStyles.claudeLayout : ''} ${isSlackLayout ? workspaceStyles.slackLayout : ''} ${isRibbonLayout ? ribbonStyles.layout : ''}` : ''} ${isQuickLinksCollapsed ? `${styles.quickLinksCollapsed} ${workspaceStyles.collapsed}` : styles.quickLinksExpanded} ${isMobileSidebarOpen ? `${styles.mobileSidebarOpen} ${workspaceStyles.mobileOpen}` : ''} ${!isOpenSideBarShow ? `${workspaceStyles.sidebarHidden} ${ribbonStyles.sidebarHidden}` : ''}`}>
             {isRibbonLayout && <a href="#workspace-main" className={ribbonStyles.skipLink}>Skip to workspace</a>}
             <header className={`${styles.darkHeader} ${isWorkspaceLayout ? workspaceStyles.header : ''} ${isRibbonLayout ? ribbonStyles.header : ''}`}>
                 <div className={`${styles.headerContent} ${isWorkspaceLayout ? workspaceStyles.headerContent : ''}`}>
@@ -482,6 +485,12 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                     <aside className={`${styles.quickLinksSidebar} ${isWorkspaceLayout ? workspaceStyles.sidebar : ''} ${isMobileSidebarOpen ? styles.mobileSidebarVisible : ''}`}>
                         {isWorkspaceLayout ? (
                             <>
+                                {isSlackLayout && (
+                                    <div className={workspaceStyles.slackSidebarHeader}>
+                                        <span className={workspaceStyles.slackBrandMark} aria-hidden="true">PLS</span>
+                                        <span className={workspaceStyles.slackWorkspaceName}>{company || 'Workspace'}</span>
+                                    </div>
+                                )}
                                 {isClaudeLayout && (
                                     <div className={workspaceStyles.claudeSidebarHeader}>
                                         <div className={workspaceStyles.claudeBrandMark} aria-hidden="true">PLS</div>
