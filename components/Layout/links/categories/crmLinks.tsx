@@ -6,8 +6,6 @@ import {
     RiUserSettingsLine,
     RiBillFill,
     RiMoneyDollarCircleLine,
-    RiAddCircleLine,
-    RiAddBoxLine,
     RiBox3Line,
     RiRefundLine,
     RiMoonLine,
@@ -142,40 +140,8 @@ export const CrmLinks: Link[] = [
     },
     {
         title: "Expenses",
-        link: "",
-        icon: <RiMoneyDollarCircleLine />,
-        children: [
-            {
-                title: "Expenses",
-                link: "/billing/expenses",
-                icon: <RiMoneyDollarCircleLine />
-            },
-            {
-                title: "New Expense",
-                link: "/billing/expenses/create-new-expense",
-                icon: <RiAddCircleLine />
-            },
-            {
-                title: "New Merchants",
-                link: "/billing/expenses/merchants/create",
-                icon: <RiAddBoxLine />
-            },
-            {
-                title: 'Expense Category',
-                link: '/billing/expenses/category',
-                icon: <RiCalendarEventFill />
-            },
-            {
-                title: "Invoices",
-                link: "/billing/expenses/invoices",
-                icon: <RiBillFill />
-            },
-            {
-                title: "Reversed Payments",
-                link: "/billing/expenses/reversed-payments",
-                icon: <RiMoneyDollarCircleLine />
-            }
-        ]
+        link: "/billing/expenses",
+        icon: <RiMoneyDollarCircleLine />
     },
     {
         title: "Clinicians",

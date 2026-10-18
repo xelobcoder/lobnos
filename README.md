@@ -60,6 +60,28 @@ source selection and the corresponding pricing rules must remain available.
 Also test an unavailable catalog and a facility change; neither may reuse prices
 from the previous context.
 
+### Registration prompts and referral shortcuts
+
+- **Settings → Application settings → Billing** has two switches.
+  - **Ask About Home Collection**: shows the home-collection question after billing.
+  - **Ask For Results Delivery Mode**: shows the delivery-mode question. When this
+    switch is off, every test is saved as **hard copy**.
+  - Both switches are off by default. Changes apply to the next sale, with no
+    redeploy needed.
+- **Expenses** has its own sidebar under `/billing/expenses`, and CRM links are not
+  shown there. The CRM menu keeps a single **Expenses** entry that opens the module.
+- On the billing page, **+ Add organization** and **+ Add clinician** open a
+  name-only form. Phone and email are optional. The new entry is selected straight
+  away, and an existing entry with the same name is reused.
+- A clinician can refer from several organizations. After a clinician is
+  selected, billing lists the organizations they refer from for a one-click
+  choice. It also offers to save a newly selected organization to that clinician.
+  A clinician added while an organization is selected is linked to it.
+  - On the clinician profile, **Organizations this clinician refers from** lets
+    staff add or remove these organizations.
+  - **Main Organization** stays the default. Organization commissions go to the
+    facility the case came from.
+
 ## Tenant-aware login
 
 The login form has exactly two inputs: **Username** and **Password**. A username

@@ -4,7 +4,7 @@ import MultiRenderingBillingSourceFields from "./RenderingBillingSourceFields";
 import MultiPACKAGESELECT from './MultiPACKAGESELECT';
 import MultiRenderingWithPatientId from "./MultiRenderingWithPatientId";
 import { Button, Spinner, Modal } from "react-bootstrap";
-import { useContext, useState, useEffect } from "react";
+import { useContext, useState, useEffect, useRef } from "react";
 import { customFetch, customFetchMutation } from "../../Auth/customFetch";
 import { billingContextProps, defaultMultiBillingData, MultiBillingData } from "../../../lib/Multi/MultiTypes";
 import { MultiBillingProvider, MultiBillingContext } from "./MultiBillingContext";
@@ -23,6 +23,7 @@ import GoogleMapPicker from '../../home-collection/GoogleMapPicker';
 import type { LocationValue } from '../../home-collection/v.dev.types';
 import { finalizeSuspendedBilling, resumeSuspendedBilling } from '../../../lib/Multi/suspendedBilling';
 import { billingInitUrl, canPreloadGeneralBilling, getFacilityBillingMode } from '../../../lib/Multi/billingWorkflow';
+import { buildDefaultDeliveryPreferences, DEFAULT_RESULT_DELIVERY_MODE, loadRegistrationPromptSettings, type RegistrationPromptSettings } from '../../../lib/Multi/registrationPrompts';
 
 
 
@@ -55,6 +56,9 @@ function MultiBillingLayoutContent() {
     const branchid = useApplication().branchid;
     const employeeid = useApplication().user?.employeeid || 0;
     const role = useApplication().user?.role
+    const cachedSettings = useApplication().settings;
+    const preparingSubmitRef = useRef(false);
+    const promptSettingsRef = useRef<RegistrationPromptSettings | null>(null);
     const context = useContext(MultiBillingContext);
     if (!context) throw new Error("MultiBillingContext not found");
     const { billingdata, setBillingData, recalculateTotalBill } = context;
@@ -317,7 +321,7 @@ function MultiBillingLayoutContent() {
     const [showDeliveryModal, setShowDeliveryModal] = useState(false);
     const [savingDeliveryPreference, setSavingDeliveryPreference] = useState(false);
     const [loadingDeliveryDefaults, setLoadingDeliveryDefaults] = useState(false);
-    const [deliveryMode, setDeliveryMode] = useState<string>('whatsapp');
+    const [deliveryMode, setDeliveryMode] = useState<string>(DEFAULT_RESULT_DELIVERY_MODE);
     const [deliveryDetail, setDeliveryDetail] = useState<string>('');
     const [pendingSubmit, setPendingSubmit] = useState<null | { billingdata: MultiBillingData; writeOffConfirmed: boolean }>(null);
     const [showSampleLocationModal, setShowSampleLocationModal] = useState(false);
@@ -473,13 +477,35 @@ function MultiBillingLayoutContent() {
             return toast.error('Adjustment reason is required for correction adjustments');
         }
 
+        if (preparingSubmitRef.current) return;
+        preparingSubmitRef.current = true;
+        let prompts: RegistrationPromptSettings;
+        try {
+            prompts = await loadRegistrationPromptSettings(cachedSettings);
+        } finally {
+            preparingSubmitRef.current = false;
+        }
+        promptSettingsRef.current = prompts;
+
+        if (!prompts.resultDeliveryPrompt) {
+            if (!employeeid) {
+                toast.error('Employee session not found');
+                return;
+            }
+            const resolvedBillingId =
+                billingdata?.billingid ? Number(billingdata.billingid) : (billingid ? Number(billingid) : undefined);
+            await completeBillingSubmission(billingdata, writeOffConfirmed,
+                buildDefaultDeliveryPreferences(billingdata.cart || [], employeeid, resolvedBillingId), resolvedBillingId);
+            return;
+        }
+
         // Initialize test delivery preferences
         const tests = billingdata.cart || [];
         if (tests.length > 0) {
             const prefs = tests.map((test: any) => ({
                 testid: test.testid,
                 testname: test.testname || test.name || 'Test',
-                deliveryMode: 'whatsapp',
+                deliveryMode: DEFAULT_RESULT_DELIVERY_MODE,
                 deliveryDetail: '',
             }));
             setTestDeliveryPreferences(prefs);
@@ -526,51 +552,55 @@ function MultiBillingLayoutContent() {
                 }));
             }
 
-            const resultDeliveryPayload = {
-                ...(resolvedBillingId ? { billingid: resolvedBillingId } : {}),
-                preferences: preferencesPayload,
-                employeeid,
-            };
-
-            const submitResponse: any = await submitBillingInternal(
-                { ...billingdata, result_delivery: resultDeliveryPayload },
-                writeOffConfirmed
-            );
-            const submittedBillingId = submitResponse?.billingid || submitResponse?.data?.billingid;
-            if (!submittedBillingId) {
-                toast.error(submitResponse?.message || 'Billing submission failed');
-                return;
-            }
-
-            const payloadWithBillingId = {
-                ...resultDeliveryPayload,
-                billingid: Number(submittedBillingId),
-                preferences: Array.isArray(resultDeliveryPayload.preferences)
-                    ? resultDeliveryPayload.preferences.map((p: any) => ({
-                        ...p,
-                        billingid: Number(submittedBillingId),
-                    }))
-                    : resultDeliveryPayload.preferences,
-            };
-
-            setBillingData(prev => ({
-                ...prev,
-                result_delivery: payloadWithBillingId
-            }));
-            setShowDeliveryModal(false);
-            setPendingSubmit(null);
-            setSampleLocationChoice('in-center');
-            setHomeCollectionLocation({ address: '', latitude: 0, longitude: 0 });
-            setHasPickedHomeCollectionLocation(false);
-            setHomeCollectionDate('');
-            setHomeCollectionTime('');
-            setHomeCollectionError('');
-            setShowSampleLocationModal(true);
+            const submitted = await completeBillingSubmission(billingdata, writeOffConfirmed, preferencesPayload, resolvedBillingId);
+            if (submitted) setShowDeliveryModal(false);
         } catch (err) {
             toast.error('Failed to save delivery preference');
         } finally {
             setSavingDeliveryPreference(false);
         }
+    };
+
+    const completeBillingSubmission = async (billingdata: MultiBillingData, writeOffConfirmed: boolean,
+        preferencesPayload: any[], resolvedBillingId?: number): Promise<boolean> => {
+        const resultDeliveryPayload = {
+            ...(resolvedBillingId ? { billingid: resolvedBillingId } : {}),
+            preferences: preferencesPayload,
+            employeeid,
+        };
+
+        const submitResponse: any = await submitBillingInternal(
+            { ...billingdata, result_delivery: resultDeliveryPayload },
+            writeOffConfirmed
+        );
+        const submittedBillingId = submitResponse?.billingid || submitResponse?.data?.billingid;
+        if (!submittedBillingId) {
+            if (submitResponse) toast.error(submitResponse?.message || 'Billing submission failed');
+            return false;
+        }
+
+        const payloadWithBillingId = {
+            ...resultDeliveryPayload,
+            billingid: Number(submittedBillingId),
+            preferences: resultDeliveryPayload.preferences.map((p: any) => ({
+                ...p,
+                billingid: Number(submittedBillingId),
+            })),
+        };
+
+        setBillingData(prev => ({
+            ...prev,
+            result_delivery: payloadWithBillingId
+        }));
+        setPendingSubmit(null);
+        setSampleLocationChoice('in-center');
+        setHomeCollectionLocation({ address: '', latitude: 0, longitude: 0 });
+        setHasPickedHomeCollectionLocation(false);
+        setHomeCollectionDate('');
+        setHomeCollectionTime('');
+        setHomeCollectionError('');
+        if (promptSettingsRef.current?.homeCollectionPrompt) setShowSampleLocationModal(true);
+        return true;
     };
 
     // Binds the just-submitted billing to a home collection order (tests are pulled
@@ -634,7 +664,7 @@ function MultiBillingLayoutContent() {
             const response: any = await customFetch(`result/delivery/preference/${resolvedBillingId}`);
             const pref = response?.preference || null;
             if (pref) {
-                setDeliveryMode(pref.requested_mode || 'whatsapp');
+                setDeliveryMode(pref.requested_mode || DEFAULT_RESULT_DELIVERY_MODE);
                 setDeliveryDetail(pref.requested_mode_detail || '');
                 setBillingData(prev => ({
                     ...prev,

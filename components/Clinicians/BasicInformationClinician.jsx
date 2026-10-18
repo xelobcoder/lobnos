@@ -9,6 +9,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import { RiUser2Fill } from "@remixicon/react";
+import ClinicianOrganizationsManager from "./ClinicianOrganizationsManager";
 
 const schema = yup.object().shape({
 	name: yup.string().required("Clinician name is required").max(50, "Name cannot exceed 50 characters"),
@@ -27,6 +28,7 @@ export default function BasicInformationClinician() {
 	const [organizationList, setOrganizationList] = useState([]);
 	const [isLoadingData, setIsLoadingData] = useState(false);
 	const [formError, setFormError] = useState("");
+	const [savedCount, setSavedCount] = useState(0);
 
 	const searchParams = useSearchParams();
 	const router = useRouter();
@@ -139,6 +141,7 @@ export default function BasicInformationClinician() {
 					router.push(`/clinicians/edit?clinicianid=${result.id}`);
 				} else if (clinicianId) {
 					fetchClinicianData(parseInt(clinicianId));
+					setSavedCount(count => count + 1);
 				} else {
 					resetForm(defaultData());
 				}
@@ -326,7 +329,7 @@ export default function BasicInformationClinician() {
 							<Col xs={12} md={12}>
 								<Form.Group className="d-flex flex-column flex-md-row align-items-start align-items-md-center mb-3">
 									<Form.Label className="mb-1 clinician-label" style={{ fontSize: '0.92rem', fontWeight: 400, color: '#444', letterSpacing: '0.01em', minWidth: 120 }}>
-										Affiliated Organization:
+										Main Organization:
 									</Form.Label>
 									<div className="flex-grow-1 w-100">
 										<Controller
@@ -358,6 +361,10 @@ export default function BasicInformationClinician() {
 								</Form.Group>
 							</Col>
 						</Row>
+
+						{clinicianId && (
+							<ClinicianOrganizationsManager clinicianId={parseInt(clinicianId)} organizationList={organizationList} refreshKey={savedCount} />
+						)}
 
 						<Form.Group className="mb-4">
 							<Form.Group className="d-flex flex-column flex-md-row align-items-start align-items-md-center mb-3">

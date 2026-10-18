@@ -20,6 +20,8 @@ interface ApplicationSettingsData {
      byPassSampleValidation?: number;
      byPassValidation?: number;
      byPassProcessing?: number;
+     homeCollectionPromptEnabled?: number;
+     resultDeliveryPromptEnabled?: number;
      patientIdAutoIncrementStart?: number;
      show_watermark?: number;
 }
@@ -83,6 +85,18 @@ export const BillingSettingsTab: React.FC<BillingSettingsTabProps> = ({ settings
                          label: 'Bulk Registration',
                          description: 'Allow multiple patient registrations in a single session',
                          icon: <RiGroupLine size={20} />
+                    },
+                    {
+                         name: 'homeCollectionPromptEnabled',
+                         label: 'Ask About Home Collection',
+                         description: 'After billing a client, ask whether the sample will be collected at home or at the facility',
+                         icon: <RiUserSharedLine size={20} />
+                    },
+                    {
+                         name: 'resultDeliveryPromptEnabled',
+                         label: 'Ask For Results Delivery Mode',
+                         description: 'Ask for hard copy, WhatsApp, email or phone delivery. When off, results default to hard copy',
+                         icon: <RiFileListLine size={20} />
                     },
                     {
                          name: 'completeFlow',

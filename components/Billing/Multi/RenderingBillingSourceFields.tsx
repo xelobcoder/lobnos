@@ -6,6 +6,8 @@ import InsuranceOrganizationFiltering from "../../accessories/SectorFileringComp
 import OrganizationalBillingSourceSearch from "../BillingContextComponents/BillingSourceComponents/OrganizationBillingSearch";
 import { MultiBillingContext } from "./MultiBillingContext";
 import { urgencyOptions } from '../../../lib/billingLib';
+import QuickAddReferralEntity from "./QuickAddReferralEntity";
+import ClinicianReferralOrganizations from "./ClinicianReferralOrganizations";
 
 export default function MultiRenderingBillingSourceFields({
     updateValuesToContext,
@@ -35,6 +37,19 @@ export default function MultiRenderingBillingSourceFields({
             clinicianname: target === "Clinician" ? name : prev.clinicianname,
         }))
     }
+
+    const selectedReferralOrganization = billingdata.organizationId
+        ? { id: Number(billingdata.organizationId), name: billingdata.organizationname || "the selected organization" }
+        : null;
+
+    const clinicianReferralOrganizations = billingdata.clinicianId ? (
+        <ClinicianReferralOrganizations
+            clinicianId={Number(billingdata.clinicianId)}
+            clinicianName={billingdata.clinicianname || "This clinician"}
+            selectedOrganization={selectedReferralOrganization}
+            onSelectOrganization={value => handleNormalRefererWithoutUpdatingBilling(value, "organization")}
+        />
+    ) : null;
 
     return (
         <div style={{ fontSize: '0.95em', fontFamily: 'Segoe UI, Arial, sans-serif' }}>
@@ -139,15 +154,19 @@ export default function MultiRenderingBillingSourceFields({
                                                                 }} />
                                                             </div>
                                                         )}
+                                                        <QuickAddReferralEntity kind="organization" onCreated={value => handleNormalRefererWithoutUpdatingBilling(value, "organization")} />
                                                     </Form.Group>
                                                 )
                                         }
                                         {
                                             billingdata.clinicianId ? (
-                                                <div className="mt-2 bg-secondary-subtle p-2 rounded d-flex justify-content-between">
-                                                    Clinician: <span className="fw-bold">{billingdata.clinicianname}</span>
-                                                    <button className="btn btn-danger btn-sm">reset</button>
-                                                </div>
+                                                <>
+                                                    <div className="mt-2 bg-secondary-subtle p-2 rounded d-flex justify-content-between">
+                                                        Clinician: <span className="fw-bold">{billingdata.clinicianname}</span>
+                                                        <button className="btn btn-danger btn-sm">reset</button>
+                                                    </div>
+                                                    {clinicianReferralOrganizations}
+                                                </>
                                             ) :
                                                 (
                                                     <Form.Group className="mb-3">
@@ -157,6 +176,7 @@ export default function MultiRenderingBillingSourceFields({
                                                                 handleNormalRefererWithoutUpdatingBilling(value, "Clinician");
                                                             }} />
                                                         </div>
+                                                        <QuickAddReferralEntity kind="clinician" organization={selectedReferralOrganization} onCreated={value => handleNormalRefererWithoutUpdatingBilling(value, "Clinician")} />
                                                     </Form.Group>
                                                 )
                                         }
@@ -189,20 +209,29 @@ export default function MultiRenderingBillingSourceFields({
                                 }))}>Remove organization</Button>
                             </div>
                         ) : (
-                            <OrganizationalBillingSourceSearch updatefunction={value => handleNormalRefererWithoutUpdatingBilling(value, "organization")} />
+                            <>
+                                <OrganizationalBillingSourceSearch updatefunction={value => handleNormalRefererWithoutUpdatingBilling(value, "organization")} />
+                                <QuickAddReferralEntity kind="organization" onCreated={value => handleNormalRefererWithoutUpdatingBilling(value, "organization")} />
+                            </>
                         )}
                     </Form.Group>
                     <Form.Group className="mb-3">
                         <Form.Label className="small text-muted">Referring clinician (optional)</Form.Label>
                         {billingdata.clinicianId ? (
-                            <div className="d-flex align-items-center justify-content-between gap-2">
-                                <span>{billingdata.clinicianname}</span>
-                                <Button size="sm" variant="outline-secondary" onClick={() => setBillingData(prev => ({
-                                    ...prev, clinicianId: null, clinicianname: null,
-                                }))}>Remove clinician</Button>
-                            </div>
+                            <>
+                                <div className="d-flex align-items-center justify-content-between gap-2">
+                                    <span>{billingdata.clinicianname}</span>
+                                    <Button size="sm" variant="outline-secondary" onClick={() => setBillingData(prev => ({
+                                        ...prev, clinicianId: null, clinicianname: null,
+                                    }))}>Remove clinician</Button>
+                                </div>
+                                {clinicianReferralOrganizations}
+                            </>
                         ) : (
-                            <ClinicianFiltering isBulk={true} onSelect={value => handleNormalRefererWithoutUpdatingBilling(value, "Clinician")} />
+                            <>
+                                <ClinicianFiltering isBulk={true} onSelect={value => handleNormalRefererWithoutUpdatingBilling(value, "Clinician")} />
+                                <QuickAddReferralEntity kind="clinician" organization={selectedReferralOrganization} onCreated={value => handleNormalRefererWithoutUpdatingBilling(value, "Clinician")} />
+                            </>
                         )}
                     </Form.Group>
                 </>

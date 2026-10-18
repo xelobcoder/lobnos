@@ -124,6 +124,11 @@ function harness({ advanced = false, api, billingContext = context, resume, quer
                 effects.push(() => { cleanups[index]?.(); cleanups[index] = effect(); });
             }
         },
+        useRef(initial) {
+            const index = cursor++;
+            if (!(index in states)) states[index] = { current: initial };
+            return states[index];
+        },
     };
     const fetch = async url => {
         calls.push(url);
@@ -155,6 +160,7 @@ function harness({ advanced = false, api, billingContext = context, resume, quer
         if (name.includes('roles')) return { roleAllowed: () => true };
         if (name.includes('encryption')) return { plsDecryption: () => String(billingContext.patientid) };
         if (name.includes('suspendedBilling')) return { resumeSuspendedBilling: resume };
+        if (name.includes('registrationPrompts')) return load(path.join('lib', 'Multi', 'registrationPrompts.ts'), dep => dep.includes('customFetch') ? { customFetch: fetch } : require(dep));
         return name;
     };
     const Component = load(patientPage
@@ -317,11 +323,49 @@ test('optional organization and clinician referrals never switch the payer or re
     assert.equal(data.entityId, undefined);
     assert.equal(data.cart[0].price, 100);
     tree = Component(props);
+    const affiliations = nodes(tree, node => node.type?.includes?.('ClinicianReferralOrganizations'));
+    assert.equal(affiliations.length, 1, 'the selected clinician shows the organizations they refer from');
+    assert.deepEqual(plain(affiliations[0].props.selectedOrganization), { id: 14, name: 'Referral lab' });
+    assert.equal(affiliations[0].props.clinicianId, 8);
     nodes(tree, node => node.type === 'button' && text(node) === 'Remove organization')[0].props.onClick();
+    tree = Component(props);
+    nodes(tree, node => node.type?.includes?.('ClinicianReferralOrganizations'))[0].props.onSelectOrganization({ id: 21, name: 'Afternoon clinic', entitytype: 'organization' });
+    assert.equal(data.organizationId, 21, 'choosing one of the clinician\'s organizations sets the referral organization');
+    assert.equal(data.organizationname, 'Afternoon clinic');
+    assert.equal(data.billingSource, 1);
+    tree = Component(props);
     nodes(tree, node => node.type === 'button' && text(node) === 'Remove clinician')[0].props.onClick();
+    tree = Component(props);
+    const quickAddClinician = nodes(tree, node => node.type?.includes?.('QuickAddReferralEntity') && node.props.kind === 'clinician')[0];
+    assert.deepEqual(plain(quickAddClinician.props.organization), { id: 21, name: 'Afternoon clinic' }, 'a quick-added clinician is linked to the selected organization');
+    nodes(tree, node => node.type === 'button' && text(node) === 'Remove organization')[0].props.onClick();
+    tree = Component(props);
+    assert.equal(nodes(tree, node => node.type?.includes?.('ClinicianReferralOrganizations')).length, 0);
     assert.equal(data.organizationId, null);
     assert.equal(data.clinicianId, null);
     assert.equal(data.billingSource, 1);
+});
+
+test('clinician organization helpers call the affiliation endpoints and normalize results', async () => {
+    const calls = [];
+    const reply = { status: 'success', result: [{ id: '3', name: 'Main hospital', primary: 1 }, { id: 9, name: 'Evening clinic', primary: 0 }] };
+    const lib = load(path.join('lib', 'clinicianOrganizations.ts'), () => ({
+        customFetch: async endpoint => { calls.push(['GET', endpoint]); return reply; },
+        customFetchMutation: async (endpoint, method, body) => { calls.push([method, endpoint, body]); return reply; },
+    }));
+    assert.deepEqual(plain(await lib.fetchClinicianOrganizations(5)), [
+        { id: 3, name: 'Main hospital', primary: true }, { id: 9, name: 'Evening clinic', primary: false }]);
+    await lib.linkClinicianOrganization(5, 9);
+    await lib.unlinkClinicianOrganization(5, 9);
+    assert.deepEqual(calls.map(([method, endpoint, body]) => [method, endpoint, body === undefined ? 'none' : plain(body)]), [
+        ['GET', 'clinicians/5/organizations', 'none'],
+        ['POST', 'clinicians/5/organizations', { organizationId: 9 }],
+        ['DELETE', 'clinicians/5/organizations/9', 'none'],
+    ]);
+    const failing = load(path.join('lib', 'clinicianOrganizations.ts'), () => ({
+        customFetch: async () => ({ status: 'error', message: 'Clinician not found' }),
+    }));
+    await assert.rejects(failing.fetchClinicianOrganizations(404), /Clinician not found/);
 });
 
 test('patient validation must succeed before the billing form can initialize, with retry on failure', async () => {
