@@ -14,10 +14,11 @@ interface UltrasoundTest {
 }
 
 interface TemplateField {
-	field: string;
-	value: string;
-	fieldid: number;
-	[key: string]: any;
+	field?: string;
+	name?: string;
+	value?: string;
+	fieldid?: number;
+	id?: number;
 }
 
 interface TemplateDetails {
@@ -86,11 +87,14 @@ export default function CreateUltrasonographyTemplates() {
 		try {
 			setRulesLoading(true);
 			const response = await customFetch(`testpanel/list/ultrasound/get/template?templateid=${templateid}`);
+			if (!response || !Array.isArray(response.fields)) {
+				throw new Error(response?.message || "This ultrasound template is no longer available.");
+			}
 
 			const { fields, name, visibletoAll, associatedbodypart, testid } = response;
 			setRule(fields);
 			setName(name);
-			setSelectedTest(testid);
+			setSelectedTest(String(testid));
 			setVisible(visibletoAll);
 			setBodyPart(associatedbodypart);
 
@@ -99,7 +103,7 @@ export default function CreateUltrasonographyTemplates() {
 		} catch (err) {
 			console.error("Failed to fetch template details:", err);
 			setRule([]);
-			toast.error("Failed to load template details");
+			toast.error(err instanceof Error ? err.message : "Failed to load template details");
 		} finally {
 			setRulesLoading(false);
 		}
@@ -128,7 +132,8 @@ export default function CreateUltrasonographyTemplates() {
 	};
 
 	const createTemplateHandler = async () => {
-		if (!selectedTest || !name || !employeeid) {
+		if (isSaving) return;
+		if (!selectedTest || !name.trim() || !associatedbodypart || !employeeid || !rule.length) {
 			toast.error("Please fill all required fields");
 			return;
 		}
@@ -139,12 +144,14 @@ export default function CreateUltrasonographyTemplates() {
 				employeeid,
 				testid: parseInt(selectedTest),
 				associatedbodypart,
-				visibleToAll: visible,
-				fields: [
-					...rule,
-				],
+				visibleToAll: Number(visible) ? 1 : 0,
+				fields: rule.map(item => ({
+					field: item.field || item.name,
+					fieldid: item.fieldid || item.id,
+					value: item.value ?? "",
+				})),
 				keyid: templateid ? parseInt(templateid) : null,
-				name
+				name: name.trim()
 			};
 
 			const method = templateid && isEdit ? 'PUT' : 'POST';
@@ -155,10 +162,10 @@ export default function CreateUltrasonographyTemplates() {
 			);
 
 			const message = templateid ? "updated" : "created";
-			if (response.status) {
+			if (response?.status === true) {
 				toast.success(`Template ${message} successfully`);
 			} else {
-				toast.error(`Template ${message} failed`);
+				toast.error(response?.message || response?.error || `Template ${message} failed`);
 			}
 		} catch (err) {
 			console.error("Template operation failed:", err);
@@ -209,6 +216,7 @@ export default function CreateUltrasonographyTemplates() {
 								className="form-control"
 								type="text"
 								placeholder="Enter the template name"
+								maxLength={50}
 								required
 							/>
 						</div>

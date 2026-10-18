@@ -119,6 +119,9 @@ export default function EnterResultUltrasound() {
 
           try {
                const response = await customFetch(`testpanel/list/ultrasound/get/template?templateid=${selectedOption.value}`);
+               if (!response || !Array.isArray(response.fields)) {
+                    throw new Error(response?.message || "This ultrasound template is no longer available.");
+               }
                const responseTestId = response.testid || selectedOption.details?.testid || testid;
                const rulesResponse = await customFetch(`testpanel/list/customtestrule?testid=${responseTestId}`);
                const rules = Array.isArray(rulesResponse) ? rulesResponse : rulesResponse?.data || [];
@@ -128,7 +131,7 @@ export default function EnterResultUltrasound() {
                setImpression(impressionField?.value || '');
           } catch (error) {
                console.error('Failed to fetch template details:', error);
-               toast.error('Failed to load template');
+               toast.error(error instanceof Error ? error.message : 'Failed to load template');
           } finally {
                setIsTemplateLoading(false);
           }

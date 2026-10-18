@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
-import { customFetch } from "../../../../../../components/Auth/customFetch";
+import { customFetch, customFetchMutation } from "../../../../../../components/Auth/customFetch";
 import Link from "next/link";
 import ShowTableCount from "../../../../../../components/operations/Laboratory/ShowCountTable";
 import { useApplicationSettings } from "../../../../../../components/Auth/useApplicationContext";
@@ -16,16 +16,19 @@ interface TemplateItem {
 	createdOn: string;
 	visibletoAll: boolean;
 	keyid: number;
+	createdby: number;
 }
 
 export default function UltrasoundTemplatesList() {
 	const { applicationsettings } = useApplicationSettings();
-	const { employeeid } = applicationsettings.user;
+	const { employeeid, role } = applicationsettings.user;
+	const canManageAll = ["admin", "manager", "superadmin"].includes(String(role || "").toLowerCase().replace(/[\s_-]/g, ""));
 
 	const [isLoading, setLoading] = useState(true);
 	const [templateList, setTemplateList] = useState<TemplateItem[]>([]);
 	const [query, setQuery] = useState({ count: 10, page: 1 });
 	const [error, setError] = useState<string | null>(null);
+	const [deletingId, setDeletingId] = useState<number | null>(null);
 
 	const fetchData = useCallback(async () => {
 		if (!employeeid) return;
@@ -51,6 +54,24 @@ export default function UltrasoundTemplatesList() {
 	useEffect(() => {
 		void fetchData();
 	}, [fetchData]);
+
+	const deleteTemplate = async (template: TemplateItem) => {
+		if (deletingId !== null) return;
+		if (!window.confirm(`Delete the template "${template.name}"? Its report fields will be removed. Existing patient reports will not be changed.`)) return;
+		setDeletingId(template.keyid);
+		try {
+			const response = await customFetchMutation(`result/entry/ultrasound/templates/${template.keyid}`, "DELETE", undefined);
+			if (response?.status !== "success" || response.result?.deleted !== true || response.result?.templateId !== template.keyid) {
+				throw new Error(response?.message || response?.error || "The server did not confirm template deletion.");
+			}
+			setTemplateList(current => current.filter(item => item.keyid !== template.keyid));
+			toast.success("Ultrasound template deleted. Existing patient reports were not changed.");
+		} catch (failure) {
+			toast.error(failure instanceof Error ? failure.message : "Unable to delete the ultrasound template.");
+		} finally {
+			setDeletingId(null);
+		}
+	};
 
 	const columns = [
 		{
@@ -80,10 +101,20 @@ export default function UltrasoundTemplatesList() {
 		{
 			Header: 'Actions',
 			accessor: 'keyid',
-			Cell: ({ value }) => (
-				<Link href={`/operations/imaging/ultrasound/templates?isEdit=true&&templateid=${value}`} className="underline">
-					Edit
-				</Link>
+			Cell: ({ value, row }) => (
+				<div className="d-flex align-items-center gap-2">
+					<Link href={`/operations/imaging/ultrasound/templates?isEdit=true&templateid=${value}`} className="underline">
+						Edit
+					</Link>
+					{(canManageAll || Number(row.original.createdby) === Number(employeeid)) && (
+						<button type="button" className="btn btn-sm btn-outline-danger"
+							disabled={deletingId !== null}
+							aria-label={`Delete template ${row.original.name}`}
+							onClick={() => void deleteTemplate(row.original)}>
+							{deletingId === value ? "Deleting..." : "Delete"}
+						</button>
+					)}
+				</div>
 			),
 		},
 	];
@@ -97,6 +128,7 @@ export default function UltrasoundTemplatesList() {
 			const url = `result/entry/ultrasound/templates/list?page=${page}&count=${count}&employeeid=${employeeid}&sortby=${sortby}`;
 			const response = await customFetch(url);
 			if (Array.isArray(response)) {
+				setTemplateList(response);
 				return { result: response, error: false };
 			} else {
 				toast.error("Unable to load ultrasound templates. The server returned an invalid response.");
@@ -135,7 +167,7 @@ export default function UltrasoundTemplatesList() {
 		<main className="container-fluid px-3 py-3">
 			<header className="border-bottom pb-3 mb-3">
 				<h1 className="h4 fw-semibold mb-1">Ultrasound templates</h1>
-				<p className="text-muted mb-0">Review and update reporting templates.</p>
+				<p className="text-muted mb-0">Review, update or delete reporting templates. Deleting a template does not change existing patient reports.</p>
 			</header>
 			<div className="d-flex justify-content-end mb-2">
 				<ShowTableCount queryParams={query} setQueryParams={setQuery} />
