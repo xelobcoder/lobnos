@@ -6,8 +6,9 @@ import { RiCalendarLine, RiCalendarScheduleLine } from '@remixicon/react';
 import styles from '../../../components/PatientPortal/portal.module.css';
 import { usePortalResource } from '../../../components/PatientPortal/usePortalResource';
 import { customFetchMutation } from '../../../components/Auth/customFetch';
+import SlotPicker from '../../../components/PatientPortal/SlotPicker';
 import {
-     APPOINTMENT_TYPES, PortalAppointment, appointmentRequestProblem, appointmentSlotProblem, errorMessage, formatDate, formatTime, todayIso, unwrap,
+     APPOINTMENT_TYPES, BookingSlot, PortalAppointment, appointmentRequestProblem, appointmentSlotProblem, bookingMaxDate, errorMessage, formatDate, formatTime, todayIso, unwrap,
 } from '../../../lib/patientPortal';
 
 interface AppointmentsResponse {
@@ -27,6 +28,7 @@ export default function PatientAppointmentsPage() {
      const [submitting, setSubmitting] = useState(false);
      const [notice, setNotice] = useState<{ variant: string; text: string } | null>(null);
      const [formError, setFormError] = useState('');
+     const availability = usePortalResource<{ date: string; slots: BookingSlot[] }>(request.date ? `patient-portal/appointments/availability?date=${encodeURIComponent(request.date)}` : null);
 
      const submitRequest = async (event: FormEvent) => {
           event.preventDefault();
@@ -42,6 +44,10 @@ export default function PatientAppointmentsPage() {
                reload();
           } catch (reason) {
                setFormError(errorMessage(reason));
+               if (/no longer available/i.test(errorMessage(reason))) {
+                    setRequest((current) => ({ ...current, time: '' }));
+                    availability.reload();
+               }
           } finally {
                setSubmitting(false);
           }
@@ -128,19 +134,21 @@ export default function PatientAppointmentsPage() {
                                    {formError && !change && <Alert variant="danger">{formError}</Alert>}
                                    <Form onSubmit={submitRequest} noValidate>
                                         <Row className="g-3">
-                                             <Col md={3}>
+                                             <Col md={4}>
                                                   <Form.Label htmlFor="appointment-date">Date</Form.Label>
-                                                  <Form.Control id="appointment-date" type="date" min={todayIso()} value={request.date} onChange={(e) => setRequest({ ...request, date: e.target.value })} required />
+                                                  <Form.Control id="appointment-date" type="date" min={todayIso()} max={bookingMaxDate(60)} value={request.date} onChange={(e) => setRequest({ ...request, date: e.target.value, time: '' })} required />
                                              </Col>
-                                             <Col md={3}>
-                                                  <Form.Label htmlFor="appointment-time">Time</Form.Label>
-                                                  <Form.Control id="appointment-time" type="time" value={request.time} onChange={(e) => setRequest({ ...request, time: e.target.value })} required />
-                                             </Col>
-                                             <Col md={6}>
+                                             <Col md={8}>
                                                   <Form.Label htmlFor="appointment-type">Type</Form.Label>
                                                   <Form.Select id="appointment-type" value={request.type} onChange={(e) => setRequest({ ...request, type: e.target.value })}>
                                                        {APPOINTMENT_TYPES.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
                                                   </Form.Select>
+                                             </Col>
+                                             <Col xs={12}>
+                                                  <span className="form-label d-block" id="appointment-time-label">Time</span>
+                                                  <SlotPicker label="Appointment time" slots={request.date ? availability.data?.slots : null} value={request.time}
+                                                       loading={availability.loading} error={availability.error || undefined}
+                                                       onChange={(time) => setRequest({ ...request, time })} />
                                              </Col>
                                              <Col xs={12}>
                                                   <Form.Label htmlFor="appointment-reason">Reason</Form.Label>

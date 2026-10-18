@@ -6,8 +6,9 @@ import { Alert, Badge, Button, Spinner, Table } from 'react-bootstrap';
 import { RiArrowLeftLine, RiPrinterLine } from '@remixicon/react';
 import styles from '../../../../components/PatientPortal/portal.module.css';
 import { usePortalResource } from '../../../../components/PatientPortal/usePortalResource';
-import { billStatus, formatDate, formatMoney } from '../../../../lib/patientPortal';
+import { BillingSummary, billStatus, formatDate, formatMoney } from '../../../../lib/patientPortal';
 import PortalSummary from '../../../../components/PatientPortal/PortalSummary';
+import PaymentInstructions from '../../../../components/PatientPortal/PaymentInstructions';
 
 interface BillDetail {
      billingid: number;
@@ -34,6 +35,7 @@ export default function PatientBillPage() {
      const billingid = Number(params?.billingid);
      const valid = Number.isSafeInteger(billingid) && billingid > 0;
      const { data, loading, error, code, reload } = usePortalResource<BillDetail>(valid ? `patient-portal/billing/${billingid}` : null);
+     const { data: summary } = usePortalResource<BillingSummary>(data && data.outstanding > 0 ? 'patient-portal/billing/summary' : null);
      const status = data ? billStatus(data) : null;
 
      return (
@@ -69,6 +71,7 @@ export default function PatientBillPage() {
                               { label: 'Paid', value: formatMoney(data.paid) },
                               { label: 'Outstanding', value: formatMoney(data.outstanding) },
                          ]} />
+                         {data.outstanding > 0 && <div className={styles.noPrint}><PaymentInstructions instructions={summary?.paymentInstructions} outstanding={data.outstanding} /></div>}
 
                          <div className={styles.reportTest}>
                               <div className={styles.reportTestName}>Services</div>

@@ -29,6 +29,8 @@ const SWITCHES: { key: keyof PortalSettings; label: string; help: string }[] = [
      { key: 'appointment_requests_enabled', label: 'Allow appointment requests', help: 'Requests arrive as pending appointments for the selected staff member.' },
      { key: 'email_notifications_enabled', label: 'Email notifications', help: 'Invitations, verification codes and result-ready messages by email.' },
      { key: 'sms_notifications_enabled', label: 'SMS notifications', help: 'Result-ready messages by SMS for patients who opt in.' },
+     { key: 'result_notifications_enabled', label: 'Tell patients when results are ready', help: 'Sends an email/SMS (per the channels above) once a result is released to the portal.' },
+     { key: 'home_collection_enabled', label: 'Allow home collection booking', help: 'Patients book an hourly slot in an active collection area and track the visit. Staff manage bookings in Home Collection.' },
 ];
 
 export default function PatientPortalSettingsManager() {
@@ -50,6 +52,9 @@ export default function PatientPortalSettingsManager() {
           if (!form) return;
           if (form.appointment_requests_enabled && !form.appointment_request_practitioner) {
                return setNotice({ variant: 'danger', text: 'Choose the staff member who receives appointment requests before enabling them.' });
+          }
+          if (!(form.booking_start_hour < form.booking_end_hour)) {
+               return setNotice({ variant: 'danger', text: 'Booking opening hour must be earlier than the closing hour.' });
           }
           setSaving(true);
           setNotice(null);
@@ -120,6 +125,46 @@ export default function PatientPortalSettingsManager() {
                                              <option value="">Not selected</option>
                                              {staff.map((user) => <option key={user.employeeid} value={user.employeeid}>{String(user.username || user.employeeid).toUpperCase()}</option>)}
                                         </Form.Select>
+                                   </Col>
+                                   <Col xs={12}><h3 className="h6 mt-2 mb-0">Online booking</h3></Col>
+                                   <Col sm={4} md={2}>
+                                        <Form.Label htmlFor="portal-start-hour">Opens (hour)</Form.Label>
+                                        <Form.Control id="portal-start-hour" type="number" min={0} max={23} value={form.booking_start_hour} disabled={!form.portal_enabled}
+                                             onChange={(e) => setForm({ ...form, booking_start_hour: Number(e.target.value) })} />
+                                   </Col>
+                                   <Col sm={4} md={2}>
+                                        <Form.Label htmlFor="portal-end-hour">Closes (hour)</Form.Label>
+                                        <Form.Control id="portal-end-hour" type="number" min={1} max={24} value={form.booking_end_hour} disabled={!form.portal_enabled}
+                                             onChange={(e) => setForm({ ...form, booking_end_hour: Number(e.target.value) })} />
+                                   </Col>
+                                   <Col sm={4} md={3}>
+                                        <Form.Label htmlFor="portal-appointment-capacity">Appointments per hour</Form.Label>
+                                        <Form.Control id="portal-appointment-capacity" type="number" min={1} max={50} value={form.appointment_slot_capacity} disabled={!form.portal_enabled}
+                                             onChange={(e) => setForm({ ...form, appointment_slot_capacity: Number(e.target.value) })} />
+                                   </Col>
+                                   <Col sm={4} md={3}>
+                                        <Form.Label htmlFor="portal-collection-capacity">Home collections per hour</Form.Label>
+                                        <Form.Control id="portal-collection-capacity" type="number" min={1} max={50} value={form.home_collection_slot_capacity} disabled={!form.portal_enabled}
+                                             onChange={(e) => setForm({ ...form, home_collection_slot_capacity: Number(e.target.value) })} />
+                                   </Col>
+                                   <Col xs={12}><Form.Text>Patients pick hourly slots between these hours, up to 60 days ahead. Full slots are shown as unavailable.</Form.Text></Col>
+                                   <Col md={6}>
+                                        <Form.Label htmlFor="portal-collection-note">Home collection note for patients</Form.Label>
+                                        <Form.Control id="portal-collection-note" as="textarea" rows={3} maxLength={500} value={form.home_collection_note} disabled={!form.portal_enabled}
+                                             placeholder="e.g. Collectors call 30 minutes before arrival. Fasting tests: book before 9am."
+                                             onChange={(e) => setForm({ ...form, home_collection_note: e.target.value })} />
+                                   </Col>
+                                   <Col md={6}>
+                                        <Form.Label htmlFor="portal-payment-instructions">Payment instructions</Form.Label>
+                                        <Form.Control id="portal-payment-instructions" as="textarea" rows={3} maxLength={1000} value={form.payment_instructions} disabled={!form.portal_enabled}
+                                             placeholder="e.g. Pay at reception or by mobile money to 024 000 0000 (reference: your patient ID)."
+                                             onChange={(e) => setForm({ ...form, payment_instructions: e.target.value })} />
+                                   </Col>
+                                   <Col md={6}>
+                                        <Form.Label htmlFor="portal-help-contact">Patient help contact</Form.Label>
+                                        <Form.Control id="portal-help-contact" maxLength={300} value={form.help_contact} disabled={!form.portal_enabled}
+                                             placeholder="e.g. WhatsApp 024 000 0000, Mon–Sat 7am–6pm"
+                                             onChange={(e) => setForm({ ...form, help_contact: e.target.value })} />
                                    </Col>
                               </Row>
                               <Button type="submit" className={`${styles.primaryButton} mt-4`} disabled={saving}>

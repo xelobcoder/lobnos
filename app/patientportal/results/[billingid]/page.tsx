@@ -11,6 +11,7 @@ import LaboratoryReport, { LaboratoryReportData } from '../../../../components/R
 import { createLaboratoryReportPdf, laboratoryReportFilename } from '../../../../lib/laboratoryReportPdf';
 import { errorMessage } from '../../../../lib/patientPortal';
 import { useApplication } from '../../../../components/Auth/useApplicationContext';
+import ResultQuickView from '../../../../components/PatientPortal/ResultQuickView';
 
 interface ResultReport { billingid: number; reports: LaboratoryReportData[] }
 
@@ -66,6 +67,7 @@ export default function PatientResultReportPage() {
             {exportError && <Alert variant="danger" className={styles.noPrint}>{exportError}</Alert>}
             {loading && <div className={styles.empty}><Spinner as="span" animation="border" size="sm" className="me-2" />Loading report...</div>}
             {data && !data.reports?.length && <Alert variant="warning">No printable report is available. Please contact your facility.</Alert>}
+            {!!data?.reports?.length && <div className={styles.noPrint}><ResultQuickView reports={data.reports} /></div>}
             {pdf && <section className={`${styles.card} ${styles.noPrint}`} aria-label="Generated laboratory PDF">
                 <a href={pdf} download={laboratoryReportFilename(billingid)} className="btn btn-primary mb-2">Download PDF</a>
                 <iframe src={pdf} title="Laboratory report PDF" className={styles.pdfPreview} />

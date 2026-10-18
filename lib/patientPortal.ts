@@ -204,6 +204,86 @@ export interface PortalSettings {
      email_notifications_enabled: boolean;
      sms_notifications_enabled: boolean;
      invitation_expiry_hours: number;
+     result_notifications_enabled: boolean;
+     appointment_slot_capacity: number;
+     booking_start_hour: number;
+     booking_end_hour: number;
+     home_collection_enabled: boolean;
+     home_collection_slot_capacity: number;
+     home_collection_note: string;
+     payment_instructions: string;
+     help_contact: string;
+}
+
+export interface BookingSlot { time: string; booked: number; capacity: number; available: boolean }
+
+export interface BillingSummary {
+     bills: number;
+     payable: number;
+     paid: number;
+     outstanding: number;
+     unpaidBills: number;
+     paymentInstructions: string;
+}
+
+export interface FacilityContact { name: string; phone: string; email: string; address: string; website: string; help: string }
+
+export type HomeCollectionStatus = 'Pending' | 'Confirmed' | 'Assigned' | 'EnRoute' | 'Collected' | 'Received' | 'Completed' | 'Cancelled';
+
+export interface HomeCollection {
+     id: number;
+     reference: string;
+     date: string;
+     time: string;
+     area: string;
+     address: string;
+     landmark: string;
+     contactPhone: string;
+     note: string;
+     status: HomeCollectionStatus;
+     statusLabel: string;
+     collectorAssigned: boolean;
+     cancellable: boolean;
+     cancelledAt: string | null;
+     fee: number;
+     tests: { name: string; price: number }[];
+     estimatedTotal: number;
+     billingid: number | null;
+     createdAt: string;
+     timeline: { status: HomeCollectionStatus; label: string; done: boolean; current: boolean; at: string | null }[];
+}
+
+export interface HomeCollectionOptions {
+     areas: { id: number; name: string; fee: number }[];
+     note: string;
+     hours: { start: number; end: number };
+     maxDaysAhead: number;
+     testsAvailable: boolean;
+     defaultPhone: string;
+}
+
+/** Badge variant for a home collection status. */
+export function homeCollectionVariant(status: string): string {
+     if (status === 'Cancelled') return 'secondary';
+     if (status === 'Completed' || status === 'Received' || status === 'Collected') return 'success';
+     if (status === 'Pending') return 'warning';
+     return 'info';
+}
+
+/** Mirrors the backend booking validation so patients get immediate feedback. */
+export function homeCollectionProblem(input: { areaId: string; date: string; time: string; address: string; contactPhone: string }, today = todayIso()): string | null {
+     if (!Number(input.areaId)) return 'Choose your collection area.';
+     if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date || '') || input.date < today) return 'Choose a collection date from today onwards.';
+     if (!/^([01]\d|2[0-3]):00$/.test(input.time || '')) return 'Choose one of the available time slots.';
+     const address = String(input.address || '').trim();
+     if (address.length < 10 || address.length > 500) return 'Enter the collection address in 10-500 characters.';
+     if (String(input.contactPhone || '').replace(/\D/g, '').length < 9) return 'Enter a valid contact phone number.';
+     return null;
+}
+
+/** Last date a patient can book, as YYYY-MM-DD. */
+export function bookingMaxDate(days: number, now = new Date()): string {
+     return todayIso(new Date(now.getFullYear(), now.getMonth(), now.getDate() + days));
 }
 
 export const AUDIT_ACTIONS: Record<string, string> = {
@@ -227,6 +307,10 @@ export const AUDIT_ACTIONS: Record<string, string> = {
      'appointment.reschedule_requested': 'Requested reschedule',
      'preferences.updated': 'Updated notification preferences',
      'password.changed': 'Changed password',
+     'password.reset.requested': 'Password reset requested',
+     'password.reset.completed': 'Password reset completed',
+     'home_collection.requested': 'Booked home collection',
+     'home_collection.cancelled': 'Cancelled home collection',
 };
 
 export function auditActionLabel(action: string): string {
@@ -241,3 +325,39 @@ export function auditActionLabel(action: string): string {
 
 export const fullName = (person: { firstname?: string | null; middlename?: string | null; lastname?: string | null } | null | undefined) =>
      [person?.firstname, person?.middlename, person?.lastname].filter(Boolean).join(' ');
+
+export interface QuickResultRow { name: string; value: string; units: string; reference: string; flag: 'H' | 'L' | ''; rich: boolean }
+
+const hasMarkup = (value: string) => /<\/?[a-z][^>]*>/i.test(value);
+
+/**
+ * Plain, phone-friendly rows built from the same records the laboratory report renders. Flags come from
+ * the recorded flag or, for numeric limits, the same high/low rule as the report; rich-text findings
+ * are not reproduced and point the patient to the full report instead.
+ */
+export function quickResultRows(records: unknown): QuickResultRow[] {
+     if (!Array.isArray(records)) return [];
+     return records.filter(record => record && typeof record === 'object').map((record: any) => {
+          const value = record.value === null || record.value === undefined ? '' : String(record.value).trim();
+          const rich = hasMarkup(value);
+          const lower = Number.parseFloat(record.lowerlimit);
+          const upper = Number.parseFloat(record.upperlimit);
+          const limits = record.plan === 'limits' && Number.isFinite(lower) && Number.isFinite(upper);
+          let flag: QuickResultRow['flag'] = '';
+          const recorded = String(record.flag ?? record.indicator ?? '').toUpperCase();
+          if (recorded === 'H' || recorded === 'L') flag = recorded;
+          else if (limits && !rich) {
+               const numeric = Number.parseFloat(value.replace(/^[<>]=?/, ''));
+               if (Number.isFinite(numeric)) flag = numeric > upper ? 'H' : numeric < lower ? 'L' : '';
+          }
+          const textReference = typeof record.textReference === 'string' && !hasMarkup(record.textReference) ? record.textReference.trim() : '';
+          return {
+               name: String(record.name || record.field || 'Result'),
+               value: rich ? '' : value,
+               units: String(record.units || ''),
+               reference: limits ? `${record.lowerlimit} – ${record.upperlimit}` : textReference,
+               flag,
+               rich,
+          };
+     });
+}

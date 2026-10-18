@@ -25,6 +25,10 @@ type HomeCollectionOrder = {
      assigned_to: number | null;
      staff_name?: string;
      status: string;
+     source?: string | null;
+     landmark?: string | null;
+     contact_phone?: string | null;
+     patient_note?: string | null;
 };
 
 type HomeCollectionStaff = {
@@ -217,9 +221,17 @@ export default function HomeCollectionPage() {
                          <tbody>
                               {orders.map((order) => (
                                    <tr key={order.id}>
-                                        <td>{order.patient_name?.trim() || `#${order.patientid}`}</td>
+                                        <td>
+                                             {order.patient_name?.trim() || `#${order.patientid}`}
+                                             {order.source === 'patient_portal' && <span className="badge bg-info-subtle text-info-emphasis ms-1">Patient portal</span>}
+                                             {order.contact_phone && <div className="small text-muted">{order.contact_phone}</div>}
+                                        </td>
                                         <td>{order.appointment_date} {order.appointment_time}</td>
-                                        <td style={{ maxWidth: 220 }} className="text-truncate">{order.address}</td>
+                                        <td style={{ maxWidth: 220 }}>
+                                             <div className="text-truncate" title={order.address}>{order.address}</div>
+                                             {order.landmark && <div className="small text-muted text-truncate" title={order.landmark}>Landmark: {order.landmark}</div>}
+                                             {order.patient_note && <div className="small text-muted text-truncate" title={order.patient_note}>Note: {order.patient_note}</div>}
+                                        </td>
                                         <td>{order.collection_fee}</td>
                                         <td>
                                              <select

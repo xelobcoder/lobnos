@@ -540,7 +540,7 @@ export default function PrimeLabLoginPage() {
 
 					{loginMode === 'patient' && !recoveryStep && (
 						<p className="text-center small mt-3 mb-0">
-							New to the patient portal? <Link href="/patient-access/register">Activate your account</Link>
+							New to the patient portal? <Link href="/patient-access/register">Activate your account</Link> · <Link href="/patient-access/forgot-password">Forgot password?</Link>
 						</p>
 					)}
 

@@ -125,9 +125,10 @@ test('patient trends switch between Chart and Values, retaining exact qualified 
     assert.match(html, /&lt;5/);
     assert.match(html, /2\.00 increase/);
     assert.match(html, /\+20\.00%/);
-    assert.match(html, /Accession #3/);
+    assert.match(html, /View full report/);
+    assert.doesNotMatch(html, /Accession/);
     assert.match(html, /The reference range is between 12\.00 and 16\.00 g\/dL\./);
-    assert.match(html, /This result is within the range/);
+    assert.match(html, /Within range/);
     assert.match(html, /aria-pressed="true">Values/);
     nodes(tree).find(node => node.type === 'button' && node.props.children === 'Chart').props.onClick();
     assert.ok(nodes(harness.render()).some(node => node.type?.name === 'TrendChart'));
@@ -181,6 +182,21 @@ function renderFixture(kind = 'values') {
             'patient-portal/billing-requests/catalog': [{ testid: 7, name: 'Full blood count', estimatedPrice: '250' }],
             'patient-portal/billing-requests?page=1': [{ id: 1, patientid: 1, testIds: [7], note: 'Request for review',
                 status: 'submitted', created_at: '2026-10-18' }],
+            'patient-portal/billing/summary': { bills: 1, payable: 250, paid: 100, outstanding: 150, unpaidBills: 1,
+                paymentInstructions: 'Pay at reception or by mobile money to 024 000 0000.' },
+            'patient-portal/facility': { name: 'Synthetic Laboratory', phone: '0300000000', email: 'lab@example.test',
+                address: '1 Test Street', website: '', help: 'WhatsApp 024 000 0000' },
+            'patient-portal/home-collections/options': { areas: [{ id: 2, name: 'East Legon', fee: 50 }], note: 'Collectors call before arrival.',
+                hours: { start: 7, end: 17 }, maxDaysAhead: 60, testsAvailable: true, defaultPhone: '0241234567' },
+            'patient-portal/home-collections': [{ id: 9, reference: 'HC-9', date: '2026-10-25', time: '09:00', area: 'East Legon',
+                address: '12 Example Street, Accra', landmark: 'Near the mall', contactPhone: '0241234567', note: '', status: 'Assigned',
+                statusLabel: 'Collector assigned', collectorAssigned: true, cancellable: false, cancelledAt: null, fee: 50,
+                tests: [{ name: 'Full blood count', price: 250 }], estimatedTotal: 300, billingid: null, createdAt: '2026-10-18',
+                timeline: [
+                    { status: 'Pending', label: 'Requested', done: true, current: false, at: '2026-10-18' },
+                    { status: 'Assigned', label: 'Collector assigned', done: true, current: true, at: '2026-10-19' },
+                    { status: 'Collected', label: 'Sample collected', done: false, current: false, at: null },
+                ] }],
         };
         const card = load('components\\Billing\\AnalyticSummaryCard.tsx').default;
         const summary = load('components\\PatientPortal\\PortalSummary.tsx', {
@@ -196,6 +212,8 @@ function renderFixture(kind = 'values') {
             if (name.endsWith('/Auth/customFetch')) return { customFetchMutation() { throw Error('No network in synthetic fixture'); } };
             if (name.endsWith('/signOutPatient')) return { signOutPatient() {} };
             if (name.endsWith('/PortalSummary')) return { __esModule: true, default: summary };
+            const local = /(?:^\.\/|\/components\/PatientPortal\/)(FacilityContactCard|PaymentInstructions|SlotPicker|ResultQuickView)$/.exec(name);
+            if (local) return load(`components\\PatientPortal\\${local[1]}.tsx`, { resolve });
         };
         const pageFile = kind === 'home' ? 'app\\patientportal\\page.tsx'
             : kind === 'bill-detail' ? 'app\\patientportal\\billing\\[billingid]\\page.tsx' : `app\\patientportal\\${kind}\\page.tsx`;
@@ -221,7 +239,7 @@ function renderFixture(kind = 'values') {
         }
         return text;
     }).join('\n');
-    const links = ['Home', 'My Results', 'Test trends', 'Request tests', 'Appointments', 'Billing', 'My Account'];
+    const links = ['Home', 'My Results', 'Test trends', 'Request tests', 'Home collection', 'Appointments', 'Billing', 'My Account'];
     const markup = React.createElement('div', { className: 'PortalShell_scope PortalShell_shell' },
         React.createElement('aside', { className: 'PortalShell_sidebar' },
             React.createElement('div', { className: 'PortalShell_brand' }, 'Prime Laboratory Software'),
@@ -237,10 +255,17 @@ function renderFixture(kind = 'values') {
 module.exports = { renderFixture };
 
 test('mobile fixtures render the real home, billing, appointments, request and account content', () => {
-    for (const kind of ['home', 'billing', 'bill-detail', 'appointments', 'requests', 'account']) {
+    for (const kind of ['home', 'billing', 'bill-detail', 'appointments', 'requests', 'home-collection', 'account']) {
         const html = renderFixture(kind);
         assert.match(html, /<main/);
         assert.match(html, /PortalShell_patientContent/);
         assert.doesNotMatch(html, /Loading your|Loading bills|Loading appointments|Loading tests/);
     }
+    const homeCollection = renderFixture('home-collection');
+    assert.match(homeCollection, /HC-9/);
+    assert.match(homeCollection, /aria-current="step"/);
+    assert.match(homeCollection, /East Legon — fee/);
+    assert.match(homeCollection, /Collectors call before arrival/);
+    assert.match(renderFixture('billing'), /mobile money to 024 000 0000/);
+    assert.match(renderFixture('requests'), /No tests selected yet/);
 });

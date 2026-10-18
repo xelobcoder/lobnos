@@ -1,9 +1,9 @@
 "use client";
 
-import { type CSSProperties, ReactNode, useEffect, useState } from 'react';
+import { type CSSProperties, ReactNode, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { RiMailSendLine, RiSettings4Line, RiShieldCrossFill, RiArrowGoBackLine, RiUserHeartLine } from '@remixicon/react';
+import { RiMailSendLine, RiSettings4Line, RiShieldCrossFill, RiArrowGoBackLine, RiUserHeartLine, RiMenuLine, RiCloseLine } from '@remixicon/react';
 import { ApplicationProvider } from '../Auth/useApplicationContext';
 import { PatientPortalLinks } from '../Layout/links/categories/PatientPortalLinks';
 import { handleLogout } from '../Auth/customFetch';
@@ -23,6 +23,21 @@ export default function PortalShell({ children, admin = false }: { children: Rea
     const [signingOut, setSigningOut] = useState(false);
     const [context, setContext] = useState<any>(null);
     const [error, setError] = useState('');
+    const [drawerOpen, setDrawerOpen] = useState(false);
+    const menuButton = useRef<HTMLButtonElement>(null);
+    const sidebar = useRef<HTMLElement>(null);
+    useEffect(() => { setDrawerOpen(false); }, [pathname]);
+    useEffect(() => {
+        if (!drawerOpen) return;
+        sidebar.current?.querySelector<HTMLElement>('a, button')?.focus();
+        const onKey = (event: KeyboardEvent) => {
+            if (event.key !== 'Escape') return;
+            setDrawerOpen(false);
+            menuButton.current?.focus();
+        };
+        document.addEventListener('keydown', onKey);
+        return () => document.removeEventListener('keydown', onKey);
+    }, [drawerOpen]);
     useEffect(() => {
         let current = true;
         fetch('/api/auth/context-retrieval', { credentials: 'include', cache: 'no-store', signal: AbortSignal.timeout(10000) })
@@ -44,11 +59,24 @@ export default function PortalShell({ children, admin = false }: { children: Rea
     const user = context?.user;
     const identity = user ? [user.fullname || [user.firstname, user.lastname].filter(Boolean).join(' ') || user.username, user.email].filter(Boolean).join(' · ') : '';
     return (
-        <div className={`${styles.scope} ${styles.shell} ${admin ? '' : styles.patientShell}`} data-portal={admin ? 'admin' : 'patient'} style={context ? {
+        <div className={`${styles.scope} ${styles.shell} ${admin ? '' : styles.patientShell} ${drawerOpen ? styles.drawerOpen : ''}`} data-portal={admin ? 'admin' : 'patient'} style={context ? {
             '--theme-font-family': workspaceFontFamily(context.settings),
         } as CSSProperties : undefined}>
             <a className={styles.skipLink} href="#portal-content">Skip to content</a>
-            <aside className={styles.sidebar} aria-label={title}>
+            {!admin && (
+                <div className={styles.mobileBar}>
+                    <Link href={homeLink} className={styles.mobileBrand}>
+                        <span className={styles.brandMark}><RiShieldCrossFill size={18} aria-hidden="true" /></span>
+                        <span>{title}</span>
+                    </Link>
+                    <button ref={menuButton} type="button" className={styles.menuButton} aria-expanded={drawerOpen} aria-controls="portal-navigation"
+                        aria-label={drawerOpen ? 'Close menu' : 'Open menu'} onClick={() => setDrawerOpen(open => !open)}>
+                        {drawerOpen ? <RiCloseLine size={22} aria-hidden="true" /> : <RiMenuLine size={22} aria-hidden="true" />}
+                    </button>
+                </div>
+            )}
+            {!admin && drawerOpen && <button type="button" className={styles.drawerBackdrop} aria-label="Close menu" tabIndex={-1} onClick={() => setDrawerOpen(false)} />}
+            <aside ref={sidebar} id="portal-navigation" className={styles.sidebar} aria-label={title}>
                 <div className={styles.brand}>
                     <span className={styles.brandMark}><RiShieldCrossFill size={20} aria-hidden="true" /></span>
                     <div><strong>Prime Laboratory Software</strong><small>{title}</small></div>

@@ -5,7 +5,8 @@ import { Alert, Badge, Button, Spinner, Table } from 'react-bootstrap';
 import { RiMoneyDollarCircleLine, RiFileList3Line, RiWalletLine, RiAlarmWarningLine } from '@remixicon/react';
 import styles from '../../../components/PatientPortal/portal.module.css';
 import { usePortalResource } from '../../../components/PatientPortal/usePortalResource';
-import { billStatus, formatDate, formatMoney } from '../../../lib/patientPortal';
+import { BillingSummary, billStatus, formatDate, formatMoney } from '../../../lib/patientPortal';
+import PaymentInstructions from '../../../components/PatientPortal/PaymentInstructions';
 import PortalSummary from '../../../components/PatientPortal/PortalSummary';
 
 interface PortalBill {
@@ -21,8 +22,8 @@ interface PortalBill {
 
 export default function PatientBillingPage() {
      const { data, loading, error, code, reload } = usePortalResource<PortalBill[]>('patient-portal/billing');
+     const { data: summary } = usePortalResource<BillingSummary>(code === 'BILLING_DISABLED' ? null : 'patient-portal/billing/summary');
      const bills = data || [];
-     const total = (field: 'payable' | 'paid' | 'outstanding') => bills.reduce((sum, bill) => sum + Math.round(Number(bill[field]) * 100), 0) / 100;
 
      return (
           <main className={styles.page}>
@@ -41,14 +42,19 @@ export default function PatientBillingPage() {
                ) : null}
                {loading && <div className={styles.empty}><Spinner animation="border" size="sm" className="me-2" />Loading bills...</div>}
 
-               {data && (
+               {summary && (
                     <>
                          <PortalSummary title="Financial Summary" items={[
-                              { label: 'Bills', value: bills.length, icon: <RiFileList3Line />, variant: 'info' },
-                              { label: 'Total payable', value: formatMoney(total('payable')), detail: 'After discounts', icon: <RiMoneyDollarCircleLine />, variant: 'primary' },
-                              { label: 'Payments', value: formatMoney(total('paid')), detail: 'Payments received', icon: <RiWalletLine />, variant: 'success' },
-                              { label: 'Outstanding balance', value: formatMoney(total('outstanding')), detail: 'Balance awaiting payment', icon: <RiAlarmWarningLine />, variant: 'warning' },
+                              { label: 'Bills', value: summary.bills, icon: <RiFileList3Line />, variant: 'info' },
+                              { label: 'Total payable', value: formatMoney(summary.payable), detail: 'After discounts', icon: <RiMoneyDollarCircleLine />, variant: 'primary' },
+                              { label: 'Payments', value: formatMoney(summary.paid), detail: 'Payments received', icon: <RiWalletLine />, variant: 'success' },
+                              { label: 'Outstanding balance', value: formatMoney(summary.outstanding), detail: `${summary.unpaidBills} bill${summary.unpaidBills === 1 ? '' : 's'} awaiting payment`, icon: <RiAlarmWarningLine />, variant: 'warning' },
                          ]} />
+                         <PaymentInstructions instructions={summary.paymentInstructions} outstanding={summary.outstanding} />
+                    </>
+               )}
+               {data && (
+                    <>
                          <section className={styles.card}>
                               <h2 className={styles.cardTitle}><RiMoneyDollarCircleLine size={18} />My bills</h2>
                               {bills.length === 0 ? (

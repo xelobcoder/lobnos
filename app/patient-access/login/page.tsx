@@ -43,7 +43,7 @@ export default function PatientLoginPage() {
                 <div className={styles.formGroup}><label htmlFor="patient-password" className={styles.formLabel}>Password</label><input id="patient-password" className={styles.formInput} style={{ paddingLeft: 10 }} type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} required maxLength={128} /></div>
                 <button className={styles.signInButton} disabled={busy} type="submit">{busy && <Spinner as="span" animation="border" size="sm" className="me-2" aria-hidden="true" />}{busy ? 'Signing in…' : 'Sign in'}</button>
             </form>
-            <p className="small text-muted mt-3">Need access? <Link href="/patient-access/register">Activate your account</Link> or open your facility invitation. For password recovery, contact your facility.</p>
+            <p className="small text-muted mt-3">Need access? <Link href="/patient-access/register">Activate your account</Link> or open your facility invitation. Forgot your password? <Link href="/patient-access/forgot-password">Reset it</Link>.</p>
         </PatientAccessShell>
     );
 }

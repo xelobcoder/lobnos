@@ -113,7 +113,7 @@ test("patient navigation links every portal page", () => {
         return {};
     });
     const links = PatientPortalLinks.map(link => link.link);
-    assert.deepEqual(plain(links), ["/patientportal", "/patientportal/results", "/patientportal/trends", "/patientportal/requests", "/patientportal/appointments", "/patientportal/billing", "/patientportal/account"]);
+    assert.deepEqual(plain(links), ["/patientportal", "/patientportal/results", "/patientportal/trends", "/patientportal/requests", "/patientportal/home-collection", "/patientportal/appointments", "/patientportal/billing", "/patientportal/account"]);
     for (const link of links.slice(1)) {
         assert.ok(statSync(path.join(root, "app", ...link.split("/").filter(Boolean), "page.tsx")).isFile(), `${link} has no page`);
     }
@@ -227,4 +227,37 @@ test("patient portal uses its own Device Manager styled shell without staff or C
         assert.ok(css.includes(token), `portal styles reuse ${token}`);
     }
     assert.match(read("components", "PatientPortal", "PatientAccessShell.tsx"), /loginBrandOverlay[\s\S]*loginFormSide/);
+});
+
+test("home collection and booking helpers mirror backend rules", () => {
+    const valid = { areaId: "2", date: "2030-01-10", time: "09:00", address: "12 Example Street, Accra", contactPhone: "0241234567" };
+    assert.equal(portal.homeCollectionProblem(valid, "2030-01-01"), null);
+    assert.match(portal.homeCollectionProblem({ ...valid, areaId: "" }, "2030-01-01"), /area/);
+    assert.match(portal.homeCollectionProblem({ ...valid, date: "2029-12-31" }, "2030-01-01"), /today/);
+    assert.match(portal.homeCollectionProblem({ ...valid, time: "09:30" }, "2030-01-01"), /slots/);
+    assert.match(portal.homeCollectionProblem({ ...valid, address: "short" }, "2030-01-01"), /address/);
+    assert.match(portal.homeCollectionProblem({ ...valid, contactPhone: "12" }, "2030-01-01"), /phone/);
+    assert.equal(portal.bookingMaxDate(60, new Date(2030, 0, 1)), "2030-03-02");
+    assert.equal(portal.homeCollectionVariant("Pending"), "warning");
+    assert.equal(portal.homeCollectionVariant("Completed"), "success");
+    assert.equal(portal.homeCollectionVariant("Cancelled"), "secondary");
+    assert.equal(portal.homeCollectionVariant("EnRoute"), "info");
+});
+
+test("quick result rows flag limits and hide rich findings", () => {
+    const rows = plain(portal.quickResultRows([
+        { name: "Haemoglobin", value: "9.5", units: "g/dL", plan: "limits", lowerlimit: "12", upperlimit: "16" },
+        { name: "WBC", value: ">20", units: "", plan: "limits", lowerlimit: "4", upperlimit: "11" },
+        { name: "Glucose", value: "5.0", plan: "limits", lowerlimit: "3.9", upperlimit: "6.1", flag: "" },
+        { name: "Malaria", value: "Negative", plan: "options", textReference: "Negative" },
+        { name: "Findings", value: "<p>Normal liver</p>", plan: "plain" },
+        { name: "Manual", value: "7", flag: "h" },
+        null,
+    ]));
+    assert.deepEqual(rows.map(row => row.flag), ["L", "H", "", "", "", "H"]);
+    assert.equal(rows[0].reference, "12 \u2013 16");
+    assert.equal(rows[3].reference, "Negative");
+    assert.equal(rows[4].rich, true);
+    assert.equal(rows[4].value, "");
+    assert.deepEqual(plain(portal.quickResultRows(undefined)), []);
 });

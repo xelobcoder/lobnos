@@ -78,7 +78,7 @@ export default function PatientResultsPage() {
                               </tbody>
                          </Table>
                          {visit.tests.some((test) => test.pending === 'awaiting_payment') && (
-                              <p className="text-muted small mt-2 mb-0">Some results will be released once the outstanding balance for this visit is settled.</p>
+                              <p className="text-muted small mt-2 mb-0">Some results will be released once the outstanding balance for this visit is settled. <Link href={`/patientportal/billing/${visit.billingid}`}>See how to pay</Link></p>
                          )}
                     </section>
                ))}

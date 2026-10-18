@@ -94,8 +94,10 @@ function TestHistory({ testid }: { testid: number }) {
                                                                       <div className={styles.valueRangeBlock}>
                                                                            <p className={styles.valueReferenceSentence}>
                                                                                 The reference range is between {scale.lower.toFixed(2)} and {scale.upper.toFixed(2)}{row.units ? ` ${row.units}` : ''}.
-                                                                                <span className={styles.srOnly}> This result is {scale.status === 'normal' ? 'within' : scale.status === 'low' ? 'below' : 'above'} the range.</span>
                                                                            </p>
+                                                                           <span className={`${styles.rangeStatus} ${scale.status === 'normal' ? styles.rangeStatusNormal : styles.rangeStatusOutside}`}>
+                                                                                {scale.status === 'normal' ? 'Within range' : scale.status === 'low' ? 'Below range' : 'Above range'}
+                                                                           </span>
                                                                            <div className={styles.rangeScale} aria-hidden="true">
                                                                                 <div className={`${styles.rangeMarker} ${styles[`rangeMarker_${scale.status}`]}`} style={{ left: `${scale.markerPercent}%` }}>
                                                                                      <span className={styles.rangeMarkerValue}>{numeric!.toFixed(2)}</span>
@@ -113,10 +115,10 @@ function TestHistory({ testid }: { testid: number }) {
                                                                            </div>
                                                                       </div>
                                                                  ) : <p className={styles.valueReferenceText}>Reference: {trendReference(row)}</p>}
-                                                                 <Link className={styles.valueReport} href={`/patientportal/results/${row.billingid}`}>View report · Accession #{row.ascensionid}</Link>
+                                                                 <Link className={styles.valueReport} href={`/patientportal/results/${row.billingid}`}>View full report</Link>
                                                             </div>
-                                                            <div className={`${styles.valueRowMeta} ${delta === null ? '' : delta > 0 ? styles.deltaUp : delta < 0 ? styles.deltaDown : ''}`}>
-                                                                 {change}
+                                                            <div className={styles.valueRowMeta} title="Change from the previous result. A rise or fall is not good or bad on its own; check the range and ask your clinician.">
+                                                                 <span>{delta !== null && delta !== 0 && <span aria-hidden="true">{delta > 0 ? '▲ ' : '▼ '}</span>}{change}</span>
                                                                  {percent !== null && <small>{percent > 0 ? '+' : ''}{percent.toFixed(2)}%</small>}
                                                             </div>
                                                        </li>

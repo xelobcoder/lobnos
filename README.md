@@ -172,22 +172,44 @@ credentials are checked indicates the backend login allowlist needs the exact
 patient POST login route; do not work around it by sending a staff session.
 
 - **Patient pages:**
-  - **Home:** dashboard using the administrative portal's typography and summary cards.
+  - **Home:** an action-led dashboard: results ready, bills to pay (with the
+    facility's payment instructions), next appointment, active home
+    collections and the facility contact card.
   - **My Results:** grouped by visit. Released reports use the same
     `LaboratoryReport` document and A4 PDF exporter as the main laboratory
     report, including facility/per-test styling, category groups, units,
     reference ranges, flags, comments and genuine verification metadata.
     **Generate PDF** opens a downloadable PDF; **Print report** uses browser
-    printing. Long tables repeat headings across PDF pages.
-  - **Appointments:** requests, and cancel or reschedule requests.
+    printing. Long tables repeat headings across PDF pages. A phone-friendly
+    **Results at a glance** summary (value, units, range, High/Low) sits above
+    the formal report and is not printed.
+  - **Test trends:** Chart and Values views with a within/below/above-range
+    badge and a link to the full report.
+  - **Request tests:** a basket with an estimated total; selected tests can be
+    carried into a home collection booking.
+  - **Home collection:** when enabled, patients pick an active collection
+    area (with its fee), a date up to 60 days ahead and an hourly slot, enter
+    the address, landmark and phone, optionally share their location and
+    tests, and then track each booking on a status timeline. Bookings can be
+    cancelled online while Pending or Confirmed (before a collector is
+    assigned). Staff manage them in the
+    existing Home Collection module; status changes notify the patient.
+  - **Appointments:** requests choose from hourly slots with live capacity;
+    cancel or reschedule requests.
   - **Billing:** patient-only payable, paid and outstanding summaries, bills,
-    payments, receipts and a printable statement.
+    payments, receipts, payment instructions and a printable statement.
   - **My Account:** notification preferences, password change and sign-out.
-- **Activation:**
+- **Activation and recovery:**
   - `/patient-access/invite?token=…` opens a staff invitation.
   - `/patient-access/register` is self-registration, linked from the login page in patient mode.
+  - `/patient-access/forgot-password` resets a password with an emailed
+    six-digit code after verifying facility code, patient ID, date of birth
+    and email. The first step always returns the same generic message.
 
-  Both pages are public and send no tenant. The backend resolves the facility from the invitation or facility code.
+  These pages are public and send no tenant. The backend resolves the facility from the invitation or facility code.
+- **Portal settings** also control result-ready notifications, booking hours,
+  per-hour appointment and home-collection capacity, the home collection note,
+  payment instructions and the patient help contact.
 - **Staff:** admins and managers configure the portal and review its audit log at
   `/patient-portal-admin/settings` (also available in
   *Application Settings › Patient Portal*). `/patient-portal-admin` opens a

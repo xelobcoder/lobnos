@@ -8,6 +8,7 @@ import { usePortalResource } from '../../../components/PatientPortal/usePortalRe
 import { errorMessage, formatDate, formatMoney, unwrap } from '../../../lib/patientPortal';
 import type { PatientBillingRequest, RequestedTest } from '../../../lib/patientBillingRequests';
 import styles from '../../../components/PatientPortal/portal.module.css';
+import shell from '../../../components/PatientPortal/PortalShell.module.css';
 
 export default function PatientTestRequestsPage() {
     const catalog = usePortalResource<RequestedTest[]>('patient-portal/billing-requests/catalog');
@@ -22,6 +23,8 @@ export default function PatientTestRequestsPage() {
     const submissionKey = useRef('');
     const inFlight = useRef(false);
     const tests = catalog.data || [];
+    const basket = selected.map(id => tests.find(test => test.testid === id)).filter((test): test is RequestedTest => Boolean(test));
+    const estimate = basket.reduce((sum, test) => sum + Math.round(Number(test.estimatedPrice || 0) * 100), 0) / 100;
 
     async function submit(event: FormEvent) {
         event.preventDefault();
@@ -79,9 +82,22 @@ export default function PatientTestRequestsPage() {
                     <Form.Label>Note for the lab (optional)</Form.Label>
                     <Form.Control as="textarea" rows={2} maxLength={1000} value={note} onChange={e => setNote(e.target.value)} />
                 </Form.Group>
-                <Button type="submit" disabled={saving || !selected.length || selected.length > 50}>
-                    {saving ? 'Sending…' : `Send request (${selected.length} selected)`}
-                </Button>
+                <div className={shell.basket} aria-live="polite">
+                    <div style={{ minWidth: 0 }}>
+                        <strong>{basket.length ? `${basket.length} test${basket.length === 1 ? '' : 's'} · estimated ${formatMoney(estimate)}` : 'No tests selected yet'}</strong>
+                        {!!basket.length && <ul className={shell.basketItems} aria-label="Selected tests">
+                            {basket.map(test => <li key={test.testid}>
+                                <button type="button" onClick={() => setSelected(ids => ids.filter(id => id !== test.testid))} aria-label={`Remove ${test.name}`}>{test.name} ✕</button>
+                            </li>)}
+                        </ul>}
+                    </div>
+                    <div className="d-flex flex-wrap gap-2">
+                        {!!basket.length && basket.length <= 30 && <Link className="btn btn-outline-primary" href={`/patientportal/home-collection?tests=${selected.join(',')}`}>Book home collection</Link>}
+                        <Button type="submit" disabled={saving || !selected.length || selected.length > 50}>
+                            {saving ? 'Sending…' : `Send request (${selected.length} selected)`}
+                        </Button>
+                    </div>
+                </div>
                 {selected.length > 50 && <p className="text-danger">Select at most 50 tests per request.</p>}
             </fieldset>
         </Form>}
