@@ -120,6 +120,40 @@ password of at least eight characters. Codes are single-use, allow five failed
 attempts, and can be resent after 60 seconds. A tenant needs an active default
 email provider for delivery.
 
+## Patient portal
+
+Patients choose **Patient** on the login page and are kept inside `/patientportal`.
+Staff are redirected away from it.
+
+- **Patient pages:**
+  - **Home:** dashboard.
+  - **My Results:** grouped by visit, with printable reports for released results.
+  - **Appointments:** requests, and cancel or reschedule requests.
+  - **Billing:** bills, payments, receipts and a printable statement.
+  - **My Account:** notification preferences, password change and sign-out.
+- **Activation:**
+  - `/patient-access/invite?token=…` opens a staff invitation.
+  - `/patient-access/register` is self-registration, linked from the login page in patient mode.
+
+  Both pages are public and send no tenant. The backend resolves the facility from the invitation or facility code.
+- **Staff:** admins and managers configure the portal and review its audit log at
+  *Application Settings › Patient Portal*. In **CRM › Customers**, open a patient's
+  actions menu (three dots) and select **Patient Portal**. This action is available
+  to admins, managers and scientists (including the super-admin override).
+  It opens the CRM patient transactions page directly at the
+  **Patient portal access** panel for:
+  - creating, emailing and revoking invitations;
+  - enabling or disabling access (admin/manager);
+  - releasing or withdrawing individual results (admin/manager/scientist).
+
+  Release is offered only for verified results awaiting release, so payment and verification gates cannot be bypassed.
+- Results, bills and contact details are personal health data. Invitation links are
+  shown once, and staff should share them only with the patient.
+
+```powershell
+node --test tests\patient-portal.test.cjs
+```
+
 ## Super-admin client platform
 
 Provisioning requires the facility's report address and offers optional street

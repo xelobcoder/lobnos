@@ -8,7 +8,7 @@ export default function EmailSidebarJSX() {
   const appset = async () => {
     const settings = await getApplicationSettings();
     const { emailNotification } = settings;
-    emailNotification === 0 && router.push('/settings/email-services');
+    emailNotification === 0 && router.push('/email-services');
   }
 
   useEffect(() => {
@@ -33,7 +33,7 @@ export default function EmailSidebarJSX() {
                 <SettingsApplications />
               </div>
               <div className="text">
-                <Link href={'/settings/email-services'}> Email setup</Link>
+                <Link href={'/email-services'}> Email setup</Link>
               </div>
             </li>
             <li>
@@ -41,7 +41,7 @@ export default function EmailSidebarJSX() {
                 <Analytics />
               </div>
               <div className="text">
-                <Link href={'/settings/email-services/logs'}> charts</Link>
+                <Link href={'/email-services/logs'}> charts</Link>
               </div>
             </li>
             <li>
@@ -49,7 +49,7 @@ export default function EmailSidebarJSX() {
                 <Error />
               </div>
               <div className="text">
-                <Link href={'/settings/email-services/queue'}> compose email</Link>
+                <Link href={'/email-services/queue'}> compose email</Link>
               </div>
             </li>
             <li>
@@ -57,7 +57,7 @@ export default function EmailSidebarJSX() {
                 <Forward />
               </div>
               <div className="text">
-                <Link href={'/settings/email-services/templates'}>Sent/Draft Emails</Link>
+                <Link href={'/email-services/templates'}>Sent/Draft Emails</Link>
               </div>
             </li>
           </ul>

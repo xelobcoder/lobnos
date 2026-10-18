@@ -2,6 +2,7 @@
 import styles from './login.module.css';
 import { RiShieldCrossFill, RiUserLine, RiLockLine, RiEyeLine, RiEyeOffLine, RiHospitalLine, RiStethoscopeLine, RiUserHeartLine } from '@remixicon/react';
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Alert, Spinner } from 'react-bootstrap';
 import { customPost } from '../../../components/Auth/customFetch';
@@ -532,6 +533,12 @@ export default function PrimeLabLoginPage() {
 							</span>
 						</button>
 					</form>
+					)}
+
+					{loginMode === 'patient' && !recoveryStep && (
+						<p className="text-center small mt-3 mb-0">
+							New to the patient portal? <Link href="/patient-access/register">Activate your account</Link>
+						</p>
 					)}
 
 					<div className={styles.footer}>

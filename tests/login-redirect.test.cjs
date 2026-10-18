@@ -49,6 +49,7 @@ function harness({ context, role = "admin", blockedStorage = false } = {}) {
             if (name === "react/jsx-runtime") return require(name);
             if (name === "react-bootstrap") return { Alert: "Alert", Spinner: "Spinner" };
             if (name === "next/navigation") return { useRouter: () => ({ push: url => redirects.push(url) }) };
+            if (name === "next/link") return "Link";
             if (name.includes("customFetch")) return { customPost: async () => ({ status: true, accessToken: "test-token", tenantId: 397773 }) };
             if (name.endsWith(".css")) return {};
             if (name === "@remixicon/react") return new Proxy({}, { get: () => "Icon" });

@@ -13,7 +13,8 @@ import {
     RiCalendarEventFill,
     RiStoreLine,
     RiFileListLine,
-    RiTimeLine
+    RiTimeLine,
+    RiUserHeartLine
 } from '@remixicon/react';
 
 export const CrmLinks: Link[] = [
@@ -61,6 +62,12 @@ export const CrmLinks: Link[] = [
                 title: "Validated Results",
                 link: "/crm/validated",
                 icon: <RiFileListLine />
+            },
+            {
+                title: "Patient Portal",
+                link: "/crm/patient-portal",
+                icon: <RiUserHeartLine />,
+                roles: ['admin', 'manager', 'scientist']
             },
             {
                 title: "Referral Codes",

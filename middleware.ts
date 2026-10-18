@@ -54,6 +54,11 @@ export async function middleware(request: NextRequest) {
             const currentPath = request.nextUrl.pathname;
             const normalizedRole = role.toString().toLowerCase().trim();
 
+            // The patient portal only serves patient sessions; staff manage portal access from CRM and settings.
+            if (currentPath.startsWith('/patientportal') && normalizedRole !== 'patient') {
+                return NextResponse.redirect(new URL('/unauthorized', request.url));
+            }
+
             if (normalizedRole.replace(/[\s_-]/g, '') === 'superadmin') {
                 const response = NextResponse.next();
                 response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate, private');
@@ -82,7 +87,7 @@ export async function middleware(request: NextRequest) {
                 return NextResponse.next();
             }
 
-            if (role === "patient") {
+            if (normalizedRole === "patient") {
                 if (!currentPath.startsWith('/patientportal')) {
                     return NextResponse.redirect(new URL('/patientportal', request.url));
                 }

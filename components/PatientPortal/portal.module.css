@@ -1,0 +1,167 @@
+.page {
+     padding: 1.5rem;
+     max-width: 1200px;
+     margin: 0 auto;
+}
+
+.header {
+     display: flex;
+     flex-wrap: wrap;
+     justify-content: space-between;
+     align-items: flex-end;
+     gap: 1rem;
+     margin-bottom: 1.5rem;
+}
+
+.title {
+     font-size: 1.5rem;
+     font-weight: 600;
+     color: #18212f;
+     margin: 0 0 0.25rem;
+}
+
+.subtitle {
+     color: #6c757d;
+     margin: 0;
+}
+
+.card {
+     background: #fff;
+     border: 1px solid #e9ecef;
+     border-radius: 8px;
+     box-shadow: 0 1px 2px rgba(24, 33, 47, 0.04);
+     padding: 1.25rem;
+     margin-bottom: 1.25rem;
+}
+
+.cardTitle {
+     font-size: 1rem;
+     font-weight: 600;
+     color: #344767;
+     margin: 0 0 1rem;
+     display: flex;
+     align-items: center;
+     gap: 0.5rem;
+}
+
+.statGrid {
+     display: grid;
+     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+     gap: 1rem;
+     margin-bottom: 1.25rem;
+}
+
+.stat {
+     background: #fff;
+     border: 1px solid #e9ecef;
+     border-left: 4px solid #2e7d32;
+     border-radius: 8px;
+     padding: 1rem 1.25rem;
+}
+
+.statLabel {
+     color: #6c757d;
+     font-size: 0.85rem;
+     margin-bottom: 0.25rem;
+}
+
+.statValue {
+     font-size: 1.5rem;
+     font-weight: 600;
+     color: #18212f;
+}
+
+.table thead th {
+     background: #f8f9fa;
+     color: #344767;
+     font-weight: 600;
+     font-size: 0.85rem;
+     white-space: nowrap;
+}
+
+.primaryButton {
+     background: #2e7d32;
+     border-color: #2e7d32;
+}
+
+.primaryButton:hover,
+.primaryButton:focus {
+     background: #1b5e20;
+     border-color: #1b5e20;
+}
+
+.empty {
+     color: #6c757d;
+     text-align: center;
+     padding: 2rem 1rem;
+}
+
+.visitHeader {
+     display: flex;
+     flex-wrap: wrap;
+     justify-content: space-between;
+     align-items: center;
+     gap: 0.75rem;
+     margin-bottom: 0.75rem;
+}
+
+.report {
+     background: #fff;
+     border: 1px solid #e9ecef;
+     border-radius: 8px;
+     padding: 2rem;
+}
+
+.reportHeader {
+     border-bottom: 2px solid #2e7d32;
+     padding-bottom: 1rem;
+     margin-bottom: 1rem;
+     display: flex;
+     justify-content: space-between;
+     gap: 1rem;
+     flex-wrap: wrap;
+}
+
+.reportCompany {
+     font-size: 1.25rem;
+     font-weight: 700;
+     color: #18212f;
+     margin: 0;
+}
+
+.reportMeta {
+     display: grid;
+     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+     gap: 0.5rem 1rem;
+     margin-bottom: 1.5rem;
+     font-size: 0.9rem;
+}
+
+.reportTest {
+     margin-bottom: 1.5rem;
+     break-inside: avoid;
+}
+
+.reportTestName {
+     font-weight: 600;
+     color: #344767;
+     border-bottom: 1px solid #e9ecef;
+     padding-bottom: 0.25rem;
+     margin-bottom: 0.5rem;
+}
+
+@media print {
+     .noPrint {
+          display: none !important;
+     }
+
+     .page {
+          padding: 0;
+          max-width: none;
+     }
+
+     .report {
+          border: none;
+          padding: 0;
+     }
+}

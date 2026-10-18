@@ -88,3 +88,22 @@ test("payment page itemizes module costs without changing schedules automaticall
     assert.match(page, /Use module total for monthly schedule/);
     assert.match(page, /recurring payment schedule below must be changed separately/);
 });
+test("settings sidebar exposes entitled Email and SMS modules and no dead email routes", () => {
+    const settingsLinks = readFileSync(path.join(root, "components", "Layout", "links", "categories", "ApplicationSettingsLinks.tsx"), "utf8");
+    assert.match(settingsLinks, /link: "\/email-services"/);
+    assert.match(settingsLinks, /link: "\/communications\/sms\/dashboard"/);
+    const enabled = JSON.stringify({ modules: { email: { enabled: true }, sms: { enabled: true } } });
+    assert.equal(canAccessFacilityModule("/email-services", enabled, { smsActivated: 1 }), true);
+    assert.equal(canAccessFacilityModule("/communications/sms/dashboard", enabled, { smsActivated: 1 }), true);
+    const disabled = JSON.stringify({ modules: { email: { enabled: false }, sms: { enabled: false } } });
+    assert.equal(canAccessFacilityModule("/email-services", disabled), false);
+    assert.equal(canAccessFacilityModule("/communications/sms/dashboard", disabled, { smsActivated: 1 }), false);
+    for (const file of [
+        ["components", "Layout", "links", "categories", "CombinedLinks.tsx"],
+        ["components", "Layout", "AuthenticationLayout.jsx"],
+        ["components", "customer", "CustomersActionDropDown.jsx"],
+        ["components", "settingsComponents", "EmailSidebar.jsx"],
+    ]) {
+        assert.doesNotMatch(readFileSync(path.join(root, ...file), "utf8"), /\/settings\/email-services/);
+    }
+});

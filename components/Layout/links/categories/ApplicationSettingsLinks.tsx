@@ -22,7 +22,9 @@ import {
     RiEyeLine,
     RiShieldCheckLine,
     RiShieldLine,
-    RiMoonClearLine
+    RiMoonClearLine,
+    RiUserHeartLine,
+    RiMessage2Line
 } from '@remixicon/react';
 
 export const ApplicationSettingsLinks: Link[] =
@@ -60,6 +62,7 @@ export const ApplicationSettingsLinks: Link[] =
                 { title: "Application Settings", link: "/settings/applicationsettings", icon: <RiSettings4Line /> },
                 { title: "Expense Controls", link: "/accounting/expense-controls", icon: <RiShieldCheckLine />, roles: ['admin', 'super-admin', 'super_admin'] },
                 { title: "Referral Codes", link: "/settings/applicationsettings/referral-codes", icon: <RiGift2Line />, roles: ['admin', 'super-admin', 'super_admin'] },
+                { title: "Patient Portal", link: "/settings/applicationsettings/patient-portal", icon: <RiUserHeartLine />, roles: ['admin', 'manager', 'super-admin', 'super_admin'] },
                 { title: "Branches", link: "/settings/branches", icon: <RiBuilding2Line /> },
                 { title: "Taxes", link: "/settings/tax", icon: <RiMoneyDollarCircleLine /> }
             ]
@@ -140,6 +143,20 @@ export const ApplicationSettingsLinks: Link[] =
             children: [
                 { title: 'Promo Codes', link: '/settings/promos/promo-code-generation', icon: <RiGift2Line /> },
                 { title: 'Campaigns', link: '/settings/promos/campaign-creation', icon: <RiGift2Line /> }
+            ]
+        },
+        {
+            title: "Communications",
+            link: "",
+            icon: <RiMailSettingsLine />,
+            roles: ['admin', 'manager', 'super-admin', 'super_admin'],
+            children: [
+                { title: "Email Overview", link: "/email-services", icon: <RiMailSettingsLine /> },
+                { title: "Email Providers", link: "/email-services/providers", icon: <RiSettings4Line /> },
+                { title: "Email Notification Events", link: "/email-services/notifications/events", icon: <RiFileTextLine /> },
+                { title: "Email Queue", link: "/email-services/queue", icon: <RiListCheck2 /> },
+                { title: "SMS Dashboard", link: "/communications/sms/dashboard", icon: <RiMessage2Line /> },
+                { title: "SMS Templates", link: "/communications/sms/templates", icon: <RiFileTextLine /> }
             ]
         },
         {

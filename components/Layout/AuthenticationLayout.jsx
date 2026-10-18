@@ -11,7 +11,7 @@ export default function AuthenticationLayout({ children }) {
     { title: "Register User", link: "/authentication/register", icon: <PlusBookShelf /> },
     { title: "Users", link: "/authentication/users", icon: <AccountSvg /> },
     { title: "Login History", link: "/authentication/loginhistory", icon: <LogoutHistorySvg /> },
-    { title: "Compose Email", link: "/settings/email-services/queue", icon: <ComposeNewMessageSvg /> },
+    { title: "Compose Email", link: "/email-services/queue", icon: <ComposeNewMessageSvg /> },
   ]
 
   return <AppCustomLayout sideLinks={sidebarLinks} defaultscreen={false}>{children}</AppCustomLayout>
