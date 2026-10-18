@@ -62,7 +62,8 @@ test("tenant deletion requires explicit confirmation and protects platform home"
     assert.match(page, /deleteConfirmation !== deleteFacility\.platformId/);
     assert.match(page, /deleteReason\.trim\(\)\.length < 3/);
     assert.match(page, /confirmation: deleteConfirmation, reason: deleteReason\.trim\(\)/);
-    assert.match(page, /customFetchMutation\(`platform\/facilities\/\$\{deleteFacility\.tenantId\}`, "DELETE"/);
+    assert.match(page, /recoveringProvisioning \? "POST" : "DELETE"/);
+    assert.match(page, /\/recover-provisioning/);
     assert.match(page, /result\.result\?\.deleted !== true/);
     assert.match(page, /setFacilities\(\(current\) => current\.filter/);
     assert.match(page, /deleteFacility\.status === "failed"/);
@@ -86,7 +87,7 @@ const findDeletionHandler = (node) => {
 findDeletionHandler(pageAst);
 
 const runDeletion = async (payload, options = {}) => {
-    const facility = { tenantId: 654321, platformId: "NRAM11", status: "failed" };
+    const facility = { tenantId: 654321, platformId: "NRAM11", status: options.recovery ? "provisioning" : "failed" };
     const state = {
         facilities: [facility], selectedTenantId: facility.tenantId, created: { tenantId: facility.tenantId },
         retryFacility: facility, provisioningApplication: { linked_tenant_id: facility.tenantId },
@@ -94,6 +95,7 @@ const runDeletion = async (payload, options = {}) => {
     };
     const context = {
         deleteFacility: facility, deleteBusy: false, busy: false, deleteConfirmation: facility.platformId,
+        recoveringProvisioning: Boolean(options.recovery),
         deleteReason: " Retry from scratch ", selectedTenantId: facility.tenantId, created: state.created,
         retryFacility: facility, provisioningApplication: state.provisioningApplication,
         customFetchMutation: async (...args) => {
@@ -150,4 +152,41 @@ test("cleanup errors and unconfirmed database outcomes do not remove the visible
         assert.equal(state.deletedMessage, undefined);
         assert.equal(state.deleteBusy, false);
     }
+});
+
+test("interrupted setup recovery preserves the facility and enables retry or deletion", async () => {
+    const state = await runDeletion({ status: "success", result: { status: "failed", databasePreserved: true } }, { recovery: true });
+    assert.equal(state.request[0], "platform/facilities/654321/recover-provisioning");
+    assert.equal(state.request[1], "POST");
+    assert.equal(state.request[2].confirmation, "NRAM11");
+    assert.equal(state.request[2].reason, "Retry from scratch");
+    assert.equal(state.facilities.length, 1);
+    assert.equal(state.facilities[0].status, "failed");
+    assert.equal(state.deleteFacility, null);
+    assert.match(state.deletedMessage, /database was preserved/);
+    assert.match(state.deletedMessage, /retry provisioning or delete/);
+    assert.equal(state.deleteBusy, false);
+});
+
+test("busy workers and unconfirmed recovery responses keep provisioning unchanged", async () => {
+    for (const payload of [
+        { status: "error", message: "Facility setup or cleanup is still running" },
+        { status: "success", result: { status: "failed" } },
+        { status: "success", result: { status: "active", databasePreserved: true } },
+    ]) {
+        const state = await runDeletion(payload, { recovery: true });
+        assert.equal(state.facilities[0].status, "provisioning");
+        assert.ok(state.deleteFacility);
+        assert.ok(state.deleteError);
+        assert.equal(state.deletedMessage, undefined);
+        assert.equal(state.deleteBusy, false);
+    }
+});
+
+test("directory offers confirmed recovery instead of unsafe deletion for provisioning rows", () => {
+    assert.match(pageSource, /status\.toLowerCase\(\) === "provisioning" && !row\.original\.isControlTenant/);
+    assert.match(pageSource, /Recover interrupted setup/);
+    assert.match(pageSource, /Mark interrupted setup as failed/);
+    assert.match(pageSource, /ref=\{cleanupRef\}/);
+    assert.match(pageSource, /server refuses recovery while a provisioning worker is running/);
 });

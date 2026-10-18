@@ -101,6 +101,7 @@ export default function FacilityOnboardingPage() {
      const [formErrors, setFormErrors] = useState<FormErrors>({});
      const [copiedKey, setCopiedKey] = useState("");
      const [deleteFacility, setDeleteFacility] = useState<Facility | null>(null);
+     const [recoveringProvisioning, setRecoveringProvisioning] = useState(false);
      const [deleteConfirmation, setDeleteConfirmation] = useState("");
      const [deleteReason, setDeleteReason] = useState("");
      const [deleteBusy, setDeleteBusy] = useState(false);
@@ -109,6 +110,11 @@ export default function FacilityOnboardingPage() {
      const [retryFacility, setRetryFacility] = useState<Facility | null>(null);
      const managementRef = useRef<HTMLDivElement>(null);
      const provisionRef = useRef<HTMLFormElement>(null);
+     const cleanupRef = useRef<HTMLFormElement>(null);
+
+     useEffect(() => {
+          if (deleteFacility) cleanupRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+     }, [deleteFacility]);
 
      useEffect(() => {
           if (selectedTenantId !== null) managementRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -238,9 +244,20 @@ export default function FacilityOnboardingPage() {
           setDeleteBusy(true);
           setDeleteError("");
           try {
-               const result = await customFetchMutation(`platform/facilities/${deleteFacility.tenantId}`, "DELETE", {
+               const result = await customFetchMutation(`platform/facilities/${deleteFacility.tenantId}${recoveringProvisioning ? "/recover-provisioning" : ""}`, recoveringProvisioning ? "POST" : "DELETE", {
                     confirmation: deleteConfirmation, reason: deleteReason.trim(),
                });
+               if (recoveringProvisioning) {
+                    if (result?.status !== "success" || result.result?.status !== "failed" ||
+                         result.result?.databasePreserved !== true) {
+                         throw new Error(result?.message || result?.error || "Unable to recover interrupted setup.");
+                    }
+                    setFacilities(current => current.map(facility => facility.tenantId === deleteFacility.tenantId
+                         ? { ...facility, status: "failed" } : facility));
+                    setDeletedMessage(`${deleteFacility.platformId} is now marked failed. Its database was preserved. You can retry provisioning or delete the partial database and tenant.`);
+                    setDeleteFacility(null);
+                    return;
+               }
                if (result?.status !== "success" || result.result?.deleted !== true ||
                     typeof result.result.databasePreserved !== "boolean") {
                     throw new Error(result?.message || result?.error || "Unable to delete the tenant.");
@@ -442,6 +459,16 @@ export default function FacilityOnboardingPage() {
                Cell: ({ row }) => row.original.status.toLowerCase() === "failed" ? (
                     <button type="button" className="btn btn-sm btn-outline-warning" disabled={busy || deleteBusy}
                          onClick={() => openRetry(row.original)}>Retry provisioning</button>
+               ) : row.original.status.toLowerCase() === "provisioning" && !row.original.isControlTenant ? (
+                    <button type="button" className="btn btn-sm btn-outline-warning" disabled={busy || deleteBusy}
+                         onClick={() => {
+                              setDeleteFacility(row.original);
+                              setRecoveringProvisioning(true);
+                              setDeleteConfirmation("");
+                              setDeleteReason("");
+                              setDeleteError("");
+                              setDeletedMessage("");
+                         }}>Recover interrupted setup</button>
                ) : <span className="text-muted">—</span>,
           },
           {
@@ -450,9 +477,10 @@ export default function FacilityOnboardingPage() {
                Cell: ({ row }) => (
                     <button type="button" className="btn btn-sm btn-outline-danger"
                          disabled={busy || deleteBusy || row.original.isControlTenant || row.original.status === "provisioning"}
-                         title={row.original.isControlTenant ? "Platform home cannot be deleted" : row.original.status === "provisioning" ? "Wait for provisioning to finish" : row.original.status === "failed" ? "Permanently delete the partial database and registry record" : "Remove registry record; preserve database"}
+                         title={row.original.isControlTenant ? "Platform home cannot be deleted" : row.original.status === "provisioning" ? "Use Recover interrupted setup first; running setup is protected" : row.original.status === "failed" ? "Permanently delete the partial database and registry record" : "Remove registry record; preserve database"}
                          onClick={() => {
                               setDeleteFacility(row.original);
+                              setRecoveringProvisioning(false);
                               setDeleteConfirmation("");
                               setDeleteReason("");
                               setDeleteError("");
@@ -551,7 +579,7 @@ export default function FacilityOnboardingPage() {
                          <FacilitySummaryCard
                               title="Provisioning"
                               value={summaryReady ? facilitiesByStatus("provisioning") : null}
-                              subtitle="Setup in progress"
+                              subtitle="Running or awaiting recovery"
                               Icon={RiTimeLine}
                               variant="primary"
                               selected={statusFilter === "provisioning"}
@@ -563,7 +591,7 @@ export default function FacilityOnboardingPage() {
                          <FacilitySummaryCard
                               title="Failed"
                               value={summaryReady ? facilitiesByStatus("failed") : null}
-                              subtitle="Retry or review setup"
+                              subtitle="Retry or delete failed setup"
                               Icon={RiErrorWarningLine}
                               variant="danger"
                               selected={statusFilter === "failed"}
@@ -603,19 +631,21 @@ export default function FacilityOnboardingPage() {
                {error && <div className="alert alert-danger mb-3 d-flex justify-content-between gap-2" role="alert"><span>{error}</span><button type="button" className="btn-close" aria-label="Dismiss error" onClick={() => setError("")} /></div>}
                {pricingError && <div className="alert alert-warning mb-3" role="alert">{pricingError} <Link href="/settings/facilities/pricing">Open the Module pricing tab</Link>.</div>}
                {deletedMessage && <div className="alert alert-success" role="status">{deletedMessage}</div>}
-               {deleteFacility && <form className="border-top border-danger pt-3 mb-3" onSubmit={confirmDelete} aria-label="Confirm tenant deletion" aria-describedby="delete-consequences">
-                    <h2 className="h5 text-danger">Delete {deleteFacility.name}</h2>
-                    <p id="delete-consequences">{deleteFacility.status === "failed"
+               {deleteFacility && <form ref={cleanupRef} className="border-top border-danger pt-3 mb-3" onSubmit={confirmDelete} aria-label={recoveringProvisioning ? "Confirm interrupted setup recovery" : "Confirm tenant deletion"} aria-describedby="delete-consequences">
+                    <h2 className="h5 text-danger">{recoveringProvisioning ? "Recover interrupted setup for" : "Delete"} {deleteFacility.name}</h2>
+                    <p id="delete-consequences">{recoveringProvisioning
+                         ? <>Use this when setup failed or stopped but still shows provisioning. The server refuses recovery while a provisioning worker is running. Otherwise, it marks this facility failed without deleting its database, so you can retry or delete it.</>
+                         : deleteFacility.status === "failed"
                          ? <>This permanently deletes the partial database <strong>{deleteFacility.databaseName}</strong> and removes the failed tenant registry record. Database deletion cannot be undone. You can then provision the facility again using the same company email.</>
                          : <>This permanently removes the tenant registry record and prevents tenant access. Its database is preserved.</>}
-                         {" "}Subscription payments and facility audit records are preserved. Linked legacy migration/provisioning records may be removed by database constraints. This is not deactivation.</p>
+                         {" "}Subscription payments and facility audit records are preserved. {!recoveringProvisioning && <>Linked legacy migration/provisioning records may be removed by database constraints. This is not deactivation.</>}</p>
                     <label className="form-label" htmlFor="delete-confirmation">Enter {deleteFacility.platformId} to confirm</label>
                     <input id="delete-confirmation" className="form-control mb-2" value={deleteConfirmation} disabled={deleteBusy} onChange={(event) => setDeleteConfirmation(event.target.value)} autoComplete="off" required />
                     <label className="form-label" htmlFor="delete-reason">Reason</label>
                     <input id="delete-reason" className="form-control mb-2" value={deleteReason} disabled={deleteBusy} onChange={(event) => setDeleteReason(event.target.value)} minLength={3} maxLength={500} required />
                     {deleteError && <div className="alert alert-danger" role="alert">{deleteError}</div>}
                     <div className="d-flex gap-2">
-                         <button type="submit" className="btn btn-danger" disabled={busy || deleteBusy || deleteConfirmation !== deleteFacility.platformId || deleteReason.trim().length < 3}>{deleteBusy ? "Deleting..." : deleteFacility.status === "failed" ? "Delete database and tenant" : "Confirm deletion"}</button>
+                         <button type="submit" className="btn btn-danger" disabled={busy || deleteBusy || deleteConfirmation !== deleteFacility.platformId || deleteReason.trim().length < 3}>{deleteBusy ? (recoveringProvisioning ? "Recovering..." : "Deleting...") : recoveringProvisioning ? "Mark interrupted setup as failed" : deleteFacility.status === "failed" ? "Delete database and tenant" : "Confirm deletion"}</button>
                          <button type="button" className="btn btn-outline-secondary" disabled={deleteBusy} onClick={() => setDeleteFacility(null)}>Cancel</button>
                     </div>
                </form>}
