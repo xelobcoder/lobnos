@@ -99,6 +99,19 @@ old sessions reference a renumbered tenant must sign in again.
 The verified tenant is stored in the signed session and used by shared API
 request helpers. No central user directory is populated or synchronized.
 
+The signed `PLS-SESSION` cookie contains identity, tenant scope and only the
+settings required by middleware authorization. The backend access token has its
+own cookie; full application settings are loaded from the authenticated context
+endpoint, not embedded in the signed session. Growing facility settings therefore
+cannot overflow the browser's cookie limit. Before reporting success, login
+verifies that the browser retained its session (10-second context timeout), then
+fully navigates to the role-specific workspace. Missing sessions and timeouts
+display a retryable error rather than an endless "Redirecting..." message.
+
+```powershell
+node --test tests\auth-login.test.cjs tests\login-redirect.test.cjs
+```
+
 Click **Forgot password?** beside the password label. Enter the full username
 (pre-filled if entered on the sign-in form) and the registered email address.
 The organization prefix provides tenant scope; the email must match that tenant-local

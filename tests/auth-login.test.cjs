@@ -10,17 +10,19 @@ const compiled = ts.transpileModule(source, {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
 }).outputText;
 
-function createHandler(role, verified = true) {
+function createHandler(role, verified = true, settings = {}, tokenOverride) {
     const savedCookies = [];
     const signedPayloads = [];
     const exports = {};
     const backendUser = { role, employeeid: 1, email: "admin@example.test" };
     class SignJWT {
-        constructor(payload) { signedPayloads.push(payload); }
+        constructor(payload) { this.payload = payload; signedPayloads.push(payload); }
         setProtectedHeader() { return this; }
         setIssuedAt() { return this; }
         setExpirationTime() { return this; }
-        async sign() { return "synthetic-signed-session"; }
+        async sign() {
+            return tokenOverride || `eyJhbGciOiJIUzI1NiJ9.${Buffer.from(JSON.stringify(this.payload)).toString('base64url')}.${'s'.repeat(43)}`;
+        }
     }
     vm.runInNewContext(compiled, {
         exports,
@@ -40,7 +42,7 @@ function createHandler(role, verified = true) {
             assert.equal(url.searchParams.get("tenantId"), "397773");
             return {
                 ok: verified,
-                json: async () => ({ status: verified, user: { user: backendUser }, settings: {}, message: verified ? "" : "Session rejected" }),
+                json: async () => ({ status: verified, user: { user: backendUser }, settings, message: verified ? "" : "Session rejected" }),
             };
         },
     });
@@ -82,4 +84,28 @@ test("does not grant super-admin a session when backend verification fails", asy
     assert.equal(result.status, 401);
     assert.equal(handler.savedCookies.length, 0);
     assert.equal(handler.signedPayloads.length, 0);
+});
+
+test("large application settings never overflow the browser's session cookie limit", async () => {
+    const handler = createHandler("scientist", true, {
+        allowScientistToRegisterClient: 0,
+        homeCollectionPromptEnabled: 1,
+        resultDeliveryPromptEnabled: 1,
+        moduleConfiguration: "x".repeat(10000),
+    });
+    const result = await handler.POST(request);
+    assert.equal(result.status, 200);
+    const [name, value] = handler.savedCookies[0];
+    assert.ok(Buffer.byteLength(`${name}=${value}`) < 3800);
+    assert.equal(handler.signedPayloads[0].settings.allowScientistToRegisterClient, 0);
+    assert.equal(Object.keys(handler.signedPayloads[0].settings).length, 1);
+    assert.equal(handler.signedPayloads[0].accessToken, undefined, "the backend token has its own cookie");
+    assert.equal(handler.savedCookies[1][1], "synthetic-backend-token");
+});
+
+test("does not report success or set cookies if the signed session is too large", async () => {
+    const handler = createHandler("admin", true, {}, "x".repeat(4000));
+    const result = await handler.POST(request);
+    assert.equal(result.status, 500);
+    assert.equal(handler.savedCookies.length, 0);
 });

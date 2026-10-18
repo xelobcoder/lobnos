@@ -157,65 +157,55 @@ export default function PrimeLabLoginPage() {
 				return;
 			}
 
-			setLoginStatus('success');
-			setMessage('Login successful. Redirecting...');
-
 			if (typeof window !== 'undefined') {
+				const contextResponse = await fetch('/api/auth/context-retrieval', {
+					method: 'GET',
+					credentials: 'include',
+					cache: 'no-store',
+					signal: AbortSignal.timeout(10000),
+					headers: { 'Content-Type': 'application/json' },
+				});
+				const contextData = await contextResponse.json();
+				if (!contextResponse.ok || !contextData?.user || Number(contextData.tenantId) !== resolvedTenantId) {
+					throw new Error(contextData?.error || 'Your browser did not retain the login session. Please try again.');
+				}
 				try {
-					const contextResponse = await fetch('/api/auth/context-retrieval', {
-						method: 'GET',
-						credentials: 'include',
-						cache: 'no-store',
-						headers: { 'Content-Type': 'application/json' },
-					});
-					const contextData = await contextResponse.json();
-					if (contextData?.user) {
-						localStorage.setItem('applicationsettings', JSON.stringify({
-							user: contextData.user,
-							settings: contextData.settings || {},
-							tenantId: contextData.tenantId,
-						}));
-					} else {
-						throw new Error('Complete application context was not returned');
-					}
-				} catch {
-					localStorage.removeItem('applicationsettings');
+					localStorage.setItem('applicationsettings', JSON.stringify({
+						user: contextData.user,
+						settings: contextData.settings || {},
+						tenantId: contextData.tenantId,
+					}));
+				} catch (error) {
+					console.warn('Application settings could not be cached; they will be loaded from the server.', error);
 				}
 			}
 
+			setLoginStatus('success');
+			setMessage('Login successful. Redirecting...');
 			const { role } = cookieResult;
-			setTimeout(() => {
-				if (String(role || "").toLowerCase().replace(/[\s_-]/g, "") === "superadmin") {
-					router.push("/settings/facilities");
-				} else if (role === "patient") {
-					router.push("/patientportal");
-				} else if (role === "clinician") {
-					router.push("/doctor");
-				} else
-					if (role === "customer service representative") {
-						router.push("/crm/overview");
-					} else if (role === 'admin') {
-						router.push("/analytics");
-					} else if (role === 'manager') {
-						router.push("/");
-					} else if (role === "sonographer") {
-						router.push("/operations/imaging/ultrasound");
-					} else if (role === "scientist") {
-						router.push("/operations/laboratory");
-					} else if (role === "storekeeper") {
-						router.push("/inventory");
-					} else if (role === "accountant") {
-						router.push("/accounting");
-					}
-					else {
-						router.push("/");
-					}
-			}, 1000);
+			const destinations: Record<string, string> = {
+				patient: '/patientportal',
+				clinician: '/doctor',
+				'customer service representative': '/crm/overview',
+				admin: '/analytics',
+				manager: '/',
+				sonographer: '/operations/imaging/ultrasound',
+				scientist: '/operations/laboratory',
+				storekeeper: '/inventory',
+				accountant: '/accounting',
+			};
+			const destination = String(role || '').toLowerCase().replace(/[\s_-]/g, '') === 'superadmin'
+				? '/settings/facilities'
+				: destinations[role] || '/';
+			// Reload the authenticated shell rather than reusing the anonymous router cache.
+			window.location.replace(destination);
 
 		} catch (err) {
 			console.error('Login error:', err);
 			setLoginStatus('error');
-			setMessage('An error occurred during login');
+			setMessage(err instanceof Error && err.name === 'TimeoutError'
+				? 'Session verification timed out. Please try logging in again.'
+				: err instanceof Error ? err.message : 'An error occurred during login');
 			setSubmitting(false);
 		}
 	}

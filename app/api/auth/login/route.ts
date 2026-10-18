@@ -52,8 +52,11 @@ export async function POST(request: NextRequest) {
         const signedToken = await new SignJWT({
             email: user.email || email,
             user,
-            accessToken,
-            settings,
+            // Only middleware authorization data belongs in this size-limited cookie.
+            // Full settings come from the authenticated context endpoint.
+            settings: {
+                allowScientistToRegisterClient: settings?.allowScientistToRegisterClient,
+            },
             tenantId,
         })
             .setProtectedHeader({ alg: 'HS256' })
@@ -62,6 +65,9 @@ export async function POST(request: NextRequest) {
             .sign(secret);
 
         await jwtVerify(signedToken, secret);
+        if (new TextEncoder().encode(`PLS-SESSION=${signedToken}`).length > 3800) {
+            throw new Error('The authentication session exceeds the supported cookie size');
+        }
         const effectiveSessionExpiryTime = sessionExpiryTime || Date.now() + (12 * 60 * 60 * 1000);
         const maxAge = Math.max(1, Math.floor((effectiveSessionExpiryTime - Date.now()) / 1000));
         // Set cookies
