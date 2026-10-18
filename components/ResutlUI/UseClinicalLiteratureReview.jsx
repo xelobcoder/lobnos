@@ -1,4 +1,5 @@
 import styles from '../Drugs/DrugsList.module.css';
+import ReportRichText from '../ResultView/ReportRichText';
 
 export default function UseClinicalLiteratureReview({ literature }) {
 	const isLiterature = literature && typeof literature === "string" && literature.trim().length > 0;
@@ -13,8 +14,7 @@ export default function UseClinicalLiteratureReview({ literature }) {
 			{isLiterature && (
 				<div
 					className={styles.richContent}
-					dangerouslySetInnerHTML={{ __html: literature }}
-				/>
+				><ReportRichText html={literature} /></div>
 			)}
 		</section>
 	);

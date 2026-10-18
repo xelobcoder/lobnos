@@ -9,5 +9,5 @@ export async function signOutPatient() {
      } catch {
           // The browser session is still cleared below.
      }
-     await handleLogout();
+     await handleLogout(undefined, '/patient-access/login');
 }

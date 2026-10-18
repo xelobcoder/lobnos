@@ -6,6 +6,7 @@ import { RiCalendarLine, RiFileList3Line, RiMoneyDollarCircleLine } from '@remix
 import styles from '../../components/PatientPortal/portal.module.css';
 import { usePortalResource } from '../../components/PatientPortal/usePortalResource';
 import { PortalAppointment, PortalTest, formatDate, formatMoney, fullName, resultStatus } from '../../lib/patientPortal';
+import PortalSummary from '../../components/PatientPortal/PortalSummary';
 
 interface Dashboard {
      results: { available: number; inProgress: number; recent: PortalTest[] };
@@ -34,26 +35,12 @@ export default function PatientPortalHome() {
 
                {data && (
                     <>
-                         <div className={styles.statGrid}>
-                              <div className={styles.stat}>
-                                   <div className={styles.statLabel}>Results ready</div>
-                                   <div className={styles.statValue}>{data.results.available}</div>
-                              </div>
-                              <div className={styles.stat}>
-                                   <div className={styles.statLabel}>Tests in progress</div>
-                                   <div className={styles.statValue}>{data.results.inProgress}</div>
-                              </div>
-                              <div className={styles.stat}>
-                                   <div className={styles.statLabel}>Upcoming appointments</div>
-                                   <div className={styles.statValue}>{data.appointments.upcoming.length}</div>
-                              </div>
-                              {data.billing && (
-                                   <div className={styles.stat}>
-                                        <div className={styles.statLabel}>Outstanding balance</div>
-                                        <div className={styles.statValue}>{formatMoney(data.billing.outstanding)}</div>
-                                   </div>
-                              )}
-                         </div>
+                         <PortalSummary items={[
+                              { label: 'Results ready', value: data.results.available, icon: <RiFileList3Line /> },
+                              { label: 'Tests in progress', value: data.results.inProgress, detail: 'We will show results once your facility releases them.' },
+                              { label: 'Upcoming appointments', value: data.appointments.upcoming.length, icon: <RiCalendarLine /> },
+                              ...(data.billing ? [{ label: 'Outstanding balance', value: formatMoney(data.billing.outstanding), icon: <RiMoneyDollarCircleLine /> }] : []),
+                         ]} />
 
                          <section className={styles.card}>
                               <h2 className={styles.cardTitle}><RiFileList3Line size={18} />Recent tests</h2>

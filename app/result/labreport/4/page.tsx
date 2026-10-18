@@ -19,6 +19,8 @@ import { defaultResultSettings, ResultSettings } from '../../../../components/Re
 import ResultViewHtmlGeneratorUltrasound from '../../../../components/Auth/ResultViewHtmlGeneratorUltrasound';
 import DrugsList from '../../../../components/Drugs/DrugsList';
 import Watermark from '../../../../components/ResultView/Watermark';
+import LaboratoryReport from '../../../../components/ResultView/LaboratoryReport';
+import { createLaboratoryReportPdf, laboratoryReportFilename } from '../../../../lib/laboratoryReportPdf';
 
 const MDSLancetTemplate: React.FC = () => {
     const app = useApplication();
@@ -35,6 +37,7 @@ const MDSLancetTemplate: React.FC = () => {
     const [pdfUrl, setPdfUrl] = useState<{ url: string; filename: string } | null>(null);
     const [showPdf, setShowPdf] = useState(false);
     const [showPdfControls, setShowPdfControls] = useState(false);
+    const [pdfError, setPdfError] = useState('');
     const searchParams = useSearchParams();
     const router = useRouter();
     const billingid = searchParams?.get('csvid') || '';
@@ -104,6 +107,10 @@ const MDSLancetTemplate: React.FC = () => {
 
     useEffect(() => {
         if (!loader && resultdata?.records) {
+            if (!isScan) {
+                generatePDF();
+                return;
+            }
             ensureImagesLoaded().then(() => {
                 generatePDF();
             }).catch(err => {
@@ -146,6 +153,21 @@ const MDSLancetTemplate: React.FC = () => {
         }
 
         async function generatePDF() {
+            if (!isScan) {
+                const report = document.querySelector<HTMLElement>('.result');
+                if (!report) return;
+                try {
+                    const blob = await createLaboratoryReportPdf([report]);
+                    setPdfUrl(previous => {
+                        if (previous) URL.revokeObjectURL(previous.url);
+                        return { url: URL.createObjectURL(blob), filename: laboratoryReportFilename(Number(billingid), Number(ascensionid)) };
+                    });
+                    setPdfError('');
+                } catch (error) {
+                    setPdfError(error instanceof Error ? error.message : 'The report PDF could not be generated.');
+                }
+                return;
+            }
             setTimeout(async () => {
                 const resultElement = document.querySelector('.result');
                 if (!resultElement) return;
@@ -395,6 +417,7 @@ const MDSLancetTemplate: React.FC = () => {
                 </div>
             </div>}
             {pdfControls}
+            {pdfError && <div role="alert" className="alert alert-danger no-print">{pdfError}</div>}
             {!showPdfControls && (
                 <div style={{ position: 'relative', width: '100%', height: '100vh', backgroundColor: 'white' }}>
                     <div className={styles.page} style={{
@@ -402,7 +425,9 @@ const MDSLancetTemplate: React.FC = () => {
                         minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'white',
 
                     }}>
-                        <div className='result' style={{ position: 'relative' }}>
+                        {!isScan ? <LaboratoryReport data={{ ...resultdata, ascensionid: Number(ascensionid) }}
+                            settings={resultSettings} billingPrefix={prefixText} showWatermark={showWatermark} framed={false} />
+                        : <div className='result' style={{ position: 'relative' }}>
                             <MdsCompanyInformation
                                 styles={styles}
                                 logourl={resultdata.logourl}
@@ -502,6 +527,7 @@ const MDSLancetTemplate: React.FC = () => {
                                 </section>
                             </div>
                         </div>
+                        }
                         <footer>
                             <div className={styles.pageNumber}>
                                 <span className="pageNumber"></span>

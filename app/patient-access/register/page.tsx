@@ -84,7 +84,7 @@ function RegisterForm() {
                     <Alert variant="success" className="border-0 shadow-sm">
                          Your portal account is active. Sign in on the <strong>Patient Login</strong> tab with username <strong>{loginUsername}</strong>.
                     </Alert>
-                    <Link href="/authentications/login" className={`${styles.signInButton} text-decoration-none`}>Go to sign in</Link>
+                    <Link href="/patient-access/login" className={`${styles.signInButton} text-decoration-none`}>Go to sign in</Link>
                </>
           );
      }
@@ -131,7 +131,7 @@ function RegisterForm() {
                     </form>
                )}
                <p className="text-center small mt-3 mb-0">
-                    Have an invitation link? Open it from your email. <Link href="/authentications/login">Back to sign in</Link>
+                    Have an invitation link? Open it from your email. <Link href="/patient-access/login">Back to sign in</Link>
                </p>
           </>
      );

@@ -137,7 +137,7 @@ export async function customFetchMutation(endpoint, method, body) {
 
 let isLoggingOutInFlight = false;
 
-export async function handleLogout(setIsLoggingOut) {
+export async function handleLogout(setIsLoggingOut, destination = "/authentications/login") {
 	// Guard against multiple concurrent invocations (e.g. several parallel
 	// requests all receiving 401 at once) triggering repeated logout/redirect storms.
 	if (isLoggingOutInFlight) return;
@@ -145,7 +145,7 @@ export async function handleLogout(setIsLoggingOut) {
 
 	const redirectToLogin = () => {
 		setTimeout(() => {
-			window.location.href = "/authentications/login";
+			window.location.href = destination;
 		}, 1000);
 	};
 

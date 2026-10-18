@@ -123,7 +123,7 @@ test("middleware keeps staff out of the patient portal and patients inside it", 
     const middleware = read("middleware.ts");
     assert.match(middleware, /currentPath\.startsWith\('\/patientportal'\) && normalizedRole !== 'patient'/);
     assert.match(middleware, /normalizedRole === "patient"[\s\S]{0,120}redirect\(new URL\('\/patientportal'/);
-    assert.doesNotMatch(middleware, /'\/patient-access/, "public activation pages must not require a session");
+    assert.doesNotMatch(middleware.slice(middleware.indexOf('matcher:')), /'\/patient-access/, "public activation pages must not require a session");
 });
 
 test("page files only export the page component", () => {
@@ -201,13 +201,30 @@ test("CRM patient menu opens portal controls for authorized staff only", () => {
     assert.match(read("components", "PatientPortal", "PatientPortalAccessPanel.tsx"), /id="patient-portal-access"/);
 });
 
-test("CRM sidebar has a role-gated Patient Portal page that hosts the access panel", () => {
+test("staff shortcut opens dedicated role-gated portal administration outside CRM", () => {
     const links = read("components", "Layout", "links", "categories", "crmLinks.tsx");
     const entry = links.slice(links.indexOf('title: "Patient Portal"'), links.indexOf("}", links.indexOf('title: "Patient Portal"')));
-    assert.match(entry, /link: "\/crm\/patient-portal"/);
-    assert.match(entry, /roles: \['admin', 'manager', 'scientist'\]/);
-    const page = read("app", "crm", "patient-portal", "page.tsx");
+    assert.match(entry, /link: "\/patient-portal-admin"/);
+    assert.match(entry, /roles: \['admin', 'manager'\]/);
+    assert.match(read("app", "crm", "patient-portal", "page.tsx"), /redirect\('\/patient-portal-admin'\)/);
+    const page = read("app", "patient-portal-admin", "access", "page.tsx");
     assert.match(page, /<PatientPortalAccessPanel key=\{selected\.patientid\} patientid=/);
     assert.match(page, /roleAllowed\(applicationsettings\?\.user\?\.role, PORTAL_STAFF_ROLES\)/);
     assert.match(page, /customFetch\(`customers\?/);
+});
+
+test("patient portal uses its own Device Manager styled shell without staff or CRM navigation", () => {
+    const shell = read("components", "PatientPortal", "PortalShell.tsx");
+    for (const layout of [read("app", "patientportal", "layout.tsx"), read("app", "patient-portal-admin", "layout.tsx")]) {
+        assert.match(layout, /<PortalShell/);
+        assert.doesNotMatch(layout, /MAIN_LAYOUT|PrimeLayout|CrmLinks/);
+    }
+    assert.doesNotMatch(shell, /CrmLinks|MAIN_LAYOUT|PrimeLayout|\/crm\//);
+    const deviceManager = readFileSync(path.join(root, "..", "Devices-interfacing", "device-manager", "src", "index.html"), "utf8");
+    const css = read("components", "PatientPortal", "PortalShell.module.css");
+    for (const token of ["#2e7d32", "#1b5e20", "#18212f", "#263244", "#e7edf5", "#9aa6b8", "#344767"]) {
+        assert.ok(deviceManager.includes(token), `Device Manager defines ${token}`);
+        assert.ok(css.includes(token), `portal styles reuse ${token}`);
+    }
+    assert.match(read("components", "PatientPortal", "PatientAccessShell.tsx"), /loginBrandOverlay[\s\S]*loginFormSide/);
 });

@@ -24,17 +24,21 @@ export async function verifyPrimeToken(token: string) {
 
 export async function middleware(request: NextRequest) {
     const isLoginPage = request.nextUrl.pathname === '/authentications/login';
+    const patientLogin = request.nextUrl.pathname.startsWith('/patientportal');
+    const adminPortal = request.nextUrl.pathname === '/patient-portal-admin' || request.nextUrl.pathname.startsWith('/patient-portal-admin/');
+    const loginUrl = new URL(patientLogin ? '/patient-access/login' : '/authentications/login', request.url);
+    if (adminPortal) loginUrl.searchParams.set('returnTo', request.nextUrl.pathname);
     const sessionToken = request.cookies.get('PLS-SESSION')?.value;
 
     if (!sessionToken && !isLoginPage) {
-        return NextResponse.redirect(new URL('/authentications/login', request.url));
+        return NextResponse.redirect(loginUrl);
     }
 
     if (sessionToken) {
         const { isValid, payload } = await verifyPrimeToken(sessionToken);
 
         if (!isValid && !isLoginPage) {
-            const response = NextResponse.redirect(new URL('/authentications/login', request.url));
+            const response = NextResponse.redirect(loginUrl);
             response.cookies.delete('PLS-SESSION');
             response.cookies.delete('pls-prime-tenant-session');
             return response;
@@ -42,6 +46,10 @@ export async function middleware(request: NextRequest) {
 
         if (isValid && isLoginPage && payload) {
             const role = payload.user?.role?.toLowerCase?.() || '';
+            const returnTo = new URL(request.url).searchParams.get('returnTo');
+            if (['admin', 'manager','super-admin'].includes(role) && returnTo && /^\/patient-portal-admin(?:\/(?:access|settings))?$/.test(returnTo)) {
+                return NextResponse.redirect(new URL(returnTo, request.url));
+            }
             if (role.replace(/[\s_-]/g, '') === 'superadmin') return NextResponse.redirect(new URL('/settings/facilities', request.url));
             if (role === 'clinician') return NextResponse.redirect(new URL('/doctor', request.url));
             if (role === 'patient') return NextResponse.redirect(new URL('/patientportal', request.url));
@@ -53,8 +61,14 @@ export async function middleware(request: NextRequest) {
             const role = user.role || "";
             const currentPath = request.nextUrl.pathname;
             const normalizedRole = role.toString().toLowerCase().trim();
+            if ((currentPath === '/patient-portal-admin' || currentPath.startsWith('/patient-portal-admin/') || currentPath === '/crm/patient-portal') && !['admin', 'manager'].includes(normalizedRole)) {
+                return NextResponse.redirect(new URL('/unauthorized', request.url));
+            }
 
-            // The patient portal only serves patient sessions; staff manage portal access from CRM and settings.
+            if (currentPath.startsWith('/patientportal') && ['admin', 'manager'].includes(normalizedRole)) {
+                return NextResponse.redirect(new URL('/patient-portal-admin', request.url));
+            }
+            // Patient pages only serve patients; administrators have their own portal workspace.
             if (currentPath.startsWith('/patientportal') && normalizedRole !== 'patient') {
                 return NextResponse.redirect(new URL('/unauthorized', request.url));
             }
@@ -190,6 +204,7 @@ export const config = {
         '/operations/:path*',
         '/doctor/:path*',
         '/patientportal/:path*',
+        '/patient-portal-admin/:path*',
         '/phelobotomy/:path*',
         '/phlebotomy/:path*',
         '/crm/:path*',

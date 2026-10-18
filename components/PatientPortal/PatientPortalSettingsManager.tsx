@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from 'react';
-import { Alert, Badge, Button, Col, Form, Row, Spinner, Table } from 'react-bootstrap';
+import { Alert, Button, Col, Form, Row, Spinner, Table } from 'react-bootstrap';
 import { RiHistoryLine, RiSettings4Line } from '@remixicon/react';
 import styles from './portal.module.css';
 import { usePortalResource } from './usePortalResource';
@@ -86,7 +86,7 @@ export default function PatientPortalSettingsManager() {
                {loading && <div className={styles.empty}><Spinner animation="border" size="sm" className="me-2" />Loading settings...</div>}
 
                {form && (
-                    <section className={styles.card}>
+                    <section className="border-bottom pb-4 mb-4">
                          <h2 className={styles.cardTitle}><RiSettings4Line size={18} />Settings</h2>
                          {notice && <Alert variant={notice.variant} dismissible onClose={() => setNotice(null)}>{notice.text}</Alert>}
                          <Form onSubmit={save}>
@@ -129,7 +129,7 @@ export default function PatientPortalSettingsManager() {
                     </section>
                )}
 
-               <section className={styles.card}>
+               <section>
                     <div className={styles.visitHeader}>
                          <h2 className={`${styles.cardTitle} mb-0`}><RiHistoryLine size={18} />Portal audit log</h2>
                          <Form className="d-flex gap-2" onSubmit={applyAuditFilter}>
@@ -139,7 +139,7 @@ export default function PatientPortalSettingsManager() {
                          </Form>
                     </div>
                     {audit.error && <Alert variant="danger">{audit.error}</Alert>}
-                    {audit.loading ? <div className={styles.empty}><Spinner animation="border" size="sm" className="me-2" />Loading activity...</div> : (
+                    {audit.loading ? <div className={styles.empty}><Spinner animation="border" size="sm" className="me-2" />Loading activity...</div> : !audit.error && (
                          (audit.data || []).length === 0 ? <p className={styles.empty}>No portal activity recorded.</p> : (
                               <Table responsive hover size="sm" className={`${styles.table} align-middle`}>
                                    <thead><tr><th>When</th><th>Who</th><th>Action</th><th>Patient</th><th>Reference</th><th>IP address</th></tr></thead>
@@ -147,7 +147,7 @@ export default function PatientPortalSettingsManager() {
                                         {(audit.data || []).map((entry) => (
                                              <tr key={entry.id}>
                                                   <td className="text-nowrap">{formatDate(entry.created_at, true)}</td>
-                                                  <td><Badge bg={entry.actor_type === 'staff' ? 'primary' : entry.actor_type === 'patient' ? 'success' : 'secondary'} className="text-capitalize">{entry.actor_type}</Badge>{entry.actor_id ? ` #${entry.actor_id}` : ''}</td>
+                                                  <td><span className="fw-semibold text-capitalize">{entry.actor_type}</span>{entry.actor_id ? ` #${entry.actor_id}` : ''}</td>
                                                   <td>{auditActionLabel(entry.action)}</td>
                                                   <td>{entry.patientid ?? '-'}</td>
                                                   <td>{entry.resource ? `${entry.resource}${entry.resource_id ? ` ${entry.resource_id}` : ''}` : '-'}</td>

@@ -195,7 +195,10 @@ export default function PrimeLabLoginPage() {
 				storekeeper: '/inventory',
 				accountant: '/accounting',
 			};
-			const destination = String(role || '').toLowerCase().replace(/[\s_-]/g, '') === 'superadmin'
+			const returnTo = typeof window !== 'undefined' && window.location.search ? new URLSearchParams(window.location.search).get('returnTo') : null;
+			const destination = ['admin', 'manager'].includes(role) && returnTo && /^\/patient-portal-admin(?:\/(?:access|settings))?$/.test(returnTo)
+				? returnTo
+				: String(role || '').toLowerCase().replace(/[\s_-]/g, '') === 'superadmin'
 				? '/settings/facilities'
 				: destinations[role] || '/';
 			// Reload the authenticated shell rather than reusing the anonymous router cache.
@@ -354,7 +357,7 @@ export default function PrimeLabLoginPage() {
 									aria-selected={loginMode === mode.key}
 									className={`${styles.loginModeButton} ${loginMode === mode.key ? styles.activeLoginMode : ''}`}
 									disabled={isSubmitting || recoveryBusy || recoveryStep !== null}
-									onClick={() => setLoginMode(mode.key)}
+									onClick={() => mode.key === 'patient' ? router.push('/patient-access/login') : setLoginMode(mode.key)}
 								>
 									<ModeIcon size={18} />
 									<span>{mode.label}</span>

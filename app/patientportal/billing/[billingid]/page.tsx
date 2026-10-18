@@ -7,6 +7,7 @@ import { RiArrowLeftLine, RiPrinterLine } from '@remixicon/react';
 import styles from '../../../../components/PatientPortal/portal.module.css';
 import { usePortalResource } from '../../../../components/PatientPortal/usePortalResource';
 import { billStatus, formatDate, formatMoney } from '../../../../lib/patientPortal';
+import PortalSummary from '../../../../components/PatientPortal/PortalSummary';
 
 interface BillDetail {
      billingid: number;
@@ -61,13 +62,13 @@ export default function PatientBillPage() {
                               <div><Badge bg={status.variant}>{status.label}</Badge></div>
                          </header>
 
-                         <div className={styles.reportMeta}>
-                              <div><span className="text-muted">Total</span><div>{formatMoney(data.total)}</div></div>
-                              <div><span className="text-muted">Discount</span><div>{formatMoney(data.discount)}</div></div>
-                              <div><span className="text-muted">Payable</span><div>{formatMoney(data.payable)}</div></div>
-                              <div><span className="text-muted">Paid</span><div>{formatMoney(data.paid)}</div></div>
-                              <div><span className="text-muted">Outstanding</span><div className="fw-semibold">{formatMoney(data.outstanding)}</div></div>
-                         </div>
+                         <PortalSummary items={[
+                              { label: 'Total', value: formatMoney(data.total) },
+                              { label: 'Discount', value: formatMoney(data.discount) },
+                              { label: 'Payable', value: formatMoney(data.payable) },
+                              { label: 'Paid', value: formatMoney(data.paid) },
+                              { label: 'Outstanding', value: formatMoney(data.outstanding) },
+                         ]} />
 
                          <div className={styles.reportTest}>
                               <div className={styles.reportTestName}>Services</div>

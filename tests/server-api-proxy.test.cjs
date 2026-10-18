@@ -109,3 +109,27 @@ test("Next.js build-time environment contains no authentication secrets", () => 
 	}
 	assert.equal(config.rewrites, undefined, "API requests must reach the server-side proxy route");
 });
+
+test("public patient login reaches backend through same-origin proxy without tenant or session cookies", async () => {
+    let reached = false;
+    const proxy = loadProxy({
+        env: {},
+        fetch: async (url, options) => {
+            reached = true;
+            assert.equal(url.pathname, "/api/v1/login/patient");
+            assert.equal(url.searchParams.has("tenantId"), false);
+            assert.equal(options.headers.has("cookie"), false);
+            assert.equal(options.cache, "no-store");
+            assert.equal(JSON.parse(new TextDecoder().decode(options.body)).username, "PLS42P007");
+            return new Response(JSON.stringify({ status: true, accessToken: "synthetic-token", tenantId: 42 }), { headers: { "content-type": "application/json" } });
+        },
+    });
+    const response = await proxy({
+        method: "POST",
+        url: "http://portal.test/api/v1/login/patient",
+        headers: new Headers({ "content-type": "application/json" }),
+        arrayBuffer: async () => new TextEncoder().encode(JSON.stringify({ username: "PLS42P007", password: "synthetic-password" })).buffer,
+    }, ["login", "patient"], "http://backend.test/api/v1/");
+    assert.equal(reached, true);
+    assert.equal((await response.json()).tenantId, 42);
+});

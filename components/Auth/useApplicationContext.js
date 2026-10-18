@@ -28,8 +28,8 @@ const getCachedApplicationSettings = () => {
 
 const ApplicationContext = createContext(store);
 
-export const ApplicationProvider = ({ children }) => {
-	const [applicationsettings, setApplicationSettings] = useState(getCachedApplicationSettings);
+export const ApplicationProvider = ({ children, initialSettings = null }) => {
+	const [applicationsettings, setApplicationSettings] = useState(() => initialSettings || getCachedApplicationSettings());
 
 	useEffect(() => {
 		applyApplicationSettingsToDocument(applicationsettings?.settings);

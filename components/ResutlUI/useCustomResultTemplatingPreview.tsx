@@ -1,16 +1,17 @@
 import ResultViewHtmlGenerator from "../Auth/ResultViewHtmlGenerator";
 import { ResultSettings } from "../ResultView/result-settings";
 import styles from '../../app/result/labreport/4/MDSLancet.Template.module.css';
+import ReportRichText from '../ResultView/ReportRichText';
 
 export interface TestDetailCategory {
 	categoryid: number;
 	categoryname: string;
-	testid: number;
-	createdby: string;
-	updatedby: string | null;
-	created_at: string;
-	updated_at: string;
-	deleted: number;
+	testid?: number;
+	createdby?: string;
+	updatedby?: string | null;
+	created_at?: string;
+	updated_at?: string;
+	deleted?: number;
 }
 
 interface UseCustomResultTemplatingPreviewProps {
@@ -94,7 +95,7 @@ export default function UseCustomResultTemplatingPreview({ test, records, isResu
 					padding: '12px',
 				}}>
 					{ultrasoundRecords.length === 1 ? (
-						<div dangerouslySetInnerHTML={{ __html: decodeHtml(ultrasoundRecords[0].value) }} />
+						<ReportRichText html={decodeHtml(ultrasoundRecords[0].value)} />
 					) : (
 						<div>
 							{ultrasoundRecords.map((record, index) => (
@@ -105,7 +106,7 @@ export default function UseCustomResultTemplatingPreview({ test, records, isResu
 										</div>
 									)}
 									<div style={{ marginLeft: record.field ? '8px' : '0' }}>
-										<div dangerouslySetInnerHTML={{ __html: decodeHtml(record.value) }} />
+										<ReportRichText html={decodeHtml(record.value)} />
 									</div>
 								</div>
 							))}

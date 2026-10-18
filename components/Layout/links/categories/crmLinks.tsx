@@ -65,9 +65,9 @@ export const CrmLinks: Link[] = [
             },
             {
                 title: "Patient Portal",
-                link: "/crm/patient-portal",
+                link: "/patient-portal-admin",
                 icon: <RiUserHeartLine />,
-                roles: ['admin', 'manager', 'scientist']
+                roles: ['admin', 'manager']
             },
             {
                 title: "Referral Codes",

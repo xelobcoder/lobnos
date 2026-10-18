@@ -122,14 +122,35 @@ email provider for delivery.
 
 ## Patient portal
 
-Patients choose **Patient** on the login page and are kept inside `/patientportal`.
-Staff are redirected away from it.
+Patients choose **Patient** on the staff login page to open the dedicated
+`/patient-access/login` screen, then remain inside `/patientportal`.
+Authenticated admins/managers opening `/patientportal` go directly to pending
+invitations in `/patient-portal-admin`. Anonymous administration links retain a
+validated portal destination through staff sign-in; other roles cannot use it.
+Both the public account screens and the authenticated portal use a scoped
+Device Manager-style shell (Inter typography, dark chrome, green actions),
+without the main PLS or CRM navigation. Staff are redirected away from patient pages.
+
+Public login posts to the same-origin Next API proxy at `/api/v1/login/patient`
+without a session or tenant query. The backend resolves the facility from the
+username (for example `PLS20154P004`). `/api/auth/login` validates the returned
+token and sets HttpOnly session cookies; the browser then verifies
+`/api/auth/context-retrieval` before navigating. Browser storage is only an optional
+cache, not authentication. A backend response of **Token not provided** before
+credentials are checked indicates the backend login allowlist needs the exact
+patient POST login route; do not work around it by sending a staff session.
 
 - **Patient pages:**
-  - **Home:** dashboard.
-  - **My Results:** grouped by visit, with printable reports for released results.
+  - **Home:** dashboard using the administrative portal's typography and summary cards.
+  - **My Results:** grouped by visit. Released reports use the same
+    `LaboratoryReport` document and A4 PDF exporter as the main laboratory
+    report, including facility/per-test styling, category groups, units,
+    reference ranges, flags, comments and genuine verification metadata.
+    **Generate PDF** opens a downloadable PDF; **Print report** uses browser
+    printing. Long tables repeat headings across PDF pages.
   - **Appointments:** requests, and cancel or reschedule requests.
-  - **Billing:** bills, payments, receipts and a printable statement.
+  - **Billing:** patient-only payable, paid and outstanding summaries, bills,
+    payments, receipts and a printable statement.
   - **My Account:** notification preferences, password change and sign-out.
 - **Activation:**
   - `/patient-access/invite?token=…` opens a staff invitation.
@@ -137,7 +158,24 @@ Staff are redirected away from it.
 
   Both pages are public and send no tenant. The backend resolves the facility from the invitation or facility code.
 - **Staff:** admins and managers configure the portal and review its audit log at
-  *Application Settings › Patient Portal*. In **CRM › Customers**, open a patient's
+  `/patient-portal-admin/settings` (also available in
+  *Application Settings › Patient Portal*). `/patient-portal-admin` opens a
+  pending invitation list with name/patient-number search, status filtering,
+  server pagination, masked email, inviter and creation/expiry dates. Admins and
+  managers can revoke pending invitations or replace pending/expired invitations
+  after confirmation. **Send email / Resend email** and **Send SMS** use
+  facility-configured delivery channels; unavailable actions explain the missing
+  contact, provider configuration or entitlement. Link-only invitations remain
+  available. Replacement invalidates the old link. A 60-second per-patient
+  cooldown prevents rapid repeated issuance. Provider acceptance is not a
+  delivery receipt. Delivery failure is
+  explicitly shown as a warning with a new link that can be copied and shared securely.
+  Accepted and revoked invitations have no replacement action.
+  `/patient-portal-admin/access` searches patients and preserves account and result
+  release controls. The old `/crm/patient-portal` URL redirects to this dedicated
+  administration workspace, which has its own navigation and no CRM menu.
+  The dedicated workspace is restricted to admins/managers by middleware.
+  In **CRM › Customers**, open a patient's
   actions menu (three dots) and select **Patient Portal**. This action is available
   to admins, managers and scientists (including the super-admin override).
   It opens the CRM patient transactions page directly at the
@@ -151,8 +189,18 @@ Staff are redirected away from it.
   shown once, and staff should share them only with the patient.
 
 ```powershell
-node --test tests\patient-portal.test.cjs
+pnpm exec node --test tests\patient-portal.test.cjs tests\portal-invitations.test.cjs tests\auth-login.test.cjs tests\server-api-proxy.test.cjs tests\login-redirect.test.cjs
+pnpm exec node --test tests\laboratory-report.test.cjs tests\company-image.test.cjs
 ```
+
+### Portal-style staff layout
+
+In **Application Settings**, choose **Portal** as the facility workspace layout
+to use the administrative portal's dark sidebar, green active state, Inter font
+and white header in the staff application. This is an additional layout option,
+not a change to the existing default. Existing staff navigation, module and role
+permissions, sidebar collapse and mobile navigation still apply. It does not add
+staff navigation to patient pages.
 
 ## Super-admin client platform
 

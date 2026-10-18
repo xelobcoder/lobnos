@@ -15,7 +15,7 @@ const nodes = (tree, predicate) => !tree || typeof tree !== "object" ? [] : Arra
 const text = tree => tree == null ? "" : typeof tree !== "object" ? String(tree)
     : Array.isArray(tree) ? tree.map(text).join("") : text(tree.props?.children);
 
-function harness({ context, role = "admin", blockedStorage = false } = {}) {
+function harness({ context, role = "admin", blockedStorage = false, search = "" } = {}) {
     const states = [], redirects = [], writes = [], requests = [];
     let cursor = 0;
     const exports = {};
@@ -27,8 +27,8 @@ function harness({ context, role = "admin", blockedStorage = false } = {}) {
         },
     };
     vm.runInNewContext(compiled, {
-        exports, AbortSignal, Error, Date, console: { error() {}, warn() {} },
-        window: { navigator: {}, localStorage: storage, location: { replace: url => redirects.push(url) } },
+        exports, AbortSignal, URLSearchParams, Error, Date, console: { error() {}, warn() {} },
+        window: { navigator: {}, localStorage: storage, location: { search, replace: url => redirects.push(url) } },
         localStorage: storage,
         fetch: async (url, options) => {
             requests.push({ url, options });
@@ -126,4 +126,18 @@ test("blocked local storage does not prevent an otherwise verified login", async
     h.submit();
     await h.flush();
     assert.deepEqual(h.redirects, ["/analytics"]);
+});
+
+test("portal staff login retains only safe dedicated portal destinations", async () => {
+    for (const [role, search, expected] of [
+        ["admin", "?returnTo=%2Fpatient-portal-admin", "/patient-portal-admin"],
+        ["manager", "?returnTo=%2Fpatient-portal-admin%2Fsettings", "/patient-portal-admin/settings"],
+        ["patient", "?returnTo=%2Fpatient-portal-admin", "/patientportal"],
+        ["admin", "?returnTo=https%3A%2F%2Fevil.test", "/analytics"],
+        ["admin", "?returnTo=%2F%2Fevil.test", "/analytics"],
+    ]) {
+        const h = harness({ role, search });
+        h.submit(); await h.flush();
+        assert.deepEqual(h.redirects, [expected]);
+    }
 });

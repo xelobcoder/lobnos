@@ -40,7 +40,7 @@ export default function LimitViewHtmlGeneratorResultView({ fieldItem, index, res
           return '';
      }
 
-     const flag = determineTableColor(value, upperlimit, lowerlimit);
+     const flag = fieldItem.flag ?? fieldItem.indicator ?? determineTableColor(value, upperlimit, lowerlimit);
 
      // Determine flag color based on settings
      const getFlagColor = (flag) => {

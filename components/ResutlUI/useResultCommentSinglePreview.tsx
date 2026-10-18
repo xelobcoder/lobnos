@@ -1,6 +1,7 @@
 
 
 import { ResultSettings } from "../ResultView/result-settings";
+import ReportRichText from "../ResultView/ReportRichText";
 
 export default function UseResultCommentSinglePreview({ comments, resultsettings }: { comments: string; resultsettings?: ResultSettings | null }) {
 	const style = resultsettings?.comments;
@@ -22,10 +23,8 @@ export default function UseResultCommentSinglePreview({ comments, resultsettings
 						fontWeight: style?.fontWeight || 'normal',
 						textAlign: style?.textAlign || 'left',
 					}}
-					dangerouslySetInnerHTML={{ __html: comments }}
-				/>
+				><ReportRichText html={comments} /></div>
 			)}
 		</div>
 	)
 }
-

@@ -2,40 +2,32 @@
 
 import { ReactNode } from 'react';
 import { RiLockLine, RiShieldCrossFill } from '@remixicon/react';
-import styles from '../../app/authentications/login/login.module.css';
+import Link from 'next/link';
+import styles from './PortalShell.module.css';
 
 /** Login-page split layout for the public patient account activation pages. */
 export default function PatientAccessShell({ title, subtitle, children }: { title: string; subtitle: string; children: ReactNode }) {
      return (
-          <div className={styles.splitLayout}>
-               <div className={styles.brandingSide}>
-                    <div className={styles.brandOverlay}>
-                         <div className={styles.brandContent}>
-                              <div className={styles.brandLogo}>
-                                   <RiShieldCrossFill size={48} className={styles.logoIcon} />
-                                   <span className={styles.brandTitle}>Prime Laboratory Software (PLS)</span>
-                              </div>
-                              <div className={styles.brandText}>
-                                   <h1 className={styles.heroTitle}>Your laboratory results, securely online</h1>
-                                   <p className={styles.heroSubtitle}>
-                                        Activate your patient portal account to view released results, appointments and bills from your facility.
-                                   </p>
-                              </div>
-                         </div>
+          <div className={`${styles.scope} ${styles.loginLayout}`}>
+               <aside className={styles.loginBrand} aria-label="Prime Laboratory Software">
+                    <div className={styles.loginBrandOverlay} />
+                    <div className={styles.loginBrandContent}>
+                         <div className={styles.loginLogo}><RiShieldCrossFill size={48} aria-hidden="true" /><strong>Prime Laboratory Software</strong></div>
+                         <h2>Patient Portal</h2>
+                         <p>Securely view the results your facility has released, along with your appointments and bills.</p>
                     </div>
-               </div>
-               <div className={styles.formSide}>
-                    <div className={styles.formContainer}>
-                         <div className={styles.loginHeader}>
-                              <h2 className={styles.welcomeTitle}>{title}</h2>
-                              <p className={styles.welcomeSubtitle}>{subtitle}</p>
-                         </div>
+               </aside>
+               <main className={styles.loginFormSide}>
+                    <div className={styles.loginCard}>
+                         <div className={styles.loginCompactLogo}><RiShieldCrossFill size={32} aria-hidden="true" /><strong>Prime Laboratory Software</strong></div>
+                         <h1>{title}</h1>
+                         <p className={styles.loginSubtitle}>{subtitle}</p>
+                         <div className={styles.loginMode}>Patient Portal</div>
                          {children}
-                         <div className={styles.footer}>
-                              <p>© {new Date().getFullYear()} Prime Laboratory Software. All rights reserved.</p>
-                         </div>
+                         <nav className={styles.loginLinks} aria-label="Patient account"><Link href="/patient-access/login">Patient sign in</Link><Link href="/patient-access/register">Activate account</Link><Link href="/authentications/login?returnTo=%2Fpatient-portal-admin">Staff sign in</Link></nav>
+                         <p className={styles.loginFooter}>© {new Date().getFullYear()} Prime Laboratory Software</p>
                     </div>
-               </div>
+               </main>
           </div>
      );
 }

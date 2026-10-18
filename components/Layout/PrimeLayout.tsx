@@ -68,11 +68,14 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                 ? 'ribbon'
             : settings?.workspaceLayout === 'slack'
                 ? 'slack'
+            : settings?.workspaceLayout === 'portal'
+                ? 'portal'
             : 'classic';
     const isWorkspaceLayout = activeLayout !== 'classic';
     const isClaudeLayout = activeLayout === 'claude';
     const isRibbonLayout = activeLayout === 'ribbon';
     const isSlackLayout = activeLayout === 'slack';
+    const isPortalLayout = activeLayout === 'portal';
     const [openNavigationGroup, setOpenNavigationGroup] = useState<string | null>(null);
     const [isFontSelectorOpen, setIsFontSelectorOpen] = useState<boolean>(false);
     const [isAppsOpen, setIsAppsOpen] = useState<boolean>(false);
@@ -325,12 +328,14 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
     };
 
     return (
-        <div className={`${styles.container} ${isWorkspaceLayout ? `${workspaceStyles.shell} ${isClaudeLayout ? workspaceStyles.claudeLayout : ''} ${isSlackLayout ? workspaceStyles.slackLayout : ''} ${isRibbonLayout ? ribbonStyles.layout : ''}` : ''} ${isQuickLinksCollapsed ? `${styles.quickLinksCollapsed} ${workspaceStyles.collapsed}` : styles.quickLinksExpanded} ${isMobileSidebarOpen ? `${styles.mobileSidebarOpen} ${workspaceStyles.mobileOpen}` : ''} ${!isOpenSideBarShow ? `${workspaceStyles.sidebarHidden} ${ribbonStyles.sidebarHidden}` : ''}`}>
+        <div onKeyDown={isPortalLayout ? (event) => {
+            if (event.key === 'Escape') setIsMobileSidebarOpen(false);
+        } : undefined} className={`${styles.container} ${isWorkspaceLayout ? `${workspaceStyles.shell} ${isClaudeLayout ? workspaceStyles.claudeLayout : ''} ${isSlackLayout ? workspaceStyles.slackLayout : ''} ${isPortalLayout ? workspaceStyles.portalLayout : ''} ${isRibbonLayout ? ribbonStyles.layout : ''}` : ''} ${isQuickLinksCollapsed ? `${styles.quickLinksCollapsed} ${workspaceStyles.collapsed}` : styles.quickLinksExpanded} ${isMobileSidebarOpen ? `${styles.mobileSidebarOpen} ${workspaceStyles.mobileOpen}` : ''} ${!isOpenSideBarShow ? `${workspaceStyles.sidebarHidden} ${ribbonStyles.sidebarHidden}` : ''}`}>
             {isRibbonLayout && <a href="#workspace-main" className={ribbonStyles.skipLink}>Skip to workspace</a>}
             <header className={`${styles.darkHeader} ${isWorkspaceLayout ? workspaceStyles.header : ''} ${isRibbonLayout ? ribbonStyles.header : ''}`}>
                 <div className={`${styles.headerContent} ${isWorkspaceLayout ? workspaceStyles.headerContent : ''}`}>
                     <div className={`${styles.headerLeft} ${isWorkspaceLayout ? workspaceStyles.headerLeft : ''}`}>
-                        {isWorkspaceLayout && !isClaudeLayout && (
+                        {isWorkspaceLayout && !isClaudeLayout && !isPortalLayout && (
                             <div className={workspaceStyles.headerBrand} aria-label="Prime Laboratory Software">
                                 <span className={`${workspaceStyles.headerBrandMark} ${isRibbonLayout ? ribbonStyles.brandMark : ''}`} aria-hidden="true">PLS</span>
                                 <span className={workspaceStyles.headerBrandName}>Prime Laboratory Software</span>
@@ -348,11 +353,13 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                                 {isQuickLinksCollapsed ? <RiArrowRightLine size={16} /> : <RiArrowLeftLine size={16} />}
                             </button>
                         )}
-                        {!isRibbonLayout && <button
+                        {!isRibbonLayout && (!isPortalLayout || isOpenSideBarShow) && <button
                             type="button"
                             className={`${styles.mobileMenuButton} ${isWorkspaceLayout ? workspaceStyles.mobileMenuButton : ''}`}
                             onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
                             aria-label="Toggle navigation menu"
+                            aria-expanded={isMobileSidebarOpen}
+                            aria-controls="staff-section-navigation"
                         >
                             <RiMenuLine size={20} />
                         </button>}
@@ -482,9 +489,18 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                 {!isRibbonLayout && isMobileSidebarOpen && <div className={styles.mobileOverlay} onClick={() => setIsMobileSidebarOpen(false)} />}
 
                 {isOpenSideBarShow && !isRibbonLayout && (
-                    <aside className={`${styles.quickLinksSidebar} ${isWorkspaceLayout ? workspaceStyles.sidebar : ''} ${isMobileSidebarOpen ? styles.mobileSidebarVisible : ''}`}>
+                    <aside id="staff-section-navigation" className={`${styles.quickLinksSidebar} ${isWorkspaceLayout ? workspaceStyles.sidebar : ''} ${isMobileSidebarOpen ? styles.mobileSidebarVisible : ''}`}>
                         {isWorkspaceLayout ? (
                             <>
+                                {isPortalLayout && (
+                                    <div className={workspaceStyles.portalBrand} aria-label="Prime Laboratory Software">
+                                        <span className={workspaceStyles.portalBrandMark} aria-hidden="true">PLS</span>
+                                        <div className={workspaceStyles.portalBrandText}>
+                                            <strong>Prime Laboratory Software</strong>
+                                            <small>Staff workspace</small>
+                                        </div>
+                                    </div>
+                                )}
                                 {isSlackLayout && (
                                     <div className={workspaceStyles.slackSidebarHeader}>
                                         <span className={workspaceStyles.slackBrandMark} aria-hidden="true">PLS</span>

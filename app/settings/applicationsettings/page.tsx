@@ -72,7 +72,7 @@ interface ApplicationSettingsData {
 	primaryColor?: string | null;
 	secondaryColor?: string | null;
 	ageVariationLimits: string | null
-	workspaceLayout?: 'classic' | 'zoho' | 'claude' | 'ribbon' | 'slack';
+	workspaceLayout?: 'classic' | 'zoho' | 'claude' | 'ribbon' | 'slack' | 'portal';
 }
 
 const defaultUiSettings = {
@@ -173,8 +173,8 @@ export default function ApplicationSettings() {
 	const canManageWorkspaceLayout = roleAllowed(user?.role, ['admin']);
 
 	const [settings, setSettings] = useState<ApplicationSettingsData | null>(null);
-	const [workspaceLayout, setWorkspaceLayout] = useState<'classic' | 'zoho' | 'claude' | 'ribbon' | 'slack'>(
-		applicationsettings.settings?.workspaceLayout === 'zoho' || applicationsettings.settings?.workspaceLayout === 'claude' || applicationsettings.settings?.workspaceLayout === 'ribbon' || applicationsettings.settings?.workspaceLayout === 'slack'
+	const [workspaceLayout, setWorkspaceLayout] = useState<'classic' | 'zoho' | 'claude' | 'ribbon' | 'slack' | 'portal'>(
+		applicationsettings.settings?.workspaceLayout === 'zoho' || applicationsettings.settings?.workspaceLayout === 'claude' || applicationsettings.settings?.workspaceLayout === 'ribbon' || applicationsettings.settings?.workspaceLayout === 'slack' || applicationsettings.settings?.workspaceLayout === 'portal'
 			? applicationsettings.settings.workspaceLayout
 			: 'classic'
 	);
@@ -182,7 +182,7 @@ export default function ApplicationSettings() {
 	const [workspaceLayoutMessage, setWorkspaceLayoutMessage] = useState<{ type: 'success' | 'danger'; text: string } | null>(null);
 	useEffect(() => {
 		const value = applicationsettings.settings?.workspaceLayout;
-		setWorkspaceLayout(value === 'zoho' || value === 'claude' || value === 'ribbon' || value === 'slack' ? value : 'classic');
+		setWorkspaceLayout(value === 'zoho' || value === 'claude' || value === 'ribbon' || value === 'slack' || value === 'portal' ? value : 'classic');
 	}, [applicationsettings.settings?.workspaceLayout]);
 	const [regions, setRegions] = useState<any[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -680,6 +680,7 @@ export default function ApplicationSettings() {
 								<h5 id="workspace-layout-heading" className="mb-1">Facility Workspace Layout</h5>
 								<p className="text-muted small mb-0">
 									Choose the shared layout for everyone using this facility. Other users see it the next time they sign in or refresh.
+									{' '}Portal uses a dark sidebar and Inter typography while keeping your staff applications and permissions.
 								</p>
 							</div>
 							<div className="col-12 col-lg-5">
@@ -691,7 +692,7 @@ export default function ApplicationSettings() {
 										disabled={savingWorkspaceLayout}
 										onChange={(event) => {
 											const value = event.target.value;
-											if (value === 'classic' || value === 'zoho' || value === 'claude' || value === 'ribbon' || value === 'slack') setWorkspaceLayout(value);
+											if (value === 'classic' || value === 'zoho' || value === 'claude' || value === 'ribbon' || value === 'slack' || value === 'portal') setWorkspaceLayout(value);
 											setWorkspaceLayoutMessage(null);
 										}}
 									>
@@ -700,6 +701,7 @@ export default function ApplicationSettings() {
 										<option value="claude">Claude-inspired</option>
 										<option value="ribbon">Office-inspired ribbon</option>
 										<option value="slack">Slack-inspired workspace</option>
+										<option value="portal">Portal</option>
 									</Form.Select>
 									<Button
 										type="button"

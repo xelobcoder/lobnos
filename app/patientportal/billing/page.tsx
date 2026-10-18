@@ -6,6 +6,7 @@ import { RiMoneyDollarCircleLine } from '@remixicon/react';
 import styles from '../../../components/PatientPortal/portal.module.css';
 import { usePortalResource } from '../../../components/PatientPortal/usePortalResource';
 import { billStatus, formatDate, formatMoney } from '../../../lib/patientPortal';
+import PortalSummary from '../../../components/PatientPortal/PortalSummary';
 
 interface PortalBill {
      billingid: number;
@@ -21,7 +22,7 @@ interface PortalBill {
 export default function PatientBillingPage() {
      const { data, loading, error, code, reload } = usePortalResource<PortalBill[]>('patient-portal/billing');
      const bills = data || [];
-     const outstanding = bills.reduce((sum, bill) => sum + (Number(bill.outstanding) || 0), 0);
+     const total = (field: 'payable' | 'paid' | 'outstanding') => bills.reduce((sum, bill) => sum + Math.round(Number(bill[field]) * 100), 0) / 100;
 
      return (
           <main className={styles.page}>
@@ -41,16 +42,12 @@ export default function PatientBillingPage() {
 
                {data && (
                     <>
-                         <div className={styles.statGrid}>
-                              <div className={styles.stat}>
-                                   <div className={styles.statLabel}>Bills</div>
-                                   <div className={styles.statValue}>{bills.length}</div>
-                              </div>
-                              <div className={styles.stat}>
-                                   <div className={styles.statLabel}>Outstanding balance</div>
-                                   <div className={styles.statValue}>{formatMoney(outstanding)}</div>
-                              </div>
-                         </div>
+                         <PortalSummary items={[
+                              { label: 'Bills', value: bills.length, icon: <RiMoneyDollarCircleLine /> },
+                              { label: 'Total payable', value: formatMoney(total('payable')), detail: 'After discounts' },
+                              { label: 'Payments', value: formatMoney(total('paid')) },
+                              { label: 'Outstanding balance', value: formatMoney(total('outstanding')) },
+                         ]} />
                          <section className={styles.card}>
                               <h2 className={styles.cardTitle}><RiMoneyDollarCircleLine size={18} />My bills</h2>
                               {bills.length === 0 ? (

@@ -69,7 +69,7 @@ function InviteForm() {
                     <Alert variant="success" className="border-0 shadow-sm">
                          Your portal account is active. Sign in on the <strong>Patient Login</strong> tab with username <strong>{activatedUsername}</strong>.
                     </Alert>
-                    <Link href="/authentications/login" className={`${styles.signInButton} text-decoration-none`}>Go to sign in</Link>
+                    <Link href="/patient-access/login" className={`${styles.signInButton} text-decoration-none`}>Go to sign in</Link>
                </>
           );
      }
@@ -78,7 +78,7 @@ function InviteForm() {
           return (
                <>
                     <Alert variant="danger" className="border-0 shadow-sm">{error || INVALID}</Alert>
-                    <Link href="/authentications/login" className={`${styles.secondaryButton} text-decoration-none`}>Back to sign in</Link>
+                    <Link href="/patient-access/login" className={`${styles.secondaryButton} text-decoration-none`}>Back to sign in</Link>
                </>
           );
      }

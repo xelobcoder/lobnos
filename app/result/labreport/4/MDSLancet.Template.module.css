@@ -112,7 +112,7 @@
     padding: 5px 0;
     font-size: 13pt;
     font-weight: bold;
-    margin: 10px -12mm;
+    margin: 10px 0;
     letter-spacing: 1px;
     background-color: var(--bg-color, #f0f0f0);
 }

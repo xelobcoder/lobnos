@@ -115,6 +115,7 @@ function renderLayout(preference, actions = [], options = {}) {
             useSearchParams: () => new URLSearchParams(options.hideSidebar ? 'isOpenSideBarShow=false' : ''),
         };
         if (name.endsWith('facilityModuleAccess')) return { canAccessFacilityModule: destination => !options.deniedPaths?.includes(destination) };
+        if (name.endsWith('/roles')) return compile(path.join('components', 'Auth', 'roles.ts'), require);
         if (name.endsWith('FontSelector')) return { FontSelector: () => null };
         if (name.endsWith('themes') || name.endsWith('customFetch')) return {};
         throw new Error(`Unexpected import: ${name}`);
@@ -136,6 +137,11 @@ function renderLayout(preference, actions = [], options = {}) {
     };
     let tree = render();
     for (const action of actions) {
+        if (action === 'Escape') {
+            tree.props.onKeyDown({ key: 'Escape' });
+            tree = render();
+            continue;
+        }
         const button = findButton(tree, action);
         assert.ok(button, `Missing action: ${action}`);
         button.props.onClick();
@@ -211,7 +217,7 @@ test('all presentations retain role and module filtering', () => {
         { title: 'Restricted', link: '/restricted', roles: ['super-admin'] },
         { title: 'Disabled', link: '/disabled' },
     ];
-    for (const preference of ['classic', 'zoho', 'claude', 'ribbon']) {
+    for (const preference of ['classic', 'zoho', 'claude', 'ribbon', 'slack', 'portal']) {
         const html = renderLayout(preference, [], { links, deniedPaths: ['/disabled'] });
         assert.match(html, />Allowed<\/span>/);
         assert.doesNotMatch(html, /Restricted|Disabled/);
@@ -219,10 +225,10 @@ test('all presentations retain role and module filtering', () => {
 });
 
 test('super-admin retains the same complete platform navigation in all layouts', () => {
-    for (const preference of ['classic', 'zoho', 'claude', 'ribbon']) {
+    for (const preference of ['classic', 'zoho', 'claude', 'ribbon', 'slack', 'portal']) {
         const options = {
             role: 'super-admin',
-            platformLinks: [{ title: 'Platform and settings', link: '', children: [{ title: 'Audit logs', link: '/settings/facilities/audit' }] }],
+            links: [{ title: 'Platform and settings', link: '', children: [{ title: 'Audit logs', link: '/settings/facilities/audit' }] }],
         };
         const html = renderLayout(preference, preference === 'classic' || preference === 'ribbon' ? [] : ['Platform and settings'], options);
         assert.match(html, /Platform and settings/);
@@ -237,6 +243,7 @@ test('facility setting selects the same layout for every signed-in user without 
         ['zoho', /class="container shell/],
         ['claude', /claudeLayout/],
         ['ribbon', /Workspace ribbon/],
+        ['portal', /portalLayout/],
     ]) {
         const html = renderLayout(selected, [], { workspaceLayout: selected, role: 'scientist' });
         assert.match(html, expected);
@@ -295,4 +302,107 @@ test('ribbon groups never reintroduce restricted or disabled descendants', () =>
     const html = renderLayout('ribbon', [], { links, role: 'scientist', pathname: '/allowed', deniedPaths: ['/disabled'] });
     assert.match(html, /Allowed page/);
     assert.doesNotMatch(html, /Owner only|Disabled module|href="\/owner"|href="\/disabled"/);
+});
+
+test('Portal uses the administrative shell dimensions and Inter without patient navigation', () => {
+    const html = renderLayout('portal');
+    const css = readFileSync(path.join(__dirname, '..', 'components', 'Layout', 'WorkspaceLayout.module.css'), 'utf8');
+    assert.match(html, /portalBrand/);
+    assert.match(html, /Staff workspace/);
+    assert.doesNotMatch(html, /Patient portal|My results|My appointments/);
+    assert.match(css, /\.shell\.portalLayout,[\s\S]*?--workspace-sidebar-bg: #18212f;/);
+    assert.match(css, /--theme-font-family: var\(--font-inter\), Inter,/);
+    assert.match(css, /\.shell \.sidebar \{[\s\S]*?width: 250px;/);
+    assert.match(css, /--header-height: 64px;/);
+    assert.match(css, /\.portalBrand \{[\s\S]*?height: 64px;/);
+    assert.match(css, /\.shell\.portalLayout \.sidebar \{[\s\S]*?height: 100dvh;/);
+    assert.match(css, /\.portalLayout \.active \{[\s\S]*?border-left-color: #4caf50;/);
+    assert.match(css, /\.shell\.portalLayout\.sidebarHidden,[\s\S]*?grid-template-areas: "header" "content";/);
+    assert.match(css, /@media \(max-width: 768px\)[\s\S]*?\.shell\.portalLayout \.sidebar \{[\s\S]*?width: min\(250px, 86vw\) !important;/);
+});
+
+test('Portal keeps all staff destinations, active groups, collapse, mobile and app interactions', () => {
+    const visit = (items, groups = []) => {
+        for (const item of items) {
+            if (item.children?.length) visit(item.children, [...groups, item.title]);
+            else {
+                const { location } = renderLayout('portal', [...groups, item.title], { result: true, pathname: '/other-page' });
+                assert.equal(location.href, item.link, item.title);
+            }
+        }
+    };
+    visit(PayrollLinks);
+    assert.match(renderLayout('portal'), /aria-label="All Periods" aria-current="page"/);
+    const compact = renderLayout('portal', ['Collapse navigation']);
+    assert.match(compact, /collapsed/);
+    assert.match(compact, /aria-label="Payroll Periods" aria-expanded="false"/);
+    assert.match(renderLayout('portal', ['Collapse navigation', 'Payroll Periods']), /aria-label="Payroll Periods" aria-expanded="true"/);
+    const mobile = renderLayout('portal', ['Collapse navigation', 'Toggle navigation menu']);
+    assert.match(mobile, /mobileOpen/);
+    assert.match(mobile, /aria-label="Toggle navigation menu" aria-expanded="true"/);
+    assert.match(mobile, /aria-label="All Periods"/);
+    assert.doesNotMatch(renderLayout('portal', ['Toggle navigation menu', 'Toggle navigation menu']), /mobileOpen/);
+    assert.doesNotMatch(renderLayout('portal', ['Toggle navigation menu', 'Escape']), /mobileOpen/);
+    assert.doesNotMatch(renderLayout('portal', ['Toggle navigation menu', 'All Periods']), /mobileOpen/);
+    assert.match(renderLayout('portal', ['Open apps menu from navigation']), /role="dialog"/);
+    assert.doesNotMatch(renderLayout('portal', ['Open apps menu from navigation', 'Close applications']), /role="dialog"/);
+    const hidden = renderLayout('portal', [], { hideSidebar: true });
+    assert.doesNotMatch(hidden, /<aside|portalBrand|Toggle navigation menu/);
+    assert.match(hidden, /sidebarHidden/);
+    assert.match(hidden, /Page content/);
+});
+
+test('Portal filters nested permissions and disabled modules using the shared staff navigation', () => {
+    const links = [{ title: 'Operations', link: '', children: [
+        { title: 'Allowed', link: '/allowed' },
+        { title: 'Owner only', link: '/owner', roles: ['admin'] },
+        { title: 'Disabled', link: '/disabled' },
+    ] }];
+    const options = { links, role: 'scientist', pathname: '/allowed', deniedPaths: ['/disabled'] };
+    const html = renderLayout('portal', [], options);
+    assert.match(html, /aria-label="Allowed" aria-current="page"/);
+    assert.doesNotMatch(html, /Owner only|Disabled/);
+    assert.match(renderLayout('portal', [], { ...options, role: 'super-admin' }), /Owner only|Disabled/);
+    assert.doesNotMatch(renderLayout('portal', [], { pathname: '/disabled', deniedPaths: ['/disabled'] }), /Page content/);
+});
+
+test('facility Portal selection saves through the real PATCH and refreshes shared settings only after success', async () => {
+    const source = readFileSync(path.join(__dirname, '..', 'app', 'settings', 'applicationsettings', 'page.tsx'), 'utf8');
+    const ast = ts.createSourceFile('page.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+    let save, select;
+    const visit = node => {
+        if (ts.isVariableDeclaration(node) && node.name.getText(ast) === 'saveWorkspaceLayout') save = node.initializer.getText(ast);
+        if (ts.isJsxAttribute(node) && node.name.getText(ast) === 'onChange' && node.initializer?.getText(ast).includes('setWorkspaceLayout(value)')) {
+            select = node.initializer.expression.getText(ast);
+        }
+        ts.forEachChild(node, visit);
+    };
+    visit(ast);
+    assert.match(source, /<option value="portal">Portal<\/option>/);
+    assert.ok(save && select);
+    const context = {
+        applicationsettings: { user: { role: 'admin' }, settings: { workspaceLayout: 'classic', smsActivated: 1 } },
+        workspaceLayout: 'classic', savingWorkspaceLayout: false,
+        setWorkspaceLayout: value => { context.workspaceLayout = value; },
+        setSavingWorkspaceLayout: value => { context.savingWorkspaceLayout = value; },
+        setWorkspaceLayoutMessage: value => { context.message = value; },
+        setApplicationSettings: value => { context.updated = value; },
+    };
+    const calls = [];
+    context.customFetchMutation = async (...args) => { calls.push(args); return { status: 'success' }; };
+    const evaluate = expression => vm.runInNewContext(ts.transpile(`(${expression})`, { target: ts.ScriptTarget.ES2020 }), context);
+    evaluate(select)({ target: { value: 'portal' } });
+    assert.equal(context.workspaceLayout, 'portal');
+    await evaluate(save)();
+    assert.deepEqual(calls[0].slice(0, 2), ['applicationsettings/workspace-layout', 'PATCH']);
+    assert.equal(calls[0][2].workspaceLayout, 'portal');
+    assert.equal(context.updated.settings.workspaceLayout, 'portal');
+    assert.equal(context.updated.settings.smsActivated, 1);
+    assert.equal(context.savingWorkspaceLayout, false);
+    assert.match(renderLayout(context.updated.settings.workspaceLayout), /portalLayout/);
+    context.updated = null;
+    context.customFetchMutation = async () => ({ status: 'error', message: 'Rejected' });
+    await evaluate(save)();
+    assert.equal(context.updated, null);
+    assert.equal(context.message.text, 'Rejected');
 });

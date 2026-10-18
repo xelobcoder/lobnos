@@ -54,14 +54,14 @@ const MdsPersonalInformation: React.FC<MdsPersonalInformationProps> = ({
         <section className={styles.patientInfoSection} style={{ fontFamily: resultsettings?.patientInfo?.fontFamily || 'inherit' }}>
             <div className={styles.infoBlock}>
                 <div className={styles.infoPair}>
-                    <span className={styles.infoLabel}>Patient Name</span>: <span className={styles.infoValue}>{`${patientInformation.firstname} ${patientInformation.middlename} ${patientInformation.lastname}`}
+                    <span className={styles.infoLabel}>Patient Name</span>: <span className={styles.infoValue}>{[patientInformation.firstname, patientInformation.middlename, patientInformation.lastname].filter(Boolean).join(' ')}
                     </span>
                 </div>
                 <div className={styles.infoPair}>
                     <span className={styles.infoLabel}>Patient Ref</span>: <span className={styles.infoValue}>{patientInformation.fullpatientid}</span>
                 </div>
                 <div className={styles.infoPair}>
-                    <span className={styles.infoLabel}>Age/Sex</span>: <span className={styles.infoValue}>{patientInformation.age} {patientInformation.agetype} ({patientInformation.gender.toString().split('')[0].toUpperCase() || 'N/A'})</span>
+                    <span className={styles.infoLabel}>Age/Sex</span>: <span className={styles.infoValue}>{patientInformation.age} {patientInformation.agetype} ({patientInformation.gender?.charAt(0).toUpperCase() || 'N/A'})</span>
                 </div>
             </div>
             <div className={styles.infoBlock}>

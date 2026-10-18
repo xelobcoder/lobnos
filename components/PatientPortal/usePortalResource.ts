@@ -16,6 +16,7 @@ export function usePortalResource<T>(endpoint: string | null) {
           if (!endpoint) return;
           let current = true;
           setLoading(true);
+          setData(null);
           setError('');
           setCode('');
           customFetch(endpoint)
