@@ -4,6 +4,7 @@ import { Modal, Button, Form, Spinner } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { customFetch, customPost, validatePin } from "../../Auth/customFetch";
 import { useApplicationSettings } from "../../Auth/useApplicationContext";
+import { LaboratoryWorkflow, workflowFor } from "../../../lib/laboratoryWorkflow";
 
 type WorkflowBaseProps = {
   show: boolean;
@@ -385,9 +386,11 @@ export function SingleTestProcessingWorkflowModal({
   const [startAt, setStartAt] = useState<string | undefined>(undefined);
   const [endAt, setEndAt] = useState<string | undefined>(undefined);
   const [syncing, setSyncing] = useState(false);
+  const [eligibility, setEligibility] = useState<LaboratoryWorkflow | undefined>();
 
   useEffect(() => {
     if (!show) return;
+    setEligibility(undefined);
     setStartAt(test.processingStartDate);
     setEndAt(test.processingEndDate);
     const sync = async () => {
@@ -399,6 +402,7 @@ export function SingleTestProcessingWorkflowModal({
           Array.isArray(result)
             ? result.find((r: any) => Number(r.ascension_id) === Number(test.ascensionid) || Number(r.testid) === Number(test.testid))
             : null;
+        setEligibility(found?.workflow);
         if (found?.processingStartDate) setStartAt((prev) => prev || found.processingStartDate);
         if (found?.processingEndDate) setEndAt((prev) => prev || found.processingEndDate);
       } catch {
@@ -409,8 +413,8 @@ export function SingleTestProcessingWorkflowModal({
     sync();
   }, [show]);
 
-  const canStart = !startAt;
-  const canEnd = Boolean(startAt) && !endAt;
+  const canStart = workflowFor({ workflow: eligibility }).canProcess && !startAt;
+  const canEnd = workflowFor({ workflow: eligibility }).canProcess && Boolean(startAt) && !endAt;
 
   const updateStage = async (stage: "processingStartDate" | "processingEndDate") => {
     if (employeeid == null) return toast.error("Missing employee id");

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { LaboratoryWorkflow, workflowFor } from '../../../../../../../lib/laboratoryWorkflow';
 import { useSearchParams } from 'next/navigation';
 import { customFetch } from '../../../../../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../../../../../components/Auth/useApplicationContext';
@@ -23,6 +24,7 @@ interface SelectedPatient {
 }
 
 interface TestAscension {
+     workflow?: LaboratoryWorkflow;
      ascension_id: number;
      testid: number;
      test_name: string;
@@ -272,10 +274,10 @@ export default function MultipleClientVisit() {
                               <div className="p-3">
                                    {!activeTest || !activePatient ? <div className="alert alert-secondary">Select a patient and test to load the result form.</div> : null}
                                    {activeTest && activePatient && !activeTokens ? <div className="alert alert-secondary">Preparing result entry...</div> : null}
-                                   {activeTest && activePatient && activeTokens && !activeTest.resultEntryStart && !(activeTest.samplevalidatedon && activeTest.processingEndDate) ? (
-                                        <div className="alert alert-warning">Result entry is locked until sample validation and processing are completed.</div>
+                                   {activeTest && activePatient && activeTokens && !workflowFor(activeTest).canEnterResults ? (
+                                        <div className="alert alert-warning">{workflowFor(activeTest).blockedReason}</div>
                                    ) : null}
-                                   {activeTest && activePatient && activeTokens && (activeTest.resultEntryStart || (activeTest.samplevalidatedon && activeTest.processingEndDate)) ? (
+                                   {activeTest && activePatient && activeTokens && workflowFor(activeTest).canEnterResults ? (
                                         <ResultEntryComponent
                                              key={activeTest.ascension_id}
                                              operations={{ uiLayout: 3, testid: activeTest.testid, test: activeTest.test_name, billingid: activeTokens.csvid, patientid: activeTokens.ptid, employeeid, ascensionid: activeTest.ascension_id, resultEntryStart: activeTest.resultEntryStart, resultEntryEnd: activeTest.resultEntryEnd }}
@@ -304,10 +306,10 @@ export default function MultipleClientVisit() {
                                              <div className="visitTimeline mb-3">
                                                   {[
                                                        { label: 'Ascension', when: activeTest.ascension_date ? formatWhen(activeTest.ascension_date) : 'N/A', status: activeTest.ascension_date ? 'done' : 'pending' },
-                                                       { label: 'Collection', when: activeTest.collectionStartDate ? `Start: ${formatWhen(activeTest.collectionStartDate)}` : 'Not collected', extra: activeTest.collectionEndDate ? `End: ${formatWhen(activeTest.collectionEndDate)}` : null, status: activeTest.collectionStartDate ? (activeTest.collectionEndDate ? 'done' : 'current') : 'pending' },
-                                                       { label: 'Sample Validation', when: activeTest.samplevalidatedon ? formatWhen(activeTest.samplevalidatedon) : 'Not validated', status: activeTest.samplevalidatedon ? 'done' : activeTest.collectionStartDate ? 'current' : 'blocked' },
-                                                       { label: 'Processing', when: activeTest.processingStartDate ? `Start: ${formatWhen(activeTest.processingStartDate)}` : 'Not started', extra: activeTest.processingEndDate ? `End: ${formatWhen(activeTest.processingEndDate)}` : null, status: activeTest.processingEndDate ? 'done' : activeTest.samplevalidatedon ? 'current' : 'blocked' },
-                                                       { label: 'Result Entry', when: activeTest.resultEntryStart ? `Start: ${formatWhen(activeTest.resultEntryStart)}` : 'Not started', extra: activeTest.resultEntryEnd ? `End: ${formatWhen(activeTest.resultEntryEnd)}` : null, status: activeTest.resultEntryEnd ? 'done' : activeTest.processingEndDate ? 'current' : 'blocked' },
+                                                       { label: 'Collection', when: workflowFor(activeTest).collection === 'bypassed' ? 'Bypassed by configuration' : activeTest.collectionStartDate ? `Start: ${formatWhen(activeTest.collectionStartDate)}` : 'Not collected', extra: activeTest.collectionEndDate ? `End: ${formatWhen(activeTest.collectionEndDate)}` : null, status: workflowFor(activeTest).collection !== 'pending' ? 'done' : 'pending' },
+                                                       { label: 'Sample Validation', when: workflowFor(activeTest).sampleValidation === 'bypassed' ? 'Bypassed by configuration' : activeTest.samplevalidatedon ? formatWhen(activeTest.samplevalidatedon) : 'Not validated', status: workflowFor(activeTest).sampleValidation !== 'pending' ? 'done' : workflowFor(activeTest).canValidateSample ? 'current' : 'blocked' },
+                                                       { label: 'Processing', when: workflowFor(activeTest).processing === 'bypassed' ? 'Bypassed by configuration' : activeTest.processingStartDate ? `Start: ${formatWhen(activeTest.processingStartDate)}` : 'Not started', extra: activeTest.processingEndDate ? `End: ${formatWhen(activeTest.processingEndDate)}` : null, status: workflowFor(activeTest).processing !== 'pending' ? 'done' : workflowFor(activeTest).canProcess ? 'current' : 'blocked' },
+                                                       { label: 'Result Entry', when: activeTest.resultEntryStart ? `Start: ${formatWhen(activeTest.resultEntryStart)}` : 'Not started', extra: activeTest.resultEntryEnd ? `End: ${formatWhen(activeTest.resultEntryEnd)}` : null, status: activeTest.resultEntryEnd ? 'done' : workflowFor(activeTest).canEnterResults ? 'current' : 'blocked' },
                                                        { label: 'Result Validation', when: activeTest.result_validation_stage || 'Not validated', extra: activeTest.lastupdatedon ? `Last Updated: ${formatWhen(activeTest.lastupdatedon)}` : null, status: activeTest.isapproved === 1 ? 'done' : activeTest.resultEntryEnd ? 'current' : 'blocked' }
                                                   ].map((step) => (
                                                        <div className="visitTimelineItem" key={step.label}>
@@ -321,14 +323,15 @@ export default function MultipleClientVisit() {
                                                   ))}
                                              </div>
                                              <div className="d-grid gap-2">
-                                                  <button className="btn btn-sm btn-outline-primary" disabled={Boolean(activeTest.collectionEndDate)} onClick={() => setWorkflow('collection')}>
-                                                       {!activeTest.collectionStartDate ? 'Collect Sample' : 'Complete Collection'}
+                                                  {workflowFor(activeTest).blockedReason && <div className="alert alert-warning py-2">{workflowFor(activeTest).blockedReason}</div>}
+                                                  <button className="btn btn-sm btn-outline-primary" disabled={!workflowFor(activeTest).canCollect} onClick={() => setWorkflow('collection')}>
+                                                       {workflowFor(activeTest).collection === 'bypassed' && !workflowFor(activeTest).canCollect ? 'Collection Bypassed' : workflowFor(activeTest).collection === 'completed' ? 'Collection Completed' : !activeTest.collectionStartDate ? 'Collect Sample' : 'Complete Collection'}
                                                   </button>
-                                                  <button className="btn btn-sm btn-outline-warning" disabled={!activeTest.collectionStartDate || Boolean(activeTest.samplevalidatedon)} onClick={() => setWorkflow('sampleValidation')}>
-                                                       {activeTest.samplevalidatedon ? 'Sample Validated' : 'Validate Sample'}
+                                                  <button className="btn btn-sm btn-outline-warning" disabled={!workflowFor(activeTest).canValidateSample} onClick={() => setWorkflow('sampleValidation')}>
+                                                       {workflowFor(activeTest).sampleValidation === 'bypassed' ? 'Sample Validation Bypassed' : workflowFor(activeTest).sampleValidation === 'completed' ? 'Sample Validated' : 'Validate Sample'}
                                                   </button>
-                                                  <button className="btn btn-sm btn-outline-primary" disabled={Boolean(activeTest.processingEndDate) || !activeTest.samplevalidatedon} onClick={() => setWorkflow('processing')}>
-                                                       {!activeTest.processingStartDate ? 'Start Processing' : activeTest.processingEndDate ? 'Processing Completed' : 'Complete Processing'}
+                                                  <button className="btn btn-sm btn-outline-primary" disabled={!workflowFor(activeTest).canProcess} onClick={() => setWorkflow('processing')}>
+                                                       {workflowFor(activeTest).processing === 'bypassed' ? 'Processing Bypassed' : !activeTest.processingStartDate ? 'Start Processing' : activeTest.processingEndDate ? 'Processing Completed' : 'Complete Processing'}
                                                   </button>
                                                   <button className="btn btn-sm btn-outline-success" disabled={activeTest.isapproved === 1 || !(activeTest.resultEntryStart && activeTest.resultEntryEnd)} onClick={() => setWorkflow('resultValidation')}>
                                                        {activeTest.isapproved === 1 ? 'Result Validated' : 'Validate Result'}

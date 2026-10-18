@@ -2,6 +2,7 @@
 "use client";
 import { useSearchParams } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
+import { LaboratoryWorkflow, workflowFor } from '../../../../../../lib/laboratoryWorkflow';
 
 import PreviewPatientInformation from '../../../../../../components/petientsComponent/PreviewPatientInformation'
 import { customFetch } from '../../../../../../components/Auth/customFetch'
@@ -45,6 +46,7 @@ function formatFullDate(dateString?: string) {
 }
 
 interface TestAscension {
+     workflow?: LaboratoryWorkflow;
      ascension_id: number;
      testid: number;
      test_name: string;
@@ -429,7 +431,7 @@ export default function ClientVisit() {
                                                             const isChecked = selectedAscensionIds.includes(item.ascension_id);
                                                             const isCompleted = Boolean(item.resultEntryStart && item.resultEntryEnd);
                                                             const isValidated = item.isapproved === 1 || (item.result_validation_stage || '').toLowerCase().includes('validated') || (item.result_validation_stage || '').toLowerCase().includes('approved');
-                                                            const isLocked = !item.samplevalidatedon || !item.processingEndDate;
+                                                            const isLocked = !workflowFor(item).canEnterResults;
                                                             const badgeClass = isValidated ? 'bg-success' : isCompleted ? 'bg-primary' : item.samplevalidatedon ? 'bg-warning text-dark' : 'bg-secondary';
                                                             return (
                                                                  <button
@@ -505,9 +507,7 @@ export default function ClientVisit() {
                                                             )}
                                                             {selectedAscensions.map(item => {
                                                                  const tokens = entryTokensByAscensionId[item.ascension_id];
-                                                                 const canEnterOrUpdateResult =
-                                                                      Boolean(item.resultEntryStart) ||
-                                                                      (Boolean(item.samplevalidatedon) && Boolean(item.processingEndDate));
+                                                                 const canEnterOrUpdateResult = workflowFor(item).canEnterResults;
 
                                                                  if (!tokens) {
                                                                       return <div key={item.ascension_id} className="alert alert-secondary">Preparing {item.test_name}...</div>;
@@ -515,7 +515,7 @@ export default function ClientVisit() {
                                                                  if (!canEnterOrUpdateResult) {
                                                                       return (
                                                                            <div key={item.ascension_id} className="alert alert-warning">
-                                                                                <strong>{item.test_name}:</strong> Result entry is locked until sample validation and processing are completed.
+                                                                                <strong>{item.test_name}:</strong> {workflowFor(item).blockedReason}
                                                                            </div>
                                                                       );
                                                                  }
@@ -575,26 +575,26 @@ export default function ClientVisit() {
                                                                            },
                                                                            {
                                                                                 label: 'Collection',
-                                                                                when: selectedItem.collectionStartDate ? `Start: ${formatFullDate(selectedItem.collectionStartDate)}` : 'Not collected',
+                                                                                when: workflowFor(selectedItem).collection === 'bypassed' ? 'Bypassed by configuration' : selectedItem.collectionStartDate ? `Start: ${formatFullDate(selectedItem.collectionStartDate)}` : 'Not collected',
                                                                                 extra: selectedItem.collectionEndDate ? `End: ${formatFullDate(selectedItem.collectionEndDate)}` : null,
-                                                                                status: selectedItem.collectionStartDate ? (selectedItem.collectionEndDate ? 'done' : 'current') : 'pending',
+                                                                                status: workflowFor(selectedItem).collection !== 'pending' ? 'done' : 'pending',
                                                                            },
                                                                            {
                                                                                 label: 'Sample Validation',
-                                                                                when: selectedItem.samplevalidatedon ? formatFullDate(selectedItem.samplevalidatedon) : 'Not validated',
-                                                                                status: selectedItem.samplevalidatedon ? 'done' : (selectedItem.collectionStartDate ? 'current' : 'blocked'),
+                                                                                when: workflowFor(selectedItem).sampleValidation === 'bypassed' ? 'Bypassed by configuration' : selectedItem.samplevalidatedon ? formatFullDate(selectedItem.samplevalidatedon) : 'Not validated',
+                                                                                status: workflowFor(selectedItem).sampleValidation !== 'pending' ? 'done' : (workflowFor(selectedItem).canValidateSample ? 'current' : 'blocked'),
                                                                            },
                                                                            {
                                                                                 label: 'Processing',
-                                                                                when: selectedItem.processingStartDate ? `Start: ${formatFullDate(selectedItem.processingStartDate)}` : 'Not started',
+                                                                                when: workflowFor(selectedItem).processing === 'bypassed' ? 'Bypassed by configuration' : selectedItem.processingStartDate ? `Start: ${formatFullDate(selectedItem.processingStartDate)}` : 'Not started',
                                                                                 extra: selectedItem.processingEndDate ? `End: ${formatFullDate(selectedItem.processingEndDate)}` : null,
-                                                                                status: selectedItem.processingEndDate ? 'done' : (selectedItem.samplevalidatedon ? 'current' : 'blocked'),
+                                                                                status: workflowFor(selectedItem).processing !== 'pending' ? 'done' : (workflowFor(selectedItem).canProcess ? 'current' : 'blocked'),
                                                                            },
                                                                            {
                                                                                 label: 'Result Entry',
                                                                                 when: selectedItem.resultEntryStart ? `Start: ${formatFullDate(selectedItem.resultEntryStart)}` : 'Not started',
                                                                                 extra: selectedItem.resultEntryEnd ? `End: ${formatFullDate(selectedItem.resultEntryEnd)}` : null,
-                                                                                status: selectedItem.resultEntryEnd ? 'done' : (selectedItem.processingEndDate ? 'current' : 'blocked'),
+                                                                                status: selectedItem.resultEntryEnd ? 'done' : (workflowFor(selectedItem).canEnterResults ? 'current' : 'blocked'),
                                                                            },
                                                                            {
                                                                                 label: 'Result Validation',
@@ -621,38 +621,39 @@ export default function ClientVisit() {
                                                             </div>
 
                                                             <div className="d-grid gap-2">
+                                                                 {workflowFor(selectedItem).blockedReason && <div className="alert alert-warning py-2">{workflowFor(selectedItem).blockedReason}</div>}
                                                                  <button
                                                                       className={`btn btn-sm ${selectedItem.collectionEndDate ? 'btn-outline-secondary' : selectedItem.collectionStartDate ? 'btn-outline-success' : 'btn-outline-primary'}`}
-                                                                      disabled={Boolean(selectedItem.collectionEndDate)}
+                                                                      disabled={!workflowFor(selectedItem).canCollect}
                                                                       onClick={() => setWorkflow('collection')}
                                                                  >
-                                                                      {!selectedItem.collectionStartDate
+                                                                      {workflowFor(selectedItem).collection === 'bypassed' && !workflowFor(selectedItem).canCollect ? 'Collection Bypassed' : !selectedItem.collectionStartDate
                                                                            ? 'Collect Sample'
                                                                            : !selectedItem.collectionEndDate
                                                                                 ? 'Complete Collection'
                                                                                 : 'Collection Completed'}
                                                                  </button>
 
-                                                                 {!selectedItem.samplevalidatedon ? (
+                                                                 {workflowFor(selectedItem).sampleValidation === 'pending' ? (
                                                                       <button
                                                                            className="btn btn-sm btn-outline-warning"
-                                                                           disabled={!selectedItem.collectionStartDate}
+                                                                           disabled={!workflowFor(selectedItem).canValidateSample}
                                                                            onClick={() => setWorkflow('sampleValidation')}
                                                                       >
                                                                            Validate Sample
                                                                       </button>
                                                                  ) : (
                                                                       <button className="btn btn-sm btn-outline-secondary" disabled>
-                                                                           Sample Validated
+                                                                           {workflowFor(selectedItem).sampleValidation === 'bypassed' ? 'Sample Validation Bypassed' : 'Sample Validated'}
                                                                       </button>
                                                                  )}
 
                                                                  <button
                                                                       className={`btn btn-sm ${selectedItem.processingEndDate ? 'btn-outline-secondary' : selectedItem.processingStartDate ? 'btn-outline-success' : 'btn-outline-primary'}`}
-                                                                      disabled={Boolean(selectedItem.processingEndDate) || (!selectedItem.samplevalidatedon && !selectedItem.processingStartDate)}
+                                                                      disabled={!workflowFor(selectedItem).canProcess}
                                                                       onClick={() => setWorkflow('processing')}
                                                                  >
-                                                                      {!selectedItem.processingStartDate
+                                                                      {workflowFor(selectedItem).processing === 'bypassed' ? 'Processing Bypassed' : !selectedItem.processingStartDate
                                                                            ? 'Start Processing'
                                                                            : !selectedItem.processingEndDate
                                                                                 ? 'Complete Processing'
@@ -662,7 +663,7 @@ export default function ClientVisit() {
                                                                  {selectedItem.isapproved !== 1 ? (
                                                                       <button
                                                                            className="btn btn-sm btn-outline-success"
-                                                                           disabled={!(selectedItem.collectionStartDate && selectedItem.samplevalidatedon && selectedItem.resultEntryStart && selectedItem.resultEntryEnd)}
+                                                                           disabled={!(workflowFor(selectedItem).canEnterResults && selectedItem.resultEntryStart && selectedItem.resultEntryEnd)}
                                                                            onClick={() => setWorkflow('resultValidation')}
                                                                       >
                                                                            Validate Result

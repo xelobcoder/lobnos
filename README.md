@@ -37,6 +37,17 @@ cards, uppercase labels, icons and tabular values. Billing totals are computed
 in cents and are shown only after the bills load successfully.
 
 Use **Test trends** in the patient sidebar to follow released results over time.
+Switch between **Chart** and **Values** to see either the plot or newest-first
+value cards with reference ranges and changes from the previous result on that
+page. Qualified/text values remain visible but are never converted into numeric
+measurements or percentage changes. The full recorded-data table is expandable.
+
+**My Results** uses the shared PLS date-filter control: presets, custom start/end
+dates and **Clear dates**. Filtering uses inclusive request dates on the server,
+before the 500-test limit, so older requests can be found directly. The portal
+uses a two-column navigation grid on small phones, wrapping forms and summaries,
+44px mobile controls and locally scrollable tables instead of page overflow.
+
 Use **Request tests** to send laboratory test selections to the facility.
 Submitting a request is not a confirmed bill or payment. Staff review incoming
 requests under **Patient Portal Administration → Test requests** before creating
@@ -700,3 +711,19 @@ The launcher will automatically extract the protected archive at startup.
 - **Build integrity verification**
 - **Machine fingerprint validation**
 - **License-based access control**
+## Laboratory workflow bypass
+
+Application Settings -> Billing Settings controls collection, sample validation and
+processing bypasses independently. The server computes a workflow object for every
+test (`canCollect`, `canValidateSample`, `canProcess`, `canEnterResults`,
+`blockedReason`); Daily Requests shows skipped stages as "Bypassed by configuration"
+and opens results entry without an empty sample-validation step. No timestamps or
+actors are fabricated for bypassed stages. A container that was actually started but
+not completed, or that was rejected, still blocks results entry.
+
+## Staff PIN security
+
+Settings -> Application Settings -> Staff authorization PIN security lets an
+administrator set the failed-PIN attempt limit (1-20, default 5). When a staff member
+reaches the limit they stay locked until an administrator performs an audited reset
+(a reason is required). Resetting clears the counter only; it does not change the PIN.

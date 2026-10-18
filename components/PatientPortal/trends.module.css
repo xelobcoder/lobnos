@@ -1,4 +1,4 @@
-.page { max-width: 1200px; margin: 0 auto; padding: 1.5rem; color: var(--pls-heading, #233444); }
+.page { min-width: 0; max-width: 1200px; margin: 0 auto; padding: 1.5rem; color: var(--pls-heading, #233444); overflow-wrap: anywhere; }
 .header, .controls { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.25rem; }
 .header h1 { font-size: 1.65rem; font-weight: 700; margin: 0 0 .5rem; }
 .header p { margin-bottom: .5rem; }
@@ -22,4 +22,46 @@
 .table th, .table td { padding: .8rem; border-bottom: 1px solid #e1e8ec; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
 .table thead { background: #f4f8f9; }
 .table td { min-width: 100px; }
+.viewToggle { display: flex; flex-wrap: wrap; gap: .5rem; }
+.viewToggle button[aria-pressed="true"] { background: var(--pls-primary, #2e7d32); color: #fff; border-color: var(--pls-primary, #2e7d32); }
+.valueList { list-style: none; margin: 0; padding: 0; border: 1px solid #d9e7f4; border-radius: 10px; overflow: hidden; }
+.valueRow { display: flex; justify-content: space-between; align-items: flex-start; gap: .5rem; padding: 10px 12px; border-bottom: 1px solid #e4edf6; background: #fff; min-width: 0; }
+.valueRow:last-child { border-bottom: none; }
+.valueMain { min-width: 0; flex: 1; }
+.valueRowDate { display: block; color: #223b55; font-size: .95rem; font-weight: 700; margin-bottom: 2px; }
+.valueRowPrimary { color: #005eb8; font-size: 1.1rem; line-height: 1.1; font-weight: 800; }
+.valueUnit { color: #2f5f8a; font-size: .86rem; font-weight: 700; }
+.valueRangeBlock { margin-top: 8px; }
+.valueReferenceSentence { margin: 7px 0 0; color: #3e5973; font-size: .86rem; font-weight: 600; }
+.valueReferenceText { margin: 6px 0 0; color: #4f6780; font-size: .78rem; font-weight: 700; }
+.rangeScale { position: relative; width: min(360px, 100%); margin-top: 8px; padding-top: 34px; }
+.rangeMarker { position: absolute; top: 0; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; pointer-events: none; }
+.rangeMarkerValue { font-size: 1.05rem; line-height: 1; font-weight: 800; color: #1f2d3d; }
+.rangeMarker_low .rangeMarkerValue, .rangeMarker_high .rangeMarkerValue { color: #b10e1e; }
+.rangeMarkerArrow { width: 0; height: 0; margin-top: 4px; border-left: 7px solid transparent; border-right: 7px solid transparent; border-top: 10px solid #111; }
+.rangeTrack { display: flex; width: 100%; height: 26px; border: 2px solid #2d3b47; background: #fff; overflow: hidden; }
+.rangeOut { background: #f2b227; }
+.rangeNormal { background: repeating-linear-gradient(-45deg, #2ab7a9, #2ab7a9 6px, #39c7b8 6px, #39c7b8 12px); }
+.rangeTicks { position: relative; height: 24px; }
+.rangeTicks span { position: absolute; top: 3px; transform: translateX(-50%); font-size: .82rem; font-weight: 800; color: #1f2d3d; white-space: nowrap; }
+.valueReport { display: inline-block; margin-top: .35rem; font-size: .85rem; }
+.valueRowMeta { display: flex; flex-direction: column; align-items: flex-end; color: #2f4f6d; font-size: .92rem; font-weight: 700; text-align: right; white-space: nowrap; }
+.valueRowMeta small { font-size: .78rem; font-weight: 600; }
+.deltaUp { color: #00703c; }
+.deltaDown { color: #b10e1e; }
+.srOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.dataDetails { margin-top: 1rem; min-width: 0; }
+.dataDetails summary { cursor: pointer; padding: .75rem 0; font-weight: 600; }
 @media (max-width: 640px) { .page { padding: 1rem; } .card { padding: 1rem; } .controls { align-items: flex-start; } .chart { min-height: 160px; } }
+@media (max-width: 480px) {
+     .page { padding: 0; }
+     .card { padding: .85rem; }
+     .controls > label { width: 100%; }
+     .controls .select { width: 100%; margin-top: .5rem; }
+     .page button, .link, .select { min-height: 44px; }
+     .viewToggle { width: 100%; }
+     .viewToggle button { flex: 1; }
+     .valueRow { flex-direction: column; }
+     .valueRowMeta { align-items: flex-start; text-align: left; white-space: normal; }
+     .rangeScale { margin-inline: 1rem; width: calc(100% - 2rem); }
+}

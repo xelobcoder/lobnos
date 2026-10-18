@@ -40,6 +40,20 @@ test('reference display preserves zero limits, one-sided ranges and qualitative 
      assert.equal(helpers.trendReference({ plan: 'limits' }), 'Not provided');
 });
 
+test('Values compares adjacent same-unit results without fabricating changes across qualitative values or zero baselines', () => {
+     const row = { value: '10', units: 'mg/L', ascensionid: 1 };
+     const changes = helpers.trendValueChanges([row, { ...row, value: '15' }, { ...row, value: 'Negative' },
+          { ...row, value: '0' }, { ...row, value: '2' }, { ...row, value: '4', units: 'g/L' }]);
+     assert.equal(changes[0].delta, null);
+     assert.equal(changes[1].delta, 2);
+     assert.equal(changes[1].percent, null);
+     assert.equal(changes[2].delta, null);
+     assert.equal(changes[3].delta, null);
+     assert.equal(changes[4].delta, 5);
+     assert.equal(changes[4].percent, 50);
+     assert.equal(changes[5].delta, null);
+});
+
 test('patient page uses only the patient API, real paging and accessible complete data', () => {
      const page = readFileSync(path.join(root, 'components/PatientPortal/PatientTestTrends.tsx'), 'utf8');
      const chart = readFileSync(path.join(root, 'components/PatientPortal/TrendChart.tsx'), 'utf8');
@@ -96,4 +110,21 @@ test('rendered chart explicitly handles all-nonnumeric and single-point historie
      assert.match(categorical, /No dated, purely numeric values to plot/);
      assert.doesNotMatch(categorical, /<circle/);
      assert.match(renderChart([{ ...row, value: '2' }]), /One numeric result/);
+});
+
+test('Values range scale matches the staff Result Trends view and only uses numeric limits', () => {
+     const row = { plan: 'limits', lowerlimit: '12', upperlimit: '16', value: '14' };
+     const normal = helpers.trendRangeScale(row);
+     assert.deepEqual(plain(normal), { lower: 12, upper: 16, markerPercent: 50, lowerPercent: 25, upperPercent: 75, status: 'normal' });
+     assert.equal(helpers.trendRangeScale({ ...row, value: '20' }).status, 'high');
+     assert.equal(helpers.trendRangeScale({ ...row, value: '20' }).markerPercent, 100);
+     assert.equal(helpers.trendRangeScale({ ...row, value: '1' }).status, 'low');
+     assert.equal(helpers.trendRangeScale({ ...row, value: '1' }).markerPercent, 0);
+     for (const bad of [{ value: '<5' }, { upperlimit: '' }, { upperlimit: '12' }, { plan: 'text' }]) {
+          assert.equal(helpers.trendRangeScale({ ...row, ...bad }), null, JSON.stringify(bad));
+     }
+     assert.equal(helpers.trendChangeLabel(null), 'first result');
+     assert.equal(helpers.trendChangeLabel(2), '2.00 increase');
+     assert.equal(helpers.trendChangeLabel(-0.5), '0.50 decrease');
+     assert.equal(helpers.trendChangeLabel(0), '0.00 no change');
 });

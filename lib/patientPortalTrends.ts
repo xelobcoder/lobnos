@@ -71,3 +71,49 @@ export function trendReference(row: PortalTrendRow): string {
      }
      return row.textReference || 'Not provided';
 }
+
+export interface TrendRangeScale {
+     lower: number;
+     upper: number;
+     markerPercent: number;
+     lowerPercent: number;
+     upperPercent: number;
+     status: 'low' | 'normal' | 'high';
+}
+
+/** Same scale as the staff Result Trends "Values" view: half a range of padding on each side of the limits. */
+export function trendRangeScale(row: PortalTrendRow): TrendRangeScale | null {
+     if (row.plan !== 'limits') return null;
+     const value = numericTrendValue(row.value);
+     const lower = numericTrendValue(row.lowerlimit);
+     const upper = numericTrendValue(row.upperlimit);
+     if (value === null || lower === null || upper === null || upper <= lower) return null;
+     const pad = Math.max((upper - lower) * 0.5, 0.0001);
+     const min = Math.min(lower - pad, value);
+     const span = Math.max(Math.max(upper + pad, value) - min, 0.0001);
+     const percent = (n: number) => Math.max(0, Math.min(100, (n - min) / span * 100));
+     return {
+          lower, upper,
+          markerPercent: percent(value),
+          lowerPercent: percent(lower),
+          upperPercent: percent(upper),
+          status: value < lower ? 'low' : value > upper ? 'high' : 'normal',
+     };
+}
+
+export function trendChangeLabel(delta: number | null): string {
+     if (delta === null) return 'first result';
+     return `${Math.abs(delta).toFixed(2)} ${delta > 0 ? 'increase' : delta < 0 ? 'decrease' : 'no change'}`;
+}
+
+/** Changes compare adjacent recorded values only, never across a qualitative result or unit change. */
+export function trendValueChanges(rows: PortalTrendRow[]) {
+     return rows.map((row, index) => {
+          const previous = index > 0 ? rows[index - 1] : null;
+          const value = numericTrendValue(row.value);
+          const previousValue = previous && previous.units === row.units ? numericTrendValue(previous.value) : null;
+          const delta = value !== null && previousValue !== null ? value - previousValue : null;
+          return { row, delta, percent: delta !== null && previousValue !== null && previousValue !== 0
+               ? delta / Math.abs(previousValue) * 100 : null };
+     }).reverse();
+}

@@ -6,6 +6,7 @@ import { customFetch, customFetchMutation, customPost, reloadApplicationSettings
 import Loader from '../../../components/isLoading';
 import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
 import { BillingSettingsTab } from '../../../components/settings/applicationsettings/BillingSettingsTab';
+import PinSecuritySettings from '../../../components/settings/applicationsettings/PinSecuritySettings';
 import { availableFonts } from '../../../lib/themes';
 import { canAccessFacilityModule } from '../../../lib/facilityModuleAccess';
 import Link from 'next/link';
@@ -646,6 +647,7 @@ export default function ApplicationSettings() {
 			{error && <Alert variant="danger" className="mb-4">{error}</Alert>}
 			{success && <Alert variant="success" className="mb-4">Settings updated successfully!</Alert>}
 
+			<PinSecuritySettings />
 			<Form onSubmit={handleSubmit}>
 				<section className="card border mb-4 p-3" aria-labelledby="sms-module-heading">
 					<div className="row align-items-center g-3">

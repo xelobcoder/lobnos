@@ -2,6 +2,7 @@ import React from 'react'
 import dayjs from 'dayjs'
 
 interface DateFilterReusableProps {
+     id?: string;
      value: string;
      onChange: (value: string) => void;
      onDateRangeChange?: (startDate: string, endDate: string) => void;
@@ -264,6 +265,7 @@ const calculateDateRange = (filterValue: string) => {
 };
 
 export default function DateFilterReusable({
+     id,
      value,
      onChange,
      onDateRangeChange,
@@ -303,6 +305,8 @@ export default function DateFilterReusable({
      return (
           <div className={className}>
                <select
+                    id={id}
+                    aria-label={label}
                     className="form-select"
                     value={value}
                     onChange={(ev) => handleChange(ev.target.value)}

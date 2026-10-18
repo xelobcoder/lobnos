@@ -101,31 +101,31 @@ export const BillingSettingsTab: React.FC<BillingSettingsTabProps> = ({ settings
                     {
                          name: 'completeFlow',
                          label: 'Complete Flow',
-                         description: 'Enforce complete workflow from registration to result',
+                         description: 'Show the full workflow. Individual laboratory bypass settings remain independent',
                          icon: <RiFlowChart size={20} />
                     },
                     {
                          name: 'byPassCollection',
                          label: 'By pass Collection',
-                         description: 'Allow bypassing the sample collection stage',
+                         description: 'Skip the separate collection step; required sample validation still needs a real collected container',
                          icon: <RiShieldCheckLine size={20} />
                     },
                     {
                          name: 'byPassSampleValidation',
                          label: 'By pass Sample Validation',
-                         description: 'Allow bypassing the sample validation stage',
+                         description: 'Satisfy workflow validation without recording physical acceptance; rejected samples still block results',
                          icon: <RiShieldCheckLine size={20} />
                     },
                     {
                          name: 'byPassValidation',
                          label: 'By pass Validation',
-                         description: 'Allow bypassing the validation stage',
+                         description: 'Bypass test-result validation (independent of collection, sample validation and processing)',
                          icon: <RiShieldCheckLine size={20} />
                     },
                     {
                          name: 'byPassProcessing',
                          label: 'By pass Processing',
-                         description: 'Allow bypassing the processing stage',
+                         description: 'Skip processing only after required collection and sample checks are satisfied',
                          icon: <RiShieldCheckLine size={20} />
                     },
                     {

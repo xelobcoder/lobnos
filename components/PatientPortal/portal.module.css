@@ -1,4 +1,6 @@
 .page {
+     min-width: 0;
+     overflow-wrap: anywhere;
      padding: 1.5rem;
      max-width: 1200px;
      margin: 0 auto;
@@ -152,6 +154,21 @@
 
 .reportPreview { overflow-x: auto; padding: 0 12mm; background: #fff; border: 1px solid #e9ecef; border-radius: 8px; }
 .pdfPreview { display: block; width: 100%; height: 70vh; border: 1px solid #e9ecef; }
+.resultFilters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: .75rem; }
+.dateFilter { flex: 1 1 280px; min-width: 0; }
+.dateFilter :global(.d-flex) { flex-wrap: wrap; }
+
+@media (max-width: 640px) {
+     .page { padding: 0; }
+     .card { padding: .85rem; }
+     .report { padding: .85rem; }
+     .cardTitle { flex-wrap: wrap; }
+     .resultFilters { align-items: stretch; }
+     .dateFilter { flex-basis: 100%; }
+     .resultFilters > a, .resultFilters > button { flex: 1 1 auto; min-height: 44px; }
+     .statGrid, .reportMeta { grid-template-columns: minmax(0, 1fr); }
+     .reportPreview { padding: 0; }
+}
 
 @media print {
      .noPrint {

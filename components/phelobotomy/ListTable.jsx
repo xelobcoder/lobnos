@@ -45,7 +45,7 @@ export default function ListTable({ data, handleCollectSample, handleReceiveSamp
 			if (status === 'success') {
 				const firstItem = selectedItems[0];
 				const newWindow = window.open(
-					`/operations/laboratory/completed?patientid=${firstItem.patientid}&billingid=${firstItem.billingid}&isOpenSideBarShow=false&ascensionid=${ascensionIds.join(',')}`,
+					`/operations/laboratory/main/dailyRequest/multiple/visit?selected=${encodeURIComponent(JSON.stringify(selectedItems.map(item => ({ patientid: item.patientid, billingid: item.billingid }))))}`,
 					'_blank',
 					"width=1200,height=800,resizable,scrollbars"
 				);
@@ -77,7 +77,7 @@ export default function ListTable({ data, handleCollectSample, handleReceiveSamp
 		if (status === 'success') {
 			const { date, billingid, patientid } = row;
 			let newWindow = window.open(
-				`/operations/laboratory/completed?patientid=${patientid}&billingid=${billingid}&start_date=${date}&end_date=${date}&isOpenSideBarShow=false`,
+				`/operations/laboratory/main/dailyRequest/visit?patientid=${patientid}&billingid=${billingid}`,
 				'_blank',
 				"width=1200,height=800,resizable,scrollbars"
 			);
@@ -134,10 +134,10 @@ export default function ListTable({ data, handleCollectSample, handleReceiveSamp
 							className="btn btn-primary btn-sm btn"
 						>
 							<RiInboxLine size={16} />
-							<span>By pass Complete Flow</span>
+							<span>Open Configured Results</span>
 						</button>
 					)}
-					{!isCompleteFlowDisabled && (
+					{(
 						<>
 						<button
 							className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
@@ -175,7 +175,7 @@ export default function ListTable({ data, handleCollectSample, handleReceiveSamp
 								Processing...
 							</>
 						) : (
-							`By pass ${selectedItems.length} Selected Items`
+							`Open Results for ${selectedItems.length} Selected Items`
 						)}
 					</button>
 				</div>

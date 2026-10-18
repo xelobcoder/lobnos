@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePortalResource } from './usePortalResource';
 import { formatDate } from '../../lib/patientPortal';
-import { PortalTrendHistory, PortalTrendTest, groupTrendRows, trendReference } from '../../lib/patientPortalTrends';
+import { PortalTrendHistory, PortalTrendTest, groupTrendRows, numericTrendValue, trendChangeLabel, trendRangeScale, trendReference, trendValueChanges } from '../../lib/patientPortalTrends';
 import TrendChart from './TrendChart';
 import styles from './trends.module.css';
 
@@ -46,6 +46,7 @@ export default function PatientTestTrends() {
 function TestHistory({ testid }: { testid: number }) {
      const [page, setPage] = useState(1);
      const [count, setCount] = useState(25);
+     const [view, setView] = useState<'chart' | 'values'>('chart');
      const history = usePortalResource<PortalTrendHistory>(`patient-portal/trends/${testid}?page=${page}&count=${count}`);
      // Do not display the previous page while a changed endpoint is being fetched.
      const data = history.data?.testid === testid && history.data.page === page && history.data.count === count ? history.data : null;
@@ -53,6 +54,10 @@ function TestHistory({ testid }: { testid: number }) {
      return (
           <section aria-label="Test result history" aria-busy={history.loading}>
                <div className={styles.controls}>
+                    <div className={styles.viewToggle} role="group" aria-label="Trend display">
+                         <button type="button" aria-pressed={view === 'chart'} onClick={() => setView('chart')}>Chart</button>
+                         <button type="button" aria-pressed={view === 'values'} onClick={() => setView('values')}>Values</button>
+                    </div>
                     <label htmlFor="trend-count">Results per page{' '}
                          <select id="trend-count" value={count} onChange={event => { setCount(Number(event.target.value)); setPage(1); }} className={styles.select}>
                               {[10, 25, 50].map(size => <option key={size} value={size}>{size}</option>)}
@@ -70,7 +75,57 @@ function TestHistory({ testid }: { testid: number }) {
                          {groups.map(group => (
                               <section className={styles.card} key={group.key}>
                                    <h2>{group.field}{group.units ? ` · ${group.units}` : ''}</h2>
-                                   <TrendChart rows={group.rows} field={group.field} units={group.units} />
+                                   {view === 'chart' ? <TrendChart rows={group.rows} field={group.field} units={group.units} /> : (
+                                        <ol className={styles.valueList} aria-label={`${group.field} values, newest first`}>
+                                             {trendValueChanges(group.rows).map(({ row, delta, percent }, index, all) => {
+                                                  const scale = trendRangeScale(row);
+                                                  const numeric = numericTrendValue(row.value);
+                                                  const isFirst = index === all.length - 1 && page >= (data.totalPages || 1);
+                                                  const change = delta !== null ? trendChangeLabel(delta) : isFirst ? trendChangeLabel(null) : 'no comparable previous value';
+                                                  return (
+                                                       <li className={styles.valueRow} key={`${row.ascensionid}-${index}`}>
+                                                            <div className={styles.valueMain}>
+                                                                 <time className={styles.valueRowDate}>{formatDate(row.recordedOn)}</time>
+                                                                 <div className={styles.valueRowPrimary}>
+                                                                      {row.value === '' ? 'Not recorded' : numeric !== null ? numeric.toFixed(2) : row.value}
+                                                                      {row.units ? <span className={styles.valueUnit}> {row.units}</span> : null}
+                                                                 </div>
+                                                                 {scale ? (
+                                                                      <div className={styles.valueRangeBlock}>
+                                                                           <p className={styles.valueReferenceSentence}>
+                                                                                The reference range is between {scale.lower.toFixed(2)} and {scale.upper.toFixed(2)}{row.units ? ` ${row.units}` : ''}.
+                                                                                <span className={styles.srOnly}> This result is {scale.status === 'normal' ? 'within' : scale.status === 'low' ? 'below' : 'above'} the range.</span>
+                                                                           </p>
+                                                                           <div className={styles.rangeScale} aria-hidden="true">
+                                                                                <div className={`${styles.rangeMarker} ${styles[`rangeMarker_${scale.status}`]}`} style={{ left: `${scale.markerPercent}%` }}>
+                                                                                     <span className={styles.rangeMarkerValue}>{numeric!.toFixed(2)}</span>
+                                                                                     <span className={styles.rangeMarkerArrow} />
+                                                                                </div>
+                                                                                <div className={styles.rangeTrack}>
+                                                                                     <div className={styles.rangeOut} style={{ width: `${scale.lowerPercent}%` }} />
+                                                                                     <div className={styles.rangeNormal} style={{ width: `${Math.max(scale.upperPercent - scale.lowerPercent, 0)}%` }} />
+                                                                                     <div className={styles.rangeOut} style={{ width: `${Math.max(100 - scale.upperPercent, 0)}%` }} />
+                                                                                </div>
+                                                                                <div className={styles.rangeTicks}>
+                                                                                     <span style={{ left: `${scale.lowerPercent}%` }}>{scale.lower.toFixed(2)}</span>
+                                                                                     <span style={{ left: `${scale.upperPercent}%` }}>{scale.upper.toFixed(2)}</span>
+                                                                                </div>
+                                                                           </div>
+                                                                      </div>
+                                                                 ) : <p className={styles.valueReferenceText}>Reference: {trendReference(row)}</p>}
+                                                                 <Link className={styles.valueReport} href={`/patientportal/results/${row.billingid}`}>View report · Accession #{row.ascensionid}</Link>
+                                                            </div>
+                                                            <div className={`${styles.valueRowMeta} ${delta === null ? '' : delta > 0 ? styles.deltaUp : delta < 0 ? styles.deltaDown : ''}`}>
+                                                                 {change}
+                                                                 {percent !== null && <small>{percent > 0 ? '+' : ''}{percent.toFixed(2)}%</small>}
+                                                            </div>
+                                                       </li>
+                                                  );
+                                             })}
+                                        </ol>
+                                   )}
+                                   <details className={styles.dataDetails}>
+                                   <summary>Recorded result data</summary>
                                    <div className={styles.tableWrap} role="region" aria-label={`${group.field} result data`} tabIndex={0}>
                                         <table className={styles.table}>
                                              <caption>{group.field} — recorded results for this page, oldest to newest</caption>
@@ -87,6 +142,7 @@ function TestHistory({ testid }: { testid: number }) {
                                              ))}</tbody>
                                         </table>
                                    </div>
+                                   </details>
                               </section>
                          ))}
                          <nav aria-label="Trend history pages" className={styles.controls}>
