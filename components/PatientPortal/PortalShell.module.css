@@ -30,12 +30,12 @@
     background: var(--pls-body-bg);
     color: #212529;
     --bs-body-font-family: var(--theme-font-family, var(--font-open-sans));
-    font-size: 14px;
+    font-size: var(--theme-font-size, 15px);
     font-family: var(--theme-font-family, var(--font-open-sans));
 }
 
 /* Authenticated shell: sidebar + header, as in the Device Manager. */
-.shell { display: grid; grid-template-columns: 250px minmax(0, 1fr); }
+.shell { display: grid; grid-template-columns: 272px minmax(0, 1fr); }
 .sidebar {
     position: sticky; top: 0; height: 100vh;
     display: flex; flex-direction: column;
@@ -90,8 +90,7 @@
 }
 .panel { padding: 16px; margin-bottom: 18px; }
 .scope :global(.card-header) { background: #fff; border-bottom: 1px solid var(--pls-border); font-weight: 600; color: var(--pls-heading); }
-.scope :global(.btn) { border-radius: .5rem; font-size: 13px; font-weight: 600; padding: 8px 14px; }
-.scope :global(.btn-sm) { padding: 4px 10px; font-size: 12px; }
+.scope :global(.btn) { font-family: inherit; }
 .scope :global(.btn-primary), .signInButton {
     --bs-btn-bg: #2e7d32; --bs-btn-border-color: #2e7d32; --bs-btn-hover-bg: #1b5e20; --bs-btn-hover-border-color: #1b5e20;
     --bs-btn-active-bg: #1b5e20; --bs-btn-active-border-color: #1b5e20; --bs-btn-disabled-bg: #ced4da; --bs-btn-disabled-border-color: #ced4da;
@@ -122,13 +121,11 @@
 .scope a:focus-visible, .scope button:focus-visible, .formInput:focus-visible { outline: 3px solid var(--pls-primary-light); outline-offset: 3px; }
 .toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px; margin-bottom: 16px; }
 .filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin-bottom: 16px; }
-.summaryGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); gap: 14px; margin: 0 0 22px; }
-.summaryCard { min-width: 0; background: #fff; border: 1px solid var(--pls-border); border-top: 3px solid var(--pls-primary); border-radius: var(--pls-radius); padding: 16px; box-shadow: 0 1px 2px rgba(15, 23, 42, .04); }
-.summaryLabel { display: flex; align-items: center; gap: 8px; color: var(--pls-muted); font-size: 13px; font-weight: 500; }
-.summaryLabel svg { width: 18px; height: 18px; color: var(--pls-primary); }
-.summaryValue { margin: 4px 0 0; font-size: 28px; font-weight: 700; color: var(--pls-heading); line-height: 1.3; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-.summaryDetail { margin: 6px 0 0; color: var(--pls-muted); font-size: 12px; }
-.patientContent { font-family: var(--theme-font-family, var(--font-open-sans)); font-size: 14px; line-height: 1.5; }
+.summaryPanel { padding: 1rem; border: 1px solid var(--pls-border); border-radius: .5rem; background: #fff; margin-bottom: 1.25rem; }
+.scope .summaryTitle { margin: 0 0 1rem; font-size: 1.25rem; font-weight: 700; }
+.summaryGrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
+.summaryCard { min-width: 0; }
+.patientContent { font-family: inherit; font-size: inherit; line-height: 1.5; }
 .patientContent > main { padding: 0; max-width: none; }
 .patientContent :global(.form-control), .patientContent :global(.form-select), .patientContent :global(.btn) { font-family: inherit; }
 .patientContent :global(.badge) { border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 600; }
@@ -181,9 +178,7 @@
     .loginCard { background: #fff; padding: 2.5rem; border-radius: 1rem; box-shadow: 0 10px 25px rgba(0, 0, 0, .08); }
     .loginCompactLogo { display: flex; }
 }
-@media (max-width: 900px) {
-    .shell { grid-template-columns: 210px minmax(0, 1fr); }
-}
+@media (max-width: 1199px) { .summaryGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 767px) {
     .shell { grid-template-columns: minmax(0, 1fr); }
     .sidebar { position: static; height: auto; }
@@ -196,6 +191,7 @@
     .main { padding: 18px 12px; }
 }
 @media (max-width: 640px) {
+    .summaryGrid { grid-template-columns: minmax(0, 1fr); }
     .loginFormSide { padding: 1rem; }
     .loginCard { padding: 2rem 1.5rem; }
 }

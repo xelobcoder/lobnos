@@ -187,7 +187,8 @@ export const MultiValidateAndSubmitBillingInformation = async function (
 			allowFocOverride,
 		};
 
-		const url = "billing/multi/submit";
+		const requestId = (billingdata as any).billingRequestId;
+		const url = requestId ? `patient-portal/admin/billing-requests/${requestId}/convert` : "billing/multi/submit";
 		const response = await customPost(url, "POST", backendData);
 		if (response.status && response.status === 'pending verification') {
 			return response;

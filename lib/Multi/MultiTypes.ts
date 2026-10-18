@@ -264,4 +264,5 @@ export interface billingContextProps {
 	adjustmentReason?: string,
 	specialcode?: string,
 	suspendedDraftId?: number,
+	billingRequestId?: number,
 }

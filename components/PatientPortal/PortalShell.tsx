@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from 'react';
+import { type CSSProperties, ReactNode, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { RiMailSendLine, RiSettings4Line, RiShieldCrossFill, RiArrowGoBackLine, RiUserHeartLine } from '@remixicon/react';
@@ -9,9 +9,11 @@ import { PatientPortalLinks } from '../Layout/links/categories/PatientPortalLink
 import { handleLogout } from '../Auth/customFetch';
 import { signOutPatient } from './signOutPatient';
 import styles from './PortalShell.module.css';
+import { workspaceFontFamily } from '../../lib/themes';
 
 const adminLinks = [
     { title: 'Pending invitations', link: '/patient-portal-admin', icon: <RiMailSendLine /> },
+    { title: 'Test requests', link: '/patient-portal-admin/requests', icon: <RiUserHeartLine /> },
     { title: 'Patient access', link: '/patient-portal-admin/access', icon: <RiUserHeartLine /> },
     { title: 'Settings & activity', link: '/patient-portal-admin/settings', icon: <RiSettings4Line /> },
 ];
@@ -42,7 +44,9 @@ export default function PortalShell({ children, admin = false }: { children: Rea
     const user = context?.user;
     const identity = user ? [user.fullname || [user.firstname, user.lastname].filter(Boolean).join(' ') || user.username, user.email].filter(Boolean).join(' · ') : '';
     return (
-        <div className={`${styles.scope} ${styles.shell}`}>
+        <div className={`${styles.scope} ${styles.shell}`} style={context ? {
+            '--theme-font-family': workspaceFontFamily(context.settings),
+        } as CSSProperties : undefined}>
             <a className={styles.skipLink} href="#portal-content">Skip to content</a>
             <aside className={styles.sidebar} aria-label={title}>
                 <div className={styles.brand}>

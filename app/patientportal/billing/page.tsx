@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Alert, Badge, Button, Spinner, Table } from 'react-bootstrap';
-import { RiMoneyDollarCircleLine } from '@remixicon/react';
+import { RiMoneyDollarCircleLine, RiFileList3Line, RiWalletLine, RiAlarmWarningLine } from '@remixicon/react';
 import styles from '../../../components/PatientPortal/portal.module.css';
 import { usePortalResource } from '../../../components/PatientPortal/usePortalResource';
 import { billStatus, formatDate, formatMoney } from '../../../lib/patientPortal';
@@ -31,6 +31,7 @@ export default function PatientBillingPage() {
                          <h1 className={styles.title}>Billing</h1>
                          <p className={styles.subtitle}>Your bills, payments and receipts.</p>
                     </div>
+                    <Link href="/patientportal/requests" className="btn btn-primary">Request tests</Link>
                </div>
 
                {code === 'BILLING_DISABLED' ? (
@@ -42,11 +43,11 @@ export default function PatientBillingPage() {
 
                {data && (
                     <>
-                         <PortalSummary items={[
-                              { label: 'Bills', value: bills.length, icon: <RiMoneyDollarCircleLine /> },
-                              { label: 'Total payable', value: formatMoney(total('payable')), detail: 'After discounts' },
-                              { label: 'Payments', value: formatMoney(total('paid')) },
-                              { label: 'Outstanding balance', value: formatMoney(total('outstanding')) },
+                         <PortalSummary title="Financial Summary" items={[
+                              { label: 'Bills', value: bills.length, icon: <RiFileList3Line />, variant: 'info' },
+                              { label: 'Total payable', value: formatMoney(total('payable')), detail: 'After discounts', icon: <RiMoneyDollarCircleLine />, variant: 'primary' },
+                              { label: 'Payments', value: formatMoney(total('paid')), detail: 'Payments received', icon: <RiWalletLine />, variant: 'success' },
+                              { label: 'Outstanding balance', value: formatMoney(total('outstanding')), detail: 'Balance awaiting payment', icon: <RiAlarmWarningLine />, variant: 'warning' },
                          ]} />
                          <section className={styles.card}>
                               <h2 className={styles.cardTitle}><RiMoneyDollarCircleLine size={18} />My bills</h2>

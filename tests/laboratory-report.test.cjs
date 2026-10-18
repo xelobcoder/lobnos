@@ -8,6 +8,7 @@ const React = require('react');
 const { renderToStaticMarkup } = require('react-dom/server');
 const root = path.join(__dirname, '..');
 const cache = new Map();
+let portalResource;
 function load(filename) {
     const full = path.isAbsolute(filename) ? filename : path.join(root, filename);
     const resolved = ['', '.tsx', '.ts', '.jsx', '.js'].map(extension => full + extension).find(file => fs.existsSync(file) && fs.statSync(file).isFile());
@@ -22,6 +23,7 @@ function load(filename) {
         require(name) {
             if (name.endsWith('.css')) return new Proxy({}, { get: (_target, key) => key === '__esModule' ? false : String(key) });
             if (name.endsWith('/companyImage')) return { scopedCompanyImageUrl: value => value || '' };
+            if (name.endsWith('/usePortalResource')) return { usePortalResource: () => portalResource };
             if (name === 'jspdf' || name === 'html2canvas') return {};
             if (name.startsWith('.')) return load(path.resolve(path.dirname(resolved), name));
             return require(name);
@@ -109,15 +111,60 @@ test('A4 pagination covers the complete document without gaps or overlap and cho
     assert.equal(laboratoryReportFilename(31, 108), 'Laboratory-report-31-108.pdf');
     assert.equal(resolveReportSettings({ testBody: { fontSize: 18 } }).testBody.trFirstColumnName, 'Investigation');
 });
-test('patient summaries use the same administrative portal design tokens and never a different staff layout', () => {
+test('patient and Daily Sales summaries share the same analytic card renderer', () => {
     const { default: Summary } = load('components\\PatientPortal\\PortalSummary.tsx');
     const html = renderToStaticMarkup(React.createElement(Summary, { items: [{ label: 'Paid', value: 'GHS 20.00' }, { label: 'Outstanding', value: 'GHS 10.00' }] }));
     assert.match(html, /summaryGrid/);
     assert.match(html, /summaryCard/);
     assert.match(html, /GHS 20.00/);
     const css = fs.readFileSync(path.join(root, 'components\\PatientPortal\\PortalShell.module.css'), 'utf8');
-    assert.match(css, /\.patientContent \{ font-family: var\(--theme-font-family, var\(--font-open-sans\)\)/);
+    assert.match(css, /\.patientContent \{ font-family: inherit; font-size: inherit;/);
     assert.match(css, /\.loginLayout \{[^}]*font-family: var\(--theme-font-family, var\(--font-open-sans\)\)/);
     assert.doesNotMatch(css, /font-inter|Candara/);
-    assert.match(css, /\.summaryValue[\s\S]*tabular-nums/);
+    const cardCss = fs.readFileSync(path.join(root, 'components\\Billing\\AnalyticSummaryCard.module.css'), 'utf8');
+    assert.match(cardCss, /tabular-nums/);
+    assert.match(html, /bg-primary bg-gradient text-white/);
+    for (const file of ['components\\PatientPortal\\PortalSummary.tsx', 'components\\Billing\\BillingSumamry\\BilledSummary.tsx']) {
+        assert.match(fs.readFileSync(path.join(root, file), 'utf8'), /<AnalyticSummaryCard/);
+    }
+});
+test('portal typography follows the configured software workspace, including Slack Aspire', () => {
+    const { workspaceFontFamily, DEFAULT_FONT_FAMILY } = load('lib\\themes.ts');
+    assert.match(workspaceFontFamily({ workspaceLayout: 'slack', fontFamily: 'var(--font-raleway)' }), /^var\(--font-lato\)/);
+    assert.match(workspaceFontFamily({ workspaceLayout: 'ribbon' }), /^"Segoe UI"/);
+    for (const workspaceLayout of ['zoho', 'claude', 'portal']) {
+        assert.match(workspaceFontFamily({ workspaceLayout }), /^var\(--font-inter\)/);
+    }
+    assert.equal(workspaceFontFamily({ workspaceLayout: 'classic', fontFamily: 'Open Sans' }), 'var(--font-open-sans)');
+    assert.equal(workspaceFontFamily(), DEFAULT_FONT_FAMILY);
+    const shell = fs.readFileSync(path.join(root, 'components\\PatientPortal\\PortalShell.tsx'), 'utf8');
+    assert.match(shell, /'--theme-font-family': workspaceFontFamily\(context.settings\)/);
+    const css = fs.readFileSync(path.join(root, 'components\\PatientPortal\\PortalShell.module.css'), 'utf8');
+    const workspaceCss = fs.readFileSync(path.join(root, 'components\\Layout\\WorkspaceLayout.module.css'), 'utf8');
+    assert.match(css, /\.shell \{[^}]*grid-template-columns: 272px minmax\(0, 1fr\)/);
+    assert.match(workspaceCss, /\.slackLayout \.sidebar \{\s*width: 272px/);
+    assert.doesNotMatch(css, /grid-template-columns: (250|210)px/);
+    assert.match(css, /\.scope :global\(\.btn\) \{ font-family: inherit; \}/);
+});
+test('patient billing summary renders accurate totals using the Daily Sales cards', () => {
+    portalResource = { data: [
+        { billingid: 1, billedon: '2026-10-01', payable: '12.10', paid: '10.10', outstanding: '2.00' },
+        { billingid: 2, billedon: '2026-10-02', payable: '0.20', paid: '0.10', outstanding: '0.10' },
+    ], loading: false, error: '', code: '', reload() {} };
+    const { default: Billing } = load('app\\patientportal\\billing\\page.tsx');
+    const html = renderToStaticMarkup(React.createElement(Billing));
+    const { formatMoney } = load('lib\\patientPortal.ts');
+    for (const amount of [12.30, 10.20, 2.10]) assert.ok(html.includes(formatMoney(amount)), `Missing total ${amount}`);
+    assert.match(html, /Financial Summary/);
+    assert.match(html, /bg-success bg-gradient/);
+    assert.match(html, /bg-warning bg-gradient/);
+    assert.match(html, /href="\/patientportal\/requests"/);
+    portalResource = { ...portalResource, data: [], };
+    const empty = renderToStaticMarkup(React.createElement(Billing));
+    assert.ok(empty.includes(formatMoney(0)));
+    assert.match(empty, /You have no bills/);
+    portalResource = { data: null, loading: false, error: 'Could not load bills', code: '', reload() {} };
+    const failure = renderToStaticMarkup(React.createElement(Billing));
+    assert.match(failure, /Could not load bills/);
+    assert.doesNotMatch(failure, /Financial Summary/);
 });

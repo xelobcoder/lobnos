@@ -151,6 +151,17 @@ export const normalizeFontFamily = (fontValue: unknown): string => {
      )?.value || DEFAULT_FONT_FAMILY;
 };
 
+export const workspaceFontFamily = (settings?: { workspaceLayout?: string; fontFamily?: unknown }): string => {
+     switch (settings?.workspaceLayout) {
+          case 'slack': return 'var(--font-lato), Lato, "Helvetica Neue", Helvetica, Arial, sans-serif';
+          case 'ribbon': return '"Segoe UI", var(--font-segoe, "Segoe UI"), Arial, sans-serif';
+          case 'zoho':
+          case 'claude':
+          case 'portal': return 'var(--font-inter), Inter, "Segoe UI", Helvetica, Arial, sans-serif';
+          default: return normalizeFontFamily(settings?.fontFamily);
+     }
+};
+
 export const availableSidebarStyles = [
      { id: 'modern', name: 'Modern', description: 'Clean and flat with subtle shadows' }
 ];

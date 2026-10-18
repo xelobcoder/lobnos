@@ -24,6 +24,8 @@ import type { LocationValue } from '../../home-collection/v.dev.types';
 import { finalizeSuspendedBilling, resumeSuspendedBilling } from '../../../lib/Multi/suspendedBilling';
 import { billingInitUrl, canPreloadGeneralBilling, getFacilityBillingMode } from '../../../lib/Multi/billingWorkflow';
 import { buildDefaultDeliveryPreferences, DEFAULT_RESULT_DELIVERY_MODE, loadRegistrationPromptSettings, type RegistrationPromptSettings } from '../../../lib/Multi/registrationPrompts';
+import { requestedCart, type PatientBillingRequest } from '../../../lib/patientBillingRequests';
+import { unwrap } from '../../../lib/patientPortal';
 
 
 
@@ -33,6 +35,7 @@ export default function MultiBillingLayout({ billingContextProps }: { billingCon
         application?.tenantId, application?.branchid, application?.user?.employeeid,
         billingContextProps.patientid, billingContextProps.categorytrackid, billingContextProps.billingid,
         billingContextProps.suspendedDraftId, billingContextProps.isAdjustment, billingContextProps.ispricingcheckout,
+        billingContextProps.billingRequestId,
         billingContextProps.adjustmentType, billingContextProps.adjustmentReason,
         billingContextProps.isRelatedBilling, billingContextProps.isNewTransaction,
     ]);
@@ -52,7 +55,7 @@ function MultiBillingLayoutContent() {
     const { billingContextProps } = useBillingContextProps();
     const { categorytrackid, entitytype, entityname, entityid, patientid, billingid, isNewTransaction,
         isAdjustment, adjustmentType, adjustmentReason,
-        isRelatedBilling, ispricingcheckout, suspendedDraftId } = billingContextProps
+        isRelatedBilling, ispricingcheckout, suspendedDraftId, billingRequestId } = billingContextProps
     const branchid = useApplication().branchid;
     const employeeid = useApplication().user?.employeeid || 0;
     const role = useApplication().user?.role
@@ -192,6 +195,11 @@ function MultiBillingLayoutContent() {
 
 
     const handleReset = () => {
+        if (billingRequestId !== undefined) {
+            // Reset must reload the request, not silently detach it into an unrelated bill.
+            setInitializationAttempt(value => value + 1);
+            return;
+        }
         setBillingData(prev => ({
             ...defaultMultiBillingData,
             billingSource: prev.billingSource,
@@ -264,6 +272,21 @@ function MultiBillingLayoutContent() {
                 ispricingcheckout
             };
 
+            if (billingRequestId !== undefined) {
+                if (!Number.isSafeInteger(billingRequestId) || billingRequestId <= 0 || categorytrackid !== 1 ||
+                    billingid || suspendedDraftId || isAdjustment || ispricingcheckout) {
+                    throw new Error('A patient request must be reviewed as a new General bill.');
+                }
+                const request = unwrap<PatientBillingRequest>(await customFetch(`patient-portal/admin/billing-requests/${billingRequestId}`));
+                if (!isActive()) return;
+                if (Number(request.patientid) !== Number(patientid)) throw new Error('This request belongs to a different patient.');
+                if (request.status !== 'submitted') throw new Error(request.billingid
+                    ? `This request already created bill #${request.billingid}. Do not create another bill.`
+                    : 'This request is no longer awaiting review.');
+                updated.cart = requestedCart(backendData.testList, request.testIds);
+                updated.additionalInfo = request.note;
+            }
+
             if (backendData.entityType && backendData.entityType !== data.entitytype) {
                 const entityTypeToBillingSource = {
                     general: 1,
@@ -297,7 +320,7 @@ function MultiBillingLayoutContent() {
             }
             setBillingData(updated);
             setCatalogLoaded(true);
-            if (data.cart && data.cart.length > 0 && data.isPackageUsed) {
+            if (billingRequestId || (data.cart && data.cart.length > 0 && data.isPackageUsed)) {
                 recalculateTotalBill(updated);
             }
         } catch (err) {
@@ -373,7 +396,7 @@ function MultiBillingLayoutContent() {
 
     const submitBillingInternal = async (billingdata: MultiBillingData, writeOffConfirmed = false) => {
         if (isSaving) return;
-        if (generatedBillingid && suspendedDraftId) {
+        if (generatedBillingid && (suspendedDraftId || billingRequestId)) {
             toast.info(`This sale has already been saved as billing ${generatedBillingid}. Do not submit it again.`);
             return;
         }
@@ -397,6 +420,7 @@ function MultiBillingLayoutContent() {
             setIsSaving(true);
             const dataToBeUploaded = {
                 ...billingdata,
+                billingRequestId,
                 servicesProvided: billingdata.servicesProvided,
                 employeeid: employeeid,
                 branchid: branchid,
@@ -742,7 +766,7 @@ function MultiBillingLayoutContent() {
                     const mode = await getFacilityBillingMode();
                     if (!active) return;
                     setSimpleBilling(mode === 'simple');
-                    if (mode === 'simple') await loadBackendBilling(initialData, () => active);
+                    if (mode === 'simple' || billingRequestId !== undefined) await loadBackendBilling(initialData, () => active);
                 }
                 if (active) setInitializationComplete(true);
             } catch (error) {
@@ -842,6 +866,10 @@ function MultiBillingLayoutContent() {
 
     return (
         <React.Fragment>
+            {billingRequestId && <div className="alert alert-info" role="status">
+                Reviewing patient request #{billingRequestId}. Requested tests are prefilled at current General prices.
+                Save without payment; the request is converted only when the bill is successfully saved.
+            </div>}
             {pendingDraftFinalization && (
                 <div className="alert alert-warning" role="alert">
                     Sale {pendingDraftFinalization.billingId} was saved. Its suspended draft still needs to be marked complete; do not submit the sale again.

@@ -5,7 +5,7 @@ import { customFetch, currencyFormatter } from "../../Auth/customFetch";
 import { RiFileList3Line, RiWalletLine, RiRefund2Line, RiCheckboxCircleLine, RiAlarmWarningLine, RiMoneyDollarCircleLine, RiBarChartLine, RiEyeLine, RiEyeOffLine, RiCheckLine } from "@remixicon/react";
 import { useApplication } from "../../Auth/useApplicationContext";
 import { roleAllowed } from "../../Auth/roles";
-import { Card } from "react-bootstrap";
+import AnalyticSummaryCard, { type SummaryVariant } from "../AnalyticSummaryCard";
 
 const COLOR_BORDER = 'var(--bs-border-color)';
 
@@ -59,7 +59,7 @@ export type AnalyticCardProps = {
 	title: string;
 	value: number;
 	Icon: React.ElementType;
-	variant: string;
+	variant: SummaryVariant;
 	subtitle: string;
 	formatAsCurrency?: boolean;
 };
@@ -72,18 +72,9 @@ const AnalyticCard = ({
 	subtitle,
 	formatAsCurrency = true,
 }: AnalyticCardProps) => (
-	<Card className={`border-0 shadow-sm bg-${variant} bg-gradient text-white rounded-3 h-100`}>
-		<Card.Body className="p-3">
-			<div className="d-flex justify-content-between align-items-center mb-1">
-				<span className="text-xs text-uppercase fw-semibold opacity-75">{title}</span>
-				<Icon size={22} className="opacity-75" />
-			</div>
-			<h3 className="fw-bold mb-0">
-				{formatAsCurrency ? currencyFormatter.format(Number(value) || 0) : value.toLocaleString()}
-			</h3>
-			<span className="text-xs opacity-75">{subtitle}</span>
-		</Card.Body>
-	</Card>
+	<AnalyticSummaryCard title={title}
+		value={formatAsCurrency ? currencyFormatter.format(Number(value) || 0) : value.toLocaleString()}
+		icon={<Icon size={22} />} variant={variant} detail={subtitle} />
 );
 
 const mobileCardColors = {

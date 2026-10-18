@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Alert, Badge, Button, Spinner, Table } from 'react-bootstrap';
-import { RiCalendarLine, RiFileList3Line, RiMoneyDollarCircleLine } from '@remixicon/react';
+import { RiCalendarLine, RiFileList3Line, RiMoneyDollarCircleLine, RiTimeLine } from '@remixicon/react';
 import styles from '../../components/PatientPortal/portal.module.css';
 import { usePortalResource } from '../../components/PatientPortal/usePortalResource';
 import { PortalAppointment, PortalTest, formatDate, formatMoney, fullName, resultStatus } from '../../lib/patientPortal';
@@ -28,6 +28,7 @@ export default function PatientPortalHome() {
                               {me?.fullpatientid ? `Patient ID ${me.fullpatientid} · ` : ''}Your results, appointments and bills in one place.
                          </p>
                     </div>
+                    <Link href="/patientportal/requests" className="btn btn-primary">Request tests</Link>
                </div>
 
                {error && <Alert variant="danger" className="d-flex justify-content-between align-items-center">{error}<Button size="sm" variant="outline-danger" onClick={reload}>Retry</Button></Alert>}
@@ -35,11 +36,11 @@ export default function PatientPortalHome() {
 
                {data && (
                     <>
-                         <PortalSummary items={[
-                              { label: 'Results ready', value: data.results.available, icon: <RiFileList3Line /> },
-                              { label: 'Tests in progress', value: data.results.inProgress, detail: 'We will show results once your facility releases them.' },
-                              { label: 'Upcoming appointments', value: data.appointments.upcoming.length, icon: <RiCalendarLine /> },
-                              ...(data.billing ? [{ label: 'Outstanding balance', value: formatMoney(data.billing.outstanding), icon: <RiMoneyDollarCircleLine /> }] : []),
+                         <PortalSummary title="Your care summary" items={[
+                              { label: 'Results ready', value: data.results.available, icon: <RiFileList3Line />, variant: 'success' },
+                              { label: 'Tests in progress', value: data.results.inProgress, detail: 'Results appear after your facility releases them.', icon: <RiTimeLine />, variant: 'primary' },
+                              { label: 'Upcoming appointments', value: data.appointments.upcoming.length, icon: <RiCalendarLine />, variant: 'info' },
+                              ...(data.billing ? [{ label: 'Outstanding balance', value: formatMoney(data.billing.outstanding), icon: <RiMoneyDollarCircleLine />, variant: 'warning' as const }] : []),
                          ]} />
 
                          <section className={styles.card}>
@@ -66,7 +67,10 @@ export default function PatientPortalHome() {
                                         </tbody>
                                    </Table>
                               )}
-                              <Link href="/patientportal/results">See all results</Link>
+                              <div className="d-flex flex-wrap gap-3">
+                                   <Link href="/patientportal/results">See all results</Link>
+                                   <Link href="/patientportal/trends">View test trends</Link>
+                              </div>
                          </section>
 
                          <section className={styles.card}>

@@ -22,6 +22,26 @@ categories or page dropdowns are introduced. Collapsing the whole sidebar
 leaves accessible icon buttons, and opening a group expands it again. The
 existing applications launcher remains available.
 
+## Patient portal presentation
+
+The patient and administrative portals share the same shell and controls.
+Typography follows the facility's configured software workspace (including
+Lato for Slack Aspire), rather than a patient-only font. The backend supplies
+only the appearance settings needed by patients, not operational configuration.
+The desktop sidebar is 272px wide, matching Slack Aspire; on phones navigation
+reflows above the content.
+
+Patient dashboard and billing summaries use the same `AnalyticSummaryCard`
+renderer as **Daily Sales → Financial Summary**, including colored gradient
+cards, uppercase labels, icons and tabular values. Billing totals are computed
+in cents and are shown only after the bills load successfully.
+
+Use **Test trends** in the patient sidebar to follow released results over time.
+Use **Request tests** to send laboratory test selections to the facility.
+Submitting a request is not a confirmed bill or payment. Staff review incoming
+requests under **Patient Portal Administration → Test requests** before creating
+a General bill; patients can then see the resulting bill under **Billing**.
+
 ## Adaptive laboratory billing
 
 After patient selection or registration, facilities using only General / Cash
