@@ -137,33 +137,33 @@
 .patientContent :global(.badge.bg-secondary) { background: #f1f3f5 !important; color: #495057; }
 .patientContent :global(.table) { font-variant-numeric: tabular-nums; }
 
-/* Patient-facing portal only: patients read on phones, so use a 16px minimum base and
-   scale the workspace's dense 11-13px chrome up. The admin portal keeps workspace density.
-   16px inputs also stop iOS Safari from zooming on focus. */
-.patientShell { font-size: max(var(--theme-font-size, 15px), 16px); }
-.patientShell .brand strong { font-size: 16px; }
+/* Patient-only reading sizes; keep 16px inputs to prevent iOS focus zoom. */
+.patientShell { font-size: max(var(--theme-font-size, 15px), 15px); }
+.patientShell .brand strong { font-size: 15px; }
 .patientShell .brand small, .patientShell .identity { font-size: 14px; }
 .patientShell .sectionLabel { font-size: 12.5px; }
-.patientShell .nav a { font-size: 16px; }
+.patientShell .nav a { font-size: 15px; }
 .patientShell .nav a svg { width: 20px; height: 20px; }
-.patientShell .footer button { font-size: 15px; }
-.patientShell .header strong { font-size: 18px; }
-.patientShell .header :global(.muted) { font-size: 15px; color: var(--pls-muted); }
+.patientShell .footer button { font-size: 14px; }
+.patientShell .header strong { font-size: 17px; }
+.patientShell .header :global(.muted) { font-size: 14px; color: var(--pls-muted); }
 .patientShell .status { font-size: 14px; }
-.patientShell :global(h1) { font-size: 26px; }
-.patientShell :global(h2) { font-size: 20px; }
-.patientShell :global(h3) { font-size: 17px; }
-.patientShell :global(.form-label), .patientShell .formLabel { font-size: 15px; }
-.patientShell :global(.form-control), .patientShell :global(.form-select) { font-size: 16px; }
-.patientShell :global(.btn) { --bs-btn-font-size: 15.5px; }
-.patientShell :global(.btn-sm) { --bs-btn-font-size: 14.5px; }
-.patientShell :global(.table) { font-size: 15px; }
-.patientShell :global(.small), .patientShell small { font-size: 14px; }
-.patientShell .patientContent :global(.badge) { font-size: 13.5px; }
-.patientShell :global(.alert) { font-size: 15.5px; }
+.patientShell :global(h1) { font-size: 24px; }
+.patientShell :global(h2) { font-size: 19px; }
+.patientShell :global(h3) { font-size: 16px; }
+.patientShell :global(.form-label), .patientShell .formLabel { font-size: 14px; }
+.patientShell :global(.form-control), .patientShell :global(.form-select) { font-size: 15px; }
+/* 16px inputs stop iOS from zooming on focus. */
+@media (max-width: 768px) { .patientShell :global(.form-control), .patientShell :global(.form-select) { font-size: 16px; } }
+.patientShell :global(.btn) { --bs-btn-font-size: 14.5px; }
+.patientShell :global(.btn-sm) { --bs-btn-font-size: 14px; }
+.patientShell :global(.table) { font-size: 14px; }
+.patientShell :global(.small), .patientShell small { font-size: 13.5px; }
+.patientShell .patientContent :global(.badge) { font-size: 13px; }
+.patientShell :global(.alert) { font-size: 14.5px; }
 /* Shared AnalyticSummaryCard (Daily Sales style) uses rem labels; enlarge them for patients only. */
-.patientShell :global(dl.bg-gradient) > dt { font-size: 13.5px; }
-.patientShell :global(dl.bg-gradient) > dd + dd { font-size: 14px; }
+.patientShell :global(dl.bg-gradient) > dt { font-size: 13px; }
+.patientShell :global(dl.bg-gradient) > dd + dd { font-size: 13.5px; }
 /* The on-screen report is the source of the patient PDF; keep it identical to the staff report. */
 .patientShell :global(#pls-portal-report) { font-size: var(--theme-font-size, 15px); }
 .patientShell :global(#pls-portal-report .table) { font-size: 13px; }

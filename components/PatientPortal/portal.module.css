@@ -188,11 +188,11 @@
 }
 
 /* Patient-facing pages only (admin panels reuse this module at workspace density). */
-:global([data-portal="patient"]) .title { font-size: 26px; }
-:global([data-portal="patient"]) .subtitle { font-size: 16px; }
-:global([data-portal="patient"]) .cardTitle { font-size: 18px; }
-:global([data-portal="patient"]) .statLabel { font-size: 15px; }
-:global([data-portal="patient"]) .statValue { font-size: 26px; }
-:global([data-portal="patient"]) .table thead th { font-size: 14.5px; }
-:global([data-portal="patient"]) .empty { font-size: 16px; }
-:global([data-portal="patient"]) .reportMeta { font-size: 16px; }
+:global([data-portal="patient"]) .title { font-size: 24px; }
+:global([data-portal="patient"]) .subtitle { font-size: 15px; }
+:global([data-portal="patient"]) .cardTitle { font-size: 17px; }
+:global([data-portal="patient"]) .statLabel { font-size: 14px; }
+:global([data-portal="patient"]) .statValue { font-size: 24px; }
+:global([data-portal="patient"]) .table thead th { font-size: 14px; }
+:global([data-portal="patient"]) .empty { font-size: 15px; }
+:global([data-portal="patient"]) .reportMeta { font-size: 15px; }
