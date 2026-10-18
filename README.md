@@ -22,6 +22,44 @@ categories or page dropdowns are introduced. Collapsing the whole sidebar
 leaves accessible icon buttons, and opening a group expands it again. The
 existing applications launcher remains available.
 
+## Adaptive laboratory billing
+
+After patient selection or registration, facilities using only General / Cash
+pricing go directly to billing. Tests and prices load automatically from the
+existing billing initializer; **Start Transaction** is not an extra prerequisite.
+**Reload tests and prices** refreshes the catalog when needed. Optional referral
+organization and clinician fields do not change the General price list.
+
+The backend's `billing/strategies/mode-capability` response determines the flow.
+An active, currently valid non-General strategy mapping or NHIS strategy retains
+the existing source-selection workflow. General mappings alone do not make a
+facility advanced. Mapped strategies with incomplete pricing stay on the advanced
+path so existing pricing validation can reject an invalid configuration. Unmapped
+non-NHIS strategy templates are not an effective billing arrangement.
+
+Configuration and catalog responses are fetched afresh for each new billing
+context. No facility prices are cached across patient, branch or tenant changes.
+Failed configuration, patient or catalog requests display an error and **Retry**;
+they never silently select General or allow billing with a failed catalog.
+Drafts, related bills, adjustments and reference-code pricing keep their existing
+initialization/restoration steps. The transaction API, source IDs, server-side
+checkout calculations, payments and database schema are unchanged.
+
+Focused regression checks:
+
+```powershell
+pnpm exec node --test tests\billing-workflow.test.cjs tests\suspended-billing.test.cjs
+```
+
+For a live smoke test, use a test patient in a non-production facility with an
+active sales session. Check that General-only billing opens without a source
+choice, shows current catalog prices without another click, accepts optional
+referrals, and completes a sale through the usual payment/receipt workflow.
+Repeat with NHIS, private-insurer, organization and clinician pricing configured:
+source selection and the corresponding pricing rules must remain available.
+Also test an unavailable catalog and a facility change; neither may reuse prices
+from the previous context.
+
 ## Tenant-aware login
 
 The login form has exactly two inputs: **Username** and **Password**. A username

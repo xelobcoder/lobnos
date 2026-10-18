@@ -22,12 +22,21 @@ import { BillingContextPropsProvider, useBillingContextProps } from './BillingCo
 import GoogleMapPicker from '../../home-collection/GoogleMapPicker';
 import type { LocationValue } from '../../home-collection/v.dev.types';
 import { finalizeSuspendedBilling, resumeSuspendedBilling } from '../../../lib/Multi/suspendedBilling';
+import { billingInitUrl, canPreloadGeneralBilling, getFacilityBillingMode } from '../../../lib/Multi/billingWorkflow';
 
 
 
 export default function MultiBillingLayout({ billingContextProps }: { billingContextProps: billingContextProps }) {
+    const application = useApplication();
+    const contextKey = JSON.stringify([
+        application?.tenantId, application?.branchid, application?.user?.employeeid,
+        billingContextProps.patientid, billingContextProps.categorytrackid, billingContextProps.billingid,
+        billingContextProps.suspendedDraftId, billingContextProps.isAdjustment, billingContextProps.ispricingcheckout,
+        billingContextProps.adjustmentType, billingContextProps.adjustmentReason,
+        billingContextProps.isRelatedBilling, billingContextProps.isNewTransaction,
+    ]);
     return (
-        <BillingContextPropsProvider initialProps={billingContextProps}>
+        <BillingContextPropsProvider key={contextKey} initialProps={billingContextProps}>
             <MultiBillingProvider>
                 <MultiBillingLayoutContent />
             </MultiBillingProvider>
@@ -54,7 +63,7 @@ function MultiBillingLayoutContent() {
     const [specialCodeError, setSpecialCodeError] = useState("");
     const [loadingSpecialCode, setLoadingSpecialCode] = useState(false);
     const [loadingPanels, setLoadingPanels] = useState(false);
-    const [loadingBackendBilling, setLoadingBackendBilling] = useState(false);
+    const [loadingBackendBilling, setLoadingBackendBilling] = useState(true);
     const [backendError, setBackendError] = useState<string | null>(null);
     const [usePackage, setUsePackage] = useState(false);
     const [useServices, setUseServices] = useState(false);
@@ -65,6 +74,10 @@ function MultiBillingLayoutContent() {
     const [showReceiptOptionsModal, setShowReceiptOptionsModal] = useState(false);
     const [pendingDraftFinalization, setPendingDraftFinalization] = useState<{ draftId: number; billingId: number } | null>(null);
     const [finalizingDraft, setFinalizingDraft] = useState(false);
+    const [simpleBilling, setSimpleBilling] = useState(false);
+    const [catalogLoaded, setCatalogLoaded] = useState(false);
+    const [initializationComplete, setInitializationComplete] = useState(false);
+    const [initializationAttempt, setInitializationAttempt] = useState(0);
 
     const retryDraftFinalization = async () => {
         if (!pendingDraftFinalization || finalizingDraft) return;
@@ -214,109 +227,40 @@ function MultiBillingLayoutContent() {
 
 
     // Backend-driven billing: load all info from backend
-    const loadBackendBilling = async () => {
+    const loadBackendBilling = async (data: MultiBillingData = billingdata, isActive = () => true) => {
         const includeServices = useServices;
-        const servicesList = billingdata.servicesList || [];
-        let url;
-        const billingIdParam = billingdata.billingid ? `&billingid=${billingdata.billingid}` : '';
-        if (billingdata.useSpecialCode && billingdata.specialCode && !specialCodeError) {
-            url = `billing/multi/init?` +
-                `&entityType=` +
-                `&isPackageUsed=${billingdata.isPackageUsed}` +
-                `&useServices=${includeServices}` +
-                `&includeServices=${includeServices}` +
-                `&packageid=${billingdata.packageid || ''}` +
-                `&branchid=${billingdata.branchid || ''}` +
-                `&patientId=${billingdata.patientid || patientid || ''}` +
-                `&entityId=` +
-                `&billingSource=${billingdata.billingSource || categorytrackid}` +
-                `&referalCode=${billingdata.specialCode || ''}` +
-                `&ispricingcheckout=${ispricingcheckout}` +
-                billingIdParam;
-        } else if (billingdata.entitytype && billingdata.entityId && Number(billingdata.billingSource || categorytrackid) > 1) {
-            url = `billing/multi/init?` +
-                `&entityType=${billingdata.entitytype}` +
-                `&isPackageUsed=${billingdata.isPackageUsed}` +
-                `&useServices=${includeServices}` +
-                `&includeServices=${includeServices}` +
-                `&packageid=${billingdata.packageid || ''}` +
-                `&branchid=${billingdata.branchid || ''}` +
-                `&patientId=${billingdata.patientid || patientid || ''}` +
-                `&entityId=${billingdata.entityId}` +
-                `&billingSource=${billingdata.billingSource || categorytrackid}` +
-                `&ispricingcheckout=${ispricingcheckout}` +
-                billingIdParam;
-        } else if (billingdata.billingSource == 4 && (billingdata.nhismembershipid && billingdata.nhismembershipid > 0) &&
-            (billingdata.claimscheckcode && billingdata.claimscheckcode > 0)) {
-            url = `billing/multi/init?` +
-                `&entityType=nhis` +
-                `&isPackageUsed=${billingdata.isPackageUsed}` +
-                `&useServices=${includeServices}` +
-                `&includeServices=${includeServices}` +
-                `&packageid=${billingdata.packageid || ''}` +
-                `&branchid=${billingdata.branchid || ''}` +
-                `&patientId=${billingdata.patientid || patientid || ''}` +
-                `&nhisMemberId=${billingdata.nhismembershipid}` +
-                `&claimCheckCode=${billingdata.claimscheckcode}` +
-                `&billingSource=4` +
-                `&ispricingcheckout=${ispricingcheckout}` +
-                billingIdParam;
-        }
-
-        else {
-            url = `billing/multi/init?` +
-                `&entityType=general` +
-                `&isPackageUsed=${billingdata.isPackageUsed}` +
-                `&useServices=${includeServices}` +
-                `&includeServices=${includeServices}` +
-                `&packageid=${billingdata.packageid || ''}` +
-                `&branchid=${billingdata.branchid || ''}` +
-                `&patientId=${billingdata.patientid}` +
-                `&billingSource=1` +
-                `&ispricingcheckout=${ispricingcheckout}` +
-                billingIdParam;
-        }
+        const servicesList = data.servicesList || [];
         setLoadingBackendBilling(true);
         setBackendError(null);
         try {
+            const url = billingInitUrl(data, includeServices, ispricingcheckout);
             const backendData = await customFetch(url);
-            if (typeof backendData == "string") {
-                toast.error(backendData);
+            if (!isActive()) return;
+            if (!backendData || typeof backendData !== 'object' || !Array.isArray(backendData.testList)) {
+                throw new Error(typeof backendData === 'string' ? backendData :
+                    backendData?.message || 'Failed to load billing data. Check the sales session and patient, then retry.');
             }
-
-            if (typeof backendData == "object" && !backendData.hasOwnProperty('testList')) {
-                if (backendData.status == false && backendData.message == "no patient ID provided") {
-                    window.location.reload();
-                    return;
-                }
-                toast.error(backendData.message || "Failed to load billing data from backend.");
-                return;
+            if (backendData.testList.length === 0) {
+                throw new Error('No tests are available for this billing source. Check the test catalog or pricing configuration, then retry.');
             }
-
-
-            if (typeof backendData == "object" && backendData.hasOwnProperty('testList') && Array.isArray(backendData.testList) && backendData.testList.length === 0) {
-                toast.error("No tests available for the selected entity or special code.");
-                return;
-            }
-
 
             let updated = {
-                ...billingdata,
+                ...data,
                 ...backendData,
-                previousRecordsSummary: billingdata.previousRecordsSummary,
-                entityId: backendData.entityId ?? billingdata.entityId,
-                entitytype: backendData.entityType ?? billingdata.entitytype,
-                patientid: backendData.patientId ?? billingdata.patientid,
-                billingSource: backendData.billingSource ?? billingdata.billingSource,
+                previousRecordsSummary: data.previousRecordsSummary,
+                entityId: backendData.entityId ?? data.entityId,
+                entitytype: backendData.entityType ?? data.entitytype,
+                patientid: backendData.patientId ?? data.patientid,
+                billingSource: backendData.billingSource ?? data.billingSource,
                 includeServices: backendData.includeServices ?? includeServices,
                 servicesList: includeServices ? backendData.servicesList || servicesList : [],
-                payments: billingdata.payments || [],
+                payments: data.payments || [],
                 cart: backendData.isPackageUsed ? backendData.testList : [],
                 allowAdvancePayment: backendData.isPackageUsed ? false : backendData.allowAdvancePayment || false,
                 ispricingcheckout
             };
 
-            if (backendData.entityType && backendData.entityType !== billingdata.entitytype) {
+            if (backendData.entityType && backendData.entityType !== data.entitytype) {
                 const entityTypeToBillingSource = {
                     general: 1,
                     organization: 2,
@@ -348,13 +292,14 @@ function MultiBillingLayoutContent() {
                 updated.entitytype = backendData.entityType;
             }
             setBillingData(updated);
-            if (billingdata.cart && billingdata.cart.length > 0 && billingdata.isPackageUsed) {
+            setCatalogLoaded(true);
+            if (data.cart && data.cart.length > 0 && data.isPackageUsed) {
                 recalculateTotalBill(updated);
             }
         } catch (err) {
-            setBackendError('Failed to load billing data from backend.');
+            if (isActive()) setBackendError(err instanceof Error ? err.message : 'Failed to load billing data from backend.');
         } finally {
-            setLoadingBackendBilling(false);
+            if (isActive()) setLoadingBackendBilling(false);
         }
     };
 
@@ -726,13 +671,19 @@ function MultiBillingLayoutContent() {
             }
         }
 
-        setBillingData(prev => ({
-            ...prev,
-            entitytype: entitytype as any,
+        const initialData: MultiBillingData = {
+            ...defaultMultiBillingData,
+            entitytype: entitytype === 'general' || entitytype === 'organization' ||
+                entitytype === 'insurance' || entitytype === 'clinician' ||
+                entitytype === 'phis' || entitytype === 'nhis' ? entitytype : undefined,
+            entityId: entityid,
+            entityname: entityname || null,
+            specialCode: billingContextProps.specialcode,
+            useSpecialCode: Boolean(billingContextProps.specialcode),
             billingSource: categorytrackid,
-            patientid: patientid || prev.patientid,
+            patientid,
             branchid: branchid,
-            billingid: billingid || prev.billingid,
+            billingid: billingid || undefined,
             isNewTransaction: isNewTransaction || false,
             employeeid: employeeid,
             billingIdVerified,
@@ -742,13 +693,37 @@ function MultiBillingLayoutContent() {
             showRelatedBilling: billingid ? true : false,
             showdetails: roleAllowed(role, ['admin', 'manager']),
             previousRecordsSummary: summaryObj,
-        }));
+            ispricingcheckout,
+        };
+        return initialData;
     }
 
     useEffect(() => {
         if (suspendedDraftId) return;
-        void onMountedRun();
-    }, []);
+        let active = true;
+        const initialize = async () => {
+            setLoadingBackendBilling(true);
+            setBackendError(null);
+            try {
+                const initialData = await onMountedRun();
+                if (!active) return;
+                setBillingData(initialData);
+                if (canPreloadGeneralBilling(billingContextProps)) {
+                    const mode = await getFacilityBillingMode();
+                    if (!active) return;
+                    setSimpleBilling(mode === 'simple');
+                    if (mode === 'simple') await loadBackendBilling(initialData, () => active);
+                }
+                if (active) setInitializationComplete(true);
+            } catch (error) {
+                if (active) setBackendError(error instanceof Error ? error.message : 'Unable to initialize billing. Please retry.');
+            } finally {
+                if (active) setLoadingBackendBilling(false);
+            }
+        };
+        void initialize();
+        return () => { active = false; };
+    }, [initializationAttempt]);
 
     useEffect(() => {
         if (!suspendedDraftId) return;
@@ -762,6 +737,8 @@ function MultiBillingLayoutContent() {
                 setBillingData({ ...restored.billingdata, suspendNote: restored.notes });
                 setUseServices(Boolean(restored.billingdata.includeServices));
                 setUsePackage(restored.billingdata.isPackageUsed);
+                setInitializationComplete(true);
+                setCatalogLoaded(true);
             } catch (error) {
                 if (active) setBackendError(error instanceof Error ? error.message : 'Unable to resume suspended transaction');
             } finally {
@@ -770,7 +747,7 @@ function MultiBillingLayoutContent() {
         };
         void restore();
         return () => { active = false; };
-    }, [suspendedDraftId, patientid, branchid, employeeid, ispricingcheckout]);
+    }, [suspendedDraftId, patientid, branchid, employeeid, ispricingcheckout, initializationAttempt]);
     useEffect(() => {
         if (!billingdata?.billingid) return;
         loadDeliveryDefaults(billingdata.billingid);
@@ -822,7 +799,15 @@ function MultiBillingLayoutContent() {
         );
     }
     if (backendError) {
-        return <div className="alert alert-danger">{backendError}</div>;
+        return (
+            <div className="alert alert-danger" role="alert">
+                {backendError}
+                <Button className="ms-2" size="sm" variant="outline-danger" onClick={() => {
+                    if (initializationComplete && !suspendedDraftId) void loadBackendBilling();
+                    else setInitializationAttempt(value => value + 1);
+                }}>Retry</Button>
+            </div>
+        );
     }
 
     return (
@@ -850,7 +835,8 @@ function MultiBillingLayoutContent() {
                         setBillingData(prev => ({ ...prev, includeServices: checked }));
                     }}
                     onSpecialCodeChange={handleSpecialCodeChange}
-                    onLoadBackendBilling={loadBackendBilling}
+                    onLoadBackendBilling={() => void loadBackendBilling()}
+                    autoStarted={simpleBilling && catalogLoaded}
                     onReset={handleReset}
                     onReturnToMulti={handleReturnToMulti}
                     isSaleSaved={Boolean(generatedBillingid && suspendedDraftId)}

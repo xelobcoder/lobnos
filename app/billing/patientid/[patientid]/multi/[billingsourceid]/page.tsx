@@ -1,12 +1,13 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import BillingPagePatientInformation from '../../../../../../components/Billing/BillingContextComponents/PersonalInfoView';
-import { Alert } from 'react-bootstrap';
+import { Alert, Button, Spinner } from 'react-bootstrap';
 import { useParams, useSearchParams } from 'next/navigation';
 import { plsDecryption } from '../../../../../../lib/encryption';
 import MultiBillingLayout from '../../../../../../components/Billing/Multi/MultBillingLayout';
 import { RiErrorWarningFill } from '@remixicon/react';
 import { customFetch } from '../../../../../../components/Auth/customFetch';
+import { useApplication } from '../../../../../../components/Auth/useApplicationContext';
 
 
 export interface PatientInfo {
@@ -52,7 +53,9 @@ function normalizePatientInfo(raw: any): PatientInfo {
 export default function MultiStepBillingSourcePage() {
     const [patientBasicInformation, setPatientBasicInformation] = useState<any>({});
     const [error, setError] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [attempt, setAttempt] = useState(0);
+    const application = useApplication();
     const params = useParams();
     const searchParams = useSearchParams();
 
@@ -81,12 +84,23 @@ export default function MultiStepBillingSourcePage() {
     const suspendedDraftId = searchParams.get('suspendedDraftId') ? Number(searchParams.get('suspendedDraftId')) : undefined;
 
     useEffect(() => {
-        if (!ispricingcheckout && patientid && categorytrackid) {
+        let active = true;
+        setError(null);
+        if (!Number.isSafeInteger(categorytrackid) || ![1, 2, 3, 4, 6].includes(categorytrackid)) {
+            setError('Invalid billing source.');
+            setLoading(false);
+        } else if (ispricingcheckout) {
+            setLoading(false);
+        } else if (!patientid || !Number.isSafeInteger(Number(patientid)) || Number(patientid) <= 0) {
+            setError('Select a valid patient before starting billing.');
+            setLoading(false);
+        } else {
             setLoading(true);
             customFetch(`register/personalinformation?patientid=${patientid}`)
                 .then((response) => {
+                    if (!active) return;
                     const { result, status, statusCode } = response;
-                    if (statusCode === 200 && status === "success") {
+                    if (statusCode === 200 && status === "success" && Number(result?.patientid) === Number(patientid)) {
                         setPatientBasicInformation(normalizePatientInfo(result));
                         setError(null);
                     } else {
@@ -94,17 +108,23 @@ export default function MultiStepBillingSourcePage() {
                     }
                 })
                 .catch(() => {
-                    setError("An error occurred while fetching patient information.");
+                    if (active) setError("An error occurred while fetching patient information.");
                 })
-                .finally(() => setLoading(false));
+                .finally(() => { if (active) setLoading(false); });
         }
-    }, [ispricingcheckout, patientid, categorytrackid]);
+        return () => { active = false; };
+    }, [ispricingcheckout, patientid, categorytrackid, application?.tenantId, attempt]);
+
+    if (loading) {
+        return <div className="p-3" role="status"><Spinner size="sm" className="me-2" />Loading patient information...</div>;
+    }
 
     if (error) {
         return (
             <Alert variant='danger' className='p-3 text-sm col-3 mx-auto'>
                 <RiErrorWarningFill />
                 {error}
+                <Button variant="outline-danger" size="sm" className="ms-2" onClick={() => setAttempt(value => value + 1)}>Retry</Button>
             </Alert>
         );
     }

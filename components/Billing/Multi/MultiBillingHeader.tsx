@@ -50,6 +50,7 @@ export default function MultiBillingHeader({
     onReset,
     onReturnToMulti,
     isSaleSaved = false,
+    autoStarted = false,
 }) {
     const [showSuspendModal, setShowSuspendModal] = useState(false);
     const [suspendNote, setSuspendNote] = useState('');
@@ -307,7 +308,7 @@ export default function MultiBillingHeader({
                                 style={{ height: 38, marginLeft: '-20px !important' }}
                             >
                                 {loadingBackendBilling ? <Spinner as="span" animation="border" size="sm" className="me-1" /> : null}
-                                Start Transaction
+                                {autoStarted ? 'Reload tests and prices' : 'Start Transaction'}
                             </Button>
                          
                         </div>

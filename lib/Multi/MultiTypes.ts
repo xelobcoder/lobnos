@@ -60,6 +60,7 @@ export interface MultiBillingData {
 	useSpecialCode?: boolean;
 	specialCode?: string;
 	billingid?: string | number;
+	isNewTransaction?: boolean;
 	suspendedDraftId?: number;
 	suspendNote?: string;
 	billingSource: number;

@@ -8,13 +8,12 @@ import { RiHealthBookLine, RiArrowRightLine, RiListCheck, RiUser3Line, RiBuildin
 import { useApplication } from '../../../../../components/Auth/useApplicationContext';
 import { customFetch } from '../../../../../components/Auth/customFetch';
 import { toast } from 'react-toastify';
+import { getFacilityBillingMode, generalBillingUrl } from '../../../../../lib/Multi/billingWorkflow';
 
 interface BillingOption {
 	value: number;
 	label: string;
 }
-
-const SIMPLE_BILLING_SOURCE: BillingOption = { value: 1, label: 'General / Cash' };
 
 export default function BillingTypeSelection() {
 	const [selectedBillingSource, setSelectedBillingSource] = useState<BillingOption | null>(null);
@@ -28,6 +27,7 @@ export default function BillingTypeSelection() {
 	const [clinicianResults, setClinicianResults] = useState<any[]>([]);
 	const [orgResults, setOrgResults] = useState<any[]>([]);
 	const [searching, setSearching] = useState(false);
+	const [configurationAttempt, setConfigurationAttempt] = useState(0);
 	const router = useRouter();
 	const patientid = useParams()?.patientid;
 	const branchid = useApplication().branchid;
@@ -35,28 +35,25 @@ export default function BillingTypeSelection() {
 	const searchParams = useSearchParams();
 	const getParam = (key: string) => searchParams?.get(key) ?? '';
 	const ispricingcheckout = getParam('ispricingcheckout') === '1';
+	const query = searchParams?.toString() || '';
+	const application = useApplication();
 
 	useEffect(() => {
 		let active = true;
-		customFetch('billing/strategies/mode-capability')
-			.then((response: any) => {
+		setBillingMode('loading');
+		getFacilityBillingMode()
+			.then((mode) => {
 				if (!active) return;
-				if (response?.status !== 'success' || typeof response?.hasActiveStrategies !== 'boolean') {
-					setBillingMode('error');
-					return;
-				}
-				if (response.hasActiveStrategies) {
-					setBillingMode('advanced');
-				} else {
-					setBillingMode('simple');
-					setSelectedBillingSource(SIMPLE_BILLING_SOURCE);
+				setBillingMode(mode);
+				if (mode === 'simple' && patientid) {
+					router.replace(generalBillingUrl(String(patientid), query));
 				}
 			})
 			.catch(() => {
 				if (active) setBillingMode('error');
 			});
 		return () => { active = false; };
-	}, []);
+	}, [patientid, query, application?.tenantId, configurationAttempt, router]);
 
 
 	const options = billingSource.map(source => ({
@@ -217,16 +214,24 @@ export default function BillingTypeSelection() {
 
 	return (
 		<>
+			{(billingMode === 'loading' || billingMode === 'simple') ? (
+				<div className="text-center py-5" role="status">
+					<Spinner size="sm" className="me-2" />
+					{billingMode === 'simple' ? 'Opening General billing...' : 'Checking billing configuration...'}
+				</div>
+			) : (
 			<Container className="py-5 d-flex flex-column align-items-center justify-content-center" style={{ maxWidth: 480 }}>
 				<Card className="border border-light border-2 w-100" style={{ maxWidth: 420 }}>
 					<Card.Body className="p-4">
 						<div className="text-center mb-4">
 							<RiHealthBookLine size={32} className="text-primary mb-2" />
-							<h5 className="fw-bold mb-1">{billingMode === 'simple' ? 'Simple Billing' : 'Select Billing Source'}</h5>
-							<div className="text-secondary small">{billingMode === 'simple' ? 'Use the facility catalog prices and continue with General / Cash billing.' : 'Choose the type of billing you want to initiate for this patient.'}</div>
+							<h5 className="fw-bold mb-1">Select Billing Source</h5>
+							<div className="text-secondary small">Choose the type of billing you want to initiate for this patient.</div>
 						</div>
-						{billingMode === 'loading' && <div className="text-center py-3"><Spinner size="sm" className="me-2" />Checking billing configuration...</div>}
-						{billingMode === 'error' && <Alert variant="danger">Unable to determine the facility billing configuration. Billing mode was not changed; refresh and try again.</Alert>}
+						{billingMode === 'error' && <Alert variant="danger">
+							Unable to determine the facility billing configuration. No billing source was selected automatically.
+							<button className="btn btn-outline-danger btn-sm ms-2" onClick={() => setConfigurationAttempt(value => value + 1)}>Retry</button>
+						</Alert>}
 						{billingMode === 'advanced' && <div className="mb-4">
 							<Select
 								options={options}
@@ -239,11 +244,10 @@ export default function BillingTypeSelection() {
 								formatOptionLabel={formatOptionLabel}
 							/>
 						</div>}
-						{billingMode === 'simple' && <div className="border rounded p-3 mb-4 bg-body-tertiary"><div className="d-flex align-items-center gap-2 fw-semibold"><RiListCheck size={18} />General / Cash</div><div className="text-secondary small mt-1">Facility catalog price; payment method is selected later.</div></div>}
 						<button
 							className="btn btn-primary btn-sm w-100 d-flex align-items-center justify-content-center shadow-sm"
 							onClick={handleGenerateBillingId}
-							disabled={billingMode === 'loading' || billingMode === 'error' || !selectedBillingSource}
+							disabled={billingMode === 'error' || !selectedBillingSource}
 							style={{ fontSize: 15, padding: '0.75rem', borderRadius: 6, fontWeight: 600 }}
 						>
 							Continue
@@ -295,6 +299,7 @@ export default function BillingTypeSelection() {
 					</div>
 				</div>
 			</Container>
+			)}
 
 			{/* Add Clinician Modal */}
 			<Modal show={showAddClinicianModal} onHide={() => setShowAddClinicianModal(false)} size="sm" centered>

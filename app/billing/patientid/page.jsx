@@ -4,8 +4,8 @@ import AsyncPatientFiltering from '../../../components/accessories/SectorFilerin
 import { plsEncryption } from '../../../lib/encryption';
 import { useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
-import { customFetch } from '../../../components/Auth/customFetch';
 import { toast } from 'react-toastify';
+import { getFacilityBillingMode, generalBillingUrl } from '../../../lib/Multi/billingWorkflow';
 
 const billingSourceLabels = {
 	'1': 'General / Cash',
@@ -35,14 +35,11 @@ export default function BillingFiltering() {
 			}
 
 			try {
-				const capability = await customFetch('billing/strategies/mode-capability');
-				if (capability?.status !== 'success' || typeof capability?.hasActiveStrategies !== 'boolean') {
-					throw new Error(capability?.message || 'Unable to determine the facility billing mode.');
-				}
-				if (capability.hasActiveStrategies) {
+				const mode = await getFacilityBillingMode();
+				if (mode === 'advanced') {
 					router.push(`/billing/patientid/${encryptedPatientId}/multi`);
 				} else {
-					router.push(`/billing/patientid/${encryptedPatientId}/multi/1`);
+					router.push(generalBillingUrl(encryptedPatientId, params.toString()));
 				}
 			} catch (error) {
 				toast.error(error?.message || 'Unable to start billing. Please try again.');

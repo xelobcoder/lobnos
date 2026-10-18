@@ -4,10 +4,8 @@ import { useState, useContext } from "react";
 import ClinicianFiltering from "../../accessories/SectorFileringComponents/ClinicianFiltering";
 import InsuranceOrganizationFiltering from "../../accessories/SectorFileringComponents/InsuranceOrganizationFiltering";
 import OrganizationalBillingSourceSearch from "../BillingContextComponents/BillingSourceComponents/OrganizationBillingSearch";
-import Select from 'react-select';
 import { MultiBillingContext } from "./MultiBillingContext";
 import { urgencyOptions } from '../../../lib/billingLib';
-import { reactSelectCustomStyles } from "../../Auth/customFetch";
 
 export default function MultiRenderingBillingSourceFields({
     updateValuesToContext,
@@ -180,19 +178,33 @@ export default function MultiRenderingBillingSourceFields({
             )}
             {billingdata.billingSource === 1 && (
                 <>
-                    <div>
-                        <label className="pls-label">Referral Type</label>
-                        <div>
-                            <Select
-                                className="react-select-container"
-                                styles={reactSelectCustomStyles}
-                                classNamePrefix="react-select"
-                                value={{ label: 'Walk-in (Self)', value: 'self' }}
-                                isDisabled={true}
-                                options={[{ label: 'Walk-in (Self)', value: 'self' }]}
-                            />
-                        </div>
-                    </div>
+                    <p className="small text-muted">General / Cash prices apply. Organization and clinician referrals are optional and do not change the price list.</p>
+                    <Form.Group className="mb-3">
+                        <Form.Label className="small text-muted">Referral organization (optional)</Form.Label>
+                        {billingdata.organizationId ? (
+                            <div className="d-flex align-items-center justify-content-between gap-2">
+                                <span>{billingdata.organizationname}</span>
+                                <Button size="sm" variant="outline-secondary" onClick={() => setBillingData(prev => ({
+                                    ...prev, organizationId: null, organizationname: null,
+                                }))}>Remove organization</Button>
+                            </div>
+                        ) : (
+                            <OrganizationalBillingSourceSearch updatefunction={value => handleNormalRefererWithoutUpdatingBilling(value, "organization")} />
+                        )}
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                        <Form.Label className="small text-muted">Referring clinician (optional)</Form.Label>
+                        {billingdata.clinicianId ? (
+                            <div className="d-flex align-items-center justify-content-between gap-2">
+                                <span>{billingdata.clinicianname}</span>
+                                <Button size="sm" variant="outline-secondary" onClick={() => setBillingData(prev => ({
+                                    ...prev, clinicianId: null, clinicianname: null,
+                                }))}>Remove clinician</Button>
+                            </div>
+                        ) : (
+                            <ClinicianFiltering isBulk={true} onSelect={value => handleNormalRefererWithoutUpdatingBilling(value, "Clinician")} />
+                        )}
+                    </Form.Group>
                 </>
             )}
             {typeof billingdata.billingSource === 'number' && billingdata.billingSource > 0 && (
