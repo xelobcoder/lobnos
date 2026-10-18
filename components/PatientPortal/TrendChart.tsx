@@ -1,6 +1,6 @@
 "use client";
 
-import { useId } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { PortalTrendRow, numericTrendValue, trendTimestamp } from '../../lib/patientPortalTrends';
 import { formatDate } from '../../lib/patientPortal';
 import styles from './trends.module.css';
@@ -8,16 +8,28 @@ import styles from './trends.module.css';
 /** An SVG overview only. The adjacent semantic table is the complete, accessible source of values. */
 export default function TrendChart({ rows, field, units }: { rows: PortalTrendRow[]; field: string; units: string }) {
      const id = useId();
+     const figureRef = useRef<HTMLElement>(null);
+     // Draw in real pixels so axis text keeps its CSS size instead of shrinking with a scaled viewBox on phones.
+     const [width, setWidth] = useState(640);
      const dated = rows.filter(row => trendTimestamp(row.recordedOn) !== null);
      const numeric = dated.filter(row => numericTrendValue(row.value) !== null);
-     if (!numeric.length) return <p className={styles.notice}>No dated, purely numeric values to plot for this parameter. All recorded values are in the table below.</p>;
+     const hasPlot = numeric.length > 0;
+     useEffect(() => {
+          const element = figureRef.current;
+          if (!element || typeof ResizeObserver === 'undefined') return;
+          const observer = new ResizeObserver(([entry]) => setWidth(Math.max(260, Math.round(entry.contentRect.width))));
+          observer.observe(element);
+          return () => observer.disconnect();
+     }, [hasPlot]);
+     if (!hasPlot) return <p className={styles.notice}>No dated, purely numeric values to plot for this parameter. All recorded values are in the table below.</p>;
      const times = dated.map(row => trendTimestamp(row.recordedOn)!);
      const values = numeric.map(row => numericTrendValue(row.value)!);
      const first = Math.min(...times), last = Math.max(...times);
      const low = Math.min(...values), high = Math.max(...values);
      const padding = high === low ? Math.max(Math.abs(low) * 0.1, 1) : (high - low) * 0.1;
      const yMin = low - padding, yMax = high + padding;
-     const x = (row: PortalTrendRow) => first === last ? 320 : 65 + (trendTimestamp(row.recordedOn)! - first) / (last - first) * 510;
+     const left = 65, right = width - (width < 480 ? 16 : 65);
+     const x = (row: PortalTrendRow) => first === last ? (left + right) / 2 : left + (trendTimestamp(row.recordedOn)! - first) / (last - first) * (right - left);
      const y = (row: PortalTrendRow) => 185 - (numericTrendValue(row.value)! - yMin) / (yMax - yMin) * 160;
      let connected = false;
      const path = dated.map(row => {
@@ -28,13 +40,13 @@ export default function TrendChart({ rows, field, units }: { rows: PortalTrendRo
      }).join(' ');
 
      return (
-          <figure className={styles.figure}>
-               <svg viewBox="0 0 640 240" role="img" aria-labelledby={`${id}-title ${id}-desc`} className={styles.chart}>
+          <figure ref={figureRef} className={styles.figure}>
+               <svg viewBox={`0 0 ${width} 240`} role="img" aria-labelledby={`${id}-title ${id}-desc`} className={styles.chart}>
                     <title id={`${id}-title`}>{`${field} numeric history${units ? ` (${units})` : ''}`}</title>
                     <desc id={`${id}-desc`}>{numeric.length} numeric measurements, from {formatDate(new Date(first).toISOString())} to {formatDate(new Date(last).toISOString())}. Exact dates, values, units and reference ranges are in the data table. Nonnumeric values are not plotted; lines break at those entries.</desc>
                     {[yMax, (yMax + yMin) / 2, yMin].map((value, index) => (
                          <g key={index}>
-                              <line x1="65" x2="575" y1={25 + index * 80} y2={25 + index * 80} stroke="#d9e2e8" />
+                              <line x1={left} x2={right} y1={25 + index * 80} y2={25 + index * 80} stroke="#d9e2e8" />
                               <text x="57" y={29 + index * 80} textAnchor="end" className={styles.axis}>{Number(value.toPrecision(4))}</text>
                          </g>
                     ))}
@@ -44,8 +56,8 @@ export default function TrendChart({ rows, field, units }: { rows: PortalTrendRo
                               <title>{`${formatDate(row.recordedOn)}: ${row.value} ${units}`}</title>
                          </circle>
                     ))}
-                    <text x="65" y="211" className={styles.axis}>{formatDate(new Date(first).toISOString())}</text>
-                    <text x="575" y="211" textAnchor="end" className={styles.axis}>{formatDate(new Date(last).toISOString())}</text>
+                    <text x={left} y="211" className={styles.axis}>{formatDate(new Date(first).toISOString())}</text>
+                    <text x={right} y="211" textAnchor="end" className={styles.axis}>{formatDate(new Date(last).toISOString())}</text>
                </svg>
                <figcaption className={styles.notice}>
                     {numeric.length === 1 ? 'One numeric result; more results are needed to show a trend. ' : ''}

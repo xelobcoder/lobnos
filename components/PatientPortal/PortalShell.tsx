@@ -44,7 +44,7 @@ export default function PortalShell({ children, admin = false }: { children: Rea
     const user = context?.user;
     const identity = user ? [user.fullname || [user.firstname, user.lastname].filter(Boolean).join(' ') || user.username, user.email].filter(Boolean).join(' · ') : '';
     return (
-        <div className={`${styles.scope} ${styles.shell}`} style={context ? {
+        <div className={`${styles.scope} ${styles.shell} ${admin ? '' : styles.patientShell}`} data-portal={admin ? 'admin' : 'patient'} style={context ? {
             '--theme-font-family': workspaceFontFamily(context.settings),
         } as CSSProperties : undefined}>
             <a className={styles.skipLink} href="#portal-content">Skip to content</a>
