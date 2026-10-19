@@ -12,6 +12,7 @@ import {
 import { toast } from 'react-toastify';
 import { currencyFormatter, customFetch, customPost } from '../../../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../../../components/Auth/useApplicationContext';
+import ExportPdfButton from '../../../../../components/reports/ExportPdfButton';
 
 type ReceiveItem = {
      id: string;
@@ -240,13 +241,45 @@ export default function ReceiveOrderedItemsPage() {
      const dialogItem = priceDialog ? order.items[priceDialog.itemIndex] : null;
 
      return (
-          <main className="container-fluid py-3 px-lg-4 min-vh-100" style={{ backgroundColor: '#f3f6f4' }}>
+          <main className="container-fluid py-3 px-lg-4 min-vh-100" style={{ backgroundColor: '#f3f6f4' }} data-pdf-root>
                <header className="d-flex flex-wrap align-items-center justify-content-between gap-3 border-bottom pb-3 mb-3">
                     <div className="d-flex align-items-center gap-3">
                          <button type="button" className="btn btn-outline-dark" onClick={() => router.push('/inventory/orders')} aria-label="Back to orders"><RiArrowLeftLine size={20} /></button>
                          <div><h1 className="h4 mb-1">Receive stock</h1><div className="text-muted">{order.orderNumber} · {order.supplierName}</div></div>
                     </div>
-                    <button type="button" className="btn btn-outline-primary" onClick={receiveAllRemaining}>Receive all remaining</button>
+                    <div className="d-flex flex-wrap align-items-center gap-2">
+                         <ExportPdfButton
+                              title="Receive Stock"
+                              subtitle={`${order.orderNumber} · ${order.supplierName}`}
+                              filters={[`Order: ${order.orderNumber}`, `Supplier: ${order.supplierName}`, `Status: ${order.status}`]}
+                              getSpec={() => ({
+                                   notes: [
+                                        `Received date: ${receivedDate}`,
+                                        `Condition: ${conditionStatus}`,
+                                        ...(notes.trim() ? [`Notes: ${notes.trim()}`] : []),
+                                        `Items selected to receive: ${selectedItems.length}`,
+                                        `Total purchase cost: ${currencyFormatter.format(totalPurchaseCost)}`,
+                                   ],
+                                   tables: [{
+                                        heading: 'Order items',
+                                        head: ['Inventory item', 'SKU', 'Remaining', 'Quantity received', 'Unit cost', 'Expiry date', 'Batch number', 'Wholesale', 'Retail', 'Status'],
+                                        body: order.items.map((item) => [
+                                             item.itemName,
+                                             item.sku || '',
+                                             `${item.remainingQuantity} ${item.consumptionUnit}`,
+                                             item.status === 'received' ? 'Received' : `${item.receiveNow} ${item.consumptionUnit}`,
+                                             currencyFormatter.format(item.purchaseUnitPrice),
+                                             item.expiryDate || '',
+                                             item.automaticBatch ? 'Automatic' : item.batchNumber,
+                                             currencyFormatter.format(item.changePricing ? item.wholesalePrice : item.previousWholesalePrice),
+                                             currencyFormatter.format(item.changePricing ? item.salePrice : item.previousSalePrice),
+                                             item.status || '',
+                                        ]),
+                                   }],
+                              })}
+                         />
+                         <button type="button" className="btn btn-outline-primary" onClick={receiveAllRemaining}>Receive all remaining</button>
+                    </div>
                </header>
 
                {error && <div className="alert alert-danger d-flex gap-2"><RiErrorWarningLine size={20} />{error}</div>}

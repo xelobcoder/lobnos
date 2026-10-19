@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { currencyFormatter, customFetch } from '../../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
+import ExportPdfButton from '../../../../components/reports/ExportPdfButton';
 
 interface CostValuationAnalytics {
      cost_trends: Array<{
@@ -65,7 +66,7 @@ export default function CostValuationAnalyticsPage() {
      }
 
      return (
-          <div className="container-fluid p-4">
+          <div className="container-fluid p-4" data-pdf-root>
                {/* Header */}
                <div className="d-flex justify-content-between align-items-center mb-4">
                     <div>
@@ -80,6 +81,7 @@ export default function CostValuationAnalyticsPage() {
                          <p className="text-muted mb-0">Inventory valuation using different costing methods</p>
                     </div>
                     <div className="d-flex gap-2">
+                         <ExportPdfButton title="Cost Valuation Analytics" />
                          <button
                               className="btn btn-outline-primary btn-sm"
                               onClick={loadCostValuationAnalytics}

@@ -3,6 +3,7 @@ import dayjs from "dayjs";
 import React from "react";
 import { RiPrinterLine } from "@remixicon/react";
 import ExportPdfButton from "../reports/ExportPdfButton";
+import type { ReportPdfSpec } from "../reports/reportPdf";
 
 interface Props {
      title: string;
@@ -12,9 +13,11 @@ interface Props {
      filters?: React.ReactNode;
      actions?: React.ReactNode;
      children: React.ReactNode;
+     /** Explicit PDF content for reports whose screen layout is not a plain table. */
+     getPdfSpec?: () => Promise<Partial<ReportPdfSpec>> | Partial<ReportPdfSpec>;
 }
 
-export default function ReportShell({ title, subtitle, reportTitle, range, filters, actions, children }: Props) {
+export default function ReportShell({ title, subtitle, reportTitle, range, filters, actions, children, getPdfSpec }: Props) {
      return (
           <div className="container-fluid py-5 ">
                <div className="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
@@ -25,7 +28,14 @@ export default function ReportShell({ title, subtitle, reportTitle, range, filte
                  
                     <div className="d-flex align-items-center gap-2">
                          {actions}
-                         <ExportPdfButton title={reportTitle || title} subtitle={subtitle} period={range} targetSelector="[data-pdf-root]" />
+                         <ExportPdfButton
+                              title={title}
+                              subtitle={subtitle}
+                              period={range}
+                              targetSelector="[data-pdf-root]"
+                              filtersSelector="[data-pdf-filters]"
+                              getSpec={getPdfSpec}
+                         />
                          <button className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" onClick={() => window.print()}>
                               <RiPrinterLine size={16} /> Print
                          </button>
@@ -33,7 +43,7 @@ export default function ReportShell({ title, subtitle, reportTitle, range, filte
                </div>
 
                {filters && (
-                    <div className="card border-0 bg-white mb-3">
+                    <div className="card border-0 bg-white mb-3" data-pdf-filters>
                          <div className="card-body py-3">
                               <div className="row g-2 align-items-end">{filters}</div>
                          </div>

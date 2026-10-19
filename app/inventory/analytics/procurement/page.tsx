@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { toast } from 'react-toastify';
 import { currencyFormatter, customFetch } from '../../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
+import ExportPdfButton from '../../../../components/reports/ExportPdfButton';
 import { RiArrowLeftLine, RiFileListLine, RiFilterLine, RiRefreshLine, RiMoneyDollarCircleLine, RiBox3Line, RiBuildingLine, RiFileTextLine, RiPriceTagLine, RiCloseLine } from '@remixicon/react';
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
@@ -243,7 +244,7 @@ export default function ProcurementAnalyticsPage() {
      }
 
      return (
-          <div className="container-fluid p-4">
+          <div className="container-fluid p-4" data-pdf-root>
                {/* Header */}
                <div className="d-flex justify-content-between align-items-center mb-4">
                     <div>
@@ -258,6 +259,11 @@ export default function ProcurementAnalyticsPage() {
                          <p className="text-muted mb-0">Comprehensive procurement performance analysis</p>
                     </div>
                     <div className="d-flex gap-2">
+                         <ExportPdfButton
+                              title="Procurement Analytics"
+                              period={filters.start_date || filters.end_date ? `${filters.start_date || 'Beginning'} to ${filters.end_date || 'Today'}` : undefined}
+                              filters={[filters.page ? `Page: ${filters.page}` : '', filters.count ? `Count: ${filters.count}` : ''].filter(Boolean)}
+                         />
                          <button
                               className="btn btn-outline-secondary btn-sm"
                               onClick={() => setShowFilter(true)}

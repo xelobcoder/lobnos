@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import Link from "next/link";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import PrimeTable from "../../components/accessories/Datatables/PrimeTable";
-import ReportShell from "./ReportShell";
+import ReportShell, { formatRange } from "./ReportShell";
 import { currencyFormatter } from "../Auth/customFetch";
 import DateFilterReusable from "../operations/Laboratory/ResuableFilter/DateFilterReusable";
 import { accountingApi, OutstandingDocuments } from "../../lib/accounting/accountingApi";
@@ -60,6 +60,41 @@ export default function SubledgerReport({ ledger, title, subtitle, partyLabel }:
 
      const money = (value: number) => currencyFormatter.format(Number(value || 0));
 
+     // The screen shows one page; the PDF lists every outstanding document matching the filters.
+     const getPdfSpec = async () => {
+          const { fetchAllPages, EXPORT_MAX_ROWS } = await import("../reports/reportPdf");
+          let totalOutstanding = 0;
+          let totalDocuments = 0;
+          const { rows, truncated } = await fetchAllPages<OutstandingDocuments["rows"][number]>(async (p, c) => {
+               const filters = { page: p, count: c, sortby: `documentDate:${dateOrder}`, search, from: documentFrom, to: documentTo };
+               const response: any = ledger === "AR"
+                    ? await accountingApi.outstandingReceivables(filters)
+                    : await accountingApi.payableAging(asOf, filters);
+               if (!response?.result || response.status !== "success") throw new Error(response?.message || "Unable to load outstanding documents");
+               totalOutstanding = Number(response.result.totals?.total || 0);
+               totalDocuments = Number(response.result.total || 0);
+               return response.result.rows || [];
+          });
+          const notes = [`Total outstanding ${money(totalOutstanding)} across ${totalDocuments.toLocaleString()} document(s).`];
+          if (truncated) notes.push(`Export limited to the first ${EXPORT_MAX_ROWS.toLocaleString()} documents. Narrow the filters to export the rest.`);
+          return {
+               notes,
+               tables: [
+                    {
+                         head: [partyLabel, "Identifier", "Reference", "Date", "Outstanding"],
+                         body: rows.map((row) => [
+                              row.partyName || `${row.partyType} #${row.partyId ?? "unknown"}`,
+                              [row.patientIdentifier, row.partyId ? `Record ${row.partyId}` : null].filter(Boolean).join(" · "),
+                              row.reference || "",
+                              row.documentDate ? dayjs(row.documentDate).format("DD MMM YYYY") : "",
+                              money(row.total),
+                         ]),
+                         foot: truncated ? [] : [["Total", "", "", "", money(totalOutstanding)]],
+                    },
+               ],
+          };
+     };
+
      const documentColumns = [
           {
                Header: partyLabel,
@@ -101,6 +136,8 @@ export default function SubledgerReport({ ledger, title, subtitle, partyLabel }:
           <ReportShell
                title={title}
                subtitle={subtitle}
+               range={formatRange(documentFrom, documentTo)}
+               getPdfSpec={getPdfSpec}
                actions={<button type="button" className="btn btn-sm btn-outline-secondary" onClick={load} title="Refresh outstanding documents" aria-label="Refresh outstanding documents"><RiRefreshLine size={18} /></button>}
                filters={
                     <>

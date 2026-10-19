@@ -488,6 +488,8 @@ export default function TemplatesPage() {
                     </div>
                ) : (
                     <PrimeTable
+                         pdfExport
+                         pdfTitle="Test Templates"
                          column={templateColumns}
                          data={filteredTemplates}
                          filtering={true}

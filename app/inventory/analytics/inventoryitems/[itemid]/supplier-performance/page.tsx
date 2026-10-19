@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { toast } from 'react-toastify';
 import { currencyFormatter, customFetch } from '../../../../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../../../../components/Auth/useApplicationContext';
+import ExportPdfButton from '../../../../../../components/reports/ExportPdfButton';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, AreaChart, Area } from 'recharts';
 import { RiArrowLeftLine, RiRefreshLine, RiBarChartBoxLine, RiLineChartLine, RiBubbleChartLine, RiLoader4Line, RiErrorWarningLine, RiCalendarEventLine, RiBuildingLine, RiCheckboxCircleLine, RiCloseCircleLine } from '@remixicon/react';
 
@@ -230,13 +231,17 @@ export default function ItemSupplierPerformanceAnalyticsPage() {
      }
 
      return (
-          <div className="card" style={{ borderRadius: '0.75rem', borderColor: COLOR_BORDER }}>
+          <div className="card" style={{ borderRadius: '0.75rem', borderColor: COLOR_BORDER }} data-pdf-root>
                <div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
                     <div className="d-flex justify-content-between align-items-center mb-3">
                          <Link href={`/inventory/analytics/inventoryitems/${itemId}`} className="btn btn-sm btn-outline-secondary d-flex align-items-center">
                               <RiArrowLeftLine size={16} className="me-1" />
                               Back to Inventory Item
                          </Link>
+                         <ExportPdfButton
+                              title="Supplier Performance Analytics"
+                              period={startDate || endDate ? `${startDate || 'Beginning'} to ${endDate || 'Today'}` : undefined}
+                         />
                     </div>
                     <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
                          <h2 className="fs-6 fw-semibold text-body-emphasis mb-3 mb-lg-0 d-flex align-items-center">

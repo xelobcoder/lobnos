@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { currencyFormatter, customFetch } from '../../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
+import ExportPdfButton from '../../../../components/reports/ExportPdfButton';
 import { RiArrowLeftLine, RiRefreshLine, RiFilterLine, RiArrowDownLine, RiArrowUpLine, RiTimeLine, RiBox3Line, RiExchangeLine, RiDeleteBinLine, RiAlertLine, RiRecycleLine, RiBarChartLine, RiLoopLeftLine, RiFlashlightLine, RiCalendarLine } from '@remixicon/react';
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
@@ -173,7 +174,7 @@ export default function InventoryMovementAnalyticsPage() {
 
      return (
           <>
-               <div className="container-fluid p-4">
+               <div className="container-fluid p-4" data-pdf-root>
                     {/* Header */}
                     <div className="d-flex justify-content-between align-items-center mb-4">
                          <div>
@@ -188,6 +189,11 @@ export default function InventoryMovementAnalyticsPage() {
                               <p className="text-muted mb-0">Track inventory movement patterns and velocity</p>
                          </div>
                          <div className="d-flex gap-2">
+                              <ExportPdfButton
+                                   title="Inventory Movement Analytics"
+                                   period={filters.dateRange.start || filters.dateRange.end ? `${filters.dateRange.start || 'Beginning'} to ${filters.dateRange.end || 'Today'}` : undefined}
+                                   filters={[`Page: ${filters.page}`, `Count per page: ${filters.count}`]}
+                              />
                               <button
                                    className="btn btn-outline-secondary btn-sm"
                                    onClick={() => {

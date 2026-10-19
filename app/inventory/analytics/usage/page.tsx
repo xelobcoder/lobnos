@@ -8,6 +8,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { toast } from 'react-toastify';
 import { currencyFormatter, customFetch } from '../../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
+import ExportPdfButton from '../../../../components/reports/ExportPdfButton';
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)'; // Primary chart color
 const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
@@ -228,7 +229,7 @@ export default function UsageAnalyticsPage() {
 
      return (
           <>
-               <div className="container-fluid py-4" style={{ backgroundColor: '#f5f6fa', minHeight: '100vh' }}>
+               <div className="container-fluid py-4" style={{ backgroundColor: '#f5f6fa', minHeight: '100vh' }} data-pdf-root>
                     <div className="mx-auto" style={{ maxWidth: '1400px' }}>
                          {/* Header */}
                          <div className="d-flex justify-content-between align-items-center mb-4">
@@ -244,6 +245,10 @@ export default function UsageAnalyticsPage() {
                                    </p>
                               </div>
                               <div className="d-flex gap-2">
+                                   <ExportPdfButton
+                                        title="Usage Analytics"
+                                        period={appliedFilters.startDate || appliedFilters.endDate ? `${appliedFilters.startDate || 'Beginning'} to ${appliedFilters.endDate || 'Today'}` : undefined}
+                                   />
                                    <button
                                         className="btn btn-outline-secondary btn-sm"
                                         onClick={() => setShowFilterOffcanvas(true)}

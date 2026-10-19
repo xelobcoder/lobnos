@@ -260,6 +260,8 @@ export default function InventoryCategoriesPage() {
 
                {/* Categories Table */}
                <PrimeTable
+                    pdfExport
+                    pdfTitle="Inventory Categories"
                     column={categoryColumns}
                     data={categories}
                     filtering={true}

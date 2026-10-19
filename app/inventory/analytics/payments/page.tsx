@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { toast } from 'react-toastify';
 import { currencyFormatter, customFetch } from '../../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
+import ExportPdfButton from '../../../../components/reports/ExportPdfButton';
 import { RiMoneyDollarCircleLine, RiTimeLine, RiCheckLine, RiCloseLine, RiRefreshLine, RiArrowLeftLine } from '@remixicon/react';
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
@@ -70,7 +71,7 @@ export default function PaymentAnalyticsPage() {
      }
 
      return (
-          <div className="container-fluid p-4">
+          <div className="container-fluid p-4" data-pdf-root>
                {/* Header */}
                <div className="d-flex justify-content-between align-items-center mb-4">
                     <div>
@@ -84,13 +85,16 @@ export default function PaymentAnalyticsPage() {
                          </h2>
                          <p className="text-muted mb-0">Supplier payment tracking and analysis</p>
                     </div>
-                    <button
-                         className="btn btn-outline-primary btn-sm"
-                         onClick={loadPaymentAnalytics}
-                    >
-                         <RiRefreshLine size={16} className="me-1" />
-                         Refresh
-                    </button>
+                    <div className="d-flex gap-2">
+                         <ExportPdfButton title="Payment Analytics" />
+                         <button
+                              className="btn btn-outline-primary btn-sm"
+                              onClick={loadPaymentAnalytics}
+                         >
+                              <RiRefreshLine size={16} className="me-1" />
+                              Refresh
+                         </button>
+                    </div>
                </div>
 
                {/* Payment Status Overview */}

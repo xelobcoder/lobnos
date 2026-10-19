@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import { RiFileListLine, RiCheckLine, RiBox3Line, RiBarChartLine, RiFileTextLine, RiTimeLine } from '@remixicon/react';
 import { currencyFormatter, customFetch } from '../../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
+import ExportPdfButton from '../../../../components/reports/ExportPdfButton';
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
 const COLOR_BORDER = 'var(--bs-border-color)';
@@ -114,7 +115,7 @@ export default function PurchaseOrderAnalyticsPage() {
      }
 
      return (
-          <div className="container-fluid p-4">
+          <div className="container-fluid p-4" data-pdf-root>
                {/* Header */}
                <div className="d-flex justify-content-between align-items-center mb-4">
                     <div>
@@ -124,12 +125,15 @@ export default function PurchaseOrderAnalyticsPage() {
                          <h2 className="mb-1">📋 Purchase Order Analytics</h2>
                          <p className="text-muted mb-0">Comprehensive purchase order performance and trends</p>
                     </div>
-                    <button
-                         className="btn btn-outline-primary btn-sm"
-                         onClick={loadPurchaseOrderAnalytics}
-                    >
-                         ↻ Refresh
-                    </button>
+                    <div className="d-flex gap-2">
+                         <ExportPdfButton title="Purchase Order Analytics" />
+                         <button
+                              className="btn btn-outline-primary btn-sm"
+                              onClick={loadPurchaseOrderAnalytics}
+                         >
+                              ↻ Refresh
+                         </button>
+                    </div>
                </div>
 
                {/* Efficiency Metrics Overview */}

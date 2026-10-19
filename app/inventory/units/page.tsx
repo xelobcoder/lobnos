@@ -310,6 +310,8 @@ export default function UnitsPage() {
 
                {/* Units Table */}
                <PrimeTable
+                    pdfExport
+                    pdfTitle="Unit Management"
                     column={unitColumns}
                     data={units}
                     filtering={true}

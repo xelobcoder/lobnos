@@ -1,21 +1,24 @@
 "use client";
 import React, { useRef, useState } from "react";
 import { RiFilePdf2Line } from "@remixicon/react";
-import { exportReportPdf, tablesFromElement, type ReportPdfSpec } from "./reportPdf";
+import { collectReport, exportReportPdf, filtersFromElement, type ReportPdfSpec } from "./reportPdf";
 
 interface Props {
      title: string;
      subtitle?: string;
      period?: string;
      filters?: string[];
-     /** Element whose visible tables are exported; defaults to [data-pdf-root] or the page body. */
+     /** Element whose tables are exported; defaults to [data-pdf-root] or the page body. */
      targetSelector?: string;
-     /** Optional explicit data; overrides reading the tables from the page. */
+     /** Element holding labelled filter controls whose current values are printed in the header. */
+     filtersSelector?: string;
+     /** Optional explicit data; any field returned overrides what is read from the page. */
      getSpec?: () => Promise<Partial<ReportPdfSpec>> | Partial<ReportPdfSpec>;
      className?: string;
+     label?: string;
 }
 
-export default function ExportPdfButton({ title, subtitle, period, filters, targetSelector, getSpec, className }: Props) {
+export default function ExportPdfButton({ title, subtitle, period, filters, targetSelector, filtersSelector, getSpec, className, label = "Export PDF" }: Props) {
      const [busy, setBusy] = useState(false);
      const lock = useRef(false);
 
@@ -26,11 +29,19 @@ export default function ExportPdfButton({ title, subtitle, period, filters, targ
           try {
                const extra = getSpec ? await getSpec() : {};
                let tables = extra.tables;
+               let notes = extra.notes;
                if (!tables) {
-                    const root = (targetSelector && document.querySelector<HTMLElement>(targetSelector)) || document.querySelector<HTMLElement>("[data-pdf-root]") || document.body;
-                    tables = tablesFromElement(root);
+                    const root =
+                         (targetSelector && document.querySelector<HTMLElement>(targetSelector)) ||
+                         document.querySelector<HTMLElement>("[data-pdf-root]") ||
+                         document.querySelector<HTMLElement>("main") ||
+                         document.body;
+                    const collected = await collectReport(root);
+                    tables = collected.tables;
+                    notes = [...(notes || []), ...collected.notes];
                }
-               await exportReportPdf({ title, subtitle, period, filters, ...extra, tables });
+               const activeFilters = filters ?? (filtersSelector ? filtersFromElement(document.querySelector<HTMLElement>(filtersSelector)) : undefined);
+               await exportReportPdf({ title, subtitle, period, ...extra, filters: extra.filters ?? activeFilters, notes, tables });
           } catch (e) {
                console.error("PDF export failed", e);
                alert("Unable to generate the PDF. Please try again.");
@@ -42,7 +53,7 @@ export default function ExportPdfButton({ title, subtitle, period, filters, targ
 
      return (
           <button type="button" className={className || "btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1"} onClick={run} disabled={busy} data-pdf-ignore>
-               <RiFilePdf2Line size={16} /> {busy ? "Preparing…" : "Export PDF"}
+               <RiFilePdf2Line size={16} /> {busy ? "Preparing…" : label}
           </button>
      );
 }

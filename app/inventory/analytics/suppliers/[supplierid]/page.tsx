@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { toast } from 'react-toastify';
 import { currencyFormatter, customFetch } from '../../../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../../../components/Auth/useApplicationContext';
+import ExportPdfButton from '../../../../../components/reports/ExportPdfButton';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { RiArrowLeftLine, RiBuildingLine, RiRefreshLine, RiBookOpenLine, RiBarChartBoxLine, RiLineChartLine, RiBubbleChartLine, RiLoader4Line, RiErrorWarningLine, RiInbox2Line, RiCalendarEventLine, RiFilterLine, RiTimeLine, RiMoneyDollarCircleLine, RiFileListLine, RiPieChartLine, RiStarLine, RiCheckLine, RiAlertLine, RiBarChartLine, RiTruckLine } from '@remixicon/react';
 
@@ -324,7 +325,7 @@ export default function SupplierAnalyticsPage() {
      }
 
      return (
-          <div className="container-fluid px-4 py-3">
+          <div className="container-fluid px-4 py-3" data-pdf-root>
                {/* Header */}
                <div className="d-flex justify-content-between align-items-center mb-4">
                     <div>
@@ -339,6 +340,11 @@ export default function SupplierAnalyticsPage() {
                          <p className="text-muted mb-0">Comprehensive supplier performance analytics</p>
                     </div>
                     <div className="d-flex gap-2">
+                         <ExportPdfButton
+                              title="Supplier Analytics"
+                              subtitle={analytics.supplier_info.supplier_name}
+                              filters={[`Supplier: ${analytics.supplier_info.supplier_name}`]}
+                         />
                          <button
                               className="btn btn-outline-secondary btn-sm"
                               onClick={() => openModal('Key Terms & Definitions', 'key_terms')}

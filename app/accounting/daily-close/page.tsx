@@ -6,6 +6,7 @@ import { Modal, Spinner } from 'react-bootstrap';
 import { RiCalendarCheckLine, RiCheckboxCircleLine, RiCloseCircleLine, RiLockLine, RiRefreshLine, RiShieldCheckLine, RiTimeLine } from '@remixicon/react';
 import { toast } from 'react-toastify';
 import DateFilterReusable from '../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable';
+import ExportPdfButton from '../../../components/reports/ExportPdfButton';
 import { useApplication } from '../../../components/Auth/useApplicationContext';
 import { roleAllowed } from '../../../components/Auth/roles';
 import { accountingApi, FinancialDayClose, FinancialDayCloseDetail, FinancialDayCloseStatus } from '../../../lib/accounting/accountingApi';
@@ -91,8 +92,34 @@ export default function DailyFinancialClosePage() {
      const discrepancies = latestSnapshot?.discrepancies_json ? JSON.parse(latestSnapshot.discrepancies_json) : [];
      const totalPages = Math.max(1, Math.ceil(pagination.total / pagination.count));
 
+     const getPdfSpec = async () => {
+          const { fetchAllPages, EXPORT_MAX_ROWS } = await import('../../../components/reports/reportPdf');
+          const { rows: all, truncated } = await fetchAllPages<FinancialDayClose>(async (page, count) => {
+               const response = await accountingApi.dailyCloses({ branchId, from: dates.from, to: dates.to, status: status || undefined, page, count });
+               if (response?.status === 'error') throw new Error(response.message || 'Unable to load daily closes');
+               return response.result?.data || [];
+          });
+          return {
+               filters: [`Status: ${status ? statusText(status) : 'All statuses'}`, `Branch: ${branchId}`],
+               notes: truncated ? [`Export limited to the first ${EXPORT_MAX_ROWS.toLocaleString()} records.`] : [`${all.length.toLocaleString()} close record(s).`],
+               tables: [{
+                    head: ['Financial date', 'Branch', 'Status', 'Accountant submitted', 'Finance Manager', 'Facility Owner', 'Version', 'Return reason'],
+                    body: all.map((close) => [
+                         dayjs(close.financial_date).format('DD MMM YYYY'),
+                         String(close.branchid ?? ''),
+                         statusText(close.status),
+                         formatWhen(close.accountant_submitted_at),
+                         formatWhen(close.manager_decided_at),
+                         formatWhen(close.finalized_at),
+                         String(close.workflow_version ?? ''),
+                         close.return_reason || '',
+                    ]),
+               }],
+          };
+     };
+
      return <div className="container-fluid px-3 py-3">
-          <div className="border rounded-3 bg-body p-3 mb-3"><div className="d-flex flex-wrap justify-content-between align-items-start gap-3"><div className="d-flex align-items-start gap-3"><div className="bg-dark text-white rounded-3 d-flex align-items-center justify-content-center" style={{ width: 44, height: 44 }}><RiLockLine size={24} /></div><div><h1 className="h4 fw-bold mb-1">Daily Financial Close</h1><p className="text-muted mb-0">Accountant review, Finance Manager authorization, and permanent Facility Owner finalization.</p></div></div><button className="btn btn-primary" onClick={() => openAction('submit')} disabled={!branchId}>Submit financial day</button></div></div>
+          <div className="border rounded-3 bg-body p-3 mb-3"><div className="d-flex flex-wrap justify-content-between align-items-start gap-3"><div className="d-flex align-items-start gap-3"><div className="bg-dark text-white rounded-3 d-flex align-items-center justify-content-center" style={{ width: 44, height: 44 }}><RiLockLine size={24} /></div><div><h1 className="h4 fw-bold mb-1">Daily Financial Close</h1><p className="text-muted mb-0">Accountant review, Finance Manager authorization, and permanent Facility Owner finalization.</p></div></div><div className="d-flex gap-2"><ExportPdfButton title="Daily Financial Close" subtitle="Close history" period={`${dayjs(dates.from).format('D MMM YYYY')} to ${dayjs(dates.to).format('D MMM YYYY')}`} getSpec={getPdfSpec} /><button className="btn btn-primary" onClick={() => openAction('submit')} disabled={!branchId}>Submit financial day</button></div></div></div>
 
           <div className="border rounded-3 bg-body p-3 mb-3"><div className="row g-3 align-items-end"><div className="col-12 col-md-4"><label className="form-label small fw-semibold mb-1">Financial date range</label><DateFilterReusable value={dateFilter} onChange={setDateFilter} onDateRangeChange={(from, to) => { setDates({ from, to }); setPagination((current) => ({ ...current, page: 1 })); }} label="Choose date range" className="w-100" /><div className="small text-muted mt-1">{dates.from} to {dates.to}</div></div><div className="col-7 col-md-3"><label className="form-label small fw-semibold">Status</label><select className="form-select" value={status} onChange={(event) => { setStatus(event.target.value as FinancialDayCloseStatus | ''); setPagination((current) => ({ ...current, page: 1 })); }}><option value="">All statuses</option><option value="draft">Draft</option><option value="accountant_submitted">Accountant submitted</option><option value="returned_to_accountant">Returned to accountant</option><option value="manager_approved">Manager approved</option><option value="finalized">Finalized</option></select></div><div className="col-5 col-md-auto"><button className="btn btn-outline-secondary w-100" onClick={load} title="Refresh"><RiRefreshLine size={18} /></button></div></div></div>
 

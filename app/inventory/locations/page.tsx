@@ -325,6 +325,8 @@ export default function StorageLocationsPage() {
 
                {/* Locations Table */}
                <PrimeTable
+                    pdfExport
+                    pdfTitle="Storage Locations"
                     column={locationColumns}
                     data={locations}
                     filtering={true}

@@ -19,6 +19,7 @@ import {
 } from "recharts";
 import { currencyFormatter, customFetch } from '../../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
+import ExportPdfButton from '../../../../components/reports/ExportPdfButton';
 import { RiArrowLeftLine, RiBarChartBoxLine, RiCalendarEventLine, RiRefreshLine, RiTimeLine, RiMoneyDollarCircleLine, RiLineChartLine, RiBubbleChartLine, RiLoader4Line, RiErrorWarningLine, RiInbox2Line, RiFilterLine } from '@remixicon/react';
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)'; // Primary chart color
@@ -844,7 +845,7 @@ export default function PaymentTimeAnalyticsPage() {
      }
 
      return (
-          <div className="container-fluid p-4">
+          <div className="container-fluid p-4" data-pdf-root>
                {/* Header */}
                <div className="d-flex justify-content-between align-items-center mb-4">
                     <div>
@@ -857,7 +858,12 @@ export default function PaymentTimeAnalyticsPage() {
                               Payment Time Analytics
                          </h2>
                     </div>
-                   
+                    <div className="d-flex gap-2">
+                         <ExportPdfButton
+                              title="Payment Time Analytics"
+                              period={startDate || endDate ? `${startDate || 'Beginning'} to ${endDate || 'Today'}` : undefined}
+                         />
+                    </div>
                </div>
 
                {/* Summary Cards */}

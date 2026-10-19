@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import { RiStoreLine, RiAlertLine, RiBox3Line, RiRefreshLine, RiBarChartBoxLine, RiMoneyDollarCircleLine, RiTableLine, RiGridLine } from '@remixicon/react';
 import { currencyFormatter, customFetch } from '../../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
+import ExportPdfButton from '../../../../components/reports/ExportPdfButton';
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
 const COLOR_BORDER = 'var(--bs-border-color)';
@@ -192,7 +193,7 @@ export default function ItemAnalyticsOverview() {
      }
 
      return (
-          <div className="container-fluid p-4">
+          <div className="container-fluid p-4" data-pdf-root>
                {/* Header */}
                <div className="d-flex justify-content-between align-items-center mb-4">
                     <div>
@@ -203,6 +204,29 @@ export default function ItemAnalyticsOverview() {
                          <p className="text-muted mb-0">Detailed analytics for individual inventory items</p>
                     </div>
                     <div className="d-flex gap-2">
+                         <ExportPdfButton
+                              title="Item Analytics"
+                              getSpec={() => ({
+                                   notes: [
+                                        `Total Items: ${inventoryItems.length.toLocaleString()}`,
+                                        `In Stock: ${inventoryItems.filter(item => item.status === 'in_stock').length}`,
+                                        `Low Stock: ${inventoryItems.filter(item => item.status === 'low_stock').length}`,
+                                        `Total Value: ${currencyFormatter.format(inventoryItems.reduce((sum, item) => sum + (item.totalValue || 0), 0))}`
+                                   ],
+                                   tables: [{
+                                        heading: 'Inventory Items',
+                                        head: ['Name', 'SKU', 'Category', 'Stock', 'Value', 'Status'],
+                                        body: inventoryItems.map((item) => [
+                                             String(item.name ?? ''),
+                                             String(item.sku ?? ''),
+                                             String(item.category ?? ''),
+                                             `${item.currentStock} ${item.consumption_unit_name || item.consumption_unit || ''}`.trim(),
+                                             currencyFormatter.format(item.totalValue || 0),
+                                             String(item.status || '').replace('_', ' ').toUpperCase()
+                                        ])
+                                   }]
+                              })}
+                         />
                          <button
                               className="btn btn-outline-secondary btn-sm"
                               onClick={loadInventoryItems}

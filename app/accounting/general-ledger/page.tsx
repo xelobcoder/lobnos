@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import { useSearchParams } from "next/navigation";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
-import ReportShell from "../../../components/accounting/ReportShell";
+import ReportShell, { formatRange } from "../../../components/accounting/ReportShell";
 import { currencyFormatter } from "../../../components/Auth/customFetch";
 import DateFilterReusable from "../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 import { accountingApi } from "../../../lib/accounting/accountingApi";
@@ -160,6 +160,7 @@ export default function GeneralLedgerPage() {
           <ReportShell
                title="General Ledger"
                subtitle={`${total} posted journal lines`}
+               range={formatRange(from, to)}
                filters={
                     <>
                          <div className="col-12 col-md-4">

@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
 import { currencyFormatter, customFetch } from '../../../../components/Auth/customFetch';
+import ExportPdfButton from '../../../../components/reports/ExportPdfButton';
 
 interface Payment {
      id: string;
@@ -111,7 +112,7 @@ export default function PaymentDetailsPage() {
      }
 
      return (
-          <div className="container-fluid p-4">
+          <div className="container-fluid p-4" data-pdf-root>
                {/* Header */}
                <div className="d-flex justify-content-between align-items-center mb-4">
                     <div>
@@ -124,6 +125,12 @@ export default function PaymentDetailsPage() {
                          <Link href="/inventory/payments" className="btn btn-outline-secondary">
                               ← Back to Payments
                          </Link>
+                         <ExportPdfButton
+                              title="Payment Details"
+                              subtitle={`Payment ${payment.payment_id}`}
+                              filters={[`Supplier: ${payment.supplier_name}`]}
+                              className="btn btn-outline-danger d-inline-flex align-items-center gap-1"
+                         />
                          <button
                               className="btn btn-outline-primary"
                               onClick={loadPaymentDetails}

@@ -17,6 +17,7 @@ import dayjs from "dayjs";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import AccountingSummary from "../../components/accounting/AccountingSummary";
+import ExportPdfButton from "../../components/reports/ExportPdfButton";
 import { currencyFormatter } from "../../components/Auth/customFetch";
 import { accountingApi, FinancialOverview, OutboxHealth } from "../../lib/accounting/accountingApi";
 import styles from "./page.module.css";
@@ -69,7 +70,60 @@ export default function AccountingOverviewPage() {
                          <h1 className="mb-1">Accounting overview</h1>
                          <p className="text-muted mb-0">A live view of this year&apos;s financial position and posting activity.</p>
                     </div>
-                    <div className={styles.period}><RiCalendarCheckLine size={16} /> As at {dayjs(today).format("D MMM YYYY")} · {overview?.period.code || dayjs(today).format("YYYY-MM")}</div>
+                    <div className="d-flex flex-column align-items-lg-end gap-2">
+                         <ExportPdfButton
+                              title="Accounting Overview"
+                              subtitle="Financial performance and position"
+                              period={`As at ${dayjs(today).format("D MMM YYYY")} · ${overview?.period.code || dayjs(today).format("YYYY-MM")}`}
+                              getSpec={() => {
+                                   if (!overview) throw new Error("Overview not loaded");
+                                   const m = (v?: number) => currencyFormatter.format(v || 0);
+                                   const perf = overview.performance;
+                                   const pos = overview.position;
+                                   return {
+                                        notes: [balanced ? "Ledger balance check: PASS" : `Ledger balance check: FAIL (difference ${m(pos.balanceDifference)})`],
+                                        tables: [
+                                             {
+                                                  heading: "Financial performance",
+                                                  head: ["Period", "Revenue", "Expenses", "Net profit"],
+                                                  body: [
+                                                       ["Today", m(perf.today.revenue), m(perf.today.expenses), m(perf.today.profit)],
+                                                       ["Month to date", m(perf.monthToDate.revenue), m(perf.monthToDate.expenses), m(perf.monthToDate.profit)],
+                                                       ["Year to date", m(perf.yearToDate.revenue), m(perf.yearToDate.expenses), m(perf.yearToDate.profit)],
+                                                  ],
+                                             },
+                                             {
+                                                  heading: "Monthly trend",
+                                                  head: ["Month", "Revenue", "Expenses", "Profit"],
+                                                  body: overview.trend.periods.map((p, i) => [dayjs(`${p}-01`).format("MMM YYYY"), m(overview.trend.revenue[i]), m(overview.trend.expenses[i]), m(overview.trend.profit[i])]),
+                                             },
+                                             {
+                                                  heading: "Financial position",
+                                                  head: ["Item", "Amount"],
+                                                  body: [
+                                                       ["Cash", m(pos.cash)], ["Bank", m(pos.bank)], ["Accounts receivable", m(pos.receivables)], ["Inventory", m(pos.inventory)], ["Fixed assets", m(pos.fixedAssets)],
+                                                       [{ content: "Total assets", bold: true }, { content: m(pos.totalAssets), bold: true }],
+                                                       [{ content: "Total liabilities", bold: true }, { content: m(pos.totalLiabilities), bold: true }],
+                                                       ["Equity", m(pos.equity)],
+                                                       [{ content: "Net assets", bold: true }, { content: m(pos.netAssets), bold: true }],
+                                                  ],
+                                             },
+                                             {
+                                                  heading: "Working capital",
+                                                  head: ["Item", "Outstanding", "Overdue"],
+                                                  body: [["Receivables", m(pos.receivables), m(pos.overdueReceivables)], ["Payables", m(pos.payables), m(pos.overduePayables)]],
+                                             },
+                                             ...(health ? [{
+                                                  heading: "Posting queue",
+                                                  head: ["Pending", "Failed", "Dead letter", "Oldest waiting"],
+                                                  body: [[String(health.pending), String(health.failed), String(health.deadLetter), health.oldestPendingMinutes === null ? "Queue is empty" : `${health.oldestPendingMinutes} min`]],
+                                             }] : []),
+                                        ],
+                                   };
+                              }}
+                         />
+                         <div className={styles.period}><RiCalendarCheckLine size={16} /> As at {dayjs(today).format("D MMM YYYY")} · {overview?.period.code || dayjs(today).format("YYYY-MM")}</div>
+                    </div>
                </div>
 
                {needsAttention && (

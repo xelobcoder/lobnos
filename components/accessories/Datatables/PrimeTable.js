@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal, flushSync } from "react-dom";
 import { useTable, useGlobalFilter, useFilters, useSortBy } from "react-table";
+import { registerTableSource } from "../../reports/tableSources";
 import GlobalFilter from "./GlobalFilter";
 import ShowTableDisplayCount from "./TableDisplayShowCount";
 import TableLoading from "./TableLoading";
@@ -8,12 +10,42 @@ import style from "./PrimeTable.module.css";
 import "../../../styles/prime-table.css";
 import { ButtonGroup } from "react-bootstrap";
 
+/** Plain rendering of the full export dataset with the table's own column renderers. */
+function ExportRowsTable({ columns, data }) {
+	const { headerGroups, rows, prepareRow } = useTable({ columns, data });
+	const lastGroup = headerGroups[headerGroups.length - 1];
+	return (
+		<table>
+			<thead>
+				<tr>
+					{lastGroup?.headers.map((col) => (
+						<th key={col.id}>{col.render("Header")}</th>
+					))}
+				</tr>
+			</thead>
+			<tbody>
+				{rows.map((row) => {
+					prepareRow(row);
+					return (
+						<tr key={row.id}>
+							{row.cells.map((cell) => (
+								<td key={cell.column.id}>{cell.render("Cell")}</td>
+							))}
+						</tr>
+					);
+				})}
+			</tbody>
+		</table>
+	);
+}
+
 export default function PrimeTable({
 	column,
 	data,
 	filtering = false,
 	isExpoerted = false,
 	pdfExport = false,
+	pdfTitle = "",
 	serverSideFiltering = false,
 	handleSeverSideProcessing,
 	urlparams = {},
@@ -28,20 +60,55 @@ export default function PrimeTable({
 	});
 	const [globalTheme, setGlobalTheme] = useState("PrimeLaboratoryTableStyling");
 	const [pdfBusy, setPdfBusy] = useState(false);
+	const [exportRows, setExportRows] = useState(null);
 	const tableWrapRef = useRef(null);
+	const exportRootRef = useRef(null);
+	const exportSourceRef = useRef(null);
 
-	// Landscape PDF of the rows currently shown (after filtering), with company letterhead.
+	const exportTitle = () =>
+		(pdfTitle || document.querySelector("[data-pdf-title]")?.textContent || document.querySelector("main h1, main h2, main h3, main h4, h1, h2, h3, h4")?.textContent || "Report").trim();
+
+	// Server-paginated tables export every page (not just the one on screen) by reusing the page's
+	// own fetch handler, then rendering the rows offscreen with the same column renderers.
+	exportSourceRef.current = async () => {
+		const { tablesFromElement, fetchAllPages, EXPORT_MAX_ROWS } = await import("../../reports/reportPdf");
+		if (!(serverSideFiltering && typeof handleSeverSideProcessing === "function")) {
+			return { tables: tablesFromElement(tableWrapRef.current) };
+		}
+		let reportedTotal = null;
+		try {
+			const { rows: allRows, truncated } = await fetchAllPages(async (page, count) => {
+				const response = await handleSeverSideProcessing({ page, count, ...urlparams });
+				if (response?.error) throw new Error(typeof response.error === "string" ? response.error : "Unable to load report data");
+				if (response?.total !== undefined && response?.total !== null) reportedTotal = Number(response.total);
+				return Array.isArray(response?.result) ? response.result : [];
+			});
+			flushSync(() => setExportRows(allRows));
+			const tables = exportRootRef.current ? tablesFromElement(exportRootRef.current) : [];
+			const notes = [];
+			if (truncated) notes.push(`Export limited to the first ${EXPORT_MAX_ROWS.toLocaleString()} records${reportedTotal ? ` of ${reportedTotal.toLocaleString()}` : ""}. Narrow the filters to export the rest.`);
+			else if (reportedTotal && reportedTotal > allRows.length) notes.push(`${allRows.length.toLocaleString()} of ${reportedTotal.toLocaleString()} records were returned for export.`);
+			else notes.push(`${allRows.length.toLocaleString()} record(s).`);
+			return { tables, notes };
+		} finally {
+			setExportRows(null);
+			// Some page handlers also store the rows they fetch; reload the page the user was viewing.
+			await RunServerAction(queryParams.page, queryParams.count);
+		}
+	};
+
+	useEffect(() => {
+		if (!tableWrapRef.current) return;
+		return registerTableSource(tableWrapRef.current, () => exportSourceRef.current());
+	}, []);
+
 	const exportPdf = async () => {
 		if (pdfBusy || !tableWrapRef.current) return;
 		setPdfBusy(true);
 		try {
-			const { exportReportPdf, tablesFromElement } = await import("../../reports/reportPdf");
-			const heading = document.querySelector("[data-pdf-title]")?.textContent || document.querySelector("h1, h2, h3, h4")?.textContent || "Report";
-			await exportReportPdf({
-				title: heading.trim(),
-				filters: serverSideFiltering ? [`Rows on current page: ${rows.length}`] : undefined,
-				tables: tablesFromElement(tableWrapRef.current),
-			});
+			const { exportReportPdf } = await import("../../reports/reportPdf");
+			const { tables, notes } = await exportSourceRef.current();
+			await exportReportPdf({ title: exportTitle(), notes, tables });
 		} catch (error) {
 			console.error("PDF export failed", error);
 			alert("Unable to generate the PDF. Please try again.");
@@ -51,17 +118,18 @@ export default function PrimeTable({
 	};
 
 	const exportCsv = async () => {
-		if (!tableWrapRef.current) return;
-		const { tablesFromElement, reportFileName } = await import("../../reports/reportPdf");
-		const heading = document.querySelector("[data-pdf-title]")?.textContent || document.querySelector("h1, h2, h3, h4")?.textContent || "Report";
-		const cell = (v) => `"${String(v).replace(/"/g, '""')}"`;
-		const lines = tablesFromElement(tableWrapRef.current).flatMap((t) => [t.head, ...t.body, ...(t.foot || [])].map((r) => r.map(cell).join(",")));
-		const url = URL.createObjectURL(new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" }));
-		const a = document.createElement("a");
-		a.href = url;
-		a.download = reportFileName(heading.trim()).replace(/\.pdf$/, ".csv");
-		a.click();
-		URL.revokeObjectURL(url);
+		if (pdfBusy || !tableWrapRef.current) return;
+		setPdfBusy(true);
+		try {
+			const { exportTablesCsv } = await import("../../reports/reportPdf");
+			const { tables } = await exportSourceRef.current();
+			exportTablesCsv(tables, exportTitle());
+		} catch (error) {
+			console.error("CSV export failed", error);
+			alert("Unable to export the data. Please try again.");
+		} finally {
+			setPdfBusy(false);
+		}
 	};
 
 	useEffect(() => {
@@ -424,6 +492,14 @@ export default function PrimeTable({
 					<RenderingTable getTableBodyProps={getTableBodyProps} />
 				</table>
 			</div>
+			{exportRows &&
+				typeof document !== "undefined" &&
+				createPortal(
+					<div ref={exportRootRef} aria-hidden="true" style={{ position: "absolute", left: -100000, top: 0, width: 1600, pointerEvents: "none" }}>
+						<ExportRowsTable columns={column} data={exportRows} />
+					</div>,
+					document.body,
+				)}
 			{serverSideFiltering && typeof handleSeverSideProcessing === "function" && (
 				<div className={style.paginationBar}>
 					<div className={style.paginationMeta}>
