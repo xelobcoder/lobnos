@@ -1,6 +1,7 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import DateFilterReusable from '../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable';
 import { customFetch, customPost, fetchPatientPersonalInfo } from '../../../components/Auth/customFetch';
 import { toast } from 'react-toastify';
 import BillingPagePatientInformation from '../../../components/Billing/BillingContextComponents/PersonalInfoView';
@@ -27,11 +28,29 @@ interface BillingRecord {
 interface BulkOutstandingResponse { success: boolean; data: { outstandingAmount: string; records: BillingRecord[] }; }
 interface PaymentMode { KeyID: number; PaymentMode: string; }
 interface StagedService { payment: string; waiveOff: string; error: boolean; }
+interface OutstandingRow {
+     billingid: number; patientid: number; billedon: string; payable: string; paid: string; outstanding: string;
+     fullpatientid: string | null; mobile_number: string | null; patient_name: string | null; age_days: number;
+}
+interface OutstandingList {
+     records: OutstandingRow[]; page: number; count: number;
+     summary: { bills: number; patients: number; totalOutstanding: number; totalPaid: number };
+}
 
 const SkeletonRow = () => (
      <div className="rounded p-2 mb-2 border" style={{ background: '#f5f5f5' }}>
           <div style={{ height: 12, background: '#e0e0e0', borderRadius: 4, width: '60%', marginBottom: 6 }} />
           <div style={{ height: 10, background: '#e0e0e0', borderRadius: 4, width: '80%' }} />
+     </div>
+);
+
+const money = (n: number) =>
+     '₵' + (Number.isFinite(n) ? n : 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const SummaryTile = ({ label, value, tone, active }: { label: string; value: string; tone: string; active?: boolean }) => (
+     <div className={`flex-fill px-3 py-2 border rounded ${active ? `bg-${tone}-subtle border-${tone}` : 'bg-white'}`} style={{ minWidth: 150, transition: 'background .2s, border-color .2s' }}>
+          <div className="text-muted text-uppercase fw-semibold" style={{ fontSize: '0.7rem', letterSpacing: '0.6px' }}>{label}</div>
+          <div className={`fw-bold text-${tone}`} style={{ fontSize: '1.05rem', fontVariantNumeric: 'tabular-nums' }}>{value}</div>
      </div>
 );
 
@@ -50,6 +69,66 @@ export default function CashCollection() {
      const [globalWaiveOff, setGlobalWaiveOff]        = useState<string>('');
      const [globalPaymentMode, setGlobalPaymentMode]  = useState<number | ''>('');
      const [paymentModes, setPaymentModes]            = useState<PaymentMode[]>([]);
+     const [tendered, setTendered]                    = useState<string>('');
+     const [hidePaid, setHidePaid]                    = useState<boolean>(true);
+     const [paidBills, setPaidBills]                  = useState<number[]>([]);
+     const [dateFilter, setDateFilter]                = useState<string>('All');
+     const [listRange, setListRange]                  = useState<{ start: string; end: string }>({ start: '', end: '' });
+     const [listSearch, setListSearch]                = useState<string>('');
+     const [debouncedSearch, setDebouncedSearch]      = useState<string>('');
+     const [listPage, setListPage]                    = useState<number>(1);
+     const [listReload, setListReload]                = useState<number>(0);
+     const [listLoading, setListLoading]              = useState<boolean>(false);
+     const [outstandingList, setOutstandingList]      = useState<OutstandingList | null>(null);
+     const preselectBilling = useRef<number | null>(null);
+
+     useEffect(() => {
+          const t = setTimeout(() => setDebouncedSearch(listSearch.trim()), 300);
+          return () => clearTimeout(t);
+     }, [listSearch]);
+
+     useEffect(() => {
+          if (hasSearched) return;
+          let cancelled = false;
+          (async () => {
+               setListLoading(true);
+               try {
+                    let url = `billing/client/outstanding-list?page=${listPage}&count=25`;
+                    if (listRange.start && listRange.end) url += `&startDate=${listRange.start}&endDate=${listRange.end}`;
+                    if (debouncedSearch) url += `&search=${encodeURIComponent(debouncedSearch)}`;
+                    const r: any = await customFetch(url);
+                    if (!cancelled && r?.success) setOutstandingList(r.data);
+                    else if (!cancelled) toast.error('Could not load outstanding bills');
+               } catch {
+                    if (!cancelled) toast.error('Could not load outstanding bills');
+               } finally {
+                    if (!cancelled) setListLoading(false);
+               }
+          })();
+          return () => { cancelled = true; };
+     }, [hasSearched, listRange, debouncedSearch, listPage, listReload]);
+
+     const collectFor = (row: OutstandingRow) => {
+          preselectBilling.current = row.billingid;
+          setSearchPatientId(String(row.patientid));
+          setSearchBillingId('');
+          doSearch(String(row.patientid), '');
+     };
+
+     const backToList = () => {
+          setPaidBills([]);
+          setHasSearched(false);
+          setBillingRecords([]);
+          setSelectedBillingId(null);
+          setPatientId(null);
+          setPatientInfo(null);
+          setSearchPatientId('');
+          setSearchBillingId('');
+          setStagedData({});
+          setGlobalPaymentMode('');
+          setTendered('');
+          setListReload(n => n + 1);
+     };
      const urlPatientid = useSearchParams()?.get('patientid') || '';
      const urlBillingid = useSearchParams()?.get('billingid') || '';
      const employeeid   = useApplication()?.user?.employeeid;
@@ -104,7 +183,10 @@ export default function CashCollection() {
                     setBillingRecords(r.data.records);
                     
                     const recordIds = r.data.records.map(rec => rec.billingid);
-                    if (bId.trim()) {
+                    if (preselectBilling.current && recordIds.includes(preselectBilling.current)) {
+                         setSelectedBillingId(preselectBilling.current);
+                         preselectBilling.current = null;
+                    } else if (bId.trim()) {
                          const firstBid = bId.split(',')[0].trim();
                          if (recordIds.includes(parseInt(firstBid))) {
                               setSelectedBillingId(parseInt(firstBid));
@@ -307,122 +389,211 @@ export default function CashCollection() {
                });
                if (r?.success == true) {
                     toast.success(r.message || 'Payment recorded successfully');
-                    setStagedData({}); setGlobalPaymentMode('');
+                    setStagedData({}); setGlobalPaymentMode(''); setTendered('');
+                    setPaidBills(Array.from(new Set(allPayments.map(p => p.billing_id))));
                     doSearch();
                } else { toast.error(r?.message || 'Failed to record payment'); }
           } catch { toast.error('An error occurred. Please try again.'); } finally { setIsLoading(false); }
      };
 
      const selectedRecord = billingRecords.find(r => r.billingid === selectedBillingId);
-     const panelHeight    = 'calc(100vh - 280px)';
+     const panelHeight    = 'calc(100vh - 370px)';
+     const totalOutstanding = billingRecords.reduce((s, r) => s + (parseFloat(r.outstanding) || 0), 0);
+     const totalPaidSoFar   = billingRecords.reduce((s, r) => s + (parseFloat(r.paid) || 0), 0);
+     const remainingAfter   = Math.max(0, totalOutstanding - totalReady - totalWaiveOff);
+     const selectedModeName = paymentModes.find(m => m.KeyID === globalPaymentMode)?.PaymentMode || '';
+     const isCashMode       = /cash/i.test(selectedModeName);
+     const tenderedAmount   = parseFloat(tendered);
+     const changeDue        = Number.isFinite(tenderedAmount) ? tenderedAmount - totalReady : null;
 
      return (
           <div>
                <div className="d-flex align-items-center justify-content-between mb-3">
                     <div className="d-flex align-items-center gap-4">
                          <div>
-                              <h4 className="mb-0 fw-bold">Cash Collection</h4>
-                              <p className="text-muted mb-0 small">Process outstanding payments</p>
+                              <h4 className="mb-0 fw-bold fs-5">Cash Collection</h4>
+                              <p className="text-body-secondary mb-0 small">Collect outstanding patient balances</p>
                          </div>
 
-                         {(patientId || selectedBillingId) && (
-                              <div className="d-flex align-items-center gap-3 ps-4 border-start" style={{ borderColor: 'var(--bs-border-color)' }}>
-                                   {patientId && (
-                                        <div className="d-flex flex-column align-items-center p-2 rounded bg-primary-subtle border border-primary-subtle shadow-sm" style={{ minWidth: '120px' }}>
-                                             <span className="text-primary text-uppercase fw-bold mb-1" style={{ fontSize: '0.7rem', letterSpacing: '1px' }}>Patient ID</span>
-                                             <span className="text-primary fw-bolder h4 mb-0" style={{ letterSpacing: '0.5px' }}>#{patientId}</span>
-                                        </div>
-                                   )}
-                                   {selectedBillingId && (
-                                        <div className="d-flex flex-column align-items-center p-2 rounded bg-danger-subtle border border-danger-subtle shadow-sm" style={{ minWidth: '120px' }}>
-                                             <span className="text-danger text-uppercase fw-bold mb-1" style={{ fontSize: '0.7rem', letterSpacing: '1px' }}>Billing ID</span>
-                                             <span className="text-danger fw-bolder h4 mb-0" style={{ letterSpacing: '0.5px' }}>#{selectedBillingId}</span>
-                                        </div>
-                                   )}
-                              </div>
-                         )}
                     </div>
-                    {patientId && (
-                         <Link href={`/billing/patientid/${plsEncryption(patientId.toString())}/multi`} className="btn btn-outline-secondary d-flex align-items-center gap-2">
-                              <span>&larr;</span> Back to Billing
-                         </Link>
-                    )}
                </div>
 
-               <div className="card shadow-sm">
+               <div className="card shadow-sm" style={{ fontSize: '0.85rem' }}>
 
                     <div className="card-header bg-white border-bottom py-2 px-3">
-                         <div className="d-flex flex-wrap align-items-center justify-content-between gap-2">
-                              <div>{patientInfo && <BillingPagePatientInformation data={patientInfo} loadingststate={false} />}</div>
-                              <div className="d-flex gap-2 align-items-center">
+                         {patientInfo && (
+                              <div className="d-flex flex-wrap align-items-center gap-3 mb-2">
+                                   <div className="d-flex align-items-center gap-2 rounded-circle bg-primary-subtle text-primary fw-bold justify-content-center" style={{ width: 36, height: 36 }}>
+                                        {String(patientInfo?.fullname ?? patientInfo?.firstname ?? '?').trim().charAt(0).toUpperCase()}
+                                   </div>
+                                   <div style={{ fontSize: '0.8rem' }}><BillingPagePatientInformation data={patientInfo} loadingststate={false} /></div>
+                                   <div className="d-flex gap-2 ms-auto">
+                                        {patientId && <span className="badge bg-primary-subtle text-primary border border-primary-subtle fw-semibold">Patient #{patientId}</span>}
+                                        {selectedBillingId && <span className="badge bg-danger-subtle text-danger border border-danger-subtle fw-semibold">Billing #{selectedBillingId}</span>}
+                                   </div>
+                              </div>
+                         )}
+                         <div className="d-flex flex-wrap align-items-center gap-2">
+                              {hasSearched && (
+                                   <button className="btn btn-sm btn-outline-secondary" onClick={backToList}>&larr; Outstanding list</button>
+                              )}
+                              {patientId && (
+                                   <Link href={`/billing/patientid/${plsEncryption(patientId.toString())}/multi`} className="btn btn-sm btn-outline-secondary">&larr; Back to Billing</Link>
+                              )}
+                              <div className="d-flex gap-2 align-items-center ms-auto">
+                                   {hasSearched && (<>
+                                   <small className="text-muted me-1">Switch to</small>
                                    <input
                                         type="text"
-                                        className="form-control"
+                                        className="form-control form-control-sm"
                                         placeholder="Patient ID…"
-                                        style={{ width: 150, fontSize: '0.9rem' }}
+                                        style={{ width: 130, fontSize: '0.8rem' }}
                                         value={searchPatientId}
                                         onChange={e => setSearchPatientId(e.target.value)}
                                         onKeyDown={e => e.key === 'Enter' && doSearch()}
                                    />
                                    <input
                                         type="text"
-                                        className="form-control"
+                                        className="form-control form-control-sm"
                                         placeholder="Billing ID…"
-                                        style={{ width: 150, fontSize: '0.9rem' }}
+                                        style={{ width: 130, fontSize: '0.8rem' }}
                                         value={searchBillingId}
                                         onChange={e => setSearchBillingId(e.target.value)}
                                         onKeyDown={e => e.key === 'Enter' && doSearch()}
                                    />
-                                   <select className="form-select" style={{ width: 130, fontSize: '1rem' }} value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+                                   <select className="form-select form-select-sm" style={{ width: 110, fontSize: '0.8rem' }} value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
                                         <option value="all">All</option>
                                         <option value="pending">Pending</option>
                                         <option value="completed">Completed</option>
                                    </select>
-                                   <button className="btn btn-primary px-4" style={{ fontSize: '1rem' }} onClick={() => doSearch()} disabled={isLoading}>
+                                   <button className="btn btn-sm btn-primary px-3" style={{ fontSize: '0.8rem' }} onClick={() => doSearch()} disabled={isLoading}>
                                         {isLoading ? <><span className="spinner-border spinner-border-sm me-1" />Searching…</> : 'Search'}
                                    </button>
+                                   </>)}
                               </div>
                          </div>
                     </div>
 
+                    {hasSearched && paidBills.length > 0 && (
+                         <div className="d-flex flex-wrap align-items-center gap-2 px-3 py-2 bg-success-subtle border-bottom border-success-subtle">
+                              <span className="fw-semibold text-success-emphasis me-2">✓ Payment recorded</span>
+                              {paidBills.map(id => (
+                                   <div key={id} className="d-flex align-items-center gap-1 bg-white border rounded px-2 py-1">
+                                        <span className="fw-semibold me-1">Bill #{id}</span>
+                                        <a className="btn btn-sm btn-success py-0" target="_blank" rel="noreferrer" href={`/billing/cash-collection/pos-receipt-test?billingid=${id}&is_pos=false`}>Print receipt</a>
+                                        <a className="btn btn-sm btn-outline-secondary py-0" target="_blank" rel="noreferrer" href={`/billing/cash-collection/pos-receipt-test?billingid=${id}&is_pos=true`}>POS</a>
+                                        <a className="btn btn-sm btn-outline-primary py-0" target="_blank" rel="noreferrer" href={`/billing/cash-collection/invoice?billingid=${id}`}>Generate invoice</a>
+                                   </div>
+                              ))}
+                              <button className="btn-close ms-auto" aria-label="Dismiss" onClick={() => setPaidBills([])} />
+                         </div>
+                    )}
+
+                    {hasSearched && billingRecords.length > 0 && (
+                         <div className="d-flex flex-wrap gap-2 p-3 bg-light border-bottom">
+                              <SummaryTile label="Outstanding" value={money(totalOutstanding)} tone="danger" />
+                              <SummaryTile label="Already paid" value={money(totalPaidSoFar)} tone="secondary" />
+                              <SummaryTile label="Collecting now" value={money(totalReady)} tone="success" active={totalReady > 0} />
+                                                            <SummaryTile label="Waive-off" value={money(totalWaiveOff)} tone="warning" active={totalWaiveOff > 0} />
+                              <SummaryTile label="Remaining after" value={money(remainingAfter)} tone="primary" />
+                         </div>
+                    )}
+
                     <div className="card-body p-0">
                          {!hasSearched ? (
-                         <div className="d-flex flex-column align-items-center justify-content-center text-center py-5" style={{ minHeight: 380 }}>
-                              <div style={{ fontSize: '4rem', opacity: 0.25, lineHeight: 1 }}>💳</div>
-                              <h4 className="fw-bold mt-3 mb-1">Find a Patient or Transaction</h4>
-                              <p className="text-muted mb-4" style={{ fontSize: '1rem' }}>Enter the patient ID or billing ID below to load outstanding records</p>
-                              <div className="d-flex flex-column gap-3 justify-content-center" style={{ width: '100%', maxWidth: 460 }}>
-                                   <div className="d-flex gap-2">
+                         <div>
+                              <div className="d-flex flex-wrap align-items-center gap-2 p-3 border-bottom">
+                                   <div className="input-group" style={{ maxWidth: 340 }}>
+                                        <span className="input-group-text bg-white">🔍</span>
                                         <input
-                                             type="text"
-                                             className="form-control form-control-lg shadow-sm"
-                                             placeholder="Enter Patient ID…"
-                                             autoFocus
-                                             value={searchPatientId}
-                                             onChange={e => setSearchPatientId(e.target.value)}
-                                             onKeyDown={e => e.key === 'Enter' && doSearch()}
-                                             style={{ fontSize: '1.2rem', letterSpacing: '0.5px' }}
-                                        />
-                                        <input
-                                             type="text"
-                                             className="form-control form-control-lg shadow-sm"
-                                             placeholder="Billing ID…"
-                                             value={searchBillingId}
-                                             onChange={e => setSearchBillingId(e.target.value)}
-                                             onKeyDown={e => e.key === 'Enter' && doSearch()}
-                                             style={{ fontSize: '1.2rem', letterSpacing: '0.5px' }}
+                                             type="search"
+                                             className="form-control"
+                                             placeholder="Search name, patient ID, phone or bill #"
+                                             aria-label="Search outstanding bills"
+                                             value={listSearch}
+                                             onChange={e => { setListSearch(e.target.value); setListPage(1); }}
                                         />
                                    </div>
-                                   <button
-                                        className="btn btn-primary btn-lg px-4 w-100 shadow"
-                                        onClick={() => doSearch()}
-                                        disabled={isLoading || (!searchPatientId.trim() && !searchBillingId.trim())}
-                                        style={{ fontSize: '1.1rem', fontWeight: 'bold' }}
-                                   >
-                                        {isLoading ? <><span className="spinner-border spinner-border-sm me-2" />Searching…</> : 'Search & Load Records'}
+                                   <DateFilterReusable
+                                        id="outstanding-date-filter"
+                                        className=""
+                                        label="Billed date"
+                                        value={dateFilter}
+                                        onChange={v => { setDateFilter(v || 'All'); setListPage(1); }}
+                                        onDateRangeChange={(s, e) => { setListRange(dateFilter === 'All' && !s ? { start: '', end: '' } : { start: s, end: e }); setListPage(1); }}
+                                   />
+                                   <button className="btn btn-outline-secondary ms-auto" onClick={() => setListReload(n => n + 1)} disabled={listLoading}>
+                                        {listLoading ? <span className="spinner-border spinner-border-sm" /> : '↻ Refresh'}
                                    </button>
                               </div>
-                              <small className="text-muted mt-3">Press <kbd>Enter</kbd> to search quickly</small>
+
+                              {outstandingList && (
+                                   <div className="d-flex flex-wrap gap-2 p-3 bg-light border-bottom">
+                                        <SummaryTile label="Patients owing" value={String(outstandingList.summary.patients)} tone="primary" />
+                                        <SummaryTile label="Unsettled bills" value={String(outstandingList.summary.bills)} tone="secondary" />
+                                        <SummaryTile label="Total outstanding" value={money(outstandingList.summary.totalOutstanding)} tone="danger" />
+                                        <SummaryTile label="Already paid on these" value={money(outstandingList.summary.totalPaid)} tone="success" />
+                                   </div>
+                              )}
+
+                              <div style={{ maxHeight: 'calc(100vh - 430px)', minHeight: 240, overflowY: 'auto' }}>
+                                   <table className="table table-hover align-middle mb-0">
+                                        <thead className="table-light sticky-top">
+                                             <tr>
+                                                  <th>Patient</th>
+                                                  <th>Bill #</th>
+                                                  <th>Billed on</th>
+                                                  <th className="text-end">Payable</th>
+                                                  <th className="text-end">Paid</th>
+                                                  <th className="text-end">Outstanding</th>
+                                                  <th>Age</th>
+                                                  <th style={{ width: 110 }}></th>
+                                             </tr>
+                                        </thead>
+                                        <tbody>
+                                             {listLoading && !outstandingList && [1, 2, 3, 4].map(i => (
+                                                  <tr key={i}><td colSpan={8}><SkeletonRow /></td></tr>
+                                             ))}
+                                             {outstandingList && outstandingList.records.length === 0 && (
+                                                  <tr><td colSpan={8} className="text-center text-muted py-5">
+                                                       <div style={{ fontSize: '2.5rem', opacity: 0.3 }}>🎉</div>
+                                                       No outstanding bills match these filters
+                                                  </td></tr>
+                                             )}
+                                             {outstandingList?.records.map(r => {
+                                                  const days = Number(r.age_days) || 0;
+                                                  const ageTone = days > 30 ? 'danger' : days > 7 ? 'warning' : 'secondary';
+                                                  return (
+                                                       <tr key={r.billingid} style={{ cursor: 'pointer' }} onClick={() => collectFor(r)}>
+                                                            <td>
+                                                                 <div className="fw-semibold">{r.patient_name || `Patient #${r.patientid}`}</div>
+                                                                 <small className="text-muted">{r.fullpatientid}{r.mobile_number ? ` · ${r.mobile_number}` : ''}</small>
+                                                            </td>
+                                                            <td>#{r.billingid}</td>
+                                                            <td>{new Date(r.billedon).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                                                            <td className="text-end">{money(Number(r.payable))}</td>
+                                                            <td className="text-end text-success">{money(Number(r.paid))}</td>
+                                                            <td className="text-end fw-bold text-danger">{money(Number(r.outstanding))}</td>
+                                                            <td><span className={`badge bg-${ageTone}-subtle text-${ageTone}-emphasis`}>{days === 0 ? 'Today' : `${days}d`}</span></td>
+                                                            <td className="text-end">
+                                                                 <button className="btn btn-sm btn-success" onClick={e => { e.stopPropagation(); collectFor(r); }}>Collect</button>
+                                                            </td>
+                                                       </tr>
+                                                  );
+                                             })}
+                                        </tbody>
+                                   </table>
+                              </div>
+
+                              {outstandingList && (
+                                   <div className="d-flex align-items-center justify-content-between p-3 border-top">
+                                        <small className="text-muted">Page {outstandingList.page} · showing {outstandingList.records.length} of {outstandingList.summary.bills}</small>
+                                        <div className="btn-group">
+                                             <button className="btn btn-sm btn-outline-secondary" disabled={listPage <= 1 || listLoading} onClick={() => setListPage(p => p - 1)}>← Prev</button>
+                                             <button className="btn btn-sm btn-outline-secondary" disabled={listPage * outstandingList.count >= outstandingList.summary.bills || listLoading} onClick={() => setListPage(p => p + 1)}>Next →</button>
+                                        </div>
+                                   </div>
+                              )}
                          </div>
                          ) : isLoading && billingRecords.length === 0 ? (
                               <div className="p-3" style={{ minHeight: 320 }}>
@@ -437,27 +608,27 @@ export default function CashCollection() {
                          ) : (
                               <div className="row g-0">
 
-                                   <div className="col-12 col-lg-4 border-end" style={{ height: panelHeight, overflowY: 'auto' }}>
+                                   <div className="                                   col-12 col-md-5 col-xl-4 border-end bg-body-tertiary" style={{ height: panelHeight, overflowY: 'auto' }}>
                                         <div className="p-2">
-                                             <div className="d-flex align-items-center justify-content-between mb-2 px-1">
-                                                  <span className="text-muted fw-semibold text-uppercase" style={{ fontSize: '0.8rem', letterSpacing: '0.5px' }}>
-                                                       Billing Records <span className="badge bg-primary rounded-pill ms-1">{billingRecords.length}</span>
-                                                  </span>
-                                                  <div className="d-flex gap-2">
-                                                       <div className="input-group input-group-sm" style={{ width: 160 }}>
-                                                            <span className="input-group-text bg-warning-subtle border-warning-subtle" style={{ fontSize: '0.75rem' }}>Waive.</span>
-                                                            <input 
-                                                                 type="number" 
-                                                                 className="form-control border-warning-subtle" 
-                                                                 placeholder="Global..." 
-                                                                 value={globalWaiveOff}
-                                                                 onChange={e => applyGlobalWaiveOff(e.target.value)}
-                                                                 style={{ fontSize: '0.85rem' }}
-                                                            />
-                                                       </div>
-                                                       <button className="btn btn-sm btn-success px-2" style={{ fontSize: '0.85rem' }} onClick={payAllOutstanding}>
-                                                            ✓ Pay All
+                                             <div className="mb-2">
+                                                  <div className="d-flex align-items-center justify-content-between mb-2">
+                                                       <span className="text-uppercase fw-semibold text-body-secondary" style={{ fontSize: '0.8rem', letterSpacing: '0.6px' }}>
+                                                            Open bills <span className="text-body-tertiary">({billingRecords.length})</span>
+                                                       </span>
+                                                       <button className="btn btn-link btn-sm p-0 text-decoration-none fw-semibold" style={{ fontSize: '0.72rem' }} onClick={payAllOutstanding}>
+                                                            Stage all
                                                        </button>
+                                                  </div>
+                                                  <div className="input-group input-group-sm">
+                                                       <span className="input-group-text bg-white text-body-secondary" style={{ fontSize: '0.7rem' }}>Waive-off all</span>
+                                                       <input
+                                                            type="number"
+                                                            className="form-control"
+                                                            placeholder="0.00"
+                                                            value={globalWaiveOff}
+                                                            onChange={e => applyGlobalWaiveOff(e.target.value)}
+                                                            style={{ fontSize: '0.75rem', textAlign: 'right' }}
+                                                       />
                                                   </div>
                                              </div>
 
@@ -468,57 +639,49 @@ export default function CashCollection() {
                                                   const isSelected  = selectedBillingId === record.billingid;
                                                   const hasAdjustment = netOutstanding !== outstanding;
                                                   
+                                                  const status = outstanding <= 0 ? 'SETTLED' : parseFloat(record.paid) > 0 ? 'PART-PAID' : 'UNPAID';
+                                                  const statusTone = outstanding <= 0 ? 'success' : parseFloat(record.paid) > 0 ? 'warning' : 'danger';
+
                                                   return (
                                                        <div
                                                             key={record.billingid}
                                                             onClick={() => setSelectedBillingId(record.billingid)}
-                                                            className={`rounded mb-2 border-2 ${isSelected ? 'border-primary' : 'border'}`}
+                                                            className={`rounded mb-2 border ${isSelected ? 'border-primary shadow-sm' : ''}`}
                                                             style={{
                                                                  cursor: 'pointer',
-                                                                 borderLeft: isSelected ? '4px solid #0d6efd' : '4px solid transparent',
+                                                                 borderLeft: `3px solid var(--bs-${statusTone})`,
                                                                  background: isSelected ? '#f0f6ff' : '#fff',
-                                                                 transition: 'all 0.15s ease',
-                                                                 padding: '10px 12px'
+                                                                 padding: '12px 14px',
+                                                                 fontSize: '1rem'
                                                             }}
                                                        >
-                                                            <div className="d-flex align-items-center justify-content-between">
-                                                                 <span className="fw-bold" style={{ fontSize: "1rem" }}>#{record.billingid}</span>
-                                                                 <div className="d-flex align-items-center gap-1">
-                                                                      {staged > 0 && (
-                                                                           <span className="badge bg-success" style={{ fontSize: '0.82rem' }}>
-                                                                                ₵{staged.toFixed(2)} staged
-                                                                           </span>
-                                                                      )}
-                                                                      {record.isAdjustment === 1 && (
-                                                                           <span className="badge bg-warning text-dark" style={{ fontSize: '0.78rem' }}>ADJ</span>
-                                                                      )}
-                                                                 </div>
+                                                            <div className="d-flex justify-content-between align-items-baseline">
+                                                                 <span className="fw-semibold">#{record.billingid}</span>
+                                                                 <span className={`fw-bold text-${outstanding > 0 ? 'danger' : 'secondary'}`} style={{ fontVariantNumeric: 'tabular-nums', textDecoration: hasAdjustment ? 'line-through' : 'none', opacity: hasAdjustment ? 0.6 : 1 }}>
+                                                                      ₵{outstanding.toFixed(2)}
+                                                                 </span>
                                                             </div>
-                                                            <span className="text-muted d-block mt-1" style={{ fontSize: "0.88rem" }}>
-                                                                 {new Date(record.billedon).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                                            </span>
-                                                            <div className="mt-2">
-                                                                 <div className="d-flex justify-content-between">
-                                                                      <span className="text-success fw-semibold" style={{ fontSize: "0.85rem" }}>Paid: ₵{parseFloat(record.paid).toFixed(2)}</span>
-                                                                      <span className={`fw-bold ${outstanding > 0 ? 'text-danger' : 'text-muted'}`} style={{ fontSize: "0.85rem", textDecoration: hasAdjustment ? 'line-through' : 'none', opacity: hasAdjustment ? 0.6 : 1 }}>
-                                                                           Bal: ₵{outstanding.toFixed(2)}
-                                                                      </span>
-                                                                 </div>
-                                                                 {hasAdjustment && (
-                                                                      <div className="text-end">
-                                                                           <span className="badge bg-primary-subtle text-primary border border-primary-subtle" style={{ fontSize: '0.85rem' }}>
-                                                                                Net Bal: ₵{netOutstanding.toFixed(2)}
-                                                                           </span>
-                                                                      </div>
-                                                                 )}
+                                                            <div className="d-flex justify-content-between align-items-center text-body-secondary" style={{ fontSize: '0.9rem' }}>
+                                                                 <span>
+                                                                      {new Date(record.billedon).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' })}
+                                                                      <span className={`ms-2 text-${statusTone}-emphasis fw-semibold`}>{status}</span>
+                                                                 </span>
+                                                                 <span style={{ fontVariantNumeric: 'tabular-nums' }}>Paid ₵{parseFloat(record.paid).toFixed(2)}</span>
                                                             </div>
-                                                            {netOutstanding > 0 && (
+                                                            {(hasAdjustment || staged > 0 || record.isAdjustment === 1) && (
+                                                                 <div className="d-flex flex-wrap gap-1 mt-1">
+                                                                      {record.isAdjustment === 1 && <span className="badge bg-warning text-dark" style={{ fontSize: '0.75rem' }}>ADJ</span>}
+                                                                      {hasAdjustment && <span className="badge bg-primary-subtle text-primary" style={{ fontSize: '0.75rem' }}>Net ₵{netOutstanding.toFixed(2)}</span>}
+                                                                      {staged > 0 && <span className="badge bg-success" style={{ fontSize: '0.75rem' }}>₵{staged.toFixed(2)} staged</span>}
+                                                                 </div>
+                                                            )}
+                                                            {netOutstanding > 0 && isSelected && (
                                                                  <button
-                                                                       className="btn btn-outline-success w-100 mt-2"
-                                                                       style={{ fontSize: '0.92rem' }}
+                                                                      className="                                                                      btn btn-primary w-100 fw-semibold mt-2"
+                                                                                                                                            style={{ fontSize: '0.95rem', padding: '8px 0' }}
                                                                       onClick={e => { e.stopPropagation(); payBillingRecord(record.billingid); }}
                                                                  >
-                                                                      Pay This Bill
+                                                                      Stage full balance
                                                                  </button>
                                                             )}
                                                        </div>
@@ -527,7 +690,7 @@ export default function CashCollection() {
                                         </div>
                                    </div>
 
-                                   <div className="col-12 col-lg-8 d-flex flex-column" style={{ height: panelHeight }}>
+                                   <div className="col-12 col-md-7 col-xl-8 d-flex flex-column" style={{ height: panelHeight }}>
 
                                         {selectedRecord ? (
                                              <>
@@ -535,31 +698,37 @@ export default function CashCollection() {
                                                        <div className="p-3">
                                                             <div className="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
                                                                  <div>
-                                                                      <h5 className="mb-0 fw-bold">Services</h5>
+                                                                      <h5 className="mb-0 fw-bold fs-6">Services</h5>
                                                                       <span className="text-muted" style={{ fontSize: "0.9rem" }}>Billing #{selectedRecord.billingid}</span>
                                                                  </div>
-                                                                 <span className="badge bg-secondary" style={{ fontSize: "0.85rem" }}>{selectedRecord.serviceDetails.length} service(s)</span>
+                                                                 <div className="d-flex align-items-center gap-3">
+                                                                      <div className="form-check form-switch mb-0">
+                                                                           <input className="form-check-input" type="checkbox" role="switch" id="hide-paid" checked={hidePaid} onChange={e => setHidePaid(e.target.checked)} />
+                                                                           <label className="form-check-label small text-muted" htmlFor="hide-paid">Hide fully paid</label>
+                                                                      </div>
+                                                                      <span className="badge bg-secondary" style={{ fontSize: "0.85rem" }}>{selectedRecord.serviceDetails.length} service(s)</span>
+                                                                 </div>
                                                             </div>
 
                                                             {selectedRecord.adjustmentReason && (
-                                                                 <div className="alert alert-warning py-2 px-3 mb-2" style={{ fontSize: "0.95rem" }}>
-                                                                      ⚠ Adjustment: {selectedRecord.adjustmentReason}
+                                                                 <div className="border-start border-3 border-warning bg-body-tertiary py-1 px-3 mb-2 small text-body-secondary">
+                                                                      <span className="fw-semibold">Adjustment:</span> {selectedRecord.adjustmentReason}
                                                                  </div>
                                                             )}
 
-                                                            <table className="table align-middle mb-0" style={{ fontSize: '0.97rem' }}>
+                                                            <table className="table table-hover align-middle mb-0" style={{ fontSize: '0.82rem', fontVariantNumeric: 'tabular-nums' }}>
                                                                  <thead className="table-light sticky-top" style={{ top: 0, zIndex: 10 }}>
                                                                       <tr>
                                                                            <th>Service</th>
                                                                            <th className="text-end">Payable</th>
                                                                            <th className="text-end">Paid</th>
                                                                            <th className="text-end">Balance</th>
-                                                                           <th style={{ width: 120 }}>Waive-off</th>
-                                                                           <th style={{ width: 190 }}>Payment</th>
+                                                                           <th className="text-end" style={{ width: 120 }}>Waive-off</th>
+                                                                           <th className="text-end" style={{ width: 200 }}>Payment</th>
                                                                       </tr>
                                                                  </thead>
                                                                  <tbody>
-                                                                      {selectedRecord.serviceDetails.map(service => {
+                                                                      {selectedRecord.serviceDetails.filter(s => !(hidePaid && s.paymentstatus === 'paid' && selectedRecord.serviceDetails.some(o => o.paymentstatus !== 'paid'))).map(service => {
                                                                            const paid    = parseFloat(service.paidamount);
                                                                            const payable = parseFloat(service.totalpayable);
                                                                            const balance = payable - paid;
@@ -610,7 +779,7 @@ export default function CashCollection() {
                                                                                      <td>
                                                                                           {!isPaid && balance > 0 ? (
                                                                                                <div>
-                                                                                                    <div className="d-flex align-items-center gap-2">
+                                                                                                    <div className="d-flex align-items-center justify-content-end gap-2">
                                                                                                          <input
                                                                                                               type="number"
                                                                                                               className={`form-control ${hasError ? 'border-danger' : staged > 0 ? 'border-warning' : ''}`}
@@ -625,6 +794,7 @@ export default function CashCollection() {
                                                                                                          <button
                                                                                                               className="btn btn-outline-primary"
                                                                                                               style={{ fontSize: '0.85rem', whiteSpace: 'nowrap' }}
+                                                                                                              disabled={Math.abs(staged - balance) < 0.005 && waive === 0}
                                                                                                               onClick={() => {
                                                                                                                    setStagedData(prev => ({
                                                                                                                         ...prev,
@@ -664,7 +834,7 @@ export default function CashCollection() {
                                                             <div className="d-flex flex-wrap align-items-center gap-2">
                                                                  <div className="me-auto">
                                                                       <div className="fw-bold text-success lh-1" style={{ fontSize: "1.6rem" }}>
-                                                                           {totalReady.toFixed(2)}
+                                                                           {money(totalReady)}
                                                                       </div>
                                                                       <div className="d-flex gap-2 mt-1">
                                                                            {totalWaiveOff > 0 && <span className="badge bg-warning text-dark" style={{ fontSize: '0.75rem' }}>Waive-off: ₵{totalWaiveOff.toFixed(2)}</span>}
@@ -672,26 +842,49 @@ export default function CashCollection() {
                                                                       <small className="text-muted">{stagedEntries.length} service(s) ready</small>
                                                                  </div>
 
-                                                                 <div>
-                                                                      <select
-                                                                           className={`form-select ${!globalPaymentMode ? 'border-warning' : 'border-success'}`}
-                                                                           style={{ width: 195, fontSize: '0.95rem' }}
-                                                                           value={globalPaymentMode}
-                                                                           onChange={e => setGlobalPaymentMode(e.target.value ? parseInt(e.target.value) : '')}
-                                                                      >
-                                                                           <option value="">⚠ Select method…</option>
+                                                                 <div style={{ maxWidth: 380 }}>
+                                                                      <div className="d-flex flex-wrap gap-1" role="radiogroup" aria-label="Payment method">
                                                                            {paymentModes.map(m => (
-                                                                                <option key={m.KeyID} value={m.KeyID}>{m.PaymentMode}</option>
+                                                                                <button
+                                                                                     key={m.KeyID}
+                                                                                     type="button"
+                                                                                     role="radio"
+                                                                                     aria-checked={globalPaymentMode === m.KeyID}
+                                                                                     className={`btn btn-sm ${globalPaymentMode === m.KeyID ? 'btn-success' : 'btn-outline-secondary'}`}
+                                                                                     onClick={() => setGlobalPaymentMode(m.KeyID)}
+                                                                                >
+                                                                                     {m.PaymentMode}
+                                                                                </button>
                                                                            ))}
-                                                                      </select>
+                                                                      </div>
                                                                       {!globalPaymentMode && (
                                                                            <small className="text-warning fw-medium d-block mt-1" style={{ fontSize: '0.72rem' }}>
-                                                                                ← Required to proceed
+                                                                                Select a payment method to proceed
                                                                            </small>
                                                                       )}
                                                                  </div>
 
-                                                                 <button className="btn btn-sm btn-outline-secondary" onClick={() => { setStagedData({}); setGlobalWaiveOff(''); }}>
+                                                                 {isCashMode && (
+                                                                      <div style={{ width: 170 }}>
+                                                                           <input
+                                                                                type="number"
+                                                                                min={0}
+                                                                                step="0.01"
+                                                                                className="form-control form-control-sm"
+                                                                                placeholder="Cash received"
+                                                                                aria-label="Cash received"
+                                                                                value={tendered}
+                                                                                onChange={e => setTendered(e.target.value)}
+                                                                           />
+                                                                           {changeDue !== null && (
+                                                                                <small className={`d-block fw-semibold ${changeDue < 0 ? 'text-danger' : 'text-success'}`}>
+                                                                                     {changeDue < 0 ? `Short by ${money(-changeDue)}` : `Change: ${money(changeDue)}`}
+                                                                                </small>
+                                                                           )}
+                                                                      </div>
+                                                                 )}
+
+                                                                 <button className="btn btn-sm btn-outline-secondary" onClick={() => { setStagedData({}); setGlobalWaiveOff(''); setTendered(''); }}>
                                                                       Clear
                                                                  </button>
                                                                  <button
