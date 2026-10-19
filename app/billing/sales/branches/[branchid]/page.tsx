@@ -12,6 +12,7 @@ import { handleDatePicker } from "../../../../../components/serverActions/Action
 import { RiSearchLine } from "@remixicon/react";
 import { useApplicationSettings } from "../../../../../components/Auth/useApplicationContext";
 import DateFilterReusable from "../../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
+import SalesReportModal from "../../../../../components/Billing/SalesReportModal";
 
 export default function DailySalesViewCustomerRepresentative({ params, searchParams }: {
 	params: {
@@ -26,6 +27,7 @@ export default function DailySalesViewCustomerRepresentative({ params, searchPar
 	const router = useRouter();
 	const role = user?.role?.toLowerCase();
 	const canViewAdvancedSales = roleAllowed(role, ["admin", "accountant"]);
+	const canExportSalesReport = roleAllowed(role, ["admin", "accountant", "manager"]);
 	const isDailyRestrictedView = !!role && !canViewAdvancedSales;
 	const getTodayDateString = () => {
 		const today = new Date();
@@ -150,6 +152,11 @@ export default function DailySalesViewCustomerRepresentative({ params, searchPar
 
 	return (
 		<div>
+			{canExportSalesReport && (
+				<div className="d-flex justify-content-end mt-3">
+					<SalesReportModal key={branchIdState} branchId={branchIdState} from={activeQuery.from} to={activeQuery.to} />
+				</div>
+			)}
 			{isDailyRestrictedView ? (
 				<div className="d-flex align-items-center justify-content-between mt-3 mb-3 flex-wrap gap-2">
 					<span className="text-muted small">Showing sales for today only</span>

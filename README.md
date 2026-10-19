@@ -53,6 +53,30 @@ Submitting a request is not a confirmed bill or payment. Staff review incoming
 requests under **Patient Portal Administration → Test requests** before creating
 a General bill; patients can then see the resulting bill under **Billing**.
 
+## Printable sales and expenses report
+
+In **Daily Sales**, select a branch and choose **Sales & Expenses Report**
+(administrator, accountant or manager). Choose a day or an inclusive date range,
+then **Generate report**. The report uses the facility letterhead and logo, and
+supports PDF preview, **Print**, and **Download PDF**. Uncheck the detail-list
+option for a summary-only report. All rows are fetched from the report endpoint,
+not just the visible table page.
+
+The summary distinguishes sales billed in the period from payments collected
+during it, including collections on older bills. Expenses use actual payments,
+not unpaid expense invoices. Net cash movement is collections minus expense
+payments; it is not profit or an opening/closing bank balance. Outstanding figures
+are current balances on the selected period's bills, not reconstructed historical
+balances. The full report includes transactions, collections, expense payments
+and outstanding balances by bill, plus payment-method and billing-source summaries.
+No bills or payments are created by generating a report.
+
+Focused report checks:
+
+```powershell
+pnpm exec node --test tests\sales-report.test.cjs
+```
+
 ## Adaptive laboratory billing
 
 After patient selection or registration, facilities using only General / Cash
