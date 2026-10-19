@@ -594,7 +594,8 @@ const ApplicationSettingsLinks: Link[] = [
           children: [
                { title: "Company Info", link: "/settings/companyprofile", icon: <RiBuildingLine /> },
                { title: "Branches", link: "/settings/branches", icon: <RiBuilding2Line /> },
-               { title: "Taxes", link: "/settings/tax", icon: <RiMoneyDollarCircleLine /> }
+               { title: "Taxes", link: "/settings/tax", icon: <RiMoneyDollarCircleLine /> },
+               { title: "Online Payments", link: "/settings/payment-gateways", icon: <RiMoneyDollarCircleLine />, roles: ['admin', 'super-admin', 'super_admin', 'accountant'] }
           ]
      },
      {

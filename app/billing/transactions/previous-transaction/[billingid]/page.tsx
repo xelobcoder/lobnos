@@ -14,6 +14,7 @@ import { useApplication } from '../../../../../components/Auth/useApplicationCon
 import { roleAllowed } from '../../../../../components/Auth/roles';
 import { set } from 'react-hook-form';
 import dayjs, { Dayjs } from 'dayjs';
+import BillOnlinePayment from './BillOnlinePayment';
 
 
 interface AnalyticCardProps {
@@ -1047,6 +1048,7 @@ export default function PreviousTransactionSummaryPage() {
 							</div>
 						</div>
 					</div>
+					<BillOnlinePayment billingId={Number(billingdata.billingid ?? params?.billingid)} outstanding={Number(billingdata.outstanding) || 0} />
 					<div className="card border-0 mt-5">
 						<div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: 'var(--bs-border-color)' }}>
 							<h5 className="mb-0 fw-semibold text-body-emphasis">Services Details</h5>

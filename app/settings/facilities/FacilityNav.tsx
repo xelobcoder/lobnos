@@ -9,6 +9,7 @@ const TABS = [
      { href: "/settings/facilities/plans", label: "Subscription plans" },
      { href: "/settings/facilities/applications", label: "Website applications" },
      { href: "/settings/facilities/payments", label: "Payments & subscriptions" },
+     { href: "/settings/facilities/transactions", label: "Online payments" },
      { href: "/settings/facilities/sms", label: "SMS configuration" },
      { href: "/settings/facilities/devices", label: "Medical Device Interfacing" },
      { href: "/settings/facilities/audit", label: "Audit logs" },

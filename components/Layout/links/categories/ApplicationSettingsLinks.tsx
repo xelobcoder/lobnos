@@ -64,7 +64,8 @@ export const ApplicationSettingsLinks: Link[] =
                 { title: "Referral Codes", link: "/settings/applicationsettings/referral-codes", icon: <RiGift2Line />, roles: ['admin', 'super-admin', 'super_admin'] },
                 { title: "Patient Portal", link: "/settings/applicationsettings/patient-portal", icon: <RiUserHeartLine />, roles: ['admin', 'manager', 'super-admin', 'super_admin'] },
                 { title: "Branches", link: "/settings/branches", icon: <RiBuilding2Line /> },
-                { title: "Taxes", link: "/settings/tax", icon: <RiMoneyDollarCircleLine /> }
+                { title: "Taxes", link: "/settings/tax", icon: <RiMoneyDollarCircleLine /> },
+                { title: "Online Payments", link: "/settings/payment-gateways", icon: <RiMoneyDollarCircleLine />, roles: ['admin', 'super-admin', 'super_admin', 'accountant'] }
             ]
         },
         {
