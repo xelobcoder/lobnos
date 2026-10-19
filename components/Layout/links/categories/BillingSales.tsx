@@ -90,17 +90,17 @@ export const BillingSalesLink: Link[] = [
         link: "/clinician/new",
         icon: <RiUserSettingsLine />
     },
-    {
-        title: "Refund Management",
-        link: "/billing/refund",
-        icon: <RiRefundLine />
-    },
-    {
-        title: "Staff FOC Benefit",
-        link: "/billing/foc",
-        icon: <RiMoneyDollarCircleLine />,
-        roles: ['admin', 'super-admin', 'super_admin', 'accountant']
-    },
+    // {
+    //     title: "Refund Management",
+    //     link: "/billing/refund",
+    //     icon: <RiRefundLine />
+    // },
+    // {
+    //     title: "Staff FOC Benefit",
+    //     link: "/billing/foc",
+    //     icon: <RiMoneyDollarCircleLine />,
+    //     roles: ['admin', 'super-admin', 'super_admin', 'accountant']
+    // },
     {
         title: "Organization Invoices",
         link: "/billing/organization-invoices",
