@@ -66,8 +66,17 @@ export default function PrimeTable({
 	const exportRootRef = useRef(null);
 	const exportSourceRef = useRef(null);
 
-	const exportTitle = () =>
-		(pdfTitle || document.querySelector("[data-pdf-title]")?.textContent || document.querySelector("main h1, main h2, main h3, main h4, h1, h2, h3, h4")?.textContent || "Report").trim();
+	// Never fall back to navbar/sidebar headings: those hold the company name, which is already in the letterhead.
+	const exportTitle = () => {
+		if (pdfTitle) return pdfTitle.trim();
+		const chrome = "nav, header, aside, footer, .navbar, .sidebar, [role='navigation'], .offcanvas, .modal";
+		const heading = Array.from(document.querySelectorAll("[data-pdf-title], main h1, main h2, main h3, main h4, h1, h2, h3, h4")).find(
+			(el) => !el.closest(chrome) && el.textContent?.trim()
+		);
+		if (heading) return heading.textContent.replace(/[^\p{L}\p{N}\s&()/'-]/gu, "").replace(/\s+/g, " ").trim();
+		const segment = window.location.pathname.split("/").filter((s) => s && !/^\d+$/.test(s)).pop() || "report";
+		return segment.replace(/[-_]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+	};
 
 	// Server-paginated tables export every page (not just the one on screen) by reusing the page's
 	// own fetch handler, then rendering the rows offscreen with the same column renderers.

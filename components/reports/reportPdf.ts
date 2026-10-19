@@ -439,7 +439,7 @@ export function buildReportPdf(rawSpec: ReportPdfSpec, branding: CompanyBranding
 	doc.setFont("helvetica", "bold");
 	doc.setFontSize(17);
 	doc.setTextColor(...ACCENT);
-	const titleLines = doc.splitTextToSize(spec.title, 110);
+	const titleLines = doc.splitTextToSize(spec.title.toUpperCase(), 110);
 	doc.text(titleLines, pageWidth - margin, y + 6, { align: "right" });
 	doc.setFont("helvetica", "normal");
 	doc.setFontSize(8.5);
@@ -548,7 +548,7 @@ export function buildReportPdf(rawSpec: ReportPdfSpec, branding: CompanyBranding
 		doc.setFont("helvetica", "normal");
 		doc.setFontSize(7.5);
 		doc.setTextColor(...MUTED);
-		doc.text([company.name, spec.title].filter(Boolean).join("  ·  "), margin, pageHeight - 6);
+		doc.text([company.name, spec.title.toUpperCase()].filter(Boolean).join("  ·  "), margin, pageHeight - 6);
 		doc.text(`Generated ${generated}`, pageWidth / 2, pageHeight - 6, { align: "center" });
 		doc.text(`Page ${i} of ${total}`, pageWidth - margin, pageHeight - 6, { align: "right" });
 	}

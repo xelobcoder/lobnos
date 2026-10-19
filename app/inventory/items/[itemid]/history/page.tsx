@@ -404,7 +404,7 @@ export default function ItemHistoryPage() {
                     </div>
                )}
 
-               <PrimeTable pdfExport
+               <PrimeTable pdfExport pdfTitle="Item Transaction History"
                     column={transactionColumns}
                     data={transactions}
                     filtering={true}

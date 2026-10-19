@@ -472,7 +472,7 @@ export default function ReceivedItemsHistoryPage() {
                {/* Results Table */}
                <div className="mb-4">
                     <h5 className="mb-3">Orders ({filteredOrders.length})</h5>
-                    <PrimeTable pdfExport
+                    <PrimeTable pdfExport pdfTitle="Orders History"
                          column={orderColumns}
                          data={filteredOrders}
                          filtering={false}

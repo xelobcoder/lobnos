@@ -1324,7 +1324,7 @@ export default function PurchaseOrdersPage() {
                </div>
 
                {/* Orders Table */}
-               <PrimeTable pdfExport
+               <PrimeTable pdfExport pdfTitle="Purchase Orders"
                     column={orderColumns}
                     data={purchaseOrders}
                     filtering={true}

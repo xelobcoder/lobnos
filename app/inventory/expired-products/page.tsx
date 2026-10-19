@@ -295,7 +295,7 @@ export default function ExpiredProductsPage() {
                </div>
 
                {/* Expired Batches Table */}
-               <PrimeTable pdfExport
+               <PrimeTable pdfExport pdfTitle="Expired Products"
                     column={expiredBatchesColumns}
                     data={expiredBatches}
                     filtering={true}

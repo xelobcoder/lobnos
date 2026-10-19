@@ -413,7 +413,7 @@ export default function JournalPage() {
                </Offcanvas>
 
                {/* Journal Entries Table */}
-               <PrimeTable pdfExport
+               <PrimeTable pdfExport pdfTitle="Supplier Payments Journal"
                     column={journalColumns}
                     data={entries || []}
                     filtering={true}

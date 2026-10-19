@@ -340,7 +340,7 @@ export default function ExpiredConsumptionHistoryPage() {
                </div>
 
                {/* Consumption History Table */}
-               <PrimeTable pdfExport
+               <PrimeTable pdfExport pdfTitle="Expired Products Consumption History"
                     column={consumptionHistoryColumns}
                     data={consumptionHistory}
                     filtering={true}
