@@ -76,7 +76,7 @@ export default function CostAnalyticsPage() {
                          <p className="text-muted mb-0">Inventory cost analysis by category and trends</p>
                     </div>
                     <div className="d-flex gap-2">
-                         <ExportPdfButton title="Cost Analytics" className="btn btn-outline-danger d-inline-flex align-items-center gap-1" />
+                         <ExportPdfButton title="Cost Analytics" />
                          <button
                               className="btn btn-outline-primary"
                               onClick={loadCostAnalytics}

@@ -129,7 +129,6 @@ export default function PaymentDetailsPage() {
                               title="Payment Details"
                               subtitle={`Payment ${payment.payment_id}`}
                               filters={[`Supplier: ${payment.supplier_name}`]}
-                              className="btn btn-outline-danger d-inline-flex align-items-center gap-1"
                          />
                          <button
                               className="btn btn-outline-primary"

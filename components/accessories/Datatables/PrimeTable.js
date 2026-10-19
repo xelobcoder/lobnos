@@ -9,6 +9,7 @@ import TableLoading from "./TableLoading";
 import style from "./PrimeTable.module.css";
 import "../../../styles/prime-table.css";
 import { ButtonGroup } from "react-bootstrap";
+import { RiFilePdf2Line } from "@remixicon/react";
 
 /** Plain rendering of the full export dataset with the table's own column renderers. */
 function ExportRowsTable({ columns, data }) {
@@ -452,30 +453,31 @@ export default function PrimeTable({
 								<GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
 							</div>
 						)}
-						{(isExpoerted || pdfExport) && (
+						{isExpoerted && (
 							<ButtonGroup
 								className="d-flex justify-content-end"
 								aria-label="Export options"
 								size="sm"
 							>
-								{isExpoerted && (
-									<button
-										type="button"
-										className="btn btn-sm btn-outline-secondary"
-										onClick={exportCsv}
-									>
-										excel
-									</button>
-								)}
 								<button
 									type="button"
 									className="btn btn-sm btn-outline-secondary"
-									disabled={pdfBusy}
-									onClick={exportPdf}
+									onClick={exportCsv}
 								>
-									{pdfBusy ? "Preparing…" : "PDF"}
+									excel
 								</button>
 							</ButtonGroup>
+						)}
+						{(isExpoerted || pdfExport) && (
+							<button
+								type="button"
+								className="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1"
+								disabled={pdfBusy}
+								onClick={exportPdf}
+								data-pdf-ignore
+							>
+								<RiFilePdf2Line size={16} /> {pdfBusy ? "Preparing…" : "Export PDF"}
+							</button>
 						)}
 					</div>
 				</div>
