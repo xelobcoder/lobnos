@@ -402,7 +402,7 @@ export function buildReportPdf(rawSpec: ReportPdfSpec, branding: CompanyBranding
 	const pageHeight = doc.internal.pageSize.getHeight();
 	const margin = 12;
 	const contentWidth = pageWidth - margin * 2;
-	doc.setProperties({ title: spec.title, subject: "PLS report", creator: "Prime Laboratory Software" });
+	doc.setProperties({ title: spec.title.toUpperCase(), subject: "PLS report", creator: "Prime Laboratory Software" });
 
 	// ── Letterhead ──────────────────────────────────────────
 	let y = margin;
@@ -492,7 +492,7 @@ export function buildReportPdf(rawSpec: ReportPdfSpec, branding: CompanyBranding
 			doc.setFont("helvetica", "bold");
 			doc.setFontSize(10);
 			doc.setTextColor(...INK);
-			doc.text(table.heading, margin, y + 3);
+			doc.text(table.heading.toUpperCase(), margin, y + 3);
 			y += 6;
 		}
 		// Many columns get a smaller (still legible) font instead of being clipped.
@@ -522,7 +522,7 @@ export function buildReportPdf(rawSpec: ReportPdfSpec, branding: CompanyBranding
 			: [[{ content: "No records found.", colSpan: width, styles: { halign: "center", textColor: MUTED } }]];
 		autoTable(doc, {
 			startY: y,
-			head: table.head?.length ? [table.head.map((h, i) => ({ content: h, styles: { halign: align[i] } }))] : undefined,
+			head: table.head?.length ? [table.head.map((h, i) => ({ content: h.toUpperCase(), styles: { halign: align[i] } }))] : undefined,
 			body,
 			foot: table.foot?.length ? table.foot.map(mapRow) : undefined,
 			showHead: "everyPage",
