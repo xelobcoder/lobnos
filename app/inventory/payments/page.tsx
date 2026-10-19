@@ -559,7 +559,7 @@ export default function PaymentsPage() {
                </Offcanvas>
 
                {/* Payments Table */}
-               <PrimeTable
+               <PrimeTable pdfExport
                     column={paymentColumns}
                     data={payments || []}
                     filtering={true}

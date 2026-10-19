@@ -255,7 +255,7 @@ export default function StockWastagePage() {
 
                {/* Wastage Records Table */}
                {!showOffcanvas && (
-                    <PrimeTable
+                    <PrimeTable pdfExport
                          column={wastageColumns}
                          data={wastageRecords}
                          filtering={true}

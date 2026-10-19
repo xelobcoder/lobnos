@@ -490,6 +490,24 @@ export const accountingApi = {
           return customFetch(`${BASE}/subledger/${ledger}/balances${query({ asOf, ...paging })}`);
      },
 
+     ledgerCoverage(): Promise<
+          ApiResponse<{
+               goLive: string | null;
+               lines: {
+                    module: string;
+                    document: string;
+                    total: number;
+                    posted: number;
+                    missingPreGoLive: number;
+                    missingPostGoLive: number;
+                    amountMissingPostGoLive: number;
+               }[];
+               billDrift: { billingid: number; payable: number; ledger: number; difference: number }[];
+          }>
+     > {
+          return customFetch(`${BASE}/reconciliation/coverage${query({})}`);
+     },
+
      subledgerReconcile(
           ledger: "AR" | "AP",
           asOf?: string

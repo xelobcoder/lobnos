@@ -299,7 +299,7 @@ export default function SuppliersPage() {
                </div>
 
 
-               <PrimeTable
+               <PrimeTable pdfExport
                     column={supplierColumns}
                     data={suppliers}
                     filtering={true}

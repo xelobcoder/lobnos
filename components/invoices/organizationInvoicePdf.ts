@@ -101,23 +101,23 @@ export function formatDate(value: string | null | undefined): string {
 	return date.toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" });
 }
 
-function phone(value: unknown): string {
+export function phone(value: unknown): string {
 	if (value === null || value === undefined || value === "") return "";
 	const text = String(value).trim();
 	// Legacy numeric phone columns drop the leading zero.
 	return /^\d{9}$/.test(text) ? `0${text}` : text;
 }
 
-function imageFormat(dataUrl: string): string {
+export function imageFormat(dataUrl: string): string {
 	const match = /^data:image\/(png|jpe?g|webp)/i.exec(dataUrl);
 	if (!match) return "PNG";
 	return match[1].toLowerCase().startsWith("jp") ? "JPEG" : match[1].toUpperCase();
 }
 
-const INK: [number, number, number] = [33, 37, 41];
-const MUTED: [number, number, number] = [108, 117, 125];
-const ACCENT: [number, number, number] = [20, 61, 110];
-const LIGHT: [number, number, number] = [236, 241, 247];
+export const INK: [number, number, number] = [33, 37, 41];
+export const MUTED: [number, number, number] = [108, 117, 125];
+export const ACCENT: [number, number, number] = [20, 61, 110];
+export const LIGHT: [number, number, number] = [236, 241, 247];
 
 export function buildOrganizationInvoicePdf(detail: OrganizationInvoiceDetail, logoDataUrl?: string | null): jsPDF {
 	const { invoice, lines, payments } = detail;

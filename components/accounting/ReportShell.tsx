@@ -2,6 +2,7 @@
 import dayjs from "dayjs";
 import React from "react";
 import { RiPrinterLine } from "@remixicon/react";
+import ExportPdfButton from "../reports/ExportPdfButton";
 
 interface Props {
      title: string;
@@ -24,6 +25,7 @@ export default function ReportShell({ title, subtitle, reportTitle, range, filte
                  
                     <div className="d-flex align-items-center gap-2">
                          {actions}
+                         <ExportPdfButton title={reportTitle || title} subtitle={subtitle} period={range} targetSelector="[data-pdf-root]" />
                          <button className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" onClick={() => window.print()}>
                               <RiPrinterLine size={16} /> Print
                          </button>
@@ -38,7 +40,7 @@ export default function ReportShell({ title, subtitle, reportTitle, range, filte
                     </div>
                )}
 
-               <div className="card border-0 shadow-sm">
+               <div className="card border-0 shadow-sm" data-pdf-root>
                     <div className="card-body">
                          {reportTitle && (
                               <div className="text-center mb-3">

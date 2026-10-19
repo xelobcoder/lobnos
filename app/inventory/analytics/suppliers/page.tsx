@@ -167,7 +167,7 @@ export default function SupplierAnalyticsPage() {
                     <div className="col-12">
                          <h5 className="mb-3">Supplier List ({pagination?.total || 0} total)</h5>
                          {suppliers.length > 0 ? (
-                              <PrimeTable
+                              <PrimeTable pdfExport
                                    column={columns}
                                    data={suppliers}
                                    filtering={true}

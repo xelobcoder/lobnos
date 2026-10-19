@@ -845,7 +845,7 @@ export default function InventoryItemsPage() {
                </div>
 
                {/* Items Table */}
-               <PrimeTable
+               <PrimeTable pdfExport
                     column={inventoryColumns}
                     data={inventoryItems}
                     filtering={true}

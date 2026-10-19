@@ -21,7 +21,15 @@ export default function ReconciliationPage() {
      const [lines, setLines] = useState<Line[]>([]);
      const [balanced, setBalanced] = useState(true);
      const [loading, setLoading] = useState(false);
+     const [coverage, setCoverage] = useState<any>(null);
      const latestRequest = useRef(0);
+
+     useEffect(() => {
+          accountingApi
+               .ledgerCoverage()
+               .then((res) => setCoverage(res?.result || null))
+               .catch(() => setCoverage(null));
+     }, []);
 
      const load = useCallback(async () => {
           const requestId = ++latestRequest.current;
@@ -126,6 +134,57 @@ export default function ReconciliationPage() {
                          </tbody>
                     </table>
                </div>
+
+               <h6 className="fw-semibold mt-4">Ledger coverage by module</h6>
+               <p className="text-muted small">
+                    Operational documents compared with ledger postings. Documents dated before go-live
+                    {coverage?.goLive ? ` (${dayjs(coverage.goLive).format("D MMM YYYY")})` : ""} need an opening-balance
+                    decision; any after go-live should be zero.
+               </p>
+               <div className="table-responsive">
+                    <table className="table table-sm align-middle">
+                         <thead className="table-light">
+                              <tr>
+                                   <th>Document</th>
+                                   <th className="text-end">Total</th>
+                                   <th className="text-end">Posted</th>
+                                   <th className="text-end">Missing (before go-live)</th>
+                                   <th className="text-end">Missing (after go-live)</th>
+                                   <th className="text-end">Amount missing</th>
+                              </tr>
+                         </thead>
+                         <tbody>
+                              {(coverage?.lines || []).map((l: any) => (
+                                   <tr key={l.document}>
+                                        <td>
+                                             <span className="text-capitalize text-muted me-1">{l.module}:</span>
+                                             {l.document}
+                                        </td>
+                                        <td className="text-end">{l.total}</td>
+                                        <td className="text-end">{l.posted}</td>
+                                        <td className="text-end text-muted">{l.missingPreGoLive}</td>
+                                        <td className={`text-end ${l.missingPostGoLive ? "text-danger fw-semibold" : ""}`}>
+                                             {l.missingPostGoLive}
+                                        </td>
+                                        <td className="text-end">{money(l.amountMissingPostGoLive)}</td>
+                                   </tr>
+                              ))}
+                              {!coverage && (
+                                   <tr>
+                                        <td colSpan={6} className="text-center text-muted">
+                                             Coverage is unavailable.
+                                        </td>
+                                   </tr>
+                              )}
+                         </tbody>
+                    </table>
+               </div>
+               {coverage?.billDrift?.length > 0 && (
+                    <div className="alert alert-warning py-2 small">
+                         {coverage.billDrift.length} bill(s) differ from their ledger receivable. Largest: bill #
+                         {coverage.billDrift[0].billingid} ({money(coverage.billDrift[0].difference)}).
+                    </div>
+               )}
 
                <p className="text-muted small mb-0">
                     A difference means a posting reached one side and not the other. Check Posting Exceptions for failed or

@@ -615,7 +615,7 @@ export default function StockConsumptionPage() {
                )}
 
                {/* Consumption Records Table */}
-               <PrimeTable
+               <PrimeTable pdfExport
                     urlparams={appliedFilters}
                     column={consumptionColumns}
                     data={consumptionRecords}

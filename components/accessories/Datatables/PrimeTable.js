@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTable, useGlobalFilter, useFilters, useSortBy } from "react-table";
 import GlobalFilter from "./GlobalFilter";
 import ShowTableDisplayCount from "./TableDisplayShowCount";
@@ -13,6 +13,7 @@ export default function PrimeTable({
 	data,
 	filtering = false,
 	isExpoerted = false,
+	pdfExport = false,
 	serverSideFiltering = false,
 	handleSeverSideProcessing,
 	urlparams = {},
@@ -26,6 +27,42 @@ export default function PrimeTable({
 		page: 1,
 	});
 	const [globalTheme, setGlobalTheme] = useState("PrimeLaboratoryTableStyling");
+	const [pdfBusy, setPdfBusy] = useState(false);
+	const tableWrapRef = useRef(null);
+
+	// Landscape PDF of the rows currently shown (after filtering), with company letterhead.
+	const exportPdf = async () => {
+		if (pdfBusy || !tableWrapRef.current) return;
+		setPdfBusy(true);
+		try {
+			const { exportReportPdf, tablesFromElement } = await import("../../reports/reportPdf");
+			const heading = document.querySelector("[data-pdf-title]")?.textContent || document.querySelector("h1, h2, h3, h4")?.textContent || "Report";
+			await exportReportPdf({
+				title: heading.trim(),
+				filters: serverSideFiltering ? [`Rows on current page: ${rows.length}`] : undefined,
+				tables: tablesFromElement(tableWrapRef.current),
+			});
+		} catch (error) {
+			console.error("PDF export failed", error);
+			alert("Unable to generate the PDF. Please try again.");
+		} finally {
+			setPdfBusy(false);
+		}
+	};
+
+	const exportCsv = async () => {
+		if (!tableWrapRef.current) return;
+		const { tablesFromElement, reportFileName } = await import("../../reports/reportPdf");
+		const heading = document.querySelector("[data-pdf-title]")?.textContent || document.querySelector("h1, h2, h3, h4")?.textContent || "Report";
+		const cell = (v) => `"${String(v).replace(/"/g, '""')}"`;
+		const lines = tablesFromElement(tableWrapRef.current).flatMap((t) => [t.head, ...t.body, ...(t.foot || [])].map((r) => r.map(cell).join(",")));
+		const url = URL.createObjectURL(new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" }));
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = reportFileName(heading.trim()).replace(/\.pdf$/, ".csv");
+		a.click();
+		URL.revokeObjectURL(url);
+	};
 
 	useEffect(() => {
 		// Initial check
@@ -95,6 +132,7 @@ export default function PrimeTable({
 	const hasControls =
 		filtering ||
 		isExpoerted ||
+		pdfExport ||
 		(serverSideFiltering && typeof handleSeverSideProcessing === "function");
 
 	const toogleUp = () => (
@@ -346,30 +384,28 @@ export default function PrimeTable({
 								<GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
 							</div>
 						)}
-						{isExpoerted && (
+						{(isExpoerted || pdfExport) && (
 							<ButtonGroup
 								className="d-flex justify-content-end"
 								aria-label="Export options"
 								size="sm"
 							>
+								{isExpoerted && (
+									<button
+										type="button"
+										className="btn btn-sm btn-outline-secondary"
+										onClick={exportCsv}
+									>
+										excel
+									</button>
+								)}
 								<button
 									type="button"
 									className="btn btn-sm btn-outline-secondary"
-									onClick={() => {
-										alert("PDF export is not implemented yet.");
-									}}
+									disabled={pdfBusy}
+									onClick={exportPdf}
 								>
-									excel
-								</button>
-
-								<button
-									type="button"
-									className="btn btn-sm btn-outline-secondary"
-									onClick={() => {
-										alert("PDF export is not implemented yet.");
-									}}
-								>
-									PDF
+									{pdfBusy ? "Preparing…" : "PDF"}
 								</button>
 							</ButtonGroup>
 						)}
@@ -377,7 +413,7 @@ export default function PrimeTable({
 				</div>
 			)}
 
-			<div className={style.tableViewport}>
+			<div className={style.tableViewport} ref={tableWrapRef}>
 				<table
 					className={`${style.table} ${style.tableCompact}`}
 
