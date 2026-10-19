@@ -63,15 +63,10 @@ function getPatientName(appointment) {
 
 function getWorkflowPath(appointment) {
 	const type = getAppointmentType(appointment);
-	let path = '';
-	if (type === 'laboratory') path = '/operations/laboratory';
-	if (type === 'ultrasound') path = '/operations/imaging/ultrasound';
 	if (type === 'follow_up' && appointment.lead_id) return `/crm/leads/followups/${appointment.lead_id}`;
-	if (!path) return '';
-	const params = new URLSearchParams();
-	if (appointment.patientid) params.set('patientid', appointment.patientid);
-	if (appointment.billingid) params.set('billingid', appointment.billingid);
-	return params.size ? `${path}?${params.toString()}` : path;
+	// Lab and ultrasound bookings open the recommendation page: review services, convert to a bill, then hand off.
+	if ((type === 'laboratory' || type === 'ultrasound') && appointment.refid) return `/appointments/${appointment.refid}/workflow`;
+	return '';
 }
 
 function CalendarToolbar({ label, onNavigate, onView, view }) {

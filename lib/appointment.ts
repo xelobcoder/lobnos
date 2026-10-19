@@ -57,6 +57,7 @@ export interface AppointmentData {
 	appointment_type?: "consultation" | "laboratory" | "ultrasound" | "follow_up";
 	lead_id?: number | null;
 	billingid?: number | null;
+	service_ids?: number[];
 	patientid?: number | null;
 	employeeid?: string | number;
 	title: string;
@@ -113,6 +114,7 @@ export const APPOINTMENT_DEFAULT_DATA: AppointmentData = {
 	appointment_type: "consultation",
 	lead_id: null,
 	billingid: null,
+	service_ids: [],
 	patientid: null,
 	title: "",
 	preference: "in person",
@@ -194,6 +196,9 @@ export const handleSubmitForm = async (
 				appointment_type: data.appointment_type || "consultation",
 				lead_id: data.lead_id || null,
 				billingid: data.billingid || null,
+				...(isWorkflowAppointmentType(data.appointment_type) && Array.isArray(data.service_ids) && data.service_ids.length
+					? { service_ids: data.service_ids.map(Number) }
+					: {}),
 				practioner: typeof data.practioner === 'object' ? (data.practioner.employeeid ?? data.practioner) : data.practioner,
 				preference: (data.preference as OptionType)?.value ?? data.preference,
 				purpose: data.purpose,
@@ -205,28 +210,91 @@ export const handleSubmitForm = async (
 				toast.error(`Missing or empty fields: ${missingFields.join(", ")}`, { position: "top-center" });
 				return false;
 			}
-			const pushData = await customPost(`appointments/create?employeeid=${data.employeeid}`, 'POST', request_data);
+			let pushData: any;
+			try {
+				pushData = await customPost(`appointments/create?employeeid=${data.employeeid}`, 'POST', request_data);
+			} catch (err) {
+				// Indeterminate: the request may have been saved before the connection dropped.
+				console.log(err, "error in appointment submission");
+				const existing = request_data.patientid
+					? await findExistingAppointment(request_data.patientid, request_data.appointment_date, request_data.appointment_time)
+					: null;
+				if (existing) {
+					toast.success(`The appointment was saved (#${existing.refid}).`, { position: "top-center" });
+					setTimeout(() => { window.location.href = '/appointments'; }, 1000);
+					return true;
+				}
+				toast.error("We could not confirm whether the appointment was saved. Check the calendar before trying again.", { position: "top-center" });
+				return false;
+			}
 			if (pushData?.success == true) {
 				toast.success("Appointment scheduled successfully", { position: "top-center" });
 				setTimeout(() => {
 					window.location.href = '/appointments';
 				}, 1000);
-			} else {
-				if (pushData?.success == false) {
-					toast.error("Appointment slot not available ", 3000);
-				}
-				else if (pushData?.status == "error") {
-					toast.error(pushData?.message || "Error Processing Information");
-				} else {
-					toast.error("something wrong occured", { position: "top-center" });
-				}
+				return true;
 			}
+			if (pushData?.status == "error" && pushData?.message) {
+				// 400 validation / 409 duplicate booking messages come straight from the server.
+				toast.error(pushData.message, { position: "top-center" });
+			} else if (pushData?.success == false) {
+				toast.error("The practitioner already has an appointment in this slot. Choose another time.", { position: "top-center" });
+			} else {
+				toast.error("Something went wrong, please try again later", { position: "top-center" });
+			}
+			return false;
 		}
 	} catch (err) {
 		console.log(err, "error in appointment submission");
 		toast.error("Something went wrong, please try again later", { position: "top-center" });
 	}
 };
+
+const normalizeDateKey = (value: unknown): string => {
+	if (!value) return "";
+	if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10);
+	const date = new Date(value as any);
+	if (isNaN(date.getTime())) return "";
+	const pad = (n: number) => String(n).padStart(2, "0");
+	return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+};
+
+/** Looks up a patient's live appointment at the given date/time (used after an indeterminate submit). */
+export async function findExistingAppointment(patientid: number | string, date: unknown, time: string): Promise<any | null> {
+	try {
+		const history = await customFetch(`appointments/client/previous?patientid=${patientid}&count=50&page=1`);
+		const rows = Array.isArray(history) ? history : Array.isArray(history?.data) ? history.data : [];
+		const day = normalizeDateKey(date);
+		return rows.find((row: any) =>
+			normalizeDateKey(row?.appointment_date) === day &&
+			String(row?.appointment_time ?? "").slice(0, 5) === String(time ?? "").slice(0, 5) &&
+			!/^cancel/i.test(String(row?.status ?? ""))
+		) ?? null;
+	} catch {
+		return null;
+	}
+}
+
+export const WORKFLOW_APPOINTMENT_TYPES = ["laboratory", "ultrasound"] as const;
+export const isWorkflowAppointmentType = (type: unknown): type is "laboratory" | "ultrasound" =>
+	WORKFLOW_APPOINTMENT_TYPES.includes(String(type ?? "").toLowerCase() as any);
+
+export interface AppointmentService {
+	id: number;
+	name: string;
+	price: number;
+	department: string | null;
+	missing?: boolean;
+}
+
+/** Billable services for a lab/ultrasound appointment, filtered by department on the server. */
+export async function loadAppointmentServices(type: string): Promise<AppointmentService[]> {
+	if (!isWorkflowAppointmentType(type)) return [];
+	const response = await customFetch(`appointments/services?appointment_type=${encodeURIComponent(type)}`);
+	return Array.isArray(response?.data) ? response.data : [];
+}
+
+export const appointmentWorkflowUrl = (refid: number | string) => `/appointments/${refid}/workflow`;
 
 // Validate appointment data, returns array of missing/empty field names
 export function validateAppointmentData(data: Record<string, any>): string[] {

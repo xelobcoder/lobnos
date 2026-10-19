@@ -920,6 +920,12 @@ const BillingSalesLink: Link[] = [
              icon: <RiMoneyDollarCircleLine />,
              roles: ['admin', 'super-admin', 'super_admin', 'accountant']
          },
+       {
+             title: "Organization Invoices",
+             link: "/billing/organization-invoices",
+             icon: <RiMoneyDollarCircleLine />,
+             roles: ['admin', 'super-admin', 'super_admin', 'manager', 'accountant', 'cashier', 'front desk', 'frontdesk', 'customer service representative', 'billing']
+         },
 ];
 
 // Inventory Links

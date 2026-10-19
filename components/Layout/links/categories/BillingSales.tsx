@@ -102,6 +102,12 @@ export const BillingSalesLink: Link[] = [
         roles: ['admin', 'super-admin', 'super_admin', 'accountant']
     },
     {
+        title: "Organization Invoices",
+        link: "/billing/organization-invoices",
+        icon: <RiMoneyDollarCircleLine />,
+        roles: ['admin', 'super-admin', 'super_admin', 'manager', 'accountant', 'cashier', 'front desk', 'frontdesk', 'customer service representative', 'billing']
+    },
+    {
         title: "Night Adjustments",
         link: "/billing/settings/night-adjustments",
         icon: <RiMoonLine />

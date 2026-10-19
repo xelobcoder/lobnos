@@ -15,6 +15,8 @@ import {
 	handleSubmitForm,
 	loadOptions,
 	onChangePractioner,
+	isWorkflowAppointmentType,
+	loadAppointmentServices,
 } from "../../lib/appointment";
 import { customFetch, getInstitutionUsers, reactSelectCustomStyles } from "../Auth/customFetch";
 import SpinningLoading from "../accessories/UIAccessories/spinningLoading";
@@ -41,6 +43,26 @@ export default function NewAppointment() {
 	const appointmentType = searchParams.get("appointment_type");
 	const [disableFilter, setDisableFilter] = useState(false);
 	const employeeid = useApplication()?.user?.employeeid;
+	const [services, setServices] = useState([]);
+	const [loadingServices, setLoadingServices] = useState(false);
+	const [submitting, setSubmitting] = useState(false);
+	const workflowType = isWorkflowAppointmentType(appointment.appointment_type) ? appointment.appointment_type : null;
+	const selectedServices = services.filter((service) => (appointment.service_ids || []).includes(service.id));
+	const selectedTotal = selectedServices.reduce((sum, service) => sum + (Number(service.price) || 0), 0);
+
+	useEffect(() => {
+		if (!workflowType) {
+			setServices([]);
+			return;
+		}
+		let active = true;
+		setLoadingServices(true);
+		loadAppointmentServices(workflowType)
+			.then((items) => { if (active) setServices(items); })
+			.catch(() => { if (active) toast.error("Services could not be loaded for this appointment type."); })
+			.finally(() => { if (active) setLoadingServices(false); });
+		return () => { active = false; };
+	}, [workflowType]);
 
 	const getSelectedPatient = (value) => {
 		if (typeof value == "object" && "patientid" in value) {
@@ -48,15 +70,22 @@ export default function NewAppointment() {
 		}
 	};
 
-	const handleFormSubmit = (e) => {
+	const handleFormSubmit = async (e) => {
 		e.preventDefault();
+		if (submitting) return;
 		if (!employeeid) return toast.error("Employee ID is required to schedule an appointment", { position: "top-center" });
-		handleSubmitForm({
-			...appointment,
-			patientid: contactType === "patient" ? patient.patientid : null,
-			lead_id: contactType === "lead" ? Number(appointment.lead_id) : null,
-			employeeid
-		}, toast);
+		setSubmitting(true);
+		try {
+			await handleSubmitForm({
+				...appointment,
+				patientid: contactType === "patient" ? patient.patientid : null,
+				lead_id: contactType === "lead" ? Number(appointment.lead_id) : null,
+				service_ids: workflowType ? appointment.service_ids || [] : [],
+				employeeid
+			}, toast);
+		} finally {
+			setSubmitting(false);
+		}
 	};
 
 	useEffect(() => {
@@ -128,7 +157,8 @@ export default function NewAppointment() {
 							onChange={(event) => setAppointment({
 								...appointment,
 								appointment_type: event.target.value,
-								billingid: null
+								billingid: null,
+								service_ids: []
 							})}>
 							<option value="consultation">Consultation</option>
 							<option value="laboratory">Laboratory</option>
@@ -145,7 +175,6 @@ export default function NewAppointment() {
 							onChange={(event) => {
 								setContactType(event.target.value);
 								setPatient(patientData);
-								setSelected(false);
 								setAppointment((current) => ({
 									...current,
 									patientid: null,
@@ -176,6 +205,32 @@ export default function NewAppointment() {
 									))}
 								</select>
 								{leads.length === 0 && <small className="text-muted">No CRM leads were found for your account.</small>}
+							</div>
+						)}
+						{workflowType && (
+							<div className="form-row mb-3">
+								<label htmlFor="appointment-services">
+									{workflowType === "ultrasound" ? "Ultrasound scans" : "Laboratory tests"} to perform
+								</label>
+								<Autocomplete
+									inputId="appointment-services"
+									isMulti
+									isLoading={loadingServices}
+									styles={reactSelectCustomStyles}
+									options={services}
+									value={selectedServices}
+									getOptionLabel={(option) => `${option.name} — ${Number(option.price || 0).toFixed(2)}`}
+									getOptionValue={(option) => String(option.id)}
+									onChange={(values) => setAppointment({
+										...appointment,
+										service_ids: (values || []).map((value) => value.id)
+									})}
+									placeholder={loadingServices ? "Loading services…" : "Select services"} />
+								<small className="text-muted">
+									{selectedServices.length
+										? `${selectedServices.length} selected · estimated ${selectedTotal.toFixed(2)} (final price is set at billing)`
+										: "Select the services to perform. They prefill the bill when the appointment is opened in the workflow."}
+								</small>
 							</div>
 						)}
 						{contactType === "patient" && (appointment.appointment_type === "laboratory" || appointment.appointment_type === "ultrasound") && (
@@ -276,12 +331,12 @@ export default function NewAppointment() {
 							</div>
 							<button
 								type="button"
-								disabled={morning.length === 0 && afternoon.length === 0 && evening_slots.length === 0}
+								disabled={submitting || (morning.length === 0 && afternoon.length === 0 && evening_slots.length === 0)}
 								onClick={(ev) => {
 									handleFormSubmit(ev);
 								}}
 								className="btn btn-primary mt-3">
-								Schedule Appointment
+								{submitting ? "Scheduling…" : "Schedule Appointment"}
 							</button>
 						</div>
 					</div>

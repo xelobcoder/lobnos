@@ -760,15 +760,11 @@ export default function LabReportPrintingMultiple() {
 										)}
 										{(() => {
 											const selected = selectedTests.filter(idx => idx >= 0 && idx < resultdata.test.length);
-											let allComments: string[] = [];
-											if (allTestsSelected && resultdata.generalComments) {
-												allComments = [resultdata.generalComments];
-											} else {
-												allComments = selected
-													.map(idx => resultdata.test[idx]?.comments)
-													.filter(Boolean)
-													.flat();
-											}
+											const commentFor = (idx: number): string => {
+												const value = resultdata.test[idx]?.comments;
+												if (!value) return '';
+												return Array.isArray(value) ? value.filter(Boolean).join('<br/>') : String(value);
+											};
 
 											const useGeneralValidation = selected.length > 1 && resultdata.generalValidation;
 											const getValidators = (idx: number) => resultdata.test[idx].validators;
@@ -841,6 +837,12 @@ export default function LabReportPrintingMultiple() {
 															</div>
 														)}
 
+														{commentFor(idx) && (
+															<div className="test-comments" style={{ marginTop: 12 }}>
+																<UseResultCommentSinglePreview comments={commentFor(idx)} resultsettings={resultSettings} />
+															</div>
+														)}
+
 														{literature && (
 															<div className="test-literature" style={{ marginTop: 16 }}>
 																<UseClinicalLiteratureReview literature={literature} />
@@ -862,14 +864,6 @@ export default function LabReportPrintingMultiple() {
 													</section>
 												);
 											});
-
-											if (allComments && allComments.length > 0) {
-												nodes.push(
-													<section key="result-comments" className="test-section extra-section" style={{ marginBottom: 20, paddingBottom: 12, breakInside: 'avoid', pageBreakInside: 'avoid' }}>
-														<UseResultCommentSinglePreview comments={resultdata.generalComments} resultsettings={resultSettings} />
-													</section>
-												);
-											}
 
 											return nodes;
 										})()}

@@ -124,15 +124,13 @@ export default function DoctorTestsSentPage() {
 
           setLoading(true);
           try {
-               let url = `operations/overview/folder?clinicianid=${clinicianid}`;
-               if (dateFrom) url += `&_dateFrom=${dateFrom}`;
-               if (dateTo) url += `&_dateEnd=${dateTo}`;
-               if (filterCategory.section && filterCategory.value) {
-                    url += `&${filterCategory.section}=${filterCategory.value}`;
-               }
+               // Clinician-scoped: the server binds clinician sessions to their own requests.
+               let url = `clinician-portal/requests?clinicianid=${clinicianid}`;
+               url += `&from=${dateFrom || todayDate}&to=${dateTo || todayDate}`;
 
                const response = await customFetch(url);
                const result = Array.isArray(response?.result) ? response.result : [];
+               if (response?.status === "error") toast.error(response?.message || "Failed to load clinician requests");
                setRequests(result);
           } catch (error) {
                console.error(error);
@@ -149,7 +147,7 @@ export default function DoctorTestsSentPage() {
                const patient = patientName(request).toLowerCase();
                const patientid = String(request.patientid || "");
                const billingid = String(request.billingid || "");
-               const testname = (request.testname || "").toLowerCase();
+               const testname = `${request.testname || ""} ${request.tests_with_stage || ""}`.toLowerCase();
                return patient.includes(q) || patientid.includes(q) || billingid.includes(q) || testname.includes(q);
           });
      }, [filterCategory.value, requests]);
@@ -182,7 +180,7 @@ export default function DoctorTestsSentPage() {
           <div>
                <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
                     <div>
-                         <h3 style={{ fontWeight: 700, fontSize: "1.5rem", margin: 0 }}>Reques</h3>
+                         <h3 style={{ fontWeight: 700, fontSize: "1.5rem", margin: 0 }}>Requested Tests</h3>
                          <div className="text-muted" style={{ fontSize: "0.9rem" }}>
                               Today: {day} {month} {year} [{weekday}]
                          </div>

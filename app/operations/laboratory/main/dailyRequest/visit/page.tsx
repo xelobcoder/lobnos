@@ -114,7 +114,7 @@ export default function ClientVisit() {
      const allResultsCompleted =
           Array.isArray(testAscensions) &&
           testAscensions.length > 0 &&
-          testAscensions.every((item) => item.resultEntryStart && item.resultEntryEnd);
+          testAscensions.every((item) => Boolean(item.resultEntryEnd));
 
      const allResultsValidated =
           Array.isArray(testAscensions) &&
@@ -429,7 +429,7 @@ export default function ClientVisit() {
                                                        {filteredAscensions.map((item) => {
                                                             const isSelected = item.ascension_id === selectedAscensionId;
                                                             const isChecked = selectedAscensionIds.includes(item.ascension_id);
-                                                            const isCompleted = Boolean(item.resultEntryStart && item.resultEntryEnd);
+                                                            const isCompleted = Boolean(item.resultEntryEnd);
                                                             const isValidated = item.isapproved === 1 || (item.result_validation_stage || '').toLowerCase().includes('validated') || (item.result_validation_stage || '').toLowerCase().includes('approved');
                                                             const isLocked = !workflowFor(item).canEnterResults;
                                                             const badgeClass = isValidated ? 'bg-success' : isCompleted ? 'bg-primary' : item.samplevalidatedon ? 'bg-warning text-dark' : 'bg-secondary';
@@ -663,7 +663,7 @@ export default function ClientVisit() {
                                                                  {selectedItem.isapproved !== 1 ? (
                                                                       <button
                                                                            className="btn btn-sm btn-outline-success"
-                                                                           disabled={!(workflowFor(selectedItem).canEnterResults && selectedItem.resultEntryStart && selectedItem.resultEntryEnd)}
+                                                                           disabled={!(workflowFor(selectedItem).canEnterResults && selectedItem.resultEntryEnd)}
                                                                            onClick={() => setWorkflow('resultValidation')}
                                                                       >
                                                                            Validate Result
@@ -781,7 +781,7 @@ export default function ClientVisit() {
                     billingid={Number(billingid)}
                     patientid={patientid || ''}
                     tests={testAscensions
-                         .filter(t => Boolean(t.resultEntryStart && t.resultEntryEnd) && t.isapproved !== 1)
+                         .filter(t => Boolean(t.resultEntryEnd) && t.isapproved !== 1)
                          .map(t => ({ ascensionid: t.ascension_id, testid: t.testid, testname: t.test_name }))}
                />
                <style jsx>{`

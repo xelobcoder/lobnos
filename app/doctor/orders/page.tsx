@@ -7,6 +7,7 @@ import { RiRefreshLine, RiInboxLine, RiFlaskLine, RiUser3Line } from "@remixicon
 import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
 import { useApplicationSettings } from "../../../components/Auth/useApplicationContext";
 import { currencyFormatter, customFetch, customFetchMutation } from "../../../components/Auth/customFetch";
+import DateFilterReusable from "../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 type EntityOrder = {
 	id: number;
 	patient_id: number;
@@ -33,6 +34,7 @@ const STATUS_FILTERS = [
 	{ value: "APPROVED", label: "Approved" },
 	{ value: "CONVERTED", label: "Converted" },
 	{ value: "REJECTED", label: "Rejected" },
+	{ value: "CANCELLED", label: "Cancelled" },
 ];
 
 const PrimeTableWithRowStyling = PrimeTable as any;
@@ -43,7 +45,7 @@ const rowStyling = {
 		if (row.status === "APPROVED") return "table-success";
 		if (row.status === "PENDING" || row.status === "ON_HOLD") return "table-warning";
 		if (row.status === "CONVERTED") return "table-primary";
-		if (row.status === "REJECTED") return "table-danger";
+		if (row.status === "REJECTED" || row.status === "CANCELLED") return "table-danger";
 		return "table-secondary";
 	},
 	getRowStyle: (row: EntityOrder) => {
@@ -53,6 +55,7 @@ const rowStyling = {
 			case "ON_HOLD": return { backgroundColor: "#fff3cd", color: "#664d03" };
 			case "CONVERTED": return { backgroundColor: "#cfe2ff", color: "#084298" };
 			case "REJECTED": return { backgroundColor: "#f8d7da", color: "#842029" };
+			case "CANCELLED": return { backgroundColor: "#f1f1f1", color: "#6c757d", textDecoration: "line-through" };
 			default: return { backgroundColor: "#e2e3e5", color: "#41464b" };
 		}
 	},
@@ -63,6 +66,9 @@ export default function ClinicianOrdersPage() {
 	const clinicianid = Number(userCtx?.clinicianid ?? userCtx?.id ?? userCtx?.employeeid ?? 0);
 
 	const [statusFilter, setStatusFilter] = useState("all");
+	const [dateFilter, setDateFilter] = useState("");
+	const [from, setFrom] = useState("");
+	const [to, setTo] = useState("");
 	const [orders, setOrders] = useState<EntityOrder[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [busyId, setBusyId] = useState<number | null>(null);
@@ -71,16 +77,23 @@ export default function ClinicianOrdersPage() {
 	const [totalPages, setTotalPages] = useState(1);
 	const [total, setTotal] = useState(0);
 
+	// clinicianId matches orders billed to this clinician and orders they placed (even if stored as "general").
+	const buildParams = useCallback((p: number, c: number) => {
+		const params = new URLSearchParams();
+		params.set("clinicianId", String(clinicianid));
+		if (statusFilter !== "all") params.set("status", statusFilter);
+		if (from) params.set("from", from);
+		if (to) params.set("to", to);
+		params.set("page", String(p));
+		params.set("count", String(c));
+		return params;
+	}, [clinicianid, statusFilter, from, to]);
+
 	const fetchOrders = useCallback(async () => {
 		if (!clinicianid) return;
 		setLoading(true);
 		try {
-			const params = new URLSearchParams();
-			params.set("entityType", "clinician");
-			params.set("entityId", String(clinicianid));
-			if (statusFilter !== "all") params.set("status", statusFilter);
-			params.set("page", String(page));
-			params.set("count", String(count));
+			const params = buildParams(page, count);
 			const response = await customFetch(`entityorders?${params.toString()}`);
 			setOrders(response?.result || []);
 			setTotal(Number(response?.total ?? 0));
@@ -91,11 +104,11 @@ export default function ClinicianOrdersPage() {
 		} finally {
 			setLoading(false);
 		}
-	}, [clinicianid, statusFilter, page, count]);
+	}, [clinicianid, buildParams, page, count]);
 
 	useEffect(() => {
 		setPage(1);
-	}, [statusFilter, clinicianid]);
+	}, [statusFilter, clinicianid, from, to]);
 
 	useEffect(() => {
 		fetchOrders();
@@ -104,12 +117,7 @@ export default function ClinicianOrdersPage() {
 	const handleServerSide = async (input: any) => {
 		try {
 			const { page: p, count: c } = input;
-			const params = new URLSearchParams();
-			params.set("entityType", "clinician");
-			params.set("entityId", String(clinicianid));
-			if (statusFilter !== "all") params.set("status", statusFilter);
-			params.set("page", String(p));
-			params.set("count", String(c));
+			const params = buildParams(p, c);
 			const response = await customFetch(`entityorders?${params.toString()}`);
 			if (response && Array.isArray(response?.result)) {
 				return { result: response.result, error: false };
@@ -222,7 +230,15 @@ export default function ClinicianOrdersPage() {
 					<strong className="d-inline-flex align-items-center gap-2"><RiFlaskLine size={18} /> My Lab Orders</strong>
 					<div className="text-muted small">Orders you&apos;ve raised and where each one is in the lab review → convert flow.</div>
 				</div>
-				<div className="d-flex gap-2 align-items-center flex-wrap">
+				<div className="d-flex gap-2 align-items-end flex-wrap">
+					<DateFilterReusable
+						id="doctor-orders-date-filter"
+						value={dateFilter}
+						onChange={setDateFilter}
+						onDateRangeChange={(start: string, end: string) => { setFrom(start || ""); setTo(end || ""); }}
+						label="Created"
+						className=""
+					/>
 					<Form.Select size="sm" style={{ width: 200 }} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
 						{STATUS_FILTERS.map((f) => (
 							<option key={f.value} value={f.value}>{f.label}</option>

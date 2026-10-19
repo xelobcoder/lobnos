@@ -9,11 +9,10 @@ import { Modal, Button, Form } from "react-bootstrap";
 import { handleDatePicker, handleSeverSideProcessing } from "../serverActions/ActionFiltering";
 import { useApplication, useApplicationSettings } from "../Auth/useApplicationContext";
 import { roleAllowed } from "../Auth/roles";
-import { RiCalendarEventLine, RiTableLine, RiBarChartBoxLine } from "@remixicon/react";
+import { RiCalendarEventLine, RiTableLine, RiArrowDownSLine, RiArrowRightSLine } from "@remixicon/react";
 import styles from './../../styles/SmsTemplateList.module.css'
 import { billingSource } from "../../lib/billingLib";
 import AdjustBillingSourceModal from './AdjustBillingSourceModal';
-import PrimeTablePivot from '../accessories/Datatables/PrimePivotTable'
 import PrimeTable from "../accessories/Datatables/PrimeTable";
 import dayjs from "dayjs";
 import ISLOADING from "../isLoading";
@@ -56,6 +55,23 @@ interface RowData {
 }
 
 type ModalType = 'adjust' | 'update' | null;
+
+interface TransactionTestItem {
+	serviceid?: number;
+	name?: string;
+	testname?: string;
+	cost?: number | string;
+	discount?: number | string;
+	totalpayable?: number | string;
+	isDeleted?: number;
+	[key: string]: any;
+}
+
+interface TransactionTestsState {
+	loading: boolean;
+	error?: string;
+	items: TransactionTestItem[];
+}
 
 export default function BilledClientsView({
 	data,
@@ -120,7 +136,8 @@ export default function BilledClientsView({
 	const [modalUserRandInput, setModalUserRandInput] = useState<string>("");
 	const [modalReason, setModalReason] = useState<string>("");
 	const [itemToEdit, setItemToEdit] = useState<any>(null);
-	const [useSimpleView, setUseSimpleView] = useState<boolean>(true);
+	const [expandedBillingIds, setExpandedBillingIds] = useState<Set<number>>(new Set());
+	const [transactionTests, setTransactionTests] = useState<Record<number, TransactionTestsState>>({});
 	const [viewMode, setViewMode] = useState<'sales' | 'expenses'>('sales');
 	const [showViewMore, setShowViewMore] = useState<boolean>(false);
 	const [viewMoreData, setViewMoreData] = useState<any>(null);
@@ -244,6 +261,89 @@ export default function BilledClientsView({
 		}
 	}
 
+	const loadTransactionTests = async (billingid: number) => {
+		setTransactionTests(prev => ({ ...prev, [billingid]: { loading: true, items: [] } }));
+		try {
+			const res = await customFetch(`billing/information/single?billingid=${billingid}`);
+			const items: TransactionTestItem[] = Array.isArray(res?.result) ? res.result : [];
+			setTransactionTests(prev => ({ ...prev, [billingid]: { loading: false, items } }));
+		} catch (error) {
+			setTransactionTests(prev => ({ ...prev, [billingid]: { loading: false, items: [], error: 'Unable to load tests for this transaction' } }));
+		}
+	};
+
+	const toggleTransactionTests = (billingid: number) => {
+		if (!billingid) return;
+		const isExpanded = expandedBillingIds.has(billingid);
+		setExpandedBillingIds(prev => {
+			const next = new Set(prev);
+			if (isExpanded) next.delete(billingid); else next.add(billingid);
+			return next;
+		});
+		const cached = transactionTests[billingid];
+		if (!isExpanded && (!cached || cached.error)) {
+			loadTransactionTests(billingid);
+		}
+	};
+
+	const renderTransactionTests = (billingid: number) => {
+		const state = transactionTests[billingid];
+		if (!state || state.loading) {
+			return <div className="text-muted small py-2">Loading tests...</div>;
+		}
+		if (state.error) {
+			return (
+				<div className="text-danger small py-2 d-flex align-items-center gap-2">
+					{state.error}
+					<Button size="sm" variant="outline-secondary" onClick={() => loadTransactionTests(billingid)}>Retry</Button>
+				</div>
+			);
+		}
+		if (state.items.length === 0) {
+			return <div className="text-muted small py-2">No tests recorded for this transaction.</div>;
+		}
+		const activeItems = state.items.filter(item => Number(item.isDeleted) !== 1);
+		const sum = (key: keyof TransactionTestItem) => activeItems.reduce((acc, item) => acc + (Number(item[key]) || 0), 0);
+		return (
+			<table className="table table-sm table-bordered mb-0 bg-body" style={{ maxWidth: '760px' }}>
+				<thead className="table-light">
+					<tr>
+						<th>#</th>
+						<th>Test</th>
+						<th className="text-end">Cost</th>
+						<th className="text-end">Discount</th>
+						<th className="text-end">Payable</th>
+					</tr>
+				</thead>
+				<tbody>
+					{state.items.map((item, idx) => {
+						const removed = Number(item.isDeleted) === 1;
+						return (
+							<tr key={item.serviceid ?? idx} className={removed ? 'text-muted text-decoration-line-through' : ''}>
+								<td>{idx + 1}</td>
+								<td>
+									{item.name || item.testname || '-'}
+									{removed && <span className="badge bg-secondary ms-2 text-decoration-none">removed</span>}
+								</td>
+								<td className="text-end">{currencyFormatter.format(Number(item.cost) || 0)}</td>
+								<td className="text-end">{currencyFormatter.format(Number(item.discount) || 0)}</td>
+								<td className="text-end">{currencyFormatter.format(Number(item.totalpayable) || 0)}</td>
+							</tr>
+						);
+					})}
+				</tbody>
+				<tfoot>
+					<tr className="fw-semibold">
+						<td colSpan={2}>{activeItems.length} test{activeItems.length === 1 ? '' : 's'}</td>
+						<td className="text-end">{currencyFormatter.format(sum('cost'))}</td>
+						<td className="text-end">{currencyFormatter.format(sum('discount'))}</td>
+						<td className="text-end">{currencyFormatter.format(sum('totalpayable'))}</td>
+					</tr>
+				</tfoot>
+			</table>
+		);
+	};
+
 	const coreColumns = [
 		{
 			Header: "Date", accessor: "billedon", title: "Date of Transaction", Cell: ({ value, row }) => {
@@ -307,8 +407,19 @@ export default function BilledClientsView({
 			accessor: "actions",
 			Cell: ({ row }) => {
 				const outstandingBill = Number(row.original?.outstanding);
+				const isTestsExpanded = expandedBillingIds.has(row.original?.billingid);
 				return (
-					<>
+					<div className="d-flex align-items-center gap-2">
+						<Button
+							variant={isTestsExpanded ? "secondary" : "outline-secondary"}
+							size="sm"
+							className="d-flex align-items-center gap-1"
+							onClick={() => toggleTransactionTests(row.original?.billingid)}
+							aria-expanded={isTestsExpanded}
+							title="Show the tests billed in this transaction"
+						>
+							{isTestsExpanded ? <RiArrowDownSLine size={16} /> : <RiArrowRightSLine size={16} />} View Tests
+						</Button>
 						<Dropdown>
 							<Dropdown.Toggle variant="outline-secondary" size="sm" className="btn-icon-only">
 								<RiMore2Line size={16} />
@@ -374,7 +485,7 @@ export default function BilledClientsView({
 								)}
 							</Dropdown.Menu>
 						</Dropdown>
-					</>
+					</div>
 				);
 			},
 		},
@@ -525,24 +636,6 @@ export default function BilledClientsView({
 									<RiMoneyDollarCircleLine size={16} className="me-1 align-text-bottom" /> Expenses
 								</button>
 							</div>
-							{isAdmin && <div className="btn-group btn-group-sm" role="group" aria-label="View type">
-								<button
-									type="button"
-									className={`btn ${useSimpleView ? 'btn-outline-secondary' : 'btn-primary'}`}
-									onClick={() => setUseSimpleView(false)}
-									style={useSimpleView ? {} : { backgroundColor: 'oklch(0.646 0.222 41.116)', borderColor: 'oklch(0.646 0.222 41.116)' }}
-								>
-									<RiBarChartBoxLine size={16} className="me-1 align-text-bottom" /> Pivot Table
-								</button>
-								<button
-									type="button"
-									className={`btn ${useSimpleView ? 'btn-primary' : 'btn-outline-secondary'}`}
-									onClick={() => setUseSimpleView(true)}
-									style={useSimpleView ? { backgroundColor: 'oklch(0.646 0.222 41.116)', borderColor: 'oklch(0.646 0.222 41.116)' } : {}}
-								>
-									<RiTableLine size={16} className="me-1 align-text-bottom" /> Simple Table
-								</button>
-							</div>}
 							{isAdmin && showFilters && (
 								<div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2 mt-2 mt-sm-0">
 									<div style={{ minWidth: '240px' }}>
@@ -572,54 +665,7 @@ export default function BilledClientsView({
 						<ISLOADING />
 					</div>
 				) : viewMode === 'sales' ? (
-					isAdmin ? (
-						useSimpleView ? <div className="table-responsive" style={{ minHeight: '60vh' }}>
-							<div className="px-4 py-2 bg-light border-bottom mb-2 d-flex flex-wrap gap-3 small text-muted">
-								<div className="d-flex gap-2"><strong>Amounts in GHS</strong></div>
-								<div className="d-flex gap-2"><strong>BID:</strong> Billing ID</div>
-								<div className="d-flex gap-2"><strong>TC:</strong> Total Cost</div>
-								<div className="d-flex gap-2"><strong>DS:</strong> Discount</div>
-								<div className="d-flex gap-2"><strong>RF:</strong> Refunded</div>
-								<div className="d-flex gap-2"><strong>AP:</strong> Amt Payable</div>
-								<div className="d-flex gap-2"><strong>PD:</strong> Amt Paid</div>
-								<div className="d-flex gap-2"><strong>OS:</strong> Outstanding</div>
-								<div className="d-flex gap-2"><strong>SC:</strong> Surcharge</div>
-								<div className="d-flex gap-2"><strong>WO:</strong> Write Off</div>
-								<div className="d-flex gap-2"><strong>TS:</strong> Transaction Status</div>
-								<div className="d-flex gap-2"><strong>PS:</strong> Payment Status</div>
-							</div>
-							<table className="table table-striped table-hover table-bordered text-nowrap">
-								<thead>
-									<tr>
-										{coreColumns.map(col => <th key={col.accessor} className="border-start border-end" title={col.title}>{col.Header}</th>)}
-									</tr>
-								</thead>
-								<tbody>
-									{processedData.map((row, index) => (
-										<tr key={index} className={getPaymentStatusRowClass(row)}>
-											{coreColumns.map(col => {
-												const value = row[col.accessor];
-												const cellContent = col.Cell ? col.Cell({ value, row: { original: row } }) : value;
-												let bgColorClass = '';
-												if (col.accessor === 'paid') {
-													bgColorClass = 'bg-success-subtle';
-												} else if ((col.accessor === 'totalrefunded' || col.accessor === 'outstanding') && Number(value) > 0) {
-													bgColorClass = 'bg-danger-subtle';
-												}
-												return <td key={col.accessor} className={`border-start border-end ${bgColorClass}`} title={col.title}>{cellContent}</td>;
-											})}
-										</tr>
-									))}
-								</tbody>
-							</table>
-						</div> : <PrimeTablePivot
-							column={coreColumns}
-							urlparams={{ ...datequery, branchid }}
-							data={processedData}
-							serverSideFiltering={true}
-							handleSeverSideProcessing={handleSeverSideProcessing}
-						/>
-					) : <div className="table-responsive" style={{ minHeight: '50vh' }}>
+					<div className="table-responsive" style={{ minHeight: isAdmin ? '60vh' : '50vh' }}>
 						<div className="px-4 py-2 bg-light border-bottom mb-2 d-flex flex-wrap gap-3 small text-muted">
 							<div className="d-flex gap-2"><strong>Amounts in GHS</strong></div>
 							<div className="d-flex gap-2"><strong>BID:</strong> Billing ID</div>
@@ -642,19 +688,29 @@ export default function BilledClientsView({
 							</thead>
 							<tbody>
 								{processedData.map((row, index) => (
-									<tr key={index} className={getPaymentStatusRowClass(row)}>
-										{coreColumns.map(col => {
-											const value = row[col.accessor];
-											const cellContent = col.Cell ? col.Cell({ value, row: { original: row } }) : value;
-											let bgColorClass = '';
-											if (col.accessor === 'paid') {
-												bgColorClass = 'bg-success-subtle';
-											} else if ((col.accessor === 'totalrefunded' || col.accessor === 'outstanding') && Number(value) > 0) {
-												bgColorClass = 'bg-danger-subtle';
-											}
-											return <td key={col.accessor} className={`border-start border-end ${bgColorClass}`} title={col.title}>{cellContent}</td>;
-										})}
-									</tr>
+									<React.Fragment key={row.billingid ?? index}>
+										<tr className={getPaymentStatusRowClass(row)}>
+											{coreColumns.map(col => {
+												const value = row[col.accessor];
+												const cellContent = col.Cell ? col.Cell({ value, row: { original: row } }) : value;
+												let bgColorClass = '';
+												if (col.accessor === 'paid') {
+													bgColorClass = 'bg-success-subtle';
+												} else if ((col.accessor === 'totalrefunded' || col.accessor === 'outstanding') && Number(value) > 0) {
+													bgColorClass = 'bg-danger-subtle';
+												}
+												return <td key={col.accessor} className={`border-start border-end ${bgColorClass}`} title={col.title}>{cellContent}</td>;
+											})}
+										</tr>
+										{expandedBillingIds.has(row.billingid) && (
+											<tr>
+												<td colSpan={coreColumns.length} className="bg-body-tertiary px-4">
+													<div className="small fw-semibold mb-1">Tests billed in transaction #{row.billingid}</div>
+													{renderTransactionTests(row.billingid)}
+												</td>
+											</tr>
+										)}
+									</React.Fragment>
 								))}
 							</tbody>
 						</table>

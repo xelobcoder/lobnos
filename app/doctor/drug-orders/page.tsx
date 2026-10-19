@@ -7,6 +7,7 @@ import { RiRefreshLine, RiInboxLine, RiMedicineBottleLine, RiUser3Line } from "@
 import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
 import { useApplicationSettings } from "../../../components/Auth/useApplicationContext";
 import { customFetch, customFetchMutation } from "../../../components/Auth/customFetch";
+import DateFilterReusable from "../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 
 
 type PrescriptionItem = {
@@ -88,6 +89,9 @@ export default function ClinicianDrugOrdersPage() {
 	const clinicianid = Number(userCtx?.clinicianid ?? userCtx?.id ?? userCtx?.employeeid ?? 0);
 
 	const [statusFilter, setStatusFilter] = useState("");
+	const [dateFilter, setDateFilter] = useState("");
+	const [from, setFrom] = useState("");
+	const [to, setTo] = useState("");
 	const [orders, setOrders] = useState<PrescriptionRow[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [page, setPage] = useState(1);
@@ -97,15 +101,22 @@ export default function ClinicianDrugOrdersPage() {
 	const [detail, setDetail] = useState<PrescriptionDetail | null>(null);
 	const [detailLoading, setDetailLoading] = useState(false);
 
+	const buildParams = useCallback((pageNum: number, countNum: number) => {
+		const params = new URLSearchParams();
+		params.set("clinicianId", String(clinicianid));
+		if (statusFilter) params.set("status", statusFilter);
+		if (from) params.set("from", from);
+		if (to) params.set("to", to);
+		params.set("page", String(pageNum));
+		params.set("count", String(countNum));
+		return params;
+	}, [clinicianid, statusFilter, from, to]);
+
 	const fetchPage = useCallback(async (pageNum: number, countNum: number) => {
 		if (!clinicianid) return { result: [], error: true };
 		setLoading(true);
 		try {
-			const params = new URLSearchParams();
-			params.set("clinicianId", String(clinicianid));
-			if (statusFilter) params.set("status", statusFilter);
-			params.set("page", String(pageNum));
-			params.set("count", String(countNum));
+			const params = buildParams(pageNum, countNum);
 			const response = await customFetch(`prescriptions?${params.toString()}`);
 			const data = response?.data || {};
 			setOrders(data.prescriptions || []);
@@ -119,23 +130,20 @@ export default function ClinicianDrugOrdersPage() {
 		} finally {
 			setLoading(false);
 		}
-	}, [clinicianid, statusFilter]);
+	}, [clinicianid, buildParams]);
 
 	const fetchOrders = useCallback(() => fetchPage(page, count), [fetchPage, page, count]);
 
 	useEffect(() => {
 		setPage(1);
 		fetchPage(1, count);
-	}, [statusFilter, clinicianid]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [statusFilter, clinicianid, from, to]);
 
 	const handleServerSide = async (input: any) => {
 		try {
 			const { page: p, count: c } = input;
-			const params = new URLSearchParams();
-			params.set("clinicianId", String(clinicianid));
-			if (statusFilter) params.set("status", statusFilter);
-			params.set("page", String(p));
-			params.set("count", String(c));
+			const params = buildParams(p, c);
 			const response = await customFetch(`prescriptions?${params.toString()}`);
 			const data = response?.data || {};
 			if (response?.success && Array.isArray(data.prescriptions)) {
@@ -201,7 +209,15 @@ export default function ClinicianDrugOrdersPage() {
 					<strong className="d-inline-flex align-items-center gap-2"><RiMedicineBottleLine size={18} /> My Drug Orders</strong>
 					<div className="text-muted small">Prescriptions you&apos;ve sent to the pharmacy and their fulfillment status.</div>
 				</div>
-				<div className="d-flex gap-2 align-items-center flex-wrap">
+				<div className="d-flex gap-2 align-items-end flex-wrap">
+					<DateFilterReusable
+						id="doctor-drug-orders-date-filter"
+						value={dateFilter}
+						onChange={setDateFilter}
+						onDateRangeChange={(start: string, end: string) => { setFrom(start || ""); setTo(end || ""); }}
+						label="Created"
+						className=""
+					/>
 					<Form.Select size="sm" style={{ width: 200 }} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
 						{STATUS_FILTERS.map((f) => (
 							<option key={f.value} value={f.value}>{f.label}</option>
@@ -220,7 +236,7 @@ export default function ClinicianDrugOrdersPage() {
 			) : orders.length === 0 ? (
 				<div className="text-muted small p-5 text-center">
 					<RiInboxLine size={28} className="mb-2 d-block mx-auto" />
-					No drug orders found. Use “Order Drugs” to create one.
+					{statusFilter || from || to ? "No drug orders match the selected filters." : "No drug orders found. Use “Order Drugs” to create one."}
 				</div>
 			) : (
 				<PrimeTableWithRowStyling

@@ -201,7 +201,7 @@ export default function MultipleClientVisit() {
      };
 
      const validatedTests = activePatient?.tests.filter((test) => test.isapproved === 1 || (test.result_validation_stage || '').toLowerCase().includes('validated')) || [];
-     const completedTests = activePatient?.tests.filter((test) => Boolean(test.resultEntryStart && test.resultEntryEnd)) || [];
+     const completedTests = activePatient?.tests.filter((test) => Boolean(test.resultEntryEnd)) || [];
 
      return (
           <div className="container-fluid py-2">
@@ -333,7 +333,7 @@ export default function MultipleClientVisit() {
                                                   <button className="btn btn-sm btn-outline-primary" disabled={!workflowFor(activeTest).canProcess} onClick={() => setWorkflow('processing')}>
                                                        {workflowFor(activeTest).processing === 'bypassed' ? 'Processing Bypassed' : !activeTest.processingStartDate ? 'Start Processing' : activeTest.processingEndDate ? 'Processing Completed' : 'Complete Processing'}
                                                   </button>
-                                                  <button className="btn btn-sm btn-outline-success" disabled={activeTest.isapproved === 1 || !(activeTest.resultEntryStart && activeTest.resultEntryEnd)} onClick={() => setWorkflow('resultValidation')}>
+                                                  <button className="btn btn-sm btn-outline-success" disabled={activeTest.isapproved === 1 || !activeTest.resultEntryEnd} onClick={() => setWorkflow('resultValidation')}>
                                                        {activeTest.isapproved === 1 ? 'Result Validated' : 'Validate Result'}
                                                   </button>
                                                   <button className="btn btn-sm btn-outline-primary" disabled={activeTest.isapproved !== 1} onClick={() => setWorkflow('resultDelivery')}>Record Result Delivery</button>
