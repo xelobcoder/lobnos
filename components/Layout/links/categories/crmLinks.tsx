@@ -142,7 +142,13 @@ export const CrmLinks: Link[] = [
                 link: '/billing/foc',
                 icon: <RiMoneyDollarCircleLine />,
                 roles: ['admin', 'super-admin', 'super_admin', 'accountant']
-            }
+            },
+            {
+                title: "Organization Invoices",
+                link: "/billing/organization-invoices",
+                icon: <RiMoneyDollarCircleLine />,
+                roles: ['admin', 'super-admin', 'super_admin', 'manager', 'accountant', 'cashier', 'front desk', 'frontdesk', 'customer service representative', 'billing']
+            },
         ]
     },
     {
