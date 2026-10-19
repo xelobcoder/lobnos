@@ -188,7 +188,10 @@ export const MultiValidateAndSubmitBillingInformation = async function (
 		};
 
 		const requestId = (billingdata as any).billingRequestId;
-		const url = requestId ? `patient-portal/admin/billing-requests/${requestId}/convert` : "billing/multi/submit";
+		const appointmentId = (billingdata as any).appointmentId;
+		const url = requestId
+			? `patient-portal/admin/billing-requests/${requestId}/convert`
+			: appointmentId ? `appointments/${appointmentId}/convert` : "billing/multi/submit";
 		const response = await customPost(url, "POST", backendData);
 		if (response.status && response.status === 'pending verification') {
 			return response;

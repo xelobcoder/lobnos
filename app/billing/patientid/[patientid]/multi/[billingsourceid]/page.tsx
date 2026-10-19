@@ -154,6 +154,7 @@ export default function MultiStepBillingSourcePage() {
                     specialcode,
                     suspendedDraftId,
                     billingRequestId: searchParams.has('billingRequestId') ? Number(searchParams.get('billingRequestId')) : undefined,
+                    appointmentId: searchParams.has('appointmentId') ? Number(searchParams.get('appointmentId')) : undefined,
                 }}
             />
         </div>

@@ -25,6 +25,7 @@ import { finalizeSuspendedBilling, resumeSuspendedBilling } from '../../../lib/M
 import { billingInitUrl, canPreloadGeneralBilling, getFacilityBillingMode } from '../../../lib/Multi/billingWorkflow';
 import { buildDefaultDeliveryPreferences, DEFAULT_RESULT_DELIVERY_MODE, loadRegistrationPromptSettings, type RegistrationPromptSettings } from '../../../lib/Multi/registrationPrompts';
 import { requestedCart, type PatientBillingRequest } from '../../../lib/patientBillingRequests';
+import type { AppointmentWorkflow } from '../../../lib/appointmentWorkflow';
 import { unwrap } from '../../../lib/patientPortal';
 
 
@@ -35,7 +36,7 @@ export default function MultiBillingLayout({ billingContextProps }: { billingCon
         application?.tenantId, application?.branchid, application?.user?.employeeid,
         billingContextProps.patientid, billingContextProps.categorytrackid, billingContextProps.billingid,
         billingContextProps.suspendedDraftId, billingContextProps.isAdjustment, billingContextProps.ispricingcheckout,
-        billingContextProps.billingRequestId,
+        billingContextProps.billingRequestId, billingContextProps.appointmentId,
         billingContextProps.adjustmentType, billingContextProps.adjustmentReason,
         billingContextProps.isRelatedBilling, billingContextProps.isNewTransaction,
     ]);
@@ -55,7 +56,9 @@ function MultiBillingLayoutContent() {
     const { billingContextProps } = useBillingContextProps();
     const { categorytrackid, entitytype, entityname, entityid, patientid, billingid, isNewTransaction,
         isAdjustment, adjustmentType, adjustmentReason,
-        isRelatedBilling, ispricingcheckout, suspendedDraftId, billingRequestId } = billingContextProps
+        isRelatedBilling, ispricingcheckout, suspendedDraftId, billingRequestId, appointmentId } = billingContextProps
+    // Appointment conversion shares the request-conversion path: prefilled General bill, no payments, idempotent server convert.
+    const conversionSource = billingRequestId ?? appointmentId;
     const branchid = useApplication().branchid;
     const employeeid = useApplication().user?.employeeid || 0;
     const role = useApplication().user?.role
@@ -195,7 +198,7 @@ function MultiBillingLayoutContent() {
 
 
     const handleReset = () => {
-        if (billingRequestId !== undefined) {
+        if (conversionSource !== undefined) {
             // Reset must reload the request, not silently detach it into an unrelated bill.
             setInitializationAttempt(value => value + 1);
             return;
@@ -285,6 +288,20 @@ function MultiBillingLayoutContent() {
                     : 'This request is no longer awaiting review.');
                 updated.cart = requestedCart(backendData.testList, request.testIds);
                 updated.additionalInfo = request.note;
+            } else if (appointmentId !== undefined) {
+                if (!Number.isSafeInteger(appointmentId) || appointmentId <= 0 || categorytrackid !== 1 ||
+                    billingid || suspendedDraftId || isAdjustment || ispricingcheckout) {
+                    throw new Error('An appointment must be converted as a new General bill.');
+                }
+                const workflow = unwrap<AppointmentWorkflow>(await customFetch(`appointments/${appointmentId}/workflow`));
+                if (!isActive()) return;
+                if (Number(workflow.appointment.patientid) !== Number(patientid)) throw new Error('This appointment belongs to a different patient.');
+                if (workflow.appointment.billingid) {
+                    throw new Error(`This appointment already created bill #${workflow.appointment.billingid}. Do not create another bill.`);
+                }
+                if (!workflow.canConvert) throw new Error(workflow.blockers.join(' ') || 'This appointment cannot be billed.');
+                updated.cart = requestedCart(backendData.testList, workflow.appointment.service_ids);
+                updated.additionalInfo = `Appointment #${appointmentId}`;
             }
 
             if (backendData.entityType && backendData.entityType !== data.entitytype) {
@@ -320,7 +337,7 @@ function MultiBillingLayoutContent() {
             }
             setBillingData(updated);
             setCatalogLoaded(true);
-            if (billingRequestId || (data.cart && data.cart.length > 0 && data.isPackageUsed)) {
+            if (conversionSource || (data.cart && data.cart.length > 0 && data.isPackageUsed)) {
                 recalculateTotalBill(updated);
             }
         } catch (err) {
@@ -396,7 +413,7 @@ function MultiBillingLayoutContent() {
 
     const submitBillingInternal = async (billingdata: MultiBillingData, writeOffConfirmed = false) => {
         if (isSaving) return;
-        if (generatedBillingid && (suspendedDraftId || billingRequestId)) {
+        if (generatedBillingid && (suspendedDraftId || conversionSource)) {
             toast.info(`This sale has already been saved as billing ${generatedBillingid}. Do not submit it again.`);
             return;
         }
@@ -421,6 +438,7 @@ function MultiBillingLayoutContent() {
             const dataToBeUploaded = {
                 ...billingdata,
                 billingRequestId,
+                appointmentId: billingRequestId ? undefined : appointmentId,
                 servicesProvided: billingdata.servicesProvided,
                 employeeid: employeeid,
                 branchid: branchid,
@@ -766,7 +784,7 @@ function MultiBillingLayoutContent() {
                     const mode = await getFacilityBillingMode();
                     if (!active) return;
                     setSimpleBilling(mode === 'simple');
-                    if (mode === 'simple' || billingRequestId !== undefined) await loadBackendBilling(initialData, () => active);
+                    if (mode === 'simple' || conversionSource !== undefined) await loadBackendBilling(initialData, () => active);
                 }
                 if (active) setInitializationComplete(true);
             } catch (error) {
@@ -869,6 +887,10 @@ function MultiBillingLayoutContent() {
             {billingRequestId && <div className="alert alert-info" role="status">
                 Reviewing patient request #{billingRequestId}. Requested tests are prefilled at current General prices.
                 Save without payment; the request is converted only when the bill is successfully saved.
+            </div>}
+            {!billingRequestId && appointmentId && <div className="alert alert-info" role="status">
+                Converting appointment #{appointmentId}. Booked services are prefilled at current General prices.
+                Save without payment, then collect payment at the cashier; the appointment is linked to the bill when it is saved.
             </div>}
             {pendingDraftFinalization && (
                 <div className="alert alert-warning" role="alert">

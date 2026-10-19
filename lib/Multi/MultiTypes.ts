@@ -265,4 +265,6 @@ export interface billingContextProps {
 	specialcode?: string,
 	suspendedDraftId?: number,
 	billingRequestId?: number,
+	/** Converts a lab/ultrasound appointment: cart is prefilled with its booked services. */
+	appointmentId?: number,
 }
