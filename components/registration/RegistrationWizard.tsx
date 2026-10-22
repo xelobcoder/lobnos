@@ -24,6 +24,8 @@ import { useApplication } from '../Auth/useApplicationContext';
 import { designation, PatientPersonalInformationFields, ghanaDistricts } from './fields/Util';
 import { handleAgeCalculations } from '../Auth/registerclient';
 import { plsEncryption } from '../../lib/encryption';
+import { uploadPatientImage, validatePatientImage } from '../../lib/patientImages';
+import usePatientImage from '../petientsComponent/usePatientImage';
 
 const COUNTRY_CODES_GROUPED = {
      'West Africa': [
@@ -97,7 +99,11 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
      });
 
      // --- Step 4: Photo & Credentials Data ---
-     const [profileImage, setPreviewImage] = useState<string | null>(null);
+     const savedPhoto = usePatientImage(patientId);
+     const [pendingPhoto, setPendingPhoto] = useState<File | null>(null);
+     const [pendingPreview, setPendingPreview] = useState<string | null>(null);
+     const [photoError, setPhotoError] = useState('');
+     const profileImage = pendingPhoto ? pendingPreview : savedPhoto.imageUrl;
      const [showPhotoModal, setShowPhotoModal] = useState(false);
      const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
      const [cameraReady, setCameraReady] = useState(false);
@@ -110,6 +116,38 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
           username: '',
           password: ''
      });
+
+     useEffect(() => {
+          setPendingPhoto(null);
+          setPhotoError('');
+     }, [patientId]);
+
+     useEffect(() => {
+          if (!pendingPhoto) { setPendingPreview(null); return; }
+          const url = URL.createObjectURL(pendingPhoto);
+          setPendingPreview(url);
+          return () => URL.revokeObjectURL(url);
+     }, [pendingPhoto]);
+
+     const persistPhoto = async () => {
+          if (!patientId) throw new Error('Save the patient record before uploading a photo.');
+          if (!pendingPhoto) return;
+          await uploadPatientImage(patientId, pendingPhoto);
+          setPendingPhoto(null);
+          try { await savedPhoto.refresh(); }
+          catch { throw new Error('The photo was saved, but its preview could not be reloaded. Retry loading the photo before continuing.'); }
+     };
+
+     const handleSavePhoto = async () => {
+          try {
+               setIsSubmitting(true);
+               setPhotoError('');
+               await persistPhoto();
+               toast.success('Patient photo saved successfully.');
+          } catch (error: any) {
+               setPhotoError(error?.message || 'Unable to save patient photo. Please try again.');
+          } finally { setIsSubmitting(false); }
+     };
 
      // Load Existing Patient Data if patientId is present
      useEffect(() => {
@@ -382,10 +420,17 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                toast.error("Please complete Step 1 first.");
                return;
           }
-          if (credentials.username && credentials.password) {
-               try {
-                    setIsSubmitting(true);
-                    await customPost('patients/updatecredentials', 'POST', {
+          if (Boolean(credentials.username) !== Boolean(credentials.password)) {
+               toast.error('Enter both a username and password, or leave both fields empty.');
+               return;
+          }
+          try {
+               setIsSubmitting(true);
+               setPhotoError('');
+               await persistPhoto();
+               if (savedPhoto.error && !pendingPhoto) await savedPhoto.refresh();
+               if (credentials.username && credentials.password) {
+                    const response = await customPost('patients/updatecredentials', 'POST', {
                          opassword: credentials.password,
                          npassword: credentials.password,
                          nppassword: credentials.password,
@@ -393,15 +438,19 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                          patientid: patientId,
                          providedUsername: credentials.username
                     });
-               } catch {
-                    // Ignore non-fatal credential update error
-               } finally {
-                    setIsSubmitting(false);
+                    if (response?.status !== true && response?.status !== 'success') {
+                         throw new Error(response?.message || 'Patient portal credentials could not be saved.');
+                    }
                }
+               toast.success("Patient Registration Completed Successfully!");
+               window.location.href = `/billing/patientid/${plsEncryption(patientId.toString())}/multi`;
+          } catch (error: any) {
+               const message = error?.message || 'Unable to finish saving this patient record.';
+               setPhotoError(message);
+               toast.error(message);
+          } finally {
+               setIsSubmitting(false);
           }
-
-          toast.success("Patient Registration Completed Successfully!");
-          window.location.href = `/billing/patientid/${plsEncryption(patientId.toString())}/multi`;
      };
 
      // District options for Step 2
@@ -453,6 +502,7 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                                    variant="outline-secondary"
                                    size="sm"
                                    className="fw-semibold d-inline-flex align-items-center gap-1"
+                                   disabled={isSubmitting}
                                    onClick={() => router.push('/crm/customers')}
                               >
                                    <RiUser3Line size={18} /> Customers
@@ -462,6 +512,7 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                                         variant="outline-success"
                                         size="sm"
                                         className="fw-semibold d-inline-flex align-items-center gap-1"
+                                        disabled={isSubmitting}
                                         onClick={() => {
                                              window.location.href = `/billing/patientid/${plsEncryption(patientId.toString())}/multi`;
                                         }}
@@ -489,7 +540,7 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                                         onClick={() => {
                                              if (isUnlocked) setCurrentStep(s.id);
                                         }}
-                                        disabled={!isUnlocked}
+                                        disabled={!isUnlocked || isSubmitting}
                                    >
                                         <div className={styles.stepBadge}>
                                              {isCompleted ? <RiCheckLine size={16} /> : s.id + 1}
@@ -1181,10 +1232,11 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                               </div>
                          </div>
 
+                         {(photoError || savedPhoto.error) && <Alert variant="danger" role="alert">{photoError || savedPhoto.error}<Button variant="link" size="sm" disabled={isSubmitting || savedPhoto.loading} onClick={async () => { setPhotoError(''); try { await savedPhoto.refresh(); } catch { /* The photo loader displays the error. */ } }}>Retry loading photo</Button></Alert>}
                          <div className="row g-4 align-items-center">
                               <div className="col-md-5 text-center border-end pe-md-4">
                                    <div className="mb-3">
-                                        {profileImage ? (
+                                        {savedPhoto.loading && !pendingPhoto ? <div role="status"><Spinner size="sm" /> Loading saved photo...</div> : profileImage ? (
                                              <img
                                                   src={profileImage}
                                                   alt="Profile Preview"
@@ -1206,20 +1258,24 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                                         <Button
                                              variant="outline-primary"
                                              size="sm"
+                                             disabled={isSubmitting}
                                              onClick={() => fileInputRef.current?.click()}
                                         >
                                              Upload File
                                         </Button>
-                                        {profileImage && (
+                                        {pendingPhoto && <Button variant="primary" size="sm" disabled={isSubmitting} onClick={handleSavePhoto}>Save photo</Button>}
+                                        {pendingPhoto && (
                                              <Button
                                                   variant="outline-danger"
                                                   size="sm"
-                                                  onClick={() => setPreviewImage(null)}
+                                                  disabled={isSubmitting}
+                                                  onClick={() => { setPendingPhoto(null); setPhotoError(''); }}
                                              >
-                                                  Remove
+                                                  Discard selected photo
                                              </Button>
                                         )}
                                    </div>
+                                   <p className="small text-muted mt-2">JPEG, PNG or GIF, up to 5 MB. {pendingPhoto ? 'This photo has not been saved. Use Save photo or Complete Registration.' : 'Saved photos appear here when you reopen this record.'}</p>
                               </div>
 
                               {/* Optional Credentials */}
@@ -1235,6 +1291,7 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                                                   className="form-control form-control-sm"
                                                   placeholder="Min 6 characters"
                                                   value={credentials.username}
+                                                  disabled={isSubmitting}
                                                   onChange={(e) => setCredentials((prev) => ({ ...prev, username: e.target.value }))}
                                              />
                                         </div>
@@ -1245,6 +1302,7 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                                                   className="form-control form-control-sm"
                                                   placeholder="Min 6 characters"
                                                   value={credentials.password}
+                                                  disabled={isSubmitting}
                                                   onChange={(e) => setCredentials((prev) => ({ ...prev, password: e.target.value }))}
                                              />
                                         </div>
@@ -1254,17 +1312,20 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
 
                          <input
                               type="file"
+                              id="patient-photo-file"
                               ref={fileInputRef}
-                              accept="image/*"
+                              accept="image/jpeg,image/png,image/gif"
+                              disabled={isSubmitting}
                               style={{ display: 'none' }}
                               onChange={(e) => {
                                    const file = e.target.files?.[0];
+                                   e.target.value = '';
                                    if (file) {
-                                        const reader = new FileReader();
-                                        reader.onload = (ev) => {
-                                             setPreviewImage(ev.target?.result as string);
-                                        };
-                                        reader.readAsDataURL(file);
+                                        try {
+                                             validatePatientImage(file);
+                                             setPendingPhoto(file);
+                                             setPhotoError('');
+                                        } catch (error: any) { setPhotoError(error?.message || 'Choose a valid patient photo.'); }
                                    }
                               }}
                          />
@@ -1273,6 +1334,7 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                               <Button
                                    variant="light"
                                    className="px-3"
+                                   disabled={isSubmitting}
                                    onClick={() => setCurrentStep(2)}
                               >
                                    <RiArrowLeftLine size={18} /> Back to Emergency Contact
@@ -1283,7 +1345,7 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                                         variant="success"
                                         size="lg"
                                         className="px-4 fw-semibold d-inline-flex align-items-center gap-2"
-                                        disabled={isSubmitting}
+                                        disabled={isSubmitting || savedPhoto.loading}
                                         onClick={handleSaveStep4}
                                    >
                                         {isSubmitting ? <Spinner size="sm" /> : <RiCheckboxCircleLine size={20} />}
