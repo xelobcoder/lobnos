@@ -25,6 +25,7 @@ const types = load(path.join('lib', 'Multi', 'MultiTypes.ts'), name => { throw n
 const workflow = api => load(path.join('lib', 'Multi', 'billingWorkflow.ts'), () => ({ customFetch: api }));
 const context = { patientid: 101, categorytrackid: 1, ispricingcheckout: false };
 const plain = value => JSON.parse(JSON.stringify(value));
+const handoff = load(path.join('lib', 'queueHandoff.ts'), name => name.includes('walkInQueue') ? { queueData: value => value.data } : {});
 const nodes = (tree, predicate) => !tree || typeof tree !== 'object' ? [] : Array.isArray(tree)
     ? tree.flatMap(child => nodes(child, predicate))
     : [...(predicate(tree) ? [tree] : []), ...nodes(tree.props?.children, predicate)];
@@ -101,7 +102,7 @@ test('advanced init retains organization, insurer, NHIS, clinician, package and 
     assert.throws(() => helper.billingInitUrl({ ...types.defaultMultiBillingData, billingSource: 2 }, false, false), /billing entity/);
 });
 
-function harness({ advanced = false, api, billingContext = context, resume, query = '', selection = false, patientPage = false } = {}) {
+function harness({ advanced = false, api, billingContext = context, resume, query = '', selection = false, patientPage = false, submit, queueWarning = '' } = {}) {
     const states = [], effects = [], dependencies = [], cleanups = [];
     const calls = [], redirects = [];
     let cursor = 0, billingdata = { ...types.defaultMultiBillingData };
@@ -149,10 +150,12 @@ function harness({ advanced = false, api, billingContext = context, resume, quer
         };
         if (name === 'react-bootstrap') return bootstrap;
         if (name === '@remixicon/react') return new Proxy({}, { get: (_, key) => key });
-        if (name === 'react-toastify') return { toast: { error() {}, success() {} } };
+        if (name === 'react-toastify') return { toast: { error() {}, success() {}, info() {} } };
         if (name.includes('customFetch')) return { customFetch: fetch };
         if (name.includes('useApplicationContext')) return { useApplication: () => application };
         if (name.includes('billingWorkflow')) return helper;
+        if (name.includes('queueHandoff')) return { ...handoff, linkSavedRecordToQueue: async (source, values) => { calls.push(['QUEUE_LINK', plain(source), plain(values)]); return { warning: queueWarning }; } };
+        if (name.includes('multiBillingValidation')) return { MultiValidateAndSubmitBillingInformation: async data => { calls.push(['SALE_SAVE', plain(data)]); return submit ? await submit(data) : { status: true, billingid: 120 }; } };
         if (name.includes('MultiTypes')) return types;
         if (name.includes('billingLib')) return { billingSource: [] };
         if (name.includes('BillingContextPropsContext')) return { BillingContextPropsProvider: 'props', useBillingContextProps: () => ({ billingContextProps: billingContext }) };
@@ -172,6 +175,7 @@ function harness({ advanced = false, api, billingContext = context, resume, quer
     }).default;
     return {
         calls, redirects, application, get data() { return plain(billingdata); },
+        setData(values) { billingdata = { ...billingdata, ...values }; },
         providerKey() { return Component({ billingContextProps: billingContext }).key; },
         render() {
             cursor = 0;
@@ -193,6 +197,36 @@ test('registration/source-selection entry redirects General automatically and ke
     assert.equal(h.redirects.length, 1);
     assert.equal(new URLSearchParams(h.redirects[0].split('?')[1]).get('adjustmentReason'), 'A&B');
     assert.ok(h.redirects[0].includes('/multi/1?'));
+});
+test('queue handoff survives source-selection redirection', async () => {
+    const h = harness({ selection: true, query: 'queueTicket=8&queueDate=2030-01-02' });
+    h.render(); await h.flush();
+    const query = new URLSearchParams(h.redirects[0].split('?')[1]);
+    assert.equal(query.get('queueTicket'), '8'); assert.equal(query.get('queueDate'), '2030-01-02');
+});
+test('confirmed bill save attaches its identifiers to the queue without altering the sale payload', async () => {
+    const h = harness({ query: 'queueTicket=8&queueDate=2030-01-02' });
+    h.render(); await h.flush(); h.render(); await h.flush();
+    h.setData({ showsummary: true, patientid: 101 });
+    const tree = h.render();
+    const summary = nodes(tree, node => typeof node.props?.handlesubmit === 'function')[0];
+    assert.ok(summary, 'Billing submit control is missing');
+    await summary.props.handlesubmit(h.data);
+    assert.equal(h.calls.filter(call => Array.isArray(call) && call[0] === 'SALE_SAVE').length, 1);
+    assert.deepEqual(h.calls.find(call => Array.isArray(call) && call[0] === 'QUEUE_LINK'), ['QUEUE_LINK', { ticketId: 8, date: '2030-01-02' }, { patientid: 101, billingid: 120 }]);
+});
+test('queue follow-up failure displays a warning and retrying it never submits the bill again', async () => {
+    const h = harness({ query: 'queueTicket=8', queueWarning: 'The record was saved, but its queue link failed. Do not save again.' });
+    h.render(); await h.flush(); h.render(); await h.flush(); h.setData({ showsummary: true, patientid: 101 });
+    const summary = nodes(h.render(), node => typeof node.props?.handlesubmit === 'function')[0];
+    await summary.props.handlesubmit(h.data);
+    let tree = h.render(); assert.match(text(tree), /Bill 120 was saved/); assert.match(text(tree), /Do not save again/);
+    const retry = nodes(tree, node => typeof node.props?.onClick === 'function' && text(node) === 'Retry queue link')[0];
+    assert.ok(retry); await retry.props.onClick();
+    tree = h.render(); const submitAgain = nodes(tree, node => typeof node.props?.handlesubmit === 'function')[0];
+    await submitAgain.props.handlesubmit(h.data);
+    assert.equal(h.calls.filter(call => Array.isArray(call) && call[0] === 'SALE_SAVE').length, 1);
+    assert.equal(h.calls.filter(call => Array.isArray(call) && call[0] === 'QUEUE_LINK').length, 2);
 });
 
 test('multi-source facilities stay on source selection; configuration failures show Retry', async () => {

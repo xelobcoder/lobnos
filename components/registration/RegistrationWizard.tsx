@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Form, Modal, Button, Spinner, Alert } from 'react-bootstrap';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { toast } from 'react-toastify';
 import {
      RiUser3Line,
@@ -26,6 +26,7 @@ import { handleAgeCalculations } from '../Auth/registerclient';
 import { plsEncryption } from '../../lib/encryption';
 import { uploadPatientImage, validatePatientImage } from '../../lib/patientImages';
 import usePatientImage from '../petientsComponent/usePatientImage';
+import { linkSavedRecordToQueue, parseQueueHandoff, withQueueHandoff } from '../../lib/queueHandoff';
 
 const COUNTRY_CODES_GROUPED = {
      'West Africa': [
@@ -57,6 +58,9 @@ interface RegistrationWizardProps {
 export default function RegistrationWizard({ initialPatientId, initialStep = 0 }: RegistrationWizardProps) {
      const router = useRouter();
      const params = useParams();
+     const searchParams = useSearchParams();
+     const queueHandoff = parseQueueHandoff(searchParams);
+     const [queueWarning, setQueueWarning] = useState('');
      const employeeid = useApplication()?.user?.employeeid || null;
 
      const [currentStep, setCurrentStep] = useState(initialStep);
@@ -66,6 +70,16 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
 
      const [isSubmitting, setIsSubmitting] = useState(false);
      const [isLoadingPatient, setIsLoadingPatient] = useState(false);
+     const syncQueuePatient = async (id: number) => {
+          const result = await linkSavedRecordToQueue(queueHandoff, { patientid: id });
+          setQueueWarning(result.warning);
+          return result.warning;
+     };
+     const billingUrlForPatient = (id: number, pending = false) => withQueueHandoff(`/billing/patientid/${plsEncryption(id.toString())}/multi`, queueHandoff, pending);
+     const goToBilling = async (id: number) => {
+          const warning = await syncQueuePatient(id);
+          window.location.href = billingUrlForPatient(id, Boolean(warning));
+     };
 
      // --- Step 1: Personal Details State ---
      const [personalData, setPersonalData] = useState({ ...PatientPersonalInformationFields });
@@ -320,11 +334,12 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                     if (registeredId) {
                          setPatientId(Number(registeredId));
                     }
+                    const warning = registeredId ? await syncQueuePatient(Number(registeredId)) : '';
 
                     toast.success(method === "POST" ? "Basic Patient Information Registered Successfully!" : "Personal Information Updated!");
 
                     if (redirectToBilling && registeredId) {
-                         const billingUrl = `/billing/patientid/${plsEncryption(registeredId.toString())}/multi`;
+                         const billingUrl = billingUrlForPatient(Number(registeredId), Boolean(warning));
                          window.location.href = billingUrl;
                          return true;
                     }
@@ -362,7 +377,7 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                if (response && Number(response.statusCode) === 200 && response.status === "success") {
                     toast.success("Address & Location Information Saved!");
                     if (redirectToBilling) {
-                         window.location.href = `/billing/patientid/${plsEncryption(patientId.toString())}/multi`;
+                         await goToBilling(patientId);
                          return true;
                     }
                     return true;
@@ -398,7 +413,7 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                if (response && Number(response.statusCode) === 200 && response.status === "success") {
                     toast.success("Emergency Contact Information Saved!");
                     if (redirectToBilling) {
-                         window.location.href = `/billing/patientid/${plsEncryption(patientId.toString())}/multi`;
+                         await goToBilling(patientId);
                          return true;
                     }
                     return true;
@@ -443,7 +458,7 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                     }
                }
                toast.success("Patient Registration Completed Successfully!");
-               window.location.href = `/billing/patientid/${plsEncryption(patientId.toString())}/multi`;
+               await goToBilling(patientId);
           } catch (error: any) {
                const message = error?.message || 'Unable to finish saving this patient record.';
                setPhotoError(message);
@@ -473,6 +488,8 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
 
      return (
           <div className={styles.wizardContainer}>
+               {queueHandoff ? <div className="alert alert-info" role="status">Registering client from queue ticket #{queueHandoff.ticketId}. The saved patient and bill will be linked to this visit. <a href="/operations/queue">Return to queue</a></div> : null}
+               {queueWarning ? <div className="alert alert-warning" role="alert">{queueWarning} <a href="/operations/queue">Open queue</a></div> : null}
                {/* Header Stepper Card */}
                <div className={styles.stepperCard}>
                     <div className={styles.stepperHeader}>
@@ -513,8 +530,8 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                                         size="sm"
                                         className="fw-semibold d-inline-flex align-items-center gap-1"
                                         disabled={isSubmitting}
-                                        onClick={() => {
-                                             window.location.href = `/billing/patientid/${plsEncryption(patientId.toString())}/multi`;
+                                        onClick={async () => {
+                                             await goToBilling(patientId);
                                         }}
                                    >
                                         <RiCashFill size={18} /> Proceed to Billing Directly
@@ -1398,9 +1415,9 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                                                                  variant="success"
                                                                  size="sm"
                                                                  className="me-2"
-                                                                 onClick={() => {
+                                                                 onClick={async () => {
                                                                       setShowPatientFoundModal(false);
-                                                                      window.location.href = `/billing/patientid/${plsEncryption(p.patientid.toString())}/multi`;
+                                                                      await goToBilling(Number(p.patientid));
                                                                  }}
                                                             >
                                                                  <RiCashFill size={14} className="me-1" /> Bill Patient

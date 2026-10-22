@@ -23,6 +23,7 @@ export const CrmLinks: Link[] = [
         link: "",
         icon: <RiCustomerService2Line />,
         children: [
+            { title: 'Walk-in Queue & Client Tracking', link: '/operations/queue', icon: <RiTimeLine />, roles: ['admin', 'super-admin', 'manager', 'receptionist', 'customer service representative', 'cashier', 'accountant', 'scientist', 'phlebotomist', 'phelobotomist', 'nurse'] },
             {
                 title: "Customers",
                 link: "/crm/customers",

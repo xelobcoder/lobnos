@@ -15,6 +15,7 @@ import {
      SingleTestResultValidationWorkflowModal,
 } from '../../../../../../components/operations/Laboratory/SingleTestWorkflowModals'
 import CollectionSampleModal from '../../../../../../components/phelobotomy/CollectionSampleModal';
+import SpecimenRecollectionPanel from '../../../../../../components/phelobotomy/SpecimenRecollectionPanel';
 import SampleAssessmentModal from '../../../../../../components/accessories/SampleAssessmentModal/SampleAssessmentModal';
 import SingleWorkFlowResultDeliveryModal from '../../../../../../components/operations/Laboratory/singleWorkFlowDeliveryResult';
 import BulkWorkFlowResultDeliveryModal from '../../../../../../components/operations/Laboratory/bulkWorkFlowDeliveryResult';
@@ -621,7 +622,8 @@ export default function ClientVisit() {
                                                             </div>
 
                                                             <div className="d-grid gap-2">
-                                                                 {workflowFor(selectedItem).blockedReason && <div className="alert alert-warning py-2">{workflowFor(selectedItem).blockedReason}</div>}
+                                                                 <SpecimenRecollectionPanel billingid={selectedItem.billingid} ascensionId={selectedItem.ascension_id} compact onChanged={() => loadTestTransactions(true)} />
+                                                  {workflowFor(selectedItem).blockedReason && <div className="alert alert-warning py-2">{workflowFor(selectedItem).blockedReason}</div>}
                                                                  <button
                                                                       className={`btn btn-sm ${selectedItem.collectionEndDate ? 'btn-outline-secondary' : selectedItem.collectionStartDate ? 'btn-outline-success' : 'btn-outline-primary'}`}
                                                                       disabled={!workflowFor(selectedItem).canCollect}

@@ -129,23 +129,28 @@ function wizard(options = {}) {
         if (name === 'react') return lifecycle.react;
         if (name === 'react/jsx-runtime') return require(name);
         if (name === 'react-bootstrap') return { Modal, Button: 'button', Spinner: 'span', Alert: 'aside', Form: noop };
-        if (name === 'next/navigation') return { useRouter: () => ({ push: noop }), useParams: () => ({}) };
+        if (name === 'next/navigation') return { useRouter: () => ({ push: noop }), useParams: () => ({}), useSearchParams: () => new URLSearchParams() };
+        if (name.endsWith('queueHandoff')) return {
+            parseQueueHandoff: () => options.queue ? { ticketId: 8, date: '2030-01-02' } : null,
+            withQueueHandoff: (url, handoff, pending) => handoff ? `${url}?queueTicket=8&queueDate=2030-01-02${pending ? '&queueLinkPending=1' : ''}` : url,
+            linkSavedRecordToQueue: async (handoff, values) => { if (handoff) calls.push(['queue-link', values]); return { warning: options.queueWarning || '' }; },
+        };
         if (name.endsWith('useApplicationContext')) return { useApplication: () => ({ user: { employeeid: 9 } }) };
         if (name.endsWith('usePatientImage')) return { __esModule: true, default: () => photo };
         if (name.endsWith('patientImages')) return {
             validatePatientImage: file => { if (file.type !== 'image/png' || file.size > 5 * 1024 * 1024) throw new Error('Choose an allowed photo'); },
             uploadPatientImage: async (id, file) => { calls.push(['upload', id, file]); if (options.upload) await options.upload(); return 'saved-photo.png'; },
         };
-        if (name.endsWith('customFetch')) return { customFetch: async () => ({}), customPost: async (endpoint, method, data) => { calls.push(['credentials', endpoint, data]); return options.credentialsError ? { status: 'error', message: 'Credentials rejected' } : { status: 'success' }; } };
+        if (name.endsWith('customFetch')) return { customFetch: async () => ({}), customPost: async (endpoint, method, data) => { calls.push(['credentials', endpoint, data]); return options.credentialsError ? { status: 'error', message: 'Credentials rejected' } : { status: 'success', ...(options.registeredId ? { patientid: options.registeredId } : {}) }; } };
         if (name === 'react-toastify') return { toast: { success: message => success.push(message), error: message => errors.push(message), info: noop } };
         if (name.endsWith('encryption')) return { plsEncryption: id => `encrypted-${id}` };
-        if (name.endsWith('fields/Util')) return { designation: [], PatientPersonalInformationFields: {}, ghanaDistricts: {} };
+        if (name.endsWith('fields/Util')) return { designation: [], PatientPersonalInformationFields: options.personalData || {}, ghanaDistricts: {} };
         if (name.endsWith('registerclient')) return { handleAgeCalculations: noop };
         if (name.endsWith('.css')) return {};
         if (name === '@remixicon/react') return new Proxy({}, { get: () => noop });
         throw new Error(`Unexpected dependency ${name}`);
     }, { window, URL: { createObjectURL: () => 'blob:pending', revokeObjectURL: url => revoked.push(url) } }).default;
-    const render = () => lifecycle.render(() => Component({ initialPatientId: 42, initialStep: 3 }));
+    const render = () => lifecycle.render(() => Component({ initialPatientId: options.newPatient ? undefined : 42, initialStep: options.initialStep ?? 3 }));
     return { ...lifecycle, calls, success, errors, window, revoked, render, async select(file = png()) {
         const input = nodes(render(), node => node.props?.id === 'patient-photo-file')[0];
         input.props.onChange({ target: { files: [file], value: 'photo.png' } });
@@ -161,6 +166,29 @@ test('the actual registration screen shows a saved photo when reopened without u
     await button(tree, 'Complete Registration & Go to Billing').props.onClick();
     assert.equal(view.calls.filter(call => call[0] === 'upload').length, 0);
     assert.match(view.window.location.href, /encrypted-42/);
+});
+test('registration links a newly saved patient before carrying the queue into billing', async () => {
+    const view = wizard({ queue: true, newPatient: true, initialStep: 0, registeredId: 77, personalData: { firstname: 'Jane', lastname: 'Doe', gender: 'female' } });
+    view.render(); await view.flush();
+    await button(view.render(), 'Save & Proceed to Billing').props.onClick();
+    assert.deepEqual(JSON.parse(JSON.stringify(view.calls.filter(call => call[0] === 'queue-link'))), [['queue-link', { patientid: 77 }]]);
+    assert.match(view.window.location.href, /encrypted-77\/multi\?queueTicket=8&queueDate=2030-01-02/);
+    assert.equal(view.errors.length, 0);
+    assert.equal(view.calls.filter(call => call[0] === 'credentials').length, 1);
+});
+test('queue linkage failure preserves patient save success and carries a concrete follow-up warning', async () => {
+    const view = wizard({ queue: true, queueWarning: 'Saved record needs a queue link. Do not save again.', newPatient: true, initialStep: 0, registeredId: 77, personalData: { firstname: 'Jane', lastname: 'Doe', gender: 'female' } });
+    view.render(); await view.flush();
+    await button(view.render(), 'Save & Proceed to Billing').props.onClick();
+    assert.equal(view.success.length, 1); assert.equal(view.errors.length, 0);
+    assert.match(view.window.location.href, /queueLinkPending=1/);
+    assert.match(text(view.render()), /Do not save again/);
+});
+test('photo completion still saves the portrait before linking the queue and proceeding to billing', async () => {
+    const view = wizard({ queue: true }); view.render(); await view.flush(); await view.select();
+    await button(view.render(), 'Complete Registration & Go to Billing').props.onClick();
+    assert.deepEqual(view.calls.map(call => call[0]), ['upload', 'refresh', 'queue-link']);
+    assert.match(view.window.location.href, /queueTicket=8/);
 });
 
 test('completion waits for a selected photo to persist and reload before success or billing navigation', async () => {

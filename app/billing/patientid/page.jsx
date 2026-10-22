@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { getFacilityBillingMode, generalBillingUrl } from '../../../lib/Multi/billingWorkflow';
+import { parseQueueHandoff, withQueueHandoff } from '../../../lib/queueHandoff';
 
 const billingSourceLabels = {
 	'1': 'General / Cash',
@@ -18,6 +19,7 @@ const billingSourceLabels = {
 export default function BillingFiltering() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
+	const queueHandoff = parseQueueHandoff(searchParams);
 	const resumeDraftId = searchParams?.get('resumeDraftId');
 	const resumeBillingSource = searchParams?.get('resumeBillingSource') || '';
 
@@ -30,16 +32,16 @@ export default function BillingFiltering() {
 			if (resumeDraftId) params.set('suspendedDraftId', resumeDraftId);
 			const suffix = params.size ? `?${params.toString()}` : '';
 			if (resumeDraftId && resumeBillingSource) {
-				router.push(`/billing/patientid/${encryptedPatientId}/multi/${resumeBillingSource}${suffix}`);
+				router.push(withQueueHandoff(`/billing/patientid/${encryptedPatientId}/multi/${resumeBillingSource}${suffix}`, queueHandoff));
 				return;
 			}
 
 			try {
 				const mode = await getFacilityBillingMode();
 				if (mode === 'advanced') {
-					router.push(`/billing/patientid/${encryptedPatientId}/multi`);
+					router.push(withQueueHandoff(`/billing/patientid/${encryptedPatientId}/multi`, queueHandoff));
 				} else {
-					router.push(generalBillingUrl(encryptedPatientId, params.toString()));
+					router.push(withQueueHandoff(generalBillingUrl(encryptedPatientId, params.toString()), queueHandoff));
 				}
 			} catch (error) {
 				toast.error(error?.message || 'Unable to start billing. Please try again.');

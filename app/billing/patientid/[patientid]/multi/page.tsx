@@ -9,6 +9,7 @@ import { useApplication } from '../../../../../components/Auth/useApplicationCon
 import { customFetch } from '../../../../../components/Auth/customFetch';
 import { toast } from 'react-toastify';
 import { getFacilityBillingMode, generalBillingUrl } from '../../../../../lib/Multi/billingWorkflow';
+import { parseQueueHandoff, withQueueHandoff } from '../../../../../lib/queueHandoff';
 
 interface BillingOption {
 	value: number;
@@ -33,6 +34,7 @@ export default function BillingTypeSelection() {
 	const branchid = useApplication().branchid;
 	const employeeid = useApplication().user.employeeid;
 	const searchParams = useSearchParams();
+	const queueHandoff = parseQueueHandoff(searchParams);
 	const getParam = (key: string) => searchParams?.get(key) ?? '';
 	const ispricingcheckout = getParam('ispricingcheckout') === '1';
 	const query = searchParams?.toString() || '';
@@ -98,7 +100,7 @@ export default function BillingTypeSelection() {
 						url += `?${paramsArr.join('&')}`;
 					}
 					url += url.includes('?') ? '&isOpenSideBarShow=false' : '?isOpenSideBarShow=false';
-					router.push(url);
+					router.push(withQueueHandoff(url, queueHandoff));
 				}
 			} else {
 				toast.error("Sales Session Not Found.Kindly Create session to continue ");

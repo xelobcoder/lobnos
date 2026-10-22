@@ -113,7 +113,7 @@ test("patient navigation links every portal page", () => {
         return {};
     });
     const links = PatientPortalLinks.map(link => link.link);
-    assert.deepEqual(plain(links), ["/patientportal", "/patientportal/results", "/patientportal/trends", "/patientportal/requests", "/patientportal/home-collection", "/patientportal/appointments", "/patientportal/billing", "/patientportal/account"]);
+    assert.deepEqual(plain(links), ["/patientportal", "/patientportal/results", "/patientportal/samples", "/patientportal/trends", "/patientportal/requests", "/patientportal/home-collection", "/patientportal/appointments", "/patientportal/billing", "/patientportal/account"]);
     for (const link of links.slice(1)) {
         assert.ok(statSync(path.join(root, "app", ...link.split("/").filter(Boolean), "page.tsx")).isFile(), `${link} has no page`);
     }

@@ -2,6 +2,7 @@ import { Link } from '../types';
 import { RiSyringeLine, RiCloseCircleLine, RiBarChartBoxLine, RiHome2Line, RiFileListLine, RiQuestionAnswerLine, RiMailLine } from '@remixicon/react';
 
 export const PhlebotomyLinks: Link[] = [
+    { title: 'Walk-in Queue & Client Tracking', link: '/operations/queue', icon: <RiHome2Line /> },
     {
         title: "Summary",
         link: "/operations/phelobotomy",

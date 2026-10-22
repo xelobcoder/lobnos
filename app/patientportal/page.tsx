@@ -78,6 +78,7 @@ export default function PatientPortalHome() {
                     </div>
                     <div className="d-flex flex-wrap gap-2">
                          <Link href="/patientportal/requests" className="btn btn-primary">Request tests</Link>
+                         <Link href="/patientportal/samples" className="btn btn-outline-primary">Samples & recollection</Link>
                          {data?.features.homeCollection && <Link href="/patientportal/home-collection" className="btn btn-outline-primary">Book home collection</Link>}
                     </div>
                </div>

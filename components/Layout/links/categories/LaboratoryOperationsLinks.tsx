@@ -41,6 +41,7 @@ export const LaboratoryOperationsLinks: Link[] = [
         icon: <RiHome2Line />,
         children: [
             { title: "Laboratory Operations Home", link: "/operations/laboratory", icon: <RiHome2Line /> },
+            { title: "Walk-in Queue & Client Tracking", link: "/operations/queue", icon: <RiTimeLine /> },
             { title: "Register New Client", link: "/crm/registration", icon: <RiRegisteredFill /> },
             { title: "Daily Laboratory Request", link: "/operations/laboratory/main/dailyRequest", icon: <RiFileListLine /> },
             { title: "Advanced Search", link: "/operations/laboratory/advanced-search", icon: <RiSearchLine /> },

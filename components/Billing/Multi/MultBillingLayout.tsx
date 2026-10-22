@@ -9,7 +9,7 @@ import { customFetch, customFetchMutation } from "../../Auth/customFetch";
 import { billingContextProps, defaultMultiBillingData, MultiBillingData } from "../../../lib/Multi/MultiTypes";
 import { MultiBillingProvider, MultiBillingContext } from "./MultiBillingContext";
 import MultiSummary from "./MultiSummary";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { useApplication } from "../../Auth/useApplicationContext";
 import { roleAllowed } from "../../Auth/roles";
 import { toast } from "react-toastify";
@@ -27,6 +27,7 @@ import { buildDefaultDeliveryPreferences, DEFAULT_RESULT_DELIVERY_MODE, loadRegi
 import { requestedCart, type PatientBillingRequest } from '../../../lib/patientBillingRequests';
 import type { AppointmentWorkflow } from '../../../lib/appointmentWorkflow';
 import { unwrap } from '../../../lib/patientPortal';
+import { linkSavedRecordToQueue, parseQueueHandoff, withQueueHandoff } from '../../../lib/queueHandoff';
 
 
 
@@ -69,6 +70,10 @@ function MultiBillingLayoutContent() {
     if (!context) throw new Error("MultiBillingContext not found");
     const { billingdata, setBillingData, recalculateTotalBill } = context;
     const router = useRouter();
+    const queueSearchParams = useSearchParams();
+    const queueHandoff = parseQueueHandoff(queueSearchParams);
+    const [queueLinkWarning, setQueueLinkWarning] = useState(queueSearchParams?.get('queueLinkPending') === '1' ? 'The patient was saved, but its queue link needs attention. Saving this bill will retry the link. You can also return to the queue to link the saved patient manually.' : '');
+    const [retryingQueueLink, setRetryingQueueLink] = useState(false);
     const patientId = useParams()?.patientid;
     const [specialCodeError, setSpecialCodeError] = useState("");
     const [loadingSpecialCode, setLoadingSpecialCode] = useState(false);
@@ -221,7 +226,7 @@ function MultiBillingLayoutContent() {
         setUseServices(false);
         setShowSummary(false);
         setSpecialCodeError('');
-        router.replace(window.location.pathname);
+        router.replace(withQueueHandoff(window.location.pathname, queueHandoff));
 
     };
 
@@ -235,7 +240,7 @@ function MultiBillingLayoutContent() {
 
 
     const handleReturnToMulti = () => {
-        if (patientId) router.replace(`/billing/patientid/${patientId}/multi/`);
+        if (patientId) router.replace(withQueueHandoff(`/billing/patientid/${patientId}/multi/`, queueHandoff));
     };
 
 
@@ -413,7 +418,7 @@ function MultiBillingLayoutContent() {
 
     const submitBillingInternal = async (billingdata: MultiBillingData, writeOffConfirmed = false) => {
         if (isSaving) return;
-        if (generatedBillingid && (suspendedDraftId || conversionSource)) {
+        if (generatedBillingid && (suspendedDraftId || conversionSource || queueHandoff)) {
             toast.info(`This sale has already been saved as billing ${generatedBillingid}. Do not submit it again.`);
             return;
         }
@@ -478,6 +483,10 @@ function MultiBillingLayoutContent() {
                 if (typeof window !== 'undefined') {
                     const billingId = response.billingid || response.data?.billingid;
                     setGeneratedBillingid(billingId);
+                    if (queueHandoff && billingId) {
+                        const linked = await linkSavedRecordToQueue(queueHandoff, { patientid: Number(billingdata.patientid), billingid: Number(billingId) });
+                        setQueueLinkWarning(linked.warning);
+                    }
                     if (billingdata.suspendedDraftId && billingId) {
                         try {
                             await finalizeSuspendedBilling(billingdata.suspendedDraftId, Number(billingId));
@@ -502,7 +511,7 @@ function MultiBillingLayoutContent() {
 
     const handleSubmit = async (billingdata: MultiBillingData, writeOffConfirmed = false) => {
         if (isSaving) return;
-        if (generatedBillingid && suspendedDraftId) {
+        if (generatedBillingid && (suspendedDraftId || queueHandoff)) {
             toast.info(`This sale has already been saved as billing ${generatedBillingid}. Do not submit it again.`);
             return;
         }
@@ -884,6 +893,15 @@ function MultiBillingLayoutContent() {
 
     return (
         <React.Fragment>
+            {queueHandoff ? <div className="alert alert-info" role="status">Billing queue ticket #{queueHandoff.ticketId}. This saved bill will supply the client’s test progress on the queue dashboard. <a href="/operations/queue">Return to queue</a></div> : null}
+            {queueLinkWarning ? <div className="alert alert-warning" role="alert">{generatedBillingid ? `Bill ${generatedBillingid} was saved. ` : ''}{queueLinkWarning} <a href="/operations/queue">Open queue</a>
+                {generatedBillingid && queueHandoff ? <Button className="ms-2" size="sm" variant="outline-secondary" disabled={retryingQueueLink} onClick={async () => {
+                    setRetryingQueueLink(true);
+                    const linked = await linkSavedRecordToQueue(queueHandoff, { patientid: Number(billingdata.patientid), billingid: Number(generatedBillingid) });
+                    setQueueLinkWarning(linked.warning);
+                    setRetryingQueueLink(false);
+                }}>{retryingQueueLink ? 'Linking…' : 'Retry queue link'}</Button> : null}
+            </div> : null}
             {billingRequestId && <div className="alert alert-info" role="status">
                 Reviewing patient request #{billingRequestId}. Requested tests are prefilled at current General prices.
                 Save without payment; the request is converted only when the bill is successfully saved.

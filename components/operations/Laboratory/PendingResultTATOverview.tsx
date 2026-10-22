@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { Alert, Button, Spinner, Table } from 'react-bootstrap';
-import { toast } from 'react-toastify';
 import moment from 'moment';
 import { customFetch } from '../../Auth/customFetch';
 import { useApplicationSettings } from '../../Auth/useApplicationContext';
@@ -33,10 +32,11 @@ function formatElapsed(minutes: number): string {
      return `${remainder}m`;
 }
 
-export default function PendingResultTATOverview() {
+type Props = { view?: 'summary' | 'cases' | 'combined'; initialThreshold?: number; onThresholdSelect?: (hours: number) => void };
+export default function PendingResultTATOverview({ view = 'combined', initialThreshold = 6, onThresholdSelect }: Props) {
      const employeeid = useApplicationSettings().applicationsettings?.user?.employeeid;
      const [summary, setSummary] = useState<ThresholdSummary[]>([]);
-     const [selectedHours, setSelectedHours] = useState(6);
+     const [selectedHours, setSelectedHours] = useState(initialThreshold);
      const [cases, setCases] = useState<PendingResultCase[]>([]);
      const [page, setPage] = useState(1);
      const [total, setTotal] = useState(0);
@@ -46,6 +46,7 @@ export default function PendingResultTATOverview() {
      const [casesError, setCasesError] = useState('');
 
      useEffect(() => {
+          if (view === 'cases') return;
           let cancelled = false;
           setSummaryLoading(true);
           customFetch(`testascension/pending-result-tat/summary?employeeid=${employeeid}`)
@@ -60,9 +61,12 @@ export default function PendingResultTATOverview() {
                     if (!cancelled) setSummaryLoading(false);
                });
           return () => { cancelled = true; };
-     }, [employeeid]);
+     }, [employeeid, view]);
+
+     useEffect(() => { setSelectedHours(initialThreshold); setPage(1); }, [initialThreshold]);
 
      useEffect(() => {
+          if (view === 'summary') return;
           let cancelled = false;
           setCasesLoading(true);
           customFetch(`testascension/pending-result-tat/cases?employeeid=${employeeid}&thresholdHours=${selectedHours}&page=${page}&count=${PAGE_SIZE}`)
@@ -85,18 +89,19 @@ export default function PendingResultTATOverview() {
                     if (!cancelled) setCasesLoading(false);
                });
           return () => { cancelled = true; };
-     }, [employeeid, page, selectedHours]);
+     }, [employeeid, page, selectedHours, view]);
 
      const selectThreshold = (hours: number) => {
           setSelectedHours(hours);
           setPage(1);
+          onThresholdSelect?.(hours);
      };
 
      const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
      return (
-          <section className="mb-4" aria-labelledby="pending-result-tat-title">
-               <div className="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+          <section className="mb-4" aria-labelledby={view === 'cases' ? 'pending-result-tat-cases-title' : 'pending-result-tat-title'}>
+               {view !== 'cases' && <><div className="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
                     <div>
                          <h2 id="pending-result-tat-title" className="h5 mb-1">Pending results by elapsed time</h2>
                          <p className="text-muted small mb-0">Elapsed time starts at registration, matching the existing total TAT clock. Thresholds are cumulative.</p>
@@ -125,11 +130,13 @@ export default function PendingResultTATOverview() {
                     })}
                </div>
 
-               {summaryError && <Alert variant="danger" className="py-2">{summaryError}</Alert>}
+               {summaryError && <Alert variant="danger" className="py-2">{summaryError}</Alert>}</>}
+               {view !== 'summary' && <>
+               {view === 'cases' && <div className="mb-3"><label className="form-label small fw-semibold" htmlFor="tat-pending-threshold">Pending for at least</label><select className="form-select" id="tat-pending-threshold" value={selectedHours} onChange={event => selectThreshold(Number(event.target.value))}>{THRESHOLDS.map(hours => <option key={hours} value={hours}>{hours} hours</option>)}</select></div>}
                {casesError && <Alert variant="danger" className="py-2">{casesError}</Alert>}
 
                <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-                    <h3 className="h6 mb-0">Cases at least {selectedHours} hours overdue <span className="text-muted fw-normal">({total})</span></h3>
+                    <h3 className="h6 mb-0" id="pending-result-tat-cases-title">Pending cases with at least {selectedHours} hours elapsed <span className="text-muted fw-normal">({total})</span></h3>
                     <div className="d-flex align-items-center gap-2">
                          <Button variant="outline-secondary" size="sm" disabled={page <= 1 || casesLoading} onClick={() => setPage((current) => Math.max(1, current - 1))}>Previous</Button>
                          <span className="small text-muted">Page {page} of {totalPages}</span>
@@ -171,6 +178,7 @@ export default function PendingResultTATOverview() {
                          </tbody>
                     </Table>
                </div>
+               </>}
           </section>
      );
 }

@@ -4,6 +4,7 @@ import { RiCalendarLine, RiDashboardLine, RiFileList3Line, RiMoneyDollarCircleLi
 export const PatientPortalLinks: Link[] = [
     { title: 'Home', link: '/patientportal', icon: <RiDashboardLine /> },
     { title: 'My Results', link: '/patientportal/results', icon: <RiFileList3Line /> },
+    { title: 'Samples & recollection', link: '/patientportal/samples', icon: <RiFileList3Line /> },
     { title: 'Test trends', link: '/patientportal/trends', icon: <RiLineChartLine /> },
     { title: 'Request tests', link: '/patientportal/requests', icon: <RiAddCircleLine /> },
     { title: 'Home collection', link: '/patientportal/home-collection', icon: <RiHomeHeartLine /> },

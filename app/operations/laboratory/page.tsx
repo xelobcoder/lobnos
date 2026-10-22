@@ -5,6 +5,7 @@ import { RiTestTubeLine, RiLoader4Line, RiCheckboxCircleLine, RiShieldCheckLine,
 import { useApplication } from '../../../components/Auth/useApplicationContext'
 
 const LaboratoryOperationsLinks = [
+    { title: "Walk-in Queue & Client Tracking", link: "/operations/queue", icon: <RiTimeLine /> },
 	{title: "Sample Collection",link: "/operations/phelobotomy/pending-samples-collection", icon: <RiTestTubeLine /> },
 	{ title: "Sample Validation", link: `/operations/laboratory/sample/validation`, icon: <RiTestTubeLine /> },
 	{ title: "Specimen Storage & Retention", link: "/operations/phelobotomy/specimen-storage", icon: <RiArchiveLine /> },
@@ -36,7 +37,9 @@ export default function Page() {
 	}
 
 	const getDescription = (title: string) => {
-		if (title.includes('Specimen Storage')) {
+		if (title.includes('Walk-in Queue')) {
+			return 'Call waiting clients, link registration and billing, and track test progress. Open the public check-in link or facility display.'
+		} else if (title.includes('Specimen Storage')) {
 			return 'Store collected or received samples by freezer, rack and position. Manage aliquots, retrieval, retention and documented disposal.'
 		} else if (title.includes('Sample Validation')) {
 			return 'Verify and validate incoming laboratory samples. Ensure proper labeling, adequate volume, and appropriate container usage.'
@@ -71,7 +74,7 @@ export default function Page() {
 			<div className="row g-3">
 				{(isCompleteFlow
 					? LaboratoryOperationsLinks
-					: LaboratoryOperationsLinks.filter(link => link.title === "Completed stage" || link.title === "Specimen Storage & Retention")
+					: LaboratoryOperationsLinks.filter(link => link.title === "Completed stage" || link.title === "Specimen Storage & Retention" || link.title === "Walk-in Queue & Client Tracking")
 				).map((link, index) => (
 					<div key={index} className="col-12 col-md-6 col-lg-4">
 						<Link
