@@ -28,6 +28,11 @@ export const PhlebotomyLinks: Link[] = [
         icon: <RiFileListLine />
     },
     {
+        title: "Specimen Storage & Retention",
+        link: "/operations/phelobotomy/specimen-storage",
+        icon: <RiFileListLine />
+    },
+    {
         title: "Review Requests",
         link: "/operations/phelobotomy/review-requests",
         icon: <RiQuestionAnswerLine />

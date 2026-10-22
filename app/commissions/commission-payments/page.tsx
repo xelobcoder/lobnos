@@ -118,7 +118,7 @@ export default function CommissionPaymentsPage() {
                const response = await customFetch(url);
                if (currentFilterKey.current !== filterKey) return { result: [], error: 'Filters changed; reload the selected period.' };
                if (response && (response.success || response.status === true || response.status === 'success') && Array.isArray(response.data)) {
-                    return { result: response.data, error: false };
+                    return { result: response.data, error: false as const };
                } else {
                     throw new Error(response?.message || 'Unable to load paid commissions');
                };

@@ -27,6 +27,7 @@ export const LaboratoryOperationsLinks: Link[] = [
             { title: "Sample Collection", link: "/operations/laboratory/sample/collection", icon: <RiTestTubeLine /> },
             { title: "Sample Validation", link: `/operations/laboratory/sample/validation`, icon: <RiTestTubeLine /> },
             { title: "Sample Summary", link: "/operations/phelobotomy/sample-summary", icon: <RiFileListLine /> },
+            { title: "Specimen Storage & Retention", link: "/operations/phelobotomy/specimen-storage", icon: <RiStore2Line /> },
             { title: "Sample Review Requests", link: "/operations/phelobotomy/review-requests", icon: <RiQuestionMark /> },
             { title: "Processing stage", link: `/operations/laboratory/processing`, icon: <RiLoader4Line /> },
             { title: "Completed stage", link: `/operations/laboratory/completed`, icon: <RiCheckboxCircleLine /> },
