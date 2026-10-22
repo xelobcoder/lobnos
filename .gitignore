@@ -10,6 +10,7 @@
 
 # next.js
 /.next/
+/.next-specimen-build/
 /out/
 .zip
 

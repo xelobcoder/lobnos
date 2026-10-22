@@ -1,12 +1,13 @@
 'use client'
 import React from 'react'
 import Link from 'next/link'
-import { RiTestTubeLine, RiLoader4Line, RiCheckboxCircleLine, RiShieldCheckLine, RiFileListLine, RiAlarmWarningLine, RiTimeLine } from '@remixicon/react'
-import { useApplication, useApplicationSettings } from '../../../components/Auth/useApplicationContext'
+import { RiTestTubeLine, RiLoader4Line, RiCheckboxCircleLine, RiShieldCheckLine, RiFileListLine, RiAlarmWarningLine, RiTimeLine, RiArchiveLine } from '@remixicon/react'
+import { useApplication } from '../../../components/Auth/useApplicationContext'
 
 const LaboratoryOperationsLinks = [
 	{title: "Sample Collection",link: "/operations/phelobotomy/pending-samples-collection", icon: <RiTestTubeLine /> },
 	{ title: "Sample Validation", link: `/operations/laboratory/sample/validation`, icon: <RiTestTubeLine /> },
+	{ title: "Specimen Storage & Retention", link: "/operations/phelobotomy/specimen-storage", icon: <RiArchiveLine /> },
 	{ title: "Processing stage", link: `/operations/laboratory/processing`, icon: <RiLoader4Line /> },
 	{ title: "Completed stage", link: `/operations/laboratory/completed`, icon: <RiCheckboxCircleLine /> },
 	{ title: "Validation stage", link: `/operations/laboratory/validation`, icon: <RiShieldCheckLine /> },
@@ -35,7 +36,9 @@ export default function Page() {
 	}
 
 	const getDescription = (title: string) => {
-		if (title.includes('Sample Validation')) {
+		if (title.includes('Specimen Storage')) {
+			return 'Store collected or received samples by freezer, rack and position. Manage aliquots, retrieval, retention and documented disposal.'
+		} else if (title.includes('Sample Validation')) {
 			return 'Verify and validate incoming laboratory samples. Ensure proper labeling, adequate volume, and appropriate container usage.'
 		} else if (title.includes('Processing stage')) {
 			return 'Track samples currently being processed in the laboratory. Monitor test progress and manage workload distribution.'
@@ -68,7 +71,7 @@ export default function Page() {
 			<div className="row g-3">
 				{(isCompleteFlow
 					? LaboratoryOperationsLinks
-					: LaboratoryOperationsLinks.filter(link => link.title === "Completed stage")
+					: LaboratoryOperationsLinks.filter(link => link.title === "Completed stage" || link.title === "Specimen Storage & Retention")
 				).map((link, index) => (
 					<div key={index} className="col-12 col-md-6 col-lg-4">
 						<Link

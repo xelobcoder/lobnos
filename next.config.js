@@ -7,6 +7,7 @@ const developmentBaseUrl =
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+	distDir: process.env.PLS_BUILD_OUTPUT_DIR || ".next",
 	reactStrictMode: true,
 	// output: "standalone",
 	env: {
