@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { RiShieldCrossFill, RiHomeLine } from '@remixicon/react';
 
+
 export default function UnauthorizedPage() {
   return (
     <div className="min-vh-100 d-flex flex-column">

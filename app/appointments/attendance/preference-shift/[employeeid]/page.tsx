@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, use } from "react";
 import { Form, Button, Spinner, Row, Col } from "react-bootstrap";
 import { customFetch, customPost } from "../../../../../components/Auth/customFetch";
 import { toast } from "react-toastify";
@@ -16,10 +16,11 @@ interface Shift {
 }
 
 interface EmployeePreferencesShiftPageProps {
-    params: { employeeid: number | string };
+    params: Promise<{ employeeid: number | string }>;
 }
 
-export default function EmployeePreferencesShiftPage({ params }: EmployeePreferencesShiftPageProps) {
+export default function EmployeePreferencesShiftPage(props: EmployeePreferencesShiftPageProps) {
+    const params = use(props.params);
     let { employeeid } = params;
     employeeid = parseInt(plsDecryption(employeeid.toString()))
     const [shifts, setShifts] = useState<Shift[]>([]);

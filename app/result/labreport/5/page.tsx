@@ -1,6 +1,7 @@
 import React from 'react';
-import { PrintOutdata } from './data'; 
+import { PrintOutdata } from './data';
 import styles from './vitalscan.module.css';
+
 
 interface RecordItemVS {
     id: string | number;

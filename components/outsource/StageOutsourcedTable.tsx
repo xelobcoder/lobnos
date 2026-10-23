@@ -16,12 +16,12 @@ export default function StageOutsourcedTable({ data, stage }: {
             const response = await customPost(`outsourced/testpanel/resolve`, 'POST', { serviceid, employeeid });
             const { status } = response;
             if (status === true) {
-                toast.success('Test marked as resolved.', { position: toast.POSITION.TOP_CENTER, theme: 'colored' });
+                toast.success('Test marked as resolved.', { position: 'top-center', theme: 'colored' });
             } else {
-                toast.error('Failed to resolve the test.', { position: toast.POSITION.TOP_CENTER, theme: 'colored' });
+                toast.error('Failed to resolve the test.', { position: 'top-center', theme: 'colored' });
             }
         } catch (error) {
-            toast.error('Failed to resolve the test.', { position: toast.POSITION.TOP_CENTER, theme: 'colored' });
+            toast.error('Failed to resolve the test.', { position: 'top-center', theme: 'colored' });
         }
     };
 

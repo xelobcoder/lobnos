@@ -120,7 +120,7 @@ export default function ExpensePaymentStatus() {
           return null;
      };
 
-     const renderChart = (): React.ReactElement => {
+     const renderChart = (): React.ReactElement<any> => {
           const commonProps = {
                data: chartData,
                margin: { top: 5, right: 5, left: 20, bottom: 45 },

@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState, use } from "react";
 import Link from "next/link";
 import dayjs from "dayjs";
 import { Button, Modal, Form } from "react-bootstrap";
@@ -27,7 +27,8 @@ interface CommissionData {
 interface PaymentMode { KeyID: number; PaymentMode: string }
 interface OrganizationInfo { name: string; mobile: string }
 
-export default function OrganizationCommissionDetails({ params }: { params: { organization: string } }) {
+export default function OrganizationCommissionDetails(props: { params: Promise<{ organization: string }> }) {
+    const params = use(props.params);
     const defaultStartDate = dayjs().startOf("year").format("YYYY-MM-DD");
     const defaultEndDate = dayjs().format("YYYY-MM-DD");
     const [startDate, setStartDate] = useState(defaultStartDate);

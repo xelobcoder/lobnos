@@ -2,6 +2,7 @@ import React from 'react';
 import MultiFieldSelectConditions from '../../../../../../../components/settingsComponents/FieldsCreation/MultiFieldConditions';
 import { customFetch } from '../../../../../../../components/Auth/customFetch';
 
+
 type TestCondition = {
 	id: number;
 	testId: number;
@@ -21,21 +22,22 @@ type Condition = {
 	conditionId: number | null;
 };
 
-export default async function MultipleTestConditionPage({ params }: { params: { testid: number, conditionid: number } }) {
-	const { testid, conditionid } = params;
-	let fields: any[] = [];
-	let condition: Condition = {
+export default async function MultipleTestConditionPage(props: { params: Promise<{ testid: number, conditionid: number }> }) {
+    const params = await props.params;
+    const { testid, conditionid } = params;
+    let fields: any[] = [];
+    let condition: Condition = {
 		fieldConstraints: [],
 		conditionName: '',
 		testid,
 		conditionId: conditionid
 	};
 
-	if (!conditionid) {
+    if (!conditionid) {
 		throw new Error('Condition ID is null or undefined');
 	}
 
-	try {
+    try {
 		if (testid) {
 			const [response, conditionDefinition, contraintsChecker] = await Promise.all([
 				customFetch(`testpanel/list/customtestrule?testid=${testid}`),
@@ -65,7 +67,7 @@ export default async function MultipleTestConditionPage({ params }: { params: { 
 		throw new Error('Failed to fetch data');
 	}
 
-	return (
+    return (
 		<div className="container-fluid px-3 py-3">
 			<div className="row g-3">
 				<div className="col-12 col-lg-4">

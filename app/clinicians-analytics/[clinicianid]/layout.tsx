@@ -5,15 +5,19 @@ import { Link } from "../../../components/Layout/links/types";
 import MAIN_LAYOUT from "../../../components/Layout/MainLayout";
 import PrimeLayout from "../../../components/Layout/PrimeLayout";
 
-;
 
-export default function ClinicianAnalyticsLayout({
-     children,
-     params,
-}: {
-     children: React.ReactNode;
-     params: { clinicianid: string };
-}) {
+export default async function ClinicianAnalyticsLayout(
+     props: {
+          children: React.ReactNode;
+          params: Promise<{ clinicianid: string }>;
+     }
+) {
+     const params = await props.params;
+
+     const {
+          children
+     } = props;
+
      const { clinicianid } = params;
 
      const clinicianAnalyticsLinks: Link[] = [

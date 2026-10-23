@@ -241,7 +241,7 @@ const Stat = ({ label, value, icon }: { label: string, value: string | number, i
     <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
         <div className="d-flex align-items-center mb-2">
             <div className="me-2 text-primary">
-                {React.cloneElement(icon as React.ReactElement, { size: 20 } as any)}
+                {React.cloneElement(icon as React.ReactElement<any>, { size: 20 } as any)}
             </div>
             <span className="fw-medium text-muted small">{label}</span>
         </div>

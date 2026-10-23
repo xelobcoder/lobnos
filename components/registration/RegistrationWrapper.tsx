@@ -5,7 +5,7 @@ import { RiArrowLeftSLine, RiArrowRightSLine } from '@remixicon/react';
 
 interface RegistrationWrapperProps {
     isOnlyRegistration?: boolean;
-    formSteps?: ReactElement[];
+    formSteps?: ReactElement<any>[];
     stepLabels?: string[];
 }
 

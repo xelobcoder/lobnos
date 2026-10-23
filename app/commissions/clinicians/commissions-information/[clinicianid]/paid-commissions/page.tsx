@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, use } from "react";
 import Link from "next/link";
 import dayjs from "dayjs";
 import jsPDF from "jspdf";
@@ -11,7 +11,8 @@ import { ErrorState, PeriodFilter } from "../../ClinicianUi";
 import { BreakdownData, BreakdownModal, PaidCommissionData, PaymentReport, PaymentSummary } from "../../PaymentReport";
 import styles from "../../CommissionReport.module.css";
 
-export default function PaidCommissionsPage({ params }: { params: { clinicianid: string } }) {
+export default function PaidCommissionsPage(props: { params: Promise<{ clinicianid: string }> }) {
+    const params = use(props.params);
     const [startDate, setStartDate] = useState(dayjs().startOf("year").format("YYYY-MM-DD"));
     const [endDate, setEndDate] = useState(dayjs().format("YYYY-MM-DD"));
     const [dateFilter, setDateFilter] = useState("This Year");

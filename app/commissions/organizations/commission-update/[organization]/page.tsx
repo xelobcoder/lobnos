@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState, use } from "react";
 import { RiEditLine, RiRefreshLine } from "@remixicon/react";
 import dayjs from "dayjs";
 import { Button, Modal, Form } from "react-bootstrap";
@@ -40,7 +40,8 @@ interface CommissionRecord {
     recipient_name?: string;
 }
 
-export default function OrganizationCommissionUpdatePage({ params }: { params: { organization: string } }) {
+export default function OrganizationCommissionUpdatePage(props: { params: Promise<{ organization: string }> }) {
+    const params = use(props.params);
     const [startDate, setStartDate] = useState(dayjs().startOf("year").format("YYYY-MM-DD"));
     const [endDate, setEndDate] = useState(dayjs().format("YYYY-MM-DD"));
     const [dateFilter, setDateFilter] = useState("This Year");

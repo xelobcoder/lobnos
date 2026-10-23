@@ -4,6 +4,7 @@ import PrimeLayout from "../../../components/Layout/PrimeLayout";
 import { LaboratoryOperationsLinks } from "../../../components/Layout/links/categories/LaboratoryOperationsLinks";
 import MAIN_LAYOUT from "../../../components/Layout/MainLayout";
 
+
 export default function HomeCollectionLayout({
      children,
 }: {

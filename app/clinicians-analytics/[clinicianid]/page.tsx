@@ -2,7 +2,10 @@ import ClinicianOverallAnalytics from "../../../components/analytics/clinicians-
 import { customFetch } from "../../../components/Auth/customFetch";
 
 
-export default async function Page({ params }: { params: { clinicianid: number } }) {
+
+
+export default async function Page(props: { params: Promise<{ clinicianid: number }> }) {
+    const params = await props.params;
     const { clinicianid } = params;
     let analyticData = {};
     const response = await customFetch(

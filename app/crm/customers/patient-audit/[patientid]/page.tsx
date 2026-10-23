@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { use } from 'react';
 import { plsDecryption } from '../../../../../lib/encryption'
 import { customFetch } from '../../../../../components/Auth/customFetch'
 import PreviewPatientInformation from '../../../../../components/petientsComponent/PreviewPatientInformation'
@@ -27,16 +27,17 @@ interface AuditHistoryItem {
 	[key: string]: unknown;
 }
 
-export default function Page({ params }: { params: { patientid: string } }) {
-	const encrypted = params.patientid;
-	const pidNumber = encrypted ? parseInt(plsDecryption(encrypted).toString()) : null;
+export default function Page(props: { params: Promise<{ patientid: string }> }) {
+    const params = use(props.params);
+    const encrypted = params.patientid;
+    const pidNumber = encrypted ? parseInt(plsDecryption(encrypted).toString()) : null;
 
-	const [loading, setLoading] = React.useState(true);
-	const [error, setError] = React.useState<string>('');
-	const [auditHistory, setAuditHistory] = React.useState<AuditHistoryItem[]>([]);
-	const [expandedAuditId, setExpandedAuditId] = React.useState<number | null>(null);
+    const [loading, setLoading] = React.useState(true);
+    const [error, setError] = React.useState<string>('');
+    const [auditHistory, setAuditHistory] = React.useState<AuditHistoryItem[]>([]);
+    const [expandedAuditId, setExpandedAuditId] = React.useState<number | null>(null);
 
-	const loadAuditHistory = async () => {
+    const loadAuditHistory = async () => {
 		if (!pidNumber) return;
 		setLoading(true);
 		setError('');
@@ -51,11 +52,11 @@ export default function Page({ params }: { params: { patientid: string } }) {
 		}
 	};
 
-	React.useEffect(() => {
+    React.useEffect(() => {
 		loadAuditHistory();
 	}, [pidNumber]);
 
-	const getWhenLabel = (item: AuditHistoryItem) => {
+    const getWhenLabel = (item: AuditHistoryItem) => {
 		const when = item.changed_at || item.updated_at || item.created_at || item.date;
 		if (!when) return 'N/A';
 		const parsed = new Date(when);
@@ -63,7 +64,7 @@ export default function Page({ params }: { params: { patientid: string } }) {
 		return parsed.toLocaleString();
 	};
 
-	const getActorLabel = (item: AuditHistoryItem) => {
+    const getActorLabel = (item: AuditHistoryItem) => {
 		const usernameRaw = typeof item.changed_by_username === 'string' ? item.changed_by_username : '';
 		const username = usernameRaw.trim();
 		const role = typeof item.changed_by_role === 'string' ? item.changed_by_role.trim() : '';
@@ -74,7 +75,7 @@ export default function Page({ params }: { params: { patientid: string } }) {
 		return 'Unknown user';
 	};
 
-	const pickSnapshot = (item: AuditHistoryItem) => {
+    const pickSnapshot = (item: AuditHistoryItem) => {
 		const keys = [
 			'fullpatientid',
 			'designation',
@@ -102,7 +103,7 @@ export default function Page({ params }: { params: { patientid: string } }) {
 		return snapshot;
 	};
 
-	return (
+    return (
 		<div className="container-fluid p-3">
 			{pidNumber ? (
 				<div className="mb-3">

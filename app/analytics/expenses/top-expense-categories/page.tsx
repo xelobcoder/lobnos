@@ -99,7 +99,7 @@ export default function TopExpenseCategories() {
     const totalAmountSum = chartData.reduce((sum, entry) => sum + entry.total_amount, 0);
     const totalExpenseCount = chartData.reduce((sum, entry) => sum + entry.expense_count, 0);
 
-    const renderChart = (): React.ReactElement => {
+    const renderChart = (): React.ReactElement<any> => {
         const commonProps = {
             data: chartData,
             margin: { top: 5, right: 5, left: 20, bottom: 45 },

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, use } from "react";
 import { toast } from "react-toastify";
 import { Container, Row, Col, Form, Button, Modal, Offcanvas } from "react-bootstrap";
 import PreviewPatientInformation from "../../../../components/petientsComponent/PreviewPatientInformation";
@@ -26,50 +26,51 @@ interface FormData {
 const isContentEmpty = (text?: string) => !text || text.trim() === '';
 const stripHtml = (text: string) => text.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ');
 
-const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
-	const router = useRouter();
-	const { clientid } = params
-	const patientid = plsDecryption(clientid.toString());
-	const employeeid = useApplicationSettings().applicationsettings.user.employeeid;
-	const [formData, setFormData] = useState<FormData>({
+const ConsulationPanel = (props: { params: Promise<{ clientid: number }> }) => {
+    const params = use(props.params);
+    const router = useRouter();
+    const { clientid } = params
+    const patientid = plsDecryption(clientid.toString());
+    const employeeid = useApplicationSettings().applicationsettings.user.employeeid;
+    const [formData, setFormData] = useState<FormData>({
 		consultation_notes: "",
 		record_type: "OPD New Cases",
 	});
-	const [consultationNotesHtml, setConsultationNotesHtml] = useState('');
-	const [editingMode, setEditingMode] = useState<boolean>(false);
-	const [errors, setErrors] = useState<Record<string, string>>({});
-	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [showPostSubmitModal, setShowPostSubmitModal] = useState(false);
-	const [openVitalSign, setCloseVital] = useState<boolean>(false);
-	const [showPreviousConsultationModal, setShowPreviousConsultationModal] = useState(false);
-	const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false);
-	const workspaceCardRef = React.useRef<HTMLDivElement>(null);
+    const [consultationNotesHtml, setConsultationNotesHtml] = useState('');
+    const [editingMode, setEditingMode] = useState<boolean>(false);
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showPostSubmitModal, setShowPostSubmitModal] = useState(false);
+    const [openVitalSign, setCloseVital] = useState<boolean>(false);
+    const [showPreviousConsultationModal, setShowPreviousConsultationModal] = useState(false);
+    const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false);
+    const workspaceCardRef = React.useRef<HTMLDivElement>(null);
 
-	// Refs for table-row navigation and focusing
-	const progressNoteRowRef = React.useRef<HTMLTableRowElement>(null);
-	const labOrdersRowRef = React.useRef<HTMLTableRowElement>(null);
-	const drugRequestRowRef = React.useRef<HTMLTableRowElement>(null);
+    // Refs for table-row navigation and focusing
+    const progressNoteRowRef = React.useRef<HTMLTableRowElement>(null);
+    const labOrdersRowRef = React.useRef<HTMLTableRowElement>(null);
+    const drugRequestRowRef = React.useRef<HTMLTableRowElement>(null);
 
-	const searchParams = useSearchParams();
-	const consultationid = searchParams?.get("consultationid");
-	const serviceid = searchParams?.get("serviceid");
-	// Mirrors `consultationid`, but can be set immediately (via draft creation, or right after a first save,
-	// before the URL/searchParams catch up) so orders are always tagged with a real consultation.
-	const [activeConsultationId, setActiveConsultationId] = useState<string | null>(consultationid);
-	const [pendingLabOrderIds, setPendingLabOrderIds] = useState<number[]>([]);
-	const [pendingDrugOrderIds, setPendingDrugOrderIds] = useState<string[]>([]);
-	// Captures whether we ARRIVED with a consultationid (truly editing history) vs one we drafted ourselves just now,
-	// so the "New Consultation" vs "Edit Consultation" heading doesn't flip once the draft is created.
-	const arrivedWithConsultationId = useRef(Boolean(consultationid));
-	const draftCreationAttempted = useRef(false);
+    const searchParams = useSearchParams();
+    const consultationid = searchParams?.get("consultationid");
+    const serviceid = searchParams?.get("serviceid");
+    // Mirrors `consultationid`, but can be set immediately (via draft creation, or right after a first save,
+    // before the URL/searchParams catch up) so orders are always tagged with a real consultation.
+    const [activeConsultationId, setActiveConsultationId] = useState<string | null>(consultationid);
+    const [pendingLabOrderIds, setPendingLabOrderIds] = useState<number[]>([]);
+    const [pendingDrugOrderIds, setPendingDrugOrderIds] = useState<string[]>([]);
+    // Captures whether we ARRIVED with a consultationid (truly editing history) vs one we drafted ourselves just now,
+    // so the "New Consultation" vs "Edit Consultation" heading doesn't flip once the draft is created.
+    const arrivedWithConsultationId = useRef(Boolean(consultationid));
+    const draftCreationAttempted = useRef(false);
 
-	useEffect(() => {
+    useEffect(() => {
 		setActiveConsultationId(consultationid);
 	}, [consultationid]);
 
-	// Create the consultation record immediately for a brand-new consultation, before any note is typed,
-	// so lab/drug orders placed from the very first moment are already tied to a real consultationId.
-	const createDraftConsultation = async () => {
+    // Create the consultation record immediately for a brand-new consultation, before any note is typed,
+    // so lab/drug orders placed from the very first moment are already tied to a real consultationId.
+    const createDraftConsultation = async () => {
 		try {
 			const response = await customPost('records/consulation', 'POST', {
 				consultation_notes: '',
@@ -88,28 +89,28 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 		}
 	};
 
-	useEffect(() => {
+    useEffect(() => {
 		if (consultationid || draftCreationAttempted.current) return;
 		draftCreationAttempted.current = true;
 		createDraftConsultation();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
-	const wordCount = stripHtml(consultationNotesHtml).trim()
+    const wordCount = stripHtml(consultationNotesHtml).trim()
 		? stripHtml(consultationNotesHtml).trim().split(/\s+/).length
 		: 0;
-	const isEditingExistingConsultation = arrivedWithConsultationId.current;
-	const actionTitle = isEditingExistingConsultation ? 'Edit Consultation' : 'New Consultation';
-	const actionSubtitle = isEditingExistingConsultation
+    const isEditingExistingConsultation = arrivedWithConsultationId.current;
+    const actionTitle = isEditingExistingConsultation ? 'Edit Consultation' : 'New Consultation';
+    const actionSubtitle = isEditingExistingConsultation
 		? 'Review and refine an existing progress note before saving changes.'
 		: 'Capture the patient story in structured blocks, then submit the complete consultation.';
 
-	const handleClearNotes = () => {
+    const handleClearNotes = () => {
 		setConsultationNotesHtml('');
 		setFormData((prevFormData) => ({ ...prevFormData, consultation_notes: "" }));
 	};
 
-	const resetConsultationForm = () => {
+    const resetConsultationForm = () => {
 		setFormData({
 			consultation_notes: "",
 			record_type: "OPD New Cases",
@@ -125,7 +126,7 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 		createDraftConsultation();
 	};
 
-	const handleNotesChange = (value: string) => {
+    const handleNotesChange = (value: string) => {
 		setConsultationNotesHtml(value);
 
 		if (errors["consultation_notes"]) {
@@ -133,11 +134,11 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 		}
 	};
 
-	const handleInputChange = (field: keyof FormData, value: string) => {
+    const handleInputChange = (field: keyof FormData, value: string) => {
 		setFormData((prevFormData) => ({ ...prevFormData, [field]: value }));
 	};
 
-	const validateForm = (): boolean => {
+    const validateForm = (): boolean => {
 		const newErrors: Record<string, string> = {};
 		if (isContentEmpty(consultationNotesHtml)) {
 			newErrors["consultation_notes"] = "At least one entry must be added.";
@@ -146,8 +147,8 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 		return Object.keys(newErrors).length === 0;
 	};
 
-	// Backfills any lab/drug orders placed before this consultation had an id (i.e. before its first save).
-	const linkPendingOrdersToConsultation = async (newConsultationId: number) => {
+    // Backfills any lab/drug orders placed before this consultation had an id (i.e. before its first save).
+    const linkPendingOrdersToConsultation = async (newConsultationId: number) => {
 		if (pendingLabOrderIds.length) {
 			await customFetchMutation("entityorders/link-consultation", "PUT", {
 				orderIds: pendingLabOrderIds,
@@ -166,7 +167,7 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 		}
 	};
 
-	const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		if (validateForm()) {
 			setIsSubmitting(true);
@@ -207,11 +208,11 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 		}
 	};
 
-	const handleCloseVitalsingModal = () => {
+    const handleCloseVitalsingModal = () => {
 		setCloseVital(false);
 	};
 
-	useEffect(() => {
+    useEffect(() => {
 		// Only fetch/hydrate from the server when we arrived at an existing consultation link — not for
 		// a consultation we just drafted ourselves, which would otherwise overwrite notes being typed.
 		if (consultationid && arrivedWithConsultationId.current) {
@@ -239,7 +240,7 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 		}
 	}, [consultationid])
 
-	return (
+    return (
 		<>
 			<Container fluid className={styles.consultationPage} >
 				<div className="d-flex align-items-center justify-content-between gap-2 mb-3 flex-wrap">

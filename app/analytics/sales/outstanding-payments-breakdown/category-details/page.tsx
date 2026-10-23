@@ -422,7 +422,7 @@ export default function CategoryDetailsPage() {
                                         <div style={{ height: '400px', width: '100%' }}>
                                              {data.byOrganization && data.byOrganization.length > 0 && (
                                                   <ResponsiveContainer width="100%" height="100%">
-                                                       {renderChart() as React.ReactElement}
+                                                       {renderChart() as React.ReactElement<any>}
                                                   </ResponsiveContainer>
                                              )}
                                         </div>

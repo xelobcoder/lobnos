@@ -2,7 +2,7 @@
 'use client';
 import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
 import "../styles/globals.css";
-import '../node_modules/react-toastify/dist/ReactToastify.min.css';
+import '../node_modules/react-toastify/dist/ReactToastify.css';
 import '../node_modules/react-datepicker/dist/react-datepicker.min.css'
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import PrimeToast from "../components/accessories/PrimeToast";

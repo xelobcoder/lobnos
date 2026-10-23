@@ -69,11 +69,11 @@ export default function BasicInformationClinician() {
 					occupation: clinicianData.occupation || "",
 				});
 			} else {
-				toast.error("Clinician data not found. You might be redirected.", { position: toast.POSITION.TOP_CENTER });
+				toast.error("Clinician data not found. You might be redirected.", { position: 'top-center' });
 				setFormError("Failed to load clinician data. The record may not exist.");
 			}
 		} catch (err) {
-			toast.error(err?.message || "Failed to fetch clinician data.", { position: toast.POSITION.TOP_CENTER });
+			toast.error(err?.message || "Failed to fetch clinician data.", { position: 'top-center' });
 			setFormError(err?.message || "An error occurred while fetching clinician data.");
 		} finally {
 			setIsLoadingData(false);
@@ -87,7 +87,7 @@ export default function BasicInformationClinician() {
 			if (!isNaN(parsedId)) {
 				fetchClinicianData(parsedId);
 			} else {
-				toast.error("Invalid Clinician ID in URL.", { position: toast.POSITION.TOP_CENTER });
+				toast.error("Invalid Clinician ID in URL.", { position: 'top-center' });
 				router.push("/clinicians");
 			}
 		} else {
@@ -107,7 +107,7 @@ export default function BasicInformationClinician() {
 			})
 			.catch((err) => {
 				if (isMounted) {
-					toast.error(err?.message || "Failed to fetch organizations.", { position: toast.POSITION.TOP_CENTER });
+					toast.error(err?.message || "Failed to fetch organizations.", { position: 'top-center' });
 				}
 			})
 			.finally(() => {
@@ -136,7 +136,7 @@ export default function BasicInformationClinician() {
 			const { statusCode, status, message, result } = response;
 
 			if (statusCode === 200 && status === "success") {
-				toast.success(message || (clinicianId ? "Clinician updated successfully!" : "Clinician added successfully!"), { position: toast.POSITION.TOP_CENTER });
+				toast.success(message || (clinicianId ? "Clinician updated successfully!" : "Clinician added successfully!"), { position: 'top-center' });
 				if (!clinicianId && result?.id) {
 					router.push(`/clinicians/edit?clinicianid=${result.id}`);
 				} else if (clinicianId) {
@@ -146,11 +146,11 @@ export default function BasicInformationClinician() {
 					resetForm(defaultData());
 				}
 			} else {
-				toast.error(message || "An unexpected error occurred.", { position: toast.POSITION.TOP_CENTER });
+				toast.error(message || "An unexpected error occurred.", { position: 'top-center' });
 				setFormError(message || "Submission failed due to a server error.");
 			}
 		} catch (error) {
-			toast.error(error?.message || "Submission failed, please try again.", { position: toast.POSITION.TOP_CENTER });
+			toast.error(error?.message || "Submission failed, please try again.", { position: 'top-center' });
 			setFormError(error?.message || "An unexpected client-side error occurred.");
 		}
 	};

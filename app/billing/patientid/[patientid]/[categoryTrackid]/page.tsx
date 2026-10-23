@@ -7,6 +7,9 @@ import BillingPageLayout from '../../../../../components/Billing/BillingContextC
 
 
 
+
+
+
 interface Params {
 	categoryTrackid: number;
 	patientid: string;
@@ -21,24 +24,25 @@ const getTransactionPreviousBillingRecords = async (billingid: number) => {
 	}
 };
 
-export default async function PatientBillingPageIndex({
-	params,
-	searchParams,
-}: {
-	params: Params;
-	searchParams: {
-		billingid: number;
-		isNewTransaction: '0' | '1';
-		isServiceOnly: '0' | '1';
-		isSource?: 'unknown' | 'determine'
-	};
-}) {
-	const { patientid, categoryTrackid } = params;
-	const { billingid, isNewTransaction, isServiceOnly, isSource } = searchParams;
-	let billingdata = Billingdefaultdata;
-	let patientBasicInformation = {};
-	let previousRecords = [];
-	let previousRecordData = {
+export default async function PatientBillingPageIndex(
+    props: {
+        params: Promise<Params>;
+        searchParams: Promise<{
+            billingid: number;
+            isNewTransaction: '0' | '1';
+            isServiceOnly: '0' | '1';
+            isSource?: 'unknown' | 'determine'
+        }>;
+    }
+) {
+    const searchParams = await props.searchParams;
+    const params = await props.params;
+    const { patientid, categoryTrackid } = params;
+    const { billingid, isNewTransaction, isServiceOnly, isSource } = searchParams;
+    let billingdata = Billingdefaultdata;
+    let patientBasicInformation = {};
+    let previousRecords = [];
+    let previousRecordData = {
 		previousOutstanding: 0,
 		previousTotalCost: 0,
 		previousPaid: 0,
@@ -47,12 +51,12 @@ export default async function PatientBillingPageIndex({
 		previousAmountIncurredDueTax: 0,
 		previousPayable: 0,
 	};
-	let outstandingDebt: 'ERROR' | undefined | number = undefined
+    let outstandingDebt: 'ERROR' | undefined | number = undefined
 
 
-	const patientIdDecrypted = plsDecryption(patientid);
+    const patientIdDecrypted = plsDecryption(patientid);
 
-	if (!patientIdDecrypted) {
+    if (!patientIdDecrypted) {
 		return (
 			<h4 className="pls-color bg-s p-4 br-5 secondary-subtle">
 				Patient Identification Failed
@@ -61,7 +65,7 @@ export default async function PatientBillingPageIndex({
 	}
 
 
-	try {
+    try {
 		outstandingDebt = await getOustandingBill(patientIdDecrypted);
 	} catch (err) {
 		return (
@@ -71,17 +75,17 @@ export default async function PatientBillingPageIndex({
 		);
 	}
 
-	if (typeof outstandingDebt === 'number' && outstandingDebt > 0) {
+    if (typeof outstandingDebt === 'number' && outstandingDebt > 0) {
 		redirect(`/billing/cash-collection?patientid=${patientIdDecrypted}`);
 	}
 
-	if (typeof outstandingDebt === 'number' && outstandingDebt == 0) {
+    if (typeof outstandingDebt === 'number' && outstandingDebt == 0) {
 		billingdata.outstandingDebt = 0;
 	}
 
 
 
-	try {
+    try {
 
 		const [billingNightAdjustmentSettings, initGeneralBillingData, paymentModes] = await Promise.all([
 			customFetch(`applicationsettings/target/billingsettings`),
@@ -198,7 +202,7 @@ export default async function PatientBillingPageIndex({
 		);
 	}
 
-	return (
+    return (
 		<div>
 			<BillingPagePatientInformation data={patientBasicInformation} />
 			<BillingPageLayout unencryptedid={patientid} patientid={patientIdDecrypted} initdata={billingdata} />

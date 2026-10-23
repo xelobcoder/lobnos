@@ -38,8 +38,13 @@ export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
 
 
 	const getAscensionEditCount = async () => {
-		const count = getAscensionEditCountServerideS({ billingid, testid, patientid, ascensionid })
-		count ? setEditCount(count) : null
+		try {
+			const count = await getAscensionEditCountServerideS({ billingid, testid, patientid, ascensionid });
+			const numericCount = Number(count);
+			setEditCount(Number.isSafeInteger(numericCount) && numericCount >= 0 ? numericCount : 0);
+		} catch {
+			setEditCount(0);
+		}
 	}
 
 	useEffect(() => {
@@ -67,7 +72,7 @@ export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
 				updatesResultForm(resultResponse);
 				updatesCommentsForm(commentsResponse);
 				setLoading(false);
-				getAscensionEditCount();
+				await getAscensionEditCount();
 			} catch (err) {
 				setRule([]);
 				setComments({ comments: "" });

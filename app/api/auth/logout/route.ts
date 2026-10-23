@@ -4,9 +4,9 @@ import { cookies } from 'next/headers';
 export async function POST(request: NextRequest) {
     try {
         // Clear the session cookies
-        cookies().delete('PLS-SESSION');
-        cookies().delete('pls-prime-tenant-session');
-        cookies().delete('loginsessionId');
+        (await cookies()).delete('PLS-SESSION');
+        (await cookies()).delete('pls-prime-tenant-session');
+        (await cookies()).delete('loginsessionId');
 
         return NextResponse.json({ 
             status: true,

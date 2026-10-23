@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import BilledSummary from "../../../../../components/Billing/BillingSumamry/BilledSummary";
 import { plsDecryption } from "../../../../../lib/encryption";
 import { customFetch } from "../../../../../components/Auth/customFetch";
@@ -14,43 +14,47 @@ import { useApplicationSettings } from "../../../../../components/Auth/useApplic
 import DateFilterReusable from "../../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 import SalesReportModal from "../../../../../components/Billing/SalesReportModal";
 
-export default function DailySalesViewCustomerRepresentative({ params, searchParams }: {
-	params: {
-		branchid: string
-	},
-	searchParams: {
-		from?: string,
-		to?: string
-	}
-}) {
-	const { user } = useApplication();
-	const router = useRouter();
-	const role = user?.role?.toLowerCase();
-	const canViewAdvancedSales = roleAllowed(role, ["admin", "accountant"]);
-	const canExportSalesReport = roleAllowed(role, ["admin", "accountant", "manager"]);
-	const isDailyRestrictedView = !!role && !canViewAdvancedSales;
-	const getTodayDateString = () => {
+export default function DailySalesViewCustomerRepresentative(
+    props: {
+        params: Promise<{
+            branchid: string
+        }>,
+        searchParams: Promise<{
+            from?: string,
+            to?: string
+        }>
+    }
+) {
+    const searchParams = use(props.searchParams);
+    const params = use(props.params);
+    const { user } = useApplication();
+    const router = useRouter();
+    const role = user?.role?.toLowerCase();
+    const canViewAdvancedSales = roleAllowed(role, ["admin", "accountant"]);
+    const canExportSalesReport = roleAllowed(role, ["admin", "accountant", "manager"]);
+    const isDailyRestrictedView = !!role && !canViewAdvancedSales;
+    const getTodayDateString = () => {
 		const today = new Date();
 		const year = today.getFullYear();
 		const month = String(today.getMonth() + 1).padStart(2, "0");
 		const day = String(today.getDate()).padStart(2, "0");
 		return `${year}-${month}-${day}`;
 	};
-	const [transactions, setTransactions] = useState<any[]>([]);
-	const [summary, setSummary] = useState<any>(undefined);
-	const [expensesPaymentMade, setExpensesPaymentMade] = useState<any[]>([]);
-	const [isLoading, setIsLoading] = useState<boolean>(true);
-	const [branchIdState, setBranchIdState] = useState<string>("");
-	const { branchid } = params;
-	const initialFrom = searchParams.from || "";
-	const initialTo = searchParams.to || "";
-	const [datequery, setDatequery] = useState({ from: initialFrom, to: initialTo });
-	// activeQuery for the actual search (only changes when search is clicked or initial load)
-	const [activeQuery, setActiveQuery] = useState({ from: initialFrom, to: initialTo });
-	const [dateFilter, setDateFilter] = useState("");
+    const [transactions, setTransactions] = useState<any[]>([]);
+    const [summary, setSummary] = useState<any>(undefined);
+    const [expensesPaymentMade, setExpensesPaymentMade] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [branchIdState, setBranchIdState] = useState<string>("");
+    const { branchid } = params;
+    const initialFrom = searchParams.from || "";
+    const initialTo = searchParams.to || "";
+    const [datequery, setDatequery] = useState({ from: initialFrom, to: initialTo });
+    // activeQuery for the actual search (only changes when search is clicked or initial load)
+    const [activeQuery, setActiveQuery] = useState({ from: initialFrom, to: initialTo });
+    const [dateFilter, setDateFilter] = useState("");
 
-	// Sync URL search params with datequery on init/URL change
-	useEffect(() => {
+    // Sync URL search params with datequery on init/URL change
+    useEffect(() => {
 		if (isDailyRestrictedView) {
 			const today = getTodayDateString();
 			const forcedQuery = { from: today, to: today };
@@ -69,8 +73,8 @@ export default function DailySalesViewCustomerRepresentative({ params, searchPar
 		});
 	}, [searchParams.from, searchParams.to, isDailyRestrictedView]);
 
-	// Only sync URL when activeQuery changes, not on every input change
-	useEffect(() => {
+    // Only sync URL when activeQuery changes, not on every input change
+    useEffect(() => {
 		const currentPath = window.location.pathname;
 		const newSearchParams = new URLSearchParams(window.location.search);
 		newSearchParams.delete('from');
@@ -81,7 +85,7 @@ export default function DailySalesViewCustomerRepresentative({ params, searchPar
 		window.history.replaceState(null, '', newUrl);
 	}, [activeQuery.from, activeQuery.to]);
 
-	useEffect(() => {
+    useEffect(() => {
 		let decryptedBranchId = "";
 		if (branchid) {
 			try {
@@ -94,7 +98,7 @@ export default function DailySalesViewCustomerRepresentative({ params, searchPar
 		}
 	}, [branchid]);
 
-	useEffect(() => {
+    useEffect(() => {
 		async function fetchData() {
 			if (!branchIdState) return;
 			setIsLoading(true);
@@ -131,7 +135,7 @@ export default function DailySalesViewCustomerRepresentative({ params, searchPar
 		fetchData();
 	}, [branchIdState, activeQuery.from, activeQuery.to, isDailyRestrictedView]);
 
-	const handleSearchClick = () => {
+    const handleSearchClick = () => {
 		// Update activeQuery to trigger fetch
 		setActiveQuery({ from: datequery.from, to: datequery.to });
 		// Also call handleDatePicker if needed for navigation
@@ -143,14 +147,14 @@ export default function DailySalesViewCustomerRepresentative({ params, searchPar
 		}, router);
 	};
 
-	if (!branchIdState) {
+    if (!branchIdState) {
 		return <div className="alert alert-info">
 			Please select a branch to view transactions.
 			<Link href={'/billing/sales/branches'}>View Branches </Link>
 		</div>;
 	}
 
-	return (
+    return (
 		<div>
 			{canExportSalesReport && (
 				<div className="d-flex justify-content-end mt-3">

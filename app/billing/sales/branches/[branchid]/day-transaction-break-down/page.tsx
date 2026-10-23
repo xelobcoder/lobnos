@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { customFetch } from '../../../../../../components/Auth/customFetch';
 import styles from './FinancialSummary.module.css';
@@ -304,7 +304,7 @@ const Stat = ({ label, value, icon }: { label: string, value: string | number, i
     <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
         <div className="d-flex align-items-center mb-2">
             <div className="me-2 text-primary">
-                {React.cloneElement(icon as React.ReactElement, { size: 20 } as any)}
+                {React.cloneElement(icon as React.ReactElement<any>, { size: 20 } as any)}
             </div>
             <span className="fw-medium text-muted small">{label}</span>
         </div>
@@ -385,7 +385,10 @@ async function getFinancialData(target: string, from: string, end: string, emplo
     }
 }
 
-export default function FinancialSummaryPage({ searchParams }: { searchParams: { date: string, from: string, end: string } }) {
+export default function FinancialSummaryPage(
+    props: { searchParams: Promise<{ date: string, from: string, end: string }> }
+) {
+    const searchParams = use(props.searchParams);
     const { date, from, end } = searchParams;
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState<any>(null);

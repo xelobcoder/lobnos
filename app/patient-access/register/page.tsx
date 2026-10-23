@@ -9,7 +9,7 @@ import PatientAccessShell, { PasswordInput, accessStyles as styles } from '../..
 import { customPost } from '../../../components/Auth/customFetch';
 import { errorMessage, passwordProblem, registrationProblem, unwrap } from '../../../lib/patientPortal';
 
-const FIELD = (id: string, label: string, Icon: typeof RiUserHeartLine, input: ReactElement, hint?: string) => (
+const FIELD = (id: string, label: string, Icon: typeof RiUserHeartLine, input: ReactElement<any>, hint?: string) => (
      <div className={styles.formGroup}>
           <label htmlFor={id} className={styles.formLabel}>{label}</label>
           <div className={styles.inputWrapper}>

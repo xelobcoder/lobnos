@@ -5,6 +5,9 @@ import PrimeLayout from "../../../components/Layout/PrimeLayout";
 
 
 
+
+
+
 export default function EmailLayout({
     children,
 }: {

@@ -41,7 +41,7 @@ interface DateQuery {
 interface TableColumn {
 	Header: string;
 	accessor: string;
-	Cell?: ({ value, row }: { value: any, row: any }) => React.ReactElement | string;
+	Cell?: ({ value, row }: { value: any, row: any }) => React.ReactElement<any> | string;
 }
 
 interface RowData {
@@ -508,8 +508,8 @@ export default function BilledClientsView({
 	};
 
 	return (
-		<div>
-			<Modal show={showModal && modalType === 'update'} onHide={closeModal} centered>
+        <div>
+            <Modal show={showModal && modalType === 'update'} onHide={closeModal} centered>
 				<Modal.Header closeButton>
 					<Modal.Title>Update Transaction (Add New Service/Test)</Modal.Title>
 				</Modal.Header>
@@ -552,7 +552,7 @@ export default function BilledClientsView({
 				</Modal.Footer>
 			</Modal>
 
-			<AdjustBillingSourceModal
+            <AdjustBillingSourceModal
 				show={showModal && modalType === 'adjust'}
 				onClose={closeModal}
 				onContinue={handleAdjustmentModalContinue}
@@ -560,7 +560,7 @@ export default function BilledClientsView({
 				billingid={modalBillingId}
 			/>
 
-			<Modal show={showViewMore} onHide={() => setShowViewMore(false)} centered>
+            <Modal show={showViewMore} onHide={() => setShowViewMore(false)} centered>
 				<Modal.Header closeButton>
 					<Modal.Title>Billing Details</Modal.Title>
 				</Modal.Header>
@@ -600,7 +600,7 @@ export default function BilledClientsView({
 				</Modal.Footer>
 			</Modal>
 
-			<div className="card" style={{ borderRadius: '0.75rem', borderColor: 'var(--bs-border-color)' }}>
+            <div className="card" style={{ borderRadius: '0.75rem', borderColor: 'var(--bs-border-color)' }}>
 				<div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: 'var(--bs-border-color)' }}>
 					<div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
 						<h2 className="fs-6 fw-semibold text-body-emphasis mb-3 mb-lg-0 d-flex align-items-center">
@@ -756,6 +756,6 @@ export default function BilledClientsView({
 					)
 				)}
 			</div>
-		</div>
-	);
+        </div>
+    );
 }

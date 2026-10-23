@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import { customFetch, customPost } from '../../../../../../components/Auth/customFetch';
 import { createConditionAction, LoadTestConditionsDefinition } from '../../../../../../components/serverActions/ActionFiltering';
 import { useRouter } from 'next/navigation';
@@ -19,10 +19,11 @@ interface Condition {
 }
 
 interface CreateConditionPageProps {
-    params: { testid: number };
+    params: Promise<{ testid: number }>;
 }
 
-export default function CreateConditionPage({ params }: CreateConditionPageProps) {
+export default function CreateConditionPage(props: CreateConditionPageProps) {
+    const params = use(props.params);
     const { testid } = params;
     const [conditions, setConditions] = useState<Condition[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);

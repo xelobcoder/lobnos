@@ -117,7 +117,7 @@ export default function ExpenseBuckets() {
           return null;
      };
 
-     const renderChart = (): ReactElement => {
+     const renderChart = (): ReactElement<any> => {
           const commonProps = {
                data: chartData,
                margin: { top: 5, right: 5, left: 20, bottom: 45 },

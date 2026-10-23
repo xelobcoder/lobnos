@@ -3,12 +3,16 @@ import RefundAdmin from '../../../../../components/Billing/Refund/RefundAdmin';
 import { customFetch } from '../../../../../components/Auth/customFetch';
 import { RiErrorWarningLine } from '@remixicon/react';
 
-export default async function RefundAdminPage({ params, searchParams }: {
-    params: { employeeid: number },
-    searchParams?: {
-        status: string,
+
+export default async function RefundAdminPage(
+    props: {
+        params: Promise<{ employeeid: number }>,
+        searchParams?: Promise<{
+            status: string,
+        }>
     }
-}) {
+) {
+    const searchParams = await props.searchParams;
     let result: any = [];
     const { employeeid } = await params;
     const status = searchParams?.status || 'pending';

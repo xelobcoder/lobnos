@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
         const effectiveSessionExpiryTime = sessionExpiryTime || Date.now() + (12 * 60 * 60 * 1000);
         const maxAge = Math.max(1, Math.floor((effectiveSessionExpiryTime - Date.now()) / 1000));
         // Set cookies
-        cookies().set('PLS-SESSION', signedToken, {
+        (await cookies()).set('PLS-SESSION', signedToken, {
             httpOnly: true,
             secure: false,
             sameSite: 'lax',
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
         });
 
 
-        cookies().set('pls-prime-tenant-session', accessToken, {
+        (await cookies()).set('pls-prime-tenant-session', accessToken, {
             httpOnly: true,
             secure: false,
             sameSite: 'lax',
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
         });
 
 
-        cookies().set("loginsessionId", loginsessionId || '', {
+        (await cookies()).set("loginsessionId", loginsessionId || '', {
             httpOnly: true,
             secure: false,
             sameSite: 'lax',

@@ -4,6 +4,7 @@ import PrimeLayout from '../../components/Layout/PrimeLayout';
 import MAIN_LAYOUT from '../../components/Layout/MainLayout';
 import { PharmacyLinks } from '../../components/Layout/links/categories/PharmacyLinks';
 
+
 export default function PharmacyLayout({ children }: { children: React.ReactNode }) {
      return (
           <Suspense>

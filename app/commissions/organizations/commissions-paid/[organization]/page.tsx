@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, use } from "react";
 import { RiRefreshLine } from "@remixicon/react";
 import dayjs from "dayjs";
 import { currencyFormatter, customFetch } from "../../../../../components/Auth/customFetch";
@@ -24,7 +24,8 @@ interface PaidCommissionData {
     created_by_username: string;
 }
 
-export default function OrganizationPaidCommissionsPage({ params }: { params: { organization: string } }) {
+export default function OrganizationPaidCommissionsPage(props: { params: Promise<{ organization: string }> }) {
+    const params = use(props.params);
     const today = dayjs().format("YYYY-MM-DD");
     const defaultStart = dayjs().startOf("year").format("YYYY-MM-DD");
     const [startDate, setStartDate] = useState(defaultStart);

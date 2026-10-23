@@ -383,7 +383,7 @@ export default function ExpenseApprovalTimeline() {
                               </div>
                          ) : (
                               <ResponsiveContainer width="100%" height={350}>
-                                   {renderChart() as ReactElement}
+                                   {renderChart() as ReactElement<any>}
                               </ResponsiveContainer>
                          )}
                     </div>

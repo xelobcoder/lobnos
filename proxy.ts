@@ -22,7 +22,7 @@ export async function verifyPrimeToken(token: string) {
     }
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     const isLoginPage = request.nextUrl.pathname === '/authentications/login';
     const patientLogin = request.nextUrl.pathname.startsWith('/patientportal');
     const adminPortal = request.nextUrl.pathname === '/patient-portal-admin' || request.nextUrl.pathname.startsWith('/patient-portal-admin/');

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { Form, Button, Spinner } from "react-bootstrap";
 import { customFetch, customPost } from "../../../../../../components/Auth/customFetch";
 import { useApplicationSettings } from "../../../../../../components/Auth/useApplicationContext";
@@ -14,11 +14,14 @@ interface Category {
     createdby: string;
 }
 
-const CategoryForm = ({ params }: {
-    params: {
-        testid: number
+const CategoryForm = (
+    props: {
+        params: Promise<{
+            testid: number
+        }>
     }
-}) => {
+) => {
+    const params = use(props.params);
     const { testid } = params;
     const [category, setCategory] = useState<string>("");
     const [categories, setCategories] = useState<Category[]>([]);

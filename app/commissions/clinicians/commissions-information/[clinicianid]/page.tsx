@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState, use } from "react";
 import Link from "next/link";
 import dayjs from "dayjs";
 import { Button, Form, Modal } from "react-bootstrap";
@@ -35,7 +35,8 @@ interface CommissionPayment {
     commission_percentage: string; type: string; recipient_id: number;
 }
 
-export default function ClinicianCommissionPage({ params }: { params: { clinicianid: string } }) {
+export default function ClinicianCommissionPage(props: { params: Promise<{ clinicianid: string }> }) {
+    const params = use(props.params);
     const employeeid = useApplication()?.user?.employeeid;
     const branchid = useApplication()?.branchid;
     const [startDate, setStartDate] = useState(dayjs().startOf("year").format("YYYY-MM-DD"));

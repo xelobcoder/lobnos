@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, use } from 'react';
 import { customFetch } from "../../../../../../components/Auth/customFetch";
 import { RiEyeLine, RiPrinterLine } from '@remixicon/react';
 import { Spinner, Alert, Button, Collapse } from "react-bootstrap";
@@ -19,7 +19,8 @@ type TrackingRow = {
      test_id: number;
 };
 
-export default function Page({ params }: { params: { ascensionid: string } }) {
+export default function Page(props: { params: Promise<{ ascensionid: string }> }) {
+     const params = use(props.params);
      const ascensionid = params.ascensionid;
      const [data, setData] = useState<TrackingRow[]>([]);
      const [loading, setLoading] = useState(true);

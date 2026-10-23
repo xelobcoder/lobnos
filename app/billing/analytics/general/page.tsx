@@ -3,6 +3,7 @@ import TotalSalesByBranch from '../../../../components/Billing/analytics/TotalSa
 import SalesByHourOfDay from '../../../../components/Billing/analytics/SalesByHourOfDay'
 import WeeklySalesTrend from '../../../../components/Billing/analytics/weeklySalesTrend'
 
+
 export default function GenaralBillingAnalytics() {
     return (
         <div>

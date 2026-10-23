@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 
 export async function getRequestContext() {
-     const headersCookies = cookies();
+     const headersCookies = await cookies();
      const PLS_SESSION = headersCookies.get('PLS-SESSION')?.value || '';
      const PLS_PRIME_TENANT_SESSION = headersCookies.get('pls-prime-tenant-session')?.value || '';
      const loginsessionId = headersCookies.get('loginsessionId')?.value || '';

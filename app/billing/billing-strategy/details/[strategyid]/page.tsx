@@ -1,19 +1,20 @@
 
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, use } from "react";
 import { customFetch } from "../../../../../components/Auth/customFetch";
 import ClinicianBillingModeView from "../../../../../components/Clinicians/ClinicianBillingModeView";
 import { PreviousClinicianBillingRecord } from "../../../../../components/Clinicians/dev.type";
 
 
-export default function ClinicianBillingStrategyPage({ params }: { params: { strategyid: number } }) {
-	const { strategyid } = params;
-	const [previousRecords, setPreviousRecords] = useState<PreviousClinicianBillingRecord | null>(null);
-	const [hasStrategy, setHasStrategy] = useState<boolean | null>(null);
-	const [error, setError] = useState<string | null>(null);
-	const [loading, setLoading] = useState(true);
+export default function ClinicianBillingStrategyPage(props: { params: Promise<{ strategyid: number }> }) {
+    const params = use(props.params);
+    const { strategyid } = params;
+    const [previousRecords, setPreviousRecords] = useState<PreviousClinicianBillingRecord | null>(null);
+    const [hasStrategy, setHasStrategy] = useState<boolean | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
 
-	useEffect(() => {
+    useEffect(() => {
 		async function fetchData() {
 			if (!strategyid) {
 				setError("Invalid request.");
@@ -43,13 +44,13 @@ export default function ClinicianBillingStrategyPage({ params }: { params: { str
 		fetchData();
 	}, [strategyid]);
 
-	if (loading) {
+    if (loading) {
 		return <div>Loading...</div>;
 	}
-	if (error) {
+    if (error) {
 		return <div className="alert alert-danger-subtle text-sm ">{error}</div>;
 	}
-	return (
+    return (
 		<div>
 			<ClinicianBillingModeView
 				strategyid={strategyid}

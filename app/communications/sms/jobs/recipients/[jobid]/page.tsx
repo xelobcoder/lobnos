@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, use } from 'react';
 import Spinner from 'react-bootstrap/Spinner';
 import Alert from 'react-bootstrap/Alert';
 import { toast } from 'react-toastify';
@@ -19,7 +19,8 @@ function formatDate(dateStr: string) {
      return d.toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
-const SmsJobRecipientsPage: React.FC<{ params: { jobid: string } }> = ({ params }) => {
+const SmsJobRecipientsPage: React.FC<{ params: { jobid: string } }> = props => {
+     const params = use(props.params);
      const jobid = params.jobid;
      const [recipients, setRecipients] = useState<any[]>([]);
      const [loading, setLoading] = useState(true);

@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, use } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CriticalPolicySettings } from '../../../../../../components/operations/TestOperationalSettings';
 import TestForm from "../../../../../../components/settingsComponents/test/testForm";
@@ -24,7 +24,8 @@ const TABS: { key: TestEditorTab; label: string }[] = [
     { key: 'reportSettings', label: 'Report Settings' },
 ];
 
-export default function SingleTestEdit({ params }: { params: { id: number } }) {
+export default function SingleTestEdit(props: { params: Promise<{ id: number }> }) {
+    const params = use(props.params);
     const router = useRouter();
     const searchParams = useSearchParams();
     const testid = params.id;

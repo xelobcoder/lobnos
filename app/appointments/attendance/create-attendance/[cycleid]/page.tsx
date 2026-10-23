@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { Tabs, Tab, Alert, Button, Form, Modal, Card } from "react-bootstrap";
 import Select from "react-select";
 import AttendanceListTab from "../../../../../components/appointments/scheduling/AttendanceListTabComponent";
@@ -69,7 +69,8 @@ interface SavedAttendanceRecord {
     endtime: string;
 }
 
-const AttendanceScheduler = ({ params }: { params: { cycleid: string } }) => {
+const AttendanceScheduler = (props: { params: Promise<{ cycleid: string }> }) => {
+    const params = use(props.params);
     const { cycleid } = params;
     const decryptedCycleId = plsDecryption(cycleid.toString());
 

@@ -1,17 +1,18 @@
 "use client";
 import dayjs from "dayjs";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState, use } from "react";
 import PrimeTable from "../../../../../../components/accessories/Datatables/PrimeTable";
 import ReportShell, { formatRange } from "../../../../../../components/accounting/ReportShell";
 import { currencyFormatter } from "../../../../../../components/Auth/customFetch";
 import DateFilterReusable from "../../../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 import { accountingApi, SubledgerStatementEntry } from "../../../../../../lib/accounting/accountingApi";
 
-export default function SubledgerStatementPage({
-     params,
-}: {
-     params: { ledger: string; partyType: string; partyId: string };
-}) {
+export default function SubledgerStatementPage(
+     props: {
+          params: Promise<{ ledger: string; partyType: string; partyId: string }>;
+     }
+) {
+     const params = use(props.params);
      const ledger = String(params.ledger).toUpperCase() === "AP" ? "AP" : "AR";
      const partyId = Number(params.partyId);
      const currentYear = dayjs().year();

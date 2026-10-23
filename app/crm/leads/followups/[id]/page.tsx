@@ -1,2 +1,7 @@
 import { redirect } from 'next/navigation';
-export default function FollowupsPage({ params }: { params: { id: string } }) { redirect('/crm/acquisition?prospect=' + encodeURIComponent(params.id)); }
+
+
+export default async function FollowupsPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  redirect('/crm/acquisition?prospect=' + encodeURIComponent(params.id));
+}

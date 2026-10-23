@@ -2,6 +2,7 @@ import React from 'react'
 import PackagesTable from '../../../components/Billing/packages/PackagesList'
 import Link from 'next/link'
 
+
 export default function PackagesPages() {
 	return (
 		<div>

@@ -7,6 +7,29 @@ const ts = require("typescript");
 
 const root = path.join(__dirname, "..");
 
+for (const route of ["v1", "inventory"]) {
+	test(`${route} route awaits promised path parameters before forwarding requests`, async () => {
+		const exports = {};
+		const request = { method: "POST" };
+		const response = { status: 200 };
+		let forwarded;
+		const source = readFileSync(path.join(root, `app/api/${route}/[...path]/route.ts`), "utf8");
+		vm.runInNewContext(ts.transpileModule(source, {
+			compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
+		}).outputText, {
+			exports,
+			process: { env: { NODE_ENV: "development", DEVELOPMENT_BASEURL: "http://backend.test", PSL_INVEN_ROUTE: "http://inventory.test" } },
+			require: () => ({ proxyBackendRequest: (...args) => { forwarded = args; return response; } }),
+		});
+		const segments = ["prime", "login"];
+		const result = await exports.POST(request, { params: Promise.resolve({ path: segments }) });
+		assert.equal(result, response);
+		assert.equal(forwarded[0], request);
+		assert.equal(forwarded[1], segments);
+		assert.equal(forwarded[2], route === "v1" ? "http://backend.test" : "http://inventory.test");
+	});
+}
+
 function loadProxy({ env, fetch }) {
 	const accessExports = {};
 	vm.runInNewContext(ts.transpileModule(

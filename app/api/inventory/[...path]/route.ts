@@ -4,11 +4,12 @@ import { proxyBackendRequest } from "../../../../lib/serverBackendProxy";
 export const runtime = "nodejs";
 
 type RouteContext = {
-	params: { path: string[] };
+	params: Promise<{ path: string[] }>;
 };
 
 async function handleInventoryRequest(request: NextRequest, { params }: RouteContext) {
-	return proxyBackendRequest(request, params.path, process.env.PSL_INVEN_ROUTE);
+	const { path } = await params;
+	return proxyBackendRequest(request, path, process.env.PSL_INVEN_ROUTE);
 }
 
 export const GET = handleInventoryRequest;

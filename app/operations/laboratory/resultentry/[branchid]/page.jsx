@@ -3,6 +3,7 @@ import { customFetch } from "../../../../../components/Auth/customFetch";
 import BillingPagePatientInformation from "../../../../../components/Billing/BillingContextComponents/PersonalInfoView";
 import PrimeBreadcrumb from "../../../../../components/accessories/PrimeBreadCrumb";
 
+
 export default async function ResultEntry({ searchParams, params }) {
 	const { ptid, csvid } = await searchParams;
 	const { branchid } = await params

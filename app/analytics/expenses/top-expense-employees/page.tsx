@@ -111,7 +111,7 @@ export default function TopExpenseEmployees() {
           employee_name: item.employee_name
      }));
 
-     const renderChart = (): React.ReactElement => {
+     const renderChart = (): React.ReactElement<any> => {
           const commonProps = {
                data: chartData,
                margin: { top: 5, right: 5, left: 20, bottom: 45 },
