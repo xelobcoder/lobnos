@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 
 import { useState } from 'react';
 import PendingResultTATOverview from './PendingResultTATOverview';
@@ -10,7 +11,7 @@ export default function TurnAroundWorkspace({ data = [] }: { data?: any[] }) {
      const [threshold, setThreshold] = useState(6);
      const showCases = (hours: number) => { setThreshold(hours); setIndividualView('pending'); setTab('individual'); };
      return <div className="container-fluid py-3">
-          <h1 className="h4">Turnaround time</h1>
+          <h1 className="h4">Turnaround time</h1><div className="alert alert-light border"><Link href="/operations/laboratory/workbench">Open configured deadlines, priorities and escalations in the laboratory workbench</Link><div className="small text-muted">The elapsed-time groups below are supplementary age summaries; the workbench uses each test's configured target.</div></div>
           <div className="nav nav-tabs mb-3" role="tablist" aria-label="Turnaround time views">
                <button className={`nav-link ${tab === 'summary' ? 'active' : ''}`} id="tat-summary-tab" role="tab" aria-selected={tab === 'summary'} aria-controls="tat-summary-panel" onClick={() => setTab('summary')}>Summary</button>
                <button className={`nav-link ${tab === 'individual' ? 'active' : ''}`} id="tat-individual-tab" role="tab" aria-selected={tab === 'individual'} aria-controls="tat-individual-panel" onClick={() => setTab('individual')}>Individual tests</button>

@@ -112,6 +112,7 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
      }
 
      const handleSaveValue = async () => {
+          if (validatingSpinner) return;
           if (isBulk && Array.isArray(ascensions) && ascensions.length > 0) {
                // Bulk validation
                const validationPromises = ascensions.map(asc => {
@@ -124,8 +125,10 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
                     const allSuccess = results.every(r => r.status === true);
 
                     if (allSuccess) {
-                         toast.success(`All ${ascensions.length} tests validated successfully`);
-                         const successfulValidation = selectedAscension.map(a => a.ascensionid);
+                         const finalizedIds = selectedAscension.filter((a, index) => results[index]?.finalized).map(a => a.ascensionid);
+                         if (!finalizedIds.length) { toast.info('Your approvals were recorded. Other validators are still required.'); onClose(selectedAscension.map(a => a.ascensionid)); return; }
+                         toast.success('Approvals recorded; finalized results are ready');
+                         const successfulValidation = finalizedIds;
                          setSuccessfulValidation(successfulValidation);
                          setShowProceedModal(true);
                     } else {
@@ -147,16 +150,22 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
                if (isApprovalSatisfied) {
                     const currentStaffApproval = staff.filter((a) => a.employeeid === employeeid);
                     if (currentStaffApproval.length > 0) {
+                         setValidatingSpinner(true);
+                         try {
                          const sendReponse = await customPost(`test/approval/get/staffQualifiedToValidationResult?employeeid=${employeeid}&&ascensionid=${ascensionid}&&ascensionId=${ascensionid}`, 'PUT', currentStaffApproval[0]);
                          const { status } = sendReponse;
                          if (status === true) {
-                              toast.success('Validation successful');
+                              setStaff(sendReponse.staff || []);
+                              if (!sendReponse.finalized) { toast.info('Your approval was recorded. Other validators are still required.'); onClose(selectedAscension.ascensionid); return; }
+                              toast.success('Result finalized');
                               setSuccessfulValidation(selectedAscension.ascensionid);
                               setShowProceedModal(true);
                          } else {
                               toast.error(sendReponse?.message || 'Validation failed');
+                              await getInitData();
                               setSuccessfulValidation(null);
                          }
+                         } catch (error) { toast.error(error.message || 'Validation failed'); } finally { setValidatingSpinner(false); }
                     }
                }
           }
@@ -178,6 +187,7 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
                          <Modal.Title>{isBulk ? `Bulk Validation (${ascensions.length} tests)` : 'Result Validation'}</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
+                         <p className="small text-muted">Your approval is recorded as the signed-in user. Final release occurs only after the required validators have approved this result revision.</p>
                          {!isBulk ? (
                               <>
                                    <PreviewPatientInformation patientid={selectedAscension.patientid} />
@@ -289,7 +299,7 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
                     </Modal.Body>
                     <Modal.Footer>
                          <Button variant="secondary" onClick={(ev) => { onClose(successfulValidation) }}>Close</Button>
-                         <Button variant="primary" onClick={handleSaveValue} disabled={disableButton()}>{isBulk ? 'Validate All' : 'Validate'}</Button>
+                         <Button variant="primary" onClick={handleSaveValue} disabled={validatingSpinner || disableButton()}>{isBulk ? 'Validate All' : 'Validate'}</Button>
                     </Modal.Footer>
                </Modal>
 

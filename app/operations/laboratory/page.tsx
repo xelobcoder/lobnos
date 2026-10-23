@@ -5,6 +5,9 @@ import { RiTestTubeLine, RiLoader4Line, RiCheckboxCircleLine, RiShieldCheckLine,
 import { useApplication } from '../../../components/Auth/useApplicationContext'
 
 const LaboratoryOperationsLinks = [
+    { title: "Laboratory Workbench", link: "/operations/laboratory/workbench", icon: <RiFileListLine /> },
+    { title: "Quality Control", link: "/operations/laboratory/quality-control", icon: <RiShieldCheckLine /> },
+    { title: "Pending Result Delivery", link: "/operations/laboratory/undelivered", icon: <RiFileListLine /> },
     { title: "Walk-in Queue & Client Tracking", link: "/operations/queue", icon: <RiTimeLine /> },
 	{title: "Sample Collection",link: "/operations/phelobotomy/pending-samples-collection", icon: <RiTestTubeLine /> },
 	{ title: "Sample Validation", link: `/operations/laboratory/sample/validation`, icon: <RiTestTubeLine /> },
@@ -37,6 +40,9 @@ export default function Page() {
 	}
 
 	const getDescription = (title: string) => {
+		if (title.includes('Workbench')) return 'Assign and hand over work, monitor configured deadlines and QC, and record actual material usage.';
+        if (title.includes('Quality Control')) return 'Record and review QC for the current branch and analyzer.';
+        if (title.includes('Pending Result Delivery')) return 'Track finalized results awaiting delivery and investigate failed delivery attempts.';
 		if (title.includes('Walk-in Queue')) {
 			return 'Call waiting clients, link registration and billing, and track test progress. Open the public check-in link or facility display.'
 		} else if (title.includes('Specimen Storage')) {
@@ -72,10 +78,7 @@ export default function Page() {
 			<p className="text-muted mb-3">Manage all aspects of laboratory workflow and testing procedures</p>
 
 			<div className="row g-3">
-				{(isCompleteFlow
-					? LaboratoryOperationsLinks
-					: LaboratoryOperationsLinks.filter(link => link.title === "Completed stage" || link.title === "Specimen Storage & Retention" || link.title === "Walk-in Queue & Client Tracking")
-				).map((link, index) => (
+				{LaboratoryOperationsLinks.map((link, index) => (
 					<div key={index} className="col-12 col-md-6 col-lg-4">
 						<Link
 							href={link.link}

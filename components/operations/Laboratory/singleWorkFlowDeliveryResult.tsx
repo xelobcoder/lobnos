@@ -27,6 +27,7 @@ export default function SingleWorkFlowResultDeliveryModal({
 	const { billingid, testid, ascension_id } = item || {};
 
 	const handleSubmit = async () => {
+          if (loading) return;
 		if (!billingid) return alert("Billing ID is required");
 
 
@@ -36,7 +37,6 @@ export default function SingleWorkFlowResultDeliveryModal({
 		const payload = {
 			billingid: Number(billingid),
 			delivered_mode: deliveredMode.trim().toLowerCase(),
-			delivered_by_employeeid: employeeid,
 			delivered_at: new Date(),
 			ascensionid: Number(ascension_id),
 			notes: notes ? notes.trim() : null,
@@ -51,7 +51,7 @@ export default function SingleWorkFlowResultDeliveryModal({
 			if (status === true) {
 				alert("Result delivery recorded successfully");
 				onSuccess();
-			}
+			} else { alert(response?.message || "Delivery could not be recorded. Refresh the result status and retry."); }
 		} catch (err) {
 			console.error(err);
 			alert("Failed to submit");

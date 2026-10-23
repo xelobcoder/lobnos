@@ -60,6 +60,7 @@ interface DeliveryPreference {
 }
 
 interface DeliveryChainResponse {
+    attempts?: Array<{ id: number; employeeid: number; username?: string; created_at: string; delivered_mode?: string; notes?: string; failure_notes?: string }>;
     billingid: number;
     handovers: Array<{
         id: number;
@@ -154,6 +155,7 @@ const TransactionDetails: React.FC<TransactionDetailsProps> = ({
                 billingid: billingId,
                 handovers: Array.isArray(chainResponse?.handovers) ? chainResponse.handovers : [],
                 deliveries: Array.isArray(chainResponse?.deliveries) ? chainResponse.deliveries : [],
+                attempts: Array.isArray(chainResponse?.attempts) ? chainResponse.attempts : [],
             });
             if (preferenceResponse?.preference) {
                 setDeliveryPreference(preferenceResponse.preference);
@@ -190,7 +192,7 @@ const TransactionDetails: React.FC<TransactionDetailsProps> = ({
             subtitle: item.notes || item.status,
         }));
 
-        const deliveries = (deliveryChain?.deliveries || []).map((item) => ({
+        const deliveries = (deliveryChain?.attempts?.length ? [] : deliveryChain?.deliveries || []).filter(item => !!item.delivered_mode).map((item) => ({
             id: `delivery-${item.id}`,
             type: 'delivery',
             when: item.delivered_at,
@@ -198,7 +200,12 @@ const TransactionDetails: React.FC<TransactionDetailsProps> = ({
             subtitle: item.notes || item.delivered_by_username || '',
         }));
 
-        return [...handovers, ...deliveries].sort((a, b) => new Date(b.when).getTime() - new Date(a.when).getTime());
+        const attempts = (deliveryChain?.attempts || []).map(item => ({
+            id: 'attempt-' + item.id, type: item.failure_notes ? 'failed' : 'delivery', when: item.created_at,
+            title: item.failure_notes ? 'Delivery attempt failed' : 'Delivered via ' + item.delivered_mode,
+            subtitle: [item.failure_notes || item.notes, item.username || ('Staff #' + item.employeeid)].filter(Boolean).join(' ? '),
+        }));
+        return [...handovers, ...deliveries, ...attempts].sort((a, b) => new Date(b.when).getTime() - new Date(a.when).getTime());
     }, [deliveryChain]);
 
     const submitDeliveryRecord = async () => {
@@ -554,7 +561,7 @@ const TransactionDetails: React.FC<TransactionDetailsProps> = ({
                                         <div key={item.id} className="border rounded p-2">
                                             <div className="d-flex justify-content-between align-items-start gap-2">
                                                 <div className="d-flex align-items-start gap-2">
-                                                    <span className={`mt-1 ${item.type === 'delivery' ? 'text-success' : 'text-primary'}`}>
+                                                    <span className={`mt-1 ${item.type === 'failed' ? 'text-danger' : item.type === 'delivery' ? 'text-success' : 'text-primary'}`}>
                                                         {item.type === 'delivery' ? <RiSendPlaneLine size={16} /> : <RiInboxArchiveLine size={16} />}
                                                     </span>
                                                     <div>

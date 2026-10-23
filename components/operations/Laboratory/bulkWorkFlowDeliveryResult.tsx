@@ -25,6 +25,7 @@ export default function BulkWorkFlowResultDeliveryModal({
 	const [loading, setLoading] = useState(false);
 
 	const handleSubmit = async () => {
+          if (loading) return;
 		if (items.length === 0) return toast.error("No items selected");
 		if (!deliveredMode) return toast.error("Please select a delivery mode");
 
@@ -33,7 +34,6 @@ export default function BulkWorkFlowResultDeliveryModal({
 		const payload = items.map(item => ({
 			billingid: Number(item.billingid),
 			delivered_mode: deliveredMode.trim().toLowerCase(),
-			delivered_by_employeeid: employeeid,
 			delivered_at: new Date(),
 			ascensionid: Number(item.ascension_id ?? item.ascensionid),
 			notes: notes ? notes.trim() : null,
