@@ -87,7 +87,7 @@ const ConfigurationsForm = ({ data, handleSwitch, canManageQc }) => {
             type="text"
             onChange={(ev) => handleChangeWithState(ev, "procedureCode", setTestData, data)}
             className="custom-input"
-            value={data.procedureCode}
+            value={data.procedureCode ?? ""}
           />
         </div>
       )}

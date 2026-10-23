@@ -55,7 +55,7 @@ const BasicInfoForm = ({
         <select
           required
           className="custom-select"
-          value={data.category}
+          value={data.category ?? ""}
           onChange={(ev) =>
             handleChangeWithState(ev, "category", setTestData, data)
           }
@@ -73,7 +73,7 @@ const BasicInfoForm = ({
         <select
           required
           className="custom-select"
-          value={data.sample}
+          value={data.sample ?? ""}
           onChange={handleSampleTypeChange}
         >
           <option value="">Select a sample type</option>
@@ -92,7 +92,7 @@ const BasicInfoForm = ({
             handleChangeWithState(ev, "sample_container", setTestData, data)
           }
           className="custom-select"
-          value={data.sample_container}
+          value={data.sample_container ?? ""}
         >
           <option value="">Select a container</option>
           {sampleContainers.map((container) => (
@@ -111,7 +111,7 @@ const BasicInfoForm = ({
           type="text"
           disabled={FieldDisabledDueNone}
           className="custom-input"
-          value={data.unit}
+          value={data.unit ?? ""}
         />
       </div>
       <div className="form-row grid-reg mt-2">
@@ -123,14 +123,14 @@ const BasicInfoForm = ({
           }
           type="number"
           className="custom-input"
-          value={data.qty_required}
+          value={data.qty_required ?? ""}
         />
       </div>
       <div className="form-row grid-reg mt-2">
         <label className="pls-label">Short Text</label>
         <input
           type="text"
-          value={data.shorttext}
+          value={data.shorttext ?? ""}
           onChange={(ev) =>
             handleChangeWithState(ev, "shorttext", setTestData, data)
           }
@@ -145,7 +145,7 @@ const BasicInfoForm = ({
             handleChangeWithState(ev, "testcost", setTestData, data)
           }
           className="custom-input"
-          value={data.testcost}
+          value={data.testcost ?? ""}
         />
       </div>
       <div className="form-row grid-reg mt-2">
@@ -156,7 +156,7 @@ const BasicInfoForm = ({
             handleChangeWithState(ev, "testprice", setTestData, data)
           }
           className="custom-input"
-          value={data.testprice}
+          value={data.testprice ?? ""}
         />
       </div>
       <div className="form-row grid-reg mt-2">
@@ -230,7 +230,7 @@ const BasicInfoForm = ({
           onChange={(ev) =>
             handleChangeWithState(ev, "description", setTestData, data)
           }
-          value={data.description}
+          value={data.description ?? ""}
           placeholder="Type test description here"
         />
       </div>

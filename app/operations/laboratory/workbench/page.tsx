@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { Modal, Offcanvas } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import { customFetch, customPost } from '../../../../components/Auth/customFetch';
@@ -11,17 +12,21 @@ const displayDate = (value: any) => value ? new Date(value).toLocaleString() : '
 const localDate = (value: any) => value ? new Date(new Date(value).getTime() - new Date(value).getTimezoneOffset() * 60000).toISOString().slice(0, 16) : '';
 const stage = (row: any) => row.resultEntryEnd ? Number(row.isapproved) === 1 ? 'Finalized' : 'Awaiting validation' : row.workflow?.canEnterResults ? 'Ready for results' : row.processingStartDate ? 'Processing' : row.workflow?.blockedReason || 'Ready to process';
 export default function LaboratoryWorkbench() {
+     const urlSearch = useSearchParams().get('search') || '';
      const { applicationsettings } = useApplicationSettings();
      const employeeid = Number(applicationsettings?.user?.employeeid);
      const [rows, setRows] = useState<any[]>([]), [options, setOptions] = useState<any>({ staff: [], devices: [], supervisor: false });
      const [view, setView] = useState('all'), [includeCompleted, setIncludeCompleted] = useState(false);
-     const [searchInput, setSearchInput] = useState(''), [search, setSearch] = useState(''), [page, setPage] = useState(1), [total, setTotal] = useState(0);
+     const [searchInput, setSearchInput] = useState(urlSearch), [search, setSearch] = useState(urlSearch), [page, setPage] = useState(1), [total, setTotal] = useState(0);
      const [loading, setLoading] = useState(false), [error, setError] = useState(''), [saving, setSaving] = useState(false);
      const [selected, setSelected] = useState<any>(null), [edit, setEdit] = useState<any>({}), [history, setHistory] = useState<any[]>([]);
      const [targets, setTargets] = useState<any>({ routine: '', urgent: '', stat: '' });
      const [materialRow, setMaterialRow] = useState<any>(null), [plan, setPlan] = useState<any>(null), [quantities, setQuantities] = useState<Record<string, string>>({});
      const [retryKey, setRetryKey] = useState(''), [planLoading, setPlanLoading] = useState(false);
      const generation = useRef(0);
+     useEffect(() => {
+          setSearchInput(urlSearch); setSearch(urlSearch); setPage(1);
+     }, [urlSearch]);
      async function load() {
           const current = ++generation.current;
           try {
@@ -123,7 +128,7 @@ export default function LaboratoryWorkbench() {
                <select aria-label="Laboratory work view" className="form-select w-auto" value={view} onChange={event => { setView(event.target.value); setPage(1); }}>
                     <option value="all">All open work</option><option value="mine">Assigned to me</option><option value="unassigned">Unassigned</option><option value="overdue">Overdue by configured target</option><option value="urgent">Urgent / STAT</option>
                </select>
-               <input aria-label="Search laboratory work" className="form-control w-auto" value={searchInput} onChange={event => setSearchInput(event.target.value)} placeholder="Patient number, name or test" />
+               <input aria-label="Search laboratory work" className="form-control w-auto" value={searchInput} onChange={event => setSearchInput(event.target.value)} placeholder="Ascension ID, patient number, name or test" />
                <button className="btn btn-outline-secondary" type="submit">Search</button>
                <label className="form-check-label align-self-center"><input type="checkbox" className="form-check-input me-2" checked={includeCompleted} onChange={event => { setIncludeCompleted(event.target.checked); setPage(1); }} />Include finalized results</label>
           </form>

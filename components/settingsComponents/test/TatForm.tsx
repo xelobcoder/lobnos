@@ -34,10 +34,11 @@ const TatForm: React.FC<TatFormProps> = ({ data, handleChangeWithState, setTestD
                         type="number"
                         onChange={(ev) => handleChangeWithState(ev, "tatCount", setTestData, data)}
                         className="custom-input flex-grow-1"
-                        value={data.tatCount}
+                        value={data.tatCount ?? ""}
                         placeholder="Count of test to use"
                     />
                     <select
+                        value={data.tatEvaluation ?? ""}
                         onChange={(ev) => handleChangeWithState(ev, "tatEvaluation", setTestData, data)}
                         className="custom-select flex-grow-1"
                     >
@@ -54,11 +55,11 @@ const TatForm: React.FC<TatFormProps> = ({ data, handleChangeWithState, setTestD
                         type="number"
                         onChange={(ev) => handleChangeWithState(ev, "pre_Tat", setTestData, data)}
                         className="custom-input flex-grow-1"
-                        value={data.pre_Tat}
+                        value={data.pre_Tat ?? ""}
                         placeholder="Pre Tat value"
                     />
                     <select
-                        value={data.pre_TatEvaluation}
+                        value={data.pre_TatEvaluation ?? ""}
                         onChange={(ev) => handleChangeWithState(ev, "pre_TatEvaluation", setTestData, data)}
                         className="custom-select flex-grow-1"
                     >
@@ -75,11 +76,11 @@ const TatForm: React.FC<TatFormProps> = ({ data, handleChangeWithState, setTestD
                         type="number"
                         onChange={(ev) => handleChangeWithState(ev, "tat", setTestData, data)}
                         className="custom-input flex-grow-1"
-                        value={data.tat}
+                        value={data.tat ?? ""}
                         placeholder="Tat Value"
                     />
                     <select
-                        value={data.tatEvaluation}
+                        value={data.tatEvaluation ?? ""}
                         onChange={(ev) => handleChangeWithState(ev, "tatEvaluation", setTestData, data)}
                         className="custom-select flex-grow-1"
                     >
@@ -96,11 +97,11 @@ const TatForm: React.FC<TatFormProps> = ({ data, handleChangeWithState, setTestD
                         type="number"
                         onChange={(ev) => handleChangeWithState(ev, "post_Tat", setTestData, data)}
                         className="custom-input flex-grow-1"
-                        value={data.post_Tat}
+                        value={data.post_Tat ?? ""}
                         placeholder="Post Tat Value"
                     />
                     <select
-                        value={data.post_TatEvaluation}
+                        value={data.post_TatEvaluation ?? ""}
                         onChange={(ev) => handleChangeWithState(ev, "post_TatEvaluation", setTestData, data)}
                         className="custom-select flex-grow-1"
                     >

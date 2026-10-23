@@ -15,7 +15,7 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 	const [editingIndex, setEditingIndex] = useState<number | null>(null);
 	const [newField, setNewField] = useState(defaultCreationRule);
 	const [showCustomUnit, setShowCustomUnit] = useState(false);
-	const STANDARD_UNITS = [
+	const STANDARD_UNITS = Array.from(new Set([
 		"mg/dL", "g/dL", "µg/dL", "ng/dL",
 		"mg/L", "g/L", "µg/L", "ng/mL", "pg/mL",
 		"mmol/L", "µmol/L", "nmol/L",
@@ -120,7 +120,7 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 
 		"N/A",
 		"unitless"
-	];
+	]));
 
 
 	const typeOptions = [

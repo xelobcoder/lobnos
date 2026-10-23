@@ -48,7 +48,7 @@ export default function ProcedureManualTab({ testid }: { testid: number | string
           <section>
                <div className="mx-2">
                     <h4>Procedure Manual </h4>
-                    <input value={data.title}
+                    <input value={data.title ?? ""}
                          onChange={(ev) => { setData({ ...data, title: ev.target.value }) }}
                          type='text' className='custom-input' placeholder="Type in title of Manual here here" />
                </div>
