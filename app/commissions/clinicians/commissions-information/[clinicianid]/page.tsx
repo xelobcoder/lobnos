@@ -56,6 +56,8 @@ export default function ClinicianCommissionPage(props: { params: Promise<{ clini
     const [paymentModes, setPaymentModes] = useState<{ KeyID: number; PaymentMode: string }[]>([]);
     const [paymentModesError, setPaymentModesError] = useState<string | null>(null);
     const [showBulkPayModal, setShowBulkPayModal] = useState(false);
+    const [settlementMode,setSettlementMode]=useState<'partial'|'full'|'waiver'>('partial');
+    const [waiverReason,setWaiverReason]=useState('');
     const [bulkPayAmount, setBulkPayAmount] = useState("");
     const [bulkPayMethod, setBulkPayMethod] = useState<number | null>(null);
     const [bulkPayLoading, setBulkPayLoading] = useState(false);
@@ -110,8 +112,9 @@ export default function ClinicianCommissionPage(props: { params: Promise<{ clini
     const selectedCommissionDue = Array.from(selectedRecords).reduce((sum, index) => sum + Number(commissionData[index]?.commission_earned || 0), 0);
     const handleBulkPay = async () => {
         if (submittingRef.current) return;
-        const amount = Number(bulkPayAmount);
-        if (!bulkPayAmount || !Number.isFinite(amount) || amount < 0 || amount > selectedCommissionDue) {
+        const amount = settlementMode==='full'?Number(selectedCommissionDue.toFixed(2)):Number(bulkPayAmount);
+        if(settlementMode==='waiver'&&(waiverReason.trim().length<3||!window.confirm('Waive the unpaid balance of GHS '+(selectedCommissionDue-amount).toFixed(2)+'? This explicitly writes off that commission.'))){setBulkPayError('A waiver needs an administrator and a reason of at least 3 characters.');return;}
+        if (!bulkPayAmount || !Number.isFinite(amount) || (settlementMode!=='waiver'?amount<=0:amount<0) || amount > Number(selectedCommissionDue.toFixed(2))) {
             setBulkPayError("Enter an amount from zero up to the selected commission due."); return;
         }
         if (!bulkPayMethod || !paymentModes.some(mode => mode.KeyID === bulkPayMethod) || !selectedRecords.size) {
@@ -121,7 +124,7 @@ export default function ClinicianCommissionPage(props: { params: Promise<{ clini
         setBulkPayLoading(true); setBulkPayError(null);
         try {
             const payload = {
-                startDate, endDate, commissionDue: selectedCommissionDue, amountPaid: amount,
+                startDate, endDate, commissionDue: Number(selectedCommissionDue.toFixed(2)), settlementMode, waiverReason, amountPaid: amount,
                 commissionType: "paid", paymentMethod: bulkPayMethod, employeeid,
                 recipient_type: "clinician", branchid, recipientid: params.clinicianid,
                 services: Array.from(selectedRecords).map(index => commissionData[index].serviceid),
@@ -130,7 +133,7 @@ export default function ClinicianCommissionPage(props: { params: Promise<{ clini
             if (response?.status !== true) throw new Error(response?.message || "Failed to process payment.");
             setShowBulkPayModal(false); setBulkPayAmount(""); setBulkPayMethod(null); setSelectedRecords(new Set());
             setReloadKey(key => key + 1);
-            toast.success("Commission payment processed successfully!");
+            toast.success(response.data?.requiresApproval?'Commission request submitted. Approve it in Expenses, then record payment from an authorized account.':'Commission waiver recorded.');
         } catch (err) {
             setBulkPayError(err instanceof Error ? err.message : "Failed to process payment.");
         } finally { submittingRef.current = false; setBulkPayLoading(false); }
@@ -175,7 +178,7 @@ export default function ClinicianCommissionPage(props: { params: Promise<{ clini
                 <PeriodFilter value={dateFilter} onChange={setDateFilter} disabled={loading || showBulkPayModal} onDateRangeChange={(start, end) => { setStartDate(start); setEndDate(end); }} />
                 <button type="button" className="btn btn-outline-secondary btn-sm" disabled={loading || showBulkPayModal} onClick={() => setReloadKey(key => key + 1)}>Refresh</button>
                 <button type="button" className="btn btn-outline-secondary btn-sm" disabled={loading || showBulkPayModal} onClick={() => { setDateFilter("This Year"); setStartDate(dayjs().startOf("year").format("YYYY-MM-DD")); setEndDate(dayjs().format("YYYY-MM-DD")); }}>Reset</button>
-                {!!selectedRecords.size && <Button variant="success" size="sm" onClick={() => { setBulkPayError(null); setShowBulkPayModal(true); }}>Pay Commission for Selected ({selectedRecords.size.toLocaleString()})</Button>}
+                {!!selectedRecords.size && <Button variant="success" size="sm" onClick={() => { setBulkPayError(null); setShowBulkPayModal(true); }}>Submit payment request for Selected ({selectedRecords.size.toLocaleString()})</Button>}
             </div>
             {loading ? <LoadingState /> : !error && <>
                 <h2 className="h6">Commission trend</h2>
@@ -189,28 +192,28 @@ export default function ClinicianCommissionPage(props: { params: Promise<{ clini
             </>}
             <CommissionDetailsModal show={showDetailsModal} onHide={() => { historyRequest.current++; setShowDetailsModal(false); }} commissionPayments={commissionPayments} selectedRecord={selectedRecord} loading={detailsLoading} error={detailsError} onRetry={() => { if (selectedRecord) handleViewDetails(selectedRecord); }} clinicianId={params.clinicianid} paymentModes={paymentModes} onPaymentSuccess={() => setReloadKey(key => key + 1)} />
             <Modal show={showBulkPayModal} backdrop="static" keyboard={!bulkPayLoading} onHide={() => { if (!bulkPayLoading) setShowBulkPayModal(false); }} aria-labelledby="bulk-commission-title">
-                <Modal.Header closeButton={!bulkPayLoading}><Modal.Title id="bulk-commission-title" className="h6">Pay commission for selected records</Modal.Title></Modal.Header>
+                <Modal.Header closeButton={!bulkPayLoading}><Modal.Title id="bulk-commission-title" className="h6">Request commission payment</Modal.Title></Modal.Header>
                 <Modal.Body aria-busy={bulkPayLoading}>
                     <p className="small">Period: {startDate} – {endDate}<br />Selected records: {selectedRecords.size.toLocaleString()} · Commission due: {currencyFormatter.format(selectedCommissionDue)}</p>
                     {paymentModesError && <ErrorState message={paymentModesError} onRetry={loadPaymentModes} />}
                     <Form id="bulk-commission-form" onSubmit={event => { event.preventDefault(); handleBulkPay(); }}>
-                        <Form.Group controlId="bulk-payment-method" className="mb-3">
+                        <div className="alert alert-info small">This creates an expense payment request. Approval and payment happen separately under Expenses. Partial payments keep the remaining balance outstanding. <a href="/billing/expenses/awaiting-approval">Review expense requests</a></div><Form.Group className="mb-3"><Form.Label>Settlement choice</Form.Label><Form.Select value={settlementMode} disabled={bulkPayLoading} onChange={event=>{const mode=event.target.value as typeof settlementMode;setSettlementMode(mode);if(mode==='full')setBulkPayAmount(selectedCommissionDue.toFixed(2));}}><option value="partial">Partial payment — retain the balance</option><option value="full">Full payment</option><option value="waiver">Settle with explicit waiver (administrator)</option></Form.Select></Form.Group>{settlementMode==='waiver'&&<Form.Group className="mb-3"><Form.Label>Reason for waiver</Form.Label><Form.Control as="textarea" minLength={3} required value={waiverReason} onChange={event=>setWaiverReason(event.target.value)}/><Form.Text>The difference between commission due and the requested payment is written off.</Form.Text></Form.Group>}<Form.Group controlId="bulk-payment-method" className="mb-3">
                             <Form.Label className="small">Payment method</Form.Label>
                             <Form.Select size="sm" required disabled={bulkPayLoading || !paymentModes.length} value={bulkPayMethod ?? ""} onChange={e => setBulkPayMethod(Number(e.target.value) || null)}>
                                 <option value="">Select payment method</option>{paymentModes.map(mode => <option key={mode.KeyID} value={mode.KeyID}>{mode.PaymentMode}</option>)}
                             </Form.Select>
                         </Form.Group>
                         <Form.Group controlId="bulk-payment-amount" className="mb-3">
-                            <Form.Label className="small">Amount to pay</Form.Label>
+                            <Form.Label className="small">Requested payment amount</Form.Label>
                             <Form.Control type="number" size="sm" required min="0" max={selectedCommissionDue} step="0.01" disabled={bulkPayLoading} value={bulkPayAmount} onChange={e => setBulkPayAmount(e.target.value)} aria-describedby="bulk-amount-help" />
-                            <Form.Text id="bulk-amount-help">Amount must not exceed the selected commission due.</Form.Text>
+                            <Form.Text id="bulk-amount-help">Approval and payment are separate. An unpaid balance is retained unless you explicitly choose a waiver.</Form.Text>
                         </Form.Group>
                     </Form>
                     {bulkPayError && <ErrorState message={bulkPayError} />}
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="outline-secondary" size="sm" disabled={bulkPayLoading} onClick={() => setShowBulkPayModal(false)}>Cancel</Button>
-                    <Button type="submit" form="bulk-commission-form" variant="primary" size="sm" disabled={bulkPayLoading || !bulkPayAmount || !bulkPayMethod || !paymentModes.length}>{bulkPayLoading ? "Processing…" : "Pay Commission"}</Button>
+                    <Button type="submit" form="bulk-commission-form" variant="primary" size="sm" disabled={bulkPayLoading || !bulkPayAmount || !bulkPayMethod || !paymentModes.length}>{bulkPayLoading ? "Processing…" : "Submit payment request"}</Button>
                 </Modal.Footer>
             </Modal>
         </div>

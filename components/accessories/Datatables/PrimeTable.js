@@ -9,7 +9,7 @@ import TableLoading from "./TableLoading";
 import style from "./PrimeTable.module.css";
 import "../../../styles/prime-table.css";
 import { ButtonGroup } from "react-bootstrap";
-import { RiFilePdf2Line } from "@remixicon/react";
+import { RiFilePdf2Line, RiArrowUpDownLine } from "@remixicon/react";
 
 /** Plain rendering of the full export dataset with the table's own column renderers. */
 function ExportRowsTable({ columns, data }) {
@@ -61,6 +61,8 @@ export default function PrimeTable({
 	});
 	const [globalTheme, setGlobalTheme] = useState("PrimeLaboratoryTableStyling");
 	const [pdfBusy, setPdfBusy] = useState(false);
+	const [compact, setCompact] = useState(false);
+	const [loadError, setLoadError] = useState('');
 	const [exportRows, setExportRows] = useState(null);
 	const tableWrapRef = useRef(null);
 	const exportRootRef = useRef(null);
@@ -211,7 +213,7 @@ export default function PrimeTable({
 		filtering ||
 		isExpoerted ||
 		pdfExport ||
-		(serverSideFiltering && typeof handleSeverSideProcessing === "function");
+		(serverSideFiltering && typeof handleSeverSideProcessing === "function") || rows.length > 0;
 
 	const toogleUp = () => (
 		<svg
@@ -253,10 +255,12 @@ export default function PrimeTable({
 						? column.isSortedDesc
 							? toogleDown()
 							: toogleUp()
-						: null;
+						: column.canSort ? <RiArrowUpDownLine size={14} aria-hidden="true" /> : null;
 
 					return (
-						<th key={index} {...restProps} className={`${style.th} ${style.sortableHeader}`}>
+						<th key={column.id} {...restProps} scope="col" aria-sort={column.canSort ? column.isSorted ? column.isSortedDesc ? 'descending' : 'ascending' : 'none' : undefined}
+							tabIndex={column.canSort ? 0 : undefined} onKeyDown={event => { if (column.canSort && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); restProps.onClick?.(event); } }}
+							className={`${style.th} ${column.canSort ? style.sortableHeader : ''}`}>
 							<div className="d-flex justify-content-between align-items-center">
 								<span className="text-sm fw-bold text-capitalize align-items-center">
 									{column.render("Header")}
@@ -275,26 +279,18 @@ export default function PrimeTable({
 			serverSideFiltering
 		) {
 			setIsLoading(true);
-			const processedResponse = await handleSeverSideProcessing({
-				page: currentPage,
-				count: currentCount,
-				...urlparams,
-				sortby,
-			});
-
-			if (processedResponse) {
-				const { result, error } = processedResponse;
-				setFilteredData(result);
+			setLoadError('');
+			try {
+				const processedResponse = await handleSeverSideProcessing({ page: currentPage, count: currentCount, ...urlparams, sortby });
+				if (processedResponse) {
+					const { result, error } = processedResponse;
+					if (error) throw new Error(typeof error === 'string' ? error : 'Unable to load table data.');
+					setFilteredData(Array.isArray(result) ? result : []);
+				}
+			} catch (error) {
+				setLoadError(error?.message || 'Unable to load table data. Please try again.');
+			} finally {
 				setIsLoading(false);
-
-				// setTimeout(() => {
-				// 	if (result) {
-				// 		setFilteredData(result);
-				// 	} else {
-				// 		alert(error);
-				// 	}
-				// 	setIsLoading(false);
-				// }, 300);
 			}
 		}
 	}
@@ -348,7 +344,9 @@ export default function PrimeTable({
 							/>
 							<circle cx="24" cy="32" r="1.5" fill="#84868B" />
 						</svg>
-						<div className={style.noDataText}>No Data Available</div>
+						<div className={style.noDataText}>{globalFilter ? 'No matching records' : 'No records to display'}</div>
+						<p className={style.noDataHint}>{globalFilter ? 'Try a different search or clear the current filter.' : 'Records will appear here when they are available.'}</p>
+						{globalFilter && <button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => setGlobalFilter('')}>Clear search</button>}
 					</div>
 				</td>
 			</tr>
@@ -442,10 +440,11 @@ export default function PrimeTable({
 	};
 
 	return (
-		<div className={style.tableWrapper}>
+		<div className={style.tableWrapper} aria-busy={isLoading}>
 			{hasControls && (
 				<div className={style.controlBar}>
-					<div className="d-flex align-items-center">
+					<div className={style.toolbarMeta}>
+						<span className={style.recordCount} aria-live="polite">{rows.length.toLocaleString()} {rows.length === 1 ? 'record' : 'records'}{serverSideFiltering ? ' on this page' : ''}</span>
 						{serverSideFiltering && typeof handleSeverSideProcessing === "function" && (
 							<ShowTableDisplayCount
 								page={queryParams.page}
@@ -456,12 +455,13 @@ export default function PrimeTable({
 							/>
 						)}
 					</div>
-					<div className="d-flex align-items-center gap-2">
+					<div className={style.toolbarActions}>
 						{filtering && (
-							<div>
+							<div className={style.searchSlot}>
 								<GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
 							</div>
 						)}
+						<button type="button" className={style.densityButton} aria-pressed={compact} onClick={() => setCompact(value => !value)}>Compact rows</button>
 						{isExpoerted && (
 							<ButtonGroup
 								className="d-flex justify-content-end"
@@ -472,8 +472,9 @@ export default function PrimeTable({
 									type="button"
 									className="btn btn-sm btn-outline-secondary"
 									onClick={exportCsv}
+									disabled={pdfBusy || isLoading}
 								>
-									excel
+									Export CSV
 								</button>
 							</ButtonGroup>
 						)}
@@ -492,9 +493,10 @@ export default function PrimeTable({
 				</div>
 			)}
 
-			<div className={style.tableViewport} ref={tableWrapRef}>
+			{loadError && <div className={style.loadError} role="alert">{loadError}<button type="button" disabled={isLoading} onClick={() => RunServerAction(queryParams.page, queryParams.count)}>Retry</button></div>}
+			<div className={style.tableViewport} ref={tableWrapRef} tabIndex={0} role="region" aria-label="Data table; scroll horizontally to view more columns">
 				<table
-					className={`${style.table} ${style.tableCompact}`}
+					className={`${style.table} ${compact ? style.tableCompact : ''}`}
 
 					// className={`${style.table} ${effectiveTheme !== "PrimeLaboratoryTableStyling" ? `prime-table-${effectiveTheme} prime-table-theme` : ""}`}
 					{...getTableProps()}
@@ -523,7 +525,7 @@ export default function PrimeTable({
 							type="button"
 							onClick={() => handlePagination("Previous")}
 							className={`${style.paginationBtn} ${style.paginationBtnNav}`}
-							disabled={queryParams.page <= 1}
+							disabled={isLoading || queryParams.page <= 1}
 						>
 							Previous
 						</button>
@@ -536,6 +538,7 @@ export default function PrimeTable({
 									key={item}
 									className={`${style.paginationBtn} ${isActive ? style.paginationBtnActive : ""}`}
 									aria-current={isActive ? "page" : undefined}
+									disabled={isLoading}
 								>
 									{item}
 								</button>
@@ -545,7 +548,7 @@ export default function PrimeTable({
 							type="button"
 							onClick={() => handlePagination("Next")}
 							className={`${style.paginationBtn} ${style.paginationBtnNav}`}
-							disabled={filteredData.length === 0}
+							disabled={isLoading || filteredData.length === 0}
 						>
 							Next
 						</button>

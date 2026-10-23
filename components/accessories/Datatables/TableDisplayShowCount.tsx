@@ -1,4 +1,5 @@
 import { Dispatch, SetStateAction, useState } from "react";
+import styles from './PrimeTable.module.css';
 
 export default function ShowTableDisplayCount({
      handleLoader,
@@ -33,9 +34,10 @@ export default function ShowTableDisplayCount({
      };
 
      return (
-          <div className="my-1 col-12 col-sm-6 col-md-6 col-lg-6 d-flex flex-column">
+          <div className={styles.countControl}>
+               <span>Rows per page</span>
                <div className="d-flex w-100">
-                    <select value={isCustomMode ? 'custom' : queryParams.count} onChange={handleCountChange} className="form-select form-select-sm">
+                    <select aria-label="Rows per page" value={isCustomMode ? 'custom' : queryParams.count} onChange={handleCountChange} className="form-select form-select-sm">
                          <option value={5}>5</option>
                          <option value={10}>10</option>
                          <option value={15}>15</option>
@@ -60,6 +62,7 @@ export default function ShowTableDisplayCount({
                                    className="form-control form-control-sm"
                                    style={{ width: 80 }}
                                    placeholder="Enter count"
+                                   aria-label="Custom rows per page"
                                    value={customValue}
                                    onChange={e => {
                                         setCustomValue(e.target.value);

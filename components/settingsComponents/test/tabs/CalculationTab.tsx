@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import { customFetch, customFetchMutation } from '../../../Auth/customFetch';
 import { useApplicationSettings } from '../../../Auth/useApplicationContext';
 import styles from './CalculationTab.module.css';
+import { nextFormulaToken } from '../../../../lib/laboratory/formulaTokens';
 
 type TestParameter = {
      id: number;
@@ -36,6 +37,7 @@ type FormulaRecord = {
      version: number;
      effective_from: string;
      active: number | boolean;
+     effective_to?: string | null;
 };
 
 const operators: { value: FormulaCondition['operator']; label: string }[] = [
@@ -75,6 +77,10 @@ export default function CalculationTab({ testid, testname }: { testid: number; t
      const [editingFormulaId, setEditingFormulaId] = useState<number | null>(null);
      const [loading, setLoading] = useState(true);
      const [saving, setSaving] = useState(false);
+     const [effectiveFrom,setEffectiveFrom]=useState(dateToday);
+     const [samples,setSamples]=useState<Record<string,string>>({});
+     const [preview,setPreview]=useState(''),[previewError,setPreviewError]=useState(''),[previewBusy,setPreviewBusy]=useState(false);
+     useEffect(()=>{setPreview('');setPreviewError('');},[expression,inputs,conditions,precision,unit]);
 
      const loadConfiguration = useCallback(async () => {
           setLoading(true);
@@ -85,6 +91,7 @@ export default function CalculationTab({ testid, testname }: { testid: number; t
                ]);
                const rules = Array.isArray(ruleResponse) ? ruleResponse : ruleResponse?.data;
                const formulaList = Array.isArray(formulaResponse) ? formulaResponse : formulaResponse?.data;
+               if (!Array.isArray(rules) || !Array.isArray(formulaList)) throw new Error(formulaResponse?.message || ruleResponse?.message || 'Unable to load calculation settings');
                setParameters(Array.isArray(rules) ? rules.map((rule: any) => ({
                     id: Number(rule.id || rule.fieldid),
                     name: String(rule.name || rule.field || rule.id),
@@ -107,7 +114,8 @@ export default function CalculationTab({ testid, testname }: { testid: number; t
      };
 
      const addInput = () => {
-          const token = String.fromCharCode(65 + inputs.length);
+          if(inputs.length>=32)return;
+          const token = nextFormulaToken(inputs.map(input=>input.token));
           setInputs((current) => [...current, { fieldId: '', token, unit: '' }]);
      };
 
@@ -118,7 +126,7 @@ export default function CalculationTab({ testid, testname }: { testid: number; t
           setInputs([{ fieldId: '', token: 'A', unit: '' }]);
           setUnit('');
           setPrecision(2);
-          setConditions([]);
+          setConditions([]);setEffectiveFrom(dateToday());setSamples({});setPreview('');
      };
 
      const editFormula = (formula: FormulaRecord) => {
@@ -144,6 +152,7 @@ export default function CalculationTab({ testid, testname }: { testid: number; t
                token: input.token.trim(),
                unit: input.unit?.trim() || undefined,
           }));
+          if(new Set(normalizedInputs.map(input=>input.token)).size!==normalizedInputs.length || new Set(normalizedInputs.map(input=>input.fieldId)).size!==normalizedInputs.length || normalizedInputs.some(input=>!/^[A-Za-z_][A-Za-z0-9_]*$/.test(input.token))){toast.error('Each input needs a unique parameter and valid unique token.');return;}
           if (!outputFieldId || !expression.trim() || normalizedInputs.some((input) => !input.fieldId || !input.token)) {
                toast.error('Choose an output, expression, and complete every input mapping.');
                return;
@@ -174,7 +183,7 @@ export default function CalculationTab({ testid, testname }: { testid: number; t
                          ...condition,
                          value: Number(condition.value),
                     })),
-                    effectiveFrom: dateToday(),
+                    effectiveFrom,
                     active: true,
                     employeeid: employeeId,
                });
@@ -187,6 +196,17 @@ export default function CalculationTab({ testid, testname }: { testid: number; t
           } finally {
                setSaving(false);
           }
+     };
+
+     const previewFormula=async()=>{
+          setPreview('');setPreviewError('');setPreviewBusy(true);
+          try{
+               const variables:Record<string,number>={};
+               for(const input of inputs){const token=input.token.trim();if(!samples[token]?.trim()||!Number.isFinite(Number(samples[token])))throw new Error('Enter a numeric sample for '+token);variables[token]=Number(samples[token]);}
+               const response=await customFetchMutation('testpanel/calculations/preview','POST',{expression,variables,decimalPrecision:precision,conditions:conditions.map(condition=>({...condition,value:Number(condition.value)}))});
+               if(response?.status!=='success')throw new Error(response?.message||'Unable to preview formula');
+               setPreview(String(response.value));
+          }catch(error:any){setPreviewError(error.message);}finally{setPreviewBusy(false);}
      };
 
      const deactivateFormula = async (formula: FormulaRecord) => {
@@ -259,7 +279,7 @@ export default function CalculationTab({ testid, testname }: { testid: number; t
                                    <div className="col-12">
                                         <div className="d-flex justify-content-between align-items-center mb-2">
                                              <Form.Label className="mb-0">Input mappings</Form.Label>
-                                             <Button variant="outline-primary" size="sm" onClick={addInput}>Add input</Button>
+                                             <Button variant="outline-primary" size="sm" disabled={inputs.length>=32||saving} onClick={addInput}>Add input</Button>
                                         </div>
                                         <div className="d-flex flex-column gap-2">
                                              {inputs.map((input, index) => (
@@ -318,6 +338,8 @@ export default function CalculationTab({ testid, testname }: { testid: number; t
                                              ))}
                                         </div>
                                    </div>
+                                   <div className="col-12"><Form.Label>Effective from</Form.Label><Form.Control type="date" value={effectiveFrom} onChange={event=>setEffectiveFrom(event.target.value)}/><Form.Text>The current version stays in use until this version becomes effective.</Form.Text></div>
+                                   <div className="col-12 border rounded p-3"><h3 className="h6">Preview with sample inputs</h3><p className="small text-muted">Preview uses the same server engine as saved results. Check units, conditions and rounding before saving. Exponents take precedence over a leading minus sign: -2^2 = -4.</p><div className="row g-2">{inputs.map((input,index)=><div className="col-sm-4" key={index}><Form.Label>{input.token||'Input'} {input.unit?'('+input.unit+')':''}</Form.Label><Form.Control aria-label={'Sample value for '+input.token} type="number" step="any" value={samples[input.token.trim()]||''} onChange={event=>{setSamples(previous=>({...previous,[input.token.trim()]:event.target.value}));setPreview('');}}/></div>)}</div><Button className="mt-3" variant="outline-primary" disabled={previewBusy||saving} onClick={previewFormula}>{previewBusy?'Calculating…':'Calculate preview'}</Button>{preview&&<output className="d-block mt-3 fw-semibold" aria-live="polite">Result: {preview} {unit}</output>}{previewError&&<p className="text-danger mt-2" role="alert">{previewError}</p>}</div>
                                    <div className="col-12 d-flex justify-content-end">
                                         {editingFormulaId !== null && <Button variant="outline-secondary" className="me-2" disabled={saving} onClick={resetFormulaForm}>Cancel Edit</Button>}
                                         <Button variant="primary" disabled={saving || parameters.length === 0} onClick={() => void saveFormula()}>
@@ -367,7 +389,9 @@ export default function CalculationTab({ testid, testname }: { testid: number; t
                                    <tbody>
                                         {formulas.map((formula) => {
                                              const formulaInputs = parseJson<FormulaInput[]>(formula.input_parameters) || [];
-                                             const isActive = formula.active === 1 || formula.active === true;
+                                             const enabled=formula.active===1||formula.active===true;
+                                             const start=String(formula.effective_from).slice(0,10),end=String(formula.effective_to||'').slice(0,10);
+                                             const isActive=enabled&&start<=dateToday()&&(!end||end>=dateToday());
                                              return (
                                                   <tr key={formula.id}>
                                                        <td>{parameterName(Number(formula.output_field_id))}{formula.unit ? ` (${formula.unit})` : ''}</td>
@@ -375,7 +399,7 @@ export default function CalculationTab({ testid, testname }: { testid: number; t
                                                        <td>{formulaInputs.map((input) => `${input.token} = ${parameterName(Number(input.fieldId))}`).join(', ')}</td>
                                                        <td>{formula.version}</td>
                                                        <td>{String(formula.effective_from).slice(0, 10)}</td>
-                                                       <td>{isActive ? 'Active' : 'Inactive'}</td>
+                                                       <td>{isActive?'Active':enabled&&start>dateToday()?'Scheduled':enabled?'Historical':'Inactive'}</td>
                                                        <td className="d-flex gap-2">
                                                             <Button size="sm" variant="outline-primary" disabled={saving} onClick={() => editFormula(formula)}>Edit</Button>
                                                             {isActive && <Button size="sm" variant="outline-danger" disabled={saving} onClick={() => void deactivateFormula(formula)}>Deactivate</Button>}

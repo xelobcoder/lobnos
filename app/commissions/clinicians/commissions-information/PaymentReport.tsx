@@ -180,7 +180,7 @@ export function BreakdownModal({ selected, onHide, data, loading, error, onRetry
                             <dt className="col-sm-3">Commission</dt><dd className="col-sm-9">{money(selected.total_commission_amount)}</dd>
                             <dt className="col-sm-3">Paid</dt><dd className="col-sm-9">{money(selected.payment_amount)}</dd>
                             <dt className="col-sm-3">Waived</dt><dd className="col-sm-9">{money(selected.waived_amount)}</dd>
-                            <dt className="col-sm-3">Net amount (paid − waived)</dt><dd className="col-sm-9">{money(Number(selected.payment_amount) - Number(selected.waived_amount))}</dd>
+                            <dt className="col-sm-3">Outstanding</dt><dd className="col-sm-9">{money(Math.max(0, Number(selected.total_commission_amount) - Number(selected.payment_amount) - Number(selected.waived_amount)))}</dd>
                         </dl>
                         {selected.notes && <p className="small"><strong>Notes:</strong> {selected.notes}</p>}
                     </section>}
