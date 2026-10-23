@@ -12,6 +12,7 @@ export type PharmacyStockUpItem = {
      availableStock: number;
      wholesalePrice: number;
      salePrice: number;
+     batchTracking?:boolean;
 };
 
 type Supplier = { id: string; name: string };
@@ -33,6 +34,7 @@ export default function PharmacyStockUpModal({ items, employeeId, onClose, onCom
      const [quantity, setQuantity] = useState(1);
      const [unitCost, setUnitCost] = useState(0);
      const [expiryDate, setExpiryDate] = useState('');
+     const [batchNumber,setBatchNumber]=useState('');
      const [changePricing, setChangePricing] = useState(false);
      const [showPriceDialog, setShowPriceDialog] = useState(false);
      const [priceMode, setPriceMode] = useState<PriceMode>('percentage');
@@ -54,7 +56,7 @@ export default function PharmacyStockUpModal({ items, employeeId, onClose, onCom
           setSupplierId('');
           setQuantity(1);
           setUnitCost(0);
-          setExpiryDate('');
+          setExpiryDate('');setBatchNumber('');
           setChangePricing(false);
           setShowPriceDialog(false);
           setAdjustmentValue(0);
@@ -74,6 +76,7 @@ export default function PharmacyStockUpModal({ items, employeeId, onClose, onCom
      };
 
      const receiveStock = async () => {
+          if(item.batchTracking!==false&&(!expiryDate||expiryDate<new Date().toISOString().slice(0,10)||!batchNumber.trim())){toast.error('Enter the manufacturer batch number and a valid expiry date.');return;}
           if (!Number.isInteger(quantity) || quantity <= 0) {
                toast.error('Enter a whole quantity greater than zero.');
                return;
@@ -95,13 +98,14 @@ export default function PharmacyStockUpModal({ items, employeeId, onClose, onCom
                     unit_price: unitCost,
                     received_by: employeeId,
                     expiry_date: expiryDate || undefined,
+                    batch_number:batchNumber.trim()||undefined,
                     change_pricing: changePricing,
                     price_policy: changePricing ? (priceMode === 'manual' ? 'replace' : 'increase') : 'maintain',
                     new_wholesale_price: changePricing ? wholesalePrice : undefined,
                     new_sale_price: changePricing ? retailPrice : undefined,
                });
                if (!response?.success) throw new Error(response?.error?.message || 'Stock could not be received.');
-               toast.success(`${item.name} stocked successfully. Batch number generated automatically.`);
+               toast.success(`${item.name} stocked successfully. Batch and expiry details recorded.`);
                if (itemIndex < items.length - 1) setItemIndex((current) => current + 1);
                else {
                     await onCompleted();
@@ -131,7 +135,7 @@ export default function PharmacyStockUpModal({ items, employeeId, onClose, onCom
                                         <div className="col-md-6"><label className="form-label fw-semibold" htmlFor="stock-supplier">Supplier</label><select id="stock-supplier" className="form-select form-select-lg" value={supplierId} onChange={(event) => setSupplierId(event.target.value)}><option value="">General Supplier</option>{suppliers.filter((supplier) => supplier.id !== 'SUP-GENERAL').map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}</select></div>
                                         <div className="col-md-3"><label className="form-label fw-semibold" htmlFor="stock-quantity">Quantity</label><input id="stock-quantity" type="number" min="1" className="form-control form-control-lg" value={quantity} onChange={(event) => setQuantity(Number(event.target.value) || 0)} /></div>
                                         <div className="col-md-3"><label className="form-label fw-semibold" htmlFor="stock-cost">Unit cost</label><input id="stock-cost" type="number" min="0" step="0.01" className="form-control form-control-lg" value={unitCost} onChange={(event) => setUnitCost(Number(event.target.value) || 0)} /></div>
-                                        <div className="col-md-6"><label className="form-label fw-semibold" htmlFor="stock-expiry">Expiry date <span className="text-muted fw-normal">(optional)</span></label><input id="stock-expiry" type="date" className="form-control form-control-lg" value={expiryDate} onChange={(event) => setExpiryDate(event.target.value)} /></div>
+                                        <div className="col-md-6"><label className="form-label fw-semibold" htmlFor="manufacturer-batch">Manufacturer batch number</label><input id="manufacturer-batch" className="form-control form-control-lg" value={batchNumber} maxLength={100} onChange={event=>setBatchNumber(event.target.value)}/></div><div className="col-md-6"><label className="form-label fw-semibold" htmlFor="stock-expiry">Expiry date</label><input id="stock-expiry" min={new Date().toISOString().slice(0,10)} required={item.batchTracking!==false} type="date" className="form-control form-control-lg" value={expiryDate} onChange={(event) => setExpiryDate(event.target.value)} /></div>
                                         <div className="col-md-6 d-flex align-items-end"><button type="button" className={`btn btn-lg w-100 d-flex justify-content-center align-items-center gap-2 ${changePricing ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => setShowPriceDialog(true)}><RiPriceTag3Line size={20} />{changePricing ? 'Edit price change' : 'Change prices'}</button></div>
                                    </div>
                                    <div className="alert alert-light border mt-4 mb-0">Batch number will be generated automatically. Leaving supplier blank uses General Supplier.</div>

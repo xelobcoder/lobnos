@@ -21,6 +21,7 @@ import Link from 'next/link';
 import { customFetch, customFetchMutation } from '../../../components/Auth/customFetch';
 import { useApplication } from '../../../components/Auth/useApplicationContext';
 import styles from '../pharmacy.module.css';
+import PharmacyPaymentFields,{usePharmacyPayment} from '../components/PharmacyPaymentFields';
 
 type StockStatus = 'in_stock' | 'low_stock' | 'out_of_stock';
 type Medicine = {
@@ -29,6 +30,8 @@ type Medicine = {
      unit: string;
      salePrice: number;
      availableStock: number;
+     dispensableStock?:number;
+     requiresPrescription?:boolean;
      minimumStock: number;
      stockStatus: StockStatus;
 };
@@ -60,6 +63,7 @@ type Receipt = {
 const currency = new Intl.NumberFormat('en-GH', { style: 'currency', currency: 'GHS' });
 
 export default function PharmacySellPage() {
+     const payment=usePharmacyPayment('pos');
      const application = useApplication();
      const company = application?.company;
      const companyName = typeof company === 'string' ? company : company?.name || 'PLS PHARMACY';
@@ -83,7 +87,7 @@ export default function PharmacySellPage() {
      const [activeHeldSaleId, setActiveHeldSaleId] = useState<string | null>(null);
      const searchInputRef = useRef<HTMLInputElement>(null);
 
-     const subtotal = cart.reduce((total, line) => total + line.salePrice * line.quantity, 0);
+     const subtotal = cart.reduce((cents, line) => cents + Math.round(Math.round(line.salePrice*100)*Math.round(line.quantity*1000)/1000), 0)/100;
      const totalUnits = cart.reduce((total, line) => total + line.quantity, 0);
 
      const matchesQuery = (medicine: Medicine, needle: string) =>
@@ -99,7 +103,7 @@ export default function PharmacySellPage() {
                     const response = await customFetch('pharmacy/catalogue?count=300');
                     if (!active) return;
                     if (response?.success) {
-                         const items: Medicine[] = response.data.items || [];
+                         const items: Medicine[] = (response.data.items || []).map((item:Medicine)=>({...item,availableStock:item.dispensableStock??item.availableStock}));
                          setCatalogueCache(items);
                          setCatalogue(items.slice(0, 50));
                     } else {
@@ -139,7 +143,7 @@ export default function PharmacySellPage() {
                     const response = await customFetch(`pharmacy/catalogue?count=50&search=${encodeURIComponent(term)}`);
                     if (!active) return;
                     if (response?.success) {
-                         const items: Medicine[] = response.data.items || [];
+                         const items: Medicine[] = (response.data.items || []).map((item:Medicine)=>({...item,availableStock:item.dispensableStock??item.availableStock}));
                          setCatalogue(items);
                          // Merge newly discovered items into the cache so future keystrokes can find them locally.
                          setCatalogueCache((current) => {
@@ -168,6 +172,8 @@ export default function PharmacySellPage() {
      }, [query, catalogueCache]);
 
      const addMedicine = (medicine: Medicine) => {
+          if(payment.pending){setError('Resolve the pending checkout before changing the cart.');return;}
+          if(medicine.requiresPrescription){setError('This medicine requires a prescription. Open the prescription queue to dispense it.');return;}
           setReceipt(null);
           setCart((current) => {
                const existing = current.find((line) => line.inventoryItemId === medicine.inventoryItemId);
@@ -343,34 +349,18 @@ export default function PharmacySellPage() {
           if (!printWindow) setError('Popups are blocked. Please allow popups to print receipts.');
      };
 
-     const completeSale = async (event: FormEvent) => {
-          event.preventDefault();
-          if (!cart.length || submitting) return;
-          setSubmitting(true);
-          setError('');
-          const endpoint = activeHeldSaleId ? `pharmacy/sales/held/${activeHeldSaleId}/complete` : 'pharmacy/sales';
-          const response = await customFetchMutation(endpoint, 'POST', {
-               idempotencyKey: crypto.randomUUID(),
-               customerName: customerName || 'Walk-in customer',
-               paymentMethod,
-               lines: cart.map((line) => ({ inventoryItemId: line.inventoryItemId, quantity: line.quantity })),
-          });
-          setSubmitting(false);
-          if (response?.success) {
-               setReceipt({
-                    ...response.data,
-                    customerName: customerName || 'Walk-in customer',
-                    lines: cart,
-                    completedAt: new Date().toISOString(),
-               });
-               setCart([]);
-               setCustomerName('');
-               setActiveHeldSaleId(null);
-               setIsMobileCartOpen(false);
-          } else {
-               setError(response?.error?.message || 'Sale could not be completed.');
-          }
+     const runCheckout=async()=>{
+          if(submitting||(!cart.length&&!payment.pending))return;
+          setSubmitting(true);setError('');
+          try {
+               const endpoint=activeHeldSaleId ? 'pharmacy/sales/held/'+activeHeldSaleId+'/complete' : 'pharmacy/sales';
+               const response=await payment.execute(endpoint,{customerName:customerName||'Walk-in customer',paymentMethod,expectedTotal:subtotal,lines:cart.map(line=>({inventoryItemId:line.inventoryItemId,quantity:line.quantity}))});
+               if(!response?.success)throw new Error(response?.error?.message||'Checkout could not be confirmed. Retry the pending checkout.');
+               setReceipt({...response.data,lines:response.data.lines.map((line:any)=>({...line,salePrice:line.unitPrice}))});
+               setCart([]);setCustomerName('');setActiveHeldSaleId(null);setIsMobileCartOpen(false);
+          }catch(error){setError(error instanceof Error?error.message:'Unable to confirm checkout.');}finally{setSubmitting(false);}
      };
+     const completeSale=async(event:FormEvent)=>{event.preventDefault();await runCheckout();};
 
      const cartHtmlContent = (
           <div className="d-flex flex-column h-100 bg-white" style={{ fontFamily: 'inherit' }}>
@@ -482,6 +472,7 @@ export default function PharmacySellPage() {
                          <strong className="fs-5 text-dark fw-bold">{currency.format(subtotal)}</strong>
                     </div>
 
+                    <PharmacyPaymentFields payment={payment} method={paymentMethod} disabled={submitting}/>
                     {/* Payment methods list */}
                     <div className="mb-3">
                          <label className="form-label small text-uppercase fw-semibold text-muted mb-2 d-block">
@@ -511,7 +502,7 @@ export default function PharmacySellPage() {
                     <button
                          className="btn btn-success btn-lg w-100 py-2 fw-semibold"
                          type="submit"
-                         disabled={cart.length === 0 || submitting}
+                         disabled={cart.length === 0 || submitting || !!payment.pending}
                     >
                          {submitting ? (
                               <>
@@ -527,7 +518,7 @@ export default function PharmacySellPage() {
                     <button
                          className="btn btn-outline-dark btn-lg w-100 py-2 fw-semibold mt-2 d-flex align-items-center justify-content-center gap-2"
                          type="button"
-                         disabled={cart.length === 0 || submitting}
+                         disabled={cart.length === 0 || submitting || !!payment.pending}
                          onClick={holdSale}
                     >
                          <RiPauseLine size={18} /> Suspend sale
@@ -611,6 +602,8 @@ export default function PharmacySellPage() {
                )}
 
                {/* Error Alert Overlay */}
+               {payment.pending&&<div className="alert alert-warning">A previous checkout needs confirmation. <button type="button" className="btn btn-warning" disabled={submitting} onClick={runCheckout}>Retry original checkout</button></div>}
+               <p className="small"><Link href="/pharmacy/prescriptions">Open prescription dispensing</Link></p>
                {error && (
                     <div className="alert alert-danger d-flex align-items-start gap-3 p-3 mb-4" role="alert" style={{ borderColor: 'var(--bs-danger)' }}>
                          <RiErrorWarningLine size={24} className="text-danger flex-shrink-0 mt-1" />

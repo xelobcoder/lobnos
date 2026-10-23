@@ -64,9 +64,9 @@ const saleRowStyling = {
 const SalesHistoryTable = PrimeTable as any;
 
 const REVERSAL_OPTIONS: { value: ReversalType; label: string; help: string }[] = [
-     { value: 'refund', label: 'Refund', help: 'Money is returned to the customer and the goods come back into stock.' },
-     { value: 'void', label: 'Void', help: 'The sale was recorded in error and is nullified. Stock is returned.' },
-     { value: 'cancel', label: 'Cancel', help: 'The sale is cancelled before the customer took the goods. Stock is returned.' },
+     { value: 'refund', label: 'Refund', help: 'Record the full refund and choose how to handle the goods.' },
+     { value: 'void', label: 'Void', help: 'Correct a sale recorded in error; confirm payment reversal and goods disposition.' },
+     { value: 'cancel', label: 'Cancel', help: 'Cancel the completed sale with a full payment reversal and an explicit stock choice.' },
 ];
 
 const COMMON_REASONS: Record<ReversalType, string[]> = {
@@ -99,6 +99,7 @@ export default function PharmacySalesHistoryPage() {
      const [lastQuery, setLastQuery] = useState({ page: 1, count: DEFAULT_PAGE_SIZE });
 
      const [target, setTarget] = useState<Sale | null>(null);
+     const [disposition,setDisposition]=useState<'restock'|'quarantine'|'not_returned'>('quarantine');
      const [reversalType, setReversalType] = useState<ReversalType>('refund');
      const [selectedReason, setSelectedReason] = useState('');
      const [customReason, setCustomReason] = useState('');
@@ -148,6 +149,7 @@ export default function PharmacySalesHistoryPage() {
 
      const openReversal = (sale: Sale) => {
           setTarget(sale);
+          setDisposition('quarantine');
           setReversalType('refund');
           setSelectedReason('');
           setCustomReason('');
@@ -186,7 +188,7 @@ export default function PharmacySalesHistoryPage() {
           setSubmitting(true);
           setModalError('');
           try {
-               const response = await customFetchMutation(`pharmacy/sales/${target.id}/reverse`, 'POST', { type: reversalType, reason: effectiveReason });
+               const response = await customFetchMutation(`pharmacy/sales/${target.id}/reverse`, 'POST', { type: reversalType, reason: effectiveReason, disposition });
                if (response?.success) {
                     setNotice(`Receipt ${target.receiptNumber} was ${response.data.status}. ${response.data.restockedItems.length} item(s) returned to stock.`);
                     setTarget(null);
@@ -307,6 +309,9 @@ export default function PharmacySalesHistoryPage() {
                                                   </div>
                                              ))}
 
+                                             <label className="form-label mt-3" htmlFor="return-disposition">What happened to the goods?</label>
+                                             <select id="return-disposition" className="form-select" value={disposition} disabled={submitting} onChange={event=>setDisposition(event.target.value as typeof disposition)}><option value="quarantine">Returned — quarantine, exclude from saleable stock</option><option value="not_returned">Goods were not returned — leave stock and dispensing unchanged</option><option value="restock">Returned and checked — restore to the original batches</option></select>
+                                             <p className="small text-muted mt-2">Confirm that the full refund has been issued through the original collection account. The refund and goods disposition will be recorded separately. Expired goods cannot be restocked.</p>
                                              <label className="form-label mt-3" htmlFor="reversal-reason-select">Reason</label>
                                              <select
                                                   id="reversal-reason-select"

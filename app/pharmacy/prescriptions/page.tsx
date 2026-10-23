@@ -6,6 +6,7 @@ import { RiCheckLine, RiFileList3Line, RiSendPlaneLine } from '@remixicon/react'
 import { customFetch, customFetchMutation } from '../../../components/Auth/customFetch';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 import styles from '../pharmacy.module.css';
+import PharmacyPaymentFields,{usePharmacyPayment} from '../components/PharmacyPaymentFields';
 
 type PrescriptionStatus = 'pending' | 'partially_fulfilled' | 'fulfilled' | 'referred' | 'cancelled';
 type PrescriptionItemStatus = 'pending' | 'dispensed' | 'referred' | 'cancelled';
@@ -29,12 +30,15 @@ type PrescriptionItem = {
      frequency: string | null;
      duration: string | null;
      route: string | null;
+     availableStock?:number;
+     salePrice?:number;
      quantityOrdered: number;
      quantityDispensed: number;
      status: PrescriptionItemStatus;
 };
 
 type PrescriptionDetail = {
+     patientName?:string;
      id: string;
      patientId: number;
      status: PrescriptionStatus;
@@ -53,6 +57,8 @@ const STATUS_META: Record<PrescriptionStatus, { label: string; badge: string }> 
 const DEFAULT_PAGE_SIZE = 20;
 
 export default function PharmacyPrescriptionsPage() {
+     const payment=usePharmacyPayment('prescription');
+     const [notice,setNotice]=useState('');
      const [statusFilter, setStatusFilter] = useState<'open' | PrescriptionStatus>('open');
      const [prescriptions, setPrescriptions] = useState<PrescriptionSummary[]>([]);
      const [error, setError] = useState('');
@@ -96,7 +102,7 @@ export default function PharmacyPrescriptionsPage() {
                setSelected(detail);
                const outstanding: Record<string, number> = {};
                detail.items.forEach((item) => {
-                    if (item.status === 'pending') outstanding[item.id] = item.quantityOrdered - item.quantityDispensed;
+                    if (item.status === 'pending') outstanding[item.id] = 0;
                });
                setDispenseQuantities(outstanding);
           } else {
@@ -110,29 +116,27 @@ export default function PharmacyPrescriptionsPage() {
           setDetailError('');
      };
 
-     const fulfillSelected = async () => {
-          if (!selected) return;
-          const lines = Object.entries(dispenseQuantities)
-               .filter(([, quantity]) => quantity > 0)
-               .map(([prescriptionItemId, quantityDispensed]) => ({ prescriptionItemId, quantityDispensed }));
-          if (!lines.length) {
-               setDetailError('Enter a quantity to dispense for at least one drug.');
-               return;
+     const dispensingTotal=selected?selected.items.reduce((cents,item)=>cents+Math.round(Math.round((item.salePrice||0)*100)*Math.round((dispenseQuantities[item.id]||0)*1000)/1000),0)/100:0;
+     const fulfillSelected=async()=>{
+          if(submitting||(!selected&&!payment.pending))return;
+          const lines=Object.entries(dispenseQuantities).filter(([,quantity])=>quantity>0).map(([prescriptionItemId,quantityDispensed])=>({prescriptionItemId,quantityDispensed}));
+          if(!payment.pending){
+               if(!lines.length){setDetailError('Enter quantities for the drugs you intend to dispense.');return;}
+               if(!payment.accountId||(paymentMethod!=='cash'&&!payment.reference.trim())){setDetailError('Select the collection account and enter the payment reference.');return;}
+               if(!window.confirm('Dispense selected medicines for '+(selected?.patientName||'patient #'+selected?.patientId)+' and record GHS '+dispensingTotal.toFixed(2)+' received?'))return;
           }
-          setSubmitting(true);
-          setDetailError('');
-          const response = await customFetchMutation(`prescriptions/${selected.id}/fulfill`, 'POST', { lines, paymentMethod });
-          setSubmitting(false);
-          if (response?.success) {
-               await loadPrescriptions(1, DEFAULT_PAGE_SIZE);
-               await openPrescription(selected.id);
-          } else {
-               setDetailError(response?.error?.message || 'Unable to fulfill this prescription.');
-          }
+          setSubmitting(true);setDetailError('');
+          try {
+               const response=await payment.execute('prescriptions/'+selected?.id+'/fulfill',{lines,paymentMethod,customerName:selected?.patientName,expectedTotal:dispensingTotal});
+               if(!response?.success)throw new Error(response?.error?.message||'Dispensing could not be confirmed. Retry the original request.');
+               setNotice('Dispensing recorded. Receipt '+response.data.receipt.receiptNumber+' — GHS '+Number(response.data.receipt.total).toFixed(2));
+               closeDetail();await loadPrescriptions(1,DEFAULT_PAGE_SIZE);
+          }catch(error){setDetailError(error instanceof Error?error.message:'Dispensing could not be confirmed');}finally{setSubmitting(false);}
      };
 
      const referRemaining = async () => {
-          if (!selected) return;
+          if (!selected||submitting||payment.pending) return;
+          if(!window.confirm('Refer all remaining medicines outside this pharmacy?'))return;
           setSubmitting(true);
           setDetailError('');
           const response = await customFetchMutation(`prescriptions/${selected.id}/refer`, 'POST', {});
@@ -212,6 +216,9 @@ export default function PharmacyPrescriptionsPage() {
                     </select>
                </div>
 
+               {notice&&<div className="alert alert-success" role="status">{notice}</div>}
+               {payment.pending&&<div className="alert alert-warning">A dispensing request needs confirmation. <button className="btn btn-warning" disabled={submitting||!!payment.pending} onClick={fulfillSelected}>Retry original dispensing</button></div>}
+               {!selected&&detailError&&<div className="alert alert-danger" role="alert">{detailError}</div>}
                {error && <div className="alert alert-danger">{error}</div>}
 
                <PrimeTable
@@ -232,6 +239,8 @@ export default function PharmacyPrescriptionsPage() {
                                         <button type="button" className="btn-close" onClick={closeDetail} />
                                    </div>
                                    <div className="modal-body">
+                                        <p className="fw-semibold">{selected.patientName||'Patient'} · Patient #{selected.patientId}</p>
+                                        <p className="small text-muted">Review the patient, directions, available stock and quantities before collecting payment.</p>
                                         {detailError && <div className="alert alert-danger py-2">{detailError}</div>}
                                         <table className="table table-sm align-middle">
                                              <thead>
@@ -253,7 +262,7 @@ export default function PharmacyPrescriptionsPage() {
                                                                  {regimen ? <div className="text-muted small">{regimen}</div> : null}
                                                                  {item.dosageInstructions ? <div className="text-muted small fst-italic">{item.dosageInstructions}</div> : null}
                                                             </td>
-                                                            <td>{item.quantityOrdered}</td>
+                                                            <td>{item.quantityOrdered}<div className="small text-muted">Available: {item.availableStock||0}<br/>GHS {Number(item.salePrice||0).toFixed(2)} / unit</div></td>
                                                             <td>{item.quantityDispensed}</td>
                                                             <td><span className="badge text-bg-light border">{item.status}</span></td>
                                                             <td>
@@ -261,7 +270,7 @@ export default function PharmacyPrescriptionsPage() {
                                                                       <input
                                                                            type="number"
                                                                            min={0}
-                                                                           max={item.quantityOrdered - item.quantityDispensed}
+                                                                           max={Math.min(item.quantityOrdered - item.quantityDispensed,item.availableStock||0)} step="0.001" disabled={submitting||!!payment.pending||!item.inventoryItemId}
                                                                            className="form-control form-control-sm"
                                                                            value={dispenseQuantities[item.id] ?? 0}
                                                                            onChange={(e) => setDispenseQuantities((current) => ({ ...current, [item.id]: Math.max(0, Number(e.target.value)) }))}
@@ -273,6 +282,8 @@ export default function PharmacyPrescriptionsPage() {
                                                   })}
                                              </tbody>
                                         </table>
+                                        <p className="fw-bold">Amount to collect: GHS {dispensingTotal.toFixed(2)}</p>
+                                        <PharmacyPaymentFields payment={payment} method={paymentMethod} disabled={submitting}/>
                                         <div className="d-flex align-items-center gap-2">
                                              <label className="small text-muted mb-0">Payment method</label>
                                              <select className="form-select form-select-sm" style={{ width: 'auto' }} value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
@@ -283,11 +294,11 @@ export default function PharmacyPrescriptionsPage() {
                                         </div>
                                    </div>
                                    <div className="modal-footer">
-                                        <button type="button" className="btn btn-outline-secondary d-flex align-items-center gap-1" disabled={submitting} onClick={referRemaining}>
+                                        <button type="button" className="btn btn-outline-secondary d-flex align-items-center gap-1" disabled={submitting||!!payment.pending} onClick={referRemaining}>
                                              <RiSendPlaneLine size={16} />
                                              Refer remaining out &amp; print slip
                                         </button>
-                                        <button type="button" className="btn btn-primary d-flex align-items-center gap-1" disabled={submitting} onClick={fulfillSelected}>
+                                        <button type="button" className="btn btn-primary d-flex align-items-center gap-1" disabled={submitting||!!payment.pending} onClick={fulfillSelected}>
                                              <RiCheckLine size={16} />
                                              Dispense selected
                                         </button>

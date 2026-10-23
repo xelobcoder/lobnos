@@ -3,7 +3,7 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { RiCloseLine, RiMedicineBottleLine, RiSearchLine, RiShoppingCartLine, RiTruckLine } from '@remixicon/react';
 import Link from 'next/link';
-import { customFetch } from '../../../components/Auth/customFetch';
+import { customFetch, customFetchMutation } from '../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 import PharmacyStockUpModal, { PharmacyStockUpItem } from '../components/PharmacyStockUpModal';
@@ -19,6 +19,9 @@ type CatalogueItem = {
      name: string;
      unit: string;
      availableStock: number;
+     dispensableStock?:number;
+     requiresPrescription?:boolean;
+     batchTracking?:boolean;
      minimumStock: number;
      wholesalePrice: number;
      salePrice: number;
@@ -43,6 +46,9 @@ const SORT_FIELDS: { value: SortField; label: string }[] = [
 ];
 
 export default function PharmacyCataloguePage() {
+     const role=String(useApplicationSettings().applicationsettings?.user?.role||'').toLowerCase().replace(/[ _-]/g,'');
+     const canConfigure=['superadmin','admin','manager','pharmacymanager'].includes(role);
+     const [profile,setProfile]=useState<CatalogueItem|null>(null),[profileBusy,setProfileBusy]=useState(false);
      const employeeId = Number(useApplicationSettings().applicationsettings?.user?.employeeid || 0);
      const [searchTerm, setSearchTerm] = useState('');
      const [appliedSearch, setAppliedSearch] = useState('');
@@ -115,7 +121,12 @@ export default function PharmacyCataloguePage() {
           setAppliedSearch('');
      };
 
+     const saveProfile=async()=>{
+          if(!profile||profileBusy)return;setProfileBusy(true);
+          try{const response=await customFetchMutation('pharmacy/catalogue/'+profile.inventoryItemId+'/profile','PUT',{requiresPrescription:!!profile.requiresPrescription,batchTracking:profile.batchTracking!==false});if(!response?.success)throw new Error(response?.error?.message||'Unable to update dispensing controls');setProfile(null);await loadCatalogue(1,DEFAULT_PAGE_SIZE,appliedSearch,sortBy,sortDirection);}catch(error){setError(error instanceof Error?error.message:'Unable to save');}finally{setProfileBusy(false);}
+     };
      const columns = [
+          {Header:"Dispensing controls",accessor:"controls",Cell:({row}:{row:{original:CatalogueItem}})=><div><div className="small">{row.original.requiresPrescription?"Prescription required":"Walk-in sale allowed"} · {row.original.batchTracking!==false?"Batch and expiry required":"General merchandise"}</div><div className="small text-muted">Dispensable: {row.original.dispensableStock||0}</div>{canConfigure&&<button className="btn btn-sm btn-outline-secondary mt-1" onClick={()=>setProfile({...row.original})}>Configure</button>}</div>},
           {
                Header: () => (
                     <input
@@ -260,6 +271,7 @@ export default function PharmacyCataloguePage() {
                     </div>
                )}
 
+               {profile&&<div className="modal d-block" role="dialog" aria-modal="true" aria-label="Dispensing controls" style={{background:'rgba(0,0,0,.4)'}}><div className="modal-dialog"><div className="modal-content"><div className="modal-header"><h2 className="h5 mb-0">Dispensing controls · {profile.name}</h2><button className="btn-close" disabled={profileBusy} onClick={()=>setProfile(null)} aria-label="Close"/></div><div className="modal-body"><label className="form-check"><input className="form-check-input" type="checkbox" checked={!!profile.requiresPrescription} onChange={event=>setProfile({...profile,requiresPrescription:event.target.checked})}/>Prescription required</label><label className="form-check mt-3"><input className="form-check-input" type="checkbox" checked={profile.batchTracking!==false} onChange={event=>setProfile({...profile,batchTracking:event.target.checked})}/>Require manufacturer batch and expiry</label><p className="small text-muted mt-2">Keep batch and expiry tracking enabled for medicines. Disable it only for general merchandise that does not require expiry tracking. Changes are audited.</p></div><div className="modal-footer"><button className="btn btn-primary" disabled={profileBusy} onClick={saveProfile}>{profileBusy?'Saving…':'Save controls'}</button></div></div></div></div>}
                <PrimeTable
                     column={columns}
                     data={items}
