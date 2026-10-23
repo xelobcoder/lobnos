@@ -1,18 +1,21 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import styles from '../../../../components/Expense/InvoiceWorkspace.module.css';
 import dayjs from 'dayjs';
 import { currencyFormatter, customFetch } from '../../../../components/Auth/customFetch';
-import { RiMoneyDollarCircleLine, RiCalendarEventLine, RiEyeLine, RiRefreshLine, RiFilter3Line } from '@remixicon/react';
-import { Offcanvas, Button, Modal, Pagination } from 'react-bootstrap';
-import Loader from '../../../../components/isLoading';
+import { RiMoneyDollarCircleLine, RiEyeLine, RiRefreshLine, RiFilter3Line } from '@remixicon/react';
+import { Button, Modal } from 'react-bootstrap';
 import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
 
 const ReversedPaymentsPage = () => {
      const [reversals, setReversals] = useState<any[]>([]);
-     const [loading, setLoading] = useState(false);
+     const [loading, setLoading] = useState(true);
      const [localFilter, setLocalFilter] = useState({ from: '', to: '' });
-     const [showOffcanvas, setShowOffcanvas] = useState(false);
+     const [appliedFilter, setAppliedFilter] = useState({ from: '', to: '' });
+     const [error, setError] = useState('');
+     const request = useRef(0);
      const [showDetailModal, setShowDetailModal] = useState(false);
      const [selectedReversal, setSelectedReversal] = useState<any>(null);
      const [currentPage, setCurrentPage] = useState(1);
@@ -26,232 +29,96 @@ const ReversedPaymentsPage = () => {
           if (employeeid && branchid) {
                getReversedPaymentsData(1);
           }
+          return () => { request.current++; };
      }, [employeeid, branchid]);
 
-     const getReversedPaymentsData = async (page = 1) => {
-          setLoading(true);
+     const getReversedPaymentsData = async (page = 1, filter = appliedFilter) => {
+          if (!employeeid || !branchid) return;
+          const generation = ++request.current;
+          setLoading(true); setError('');
           try {
-               const response = await customFetch(`expenses/payments/reversed?employeeid=${employeeid}&branchid=${branchid}&count=10&page=${page}`);
-               if (response && response.data && Array.isArray(response.data)) {
-                    setReversals(response.data);
-                    if (response.pagination) {
-                         setPagination(response.pagination);
-                         setCurrentPage(page);
-                    }
-               } else {
-                    setReversals([]);
-               }
-          } catch (error) {
-               console.log("Error fetching reversed payments:", error);
-               setReversals([]);
+               const params = new URLSearchParams({ employeeid: String(employeeid), branchid: String(branchid), count: '10', page: String(page) });
+               if (filter.from) params.set('from', filter.from);
+               if (filter.to) params.set('to', filter.to);
+               const response = await customFetch(`expenses/payments/reversed?${params}`);
+               if (generation !== request.current) return;
+               if (!Array.isArray(response?.data)) throw new Error(response?.message || 'Unable to load reversed payments.');
+               setReversals(response.data);
+               setPagination(response.pagination || { page, limit: 10, total: response.data.length, totalPages: 1 });
+               setCurrentPage(page);
+          } catch (error: any) {
+               if (generation === request.current) setError(error?.message || 'Unable to load reversed payments. Please try again.');
           } finally {
-               setLoading(false);
+               if (generation === request.current) setLoading(false);
           }
      };
-
-     const handleInputChange = (e) => {
-          const { name, value } = e.target;
-          setLocalFilter((prev) => ({ ...prev, [name]: value }));
+     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+          const { name, value } = event.target;
+          setLocalFilter(previous => ({ ...previous, [name]: value }));
      };
-
      const handleSearch = () => {
-          setShowOffcanvas(false);
-          getReversedPaymentsData(1);
+          if (localFilter.from && localFilter.to && localFilter.from > localFilter.to) { setError('The end date must be on or after the start date.'); return; }
+          setAppliedFilter({ ...localFilter });
+          void getReversedPaymentsData(1, localFilter);
      };
-
      const handleClear = () => {
           const cleared = { from: '', to: '' };
-          setLocalFilter(cleared);
-          setShowOffcanvas(false);
-          getReversedPaymentsData(1);
+          setLocalFilter(cleared); setAppliedFilter(cleared);
+          void getReversedPaymentsData(1, cleared);
      };
+     const handleViewDetails = (reversal: any) => { setSelectedReversal(reversal); setShowDetailModal(true); };
+     const handlePageChange = (page: number) => { void getReversedPaymentsData(page); };
 
-     const handleViewDetails = (reversal) => {
-          setSelectedReversal(reversal);
-          setShowDetailModal(true);
-     };
-
-     const handlePageChange = (page) => {
-          getReversedPaymentsData(page);
-     };
+     const reversedOnPage = reversals.reduce((sum, row) => sum + (Number(row.reversed_amount) || 0), 0);
+     const dateLabel = (date: string) => date && dayjs(date).isValid() ? dayjs(date).format('DD MMM YYYY, HH:mm') : 'Not recorded';
+     const totalPages = Math.max(1, Number(pagination.totalPages) || 1);
 
      return (
-          <div className="container-fluid px-4 py-3">
-               {/* Header */}
-               <div className="d-flex justify-content-between align-items-center mb-4">
-                    <div>
-                         <h2 className="d-flex align-items-center fw-bold">
-                              <RiMoneyDollarCircleLine className="me-2" size={28} />
-                              Reversed Payments
-                         </h2>
-                         <p className="text-muted small">Track all payment reversals and reversals history</p>
-                    </div>
-                    <div className="d-flex gap-2">
-                         <Button
-                              variant="outline-secondary"
-                              size="sm"
-                              onClick={() => setShowOffcanvas(true)}
-                              className="d-flex align-items-center"
-                         >
-                              <RiFilter3Line className="me-1" size={16} />
-                              Filter
-                         </Button>
-                         <Button
-                              variant="outline-primary"
-                              size="sm"
-                              onClick={() => getReversedPaymentsData(1)}
-                              className="d-flex align-items-center"
-                         >
-                              <RiRefreshLine className="me-1" size={16} />
-                              Refresh
-                         </Button>
-                    </div>
-               </div>
-
-               {/* Filter Offcanvas */}
-               <Offcanvas data-expense-drawer="true" show={showOffcanvas} onHide={() => setShowOffcanvas(false)} placement="end">
-                    <Offcanvas.Header closeButton>
-                         <Offcanvas.Title>Filter Reversed Payments</Offcanvas.Title>
-                    </Offcanvas.Header>
-                    <Offcanvas.Body>
-                         <div className="mb-3">
-                              <label className="form-label">From Date</label>
-                              <input
-                                   type="date"
-                                   className="form-control"
-                                   name="from"
-                                   value={localFilter.from}
-                                   onChange={handleInputChange}
-                              />
+          <main className={styles.workspace}>
+               <Link href="/billing/expenses/invoices" className="d-inline-block mb-3">← Invoices & payments</Link>
+               <header className={styles.header}>
+                    <div><span className={styles.eyebrow}>EXPENSE PAYMENT HISTORY</span><h1>Reversed payments</h1><p>Review returned payments, the reason for each reversal, and who recorded it.</p></div>
+                    <div className={styles.headerActions}><Button variant="outline-secondary" disabled={loading || !employeeid || !branchid} onClick={() => getReversedPaymentsData(currentPage)}><RiRefreshLine size={16} aria-hidden="true" /> {loading ? 'Refreshing…' : 'Refresh'}</Button></div>
+               </header>
+               <section className={styles.summary} aria-label="Reversal summary">
+                    <article><span>Matching reversals</span><strong>{Number(pagination.total).toLocaleString()}</strong><small>{appliedFilter.from || appliedFilter.to ? 'Within the applied date range' : 'Across all dates'}</small></article>
+                    <article><span>Reversed amount · this page</span><strong>{currencyFormatter.format(reversedOnPage)}</strong><small>{reversals.length} records on page {currentPage}</small></article>
+                    <article><span>Invoices · this page</span><strong>{new Set(reversals.map(row => row.invoice_number).filter(Boolean)).size}</strong><small>Distinct invoice numbers shown below</small></article>
+               </section>
+               <section className={styles.panel} aria-label="Reversal history" aria-busy={loading}>
+                    <div className={styles.panelHeading}><h2>Reversal history</h2><p>Filter by date, then open a record to see the original payment and full reversal details.</p></div>
+                    <form className={styles.filters} onSubmit={event => { event.preventDefault(); handleSearch(); }}>
+                         <label htmlFor="reversed-from">From date<input id="reversed-from" type="date" className="form-control" name="from" value={localFilter.from} onChange={handleInputChange} disabled={loading} /></label>
+                         <label htmlFor="reversed-to">To date<input id="reversed-to" type="date" className="form-control" name="to" min={localFilter.from || undefined} value={localFilter.to} onChange={handleInputChange} disabled={loading} /></label>
+                         <Button type="submit" disabled={loading || !employeeid || !branchid}><RiFilter3Line size={16} aria-hidden="true" /> Apply filters</Button>
+                         <Button variant="outline-secondary" onClick={handleClear} disabled={loading}>Clear filters</Button>
+                    </form>
+                    {error && <div className="alert alert-danger m-3" role="alert">{error}<button className="btn btn-link" type="button" disabled={loading} onClick={() => getReversedPaymentsData(currentPage)}>Retry</button></div>}
+                    {loading ? <div className={styles.empty} role="status"><span className="spinner-border spinner-border-sm me-2" aria-hidden="true" />Loading reversal history…</div> : !error && reversals.length === 0 ? <div className={styles.empty}><RiMoneyDollarCircleLine size={36} aria-hidden="true" /><h3>No reversals found</h3><p>{appliedFilter.from || appliedFilter.to ? 'Try a wider date range or clear the filters.' : 'Reversed expense payments will appear here when recorded.'}</p>{(appliedFilter.from || appliedFilter.to) && <Button variant="outline-secondary" onClick={handleClear}>Clear date filters</Button>}</div> : !error && <>
+                         <div className={styles.tableWrap} tabIndex={0} role="region" aria-label="Payment reversals table; scroll horizontally for more columns">
+                              <table className={styles.table}>
+                                   <thead><tr><th scope="col">Reversal / invoice</th><th scope="col">Expense & reason</th><th scope="col" className={styles.numeric}>Original payment</th><th scope="col" className={styles.numeric}>Reversed amount</th><th scope="col">Recorded by</th><th scope="col">Reversed on</th><th scope="col">Details</th></tr></thead>
+                                   <tbody>{reversals.map(row => <tr key={row.reversal_id}>
+                                        <td><strong>#{row.reversal_id}</strong><small>Invoice {row.invoice_number || 'not recorded'}</small><span className={styles.badge}>{row.payment_method || 'Method not recorded'}</span></td>
+                                        <td style={{ whiteSpace: 'normal', minWidth: 200, maxWidth: 320 }}><strong>{row.expense_name || 'Expense not recorded'}</strong><small style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{row.reversal_reason || 'No reason recorded'}</small></td>
+                                        <td className={styles.numeric}>{currencyFormatter.format(Number(row.original_amount) || 0)}</td>
+                                        <td className={`${styles.numeric} text-danger fw-semibold`}>{currencyFormatter.format(Number(row.reversed_amount) || 0)}</td>
+                                        <td>{row.reversed_by_name || 'Not recorded'}</td><td>{dateLabel(row.reversed_on)}</td>
+                                        <td><Button variant="outline-primary" size="sm" aria-label={`View reversal ${row.reversal_id}`} onClick={() => handleViewDetails(row)}><RiEyeLine size={16} aria-hidden="true" /> View details</Button></td>
+                                   </tr>)}</tbody>
+                              </table>
                          </div>
-                         <div className="mb-3">
-                              <label className="form-label">To Date</label>
-                              <input
-                                   type="date"
-                                   className="form-control"
-                                   name="to"
-                                   value={localFilter.to}
-                                   onChange={handleInputChange}
-                                   min={localFilter.from}
-                              />
-                         </div>
-                         <div className="d-flex gap-2">
-                              <Button variant="primary" onClick={handleSearch} className="flex-grow-1">
-                                   Search
-                              </Button>
-                              <Button variant="outline-secondary" onClick={handleClear} className="flex-grow-1">
-                                   Clear
-                              </Button>
-                         </div>
-                    </Offcanvas.Body>
-               </Offcanvas>
-
-               {/* Table */}
-               {loading ? (
-                    <Loader />
-               ) : reversals.length === 0 ? (
-                    <div className="text-center py-5">
-                         <RiMoneyDollarCircleLine size={48} className="text-muted mb-3" />
-                         <h5 className="text-muted">No Reversed Payments Found</h5>
-                         <p className="text-muted small">There are no reversed payments to display.</p>
-                    </div>
-               ) : (
-                    <div className="card">
-                         <div className="card-body">
-                              <div className="table-responsive">
-                                   <table className="table table-hover table-striped">
-                                        <thead className="sticky-top bg-body-tertiary">
-                                             <tr>
-                                                  <th>Reversal ID</th>
-                                                  <th>Invoice</th>
-                                                  <th>Expense</th>
-                                                  <th>Original Amount</th>
-                                                  <th>Reversed Amount</th>
-                                                  <th>Reason</th>
-                                                  <th>Reversed By</th>
-                                                  <th>Reversed On</th>
-                                                  <th>Payment Method</th>
-                                                  <th>Action</th>
-                                             </tr>
-                                        </thead>
-                                        <tbody>
-                                             {Array.isArray(reversals) && reversals.map((reversal) => (
-                                                  <tr key={reversal.reversal_id}>
-                                                       <td>
-                                                            <strong>{reversal.reversal_id}</strong>
-                                                       </td>
-                                                       <td>
-                                                            <strong>{reversal.invoice_number}</strong>
-                                                       </td>
-                                                       <td>{reversal.expense_name}</td>
-                                                       <td>{currencyFormatter.format(reversal.original_amount)}</td>
-                                                       <td className="text-danger fw-bold">{currencyFormatter.format(reversal.reversed_amount)}</td>
-                                                       <td>{reversal.reversal_reason}</td>
-                                                       <td>{reversal.reversed_by_name}</td>
-                                                       <td>
-                                                            {dayjs(reversal.reversed_on).format('DD-MM-YYYY HH:mm:ss')}
-                                                       </td>
-                                                       <td>{reversal.payment_method}</td>
-                                                       <td>
-                                                            <Button
-                                                                 variant="outline-primary"
-                                                                 size="sm"
-                                                                 onClick={() => handleViewDetails(reversal)}
-                                                                 className="d-flex align-items-center"
-                                                            >
-                                                                 <RiEyeLine className="me-1" size={14} />
-                                                                 View
-                                                            </Button>
-                                                       </td>
-                                                  </tr>
-                                             ))}
-                                        </tbody>
-                                   </table>
-                              </div>
-                         </div>
-
-                         {/* Pagination */}
-                         {pagination.totalPages > 1 && (
-                              <div className="d-flex justify-content-between align-items-center p-3 bg-body-tertiary">
-                                   <span className="text-muted small">
-                                        Showing {(currentPage - 1) * pagination.limit + 1} to {Math.min(currentPage * pagination.limit, pagination.total)} of {pagination.total} reversals
-                                   </span>
-                                   <Pagination className="mb-0">
-                                        <Pagination.First
-                                             onClick={() => handlePageChange(1)}
-                                             disabled={currentPage === 1}
-                                        />
-                                        <Pagination.Prev
-                                             onClick={() => handlePageChange(currentPage - 1)}
-                                             disabled={currentPage === 1}
-                                        />
-                                        {Array.from({ length: pagination.totalPages }).map((_, idx) => (
-                                             <Pagination.Item
-                                                  key={idx + 1}
-                                                  active={currentPage === idx + 1}
-                                                  onClick={() => handlePageChange(idx + 1)}
-                                             >
-                                                  {idx + 1}
-                                             </Pagination.Item>
-                                        ))}
-                                        <Pagination.Next
-                                             onClick={() => handlePageChange(currentPage + 1)}
-                                             disabled={currentPage === pagination.totalPages}
-                                        />
-                                        <Pagination.Last
-                                             onClick={() => handlePageChange(pagination.totalPages)}
-                                             disabled={currentPage === pagination.totalPages}
-                                        />
-                                   </Pagination>
-                              </div>
-                         )}
-                    </div>
-               )}
+                         <footer className={styles.pagination}>
+                              <span>Showing {reversals.length ? (currentPage - 1) * pagination.limit + 1 : 0}–{Math.min(currentPage * pagination.limit, pagination.total)} of {pagination.total} reversals</span>
+                              <div><Button variant="outline-secondary" size="sm" disabled={currentPage <= 1 || loading} onClick={() => handlePageChange(currentPage - 1)}>Previous</Button><span aria-live="polite">Page {currentPage} of {totalPages}</span><Button variant="outline-secondary" size="sm" disabled={currentPage >= totalPages || loading} onClick={() => handlePageChange(currentPage + 1)}>Next</Button></div>
+                         </footer>
+                    </>}
+               </section>
 
                {/* Detail Modal */}
-               <Modal fullscreen="sm-down" scrollable data-expense-dialog="true" show={showDetailModal} onHide={() => setShowDetailModal(false)} size="lg">
+               <Modal fullscreen="sm-down" scrollable data-expense-dialog="true" className={styles.dialog} show={showDetailModal} onHide={() => setShowDetailModal(false)} size="lg">
                     <Modal.Header closeButton>
-                         <Modal.Title className="fw-bold">Reversal Details</Modal.Title>
+                         <Modal.Title className="fw-bold">Reversal #{selectedReversal?.reversal_id}</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
                          {selectedReversal && (
@@ -337,13 +204,13 @@ const ReversedPaymentsPage = () => {
                                         <div className="col-md-6">
                                              <div className="mb-3">
                                                   <strong>Original Payment Date:</strong>
-                                                  <p className="text-muted mb-0">{dayjs(selectedReversal.payment_date).format('DD-MM-YYYY HH:mm:ss')}</p>
+                                                  <p className="text-muted mb-0">{dateLabel(selectedReversal.payment_date)}</p>
                                              </div>
                                         </div>
                                         <div className="col-md-6">
                                              <div className="mb-3">
                                                   <strong>Reversed On:</strong>
-                                                  <p className="text-muted mb-0">{dayjs(selectedReversal.reversed_on).format('DD-MM-YYYY HH:mm:ss')}</p>
+                                                  <p className="text-muted mb-0">{dateLabel(selectedReversal.reversed_on)}</p>
                                              </div>
                                         </div>
                                    </div>
@@ -373,7 +240,7 @@ const ReversedPaymentsPage = () => {
                          </Button>
                     </Modal.Footer>
                </Modal>
-          </div>
+          </main>
      );
 };
 

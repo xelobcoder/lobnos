@@ -38,21 +38,25 @@ export async function GET(request: NextRequest) {
                     "pls-prime-tenant-session": PLS_PRIME_TENANT_SESSION,
                     "pls-session": PLS_SESSION
                },
-               cache: 'no-cache',
+               cache: 'no-store',
                credentials: 'include',
           });
 
           const data = await response.json()
           const { message, statusCode, status } = data;
+          if (response.status >= 500) return Response.json({ error: 'The session service is temporarily unavailable. Please try again.' }, { status: 502 });
           if (status != true) {
+               const denied = response.status === 401 || response.status === 403 || statusCode === 401 || statusCode === 403 || data.isExpired === true;
                return new Response(
-                    JSON.stringify({ error: message, redirect: '/authentications/login' }),
+                    JSON.stringify({ error: message || 'Unable to validate the session.', ...(denied ? { redirect: '/authentications/login' } : {}) }),
                     {
-                         status: 401,
+                         status: denied ? 401 : 502,
                          headers: { 'Content-Type': 'application/json' },
                     }
                );
           }
+
+          if (!(data.user?.user ?? data.user)?.role) return Response.json({ error: 'The session service returned incomplete account details. Please try again.' }, { status: 502 });
 
 
           return new Response(JSON.stringify({ ...data, tenantId: context.tenantId }), {

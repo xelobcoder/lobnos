@@ -1,5 +1,5 @@
 'use client'
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useApplicationSettings } from '../Auth/useApplicationContext';
 
 
@@ -8,35 +8,31 @@ import { useApplicationSettings } from '../Auth/useApplicationContext';
 
 export default function MAIN_LAYOUT({ children }) {
      const { applicationsettings, setApplicationSettings } = useApplicationSettings();
+     const [contextError, setContextError] = useState('');
+     const [retry, setRetry] = useState(0);
+     const [checking, setChecking] = useState(true);
 
-     const getRetrieval = useCallback(async function () {
-          const cached = typeof window !== 'undefined' ? localStorage.getItem('applicationsettings') : null;
-          if (cached) {
-               try {
-                    const user = JSON.parse(cached);
-                    if (user && Object.keys(user).length > 0) {
-                         setApplicationSettings(user);
-                    }
-               } catch {
-                    localStorage.removeItem('applicationsettings');
-               }
-          }
-
+     const getRetrieval = useCallback(async function (signal: AbortSignal) {
+          setChecking(true);
+          setContextError('');
           try {
                const retrieveContext = await fetch('/api/auth/context-retrieval', {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' },
+                    cache: 'no-store', signal,
                });
                const data = await retrieveContext.json();
+               if (signal.aborted) return;
                const { user, error, redirect, settings } = data;
                const authenticatedUser = user?.user ?? user;
 
-               if (error && redirect) {
-                    window.location.href = redirect;
+               if (retrieveContext.status === 401 || (error && redirect === '/authentications/login')) {
+                    window.location.replace('/authentications/login');
                     return null;
                }
-
-               if (!authenticatedUser) throw new Error('Application context was not returned');
+               if (!retrieveContext.ok || error) throw new Error(typeof error === 'string' ? error : data.message || 'Unable to verify your session. Please try again.');
+               if (!authenticatedUser) throw new Error('Your account details could not be loaded. Please retry or sign in again.');
+               if (!authenticatedUser.role) throw new Error('The server returned incomplete account details. Please try again.');
                const freshSettings = {
                     ...user,
                     user: authenticatedUser,
@@ -44,21 +40,29 @@ export default function MAIN_LAYOUT({ children }) {
                };
                setApplicationSettings(freshSettings);
                if (typeof window !== 'undefined') {
-                    localStorage.setItem('applicationsettings', JSON.stringify(freshSettings));
+                    try { localStorage.setItem('applicationsettings', JSON.stringify(freshSettings)); } catch { /* A blocked cache must not prevent sign-in. */ }
                }
-          } catch (error) {
-               throw error;
+          } catch (error: any) {
+               if (!signal.aborted) setContextError(error instanceof SyntaxError ? 'The session service returned an invalid response. Please try again.' : error?.message || 'Unable to connect to the session service.');
+          } finally {
+               if (!signal.aborted) setChecking(false);
           }
      }, [setApplicationSettings]);
 
 
      useEffect(() => {
-          getRetrieval();
-     }, [getRetrieval]);
+          const controller = new AbortController();
+          void getRetrieval(controller.signal);
+          return () => controller.abort();
+     }, [getRetrieval, retry]);
 
 
 
-     if (!applicationsettings) return null;
+     if (contextError) return <section className="alert alert-danger m-3" role="alert">
+          <h1 className="h5">Unable to load your workspace</h1><p>{contextError}</p>
+          <div className="d-flex flex-wrap gap-2"><button type="button" className="btn btn-primary" disabled={checking} onClick={() => setRetry(value => value + 1)}>{checking ? 'Retrying…' : 'Try again'}</button><a className="btn btn-outline-secondary" href="/authentications/login">Sign in again</a></div>
+     </section>;
+     if (!applicationsettings) return <p className="p-3" role="status">Loading your workspace…</p>;
      return (
           <div >
                {children}

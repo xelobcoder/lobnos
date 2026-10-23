@@ -13,7 +13,7 @@ import PrimeTable from '../../../../../components/accessories/Datatables/PrimeTa
 import { noopServerSideHandle } from '../../../../../components/serverActions/ActionFiltering';
 
 const merchantSchema = z.object({
-    name: z.string().min(1, "Merchant name is required"),
+    name: z.string().trim().min(1, "Merchant name is required"),
     email: z.string().email("Invalid email address").optional().or(z.literal('')),
     phone: z.string().min(10, "Phone number must be exactly 10 digits").max(10, "Phone number must be exactly 10 digits").optional().or(z.literal('')),
     address: z.string().optional(),
@@ -36,6 +36,7 @@ const defaultMerchant: MerchantFormData = {
 
 export default function AddMerchant() {
     const [isLoading, setLoading] = useState(false);
+    const [formError,setFormError]=useState('');
     const [merchants, setMerchants] = useState<any[]>([]);
     const [showModal, setShowModal] = useState(false);
     const [editMerchant, setEditMerchant] = useState<any | null>(null);
@@ -48,6 +49,7 @@ export default function AddMerchant() {
     });
 
     useEffect(() => {
+        if (!employeeid || !branchid) return;
         async function fetchMerchants() {
             try {
                 const response = await customFetch(`expense/merchants?branchid=${branchid}&&count=10&&page=1&&employeeid=${employeeid}`);
@@ -63,7 +65,7 @@ export default function AddMerchant() {
             }
         }
         fetchMerchants();
-    }, []);
+    }, [employeeid, branchid]);
 
     // Handler for deleting a merchant
     const handleDeleteMerchant = async (merchant: any) => {
@@ -89,6 +91,7 @@ export default function AddMerchant() {
     };
 
     const handleEditMerchant = (m: any) => {
+        setFormError('');
         setEditMerchant(m);
         reset({
             name: m.name || '',
@@ -103,6 +106,8 @@ export default function AddMerchant() {
     };
 
     const handleMerchantFormSubmit = async (data: MerchantFormData) => {
+        if (isLoading) return;
+        setFormError('');
         setLoading(true);
         try {
             let response;
@@ -134,10 +139,13 @@ export default function AddMerchant() {
                 const refreshed = await customFetch(`expense/merchants?branchid=${branchid}&&employeeid=${employeeid}`);
                 setMerchants(Array.isArray(refreshed) ? refreshed : refreshed?.data || []);
             } else {
-                toast.error("Failed to save merchant", { autoClose: 5000 });
+                const message=response?.message || response?.error?.message || response?.error || 'Failed to save merchant. Please try again.';
+                setFormError(String(message));
+                toast.error(String(message), { autoClose: 5000 });
             }
-        } catch (error) {
-            toast.error("An error occurred", { autoClose: 5000 });
+        } catch (error: any) {
+            setFormError(error?.message || "Unable to save merchant. Please try again.");
+            toast.error(error?.message || "Unable to save merchant", { autoClose: 5000 });
         } finally {
             setLoading(false);
         }
@@ -196,11 +204,11 @@ export default function AddMerchant() {
     return (
         <div className="container-fluid p-4">
             {isLoading && <Loader w={50} h={50} />}
-            {!isLoading && (
+            {(!isLoading || showModal) && (
                 <>
                     <div className="d-flex justify-content-between align-items-center mb-4">
                         <h4 className="mb-0">Add New Merchant</h4>
-                        <button className="btn btn-primary btn-sm" onClick={() => { setShowModal(true); setEditMerchant(null); reset(defaultMerchant); }}>
+                        <button className="btn btn-primary btn-sm" onClick={() => { setFormError(''); setShowModal(true); setEditMerchant(null); reset(defaultMerchant); }}>
                             <RiAddBoxFill /> New Merchant
                         </button>
                     </div>
@@ -209,6 +217,7 @@ export default function AddMerchant() {
                             <Modal.Title>{editMerchant ? 'Edit Merchant' : 'Add New Merchant'}</Modal.Title>
                         </Modal.Header>
                         <Modal.Body>
+                            {formError && <div className="alert alert-danger" role="alert">{formError}</div>}
                             <form onSubmit={handleSubmit(handleMerchantFormSubmit)} className='row g-3'>
                                 <div className="col-md-6">
                                     <label className="form-label pls-label">Merchant Name</label>
@@ -285,8 +294,8 @@ export default function AddMerchant() {
                                     <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
                                         Cancel
                                     </button>
-                                    <button type="submit" className="btn btn-primary">
-                                        {editMerchant ? 'Update Merchant' : 'Add Merchant'}
+                                    <button type="submit" className="btn btn-primary" disabled={isLoading}>
+                                        {isLoading ? "Saving…" : editMerchant ? 'Update Merchant' : 'Add Merchant'}
                                     </button>
                                 </div>
                             </form>
