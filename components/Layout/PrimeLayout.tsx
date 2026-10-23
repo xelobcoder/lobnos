@@ -1,4 +1,5 @@
-﻿'use client';
+'use client';
+import { MarketerLinks } from './links/categories/crmLinks';
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import styles from './PrimeLayout.module.css';
 import workspaceStyles from './WorkspaceLayout.module.css';
@@ -42,13 +43,15 @@ interface PrimeLayoutProps {
     links: LinkType[];
 }
 
-const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
+const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links: suppliedLinks }) => {
     const { company, user, daysToExpiration, settings } = useApplicationSettings().applicationsettings;
+    const links = user?.role === 'marketer' ? MarketerLinks : suppliedLinks;
     const { theme, toggleTheme } = useTheme();
     const router = useRouter();
     const modulePath = usePathname();
 
     const roleViews = {
+        marketer: MarketerLinks,
         "customer service representative": FrontdeskRoleLinks,
         admin: AdminRoleLinks,
         manager: AdminRoleLinks,

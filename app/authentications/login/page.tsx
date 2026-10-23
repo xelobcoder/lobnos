@@ -185,6 +185,7 @@ export default function PrimeLabLoginPage() {
 			setMessage('Login successful. Redirecting...');
 			const { role } = cookieResult;
 			const destinations: Record<string, string> = {
+				marketer: '/crm/acquisition',
 				patient: '/patientportal',
 				clinician: '/doctor',
 				'customer service representative': '/crm/overview',

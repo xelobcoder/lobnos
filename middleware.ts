@@ -53,6 +53,7 @@ export async function middleware(request: NextRequest) {
             if (role.replace(/[\s_-]/g, '') === 'superadmin') return NextResponse.redirect(new URL('/settings/facilities', request.url));
             if (role === 'clinician') return NextResponse.redirect(new URL('/doctor', request.url));
             if (role === 'patient') return NextResponse.redirect(new URL('/patientportal', request.url));
+            if (role === 'marketer') return NextResponse.redirect(new URL('/crm/acquisition', request.url));
             return NextResponse.redirect(new URL('/', request.url));
         }
 
@@ -108,6 +109,11 @@ export async function middleware(request: NextRequest) {
                 return NextResponse.next();
             }
 
+            if (normalizedRole === 'marketer') {
+                const allowed = currentPath === '/crm' || currentPath === '/crm/acquisition' || currentPath.startsWith('/crm/leads');
+                if (!allowed) return NextResponse.redirect(new URL('/crm/acquisition', request.url));
+                return NextResponse.next();
+            }
             // Check CRM access first
             if (currentPath.startsWith("/crm")) {
                 if (!["admin", "manager", "customer service representative", 'scientist', 'sonographer'].includes(role.toString().toLowerCase().trim())) {

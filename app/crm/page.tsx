@@ -1,9 +1,2 @@
-import React from 'react'
-
-export default function CRM() {
-  return (
-    <div>
-      
-    </div>
-  )
-}
+import { redirect } from 'next/navigation';
+export default function CrmPage() { redirect('/crm/acquisition'); }

@@ -17,7 +17,9 @@ import {
     RiUserHeartLine
 } from '@remixicon/react';
 
+export const MarketerLinks: Link[] = [{ title: 'Referrer acquisition', link: '/crm/acquisition', icon: <RiCustomerService2Line /> }];
 export const CrmLinks: Link[] = [
+    { title: 'Referrer acquisition & performance', link: '/crm/acquisition', icon: <RiCustomerService2Line />, roles: ['admin', 'super-admin', 'manager', 'marketer', 'customer service representative'] },
     {
         title: "Customer Management",
         link: "",

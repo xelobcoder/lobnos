@@ -68,7 +68,7 @@ function harness({ context, role = "admin", blockedStorage = false, search = "" 
 for (const [role, target] of [
     ["admin", "/analytics"], ["super-admin", "/settings/facilities"], ["scientist", "/operations/laboratory"],
     ["patient", "/patientportal"], ["clinician", "/doctor"], ["manager", "/"],
-    ["customer service representative", "/crm/overview"], ["sonographer", "/operations/imaging/ultrasound"],
+    ["marketer", "/crm/acquisition"], ["customer service representative", "/crm/overview"], ["sonographer", "/operations/imaging/ultrasound"],
     ["storekeeper", "/inventory"], ["accountant", "/accounting"], ["unknown", "/"],
 ]) {
     test(`verified ${role} session leaves the login page for ${target}`, async () => {
