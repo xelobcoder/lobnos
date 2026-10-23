@@ -355,7 +355,7 @@ const InvoiceList = ({ branchid, employeeid }) => {
                </section>
 
                {/* Invoice Detail Modal */}
-               <Modal className={styles.dialog} show={showDetailModal} onHide={() => { setShowDetailModal(false); setSelectedInvoice(null); setInvoiceExpenses([]); setLoadingExpenses(false); setInvoicePayments([]); setLoadingPayments(false); }} size="lg">
+               <Modal fullscreen="sm-down" scrollable data-expense-dialog="true" className={styles.dialog} show={showDetailModal} onHide={() => { setShowDetailModal(false); setSelectedInvoice(null); setInvoiceExpenses([]); setLoadingExpenses(false); setInvoicePayments([]); setLoadingPayments(false); }} size="lg">
                     <Modal.Header closeButton>
                          <Modal.Title>Invoice details</Modal.Title>
                     </Modal.Header>
@@ -525,7 +525,7 @@ const InvoiceList = ({ branchid, employeeid }) => {
                </Modal>
 
                {/* Payment Modal */}
-               <Modal className={styles.dialog} show={showPaymentModal} onHide={() => { setShowPaymentModal(false); setSelectedInvoice(null); setInvoicePayments([]); setPaymentFeedback(null); }} size="md" animation={false}>
+               <Modal fullscreen="sm-down" scrollable data-expense-dialog="true" className={styles.dialog} show={showPaymentModal} onHide={() => { setShowPaymentModal(false); setSelectedInvoice(null); setInvoicePayments([]); setPaymentFeedback(null); }} size="md" animation={false}>
                     <Modal.Header closeButton>
                          <Modal.Title>Record payment</Modal.Title>
                     </Modal.Header>
@@ -694,7 +694,7 @@ const InvoiceList = ({ branchid, employeeid }) => {
                </Modal>
 
                {/* Reverse Payment Modal */}
-               <Modal className={styles.dialog} show={showReversePaymentModal} onHide={() => { setShowReversePaymentModal(false); setSelectedPayment(null); setReversePaymentData({ paymentId: '', reversalReason: '' }); }} size="md">
+               <Modal fullscreen="sm-down" scrollable data-expense-dialog="true" className={styles.dialog} show={showReversePaymentModal} onHide={() => { setShowReversePaymentModal(false); setSelectedPayment(null); setReversePaymentData({ paymentId: '', reversalReason: '' }); }} size="md">
                     <Modal.Header closeButton>
                          <Modal.Title>Reverse Payment</Modal.Title>
                     </Modal.Header>
@@ -816,7 +816,7 @@ const InvoiceList = ({ branchid, employeeid }) => {
                </Modal>
 
                {/* Reversal Info Modal */}
-               <Modal className={styles.dialog} show={showReversalInfoModal} onHide={() => setShowReversalInfoModal(false)} size="lg">
+               <Modal fullscreen="sm-down" scrollable data-expense-dialog="true" className={styles.dialog} show={showReversalInfoModal} onHide={() => setShowReversalInfoModal(false)} size="lg">
                     <Modal.Header closeButton>
                          <Modal.Title className="fw-bold">Reversal Information</Modal.Title>
                     </Modal.Header>

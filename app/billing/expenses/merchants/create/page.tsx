@@ -204,7 +204,7 @@ export default function AddMerchant() {
                             <RiAddBoxFill /> New Merchant
                         </button>
                     </div>
-                    <Modal show={showModal} onHide={() => { setShowModal(false); setEditMerchant(null); }}>
+                    <Modal fullscreen="sm-down" scrollable data-expense-dialog="true" show={showModal} onHide={() => { setShowModal(false); setEditMerchant(null); }}>
                         <Modal.Header closeButton>
                             <Modal.Title>{editMerchant ? 'Edit Merchant' : 'Add New Merchant'}</Modal.Title>
                         </Modal.Header>

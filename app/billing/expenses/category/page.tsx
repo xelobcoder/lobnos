@@ -125,7 +125,7 @@ export default function ExpenseCategoryCreation() {
                      onClick={() => { handleSaveButton() }}
                      className="btn btn-success btn-sm">new category</button>
            </section>
-           <section>
+           <section className="table-responsive mt-3" tabIndex={0} aria-label="Expense categories">
                 <table className={styles.table}>
                      <thead>
                           <tr>

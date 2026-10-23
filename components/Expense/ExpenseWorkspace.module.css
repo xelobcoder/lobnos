@@ -24,4 +24,19 @@
 .formFooter { display:flex; align-items:center; justify-content:space-between; gap:16px; }
 .details { white-space:pre-wrap; overflow-wrap:anywhere; }
 .empty { padding:40px 20px; text-align:center; color:var(--bs-secondary-color,#64748b); }
+.workspace,.panel,.tableWrap { min-width:0; max-width:100%; }
+@media(max-width:767px) {
+ .header { flex-direction:column; align-items:stretch; }
+ .header>div:last-child { width:100%; }
+ .header>div:last-child>a { flex:1 1 150px; text-align:center; }
+ .filters { display:grid; grid-template-columns:minmax(0,1fr); }
+ .filters label { min-width:0; width:100%; }
+ .tabs { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .tabs button { min-height:44px; white-space:normal; }
+ .tableWrap { overscroll-behavior-x:contain; }
+ .table { min-width:680px; }
+ .pagination { flex-wrap:wrap; }
+ .formFooter>button { width:100%; min-height:44px; }
+ .details { overflow-wrap:anywhere; }
+}
 @media(max-width:650px) { .workspace {padding:18px 10px;} .header {flex-direction:column;} .panel {padding:18px 14px;} .formGrid {grid-template-columns:1fr;} .wide {grid-column:auto;} .formFooter {align-items:stretch;flex-direction:column;} }

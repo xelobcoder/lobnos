@@ -109,7 +109,7 @@ const ReversedPaymentsPage = () => {
                </div>
 
                {/* Filter Offcanvas */}
-               <Offcanvas show={showOffcanvas} onHide={() => setShowOffcanvas(false)} placement="end">
+               <Offcanvas data-expense-drawer="true" show={showOffcanvas} onHide={() => setShowOffcanvas(false)} placement="end">
                     <Offcanvas.Header closeButton>
                          <Offcanvas.Title>Filter Reversed Payments</Offcanvas.Title>
                     </Offcanvas.Header>
@@ -249,7 +249,7 @@ const ReversedPaymentsPage = () => {
                )}
 
                {/* Detail Modal */}
-               <Modal show={showDetailModal} onHide={() => setShowDetailModal(false)} size="lg">
+               <Modal fullscreen="sm-down" scrollable data-expense-dialog="true" show={showDetailModal} onHide={() => setShowDetailModal(false)} size="lg">
                     <Modal.Header closeButton>
                          <Modal.Title className="fw-bold">Reversal Details</Modal.Title>
                     </Modal.Header>

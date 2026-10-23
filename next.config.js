@@ -24,7 +24,7 @@ const nextConfig = {
 		remotePatterns: [
 			{ protocol: "http", hostname: "localhost", port: "", pathname: "/**" },
 			{ protocol: "http", hostname: "localhost", port: "2300", pathname: "/**" },
-			{ protocol: "https", hostname: "api.primelabsys.com", port: "", pathname: "/**" },
+			{ protocol: "https", hostname: "pls.primelabsys.com", port: "", pathname: "/**" },
 			{ protocol: "http", hostname: "192.168.0.45", port: "2399", pathname: "/**" },
 			{ protocol: "http", hostname: hostname().toLowerCase(), port: "2300", pathname: "/api/v1/**" },
 			{ protocol: "http", hostname: "192.168.0.94", port: "2300", pathname: "/**" },

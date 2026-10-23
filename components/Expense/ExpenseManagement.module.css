@@ -229,3 +229,17 @@
   border-color: #3b82f6;
   box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1), 0 2px 4px -1px rgba(59, 130, 246, 0.06);
 }
+
+@media(max-width:767px) {
+  .expenseContainer { margin:10px 0; min-width:0; }
+  .filterBar { position:static; padding:14px; align-items:stretch; flex-direction:column; }
+  .filterInput,.filterSelect,.filterButton { min-width:0; width:100%; min-height:44px; font-size:16px; }
+  .expenseList { padding:12px; }
+  .expenseCard { padding:14px; }
+  .expenseHeader,.expenseInfo { flex-wrap:wrap; gap:12px; }
+  .expenseTitle,.detailsValue { overflow-wrap:anywhere; }
+  .expenseAmount { max-width:100%; overflow-wrap:anywhere; }
+  .detailsSection { margin:12px 0; padding:14px; min-width:0; }
+  .detailsGrid,.receiptGrid { grid-template-columns:minmax(0,1fr); gap:14px; }
+  .receiptImage { width:100%; max-width:100%; }
+}

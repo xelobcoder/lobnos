@@ -49,7 +49,7 @@ export default function AdminExpensesList({ branchid, employeeid }) {
 				setExpenses={setExpenses}
 				handleFilters={handleFilters}
 			/>
-			<Modal
+			<Modal fullscreen="sm-down" scrollable data-expense-dialog="true"
 				show={!!selected}
 				onHide={() => { setSelected(null); }}
 				size="lg"

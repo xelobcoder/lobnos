@@ -741,7 +741,7 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 			</div>
 
 			{/* Bulk Actions Modal */}
-			<Modal show={showBulkModal} onHide={() => { setShowBulkModal(false); setBulkDecisions({}); setIndividualRejectReasons({}); setIndividualSelectedReasons({}); }} size="lg">
+			<Modal fullscreen="sm-down" scrollable data-expense-dialog="true" show={showBulkModal} onHide={() => { setShowBulkModal(false); setBulkDecisions({}); setIndividualRejectReasons({}); setIndividualSelectedReasons({}); }} size="lg">
 				<Modal.Header closeButton>
 					<Modal.Title>Bulk Expense Decisions</Modal.Title>
 				</Modal.Header>
@@ -860,7 +860,7 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 				</Modal.Footer>
 			</Modal>
 
-			<Modal show={!!paymentFollowUp} onHide={() => setPaymentFollowUp(null)} animation={false} dialogClassName="topSheetDialog">
+			<Modal fullscreen="sm-down" scrollable data-expense-dialog="true" show={!!paymentFollowUp} onHide={() => setPaymentFollowUp(null)} animation={false} dialogClassName="topSheetDialog">
 				<Modal.Header closeButton>
 					<Modal.Title>Expenses approved</Modal.Title>
 				</Modal.Header>

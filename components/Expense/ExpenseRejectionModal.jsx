@@ -8,7 +8,7 @@ export default function ExpenseRejectionModal({ show, hide, expenseid, submit })
  
 	return (
 		<main>
-			<Modal show={show}>
+			<Modal fullscreen="sm-down" scrollable data-expense-dialog="true" show={show}>
 				<Modal.Header closeButton onHide={hide}>
 					Please Provide Information for rejection
 				</Modal.Header>
