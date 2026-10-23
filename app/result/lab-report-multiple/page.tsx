@@ -19,6 +19,7 @@ import UseResultEntryScientist from '../../../components/ResutlUI/UseResultEntry
 import Watermark from "../../../components/ResultView/Watermark";
 import dayjs from "dayjs";
 import { toast } from "react-toastify";
+import { reportCanvasPng } from "../../../lib/pdfCanvas";
 
 export default function LabReportPrintingMultiple() {
 	const [loader, setLoader] = useState(false);
@@ -43,10 +44,12 @@ export default function LabReportPrintingMultiple() {
 	const url = `result/printout/ascension/multiple/getResult?csvid=${csvid}&&employeeid=${employeeid}&&testid=${testid}&&testname=${test}&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&target=${target}&password=&&isBrowserPrintout=1&&employeeid=${employeeid}`;
 
 	useEffect(() => {
+		let active = true;
 		if (billingid && testid && ascensionid && employeeid) {
 			setLoader(true);
 			customFetch(url)
 				.then((data) => {
+					if (!active) return;
 					// Check for access expired error
 					if (data && data.status === "error" && data.message === "Access window period has expired.") {
 						window.location.href = '/operations/laboratory/unauthorized?multiple=true';
@@ -98,9 +101,10 @@ export default function LabReportPrintingMultiple() {
 					}
 				})
 				.catch((err) => console.error(err))
-				.finally(() => { setLoader(false); });
+				.finally(() => { if (active) setLoader(false); });
 		}
-	}, []);
+		return () => { active = false; };
+	}, [url, billingid, testid, ascensionid, employeeid]);
 
 
 
@@ -131,14 +135,19 @@ export default function LabReportPrintingMultiple() {
 	const footerRef = useRef<HTMLDivElement | null>(null);
 	const verifiedRef = useRef<HTMLDivElement | null>(null);
 	const printedByRef = useRef<HTMLDivElement | null>(null);
+	const pdfJobRef = useRef<Promise<void>>(Promise.resolve());
 
 
 	useEffect(() => {
+		let cancelled = false;
+		let timer: ReturnType<typeof setTimeout> | undefined;
 		setPdfError(null);
 		setPdfLoading(false);
-		if (!loader && resultdata && Array.isArray(resultdata.test)) {
+		if (!loader && resultdata && Array.isArray(resultdata.test) && selectedTests.length > 0) {
 			setPdfLoading(true);
-			setTimeout(async () => {
+			timer = setTimeout(() => {
+			pdfJobRef.current = pdfJobRef.current.catch(() => undefined).then(async () => {
+				if (cancelled) return;
 				try {
 					const resultElement = document.querySelector('.result');
 					const headerEl = headerRef.current;
@@ -159,6 +168,7 @@ export default function LabReportPrintingMultiple() {
 						})));
 					};
 					await ensureImagesLoaded(resultElement);
+					if (cancelled) return;
 
 					// Hide print-only page headers and watermark overlay while capturing PDF
 					const _markers = Array.from(resultElement.querySelectorAll('.page-header-marker')) as HTMLElement[];
@@ -212,6 +222,7 @@ export default function LabReportPrintingMultiple() {
 					const sectionEls: HTMLElement[] = Array.from(resultElement.querySelectorAll('.test-section')) as HTMLElement[];
 
 					for (const sectionEl of sectionEls) {
+						if (cancelled) break;
 						try {
 							// Temporarily remove extra spacing for clean capture
 							const prev = {
@@ -334,8 +345,9 @@ export default function LabReportPrintingMultiple() {
 						try {
 							// Capture footer first to get its height
 							const footerCanvas = await html2canvas(footerEl as HTMLElement, { scale: 1.5, useCORS: true });
-							const footerImgData = footerCanvas.toDataURL('image/png');
-							const footerHeightMm = (footerCanvas.height * usableWidth) / footerCanvas.width;
+							const footerImage = reportCanvasPng(footerCanvas, usableWidth);
+							const footerImgData = footerImage?.data;
+							const footerHeightMm = footerImage?.heightMm || 0;
 
 							let totalBlockHeightMm = footerHeightMm;
 							let verifiedImgData: string | null = null;
@@ -346,16 +358,18 @@ export default function LabReportPrintingMultiple() {
 							// Capture Verified By block if it exists
 							if (verifiedEl) {
 								const verifiedCanvas = await html2canvas(verifiedEl as HTMLElement, { scale: 1.5, useCORS: true });
-								verifiedImgData = verifiedCanvas.toDataURL('image/png');
-								verifiedHeightMm = (verifiedCanvas.height * usableWidth) / verifiedCanvas.width;
+								const verifiedImage = reportCanvasPng(verifiedCanvas, usableWidth);
+								verifiedImgData = verifiedImage?.data || null;
+								verifiedHeightMm = verifiedImage?.heightMm || 0;
 								totalBlockHeightMm += verifiedHeightMm;
 							}
 
 							// Capture Printed By block if it exists
 							if (printedByEl) {
 								const printedByCanvas = await html2canvas(printedByEl as HTMLElement, { scale: 1.5, useCORS: true });
-								printedByImgData = printedByCanvas.toDataURL('image/png');
-								printedByHeightMm = (printedByCanvas.height * usableWidth) / printedByCanvas.width;
+								const printedByImage = reportCanvasPng(printedByCanvas, usableWidth);
+								printedByImgData = printedByImage?.data || null;
+								printedByHeightMm = printedByImage?.heightMm || 0;
 								totalBlockHeightMm += printedByHeightMm;
 							}
 
@@ -374,7 +388,7 @@ export default function LabReportPrintingMultiple() {
 
 							// Then End of Report (footer)
 							let yFooter = pdf.internal.pageSize.getHeight() - margin - footerHeightMm;
-							pdf.addImage(footerImgData, 'PNG', margin, yFooter, usableWidth, footerHeightMm);
+							if (footerImgData) pdf.addImage(footerImgData, 'PNG', margin, yFooter, usableWidth, footerHeightMm);
 						} catch (error) {
 							console.error('Error creating footer/verified/printed by canvases:', error);
 							// Continue without blocks
@@ -409,12 +423,16 @@ export default function LabReportPrintingMultiple() {
 					const filename = `${safePatientName}-${safeBillingId}-${safeAscensionId}-${dateStr}.pdf`;
 					const blob = pdf.output('blob');
 					const blobUrl = URL.createObjectURL(blob);
-					setPdfUrl({ url: blobUrl, filename });
+					if (cancelled) URL.revokeObjectURL(blobUrl);
+					else setPdfUrl(previous => {
+						if (previous) URL.revokeObjectURL(previous.url);
+						return { url: blobUrl, filename };
+					});
 
 					// Restore markers and watermark after capture
 					_markers.forEach((el, i) => { el.style.display = _markerDisplays[i]; });
 					if (watermarkOverlay) watermarkOverlay.style.display = watermarkDisplay;
-					setPdfLoading(false);
+					if (!cancelled) setPdfLoading(false);
 				} catch (err: any) {
 					console.error(err);
 					// Restore markers on error as well
@@ -425,11 +443,15 @@ export default function LabReportPrintingMultiple() {
 							_markers.forEach(el => { el.style.display = ''; });
 						}
 					} catch { }
-					setPdfError('PDF generation failed: ' + (err?.message || err));
-					setPdfLoading(false);
+					if (!cancelled) {
+						setPdfError('PDF generation failed: ' + (err?.message || err));
+						setPdfLoading(false);
+					}
 				}
+			});
 			}, 500);
 		}
+		return () => { cancelled = true; if (timer !== undefined) clearTimeout(timer); };
 	}, [loader, resultdata, selectedTests]);
 
 	useEffect(() => {
