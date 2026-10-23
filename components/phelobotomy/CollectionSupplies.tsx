@@ -5,12 +5,12 @@ import { customFetch, customFetchMutation } from '../Auth/customFetch';
 import { toast } from 'react-toastify';
 
 type Item = { id: string; name: string; current_stock: number; consumption_unit: string; cost_price: number };
-type Intent = { idempotency_key: string; reason: string; lines: Array<{ item_id: string; quantity: number }> };
+type Intent = { idempotency_key: string; reason: string; lines: Array<{ item_id: string; quantity: number; sample_ids?: number[] }> };
 
-export default function CollectionSupplies({ sampleId }: { sampleId: number }) {
+export default function CollectionSupplies({ sampleId, sampleOptions = [] }: { sampleId: number; sampleOptions?: Array<{ id: number; sample_uid: string; status: string; container_type_name?: string }> }) {
      const [open, setOpen] = useState(false);
      const [items, setItems] = useState<Item[]>([]);
-     const [selected, setSelected] = useState<Record<string, { item: Item; quantity: string }>>({});
+     const [selected, setSelected] = useState<Record<string, { item: Item; quantity: string; sample_ids: number[] }>>({});
      const [records, setRecords] = useState<any[]>([]);
      const [search, setSearch] = useState('');
      const [reason, setReason] = useState('');
@@ -38,7 +38,7 @@ export default function CollectionSupplies({ sampleId }: { sampleId: number }) {
      useEffect(() => { if (open) void load(); return () => { generation.current++; }; }, [open, sampleId]);
      const save = async () => {
           if (submitting.current || !storageKey) return;
-          const lines = Object.values(selected).map(({ item, quantity }) => ({ item_id: item.id, quantity: Number(quantity) }));
+          const lines = Object.values(selected).map(({ item, quantity, sample_ids }) => ({ item_id: item.id, quantity: Number(quantity), sample_ids }));
           if (!pending && (!reason.trim() || !lines.length || lines.some(line => !Number.isFinite(line.quantity) || line.quantity <= 0))) return toast.error('Select supplies, enter positive quantities and add a usage note.');
           submitting.current = true; setBusy(true);
           try {
@@ -62,12 +62,12 @@ export default function CollectionSupplies({ sampleId }: { sampleId: number }) {
      return <div className="border-top mt-3 pt-3">
           <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => setOpen(!open)}>{open ? 'Hide supplies' : 'Record supplies used'}</button>
           {open && <div className="mt-3">
-               <p className="small text-muted">Record actual collection supplies once for this physical sample, including extra supplies used. Shared tests do not require separate deductions. Laboratory processing materials are recorded separately.</p>
+               <p className="small text-muted">Record actual collection supplies once for this physical sample, including extra supplies used. Shared tests do not require separate deductions. Select all containers served by a shared syringe on a single supply line. Laboratory processing materials are recorded separately.</p>
                {error && <div role="alert" className="alert alert-danger">{error}</div>}
                {pending && <div className="alert alert-warning">A usage request awaits confirmation. Retry it to check whether stock was already deducted.<ul className="mb-0">{pending.lines.map(line => <li key={line.item_id}>{line.item_id}: {line.quantity}</li>)}</ul><div>{pending.reason}</div></div>}
                <div className="d-flex gap-2 mb-2"><input aria-label="Search collection supplies" className="form-control" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search inventory: tubes, needles, gloves..." /><button type="button" className="btn btn-outline-secondary" disabled={loading} onClick={load}>{loading ? 'Loading...' : 'Search / refresh'}</button></div>
-               <div style={{ maxHeight: 190, overflowY: 'auto' }}>{items.map(item => <label key={item.id} className="d-flex align-items-center gap-2 py-1"><input type="checkbox" disabled={busy || !!pending} checked={!!selected[item.id]} onChange={e => setSelected(previous => { const next = { ...previous }; if (e.target.checked) next[item.id] = { item, quantity: '1' }; else delete next[item.id]; return next; })} /><span>{item.name}</span><small className="text-muted ms-auto">Stock: {item.current_stock} {item.consumption_unit}</small></label>)}{!loading && !items.length && <p className="small">No active supplies match this search.</p>}</div>
-               {Object.values(selected).map(({ item, quantity }) => <label className="d-flex align-items-center gap-2 mt-2" key={item.id}><span className="flex-grow-1">{item.name} ({item.consumption_unit})</span><input aria-label={`Quantity used: ${item.name}`} className="form-control" style={{ width: 100 }} type="number" min="0" step="any" value={quantity} disabled={busy || !!pending} onChange={e => setSelected(previous => ({ ...previous, [item.id]: { item, quantity: e.target.value } }))} />{Number(item.cost_price) === 0 && <small className="text-warning">No inventory cost configured</small>}</label>)}
+               <div style={{ maxHeight: 190, overflowY: 'auto' }}>{items.map(item => <label key={item.id} className="d-flex align-items-center gap-2 py-1"><input type="checkbox" disabled={busy || !!pending} checked={!!selected[item.id]} onChange={e => setSelected(previous => { const next = { ...previous }; if (e.target.checked) next[item.id] = { item, quantity: '1', sample_ids: [sampleId] }; else delete next[item.id]; return next; })} /><span>{item.name}</span><small className="text-muted ms-auto">Stock: {item.current_stock} {item.consumption_unit}</small></label>)}{!loading && !items.length && <p className="small">No active supplies match this search.</p>}</div>
+               {Object.values(selected).map(({ item, quantity, sample_ids }) => <div className="d-flex align-items-center gap-2 mt-2" key={item.id}><span className="flex-grow-1">{item.name} ({item.consumption_unit})</span><input aria-label={`Quantity used: ${item.name}`} className="form-control" style={{ width: 100 }} type="number" min="0" step="any" value={quantity} disabled={busy || !!pending} onChange={e => setSelected(previous => ({ ...previous, [item.id]: { ...previous[item.id], quantity: e.target.value } }))} />{Number(item.cost_price) === 0 && <small className="text-warning">No inventory cost configured</small>}<div className="small"><span className="text-muted">Used for containers (shared supplies are deducted once):</span>{(sampleOptions.length ? sampleOptions : [{ id: sampleId, sample_uid: String(sampleId), status: 'collected', container_type_name: '' }]).filter(sample => sample.status !== 'planned').map(sample => <label key={sample.id} className="d-block"><input type="checkbox" disabled={busy || !!pending} checked={sample_ids.includes(sample.id)} onChange={e => setSelected(previous => ({ ...previous, [item.id]: { ...previous[item.id], sample_ids: e.target.checked ? [...previous[item.id].sample_ids, sample.id] : previous[item.id].sample_ids.filter(id => id !== sample.id) } }))} /> {sample.sample_uid} - {sample.container_type_name}</label>)}</div></div>)}
                <textarea aria-label="Supply usage note" className="form-control mt-2" maxLength={1000} placeholder="Usage note, e.g. initial collection or extra needle for redraw" value={reason} disabled={busy || !!pending} onChange={e => setReason(e.target.value)} />
                <button type="button" className="btn btn-primary mt-2" disabled={busy || (!pending && !Object.keys(selected).length)} onClick={save}>{busy ? 'Recording...' : pending ? 'Retry same usage record' : 'Confirm usage and deduct stock'}</button>
                <div className="small text-muted mt-2">Available, unexpired batches are checked when you confirm. Enter quantities in the displayed consumption unit.</div>
