@@ -1,4 +1,4 @@
-.shell { max-width:1000px; margin:24px auto; background:var(--bs-body-bg,#fff); color:var(--bs-body-color,#243447); border:1px solid var(--bs-border-color,#e1e7ee); border-radius:16px; box-shadow:0 8px 30px rgba(26,48,76,.05); overflow:hidden; }
+.shell { max-width:1000px; margin:24px auto; background:var(--bs-body-bg,#fff); color:var(--bs-body-color,#243447); border:1px solid var(--bs-border-color,#e1e7ee); border-radius:16px; box-shadow:none; overflow:hidden; }
 .embedded { margin:0; border:0; box-shadow:none; border-radius:0; }
 .header { display:flex; gap:16px; align-items:flex-start; padding:28px 32px; background:var(--bs-tertiary-bg,#f7f9fc); border-bottom:1px solid var(--bs-border-color,#e1e7ee); }
 .headerIcon { display:flex; align-items:center; justify-content:center; flex-shrink:0; width:52px; height:52px; border-radius:14px; background:var(--bs-primary-bg-subtle,#e8f0ff); color:var(--bs-primary,#1765c1); }
@@ -19,7 +19,7 @@
 .shell input,.shell select,.shell textarea { border-radius:8px; font-size:13px; padding:11px 13px; }
 .shell select { padding-right:36px; }
 .shell textarea { resize:vertical; min-height:100px; }
-.shell input:focus,.shell select:focus,.shell textarea:focus { box-shadow:0 0 0 3px var(--bs-primary-bg-subtle,#e8f0ff); }
+.shell input:focus,.shell select:focus,.shell textarea:focus { box-shadow:none; outline:2px solid var(--bs-primary,#1765c1); outline-offset:2px; }
 .hint { display:block; margin-top:6px; font-size:11px; color:var(--bs-secondary-color,#64748b); }
 .additional { margin-top:24px; border:1px solid var(--bs-border-color,#e1e7ee); border-radius:9px; padding:14px 16px; }
 .additional summary { cursor:pointer; font-size:13px; font-weight:600; }

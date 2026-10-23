@@ -3,8 +3,8 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { currencyFormatter, customFetch, customFetchMutation, customPost } from '../../components/Auth/customFetch';
 import { RiMoneyDollarCircleLine, RiFileList2Line, RiInboxArchiveLine, RiCalendarEventLine, RiFilter3Line, RiRefreshLine, RiSearchLine, RiEyeLine, RiMoneyDollarBoxLine } from '@remixicon/react';
-import PrimeTable from '../accessories/Datatables/PrimeTable';
-import { Offcanvas, Button, Modal, ButtonGroup } from 'react-bootstrap';
+import styles from './InvoiceWorkspace.module.css';
+import { Button, Modal } from 'react-bootstrap';
 
 const statusMap = {
      'Pending': { label: 'Pending', color: 'warning' },
@@ -13,16 +13,18 @@ const statusMap = {
      'Cancelled': { label: 'Cancelled', color: 'secondary' },
 };
 
+const formatDate = value => value && !Number.isNaN(new Date(value).getTime()) ? new Date(value).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}) : 'Not set';
 const InvoiceList = ({ branchid, employeeid }) => {
      const router = useRouter();
      const searchParams = useSearchParams();
      const payInvoiceId = Number(searchParams.get('payInvoice') || 0);
      const payExpenseId = Number(searchParams.get('payExpense') || 0);
      const [invoices, setInvoices] = useState([]);
-     const [loading, setLoading] = useState(false);
+     const [loading, setLoading] = useState(true);
+     const [page,setPage]=useState(1),[total,setTotal]=useState(0),[loadError,setLoadError]=useState(''),[appliedFilter,setAppliedFilter]=useState({from:'',to:'',status:''});
+     const request=React.useRef(0);
      const [localFilter, setLocalFilter] = useState({ from: '', to: '', status: '' });
-     const [showOffcanvas, setShowOffcanvas] = useState(false);
-     const [selectedInvoice, setSelectedInvoice] = useState(null);
+          const [selectedInvoice, setSelectedInvoice] = useState(null);
      const [showDetailModal, setShowDetailModal] = useState(false);
      const [invoiceExpenses, setInvoiceExpenses] = useState([]);
      const [loadingExpenses, setLoadingExpenses] = useState(false);
@@ -51,30 +53,26 @@ const InvoiceList = ({ branchid, employeeid }) => {
      const [showReversalInfoModal, setShowReversalInfoModal] = useState(false);
      const [selectedReversalInfo, setSelectedReversalInfo] = useState(null);
      const autoPayHandled = React.useRef(false);
+     const paymentAttempt = React.useRef(null);
 
      useEffect(() => {
           if (employeeid && branchid) {
                getInvoiceData();
           }
-     }, [employeeid, branchid, payInvoiceId]);
+     }, [employeeid, branchid, payInvoiceId, payExpenseId, page, appliedFilter]);
 
      const getInvoiceData = async () => {
-          setLoading(true);
+          const token=++request.current;setLoading(true);setLoadError('');
           try {
-               const response = await customFetch(`expenses/invoices?employeeid=${employeeid}&branchid=${branchid}&count=10&page=1${payInvoiceId ? `&invoiceId=${payInvoiceId}` : ''}${payExpenseId ? `&expenseId=${payExpenseId}` : ''}`);
-               if (response && response.data && Array.isArray(response.data)) {
-                    setInvoices(response.data);
-               } else if (response && Array.isArray(response)) {
-                    setInvoices(response);
-               } else {
-                    setInvoices([]);
-               }
-          } catch (error) {
-               console.log("Error fetching invoices:", error);
-               setInvoices([]);
-          } finally {
-               setLoading(false);
-          }
+               const query=new URLSearchParams({employeeid:String(employeeid),branchid:String(branchid),count:'10',page:String(page),from:appliedFilter.from,to:appliedFilter.to,status:appliedFilter.status});
+               if(payInvoiceId)query.set('invoiceId',String(payInvoiceId));if(payExpenseId)query.set('expenseId',String(payExpenseId));
+               const response=await customFetch('expenses/invoices?'+query.toString());
+               if(token!==request.current)return;
+               const data=Array.isArray(response?.data)?response.data:Array.isArray(response)?response:null;
+               if(!data)throw new Error(response?.message||'Unable to load invoices.');
+               setInvoices(data);setTotal(Number(response?.total??data.length));
+          }catch(error){if(token===request.current){setLoadError(error.message||'Unable to load invoices.');setInvoices([]);}}
+          finally{if(token===request.current)setLoading(false);}
      };
 
      const handleInputChange = (e) => {
@@ -87,18 +85,10 @@ const InvoiceList = ({ branchid, employeeid }) => {
      };
 
      const handleSearch = () => {
-          setShowOffcanvas(false);
-          getInvoiceData();
+          if(localFilter.from&&localFilter.to&&localFilter.from>localFilter.to){setLoadError('Choose an end date on or after the start date.');return;}
+          setPage(1);setAppliedFilter({...localFilter,status:localFilter.status==='all'?'':localFilter.status});
      };
-
-     const handleClear = () => {
-          const cleared = { from: '', to: '', status: '' };
-          setLocalFilter(cleared);
-          setShowOffcanvas(false);
-          getInvoiceData();
-     };
-
-
+     const handleClear = () => {const cleared={from:'',to:'',status:''};setLocalFilter(cleared);setAppliedFilter(cleared);setPage(1);};
 
      const handleAllPendingInvoiceSelection = (ev) => {
           const allPending = invoices.filter((item) => item.status == "Pending");
@@ -208,8 +198,8 @@ const InvoiceList = ({ branchid, employeeid }) => {
      }, [branchid, employeeid]);
 
      useEffect(() => {
-          if (!payInvoiceId || !payExpenseId || loading || autoPayHandled.current) return;
-          const invoice = invoices.find((item) => Number(item.id) === payInvoiceId);
+          if (!payExpenseId || loading || autoPayHandled.current) return;
+          const invoice = payInvoiceId ? invoices.find((item) => Number(item.id) === payInvoiceId) : invoices[0];
           if (!invoice) return;
           autoPayHandled.current = true;
           router.replace('/billing/expenses/invoices');
@@ -222,11 +212,10 @@ const InvoiceList = ({ branchid, employeeid }) => {
 
      const handlePaymentSubmit = async (e) => {
           e.preventDefault();
-          if (!selectedInvoice) return;
+          if (!selectedInvoice || submittingPayment) return;
 
           setSubmittingPayment(true);
           try {
-               console.log(selectedInvoice)
                const payload = {
                     expense_id: selectedInvoice.expense_id,
                     invoice_id: selectedInvoice.id,
@@ -235,12 +224,16 @@ const InvoiceList = ({ branchid, employeeid }) => {
                     method: paymentData.method,
                     payment_account_id: Number(paymentData.payment_account_id),
                     payment_reference: paymentData.payment_reference,
-                    idempotency_key: crypto.randomUUID()
+                    idempotency_key: ''
                };
 
+               const fingerprint = JSON.stringify(payload);
+               if (!paymentAttempt.current || paymentAttempt.current.fingerprint !== fingerprint) paymentAttempt.current = { fingerprint, key: crypto.randomUUID() };
+               payload.idempotency_key = paymentAttempt.current.key;
                const response = await customFetchMutation('expenses/payment', 'POST', payload);
 
                if (response?.success && response?.data?.paymentId) {
+                    paymentAttempt.current = null;
                     setPaymentFeedback({ type: 'success', message: 'Payment submitted successfully.' });
                     setShowPaymentModal(false);
                     setPaymentData({
@@ -253,7 +246,11 @@ const InvoiceList = ({ branchid, employeeid }) => {
                     setSelectedInvoice(null);
                     getInvoiceData();
                } else {
-                    throw new Error(response?.message || response?.error?.message || 'Payment submission failed');
+                    const message = response?.message || response?.error?.message || 'Payment submission failed';
+                    setPaymentFeedback({
+                         type: 'danger', message,
+                         requiresAuthority: /delegated authority|expense pay/i.test(message),
+                    });
                }
           } catch (error) {
                console.error('Error submitting payment:', error);
@@ -342,288 +339,25 @@ const InvoiceList = ({ branchid, employeeid }) => {
           }
      };
 
-     const handleServerSideProcessingForInvoices = async (pagination) => {
-          const { count, page, sortby = 'DESC', status, from, to } = pagination;
-          // Use localFilter values if not provided in pagination
-          const filterStatus = status || localFilter.status;
-          const filterFrom = from || localFilter.from;
-          const filterTo = to || localFilter.to;
-
-          const urlString = `expenses/invoices?employeeid=${employeeid}&branchid=${branchid}&count=${count}&page=${page}&from=${filterFrom}&to=${filterTo}&status=${filterStatus}&sortby=${sortby}`;
-          try {
-               const response = await customFetch(urlString);
-               let data = [];
-               if (response && response.data && Array.isArray(response.data)) {
-                    data = response.data;
-               } else if (response && Array.isArray(response)) {
-                    data = response;
-               }
-               return {
-                    result: data,
-                    error: false,
-                    pagination: response.pagination || {}
-               }
-          } catch (error) {
-               console.log("Error fetching invoices:", error);
-               return { result: [], error: true }
-          }
-     }
-
-
-     const handleInvoiceSelection = (invoiceId) => {
-          setSelectedInvoicesArray((prevSelected) => {
-               if (prevSelected.includes(invoiceId)) {
-                    return prevSelected.filter(id => id !== invoiceId);
-               } else {
-                    return [...prevSelected, invoiceId];
-               }
-          });
-     };
-
-     const columns = [
-          {
-               Header: 'Invoice Number',
-               accessor: 'invoice_number',
-               Cell: ({ cell: { value }, row }) => (
-                    <span className="fw-bold">
-                         {/* add checkbox */}
-                         <input type="checkbox" className='ms-2' checked={selectedInvoicesArray.includes(row.original.id) ? true : false} onChange={() => handleInvoiceSelection(row.original.id)} />
-                         {value}
-                    </span>
-               )
-          },
-          {
-               Header: 'Merchant',
-               accessor: 'merchant_name',
-               Cell: ({ cell: { value }, row }) => (
-                    <span className="text-capitalize">
-                         {value}
-                    </span>
-               )
-          },
-          {
-               Header: 'Total Amount',
-               accessor: 'total_amount',
-               Cell: ({ cell: { value }, row }) => (
-                    <span className="d-flex  text-black fw-semibold">
-                         <RiMoneyDollarCircleLine className="me-1 text-success" />
-                         {currencyFormatter.format(value)}
-                    </span>
-               )
-          },
-          {
-               Header: 'Tax Amount',
-               accessor: 'tax_amount',
-               Cell: ({ cell: { value }, row }) => (
-                    <span className="text-muted">
-                         {currencyFormatter.format(value)}
-                    </span>
-               )
-          },
-          {
-               Header: 'Payment Status',
-               accessor: 'final_payment_status',
-               Cell: ({ cell: { value }, row }) => (
-                    <span className="text-capitalize">{value}</span>
-               )
-          },
-          {
-               Header: 'Invoice Date',
-               accessor: 'invoice_date',
-               Cell: ({ cell: { value }, row }) => (
-                    <div>
-                         <div className="fw-medium">{new Date(value).toLocaleDateString()}</div>
-                    </div>
-               )
-          },
-          {
-               Header: 'Due Date',
-               accessor: 'due_date',
-               Cell: ({ cell: { value }, row }) => (
-                    <div>
-                         <div className="fw-medium">{value ? new Date(value).toLocaleDateString() : 'N/A'}</div>
-                    </div>
-               )
-          },
-          {
-               Header: 'Expenses Count',
-               accessor: 'expense_count',
-               Cell: ({ cell: { value }, row }) => (
-                    <span className="badge bg-info text-white">
-                         {value}
-                    </span>
-               )
-          },
-          {
-               Header: 'Reversal Info',
-               accessor: 'is_reversed',
-               Cell: ({ cell: { value }, row }) => {
-                    if (value === 1) {
-                         return (
-                              <div className='text-start'>
-                                   <Button
-                                        variant="outline-danger"
-                                        size="sm"
-                                        onClick={() => {
-                                             setSelectedReversalInfo(row.original);
-                                             setShowReversalInfoModal(true);
-                                        }}
-
-                                   >
-                                        Details
-                                   </Button>
-                              </div>
-                         );
-                    }
-                    return <span className="text-muted">-</span>;
-               }
-          },
-          {
-               Header: 'Actions',
-               accessor: 'actions',
-               Cell: ({ row }) => (
-                    <div className="d-flex gap-1">
-                         <Button
-                              variant="outline-primary"
-                              size="sm"
-                              onClick={() => handleViewInvoice(row.original)}
-                              className="d-flex align-items-center"
-                         >
-                              <RiEyeLine className="me-1" size={14} />
-                              View
-                         </Button>
-                         <Button
-                              variant="outline-success"
-                              size="sm"
-                              onClick={() => handleMakePayment(row.original)}
-                              disabled={row.original.status === 'Paid'}
-                              className="d-flex align-items-center"
-                         >
-                              <RiMoneyDollarBoxLine className="me-1" size={14} />
-                              Pay
-                         </Button>
-                         <Button
-                              variant="outline-danger"
-                              size="sm"
-                              onClick={() => handleReversePaymentFromList(row.original)}
-                              disabled={row.original.is_reversed === 1 || row.original.final_payment_status !== 'Paid'}
-                              className="d-flex align-items-center"
-                              title={row.original.is_reversed === 1 ? 'Payment already reversed' : 'Reverse this payment'}
-                         >
-                              Reverse
-                         </Button>
-                    </div>
-               )
-          },
-     ];
+     const pageAmount=invoices.reduce((sum,invoice)=>sum+Number(invoice.total_amount||0),0);
+     const paidCount=invoices.filter(invoice=>invoice.status==='Paid').length;
+     const pendingCount=invoices.filter(invoice=>invoice.status!=='Paid'&&invoice.status!=='Rejected').length;
 
      return (
-          <div>
-               {/* Header */}
-               <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h5 className="mb-0 fw-semibold text-body">Invoice Management</h5>
-               </div>
-
-               {/* Filter Button */}
-               <div className="mb-3">
-                    <ButtonGroup>
-                         <Button onClick={(ev) => {
-                              handleAllPendingInvoiceSelection(ev)
-                         }}>
-                              Select All Pending Payments
-                         </Button>
-                         <Button
-                              variant="outline-secondary"
-                              size="sm"
-                              onClick={() => setShowOffcanvas(true)}
-                              className="d-flex align-items-center"
-                         >
-                              <RiFilter3Line className="me-2" size={16} />
-                              Open Filters
-                         </Button>
-                    </ButtonGroup>
-               </div>
-
-               {/* Offcanvas Filters */}
-               <Offcanvas show={showOffcanvas} onHide={() => setShowOffcanvas(false)} placement="end">
-                    <Offcanvas.Header closeButton>
-                         <Offcanvas.Title className="d-flex align-items-center">
-                              <RiFilter3Line className="me-2 text-primary" size={20} />
-                              Filter Invoices
-                         </Offcanvas.Title>
-                    </Offcanvas.Header>
-                    <Offcanvas.Body>
-                         <div className="row g-3">
-                              <div className="col-12">
-                                   <label htmlFor="from-date" className="form-label mb-1" style={{ fontSize: '0.75rem', fontWeight: '500' }}>
-                                        <RiCalendarEventLine size={14} className="me-1" />From
-                                   </label>
-                                   <input
-                                        id="from-date"
-                                        name="from"
-                                        value={localFilter.from}
-                                        onChange={handleInputChange}
-                                        type="date"
-                                        className="form-control form-control-sm"
-                                        style={{ fontSize: '0.8rem' }}
-                                   />
-                              </div>
-                              <div className="col-12">
-                                   <label htmlFor="to-date" className="form-label mb-1" style={{ fontSize: '0.75rem', fontWeight: '500' }}>
-                                        <RiCalendarEventLine size={14} className="me-1" />To
-                                   </label>
-                                   <input
-                                        id="to-date"
-                                        name="to"
-                                        value={localFilter.to}
-                                        onChange={handleInputChange}
-                                        type="date"
-                                        className="form-control form-control-sm"
-                                        style={{ fontSize: '0.8rem' }}
-                                   />
-                              </div>
-                              <div className="col-12">
-                                   <label htmlFor="status-select" className="form-label mb-1" style={{ fontSize: '0.75rem', fontWeight: '500' }}>Status</label>
-                                   <select
-                                        id="status-select"
-                                        className="form-select form-select-sm"
-                                        onChange={handleStatusChange}
-                                        value={localFilter.status || 'all'}
-                                        style={{ fontSize: '0.8rem' }}
-                                   >
-                                        <option value="all">All</option>
-                                        <option value="Pending">Pending</option>
-                                        <option value="Paid">Paid</option>
-                                        <option value="Overdue">Overdue</option>
-                                        <option value="Cancelled">Cancelled</option>
-                                   </select>
-                              </div>
-                              <div className="col-12 d-flex gap-2">
-                                   <button
-                                        type="button"
-                                        onClick={handleSearch}
-                                        className="btn btn-primary btn-sm flex-fill d-flex align-items-center justify-content-center"
-                                        style={{ fontSize: '0.8rem', padding: '0.375rem 0.5rem' }}
-                                   >
-                                        <RiSearchLine size={14} className="me-1" /> Search
-                                   </button>
-                                   <button
-                                        onClick={handleClear}
-                                        className="btn btn-outline-secondary btn-sm flex-fill d-flex align-items-center justify-content-center"
-                                        type="button"
-                                        style={{ fontSize: '0.8rem', padding: '0.375rem 0.5rem' }}
-                                   >
-                                        <RiRefreshLine size={14} className="me-1" /> Clear
-                                   </button>
-                              </div>
-                         </div>
-                    </Offcanvas.Body>
-               </Offcanvas>
+          <main className={styles.workspace}>
+               <header className={styles.header}><div><span className={styles.eyebrow}>EXPENSES / INVOICES</span><h1>Invoices & payments</h1><p>Review supplier invoices, record payments and follow their history.</p></div><div className={styles.headerActions}><Link className="btn btn-outline-secondary" href="/billing/expenses">View expenses</Link><Button variant="primary" disabled={loading} onClick={getInvoiceData}><RiRefreshLine size={16} aria-hidden="true"/> Refresh</Button></div></header>
+               <section className={styles.summary} aria-label="Current page invoice summary"><article><span>Matching invoices</span><strong>{loading?'—':total}</strong><small>For the applied filters</small></article><article><span>Invoice value</span><strong>{loading?'—':currencyFormatter.format(pageAmount)}</strong><small>On this page</small></article><article><span>Open invoices</span><strong>{loading?'—':pendingCount}</strong><small>On this page · {paidCount} paid</small></article></section>
+               <section className={styles.panel}><div className={styles.panelHeading}><div><h2>Invoice register</h2><p>Filter by invoice date and status to find the records you need.</p></div></div>
+               <form className={styles.filters} onSubmit={event=>{event.preventDefault();handleSearch();}}><label htmlFor="invoice-from">From date<input id="invoice-from" name="from" type="date" className="form-control" value={localFilter.from} onChange={handleInputChange}/></label><label htmlFor="invoice-to">To date<input id="invoice-to" name="to" type="date" min={localFilter.from||undefined} className="form-control" value={localFilter.to} onChange={handleInputChange}/></label><label htmlFor="invoice-status">Invoice status<select id="invoice-status" className="form-select" value={localFilter.status} onChange={handleStatusChange}><option value="">All statuses</option><option value="Pending">Pending</option><option value="Approved">Approved</option><option value="Paid">Paid</option><option value="Rejected">Rejected</option></select></label><Button type="submit" variant="primary" disabled={loading}><RiSearchLine size={16} aria-hidden="true"/> Apply filters</Button><Button type="button" variant="outline-secondary" disabled={loading} onClick={handleClear}>Reset</Button></form>
+               {loadError&&<div role="alert" className="alert alert-danger">{loadError}<button type="button" className="btn btn-link" onClick={getInvoiceData}>Retry</button></div>}
+               {paymentFeedback&&!showPaymentModal&&<div role="status" className={'alert alert-'+paymentFeedback.type}>{paymentFeedback.message}</div>}
+               {loading?<div className={styles.empty} role="status"><span className="spinner-border spinner-border-sm me-2" aria-hidden="true"/>Loading invoices…</div>:!loadError&&<><div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>Invoice / merchant</th><th>Invoice date</th><th>Due date</th><th className={styles.numeric}>Amount</th><th>Status</th><th>Payment</th><th>Actions</th></tr></thead><tbody>{invoices.map(invoice=><tr key={invoice.id}><td><button type="button" className={styles.invoiceLink} onClick={()=>handleViewInvoice(invoice)}>{invoice.invoice_number}</button><small>{invoice.merchant_name||'Merchant not recorded'}</small><span className={styles.expenseCount}>{invoice.expense_count||0} expense{Number(invoice.expense_count)===1?'':'s'}</span></td><td>{formatDate(invoice.invoice_date)}</td><td>{formatDate(invoice.due_date)}</td><td className={styles.numeric}><strong>{currencyFormatter.format(Number(invoice.total_amount||0))}</strong>{Number(invoice.tax_amount)>0&&<small>Tax {currencyFormatter.format(Number(invoice.tax_amount))}</small>}</td><td><span className={styles.badge} data-tone={invoice.status==='Paid'?'success':invoice.status==='Rejected'?'danger':'warning'}>{invoice.status||'Pending'}</span></td><td><span className={styles.badge} data-tone={Number(invoice.is_reversed)===1?'danger':invoice.final_payment_status==='Paid'?'success':'neutral'}>{Number(invoice.is_reversed)===1?'Reversed':invoice.final_payment_status||'Not recorded'}</span>{Number(invoice.is_reversed)===1&&<button type="button" className={styles.historyLink} onClick={()=>{setSelectedReversalInfo(invoice);setShowReversalInfoModal(true);}}>Reversal details</button>}</td><td><div className={styles.rowActions}><Button variant="outline-secondary" size="sm" onClick={()=>handleViewInvoice(invoice)}><RiEyeLine size={15} aria-hidden="true"/> Details</Button>{invoice.status!=='Paid'&&invoice.status!=='Rejected'&&<Button variant="outline-primary" size="sm" onClick={()=>handleMakePayment(invoice)}><RiMoneyDollarBoxLine size={15} aria-hidden="true"/> Record payment</Button>}</div></td></tr>)}</tbody></table></div>{!invoices.length&&<div className={styles.empty}><RiInboxArchiveLine size={32} aria-hidden="true"/><h3>No invoices found</h3><p>Try another date range or reset the filters.</p><Button variant="outline-primary" onClick={handleClear}>Reset filters</Button></div>}<footer className={styles.pagination}><span>{total?((page-1)*10+1):0}–{Math.min(page*10,total)} of {total} invoices</span><div><Button variant="outline-secondary" size="sm" disabled={page===1} onClick={()=>setPage(page-1)}>Previous</Button><span>Page {page}</span><Button variant="outline-secondary" size="sm" disabled={page*10>=total} onClick={()=>setPage(page+1)}>Next</Button></div></footer></>}
+               </section>
 
                {/* Invoice Detail Modal */}
-               <Modal show={showDetailModal} onHide={() => { setShowDetailModal(false); setSelectedInvoice(null); setInvoiceExpenses([]); setLoadingExpenses(false); setInvoicePayments([]); setLoadingPayments(false); }} size="lg">
+               <Modal className={styles.dialog} show={showDetailModal} onHide={() => { setShowDetailModal(false); setSelectedInvoice(null); setInvoiceExpenses([]); setLoadingExpenses(false); setInvoicePayments([]); setLoadingPayments(false); }} size="lg">
                     <Modal.Header closeButton>
-                         <Modal.Title>Invoice Details</Modal.Title>
+                         <Modal.Title>Invoice details</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
                          {selectedInvoice && (
@@ -791,12 +525,18 @@ const InvoiceList = ({ branchid, employeeid }) => {
                </Modal>
 
                {/* Payment Modal */}
-               <Modal show={showPaymentModal} onHide={() => { setShowPaymentModal(false); setSelectedInvoice(null); setInvoicePayments([]); setPaymentFeedback(null); }} size="md" animation={false}>
+               <Modal className={styles.dialog} show={showPaymentModal} onHide={() => { setShowPaymentModal(false); setSelectedInvoice(null); setInvoicePayments([]); setPaymentFeedback(null); }} size="md" animation={false}>
                     <Modal.Header closeButton>
-                         <Modal.Title>Make Payment</Modal.Title>
+                         <Modal.Title>Record payment</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
-                         {paymentFeedback && <div className={`alert alert-${paymentFeedback.type}`} role="alert">{paymentFeedback.message}</div>}
+                         {paymentFeedback && <div className={`alert alert-${paymentFeedback.type}`} role="alert">
+                              {paymentFeedback.message}
+                              {paymentFeedback.requiresAuthority && <div className="mt-2">
+                                   Ask an administrator to grant Pay expenses authority with an appropriate amount ceiling for this user. Payment-account access is required separately.
+                                   <div className="mt-2"><Link href="/accounting/delegations" className="btn btn-sm btn-outline-primary">View delegated authority</Link></div>
+                              </div>}
+                         </div>}
                          {selectedInvoice && (
                               <div>
                                    <div className="mb-3">
@@ -946,7 +686,7 @@ const InvoiceList = ({ branchid, employeeid }) => {
                                              Processing...
                                         </>
                                    ) : (
-                                        'Submit Payment'
+                                        'Record payment'
                                    )}
                               </Button>
                          )}
@@ -954,7 +694,7 @@ const InvoiceList = ({ branchid, employeeid }) => {
                </Modal>
 
                {/* Reverse Payment Modal */}
-               <Modal show={showReversePaymentModal} onHide={() => { setShowReversePaymentModal(false); setSelectedPayment(null); setReversePaymentData({ paymentId: '', reversalReason: '' }); }} size="md">
+               <Modal className={styles.dialog} show={showReversePaymentModal} onHide={() => { setShowReversePaymentModal(false); setSelectedPayment(null); setReversePaymentData({ paymentId: '', reversalReason: '' }); }} size="md">
                     <Modal.Header closeButton>
                          <Modal.Title>Reverse Payment</Modal.Title>
                     </Modal.Header>
@@ -1075,41 +815,8 @@ const InvoiceList = ({ branchid, employeeid }) => {
                     </Modal.Footer>
                </Modal>
 
-               {/* Invoice Table */}
-               <div>
-                    {loading ? (
-                         <div className="text-center py-5">
-                              <div className="spinner-border spinner-border-lg text-primary" role="status">
-                                   <span className="visually-hidden">Loading...</span>
-                              </div>
-                              <div className="mt-3">
-                                   <h6 className="text-muted">Loading invoices...</h6>
-                              </div>
-                         </div>
-                    ) : (
-                         <PrimeTable
-                              column={columns}
-                              data={invoices}
-                              urlparams={localFilter}
-                              filtering={true}
-                              serverSideFiltering={true}
-                              handleSeverSideProcessing={handleServerSideProcessingForInvoices}
-                              rowStyling={{
-                                   type: "custom",
-                                   getRowStyle: (rowData) => {
-                                        const status = rowData?.final_payment_status?.toLowerCase();
-                                        if (status === "reversed") {
-                                             return { backgroundColor: "#f8d7da", color: "#842029" };
-                                        }
-                                        return {};
-                                   }
-                              }}
-                         />
-                    )}
-               </div>
-
                {/* Reversal Info Modal */}
-               <Modal show={showReversalInfoModal} onHide={() => setShowReversalInfoModal(false)} size="lg">
+               <Modal className={styles.dialog} show={showReversalInfoModal} onHide={() => setShowReversalInfoModal(false)} size="lg">
                     <Modal.Header closeButton>
                          <Modal.Title className="fw-bold">Reversal Information</Modal.Title>
                     </Modal.Header>
@@ -1159,7 +866,7 @@ const InvoiceList = ({ branchid, employeeid }) => {
                          </Button>
                     </Modal.Footer>
                </Modal>
-          </div>
+          </main>
      );
 };
 

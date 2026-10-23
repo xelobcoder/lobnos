@@ -1,28 +1,49 @@
-"use client"
+"use client";
+import { useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Tab, Tabs } from "react-bootstrap";
-import ContractForm from "../../../components/outsource/contracting";
 import OutSourcingOrganizationForm from "../../../components/outsource/newOutSourceOrganization";
-import OrganizationImageUploader from "../../../components/outsource/outSourceOrganizationProfileImageUpload";
 import OutsourceServices from "../../../components/outsource/OutSourcingServices";
 
-export default function OutsourcingIndexPage() {
+function PartnerWorkspace({ orgid }: { orgid: string }) {
+    const [activeTab, setActiveTab] = useState("organization");
+    const [savedName, setSavedName] = useState("");
+    const [saved, setSaved] = useState(false);
     return (
-        <div>
-            <Tabs defaultActiveKey="organization" className="ui" >
-                <Tab className="bg-secondary-subtle px-4 py-3 br-5" eventKey="organization" title="Outsourcing Organization">
-                    <OutSourcingOrganizationForm />
+        <main className="container-fluid py-3" style={{ maxWidth: 1200 }}>
+            <Link href="/settings/outsource" className="d-inline-block mb-3">← Outsourcing partners</Link>
+            <header className="mb-4">
+                <h1 className="h4 mb-2">{savedName || "Update outsourcing partner"}</h1>
+                <p className="text-muted mb-0">Review the organization details, then manage the tests this partner provides and their agreed costs and turnaround times.</p>
+            </header>
+            {saved && <div className="alert alert-success d-flex flex-wrap justify-content-between align-items-center gap-3" role="status">
+                <div><strong>Organization details saved.</strong><div>Next, review the partner’s services, costs and turnaround times.</div></div>
+                <button type="button" className="btn btn-success" onClick={() => { setActiveTab("services"); setSaved(false); }}>Continue to services</button>
+            </div>}
+            <Tabs id={`outsource-partner-${orgid}`} activeKey={activeTab} onSelect={key => { if (key) setActiveTab(key); }} mountOnEnter className="mb-3">
+                <Tab eventKey="organization" title="1. Organization details">
+                    <OutSourcingOrganizationForm onChanged={() => setSaved(false)} onSaved={async organization => {
+                        setSavedName(organization.name || ""); setSaved(true);
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                    }} />
                 </Tab>
-                <Tab className="bg-secondary-subtle px-4 py-3 br-5" eventKey="contract" title="Contract Information">
-                    <ContractForm />
-                </Tab>
-                <Tab title="Upload Organization Image" eventKey='imageUpload'>
-                    <OrganizationImageUploader />
-                </Tab>
-                <Tab title="Services" eventKey='services'>
+                <Tab eventKey="services" title="2. Services, costs & turnaround">
+                    <p className="text-muted">Review the tests available through this partner, including their costs and turnaround times.</p>
                     <OutsourceServices />
+                    <div className="d-flex flex-wrap justify-content-between gap-2 border-top pt-3 mt-4">
+                        <button type="button" className="btn btn-outline-secondary" onClick={() => setActiveTab("organization")}>Back to organization details</button>
+                        <Link href="/settings/outsource" className="btn btn-primary">Return to partners</Link>
+                    </div>
                 </Tab>
             </Tabs>
-        </div>
+        </main>
     );
+}
+
+export default function OutsourcingIndexPage() {
+    const orgid = useSearchParams().get("orgid") || "";
+    if (!/^[1-9]\d*$/.test(orgid)) return <div className="alert alert-warning m-3" role="alert">Choose an outsourcing partner to update. <Link href="/settings/outsource">View partners</Link></div>;
+    return <PartnerWorkspace key={orgid} orgid={orgid} />;
 }
 

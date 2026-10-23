@@ -7,7 +7,8 @@ import Loader from "../../../../components/accessories/Loader";
 import { useSearchParams } from "next/navigation";
 import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
 import Select, { SingleValue } from "react-select";
-import styles from '../../../../styles/SmsTemplateList.module.css'
+import Link from "next/link";
+import styles from './MultipleExpenses.module.css';
 
 interface ExpenseForm {
 	name: string;
@@ -59,6 +60,9 @@ export default function CreateMultipleExpenses() {
 	const [expenseForms, setExpenseForms] = useState<ExpenseForm[]>([{ ...defaultExpense }]);
 	const [errors, setErrors] = useState<Partial<Record<number, Partial<Record<keyof ExpenseForm, string>>>>>({});
 	const [isLoading, setLoading] = useState<boolean>(false);
+	const [isSubmitting, setSubmitting] = useState(false);
+	const [feedback, setFeedback] = useState<{ type: 'success' | 'danger'; message: string } | null>(null);
+	const isBusy = isLoading || isSubmitting;
 	const [categories, setCategories] = useState<Category[]>([]);
 	interface Merchant {
 		id: number;
@@ -121,8 +125,11 @@ export default function CreateMultipleExpenses() {
 	const handleRemoveExpense = (index: number) => {
 		setExpenseForms((prev) => prev.length > 1 ? prev.filter((_, i) => i !== index) : prev);
 		setErrors((prev) => {
-			const newErrors = { ...prev };
-			delete newErrors[index];
+			const newErrors: typeof prev = {};
+			Object.entries(prev).forEach(([key, value]) => {
+				const row = Number(key);
+				if (row !== index) newErrors[row > index ? row - 1 : row] = value;
+			});
 			return newErrors;
 		});
 	};
@@ -130,6 +137,8 @@ export default function CreateMultipleExpenses() {
 	// Form submission handler for multiple expenses
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
+		if (isBusy) return;
+		setFeedback(null);
 		let hasError = false;
 		const allErrors: typeof errors = {};
 
@@ -142,6 +151,7 @@ export default function CreateMultipleExpenses() {
 
 		// Validate shared fields
 		const sharedFieldErrors = validateSharedFields();
+		setSharedErrors(sharedFieldErrors);
 		if (Object.keys(sharedFieldErrors).length > 0) {
 			hasError = true;
 			setSharedErrors(sharedFieldErrors);
@@ -149,10 +159,11 @@ export default function CreateMultipleExpenses() {
 
 		setErrors(allErrors);
 		if (hasError) {
+			setFeedback({ type: 'danger', message: 'Review the highlighted fields. Every expense needs a name, merchant, category and amount.' });
 			toast.error("Please fix form errors before submitting", { autoClose: 3000 });
 			return;
 		}
-		setLoading(true);
+		setSubmitting(true);
 		try {
 			// Prepare bulk expense data
 			const expenses = expenseForms.map((form) => ({
@@ -174,6 +185,7 @@ export default function CreateMultipleExpenses() {
 			);
 
 			if (response && response.success && response.success.length > 0) {
+				setFeedback({ type: 'success', message: `${response.success.length} expenses submitted for approval. Group: ${response.groupId || 'Created'}.` });
 				toast.success(`${response.success.length} expenses submitted successfully awaiting approval. Group ID: ${response.groupId}`, { autoClose: 2000 });
 				setExpenseForms([{ ...defaultExpense }]);
 				setSharedInvoiceNumber("");
@@ -183,14 +195,16 @@ export default function CreateMultipleExpenses() {
 				throw new Error("Submission failed");
 			}
 		} catch (error) {
+			setFeedback({ type: 'danger', message: 'The expense request could not be submitted. Your entries are still here; please try again.' });
 			toast.error("Failed to submit expenses. Please try again.", { autoClose: 5000 });
 		} finally {
-			setLoading(false);
+			setSubmitting(false);
 		}
 	};
 
 	// Fetch categories and merchants in parallel
 	useEffect(() => {
+		if (!branchid || !employeeid) return;
 		setLoading(true);
 		Promise.all([
 			customFetch(`expense/get/category?&branchid=${branchid}&employeeid=${employeeid}`),
@@ -205,6 +219,7 @@ export default function CreateMultipleExpenses() {
 				}
 			})
 			.catch(() => {
+				setFeedback({ type: 'danger', message: 'Categories or merchants could not be loaded. Reload this page before submitting your expenses.' });
 				toast.error("Failed to load categories or merchants", { autoClose: 3000 });
 			})
 			.finally(() => setLoading(false));
@@ -215,20 +230,24 @@ export default function CreateMultipleExpenses() {
 	const totalTax = expenseForms.reduce((sum, form) => sum + (parseFloat(form.taxAmount) || 0), 0);
 
 	return (
-		<div>
-			<div className="d-flex justify-content-between align-items-center mb-4">
-				<div className="mb-0">Create Multiple Expenses</div>
-				<small className="text-muted">All fields marked with * are required</small>
-			</div>
+		<main className={styles.workspace}>
+			<Link href="/billing/expenses" className={styles.back}>← Expenses</Link>
+			<header className={styles.header}>
+				<div><span className={styles.eyebrow}>EXPENSE REQUEST</span><h1>Create multiple expenses</h1><p>Add your line items, review the total, and submit them together for approval.</p></div>
+				<div className={styles.headerTotal}><span>{expenseForms.length} expense {expenseForms.length === 1 ? 'item' : 'items'}</span><strong>GHC {(totalAmount + totalTax).toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong><small>Total request amount</small></div>
+			</header>
+			{feedback && <div className={`alert alert-${feedback.type}`} role={feedback.type === 'danger' ? 'alert' : 'status'}>{feedback.message}{feedback.type === 'success' && <Link href="/billing/expenses" className="d-block mt-2">View expenses →</Link>}</div>}
 			<div>
 				{isLoading && <Loader />}
-				<form onSubmit={handleSubmit} noValidate>
-					<div className="d-flex justify-content-between align-items-center mb-3">
-						<div className="d-flex align-items-center gap-3">
+				<form onSubmit={handleSubmit} noValidate className={styles.form} aria-busy={isBusy}>
+					<div className={styles.sectionHeading}><div><h2>1. Shared details</h2><p>The date and description apply to every item in this request.</p></div><span>* Required</span></div>
+					<div className={styles.sharedBar}>
+						<div className={styles.sharedFields}>
 							<div>
-								<label className="form-label pls-label small me-2">Invoice Number</label>
+								<label htmlFor="expense-invoice-number" className="form-label pls-label small me-2">Invoice number <span className="text-muted fw-normal">(optional)</span></label>
 								<input
 									name="sharedInvoiceNumber"
+									id="expense-invoice-number"
 									value={sharedInvoiceNumber}
 									onChange={(e) => {
 										setSharedInvoiceNumber(e.target.value);
@@ -237,14 +256,15 @@ export default function CreateMultipleExpenses() {
 									className={`form-control form-control-sm ${sharedErrors.invoiceNumber ? "is-invalid" : ""}`}
 									type="text"
 									placeholder="Enter invoice number"
-									disabled={isLoading}
+									disabled={isBusy}
 								/>
 								{sharedErrors.invoiceNumber && <div className="invalid-feedback">{sharedErrors.invoiceNumber}</div>}
 							</div>
 							<div>
-								<label className="form-label pls-label small me-2">Date <span className="text-danger">*</span></label>
+								<label htmlFor="expense-date" className="form-label pls-label small me-2">Expense date <span className="text-danger">*</span></label>
 								<input
 									name="sharedDate"
+									id="expense-date"
 									value={formatDateForInput(sharedDate)}
 									onChange={(e) => {
 										setSharedDate(e.target.value);
@@ -252,16 +272,17 @@ export default function CreateMultipleExpenses() {
 									}}
 									type="datetime-local"
 									className={`form-control form-control-sm ${sharedErrors.date ? "is-invalid" : ""}`}
-									disabled={isLoading}
+									disabled={isBusy}
 								/>
 								{sharedErrors.date && <div className="invalid-feedback">{sharedErrors.date}</div>}
 							</div>
 						</div>
-						<button type="button" className="btn btn-success btn-sm" onClick={handleAddExpense} disabled={isLoading}>
+						<button type="button" className="btn btn-success btn-sm" onClick={handleAddExpense} disabled={isBusy}>
 							+ Add Row
 						</button>
 					</div>
-					<div className="table-responsive">
+					<div className={styles.sectionHeading}><div><h2>2. Expense items</h2><p>Use a separate row for each expense. Amounts are in Ghana cedis.</p></div></div>
+					<div className={styles.tableWrap}>
 						<table className={styles.table} >
 							<thead >
 								<tr>
@@ -276,22 +297,24 @@ export default function CreateMultipleExpenses() {
 							</thead>
 							<tbody>
 								{expenseForms.map((formData, idx) => (
-									<tr key={idx} className={errors[idx] && Object.keys(errors[idx] || {}).length > 0 ? "table-danger" : ""}>
+									<tr key={idx} className={Object.values(errors[idx] || {}).some(Boolean) ? "table-danger" : ""}>
 										<td className="text-center fw-bold">{idx + 1}</td>
 										<td>
 											<input
 												name="name"
+												aria-label={`Expense ${idx + 1} name`}
 												value={formData.name}
 												onChange={(e) => handleInputChange(idx, e)}
 												className={`form-control form-control-sm ${errors[idx]?.name ? "is-invalid" : ""}`}
 												type="text"
 												placeholder="Expense name"
-												disabled={isLoading}
+												disabled={isBusy}
 											/>
 											{errors[idx]?.name && <div className="invalid-feedback">{errors[idx]?.name}</div>}
 										</td>
 										<td>
 											<Select
+												aria-label={`Expense ${idx + 1} merchant`}
 												options={merchants.map((merchant) => ({
 													value: merchant.id,
 													label: merchant.name,
@@ -313,13 +336,14 @@ export default function CreateMultipleExpenses() {
 															.find((option) => option.value === Number(formData.merchant)) || null
 														: null
 												}
-												isDisabled={isLoading}
+												isDisabled={isBusy}
 											/>
 											{errors[idx]?.merchant && <div className="invalid-feedback d-block">{errors[idx]?.merchant}</div>}
 										</td>
 										<td>
 											<input
 												name="amount"
+												aria-label={`Expense ${idx + 1} amount in Ghana cedis`}
 												value={formData.amount || ""}
 												onChange={(e) => handleInputChange(idx, e)}
 												className={`form-control form-control-sm ${errors[idx]?.amount ? "is-invalid" : ""}`}
@@ -327,7 +351,7 @@ export default function CreateMultipleExpenses() {
 												step="0.01"
 												min="0"
 												placeholder="0.00"
-												disabled={isLoading}
+												disabled={isBusy}
 											/>
 											{errors[idx]?.amount && <div className="invalid-feedback">{errors[idx]?.amount}</div>}
 										</td>
@@ -354,13 +378,14 @@ export default function CreateMultipleExpenses() {
 															.find((option) => option.value === formData.category) || null
 														: null
 												}
-												isDisabled={isLoading}
+												isDisabled={isBusy}
 											/>
 											{errors[idx]?.category && <div className="invalid-feedback d-block">{errors[idx]?.category}</div>}
 										</td>
 										<td>
 											<input
 												name="taxAmount"
+												aria-label={`Expense ${idx + 1} tax in Ghana cedis`}
 												value={formData.taxAmount}
 												onChange={(e) => handleInputChange(idx, e)}
 												className={`form-control form-control-sm ${errors[idx]?.taxAmount ? "is-invalid" : ""}`}
@@ -368,7 +393,7 @@ export default function CreateMultipleExpenses() {
 												step="0.01"
 												min="0"
 												placeholder="0.00"
-												disabled={isLoading}
+												disabled={isBusy}
 											/>
 											{errors[idx]?.taxAmount && <div className="invalid-feedback">{errors[idx]?.taxAmount}</div>}
 										</td>
@@ -377,8 +402,9 @@ export default function CreateMultipleExpenses() {
 												type="button"
 												className="btn btn-danger btn-sm"
 												onClick={() => handleRemoveExpense(idx)}
-												disabled={isLoading || expenseForms.length === 1}
+												disabled={isBusy || expenseForms.length === 1}
 												title="Remove this expense"
+												aria-label={`Remove expense ${idx + 1}`}
 											>
 												×
 											</button>
@@ -390,16 +416,17 @@ export default function CreateMultipleExpenses() {
 					</div>
 
 					{/* Shared Invoice Fields */}
-					<div className="row g-3 mt-4 p-3 border rounded bg-body-tertiary">
+					<div className={styles.summary}>
 						<div className="col-12">
-							<h6 className="mb-3 text-primary">Invoice Information</h6>
+							<h2 className={styles.summaryTitle}>3. Review your request</h2>
 						</div>
 						<div className="col-12">
-							<label className="form-label pls-label small">
+							<label htmlFor="expense-description" className="form-label pls-label small">
 								Description <span className="text-danger">*</span>
 							</label>
 							<textarea
 								name="sharedDescription"
+								id="expense-description"
 								value={sharedDescription}
 								onChange={(e) => {
 									setSharedDescription(e.target.value);
@@ -408,7 +435,7 @@ export default function CreateMultipleExpenses() {
 								className={`form-control form-control-sm ${sharedErrors.description ? "is-invalid" : ""}`}
 								rows={3}
 								placeholder="Enter description for all expense items"
-								disabled={isLoading}
+								disabled={isBusy}
 							/>
 							{sharedErrors.description && <div className="invalid-feedback">{sharedErrors.description}</div>}
 						</div>
@@ -437,8 +464,8 @@ export default function CreateMultipleExpenses() {
 						</div>
 					</div>
 
-					<div className="d-flex justify-content-between align-items-center mt-3">
-						<button type="button" className="btn btn-outline-primary btn-sm" onClick={handleAddExpense} disabled={isLoading}>
+					<div className={styles.actions}>
+						<button type="button" className="btn btn-outline-primary btn-sm" onClick={handleAddExpense} disabled={isBusy}>
 							Add New Line Item
 						</button>
 
@@ -446,9 +473,9 @@ export default function CreateMultipleExpenses() {
 							<button
 								type="submit"
 								className="btn btn-primary btn-sm me-2"
-								disabled={isLoading}
+								disabled={isBusy}
 							>
-								{isLoading ? (
+								{isSubmitting ? (
 									<>
 										<span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
 										Submitting...
@@ -466,8 +493,9 @@ export default function CreateMultipleExpenses() {
 									setSharedDescription("");
 									setSharedDate("");
 									setSharedErrors({});
+									setErrors({}); setFeedback(null);
 								}}
-								disabled={isLoading}
+								disabled={isBusy}
 							>
 								Reset All
 							</button>
@@ -475,6 +503,6 @@ export default function CreateMultipleExpenses() {
 					</div>
 				</form>
 			</div>
-		</div>
+		</main>
 	);
 }

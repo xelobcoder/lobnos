@@ -37,8 +37,8 @@ const validationSchema = Yup.object().shape({
     organizationType: Yup.string().required('Type of Organization is required')
 });
 
-/** @param {{ onSaved?: (organization: any) => void | Promise<void>, onCancel?: () => void, creating?: boolean }} props */
-export default function OutSourcingOrganizationForm({ onSaved, onCancel, creating = false } = {}) {
+/** @param {{ onSaved?: (organization: any) => void | Promise<void>, onCancel?: () => void, onChanged?: () => void, creating?: boolean }} props */
+export default function OutSourcingOrganizationForm({ onSaved, onCancel, onChanged, creating = false } = {}) {
     const { applicationsettings } = useApplicationSettings();
     const employeeid = applicationsettings?.user?.employeeid
     const params = useSearchParams();
@@ -46,13 +46,17 @@ export default function OutSourcingOrganizationForm({ onSaved, onCancel, creatin
     const method = outsourceid ? 'PUT' : 'POST';
     const [formData, setFormData] = useState(defaultData);
     const [errors, setErrors] = useState({});
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(!!outsourceid);
+    const [loadError, setLoadError] = useState('');
+    const [loadAttempt, setLoadAttempt] = useState(0);
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState('');
     const router = useRouter();
 
     const handleChange = (e) => {
         const { name, value } = e.target;
+        onChanged?.();
+        setSaveError('');
         setFormData((prevData) => ({
             ...prevData,
             [name]: value
@@ -98,23 +102,27 @@ export default function OutSourcingOrganizationForm({ onSaved, onCancel, creatin
     };
 
     useEffect(() => {
+        let active = true;
         if (outsourceid) {
             setLoading(true);
+            setLoadError('');
             customFetch(`outsourcing/organization?outsourceid=${outsourceid}`)
                 .then((data) => {
+                    if (!active) return;
                     if (Array.isArray(data) && data.length > 0) {
-                        setFormData(data[0]);
-                    }
+                        setFormData({ ...defaultData, ...data[0] });
+                    } else throw new Error('This organization could not be found.');
                 })
                 .catch((err) => {
-                    console.error('Error fetching organization data:', err);
-                    setFormData(defaultData);
+                    if (active) setLoadError(err?.message || 'Unable to load the organization. Please try again.');
                 })
-                .finally(() => setLoading(false));
+                .finally(() => { if (active) setLoading(false); });
         }
-    }, [outsourceid]);
+        return () => { active = false; };
+    }, [outsourceid, loadAttempt]);
 
     if (loading) return <Loader />;
+    if (loadError) return <div className="alert alert-danger" role="alert"><p>{loadError}</p><Button variant="outline-danger" onClick={() => setLoadAttempt(attempt => attempt + 1)}>Try again</Button></div>;
 
     const field = (name, label, placeholder, options = {}) => (
         <Form.Group controlId={`outsource-${name}`} className={options.wide ? styles.wide : undefined}>

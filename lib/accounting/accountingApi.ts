@@ -365,28 +365,28 @@ export const accountingApi = {
      },
 
      createBankAccount(payload: { name: string; bank_name?: string; account_number?: string; gl_account_code: string; branchid?: number | null }) {
-          return customPost(`/api/v1/${BASE}/bank/accounts`, "POST", payload);
+          return customPost(`${BASE}/bank/accounts`, "POST", payload);
      },
 
      updateBankAccount(
           id: number,
           payload: Partial<{ name: string; bank_name: string; account_number: string; gl_account_code: string; is_active: boolean }>
      ) {
-          return customPost(`/api/v1/${BASE}/bank/accounts/${id}`, "PUT", payload);
+          return customPost(`${BASE}/bank/accounts/${id}`, "PUT", payload);
      },
 
      importBankStatement(payload: {
           bankAccountId: number;
           lines: Array<{ txnDate: string; description?: string; reference?: string; amount: number }>;
      }) {
-          return customPost(`/api/v1/${BASE}/bank/statement/import`, "POST", payload);
+          return customPost(`${BASE}/bank/statement/import`, "POST", payload);
      },
 
      importBankExcel(bankAccountId: number, file: File) {
           const form = new FormData();
           form.append("bankAccountId", String(bankAccountId));
           form.append("file", file);
-          return customFile(`/api/v1/${BASE}/bank/statement/import-excel`, form);
+          return customFile(`${BASE}/bank/statement/import-excel`, form);
      },
 
      bankStatementLines(
@@ -409,19 +409,19 @@ export const accountingApi = {
      },
 
      bankMatch(statementLineId: number, journalLineId: number) {
-          return customPost(`/api/v1/${BASE}/bank/match`, "POST", { statementLineId, journalLineId });
+          return customPost(`${BASE}/bank/match`, "POST", { statementLineId, journalLineId });
      },
 
      bankMatchMany(pairs: Array<{ statementLineId: number; journalLineId: number }>) {
-          return customPost(`/api/v1/${BASE}/bank/match-many`, "POST", { pairs });
+          return customPost(`${BASE}/bank/match-many`, "POST", { pairs });
      },
 
      bankUnmatch(statementLineId: number) {
-          return customPost(`/api/v1/${BASE}/bank/statement-lines/${statementLineId}/unmatch`, "PUT", {});
+          return customPost(`${BASE}/bank/statement-lines/${statementLineId}/unmatch`, "PUT", {});
      },
 
      bankIgnore(statementLineId: number) {
-          return customPost(`/api/v1/${BASE}/bank/statement-lines/${statementLineId}/ignore`, "PUT", {});
+          return customPost(`${BASE}/bank/statement-lines/${statementLineId}/ignore`, "PUT", {});
      },
 
      authorityEmployees(): Promise<ApiResponse<Array<{ employeeid: number; username: string; role: string; branch: number | null; fullname: string }>>> {
@@ -445,7 +445,7 @@ export const accountingApi = {
           expiresAt?: string | null;
           notes?: string | null;
      }) {
-          return customPost(`/api/v1/${BASE}/authority/delegations`, "POST", payload);
+          return customPost(`${BASE}/authority/delegations`, "POST", payload);
      },
 
      reviseDelegation(id: number, payload: {
@@ -455,11 +455,11 @@ export const accountingApi = {
           expiresAt?: string | null;
           notes?: string | null;
      }) {
-          return customPost(`/api/v1/${BASE}/authority/delegations/${id}`, "PUT", payload);
+          return customPost(`${BASE}/authority/delegations/${id}`, "PUT", payload);
      },
 
      revokeDelegation(id: number) {
-          return customPost(`/api/v1/${BASE}/authority/delegations/${id}`, "DELETE", {});
+          return customPost(`${BASE}/authority/delegations/${id}`, "DELETE", {});
      },
 
      cashFlow(from: string, to: string): Promise<ApiResponse<any>> {
@@ -539,15 +539,15 @@ export const accountingApi = {
      },
 
      submitDailyClose(financialDate: string, payload: { branchId: number; pin: string; timezone: string; notes?: string; expectedVersion?: number }) {
-          return customPost(`/api/v1/${BASE}/daily-closes/${financialDate}/accountant-submit`, 'POST', payload);
+          return customPost(`${BASE}/daily-closes/${financialDate}/accountant-submit`, 'POST', payload);
      },
 
      decideDailyClose(id: number, payload: { decision: 'approve' | 'reject'; pin: string; reason?: string; notes?: string; expectedVersion: number }) {
-          return customPost(`/api/v1/${BASE}/daily-closes/${id}/manager-decision`, 'POST', payload);
+          return customPost(`${BASE}/daily-closes/${id}/manager-decision`, 'POST', payload);
      },
 
      finalizeDailyClose(id: number, payload: { pin: string; notes?: string; expectedVersion: number }) {
-          return customPost(`/api/v1/${BASE}/daily-closes/${id}/finalize`, 'POST', payload);
+          return customPost(`${BASE}/daily-closes/${id}/finalize`, 'POST', payload);
      },
 
      periodTotals(periodCode: string): Promise<ApiResponse<{ debits: number; credits: number; entries: number }>> {
@@ -555,7 +555,7 @@ export const accountingApi = {
      },
 
      setPeriodStatus(periodCode: string, status: PeriodStatus, employeeid: number, notes?: string) {
-          return customPost(`/api/v1/${BASE}/periods/${periodCode}/status`, "PUT", { status, employeeid, notes });
+          return customPost(`${BASE}/periods/${periodCode}/status`, "PUT", { status, employeeid, notes });
      },
 
      manualJournals(filters: {
@@ -581,7 +581,7 @@ export const accountingApi = {
           employeeid: number;
           lines: ManualJournalLine[];
      }) {
-          return customPost(`/api/v1/${BASE}/manual-journals`, "POST", payload);
+          return customPost(`${BASE}/manual-journals`, "POST", payload);
      },
 
      updateManualJournal(id: number, payload: {
@@ -591,27 +591,27 @@ export const accountingApi = {
           notes?: string;
           lines: ManualJournalLine[];
      }) {
-          return customPost(`/api/v1/${BASE}/manual-journals/${id}`, "PUT", payload);
+          return customPost(`${BASE}/manual-journals/${id}`, "PUT", payload);
      },
 
      submitManualJournal(id: number, employeeid: number) {
-          return customPost(`/api/v1/${BASE}/manual-journals/${id}/submit`, "PUT", { employeeid });
+          return customPost(`${BASE}/manual-journals/${id}/submit`, "PUT", { employeeid });
      },
 
      approveManualJournal(id: number, employeeid: number) {
-          return customPost(`/api/v1/${BASE}/manual-journals/${id}/approve`, "PUT", { employeeid });
+          return customPost(`${BASE}/manual-journals/${id}/approve`, "PUT", { employeeid });
      },
 
      postManualJournal(id: number, employeeid: number) {
-          return customPost(`/api/v1/${BASE}/manual-journals/${id}/post`, "PUT", { employeeid });
+          return customPost(`${BASE}/manual-journals/${id}/post`, "PUT", { employeeid });
      },
 
      reverseManualJournal(id: number, employeeid: number, description?: string) {
-          return customPost(`/api/v1/${BASE}/manual-journals/${id}/reverse`, "PUT", { employeeid, description });
+          return customPost(`${BASE}/manual-journals/${id}/reverse`, "PUT", { employeeid, description });
      },
 
      voidManualJournal(id: number, employeeid: number, reason?: string) {
-          return customPost(`/api/v1/${BASE}/manual-journals/${id}/void`, "PUT", { employeeid, reason });
+          return customPost(`${BASE}/manual-journals/${id}/void`, "PUT", { employeeid, reason });
      },
 
      outboxHealth(): Promise<ApiResponse<OutboxHealth>> {
@@ -623,14 +623,14 @@ export const accountingApi = {
      },
 
      replayOutbox(id: number) {
-          return customPost(`/api/v1/${BASE}/outbox/${id}/replay`, "PUT", {});
+          return customPost(`${BASE}/outbox/${id}/replay`, "PUT", {});
      },
 
      closeFiscalYear(fiscalYear: number, employeeid: number) {
-          return customPost(`/api/v1/${BASE}/close/fiscal-year`, "POST", { fiscalYear, employeeid });
+          return customPost(`${BASE}/close/fiscal-year`, "POST", { fiscalYear, employeeid });
      },
 
      openingBalances(asOf: string, lines: Array<{ accountCode: string; debit?: number; credit?: number }>, employeeid: number) {
-          return customPost(`/api/v1/${BASE}/opening-balances`, "POST", { asOf, lines, employeeid });
+          return customPost(`${BASE}/opening-balances`, "POST", { asOf, lines, employeeid });
      },
 };

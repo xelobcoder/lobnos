@@ -20,6 +20,7 @@ export const ExpensesLinks: Link[] = [
         icon: <RiMoneyDollarCircleLine />,
         children: [
             { title: "Expenses", link: "/billing/expenses", icon: <RiMoneyDollarCircleLine /> },
+            { title: "Awaiting Approval", link: "/billing/expenses/awaiting-approval", icon: <RiFolderChartLine /> },
             { title: "New Expense", link: "/billing/expenses/create-new-expense", icon: <RiAddCircleLine /> },
             { title: "Multiple Expenses", link: "/billing/expenses/create-multiple-expenses", icon: <RiFileAddLine /> },
             { title: "Expense Category", link: "/billing/expenses/category", icon: <RiFolderChartLine /> },
