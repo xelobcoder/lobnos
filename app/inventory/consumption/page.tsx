@@ -70,7 +70,10 @@ interface ConsumptionRecord {
      item_id: string;
      item_name: string;
      item_sku: string;
-     consumption_type: 'manual';
+     consumption_type: 'manual' | 'test' | 'wastage' | 'phlebotomy';
+     patientid?: number;
+     ascensionid?: number;
+     reference_id?: string;
      quantity: number;
      reason: string;
      batch_number?: string;
@@ -80,6 +83,7 @@ interface ConsumptionRecord {
 }
 
 interface ConsumptionSummary {
+     phlebotomy_consumptions?: number;
      total_consumptions: number;
      manual_consumptions: number;
      test_consumptions: number;
@@ -119,6 +123,8 @@ interface AvailableStockDetail {
 }
 
 const CONSUMPTION_TYPES = {
+     phlebotomy: { label: 'Phlebotomy', color: 'info' },
+     test: { label: 'Laboratory / Test', color: 'success' },
      manual: { label: 'Manual Consumption', color: 'primary' },
      wastage: { label: 'Wastage', color: 'warning' }
 };
@@ -576,7 +582,7 @@ export default function StockConsumptionPage() {
                                         <span className="fw-medium text-muted small">Test Consumptions</span>
                                    </div>
                                    <div className="fs-4 fw-bold text-success">{consumptionSummary.test_consumptions.toLocaleString()}</div>
-                                   <div className="small text-muted">Test-related usage</div>
+                                   <div className="small text-muted">Laboratory and test usage</div>
                               </div>
                          </div>
                          <div className="col-md-3">
@@ -589,6 +595,7 @@ export default function StockConsumptionPage() {
                                    <div className="small text-muted">Wastage records</div>
                               </div>
                          </div>
+                         <div className="col-md-3"><div className="border rounded p-3 h-100"><div className="fw-medium text-muted small mb-2">Phlebotomy Consumptions</div><div className="fs-4 fw-bold text-info">{(consumptionSummary.phlebotomy_consumptions || 0).toLocaleString()}</div><div className="small text-muted">Collection supplies used</div></div></div>
                          <div className="col-md-6">
                               <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                    <div className="d-flex align-items-center mb-2">
@@ -956,6 +963,9 @@ export default function StockConsumptionPage() {
                                                   <p><strong>Item:</strong> {selectedRecord.item_name}</p>
                                                   <p><strong>SKU:</strong> {selectedRecord.item_sku}</p>
                                                   <p><strong>Performed By:</strong> {selectedRecord.performed_by}</p>
+                                                  {selectedRecord.patientid && <p><strong>Patient:</strong> {selectedRecord.patientid}</p>}
+                                                  {selectedRecord.ascensionid && <p><strong>Ordered test:</strong> {selectedRecord.ascensionid}</p>}
+                                                  {selectedRecord.reference_id && <p><strong>Usage reference:</strong> {selectedRecord.reference_id}</p>}
                                                   <p><strong>Transaction Date:</strong> {new Date(selectedRecord.transaction_date).toLocaleString()}</p>
                                              </div>
                                              <div className="col-md-6">
