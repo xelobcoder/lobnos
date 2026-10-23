@@ -2,16 +2,24 @@
 import BasicInformationClinician from "../../../components/Clinicians/BasicInformationClinician";
 import ImageUploadClinician from "../../../components/Clinicians/ImageUploadClinician";
 import ClinicianAuthenticationView from '../../../components/Clinicians/ClinicianAuthenticationView';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import styles from '../../../components/common/DirectoryWorkspace.module.css';
 
 export default function Clinicians() {
+	const clinicianid = useSearchParams().get('clinicianid');
 	return (
-		<div className="d-flex flex-column flex-md-row col-12" >
-			<div className="col-12 col-md-3">
+		<main className={styles.workspace}>
+		<Link href="/clinicians" className={styles.back}>← Clinicians</Link>
+		<header className={styles.header}><div><span className={styles.eyebrow}>CLINICIAN DETAILS</span><h1>{clinicianid ? 'Update clinician' : 'Add a clinician'}</h1><p>Keep professional and contact details current, then manage the clinician’s organization affiliations.</p></div>{clinicianid && <Link className="btn btn-outline-secondary" href={`/clinicians/clinicianview?clinicianid=${clinicianid}`}>View profile</Link>}</header>
+		<div className={clinicianid ? styles.editLayout : ''}>
+			{clinicianid && <aside className={styles.panel}>
 				<ImageUploadClinician />
-			</div>
-			<div className="col-12 col-md-9 mx-md-2  mt-md-0 mt-sm-4">
+			</aside>}
+			<div className={styles.panel}>
 				<BasicInformationClinician />
 			</div>
 		</div>
+		</main>
 	);
 }

@@ -11,13 +11,14 @@ import { customPost, customFile,customFetch } from "../../components/Auth/custom
 import { useApplication } from "../../components/Auth/useApplicationContext";
 import { roleAllowed } from "../../components/Auth/roles";
 import BasicInformationClinician from "../../components/Clinicians/BasicInformationClinician";
+import styles from '../../components/common/DirectoryWorkspace.module.css';
 
 const getClinicianId = (clinician: Clinician) => clinician.id || clinician.clinician_id || 0;
 
 const ActionButtons = ({ original, onEdit, onView, onDelete }) => {
     return (
         <Dropdown>
-            <Dropdown.Toggle variant="outline-secondary" id={`dropdown-${original.id}`} style={{ zIndex: 9999, height: 'auto' }} size="sm">
+            <Dropdown.Toggle variant="outline-secondary" aria-label={`Actions for ${original.name}`} id={`dropdown-${original.id}`} style={{ height: 'auto' }} size="sm">
                 <RiMoreFill size={24} />
             </Dropdown.Toggle>
             <Dropdown.Menu className="m-0 p-0 bg-white">
@@ -96,7 +97,7 @@ type Clinician = {
 };
 
 const FinancialInfoModal = ({ show, onHide, data }) => (
-    <Modal show={show} onHide={onHide}>
+    <Modal fullscreen="sm-down" scrollable className={styles.dialog} show={show} onHide={onHide}>
         <Modal.Header closeButton>
             <Modal.Title>Financial Information</Modal.Title>
         </Modal.Header>
@@ -124,7 +125,8 @@ const FinancialInfoModal = ({ show, onHide, data }) => (
 export default function ClinicianList() {
     const [clinicianList, setClinician] = useState<Clinician[]>([]);
     const [pagination, setPagination] = useState({ page: 1, count: 10, show: false });
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState('');
     const [showFinancialModal, setShowFinancialModal] = useState(false);
     const [financialModalData, setFinancialModalData] = useState(null);
     const [showExcelModal, setShowExcelModal] = useState(false);
@@ -149,6 +151,7 @@ export default function ClinicianList() {
     const router = useRouter();
 
     const getClinicianData = async () => {
+        setLoadError('');
         try {
             setLoading(true);
             const response = await customFetch(`clinicians?count=${pagination.count}&page=${pagination.page}&&role=${role}`)
@@ -156,12 +159,14 @@ export default function ClinicianList() {
             if (statusCode == 200 && result && Array.isArray(result)) {
                 setClinician(result);
             } else {
+                setLoadError(response?.message || 'Unable to load clinicians. Please try again.');
                 toast.error('Failed to fetch clinicians', {
                     position: 'top-right',
                     autoClose: 2000,
                 });
             }
         } catch (err) {
+            setLoadError(err?.message || 'Unable to load clinicians. Please try again.');
             toast.error(err.message || 'Error connecting to server', {
                 position: 'top-right',
                 autoClose: 2000,
@@ -173,7 +178,7 @@ export default function ClinicianList() {
 
     useEffect(() => {
         role && getClinicianData();
-    }, []);
+    }, [role]);
 
     const fieldMapping: { [key: string]: string } = {
         name: "Name",
@@ -403,7 +408,7 @@ export default function ClinicianList() {
     };
 
     const columnsMini = [
-        { Header: 'Name', accessor: 'name' },
+        { Header: 'Name', accessor: 'name', Cell: ({ row, value }) => <Link className="fw-semibold text-decoration-none" href={`/clinicians/clinicianview?clinicianid=${getClinicianId(row.original)}`}>{value || 'Unnamed clinician'}</Link> },
         { Header: 'Email', accessor: 'email' },
         { Header: 'Location', accessor: 'location' },
         {
@@ -440,7 +445,7 @@ export default function ClinicianList() {
     };
 
     const extendAdminView = [
-        { Header: 'Name', accessor: 'name' },
+        { Header: 'Name', accessor: 'name', Cell: ({ row, value }) => <Link className="fw-semibold text-decoration-none" href={`/clinicians/clinicianview?clinicianid=${getClinicianId(row.original)}`}>{value || 'Unnamed clinician'}</Link> },
         { Header: 'Email', accessor: 'email' },
         { Header: 'Phone', accessor: 'phone' },
         { Header: 'Location', accessor: 'location' },
@@ -511,7 +516,9 @@ export default function ClinicianList() {
 
     return (
         <>
-            <div className="container-fluid">
+            <div className={styles.workspace}>
+                <header className={styles.header}><div><span className={styles.eyebrow}>REFERRAL NETWORK</span><h1>Clinicians</h1><p>Manage clinician profiles, organization affiliations, payment details and referral activity.</p></div><Link href="/clinicians/add-new" className="btn btn-primary"><RiAddLine size={18} aria-hidden="true" /> New clinician</Link></header>
+                {loadError && <div className="alert alert-danger" role="alert">{loadError}<button type="button" className="btn btn-link" onClick={getClinicianData}>Retry</button></div>}
                 {loading ? (
                     <div className="p-5 text-center">
                         <div className="spinner-border text-primary mb-3" role="status">
@@ -521,9 +528,9 @@ export default function ClinicianList() {
                     </div>
                 ) : (
                     <div>
-                        <div className="bg-gradient-primary text-white py-3">
+                        <div className={styles.panel}>
                             <div className="d-flex justify-content-between align-items-center">
-                                <div className="d-flex gap-2">
+                                <div className={styles.actions}>
                                     <Button
                                         variant="outline-primary"
                                         size="sm"
@@ -542,24 +549,17 @@ export default function ClinicianList() {
                                         <RiFileExcel2Line size={16} />
                                         Import Excel
                                     </Button>
-                                    <Button
-                                        variant="outline-success"
-                                        size="sm"
-                                        onClick={() => setShowAddModal(true)}
-                                        className="d-flex align-items-center gap-2 fw-semibold"
-                                    >
-                                        <RiAddLine size={18} />
-                                        Add New Clinician
-                                    </Button>
+                                    <Button variant="outline-secondary" size="sm" onClick={getClinicianData}>Clear filters / refresh</Button>
                                 </div>
                             </div>
                         </div>
                         <div className="p-0">
+                            <p className="small text-muted">{clinicianList.length} clinicians on this page. Open a profile to review contact details and access billing or analytics.</p>
                             <div className="table-responsive">
                                 <PrimeTable
                                     column={columns}
                                     data={clinicianList}
-                                    filtering={false}
+                                    filtering={true}
                                     serverSideFiltering={true}
                                     handleSeverSideProcessing={updatePage}
                                 />
@@ -569,7 +569,7 @@ export default function ClinicianList() {
                                 onHide={() => setShowFinancialModal(false)}
                                 data={financialModalData}
                             />
-                            <Modal show={showAddModal} onHide={() => setShowAddModal(false)} backdrop="static" keyboard={false} size="lg">
+                            <Modal fullscreen="sm-down" scrollable className={styles.dialog} show={showAddModal} onHide={() => setShowAddModal(false)} backdrop="static" keyboard={false} size="lg">
                                 <Modal.Header closeButton>
                                     <Modal.Title className="d-flex align-items-center gap-2">
                                         <RiAddLine size={20} />
@@ -755,7 +755,7 @@ export default function ClinicianList() {
                                 </Modal.Footer>
                             </Modal>
 
-                            <Modal show={showFilterModal} onHide={() => setShowFilterModal(false)} size="lg" backdrop="static" keyboard={false}>
+                            <Modal fullscreen="sm-down" scrollable className={styles.dialog} show={showFilterModal} onHide={() => setShowFilterModal(false)} size="lg" backdrop="static" keyboard={false}>
                                 <Modal.Header closeButton>
                                     <Modal.Title className="d-flex align-items-center gap-2">
                                         <RiSearchLine size={20} />

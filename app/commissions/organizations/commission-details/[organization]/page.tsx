@@ -36,6 +36,8 @@ export default function OrganizationCommissionDetails(props: { params: Promise<{
     const [dateFilter, setDateFilter] = useState("This Year");
     const [selectedRecords, setSelectedRecords] = useState<Set<number>>(new Set());
     const [showBulkPayModal, setShowBulkPayModal] = useState(false);
+    const canWaive=['admin','super-admin','super_admin'].includes(String(useApplication()?.user?.role||'').toLowerCase());
+    const [requestResult,setRequestResult]=useState<{expenseId?:number;requiresApproval:boolean}|null>(null);
     const [settlementMode,setSettlementMode]=useState<'partial'|'full'|'waiver'>('partial');
     const [waiverReason,setWaiverReason]=useState('');
     const [bulkPayAmount, setBulkPayAmount] = useState("");
@@ -121,6 +123,7 @@ export default function OrganizationCommissionDetails(props: { params: Promise<{
                 `commission-payments/commission/batch/process-services?employeeid=${employeeid}&branchid=${branchid}`, "POST", payload
             );
             if (response && (response.success === true || response.status === true || response.status === "success")) {
+                setRequestResult(response.data);
                 toast.success(response.data?.requiresApproval?'Commission request submitted for expense approval.':'Commission waiver recorded.');
                 setShowBulkPayModal(false);
                 setBulkPayAmount("");
@@ -214,7 +217,7 @@ export default function OrganizationCommissionDetails(props: { params: Promise<{
                 }} />
             </> : <p className="text-muted py-3">No commission records for this organization in the selected period.</p>}
         </>}
-        <Modal show={showBulkPayModal} backdrop="static" keyboard={!bulkPayLoading}
+        {requestResult&&<div className="alert alert-success" role="status">{requestResult.requiresApproval?<>Commission expense request #{requestResult.expenseId} is awaiting review. <Link href="/billing/expenses/awaiting-approval">Open expenses awaiting approval</Link>. After approval, record the requested payment from an authorized account; any remainder stays outstanding.</>:<>The explicit commission waiver has been recorded. No payment was recorded.</>}</div>}<Modal show={showBulkPayModal} backdrop="static" keyboard={!bulkPayLoading}
             onHide={() => { if (!paymentPending.current) setShowBulkPayModal(false); }}>
             <Modal.Header closeButton={!bulkPayLoading}>
                 <Modal.Title className="h6 mb-0">Pay selected organization commissions</Modal.Title>
@@ -227,8 +230,8 @@ export default function OrganizationCommissionDetails(props: { params: Promise<{
                 <Form id="organization-commission-payment" onSubmit={handleBulkPay}>
                     <fieldset disabled={bulkPayLoading}>
                         <legend className="h6">Payment information</legend>
-                        <div className="alert alert-info small">This creates an expense payment request. Approval and payment happen separately under Expenses. Partial payments keep the remaining balance outstanding. <a href="/billing/expenses/awaiting-approval">Review expense requests</a></div><Form.Group className="mb-3"><Form.Label>Settlement choice</Form.Label><Form.Select value={settlementMode} disabled={bulkPayLoading} onChange={event=>{const mode=event.target.value as typeof settlementMode;setSettlementMode(mode);if(mode==='full')setBulkPayAmount(selectedCommissionDue.toFixed(2));}}><option value="partial">Partial payment — retain the balance</option><option value="full">Full payment</option><option value="waiver">Settle with explicit waiver (administrator)</option></Form.Select></Form.Group>{settlementMode==='waiver'&&<Form.Group className="mb-3"><Form.Label>Reason for waiver</Form.Label><Form.Control as="textarea" minLength={3} required value={waiverReason} onChange={event=>setWaiverReason(event.target.value)}/><Form.Text>The difference between commission due and the requested payment is written off.</Form.Text></Form.Group>}<Form.Group className="mb-3" controlId="organization-payment-method">
-                            <Form.Label>Payment method</Form.Label>
+                        <div className="alert alert-info small">This creates an expense payment request. Approval and payment happen separately under Expenses. Partial payments keep the remaining balance outstanding. <a href="/billing/expenses/awaiting-approval">Review expense requests</a></div><Form.Group className="mb-3"><Form.Label>Settlement choice</Form.Label><Form.Select value={settlementMode} disabled={bulkPayLoading} onChange={event=>{const mode=event.target.value as typeof settlementMode;setSettlementMode(mode);if(mode==='full')setBulkPayAmount(selectedCommissionDue.toFixed(2));}}><option value="partial">Partial payment — retain the balance</option><option value="full">Full payment</option>{canWaive&&<option value="waiver">Settle with explicit waiver (administrator)</option>}</Form.Select></Form.Group>{settlementMode==='waiver'&&<Form.Group className="mb-3"><Form.Label>Reason for waiver</Form.Label><Form.Control as="textarea" minLength={3} maxLength={2000} required value={waiverReason} onChange={event=>setWaiverReason(event.target.value)}/><Form.Text>The difference between commission due and the requested payment is written off.</Form.Text></Form.Group>}<Form.Group className="mb-3" controlId="organization-payment-method">
+                            <Form.Label>Preferred payment method</Form.Label>
                             <Form.Select size="sm" required value={bulkPayMethod ?? ""} disabled={modes.loading || Boolean(modes.error)}
                                 onChange={event => setBulkPayMethod(event.target.value ? Number(event.target.value) : null)}>
                                 <option value="">Select payment method</option>
@@ -237,8 +240,8 @@ export default function OrganizationCommissionDetails(props: { params: Promise<{
                         </Form.Group>
                         <Form.Group className="mb-3" controlId="organization-payment-amount">
                             <Form.Label>Requested payment amount</Form.Label>
-                            <Form.Control type="number" size="sm" min="0.01" step="0.01" max={selectedCommissionDue} required
-                                value={bulkPayAmount} onChange={event => setBulkPayAmount(event.target.value)}
+                            <Form.Control type="number" size="sm" min={settlementMode==='waiver'?0:0.01} step="0.01" max={selectedCommissionDue} required
+                                readOnly={settlementMode==='full'} value={bulkPayAmount} onChange={event => setBulkPayAmount(event.target.value)}
                                 aria-describedby="organization-payment-help" />
                             <Form.Text id="organization-payment-help">Enter a positive amount no greater than the selected commission earned.</Form.Text>
                         </Form.Group>

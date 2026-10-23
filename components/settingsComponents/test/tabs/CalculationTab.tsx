@@ -201,6 +201,8 @@ export default function CalculationTab({ testid, testname }: { testid: number; t
      const previewFormula=async()=>{
           setPreview('');setPreviewError('');setPreviewBusy(true);
           try{
+               if(new Set(inputs.map(input=>input.token.trim())).size!==inputs.length||inputs.some(input=>!/^[A-Za-z_][A-Za-z0-9_]*$/.test(input.token.trim())))throw new Error('Use valid, unique input tokens before previewing.');
+               if(conditions.some(condition=>condition.value===''||!condition.inputToken))throw new Error('Complete all conditions before previewing.');
                const variables:Record<string,number>={};
                for(const input of inputs){const token=input.token.trim();if(!samples[token]?.trim()||!Number.isFinite(Number(samples[token])))throw new Error('Enter a numeric sample for '+token);variables[token]=Number(samples[token]);}
                const response=await customFetchMutation('testpanel/calculations/preview','POST',{expression,variables,decimalPrecision:precision,conditions:conditions.map(condition=>({...condition,value:Number(condition.value)}))});

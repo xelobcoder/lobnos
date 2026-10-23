@@ -20,6 +20,7 @@ import { orgainzationServerSideProcessing } from "../serverActions/ActionFilteri
 import ExcelExportButton from "../common/ExcelExportButton";
 import '../../styles/organization-list.css';
 import { useApplication } from "../Auth/useApplicationContext";
+import styles from '../common/DirectoryWorkspace.module.css';
 
 type Organization = {
 	id: number | string;
@@ -38,8 +39,10 @@ export default function OrganizationList() {
 	const [originalOrganizations, setOriginalOrganizations] = useState<Organization[]>([])
 	const [paginate, setPaginate] = useState({ count: 10, page: 1 })
 	const [filter, setFilter] = useState({ type: 'organization', value: '' })
+	const [appliedFilter, setAppliedFilter] = useState({ type: 'organization', value: '' });
 	const [load, setLoad] = useState(false)
 	const [isloading, setLoading] = useState(true)
+	const [loadError, setLoadError] = useState('');
 	const router = useRouter()
 	const currentEmployeeId = useApplication()?.user?.employeeid;
 
@@ -62,6 +65,7 @@ export default function OrganizationList() {
 		{
 			Header: "organization",
 			accessor: "name",
+			Cell: ({ row, value }) => <Link href={`/organization/${row.original.id}/basicinfo`} className="fw-semibold text-decoration-none">{value || 'Unnamed organization'}</Link>,
 		},
 		{
 			Header: "Location",
@@ -169,13 +173,15 @@ export default function OrganizationList() {
 			let loadurl = `organizations/details?count=${paginate.count}&&page=${paginate.page}`
 			let url = ''
 			if (filter.value && filter.type) {
-				url += `&&${filter.type}=${filter.value}`
+				url += `&&${filter.type}=${encodeURIComponent(filter.value)}`
 			}
 			loadurl += url;
 			setLoading(true);
+			setLoadError('');
 			customFetch(loadurl)
 				.then((response) => {
 					const { statusCode, status, result } = response
+					if (statusCode !== 200 || status !== 'success' || !Array.isArray(result)) throw new Error(response?.message || 'Unable to load organizations.');
 					if (!filter.value) {
 						statusCode == 200 && status == "success" ? (setOrganization(result), setOriginalOrganizations(result)) : (setOrganization([]), setOriginalOrganizations([]))
 					} else {
@@ -184,8 +190,7 @@ export default function OrganizationList() {
 					setLoading(false)
 				})
 				.catch((err) => {
-					setOrganization([])
-					if (!filter.value) setOriginalOrganizations([])
+					setLoadError(err?.message || 'Unable to load organizations. Please try again.');
 					setLoading(false)
 				})
 		}
@@ -200,6 +205,7 @@ export default function OrganizationList() {
 	}
 
 	const filterButton = async () => {
+		setAppliedFilter({ ...filter });
 		let original = `organizations/details?count=${paginate.count}&&page=${paginate.page}`
 		let url = ''
 		if (filter.value && filter.type) {
@@ -210,273 +216,25 @@ export default function OrganizationList() {
 	}
 
 
-	if (isloading) return <div>loading ........... </div>
-
-
-
-	if (organization.length === 0 && !isloading && !filter.value) {
-		return (
-			<div className="container-fluid py-4">
-				<Card className="">
-					<Card.Body className="p-5 text-center">
-						<div className="mb-4">
-							<div
-								className="bg-primary bg-opacity-10 rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center"
-								style={{ width: '80px', height: '80px' }}
-							>
-								<RiBuildingLine className="text-primary" size={32} />
-							</div>
-							<h4 className="text-dark mb-2 fw-semibold">No Organizations Found</h4>
-							<p className="text-muted mb-4 fs-6">
-								Get started by adding your first organization to the system.<br />
-								<small>Organizations help you manage clients and billing efficiently.</small>
-							</p>
-						</div>
-						<Button
-							variant="primary"
-							size="lg"
-							onClick={() => router.push("/organization/new")}
-							className="d-flex align-items-center gap-2 mx-auto px-4 py-3 fw-semibold"
-						>
-							<RiAddLine size={20} />
-							Add New Organization
-						</Button>
-					</Card.Body>
-				</Card>
-			</div>
-		)
-	}
 	return (
-		<section>
-			{/* Professional Bootstrap Filter Section */}
-			<div className="card mb-4 shadow-sm">
-				<div className="card-header bg-light">
-					<div className="d-flex justify-content-between align-items-center">
-						<div className="d-flex align-items-center">
-							<div className="bg-primary bg-opacity-10 rounded-circle me-3 d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px' }}>
-								<RiFilterLine className="text-primary" size={20} />
-							</div>
-							<div>
-								<h5 className="mb-1 text-dark fw-bold">Organizations</h5>
-								<p className="mb-0 text-muted small">Filter and search your organizations</p>
-							</div>
-						</div>
-						<div className="d-flex align-items-center gap-3">
-							<div className="d-flex align-items-center gap-3">
-								<span className="badge bg-light text-dark fw-normal px-3 py-2 rounded-pill">
-									{organization.length} {organization.length === 1 ? 'Organization' : 'Organizations'}
-								</span>
-								<ExcelExportButton
-									data={organization}
-									filename="organizations"
-									columns={exportColumns}
-									disabled={!organization || organization.length === 0}
-								/>
-							</div>
-							<div className="">
-								<div className="d-grid">
-									<button
-										type="button"
-										onClick={() => router.push("/organization/new")}
-										className="btn btn-success p-1"
-									>
-										<RiAddLine className="me-2" size={20} />
-										New Organization
-									</button>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-
-				<div className="card-body">
-					<div className="row g-4">
-						<div className="col-lg-8">
-							<div className="d-flex flex-column gap-3">
-								<div className="d-flex gap-2 align-items-center mb-3 flex-wrap">
-									{/* Filter Type Selection - Bootstrap Button Group (smaller, inline) */}
-									<div className="btn-group btn-group-sm" role="group" aria-label="Filter type">
-										<input
-											type="radio"
-											className="btn-check"
-											name="filterType"
-											id="filter-organization"
-											value="organization"
-											checked={filter.type === 'organization'}
-											onChange={ev => setFilter({ ...filter, type: ev.target.value })}
-										/>
-										<label className="btn btn-outline-primary" htmlFor="filter-organization">
-											<RiBuildingLine size={14} className="me-1" />
-											Org
-										</label>
-										<input
-											type="radio"
-											className="btn-check"
-											name="filterType"
-											id="filter-email"
-											value="email"
-											checked={filter.type === 'email'}
-											onChange={ev => setFilter({ ...filter, type: ev.target.value })}
-										/>
-										<label className="btn btn-outline-primary" htmlFor="filter-email">
-											<RiMailLine size={14} className="me-1" />
-											Email
-										</label>
-										<input
-											type="radio"
-											className="btn-check"
-											name="filterType"
-											id="filter-contact"
-											value="contact"
-											checked={filter.type === 'contact'}
-											onChange={ev => setFilter({ ...filter, type: ev.target.value })}
-										/>
-										<label className="btn btn-outline-primary" htmlFor="filter-contact">
-											<RiPhoneLine size={14} className="me-1" />
-											Contact
-										</label>
-									</div>
-									{/* Search Input Group */}
-									<div className="input-group flex-grow-1" style={{ minWidth: 220 }}>
-										<span className="input-group-text">
-											{filter.type === 'organization' && <RiBuildingLine size={16} />}
-											{filter.type === 'email' && <RiMailLine size={16} />}
-											{filter.type === 'contact' && <RiPhoneLine size={16} />}
-										</span>
-										<input
-											value={filter.value || ''}
-											onChange={ev => setFilter({ ...filter, value: ev.target.value })}
-											className="form-control form-control-sm"
-											type={filter.type === 'email' ? 'email' : filter.type === 'contact' ? 'tel' : 'text'}
-											placeholder={
-												filter.type === 'email' ? 'Search by email address...' :
-													filter.type === 'contact' ? 'Search by contact number...' :
-														'Search organizations...'
-											}
-											minLength={filter.type === 'contact' ? 10 : undefined}
-											maxLength={filter.type === 'contact' ? 10 : undefined}
-											onKeyPress={(e) => {
-												if (e.key === 'Enter') {
-													e.preventDefault();
-													filterButton();
-												}
-											}}
-										/>
-										<button
-											onClick={ev => {
-												ev.preventDefault();
-												filterButton();
-											}}
-											type="button"
-											className="btn btn-primary btn-sm"
-											disabled={!filter.value?.trim()}
-										>
-											<RiSearchLine size={16} className="me-1" />
-											Search
-										</button>
-									</div>
-								</div>
-
-								{/* Search Input Group */}
-
-
-								{filter.value && (
-									<div className="mt-3">
-										<div className="alert alert-primary alert-dismissible d-inline-flex align-items-center py-2" role="alert">
-											<small className="me-3 mb-0 fw-medium">
-												<span className="text-muted">Filtering by</span>{' '}
-												<span className="fw-bold text-primary text-capitalize">{filter.type}</span>:{' '}
-												<span className="fw-semibold">{filter.value}</span>
-											</small>
-											<button
-												type="button"
-												className="btn-close"
-												aria-label="Clear filter"
-												onClick={() => {
-													setFilter({ type: 'organization', value: '' });
-													setOrganization(originalOrganizations);
-												}}
-											></button>
-										</div>
-									</div>
-								)}
-							</div>
-
-							{filter.value && (
-								<div className="mt-3">
-									<div className="alert alert-primary alert-dismissible d-inline-flex align-items-center py-2" role="alert">
-										<small className="me-3 mb-0 fw-medium">
-											<span className="text-muted">Filtering by</span>{' '}
-											<span className="fw-bold text-primary text-capitalize">{filter.type}</span>:{' '}
-											<span className="fw-semibold">{filter.value}</span>
-										</small>
-										<button
-											type="button"
-											className="btn-close"
-											aria-label="Clear filter"
-											onClick={() => {
-												setFilter({ type: 'organization', value: '' });
-												setOrganization(originalOrganizations);
-											}}
-										></button>
-									</div>
-								</div>
-							)}
-						</div>
-
-
-					</div>
-
-					{/* Professional No Results Section */}
-					{organization.length === 0 && !isloading && filter.value && (
-						<div className="card border-2 border-dashed border-secondary bg-light text-center mt-3">
-							<div className="card-body py-4">
-								<div className="bg-info bg-opacity-10 rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style={{ width: '64px', height: '64px' }}>
-									<RiSearchLine size={28} className="text-info" />
-								</div>
-								<h6 className="text-dark fw-semibold mb-2">No Results Found</h6>
-								<p className="text-muted mb-4">
-									We could not find any organizations matching your search for{' '}
-									<strong className="text-primary">{filter.value}</strong> in{' '}
-									<strong>{filter.type.replace(/([A-Z])/g, ' $1').toLowerCase()}</strong>.
-								</p>
-								<div className="d-flex justify-content-center gap-3">
-									<button
-										type="button"
-										className="btn btn-info btn-sm"
-										onClick={() => {
-											setFilter({ type: 'organization', value: '' });
-											setOrganization(originalOrganizations);
-										}}
-									>
-										<RiFilterLine className="me-2" size={16} />
-										Clear Filter
-									</button>
-									<button
-										type="button"
-										className="btn btn-outline-primary btn-sm"
-										onClick={() => router.push("/organization/new")}
-									>
-										<RiAddLine className="me-2" size={16} />
-										Add Organization
-									</button>
-								</div>
-							</div>
-						</div>
-					)}
-				</div>
-			</div>
-
-			<div className="table-container">
-				<PrimeTable
-					column={columns}
-					data={organization}
-					filtering={false}
-					serverSideFiltering={true}
-					handleSeverSideProcessing={orgainzationServerSideProcessing}
-
-				/>
-			</div>
-		</section>
-	)
+		<main className={styles.workspace}>
+			<header className={styles.header}>
+				<div><span className={styles.eyebrow}>REFERRAL PARTNERS</span><h1>Organizations</h1><p>Find an organization, update its contact details, and manage its billing arrangements.</p></div>
+				<div className={styles.actions}><ExcelExportButton data={organization} filename="organizations" columns={exportColumns} disabled={!organization.length || isloading} /><Link href="/organization/new" className="btn btn-primary"><RiAddLine size={18} aria-hidden="true" /> New organization</Link></div>
+			</header>
+			<section className={styles.panel}>
+				<form className={styles.toolbar} onSubmit={event => { event.preventDefault(); void filterButton(); }}>
+					<label htmlFor="organization-search-type">Search by<select id="organization-search-type" className="form-select" value={filter.type} onChange={event => setFilter({ ...filter, type: event.target.value })}><option value="organization">Organization name</option><option value="email">Email address</option><option value="contact">Contact number</option></select></label>
+					<label htmlFor="organization-search" style={{ flex: 1 }}>Find an organization<input id="organization-search" className="form-control" type="search" value={filter.value} onChange={event => setFilter({ ...filter, value: event.target.value })} placeholder="Enter a name, email or contact number" /></label>
+					<button type="submit" className="btn btn-primary" disabled={isloading}><RiSearchLine size={16} aria-hidden="true" /> Search</button>
+					<button type="button" className="btn btn-outline-secondary" disabled={isloading} onClick={() => { setFilter({ type: 'organization', value: '' }); setAppliedFilter({ type: 'organization', value: '' }); setOrganization(originalOrganizations); setLoadError(''); }}>Clear</button>
+				</form>
+				{loadError && <div className="alert alert-danger" role="alert">{loadError}<button type="button" className="btn btn-link" onClick={getOrganizationData}>Retry</button></div>}
+				{isloading ? <p className="py-4" role="status">Loading organizations…</p> : !loadError && <>
+					<p className="small text-muted">{organization.length} organizations on this page{appliedFilter.value ? ` · Results for “${appliedFilter.value}”` : ''}. Select a name to open its details.</p>
+					{organization.length ? <PrimeTable key={`${appliedFilter.type}:${appliedFilter.value}`} column={columns} data={organization} filtering={false} serverSideFiltering={!appliedFilter.value} handleSeverSideProcessing={orgainzationServerSideProcessing} /> : <div className={styles.empty}><h2>{appliedFilter.value ? 'No matching organizations' : 'No organizations yet'}</h2><p>{appliedFilter.value ? 'Try another name, email or contact number.' : 'Add your first organization to manage its contacts and billing.'}</p><Link href="/organization/new" className="btn btn-outline-primary">Add organization</Link></div>}
+				</>}
+			</section>
+		</main>
+	);
 }

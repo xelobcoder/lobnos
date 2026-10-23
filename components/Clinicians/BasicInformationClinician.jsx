@@ -138,7 +138,7 @@ export default function BasicInformationClinician() {
 			if (statusCode === 200 && status === "success") {
 				toast.success(message || (clinicianId ? "Clinician updated successfully!" : "Clinician added successfully!"), { position: 'top-center' });
 				if (!clinicianId && result?.id) {
-					router.push(`/clinicians/edit?clinicianid=${result.id}`);
+					router.push(`/clinicians/add-new?clinicianid=${result.id}`);
 				} else if (clinicianId) {
 					fetchClinicianData(parseInt(clinicianId));
 					setSavedCount(count => count + 1);

@@ -56,6 +56,8 @@ export default function ClinicianCommissionPage(props: { params: Promise<{ clini
     const [paymentModes, setPaymentModes] = useState<{ KeyID: number; PaymentMode: string }[]>([]);
     const [paymentModesError, setPaymentModesError] = useState<string | null>(null);
     const [showBulkPayModal, setShowBulkPayModal] = useState(false);
+    const canWaive=['admin','super-admin','super_admin'].includes(String(useApplication()?.user?.role||'').toLowerCase());
+    const [requestResult,setRequestResult]=useState<{expenseId?:number;requiresApproval:boolean}|null>(null);
     const [settlementMode,setSettlementMode]=useState<'partial'|'full'|'waiver'>('partial');
     const [waiverReason,setWaiverReason]=useState('');
     const [bulkPayAmount, setBulkPayAmount] = useState("");
@@ -133,7 +135,8 @@ export default function ClinicianCommissionPage(props: { params: Promise<{ clini
             if (response?.status !== true) throw new Error(response?.message || "Failed to process payment.");
             setShowBulkPayModal(false); setBulkPayAmount(""); setBulkPayMethod(null); setSelectedRecords(new Set());
             setReloadKey(key => key + 1);
-            toast.success(response.data?.requiresApproval?'Commission request submitted. Approve it in Expenses, then record payment from an authorized account.':'Commission waiver recorded.');
+            setRequestResult(response.data);
+                toast.success(response.data?.requiresApproval?'Commission request submitted. Approve it in Expenses, then record payment from an authorized account.':'Commission waiver recorded.');
         } catch (err) {
             setBulkPayError(err instanceof Error ? err.message : "Failed to process payment.");
         } finally { submittingRef.current = false; setBulkPayLoading(false); }
@@ -191,21 +194,21 @@ export default function ClinicianCommissionPage(props: { params: Promise<{ clini
                 {commissionData.length ? <PrimeTable column={columns} data={commissionData} filtering={true} serverSideFiltering={false} handleSeverSideProcessing={undefined} /> : <p className={styles.emptyState}>No commission records found for this clinician in the selected period.</p>}
             </>}
             <CommissionDetailsModal show={showDetailsModal} onHide={() => { historyRequest.current++; setShowDetailsModal(false); }} commissionPayments={commissionPayments} selectedRecord={selectedRecord} loading={detailsLoading} error={detailsError} onRetry={() => { if (selectedRecord) handleViewDetails(selectedRecord); }} clinicianId={params.clinicianid} paymentModes={paymentModes} onPaymentSuccess={() => setReloadKey(key => key + 1)} />
-            <Modal show={showBulkPayModal} backdrop="static" keyboard={!bulkPayLoading} onHide={() => { if (!bulkPayLoading) setShowBulkPayModal(false); }} aria-labelledby="bulk-commission-title">
+            {requestResult&&<div className="alert alert-success" role="status">{requestResult.requiresApproval?<>Commission expense request #{requestResult.expenseId} is awaiting review. <Link href="/billing/expenses/awaiting-approval">Open expenses awaiting approval</Link>. After approval, record the requested payment from an authorized account; any remainder stays outstanding.</>:<>The explicit commission waiver has been recorded. No payment was recorded.</>}</div>}<Modal show={showBulkPayModal} backdrop="static" keyboard={!bulkPayLoading} onHide={() => { if (!bulkPayLoading) setShowBulkPayModal(false); }} aria-labelledby="bulk-commission-title">
                 <Modal.Header closeButton={!bulkPayLoading}><Modal.Title id="bulk-commission-title" className="h6">Request commission payment</Modal.Title></Modal.Header>
                 <Modal.Body aria-busy={bulkPayLoading}>
                     <p className="small">Period: {startDate} – {endDate}<br />Selected records: {selectedRecords.size.toLocaleString()} · Commission due: {currencyFormatter.format(selectedCommissionDue)}</p>
                     {paymentModesError && <ErrorState message={paymentModesError} onRetry={loadPaymentModes} />}
                     <Form id="bulk-commission-form" onSubmit={event => { event.preventDefault(); handleBulkPay(); }}>
-                        <div className="alert alert-info small">This creates an expense payment request. Approval and payment happen separately under Expenses. Partial payments keep the remaining balance outstanding. <a href="/billing/expenses/awaiting-approval">Review expense requests</a></div><Form.Group className="mb-3"><Form.Label>Settlement choice</Form.Label><Form.Select value={settlementMode} disabled={bulkPayLoading} onChange={event=>{const mode=event.target.value as typeof settlementMode;setSettlementMode(mode);if(mode==='full')setBulkPayAmount(selectedCommissionDue.toFixed(2));}}><option value="partial">Partial payment — retain the balance</option><option value="full">Full payment</option><option value="waiver">Settle with explicit waiver (administrator)</option></Form.Select></Form.Group>{settlementMode==='waiver'&&<Form.Group className="mb-3"><Form.Label>Reason for waiver</Form.Label><Form.Control as="textarea" minLength={3} required value={waiverReason} onChange={event=>setWaiverReason(event.target.value)}/><Form.Text>The difference between commission due and the requested payment is written off.</Form.Text></Form.Group>}<Form.Group controlId="bulk-payment-method" className="mb-3">
-                            <Form.Label className="small">Payment method</Form.Label>
+                        <div className="alert alert-info small">This creates an expense payment request. Approval and payment happen separately under Expenses. Partial payments keep the remaining balance outstanding. <a href="/billing/expenses/awaiting-approval">Review expense requests</a></div><Form.Group className="mb-3"><Form.Label>Settlement choice</Form.Label><Form.Select value={settlementMode} disabled={bulkPayLoading} onChange={event=>{const mode=event.target.value as typeof settlementMode;setSettlementMode(mode);if(mode==='full')setBulkPayAmount(selectedCommissionDue.toFixed(2));}}><option value="partial">Partial payment — retain the balance</option><option value="full">Full payment</option>{canWaive&&<option value="waiver">Settle with explicit waiver (administrator)</option>}</Form.Select></Form.Group>{settlementMode==='waiver'&&<Form.Group className="mb-3"><Form.Label>Reason for waiver</Form.Label><Form.Control as="textarea" minLength={3} maxLength={2000} required value={waiverReason} onChange={event=>setWaiverReason(event.target.value)}/><Form.Text>The difference between commission due and the requested payment is written off.</Form.Text></Form.Group>}<Form.Group controlId="bulk-payment-method" className="mb-3">
+                            <Form.Label className="small">Preferred payment method</Form.Label>
                             <Form.Select size="sm" required disabled={bulkPayLoading || !paymentModes.length} value={bulkPayMethod ?? ""} onChange={e => setBulkPayMethod(Number(e.target.value) || null)}>
                                 <option value="">Select payment method</option>{paymentModes.map(mode => <option key={mode.KeyID} value={mode.KeyID}>{mode.PaymentMode}</option>)}
                             </Form.Select>
                         </Form.Group>
                         <Form.Group controlId="bulk-payment-amount" className="mb-3">
                             <Form.Label className="small">Requested payment amount</Form.Label>
-                            <Form.Control type="number" size="sm" required min="0" max={selectedCommissionDue} step="0.01" disabled={bulkPayLoading} value={bulkPayAmount} onChange={e => setBulkPayAmount(e.target.value)} aria-describedby="bulk-amount-help" />
+                            <Form.Control type="number" size="sm" required min={settlementMode==='waiver'?0:0.01} max={selectedCommissionDue} step="0.01" disabled={bulkPayLoading} readOnly={settlementMode==='full'} value={bulkPayAmount} onChange={e => setBulkPayAmount(e.target.value)} aria-describedby="bulk-amount-help" />
                             <Form.Text id="bulk-amount-help">Approval and payment are separate. An unpaid balance is retained unless you explicitly choose a waiver.</Form.Text>
                         </Form.Group>
                     </Form>
