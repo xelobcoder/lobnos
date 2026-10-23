@@ -138,7 +138,7 @@ export default function ValidationAscensionTable({ employeeid }) {
 	const columns = [
 		{ Header: "Fullname", accessor: "fullname", width: 150, Cell: ({ value, row }) => <div className="text-uppercase">{value}<br />{row.original.age}</div> },
 		{ Header: "Patient ID(Bill Id)", accessor: "fullpatientid", width: 60, Cell: ({ row }) => <div><strong>{row.original.fullpatientid || row.original.patientid}</strong><br />{row.original.billingid}</div> },
-		{ Header: "Test Name", accessor: "name", width: 150 },
+		{ Header: "Test Name", accessor: "name", width: 150, Cell: ({ value, row }) => <div>{value}{Number(row.original.requires_revalidation) === 1 && <span className="badge bg-warning text-dark d-block mt-1">Changed - revalidation required</span>}</div> },
 		{
 			Header: "Processing", accessor: "processing", width: 150,
 			Cell: ({ row }) => (

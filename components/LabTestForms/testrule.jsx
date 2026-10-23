@@ -29,6 +29,7 @@ export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
 	const isPinShared = Boolean(globalPin);
 	const effectivePin = isPinShared ? globalPin : pin;
 	const [showValidationModal, setShowValidationModal] = useState(false);
+	const [requiresRevalidation, setRequiresRevalidation] = useState(false);
 	const [resultDeliveryPreference, setResultEntryPreference] = useState({
 		requested_mode: "HardCopy", requested_mode_detail: "",
 		updated_by_employeeid: null
@@ -139,7 +140,8 @@ export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
 				const response = await customPost("result/entry/customtest", "POST", data);
 				const { message, statusCode, status } = response;
 				if (status === "success" && statusCode === 200) {
-					toast.success(message, { autoClose: 500 });
+					setRequiresRevalidation(response.requires_revalidation === true);
+					toast.success(message, { autoClose: response.requires_revalidation ? 5000 : 500 });
 					if (typeof onSaved === "function") onSaved();
 					setShowValidationModal(true);
 				} else {
@@ -277,7 +279,7 @@ export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
 					<Modal.Title>Result Validation</Modal.Title>
 				</Modal.Header>
 				<Modal.Body>
-					Do you want to continue to result validation?
+					{requiresRevalidation ? 'The result was changed after validation. Previous approvals have been cleared. Validate the updated result again before printing or release.' : 'Do you want to continue to result validation?'}
 				</Modal.Body>
 				<Modal.Footer className="gap-2">
 					<Button variant="secondary" onClick={() => setShowValidationModal(false)}>

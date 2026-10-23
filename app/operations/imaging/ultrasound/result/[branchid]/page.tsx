@@ -16,6 +16,8 @@ import AccessHistoryTab from './AccessHistoryTab';
 import AccessRequestForm from './AccessRequestForm';
 import ImageUploadTab from './ImageUploadTab';
 
+const ResultValidationModal = dynamic(() => import('../../../../../../components/operations/Laboratory/ValidationModal'), { ssr: false });
+
 const MARKDOWN_EDITOR = dynamic(() => import('../../../../../../components/accessories/markdownEditor'), { ssr: false });
 
 interface Field {
@@ -80,6 +82,8 @@ export default function EnterResultUltrasound() {
      const [submitting, setSubmitting] = useState(false);
      const [viewAllTemplates, setViewAllTemplates] = useState(false);
      const [entered, setEnteredResult] = useState(false);
+     const [showResultValidation, setShowResultValidation] = useState(false);
+     const [requiresRevalidation, setRequiresRevalidation] = useState(false);
      const [activeSection, setActiveSection] = useState<'result' | 'clinical' | 'images' | 'access' | 'access-history'>('result');
      // entryMode removed; always use freeform editor
      const [isPinUsed] = useState(true);
@@ -224,6 +228,7 @@ export default function EnterResultUltrasound() {
 
                if (response?.status === 'success' && response.statusCode === 200) {
                     setEnteredResult(true);
+                    setRequiresRevalidation(response.requires_revalidation === true);
                     toast.success(response.message, { autoClose: 3000 });
                } else {
                     toast.error(response?.message || 'Unable to save ultrasound result', { autoClose: 3000 });
@@ -261,7 +266,7 @@ export default function EnterResultUltrasound() {
                               <div className="fw-semibold text-uppercase">{testname || scan || 'Ultrasound'}</div>
                               <div className="small text-muted">Ascension: {ascensionid || 'N/A'} · Test ID: {testid || 'N/A'} · Billing ID: {billingid || 'N/A'}</div>
                          </div>
-                         <span className={`badge ${entered ? 'bg-success' : 'bg-secondary'}`}>{entered ? 'Saved' : 'Draft'}</span>
+                         <div className="d-flex flex-wrap gap-2 align-items-center">{entered && <button className="btn btn-sm btn-outline-primary" onClick={() => setShowResultValidation(true)}>Review / validate current result</button>}<span className={`badge ${entered ? 'bg-success' : 'bg-secondary'}`}>{requiresRevalidation ? 'Changed - revalidation required' : entered ? 'Saved' : 'Draft'}</span></div>
                     </div>
                     <div className="card-body">
                          <nav className="nav nav-tabs mb-4" aria-label="Ultrasound result sections">
@@ -358,6 +363,7 @@ export default function EnterResultUltrasound() {
                          )}
                     </div>
                </div>
+               {showResultValidation && <ResultValidationModal show={showResultValidation} isBulk={false} selectedAscension={{ id: Number(testid), testid: Number(testid), ascensionid: Number(ascensionid), billingid: Number(billingid), patientid: Number(patientid), test: scan, name: testname }} onClose={() => setShowResultValidation(false)} />}
           </div>
      );
 }

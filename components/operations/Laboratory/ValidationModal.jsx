@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Modal, Button, Form, ListGroup, Spinner } from "react-bootstrap";
 import { toast } from 'react-toastify';
 import PreviewPatientInformation from "../../petientsComponent/PreviewPatientInformation";
@@ -14,10 +14,14 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
      const { employeeid, role } = useApplicationSettings().applicationsettings.user;
      const [resultSettings, setResultSettings] = useState(ResultEntrydefaultData);
      const [staff, setStaff] = useState([]);
+     const [snapshots, setSnapshots] = useState({});
+     const [snapshotsReady, setSnapshotsReady] = useState(false);
+     const [snapshotError, setSnapshotError] = useState('');
+     const snapshotRequest = useRef(0);
      const [pinValue, setPin] = useState('');
      const [successfulValidation, setSuccessfulValidation] = useState(null);
      const [isApproved, setIsApproved] = useState(false);
-     const [isMobile, setIsMobile] = useState(window.innerWidth > 768);
+     const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth > 768);
      const [isPinValidated, setIsPinValidated] = useState(false);
      const [validatingSpinner, setValidatingSpinner] = useState(false);
      const [showProceedModal, setShowProceedModal] = useState(false);
@@ -45,6 +49,7 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
 
 
      const disableButton = () => {
+          if (!snapshotsReady || validatingSpinner) return true;
           if (pinOnResultValidation) {
                return isBulk ? !isApproved || !pinValue : !isPinValidated
           }
@@ -52,18 +57,24 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
           return isBulk ? !isApproved : !(isApproved && staff.some(s => s.employeeid === employeeid));
      }
 
+     const selectionKey = ascensions.map(item => item?.ascensionid).join(',');
      async function getInitData() {
-          if (employeeid && !isBulk) {
-               const [resultSettings, staffs] = await Promise.all([getResultEntrySettings(employeeid), getAscensionStaffApproved(selectedAscension.ascensionid, employeeid)]);
-               setResultSettings(resultSettings);
-               setStaff(staffs);
-          } else if (isBulk && employeeid) {
-               const resultSettings = await getResultEntrySettings(employeeid);
-               setResultSettings(resultSettings);
-          }
+          const request = ++snapshotRequest.current;
+          setSnapshotsReady(false); setSnapshotError(''); setIsApproved(false); setIsPinValidated(false); setPin(''); setStaff([]);
+          try {
+               const [nextSettings, details] = await Promise.all([
+                    getResultEntrySettings(employeeid),
+                    Promise.all(ascensions.map(asc => customFetch(`test/approval/get/staffQualifiedToValidationResult?ascensionid=${asc.ascensionid}`))),
+               ]);
+               if (request !== snapshotRequest.current) return;
+               if (details.some(item => !Array.isArray(item?.staff) || !Number.isSafeInteger(item.approval_revision))) throw new Error('Unable to load the current result revision. Reload before validating.');
+               setResultSettings(nextSettings);
+               setSnapshots(Object.fromEntries(ascensions.map((asc, index) => [asc.ascensionid, details[index]])));
+               if (!isBulk) setStaff(details[0].staff);
+               setSnapshotsReady(true);
+          } catch (error) { if (request === snapshotRequest.current) setSnapshotError(error.message || 'Unable to load result revisions'); }
      }
-
-     useEffect(() => { getInitData() }, []);
+     useEffect(() => { if (show && employeeid) void getInitData(); return () => { snapshotRequest.current++; }; }, [show, selectionKey, employeeid, isBulk]);
 
      const handleAddApproved = async () => {
           setValidatingSpinner(true);
@@ -112,11 +123,11 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
      }
 
      const handleSaveValue = async () => {
-          if (validatingSpinner) return;
+          if (validatingSpinner || !snapshotsReady) return;
           if (isBulk && Array.isArray(ascensions) && ascensions.length > 0) {
                // Bulk validation
                const validationPromises = ascensions.map(asc => {
-                    return customPost(`test/approval/get/staffQualifiedToValidationResult?employeeid=${employeeid}&&ascensionid=${asc.ascensionid}&&ascensionId=${asc.ascensionid}`, 'PUT', { username: asc.fullname, employeeid, ascensionid: asc.ascensionid });
+                    return customPost(`test/approval/get/staffQualifiedToValidationResult?employeeid=${employeeid}&&ascensionid=${asc.ascensionid}&&ascensionId=${asc.ascensionid}`, 'PUT', { username: asc.fullname, employeeid, ascensionid: asc.ascensionid, approval_revision: snapshots[asc.ascensionid]?.approval_revision });
                });
 
                try {
@@ -133,7 +144,8 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
                          setShowProceedModal(true);
                     } else {
                          const failedCount = results.filter(r => r.status !== true).length;
-                         toast.error(`${failedCount} test(s) failed validation`);
+                         toast.error(`${failedCount} test(s) need review: ${results.find(r => r.status !== true)?.message || 'validation failed'}`);
+                         await getInitData();
                     }
                } catch (error) {
                     toast.error("Error during bulk validation");
@@ -152,7 +164,7 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
                     if (currentStaffApproval.length > 0) {
                          setValidatingSpinner(true);
                          try {
-                         const sendReponse = await customPost(`test/approval/get/staffQualifiedToValidationResult?employeeid=${employeeid}&&ascensionid=${ascensionid}&&ascensionId=${ascensionid}`, 'PUT', currentStaffApproval[0]);
+                         const sendReponse = await customPost(`test/approval/get/staffQualifiedToValidationResult?employeeid=${employeeid}&&ascensionid=${ascensionid}&&ascensionId=${ascensionid}`, 'PUT', { ...currentStaffApproval[0], approval_revision: snapshots[ascensionid]?.approval_revision });
                          const { status } = sendReponse;
                          if (status === true) {
                               setStaff(sendReponse.staff || []);
@@ -187,6 +199,10 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
                          <Modal.Title>{isBulk ? `Bulk Validation (${ascensions.length} tests)` : 'Result Validation'}</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
+                         <Button variant="outline-secondary" size="sm" className="mb-2" disabled={validatingSpinner} onClick={getInitData}>Reload latest results</Button>
+                         {snapshotError && <p role="alert" className="text-danger">{snapshotError}</p>}
+                         {!snapshotsReady ? <p><Spinner size="sm" /> Loading current result revisions...</p> : <>
+                         {Object.values(snapshots).some(item => item.requires_revalidation) && <div role="alert" className="alert alert-warning">These results were changed after validation. Review the current values and validate again. Previous approvals do not apply to this revision.</div>}
                          <p className="small text-muted">Your approval is recorded as the signed-in user. Final release occurs only after the required validators have approved this result revision.</p>
                          {!isBulk ? (
                               <>
@@ -296,6 +312,7 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
                                    ))}
                               </ListGroup>
                          )}
+                         </>}
                     </Modal.Body>
                     <Modal.Footer>
                          <Button variant="secondary" onClick={(ev) => { onClose(successfulValidation) }}>Close</Button>
