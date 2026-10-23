@@ -53,3 +53,4 @@
 .handover { background: var(--bs-tertiary-bg, #f5f8f6); padding: 18px; border-radius: 10px; }
 .handover ol { padding-left: 20px; font-size: 13px; }
 .handover li { margin: 14px 0; overflow-wrap: anywhere; }
+.reminders { padding: 14px; margin-bottom: 16px; border: 1px solid var(--bs-border-color, #ddd); border-radius: 8px; overflow-wrap: anywhere; } .reminders summary { font-weight: 600; cursor: pointer; } .tabs { flex-wrap: wrap; } .badge[data-status="acquired"] { color: #25603e; background: #e7f5ec; }
