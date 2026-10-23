@@ -1,4 +1,5 @@
 'use client';
+import SupplierPaymentSourceFields from '../../../components/inventory/SupplierPaymentSourceFields';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -9,6 +10,8 @@ import { useApplicationSettings } from '../../../components/Auth/useApplicationC
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 
 interface Payment {
+     payment_account_id?: number | null;
+     payment_account_name?: string | null;
      id: string;
      payment_id: string;
      supplier_id: string;
@@ -45,6 +48,10 @@ export default function PaymentsPage() {
      const { branchid, user } = applicationsettings || {};
      const employeeid = user?.employeeid;
      const [loading, setLoading] = useState(true);
+     const [approvalPayment, setApprovalPayment] = useState<Payment | null>(null);
+     const [approvalSource, setApprovalSource] = useState(0);
+     const [approvalMethod, setApprovalMethod] = useState('');
+     const [approving, setApproving] = useState(false);
      const [showFilters, setShowFilters] = useState(false);
      const [filters, setFilters] = useState({
           supplier_id: '',
@@ -99,30 +106,24 @@ export default function PaymentsPage() {
           }
      };
 
-     const handleApprovePayment = async (paymentId: string) => {
-          if (!confirm('Are you sure you want to approve this payment?')) {
-               return;
-          }
-
+     const handleApprovePayment = (payment: Payment) => {
+          setApprovalPayment(payment);
+          setApprovalSource(Number(payment.payment_account_id || 0));
+          setApprovalMethod(payment.payment_method);
+     };
+     const confirmSupplierPayment = async () => {
+          if (!approvalPayment || !approvalSource || !approvalMethod) { toast.error('Select the account funding this payment'); return; }
           try {
-               setLoading(true);
-               const response = await customPost(`inventory/supplier-payments/payments/${paymentId}/approve`, 'PUT', {
-                    payment_id: paymentId,
-                    approved_by: employeeid
+               setApproving(true);
+               const response = await customPost('inventory/supplier-payments/payments/' + approvalPayment.id + '/approve', 'PUT', {
+                    payment_account_id: approvalSource, payment_method: approvalMethod,
                });
-
-               if (response.success) {
-                    toast.success('Payment approved successfully');
-                    loadPayments();
-               } else {
-                    toast.error(response.message || 'Failed to approve payment');
-               }
-          } catch (error) {
-               console.error('Error approving payment:', error);
-               toast.error('Failed to approve payment');
-          } finally {
-               setLoading(false);
-          }
+               if (!response?.success) throw new Error(response?.message || 'Failed to approve payment');
+               toast.success('Supplier payment recorded');
+               setApprovalPayment(null);
+               await loadPayments();
+          } catch (error: any) { toast.error(error.message || 'Failed to approve payment'); }
+          finally { setApproving(false); }
      };
 
      const handleRejectPayment = (payment: Payment) => {
@@ -310,6 +311,11 @@ export default function PaymentsPage() {
                Cell: ({ value }) => formatDate(value)
           },
           {
+               Header: 'Paid from',
+               accessor: 'payment_account_name',
+               Cell: ({ value }) => value || 'Not recorded'
+          },
+          {
                Header: 'Method',
                accessor: 'payment_method',
                Cell: ({ value }) => value.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
@@ -344,7 +350,7 @@ export default function PaymentsPage() {
                                    <button
                                         className="btn btn-sm btn-success"
                                         title="Approve Payment"
-                                        onClick={() => handleApprovePayment(row.original.id)}
+                                        onClick={() => handleApprovePayment(row.original)}
                                    >
                                         ✓ Approve
                                    </button>
@@ -402,6 +408,19 @@ export default function PaymentsPage() {
 
      return (
           <div className="container-fluid p-4">
+               <Offcanvas show={!!approvalPayment} onHide={() => { if (!approving) setApprovalPayment(null); }} placement="end">
+                    <Offcanvas.Header closeButton={!approving}><Offcanvas.Title>Confirm supplier payment</Offcanvas.Title></Offcanvas.Header>
+                    <Offcanvas.Body>
+                         {approvalPayment && <>
+                              <p><strong>{approvalPayment.supplier_name}</strong><br />{approvalPayment.payment_id}<br />{currencyFormatter.format(approvalPayment.payment_amount)}</p>
+                              <SupplierPaymentSourceFields key={approvalPayment.id} accountId={approvalSource} method={approvalMethod} disabled={approving}
+                                   onChange={(accountId, method) => { setApprovalSource(accountId); setApprovalMethod(method); }} />
+                              <button type="button" className="btn btn-primary w-100" disabled={approving || !approvalSource || !approvalMethod} onClick={confirmSupplierPayment}>
+                                   {approving ? 'Recording payment...' : 'Confirm payment'}
+                              </button>
+                         </>}
+                    </Offcanvas.Body>
+               </Offcanvas>
                {/* Header */}
                <div className="d-flex justify-content-between align-items-center mb-4">
                     <div>
@@ -735,6 +754,9 @@ export default function PaymentsPage() {
                                                                  <td>{formatDate(selectedPaymentDetails.payment_date)}</td>
                                                             </tr>
                                                             <tr>
+                                                                 <td className="fw-bold">Paid from:</td>
+                                                                 <td>{selectedPaymentDetails.payment_account_name || 'Not recorded'}</td>
+                                                            </tr><tr>
                                                                  <td className="fw-bold">Payment Method:</td>
                                                                  <td>{selectedPaymentDetails.payment_method?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</td>
                                                             </tr>

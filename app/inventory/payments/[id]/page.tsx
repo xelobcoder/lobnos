@@ -8,6 +8,8 @@ import { currencyFormatter, customFetch } from '../../../../components/Auth/cust
 import ExportPdfButton from '../../../../components/reports/ExportPdfButton';
 
 interface Payment {
+     payment_account_id?: number | null;
+     payment_account_name?: string | null;
      id: string;
      payment_id: string;
      supplier_id: string;
@@ -168,6 +170,9 @@ export default function PaymentDetailsPage() {
                                                   <td>{formatDate(payment.payment_date)}</td>
                                              </tr>
                                              <tr>
+                                                  <td className="fw-bold">Paid from:</td>
+                                                  <td>{payment.payment_account_name || 'Not recorded'}</td>
+                                             </tr><tr>
                                                   <td className="fw-bold">Payment Method:</td>
                                                   <td>{payment.payment_method?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</td>
                                              </tr>

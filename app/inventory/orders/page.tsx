@@ -1,4 +1,5 @@
 'use client';
+import SupplierPaymentSourceFields from '../../../components/inventory/SupplierPaymentSourceFields';
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -216,6 +217,7 @@ export default function PurchaseOrdersPage() {
           payment_amount: 0,
           payment_date: new Date().toISOString().split('T')[0],
           payment_method: 'bank_transfer',
+               payment_account_id: 0,
           reference_number: '',
           payment_notes: ''
      });
@@ -697,7 +699,7 @@ export default function PurchaseOrdersPage() {
                          router.push(`/inventory/orders/receive-ordered-items/${response.data.id}`);
                     }
                } else {
-                    toast.error(`Failed to create order: ${response.error?.message || 'Unknown error'}`);
+                    toast.error(`Failed to create order: ${response.message || response.error?.message || 'Unknown error'}`);
                }
           } catch (err) {
                console.error('Error creating order:', err);
@@ -1151,6 +1153,7 @@ export default function PurchaseOrdersPage() {
                payment_amount: order.totalPending || 0,
                payment_date: new Date().toISOString().split('T')[0],
                payment_method: 'bank_transfer',
+               payment_account_id: 0,
                reference_number: '',
                payment_notes: `Payment for purchase order ${order.orderNumber}`
           });
@@ -1158,7 +1161,7 @@ export default function PurchaseOrdersPage() {
      };
 
      const handleCreatePayment = async () => {
-          if (!paymentForm.supplier_id || !paymentForm.purchase_order_id || paymentForm.payment_amount <= 0) {
+          if (!paymentForm.supplier_id || !paymentForm.purchase_order_id || paymentForm.payment_amount <= 0 || !paymentForm.payment_account_id) {
                toast.error('Please fill in all required payment details');
                return;
           }
@@ -1277,6 +1280,7 @@ export default function PurchaseOrdersPage() {
                payment_amount: 0,
                payment_date: new Date().toISOString().split('T')[0],
                payment_method: 'bank_transfer',
+               payment_account_id: 0,
                reference_number: '',
                payment_notes: ''
           });
@@ -2143,24 +2147,9 @@ export default function PurchaseOrdersPage() {
                                                                  disabled
                                                             />
                                                        </div>
-                                                       <div className="mb-3">
-                                                            <label className="form-label fw-medium small text-muted">Payment Method *</label>
-                                                            <select
-                                                                 className="form-select"
-                                                                 value={paymentForm.payment_method}
-                                                                 onChange={(e) => setPaymentForm(prev => ({ ...prev, payment_method: e.target.value }))}
-                                                                 required
-                                                                 disabled={(selectedOrderForPayment?.totalPaid || 0) >= (selectedOrderForPayment?.totalAmount || 0)}
-                                                            >
-                                                                 <option value="bank_transfer">Bank Transfer</option>
-                                                                 <option value="cash">Cash</option>
-                                                                 <option value="check">Check</option>
-                                                                 <option value="credit_card">Credit Card</option>
-                                                                 <option value="debit_card">Debit Card</option>
-                                                                 <option value="wire_transfer">Wire Transfer</option>
-                                                                 <option value="other">Other</option>
-                                                            </select>
-                                                       </div>
+                                                       <SupplierPaymentSourceFields accountId={paymentForm.payment_account_id} method={paymentForm.payment_method}
+                                                            onChange={(payment_account_id, payment_method) => setPaymentForm(prev => ({ ...prev, payment_account_id, payment_method }))}
+                                                            disabled={loading || (selectedOrderForPayment?.totalPaid || 0) >= (selectedOrderForPayment?.totalAmount || 0)} />
                                                        <div className="mb-3">
                                                             <label className="form-label fw-medium small text-muted">Reference Number</label>
                                                             <input
