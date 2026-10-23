@@ -5,6 +5,8 @@ import { toast } from 'react-toastify';
 import { customFetch, customFetchMutation } from '../Auth/customFetch';
 import { useApplicationSettings } from '../Auth/useApplicationContext';
 import { roleAllowed } from '../Auth/roles';
+import styles from './SpecimenRecollectionPanel.module.css';
+import { sampleEventTone } from '../../lib/sampleEventTone';
 
 export type RecollectionSample = {
      id: number; sample_uid: string; status: string; version?: number;
@@ -99,7 +101,7 @@ export default function SpecimenRecollectionPanel({ billingid, ascensionId, samp
      if (loading || loadedScope !== scope) return <p className="small text-muted" role="status">Loading specimen history...</p>;
      if (error) return <div className="alert alert-danger py-2">{error}<button className="btn btn-sm btn-outline-danger ms-2" onClick={load}>Retry</button></div>;
      if (!chain.length) return null;
-     return <section className="border border-warning rounded p-3 mb-3" aria-label="Rejected specimens and recollection">
+     return <section className={`${styles.panel} border border-warning rounded p-3 mb-3`} aria-label="Rejected specimens and recollection">
           <h2 className={compact ? 'h6' : 'h5'}>Rejected specimens &amp; recollection</h2>
           <p className="small text-muted">Each replacement has its own sample ID. Processing stays blocked until the replacement meets the laboratory workflow requirements.</p>
           <div className="d-flex flex-column gap-2">{chain.map(sample => {
@@ -107,7 +109,7 @@ export default function SpecimenRecollectionPanel({ billingid, ascensionId, samp
                const original = related.find(item => Number(item.id) === Number(sample.replaces_sample_id));
                const rejected = ['rejected', 'recollection_required'].includes(sample.status);
                return <article className="border rounded p-2 bg-body" key={sample.id}>
-                    <div className="d-flex flex-wrap justify-content-between gap-2"><strong>{sample.sample_uid}</strong><span className={`text-capitalize fw-semibold ${rejected ? 'text-danger' : 'text-primary'}`}>{label(sample.status)}</span></div>
+                    <div className={styles.sampleHeader}><strong>{sample.sample_uid}</strong><span className={`text-capitalize fw-semibold ${rejected ? 'text-danger' : 'text-primary'}`}>{label(sample.status)}</span></div>
                     {sample.rejection_reason && <p className="small text-danger mb-1">Rejection reason: {sample.rejection_reason}</p>}
                     {original && <div className="small text-muted">Replaces {original.sample_uid}</div>}
                     {replacement && <div className="small">Replacement: {replacement.sample_uid} ({label(replacement.status)})</div>}
@@ -121,7 +123,7 @@ export default function SpecimenRecollectionPanel({ billingid, ascensionId, samp
           {history && <div className="border-top mt-3 pt-3" aria-label="Recollection history">
                <div className="d-flex justify-content-between gap-2"><h3 className="h6">Complete specimen history</h3><button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => { historyRequest.current++; setHistory(null); setHistoryLoading(false); }}>Hide history</button></div>
                {(history.lineage || [history]).map((item: any) => <div className="small mb-2" key={item.id}><strong>{item.sample_uid}</strong>: <span className="text-capitalize">{label(item.status)}</span>{item.rejection_reason ? ` — ${item.rejection_reason}` : ''}</div>)}
-               <ol className="small ps-3">{history.events?.map((event: any) => <li className="mb-2" key={event.id}><strong>{event.sample_uid || history.sample_uid}</strong> · <span className="text-capitalize">{label(event.event_type)}</span><div className="text-muted">{when(event.created_at)} · {event.actor_name || `Employee ${event.actor_employeeid}`}</div>{event.reason && <div>{event.reason}</div>}</li>)}</ol>
+               <ol className="small ps-3">{history.events?.map((event: any) => <li className={`${styles.historyEvent} mb-2`} data-tone={sampleEventTone(event.event_type)} key={event.id}><strong>{event.sample_uid || history.sample_uid}</strong> · <span className={`${styles.eventLabel} text-capitalize`}>{label(event.event_type)}</span><div className="text-muted">{when(event.created_at)} · {event.actor_name || `Employee ${event.actor_employeeid}`}</div>{event.reason && <div>{event.reason}</div>}</li>)}</ol>
                <h3 className="h6 mt-3">Patient notifications</h3>
                {history.communications?.length ? history.communications.map((communication: any) => <div className="border rounded p-2 small mb-2" key={communication.id}><strong>{communication.sample_uid || history.sample_uid}</strong><div>Requested: <span className="text-capitalize">{channels(communication.requested_channels)}</span> · <span className="text-capitalize">{label(communication.status)}</span></div><div>{communication.message}</div>{communication.attempts?.map((attempt: any) => <div key={attempt.id} className="text-capitalize">{attempt.channel}: {label(attempt.status)} {attempt.recipient_masked || ''}{attempt.failure_reason && <span className="text-danger"> — {attempt.failure_reason}</span>}</div>)}</div>) : <p className="small text-muted">No patient notification was requested.</p>}
           </div>}
