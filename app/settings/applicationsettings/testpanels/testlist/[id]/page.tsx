@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { CriticalPolicySettings } from '../../../../../../components/operations/TestOperationalSettings';
 import TestForm from "../../../../../../components/settingsComponents/test/testForm";
 import FieldsTab from "../../../../../../components/settingsComponents/test/tabs/FieldsTab";
 import ProcedureManualTab from "../../../../../../components/settingsComponents/test/tabs/ProcedureManualTab";
@@ -10,7 +11,7 @@ import ReportSettingsTab from "../../../../../../components/settingsComponents/t
 import CalculationTab from "../../../../../../components/settingsComponents/test/tabs/CalculationTab";
 import { customFetch } from "../../../../../../components/Auth/customFetch";
 
-type TestEditorTab = 'details' | 'fields' | 'calculations' | 'procedure' | 'literature' | 'outsourcing' | 'reportSettings';
+type TestEditorTab = 'details' | 'fields' | 'calculations' | 'procedure' | 'literature' | 'outsourcing' | 'reportSettings' | 'criticalActions';
 
 const TABS: { key: TestEditorTab; label: string }[] = [
     { key: 'details', label: 'Test Details' },
@@ -19,6 +20,7 @@ const TABS: { key: TestEditorTab; label: string }[] = [
     { key: 'procedure', label: 'Procedure Manual' },
     { key: 'literature', label: 'Literature' },
     { key: 'outsourcing', label: 'Outsourcing' },
+    { key: 'criticalActions', label: 'Critical-value actions' },
     { key: 'reportSettings', label: 'Report Settings' },
 ];
 
@@ -83,6 +85,7 @@ export default function SingleTestEdit({ params }: { params: { id: number } }) {
                 {activeTab === 'outsourcing' && (
                     <div className="mx-2"><OutsourcingTab testid={testid} testname={testname} /></div>
                 )}
+                {activeTab === 'criticalActions' && <CriticalPolicySettings testid={testid} />}
                 {activeTab === 'reportSettings' && (
                     <div className="mx-2"><ReportSettingsTab testid={testid} testname={testname} /></div>
                 )}
