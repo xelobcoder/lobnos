@@ -53,6 +53,7 @@ export async function proxy(request: NextRequest) {
             if (role.replace(/[\s_-]/g, '') === 'superadmin') return NextResponse.redirect(new URL('/settings/facilities', request.url));
             if (role === 'clinician') return NextResponse.redirect(new URL('/doctor', request.url));
             if (role === 'patient') return NextResponse.redirect(new URL('/patientportal', request.url));
+            if (role.replace(/[\s_-]/g,'').startsWith('pharmacy')) return NextResponse.redirect(new URL('/pharmacy', request.url));
             if (role === 'marketer') return NextResponse.redirect(new URL('/crm/acquisition', request.url));
             return NextResponse.redirect(new URL('/', request.url));
         }
@@ -62,6 +63,13 @@ export async function proxy(request: NextRequest) {
             const role = user.role || "";
             const currentPath = request.nextUrl.pathname;
             const normalizedRole = role.toString().toLowerCase().trim();
+            // Pharmacy staff enter their own workspace; API authorization enforces the same boundary.
+            const roleKey=normalizedRole.replace(/[\s_-]/g,'');
+            if(roleKey.startsWith('pharmacy')) {
+                if(!currentPath.startsWith('/pharmacy')&&!['/authentication/logout','/unauthorized'].includes(currentPath))return NextResponse.redirect(new URL('/pharmacy',request.url));
+                return NextResponse.next();
+            }
+            if(currentPath.startsWith('/pharmacy')&&!['admin','superadmin'].includes(roleKey))return NextResponse.redirect(new URL('/unauthorized',request.url));
             if ((currentPath === '/patient-portal-admin' || currentPath.startsWith('/patient-portal-admin/') || currentPath === '/crm/patient-portal') && !['admin', 'manager'].includes(normalizedRole)) {
                 return NextResponse.redirect(new URL('/unauthorized', request.url));
             }

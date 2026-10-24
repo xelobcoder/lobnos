@@ -1,165 +1,38 @@
 'use client';
-
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { RiInboxArchiveLine, RiPriceTag3Line } from '@remixicon/react';
-import { toast } from 'react-toastify';
-import { customFetch, customFetchMutation } from '../../../components/Auth/customFetch';
-
-export type PharmacyStockUpItem = {
-     inventoryItemId: string;
-     name: string;
-     unit: string;
-     availableStock: number;
-     wholesalePrice: number;
-     salePrice: number;
-     batchTracking?:boolean;
-};
-
-type Supplier = { id: string; name: string };
-type PriceMode = 'percentage' | 'fixed' | 'manual';
-
-type Props = {
-     items: PharmacyStockUpItem[];
-     employeeId: number;
-     onClose: () => void;
-     onCompleted: () => void | Promise<void>;
-};
-
-const currency = new Intl.NumberFormat('en-GH', { style: 'currency', currency: 'GHS' });
-
-export default function PharmacyStockUpModal({ items, employeeId, onClose, onCompleted }: Props) {
-     const [itemIndex, setItemIndex] = useState(0);
-     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-     const [supplierId, setSupplierId] = useState('');
-     const [quantity, setQuantity] = useState(1);
-     const [unitCost, setUnitCost] = useState(0);
-     const [expiryDate, setExpiryDate] = useState('');
-     const [batchNumber,setBatchNumber]=useState('');
-     const [changePricing, setChangePricing] = useState(false);
-     const [showPriceDialog, setShowPriceDialog] = useState(false);
-     const [priceMode, setPriceMode] = useState<PriceMode>('percentage');
-     const [adjustmentValue, setAdjustmentValue] = useState(0);
-     const [wholesalePrice, setWholesalePrice] = useState(0);
-     const [retailPrice, setRetailPrice] = useState(0);
-     const [submitting, setSubmitting] = useState(false);
-
-     const item = items[itemIndex];
-
-     useEffect(() => {
-          customFetch('inventory/suppliers?count=500')
-               .then((response) => response?.success && setSuppliers(response.data || []))
-               .catch(() => setSuppliers([]));
-     }, []);
-
-     useEffect(() => {
-          if (!item) return;
-          setSupplierId('');
-          setQuantity(1);
-          setUnitCost(0);
-          setExpiryDate('');setBatchNumber('');
-          setChangePricing(false);
-          setShowPriceDialog(false);
-          setAdjustmentValue(0);
-          setWholesalePrice(Number(item.wholesalePrice || 0));
-          setRetailPrice(Number(item.salePrice || 0));
-          setPriceMode(item.wholesalePrice > 0 && item.salePrice > 0 ? 'percentage' : 'manual');
-     }, [item]);
-
+import { usePharmacyDocument } from './PharmacyPaymentFields';
+import { styles, money, Modal, Message, usePharmacyResource } from './PharmacyWorkspace';
+export type PharmacyStockUpItem = { inventoryItemId: string; name: string; unit: string; availableStock: number; wholesalePrice: number; salePrice: number; batchTracking?: boolean; purchaseUnit?: string | null; unitsPerPurchaseUnit?: number; costPrice?: number };
+type Props = { items: PharmacyStockUpItem[]; employeeId?: number; onClose: () => void; onCompleted: () => void | Promise<void> };
+export default function PharmacyStockUpModal({ items, onClose, onCompleted }: Props) {
+     const [index, setIndex] = useState(0), [supplier, setSupplier] = useState(''), [mode, setMode] = useState('consumption'), [count, setCount] = useState(''), [cost, setCost] = useState('');
+     const [batch, setBatch] = useState(''), [expiry, setExpiry] = useState(''), [changePrice, setChangePrice] = useState(false), [retail, setRetail] = useState(''), [wholesale, setWholesale] = useState('');
+     const [busy, setBusy] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState('');
+     const suppliers = usePharmacyResource('pharmacy/suppliers'), setup = usePharmacyResource('pharmacy/checkout-setup'), request = usePharmacyDocument('stock-receiving');
+     const item = items[index], factor = mode === 'purchase' ? Number(item?.unitsPerPurchaseUnit || 1) : 1;
+     const baseQuantity = Math.round(Number(count) * factor * 1000) / 1000, total = Math.round(Number(count) * Number(cost) * 100) / 100;
+     useEffect(() => { if (!item) return; setSupplier(''); setCount(''); setCost(''); setMode(item.purchaseUnit ? 'purchase' : 'consumption'); setBatch(''); setExpiry(''); setChangePrice(false); setRetail(String(item.salePrice || 0)); setWholesale(String(item.wholesalePrice || 0)); setError(''); }, [item?.inventoryItemId]);
      if (!item) return null;
-
-     const updatePrices = (mode: PriceMode, value: number) => {
-          setPriceMode(mode);
-          setAdjustmentValue(value);
-          if (mode === 'manual') return;
-          setWholesalePrice(Number((mode === 'percentage' ? item.wholesalePrice * (1 + value / 100) : item.wholesalePrice + value).toFixed(2)));
-          setRetailPrice(Number((mode === 'percentage' ? item.salePrice * (1 + value / 100) : item.salePrice + value).toFixed(2)));
-     };
-
-     const receiveStock = async () => {
-          if(item.batchTracking!==false&&(!expiryDate||expiryDate<new Date().toISOString().slice(0,10)||!batchNumber.trim())){toast.error('Enter the manufacturer batch number and a valid expiry date.');return;}
-          if (!Number.isInteger(quantity) || quantity <= 0) {
-               toast.error('Enter a whole quantity greater than zero.');
-               return;
-          }
-          if (!Number.isFinite(unitCost) || unitCost < 0) {
-               toast.error('Enter a valid unit cost.');
-               return;
-          }
-          if (changePricing && (wholesalePrice < 0 || retailPrice < 0)) {
-               toast.error('Wholesale and retail prices cannot be negative.');
-               return;
-          }
-
-          setSubmitting(true);
+     const complete = async (retry = false) => {
+          if (busy) return; setBusy(true); setError('');
           try {
-               const response = await customFetchMutation(`inventory/items/${item.inventoryItemId}/stock-up`, 'POST', {
-                    supplier_id: supplierId || undefined,
-                    quantity,
-                    unit_price: unitCost,
-                    received_by: employeeId,
-                    expiry_date: expiryDate || undefined,
-                    batch_number:batchNumber.trim()||undefined,
-                    change_pricing: changePricing,
-                    price_policy: changePricing ? (priceMode === 'manual' ? 'replace' : 'increase') : 'maintain',
-                    new_wholesale_price: changePricing ? wholesalePrice : undefined,
-                    new_sale_price: changePricing ? retailPrice : undefined,
-               });
-               if (!response?.success) throw new Error(response?.error?.message || 'Stock could not be received.');
-               toast.success(`${item.name} stocked successfully. Batch and expiry details recorded.`);
-               if (itemIndex < items.length - 1) setItemIndex((current) => current + 1);
-               else {
-                    await onCompleted();
-                    onClose();
-               }
-          } catch (error: any) {
-               toast.error(error.message || 'Stock could not be received.');
-          } finally {
-               setSubmitting(false);
-          }
+               const r = await request.execute(retry ? '' : `pharmacy/items/${item.inventoryItemId}/stock-up`, retry ? {} : { supplier_id: supplier || undefined, quantity: Number(count), unit_price: Number(cost), unit_type: mode, units_per_purchase_unit: factor, batch_number: batch.trim() || undefined, expiry_date: expiry || undefined, change_pricing: changePrice, new_sale_price: changePrice ? Number(retail) : undefined, new_wholesale_price: changePrice ? Number(wholesale) : undefined });
+               if (!r?.success) throw new Error(r?.error?.message || 'The receipt could not be confirmed. Retry the original receipt.');
+               await onCompleted();
+               if (retry || index === items.length - 1) onClose();
+               else { setNotice(`${item.name}: ${r.data.details.quantity} ${item.unit} added to pharmacy stock.`); setIndex(n => n + 1); }
+          } catch (e) { setError(e instanceof Error ? e.message : 'Unable to receive stock.'); } finally { setBusy(false); }
      };
-
-     return (
-          <>
-               <div className="modal d-block" role="dialog" aria-modal="true" style={{ backgroundColor: 'rgba(23, 33, 38, 0.5)', zIndex: 1060 }}>
-                    <div className="modal-dialog modal-lg mt-3">
-                         <div className="modal-content" style={{ borderRadius: '6px' }}>
-                              <div className="modal-header">
-                                   <div>
-                                        <h2 className="modal-title h5 mb-1">Stock up {item.name}</h2>
-                                        <div className="text-muted">Current stock: {item.availableStock} {item.unit}{items.length > 1 ? ` · Item ${itemIndex + 1} of ${items.length}` : ''}</div>
-                                   </div>
-                                   <button type="button" className="btn-close" onClick={onClose} aria-label="Close" />
-                              </div>
-                              <div className="modal-body">
-                                   <div className="row g-3">
-                                        <div className="col-md-6"><label className="form-label fw-semibold" htmlFor="stock-supplier">Supplier</label><select id="stock-supplier" className="form-select form-select-lg" value={supplierId} onChange={(event) => setSupplierId(event.target.value)}><option value="">General Supplier</option>{suppliers.filter((supplier) => supplier.id !== 'SUP-GENERAL').map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}</select></div>
-                                        <div className="col-md-3"><label className="form-label fw-semibold" htmlFor="stock-quantity">Quantity</label><input id="stock-quantity" type="number" min="1" className="form-control form-control-lg" value={quantity} onChange={(event) => setQuantity(Number(event.target.value) || 0)} /></div>
-                                        <div className="col-md-3"><label className="form-label fw-semibold" htmlFor="stock-cost">Unit cost</label><input id="stock-cost" type="number" min="0" step="0.01" className="form-control form-control-lg" value={unitCost} onChange={(event) => setUnitCost(Number(event.target.value) || 0)} /></div>
-                                        <div className="col-md-6"><label className="form-label fw-semibold" htmlFor="manufacturer-batch">Manufacturer batch number</label><input id="manufacturer-batch" className="form-control form-control-lg" value={batchNumber} maxLength={100} onChange={event=>setBatchNumber(event.target.value)}/></div><div className="col-md-6"><label className="form-label fw-semibold" htmlFor="stock-expiry">Expiry date</label><input id="stock-expiry" min={new Date().toISOString().slice(0,10)} required={item.batchTracking!==false} type="date" className="form-control form-control-lg" value={expiryDate} onChange={(event) => setExpiryDate(event.target.value)} /></div>
-                                        <div className="col-md-6 d-flex align-items-end"><button type="button" className={`btn btn-lg w-100 d-flex justify-content-center align-items-center gap-2 ${changePricing ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => setShowPriceDialog(true)}><RiPriceTag3Line size={20} />{changePricing ? 'Edit price change' : 'Change prices'}</button></div>
-                                   </div>
-                                   <div className="alert alert-light border mt-4 mb-0">Batch number will be generated automatically. Leaving supplier blank uses General Supplier.</div>
-                              </div>
-                              <div className="modal-footer"><button type="button" className="btn btn-outline-secondary btn-lg" onClick={onClose}>Cancel</button><button type="button" className="btn btn-success btn-lg d-flex align-items-center gap-2" disabled={submitting} onClick={receiveStock}><RiInboxArchiveLine size={20} />{submitting ? 'Receiving...' : 'Receive stock'}</button></div>
-                         </div>
-                    </div>
-               </div>
-
-               {showPriceDialog && (
-                    <div className="modal d-block" role="dialog" aria-modal="true" style={{ backgroundColor: 'rgba(23, 33, 38, 0.6)', zIndex: 1070 }}>
-                         <div className="modal-dialog mt-3">
-                              <div className="modal-content" style={{ borderRadius: '6px' }}>
-                                   <div className="modal-header"><div><h3 className="modal-title h5 mb-1">Change selling prices</h3><div className="text-muted">{item.name}</div></div><button type="button" className="btn-close" onClick={() => setShowPriceDialog(false)} aria-label="Close" /></div>
-                                   <div className="modal-body">
-                                        <div className="row g-3 mb-4"><div className="col-6"><div className="border bg-light p-3"><span className="text-muted d-block">Current wholesale</span><strong className="fs-5">{currency.format(item.wholesalePrice)}</strong></div></div><div className="col-6"><div className="border bg-light p-3"><span className="text-muted d-block">Current retail</span><strong className="fs-5">{currency.format(item.salePrice)}</strong></div></div></div>
-                                        <div className="form-check form-switch mb-4"><input id="change-pricing" className="form-check-input" type="checkbox" checked={changePricing} onChange={(event) => setChangePricing(event.target.checked)} /><label className="form-check-label fw-semibold" htmlFor="change-pricing">Change prices with this stock receipt</label></div>
-                                        {changePricing && <><label className="form-label fw-semibold" htmlFor="stock-price-mode">Pricing method</label><select id="stock-price-mode" className="form-select form-select-lg mb-3" value={priceMode} onChange={(event) => updatePrices(event.target.value as PriceMode, adjustmentValue)}><option value="percentage">Increase by percentage</option><option value="fixed">Increase by fixed amount</option><option value="manual">Enter prices manually</option></select>{priceMode !== 'manual' && <div className="mb-3"><label className="form-label fw-semibold" htmlFor="stock-adjustment">{priceMode === 'percentage' ? 'Percentage increase' : 'Fixed increase amount'}</label><input id="stock-adjustment" type="number" min="0" step="0.01" className="form-control form-control-lg" value={adjustmentValue} onChange={(event) => updatePrices(priceMode, Number(event.target.value) || 0)} /></div>}<div className="row g-3"><div className="col-6"><label className="form-label fw-semibold" htmlFor="stock-wholesale">New wholesale</label><input id="stock-wholesale" type="number" min="0" step="0.01" className="form-control form-control-lg" value={wholesalePrice} disabled={priceMode !== 'manual'} onChange={(event) => setWholesalePrice(Number(event.target.value) || 0)} /></div><div className="col-6"><label className="form-label fw-semibold" htmlFor="stock-retail">New retail</label><input id="stock-retail" type="number" min="0" step="0.01" className="form-control form-control-lg" value={retailPrice} disabled={priceMode !== 'manual'} onChange={(event) => setRetailPrice(Number(event.target.value) || 0)} /></div></div><div className="alert alert-success mt-3 mb-0"><span className="d-block">Expected profit per item</span><strong className="fs-5">{currency.format(retailPrice - unitCost)}</strong></div></>}
-                                   </div>
-                                   <div className="modal-footer"><button type="button" className="btn btn-outline-secondary btn-lg" onClick={() => setShowPriceDialog(false)}>Cancel</button><button type="button" className="btn btn-primary btn-lg" onClick={() => setShowPriceDialog(false)}>Apply prices</button></div>
-                              </div>
-                         </div>
-                    </div>
-               )}
-          </>
-     );
+     return <Modal title={`Receive stock: ${item.name}`} onClose={onClose} busy={busy}><Message error={error || suppliers.error || setup.error} notice={notice}/><p className={styles.muted}>Current physical stock: {item.availableStock} {item.unit}. {items.length > 1 && `Medicine ${index + 1} of ${items.length}.`}</p>
+          {request.pending && <div className="alert alert-warning">A previous receipt needs confirmation. Retry it before entering another delivery.<button type="button" className="btn btn-warning d-block mt-2" disabled={busy} onClick={() => complete(true)}>Retry original receipt</button></div>}
+          {setup.data && setup.data.day?.status !== 'open' && <div className="alert alert-warning">The pharmacy financial day is {setup.data.day?.status === 'closed' ? 'closed' : 'not opened'}. A manager must open it before stock can be received. <Link href="/pharmacy/cashier">View financial day</Link></div>}
+          <form onSubmit={e => { e.preventDefault(); complete(); }}><fieldset disabled={busy || !!request.pending} className="border-0 p-0 m-0"><div className="row g-3"><label className="col-12 form-label">Supplier {Number(cost) > 0 ? '(required for purchased stock)' : '(optional for free stock)'}<select className="form-select" value={supplier} required={Number(cost) > 0} onChange={e => setSupplier(e.target.value)}><option value="">Choose a pharmacy supplier</option>{suppliers.data?.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></label>
+          <label className="col-md-6 form-label">Receiving unit<select className="form-select" value={mode} onChange={e => { setMode(e.target.value); setCost(''); }}><option value="consumption">Individual {item.unit}</option>{item.purchaseUnit && <option value="purchase">{item.purchaseUnit} ({item.unitsPerPurchaseUnit} {item.unit} per pack)</option>}</select></label><label className="col-md-6 form-label">Quantity of {mode === 'purchase' ? item.purchaseUnit : item.unit}<input className="form-control" type="number" min="0.001" step="0.001" required value={count} onChange={e => setCount(e.target.value)}/></label>
+          <label className="col-md-6 form-label">Cost per {mode === 'purchase' ? item.purchaseUnit : item.unit} (GHS)<input className="form-control" type="number" min="0" step="0.01" required value={cost} onChange={e => setCost(e.target.value)}/></label><div className="col-md-6 d-flex align-items-end"><div className={styles.summary + ' w-100 mt-0'}><span>Total supplier cost</span><strong className="d-block">{money(total)}</strong></div></div>
+          <label className="col-md-6 form-label">Manufacturer batch {item.batchTracking !== false ? '(required)' : '(optional)'}<input className="form-control" maxLength={100} required={item.batchTracking !== false} value={batch} onChange={e => setBatch(e.target.value)}/></label><label className="col-md-6 form-label">Expiry date {item.batchTracking !== false ? '(required)' : '(optional)'}<input className="form-control" type="date" min={new Date().toISOString().slice(0, 10)} required={item.batchTracking !== false} value={expiry} onChange={e => setExpiry(e.target.value)}/></label></div>
+          <div className={styles.summary}><strong>{baseQuantity || 0} {item.unit} will be added to stock.</strong>{mode === 'purchase' && <div className={styles.muted}>{count || 0} {item.purchaseUnit} x {factor} {item.unit} per pack. Enter the price of one whole pack above.</div>}</div>
+          <label className="d-block my-3"><input type="checkbox" checked={changePrice} onChange={e => setChangePrice(e.target.checked)}/> Update selling prices with this receipt</label>{changePrice && <div className="row g-3"><label className="col-md-6 form-label">Retail price per {item.unit} (GHS)<input className="form-control" type="number" min="0" step="0.01" required value={retail} onChange={e => setRetail(e.target.value)}/></label><label className="col-md-6 form-label">Wholesale price per {item.unit} (GHS)<input className="form-control" type="number" min="0" step="0.01" required value={wholesale} onChange={e => setWholesale(e.target.value)}/></label></div>}
+          <footer className={styles.footer}><button type="button" className="btn btn-outline-secondary" onClick={onClose}>Cancel</button><button className="btn btn-primary" disabled={setup.loading || suppliers.loading || setup.data?.day?.status !== 'open'}>{busy ? 'Recording receipt...' : `Receive ${baseQuantity || 0} ${item.unit}`}</button></footer></fieldset></form>
+     </Modal>;
 }

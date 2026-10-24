@@ -122,7 +122,7 @@ export default function PharmacyPrescriptionsPage() {
           const lines=Object.entries(dispenseQuantities).filter(([,quantity])=>quantity>0).map(([prescriptionItemId,quantityDispensed])=>({prescriptionItemId,quantityDispensed}));
           if(!payment.pending){
                if(!lines.length){setDetailError('Enter quantities for the drugs you intend to dispense.');return;}
-               if(!payment.accountId||(paymentMethod!=='cash'&&!payment.reference.trim())){setDetailError('Select the collection account and enter the payment reference.');return;}
+               if(!payment.amount||(paymentMethod!=='cash'&&!payment.reference.trim())){setDetailError('Enter the amount received and payment reference.');return;}
                if(!window.confirm('Dispense selected medicines for '+(selected?.patientName||'patient #'+selected?.patientId)+' and record GHS '+dispensingTotal.toFixed(2)+' received?'))return;
           }
           setSubmitting(true);setDetailError('');
@@ -217,7 +217,7 @@ export default function PharmacyPrescriptionsPage() {
                </div>
 
                {notice&&<div className="alert alert-success" role="status">{notice}</div>}
-               {payment.pending&&<div className="alert alert-warning">A dispensing request needs confirmation. <button className="btn btn-warning" disabled={submitting||!!payment.pending} onClick={fulfillSelected}>Retry original dispensing</button></div>}
+               {payment.pending&&<div className="alert alert-warning">A dispensing request needs confirmation. <button className="btn btn-warning" disabled={submitting} onClick={fulfillSelected}>Retry original dispensing</button></div>}
                {!selected&&detailError&&<div className="alert alert-danger" role="alert">{detailError}</div>}
                {error && <div className="alert alert-danger">{error}</div>}
 
@@ -283,7 +283,7 @@ export default function PharmacyPrescriptionsPage() {
                                              </tbody>
                                         </table>
                                         <p className="fw-bold">Amount to collect: GHS {dispensingTotal.toFixed(2)}</p>
-                                        <PharmacyPaymentFields payment={payment} method={paymentMethod} disabled={submitting}/>
+                                        <PharmacyPaymentFields payment={payment} total={dispensingTotal} method={paymentMethod} disabled={submitting}/>
                                         <div className="d-flex align-items-center gap-2">
                                              <label className="small text-muted mb-0">Payment method</label>
                                              <select className="form-select form-select-sm" style={{ width: 'auto' }} value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
@@ -298,7 +298,7 @@ export default function PharmacyPrescriptionsPage() {
                                              <RiSendPlaneLine size={16} />
                                              Refer remaining out &amp; print slip
                                         </button>
-                                        <button type="button" className="btn btn-primary d-flex align-items-center gap-1" disabled={submitting||!!payment.pending} onClick={fulfillSelected}>
+                                        <button type="button" className="btn btn-primary d-flex align-items-center gap-1" disabled={submitting||!!payment.pending||payment.setup?.day?.status!=='open'||!payment.setup?.shift} onClick={fulfillSelected}>
                                              <RiCheckLine size={16} />
                                              Dispense selected
                                         </button>

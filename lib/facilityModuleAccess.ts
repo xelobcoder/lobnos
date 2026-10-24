@@ -19,7 +19,7 @@ export function canAccessFacilityModule(
           const config = typeof configuration === "string" ? JSON.parse(configuration) : configuration;
           if (!config || typeof config !== "object" || !("modules" in config)) return false;
           const modules = config.modules as Partial<Record<Module, { enabled?: boolean }>>;
-          return modules?.[feature]?.enabled === true || (feature === "inventory" && modules?.pharmacy?.enabled === true);
+          return modules?.[feature]?.enabled === true;
      } catch {
           return false;
      }

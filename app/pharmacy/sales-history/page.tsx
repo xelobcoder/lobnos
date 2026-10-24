@@ -21,6 +21,7 @@ type SaleLine = {
 };
 
 type Sale = {
+     accountingVersion?:number;
      id: string;
      receiptNumber: string;
      customerName: string;
@@ -148,6 +149,7 @@ export default function PharmacySalesHistoryPage() {
      useEffect(() => { loadSales(); }, [loadSales]);
 
      const openReversal = (sale: Sale) => {
+          if(sale.accountingVersion!==2){setError('This legacy receipt belongs to the original books. Request a reviewed historical correction.');return;}
           setTarget(sale);
           setDisposition('quarantine');
           setReversalType('refund');
@@ -209,7 +211,7 @@ export default function PharmacySalesHistoryPage() {
                accessor: 'receiptNumber',
                Cell: ({ row }: { row: { original: Sale } }) => (
                     <button type="button" className="btn btn-link p-0 fw-semibold text-decoration-none" onClick={() => openDetail(row.original)}>
-                         {row.original.receiptNumber}
+                         {row.original.receiptNumber}{row.original.accountingVersion!==2&&<span className="badge text-bg-secondary ms-2">Legacy</span>}
                     </button>
                ),
           },
@@ -288,7 +290,7 @@ export default function PharmacySalesHistoryPage() {
                                         </div>
                                         <div className="modal-body">
                                              <p className="text-muted small">
-                                                  {target.customerName} &middot; {currency.format(target.total)}. Every item on this receipt returns to stock.
+                                                  {target.customerName} &middot; {currency.format(target.total)}. The selected goods disposition determines whether stock is restored.
                                              </p>
 
                                              {REVERSAL_OPTIONS.map((option) => (

@@ -147,7 +147,8 @@ export const AdminRoleLinks = [
           text: "Access pharmacy management",
           label: 'Pharmacy',
           category: 'Support',
-          description: 'Pharmacy management'
+          description: 'Pharmacy management',
+          roles: ['admin','super_admin','pharmacy_manager','pharmacy_cashier','pharmacy_storekeeper','pharmacy_dispensary_officer','pharmacy_accountant']
      }
 ];
 
