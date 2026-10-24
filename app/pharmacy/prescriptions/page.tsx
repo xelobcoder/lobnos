@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import jsPDF from 'jspdf';
+import {buildPharmacyReferralPdf, type PharmacyReferralSlip} from '../pharmacy-referral';
+
 import Link from 'next/link';
 import { RiCheckLine, RiFileList3Line, RiSendPlaneLine } from '@remixicon/react';
 import { customFetch, customFetchMutation } from '../../../components/Auth/customFetch';
@@ -59,6 +60,7 @@ const DEFAULT_PAGE_SIZE = 20;
 
 export default function PharmacyPrescriptionsPage() {
      const payment=usePharmacyPayment('prescription');
+
      const [notice,setNotice]=useState('');
      const [statusFilter, setStatusFilter] = useState<'open' | PrescriptionStatus>('open');
      const [prescriptions, setPrescriptions] = useState<PrescriptionSummary[]>([]);
@@ -151,30 +153,13 @@ export default function PharmacyPrescriptionsPage() {
           }
      };
 
-     const printReferralSlip = (slip: { patientId: number; referredAt: string; items: Array<{ drugName: string; dosageInstructions: string | null; dose: string | null; frequency: string | null; duration: string | null; route: string | null; quantityRemaining: number }> }) => {
-          const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a5' });
-          let y = 15;
-          pdf.setFont('helvetica', 'bold');
-          pdf.setFontSize(13);
-          pdf.text('Pharmacy referral slip', 10, y);
-          y += 8;
-          pdf.setFont('helvetica', 'normal');
-          pdf.setFontSize(10);
-          pdf.text(`Patient ID: ${slip.patientId}`, 10, y); y += 6;
-          pdf.text(`Date: ${new Date(slip.referredAt).toLocaleString()}`, 10, y); y += 8;
-          pdf.text('The items below were not in stock. Please present this slip at another pharmacy to purchase them:', 10, y, { maxWidth: 130 });
-          y += 12;
-          slip.items.forEach((item) => {
-               const regimen = [item.dose, item.frequency, item.route, item.duration].filter(Boolean).join(' · ');
-               pdf.text(`- ${item.drugName} x${item.quantityRemaining}`, 10, y, { maxWidth: 130 }); y += 6;
-               if (regimen) { pdf.text(`  ${regimen}`, 12, y, { maxWidth: 128 }); y += 5; }
-               if (item.dosageInstructions) { pdf.text(`  ${item.dosageInstructions}`, 12, y, { maxWidth: 128 }); y += 5; }
-               y += 2;
-          });
+     const printReferralSlip = (slip: PharmacyReferralSlip) => {
+          const patientName=selected?.patientName||prescriptions.find(row=>row.id===slip.prescriptionId)?.patientName;
+          const pdf=buildPharmacyReferralPdf(slip,patientName);
           pdf.autoPrint();
-          const url = URL.createObjectURL(pdf.output('blob'));
-          window.open(url, '_blank');
-          window.setTimeout(() => URL.revokeObjectURL(url), 30000);
+          const url=URL.createObjectURL(pdf.output('blob'));
+          window.open(url,'_blank');
+          window.setTimeout(()=>URL.revokeObjectURL(url),60000);
      };
 
      const columns = [
@@ -206,7 +191,7 @@ export default function PharmacyPrescriptionsPage() {
           <div className={styles.workspace}>
                <div className="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
                     <div>
-                         <h4 className="fw-bold mb-1">Prescriptions</h4>
+                         <h4 className="fw-bold mb-1">Prescriptions</h4><Link className="btn btn-primary my-2" href="/pharmacy/prescriptions/new">Create prescription</Link>
                          <small className="text-muted">Drug orders raised by clinicians during consultation, awaiting pharmacy fulfillment.</small>
                     </div>
                     <select className="form-select" style={{ width: 'auto' }} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as any)}>
@@ -216,6 +201,7 @@ export default function PharmacyPrescriptionsPage() {
                          <option value="cancelled">Cancelled</option>
                     </select>
                </div>
+
 
                {notice&&<div className="alert alert-success" role="status">{notice}</div>}
                {payment.pending&&<div className="alert alert-warning">A dispensing request needs confirmation. <button className="btn btn-warning" disabled={submitting} onClick={fulfillSelected}>Retry original dispensing</button></div>}
