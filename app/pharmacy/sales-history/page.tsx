@@ -2,6 +2,8 @@
 
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { RiEyeLine, RiFileListLine, RiRefund2Line } from '@remixicon/react';
+import {printPharmacyReceipt} from '../../../lib/pharmacy/receipt';
+import {useApplication} from '../../../components/Auth/useApplicationContext';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 import { customFetch, customFetchMutation } from '../../../components/Auth/customFetch';
 
@@ -94,6 +96,14 @@ const COMMON_REASONS: Record<ReversalType, string[]> = {
 };
 
 export default function PharmacySalesHistoryPage() {
+     const app=useApplication() as any;
+     const [printing,setPrinting]=useState<string|null>(null);
+     const reprintReceipt=async(id:string)=>{
+          if(printing)return;setPrinting(id);setError('');
+          try{const r=await customFetch('pharmacy/sales/'+id);if(!r?.success)throw new Error(r?.error?.message||'Unable to load saved receipt');await printPharmacyReceipt({...r.data,reprint:true},{name:typeof app?.company==='string'?app.company:app?.company?.name||'PHARMACY',address:app?.company?.address,phone:app?.company?.phonenumber,printedBy:app?.user?.username});}
+          catch(e){setError(e instanceof Error?e.message:'Unable to reprint receipt');}finally{setPrinting(null);}
+     };
+
      const [sales, setSales] = useState<Sale[]>([]);
      const [error, setError] = useState<string | null>(null);
      const [notice, setNotice] = useState<string | null>(null);
@@ -237,11 +247,12 @@ export default function PharmacySalesHistoryPage() {
                Header: 'Action',
                accessor: 'id',
                Cell: ({ row }: { row: { original: Sale } }) => (
-                    <div className="d-flex gap-2">
+                    <div className="d-flex flex-wrap gap-2">
                          <button type="button" className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" onClick={() => openDetail(row.original)}>
                               <RiEyeLine size={16} />
                               View
                          </button>
+                         <button type="button" className="btn btn-sm btn-outline-primary" disabled={!!printing} onClick={()=>reprintReceipt(row.original.id)}>{printing===row.original.id?'Preparing...':'Reprint receipt'}</button>
                          {row.original.status === 'completed' && (
                               <button type="button" className="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1" onClick={() => openReversal(row.original)}>
                                    <RiRefund2Line size={16} />

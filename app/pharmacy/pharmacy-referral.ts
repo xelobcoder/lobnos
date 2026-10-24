@@ -1,43 +1,53 @@
 ﻿import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 export type PharmacyReferralSlip = {
- prescriptionId?: string; patientId: number; clinicianId?: number; referredAt: string;
+ patientName?:string; company?:{name?:string;address?:string;street?:string;phonenumber?:string;alternativenumber?:string;email?:string;website?:string}; reprint?:boolean; prescriptionId?: string; patientId: number; clinicianId?: number; referredAt: string;
  items: Array<{drugName:string; quantityRemaining:number; dose:string|null; frequency:string|null; duration:string|null; route:string|null; dosageInstructions:string|null}>;
 };
-export function buildPharmacyReferralPdf(slip:PharmacyReferralSlip,patientName?:string) {
- const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a5'});
- const width=pdf.internal.pageSize.getWidth(),margin=12,usable=width-2*margin;
- pdf.setProperties({title:'External pharmacy referral',subject:'Outstanding prescription medicines'});
- pdf.setFillColor(25,60,78);pdf.rect(0,0,width,27,'F');
- pdf.setTextColor(255);pdf.setFont('helvetica','bold');pdf.setFontSize(16);pdf.text('PHARMACY REFERRAL',margin,13);
- pdf.setFont('helvetica','normal');pdf.setFontSize(9);pdf.text('External dispensing request',margin,20);
- pdf.setTextColor(35);let y=36;
- const text=(value:string,size=10,bold=false)=>{pdf.setFontSize(size);pdf.setFont('helvetica',bold?'bold':'normal');const lines=pdf.splitTextToSize(value,usable);pdf.text(lines,margin,y);y+=lines.length*size*0.3528*1.25+3;};
- if(patientName)text('Patient: '+patientName,11,true);
- text('Patient ID: '+slip.patientId,10,!patientName);
- text('Issued: '+new Intl.DateTimeFormat('en-GB',{dateStyle:'medium',timeStyle:'short',timeZone:'Africa/Accra'}).format(new Date(slip.referredAt))+' (Ghana)',9);
- if(slip.prescriptionId)text('Prescription reference: '+slip.prescriptionId,8);
+/** Matches the 80 mm pharmacy POS paper, with black-only thermal printing. */
+export function buildPharmacyReferralPdf(slip:PharmacyReferralSlip,patientName?:string,logo?:string) {
+ const measure=new jsPDF({unit:'mm',format:[80,200]});
+ const blocks:Array<{text?:string;image?:string;size:number;quantity?:string;bold?:boolean;center?:boolean;rule?:boolean;lines?:string[];height?:number}>=[];
+ const text=(text:string,size=7.5,bold=false,center=false)=>blocks.push({text,size,bold,center});
+ const rule=()=>blocks.push({size:0,rule:true});
+ const company=slip.company;
+ if(logo)blocks.push({image:logo,size:0,height:14});
+ if(company?.name)text(company.name,10,true,true);
+ const address=[company?.address,company?.street].filter(Boolean).filter((value,index,array)=>array.indexOf(value)===index).join(', ');
+ if(address)text(address,7,false,true);
+ if(company?.phonenumber)text('Tel: '+company.phonenumber,7,false,true);
+ if(company?.alternativenumber)text('Other: '+company.alternativenumber,7,false,true);
+ if(company?.email)text(company.email,7,false,true);
+ if(company?.website)text(company.website,7,false,true);
+ if(company?.name)rule();
+ text('PHARMACY REFERRAL',11,true,true);if(slip.reprint)text('REPRINT / CUSTOMER COPY',8,true,true);text('External dispensing request',8,false,true);rule();
+ if(slip.patientName||patientName)text('Patient: '+(slip.patientName||patientName),9,true);
+ text('Patient ID: '+slip.patientId);
+ text('Date: '+new Intl.DateTimeFormat('en-GB',{dateStyle:'medium',timeStyle:'short',timeZone:'Africa/Accra'}).format(new Date(slip.referredAt)));
+ if(slip.prescriptionId)text('Prescription: '+slip.prescriptionId,7);
  if(slip.clinicianId)text('Prescriber ID: '+slip.clinicianId,8);
- y+=2;text('Please present this slip at another pharmacy for the outstanding medicines listed below.',10);
- autoTable(pdf,{
- startY:y+1,margin:{left:margin,right:margin,top:15,bottom:25},
- head:[['MEDICINE AND PRESCRIBED DIRECTIONS','QUANTITY']],
- body:slip.items.map((item,index)=>{
- const details=[item.dose?'Dose: '+item.dose:null,item.frequency?'Frequency: '+item.frequency:null,item.route?'Route: '+item.route:null,item.duration?'Duration: '+item.duration:null,item.dosageInstructions?'Instructions: '+item.dosageInstructions:null].filter(Boolean);
- return [(index+1)+'. '+item.drugName+'\n\n'+(details.length?details.join('\n'):'Directions not recorded - confirm with prescriber.'),String(item.quantityRemaining)];
- }),
- theme:'grid',styles:{font:'helvetica',fontSize:9,cellPadding:4,lineColor:[220,226,230],lineWidth:0.2,textColor:[35,45,55],overflow:'linebreak',valign:'top'},
- headStyles:{fillColor:[25,60,78],textColor:255,fontSize:8,fontStyle:'bold'},
- columnStyles:{0:{cellWidth:usable-25},1:{cellWidth:25,halign:'center',fontStyle:'bold',fontSize:11}},
- alternateRowStyles:{fillColor:[246,249,250]},rowPageBreak:'avoid',
+ rule();text('Please present this slip at another pharmacy for the medicines below.',8);rule();
+ blocks.push({text:'MEDICINE',quantity:'QTY',size:7,bold:true});
+ slip.items.forEach((item,index)=>{
+ blocks.push({text:(index+1)+'. '+item.drugName,size:8,bold:true,quantity:item.quantityRemaining>0?String(item.quantityRemaining):'Assess'});
+ const directions=[item.dose,item.frequency,item.duration,item.route].filter(Boolean).join(' | ');
+ if(directions)text(directions,7);
+ if(item.dosageInstructions)text('Instructions: '+item.dosageInstructions,7);
  });
- const pages=pdf.getNumberOfPages();
- for(let page=1;page<=pages;page++){
- pdf.setPage(page);const height=pdf.internal.pageSize.getHeight();pdf.setDrawColor(210);pdf.line(margin,height-20,width-margin,height-20);
- pdf.setFont('helvetica','normal');pdf.setFontSize(8);pdf.setTextColor(90);
- pdf.text('Quantities shown are the remaining amounts to be supplied.',margin,height-15);
- pdf.text('Dispense against the original prescription where required.',margin,height-11);
- pdf.text('Page '+page+' of '+pages,width-margin,height-6,{align:'right'});
+ rule();
+ text('Dispense against the original prescription where required.',7.5,false,true);
+ for(const block of blocks){if(block.image)continue;measure.setFont('helvetica',block.bold?'bold':'normal');measure.setFontSize(block.size||8);block.lines=block.rule?[]:measure.splitTextToSize(block.text||'',block.quantity?56:70);block.height=block.rule?4.5:block.lines!.length*(block.size*0.3528*1.25)+0.8;}
+ const height=Math.min(280,Math.max(65,blocks.reduce((sum,b)=>sum+b.height!,0)+18));
+ const pdf=new jsPDF({unit:'mm',format:[80,height]});pdf.setProperties({title:'Pharmacy referral receipt',subject:'Outstanding prescription medicines'});let y=6;
+ for(const block of blocks){
+ if(y+block.height!>height-8){pdf.addPage([80,height]);y=8;}
+ if(block.image){const properties=pdf.getImageProperties(block.image);const scale=Math.min(30/properties.width,12/properties.height);const w=properties.width*scale,h=properties.height*scale;pdf.addImage(block.image,'PNG',(80-w)/2,y,w,h);y+=block.height!;continue;}
+ if(block.rule){pdf.setDrawColor(100);pdf.setLineWidth(0.15);pdf.line(5,y,75,y);y+=block.height!;continue;}
+ pdf.setTextColor(0);pdf.setFont('helvetica',block.bold?'bold':'normal');pdf.setFontSize(block.size);
+ const lineHeight=block.size*0.3528*1.25;
+ let first=true;
+ for(const line of block.lines!){if(y+lineHeight>height-8){pdf.addPage([80,height]);y=8;}pdf.text(line,block.center?40:5,y,{align:block.center?'center':'left'});if(first&&block.quantity)pdf.text(block.quantity,75,y,{align:'right'});first=false;y+=lineHeight;}
+ y+=0.8;
  }
+ if(pdf.getNumberOfPages()>1)for(let page=1;page<=pdf.getNumberOfPages();page++){pdf.setPage(page);pdf.setFontSize(7);pdf.text('Page '+page+' of '+pdf.getNumberOfPages(),40,height-3,{align:'center'});}
  return pdf;
 }

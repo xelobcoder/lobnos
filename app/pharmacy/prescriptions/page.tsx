@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import {buildPharmacyReferralPdf, type PharmacyReferralSlip} from '../pharmacy-referral';
 
 import Link from 'next/link';
+import useCompanyImageUrl from '../../../components/Auth/useCompanyImageUrl';
 import { RiCheckLine, RiFileList3Line, RiSendPlaneLine } from '@remixicon/react';
 import { customFetch, customFetchMutation } from '../../../components/Auth/customFetch';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
@@ -60,13 +61,17 @@ const DEFAULT_PAGE_SIZE = 20;
 
 export default function PharmacyPrescriptionsPage() {
      const payment=usePharmacyPayment('prescription');
+     const companyLogoUrl=useCompanyImageUrl();
 
      const [notice,setNotice]=useState('');
-     const [statusFilter, setStatusFilter] = useState<'open' | PrescriptionStatus>('open');
+     const [reprinting,setReprinting]=useState<string|null>(null);
+     const reprintReferral=async(id:string)=>{if(reprinting)return;setReprinting(id);setError('');try{const r=await customFetch('prescriptions/'+id+'/referral-slip');if(!r?.success)throw new Error(r?.error?.message||'Unable to retrieve referral');await printReferralSlip({...r.data,reprint:true});}catch(e){setError(e instanceof Error?e.message:'Unable to reprint referral');}finally{setReprinting(null);}};
+     const [statusFilter, setStatusFilter] = useState<'all' | 'open' | PrescriptionStatus>('open');
      const [prescriptions, setPrescriptions] = useState<PrescriptionSummary[]>([]);
      const [error, setError] = useState('');
 
      const [selected, setSelected] = useState<PrescriptionDetail | null>(null);
+     const [supplyQuantities,setSupplyQuantities]=useState<Record<string,string>>({});
      const [dispenseQuantities, setDispenseQuantities] = useState<Record<string, number>>({});
      const [paymentMethod, setPaymentMethod] = useState('cash');
      const [submitting, setSubmitting] = useState(false);
@@ -76,7 +81,7 @@ export default function PharmacyPrescriptionsPage() {
           async (page = 1, count = DEFAULT_PAGE_SIZE) => {
                try {
                     setError('');
-                    const status = statusFilter === 'open' ? 'pending,partially_fulfilled' : statusFilter;
+                    const status = statusFilter === 'all' ? '' : statusFilter === 'open' ? 'pending,partially_fulfilled' : statusFilter;
                     const response = await customFetch(`prescriptions?page=${page}&count=${count}&status=${status}`);
                     if (response?.success) {
                          const items: PrescriptionSummary[] = response.data.prescriptions || [];
@@ -145,7 +150,7 @@ export default function PharmacyPrescriptionsPage() {
           const response = await customFetchMutation(`prescriptions/${selected.id}/refer`, 'POST', {});
           setSubmitting(false);
           if (response?.success) {
-               printReferralSlip(response.data.referralSlip);
+               try{await printReferralSlip(response.data.referralSlip);}catch(e){setError('Referral saved. '+(e instanceof Error?e.message:'Unable to print. Use Reprint referral to try again.'));}
                await loadPrescriptions(1, DEFAULT_PAGE_SIZE);
                closeDetail();
           } else {
@@ -153,9 +158,13 @@ export default function PharmacyPrescriptionsPage() {
           }
      };
 
-     const printReferralSlip = (slip: PharmacyReferralSlip) => {
+     const printReferralSlip = async (slip: PharmacyReferralSlip) => {
+          if(!slip.company){const response=await customFetch('prescriptions/'+slip.prescriptionId+'/referral-slip');if(!response?.success)throw new Error(response?.error?.message||'Unable to load referral details');slip={...response.data,reprint:slip.reprint};}
+          let logo:string|undefined;
+          if(companyLogoUrl){try{logo=await new Promise<string>((resolve,reject)=>{const image=new Image();image.crossOrigin='anonymous';image.onload=()=>{try{const canvas=document.createElement('canvas');canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;const context=canvas.getContext('2d');if(!context)throw new Error('Image conversion unavailable');context.drawImage(image,0,0);resolve(canvas.toDataURL('image/png'));}catch(error){reject(error);}};image.onerror=()=>reject(new Error('Logo unavailable'));image.src=companyLogoUrl;});}catch{setNotice('The referral is ready, but the company logo could not be loaded. Check the logo in Company Profile.');}}
+
           const patientName=selected?.patientName||prescriptions.find(row=>row.id===slip.prescriptionId)?.patientName;
-          const pdf=buildPharmacyReferralPdf(slip,patientName);
+          const pdf=buildPharmacyReferralPdf(slip,patientName,logo);
           pdf.autoPrint();
           const url=URL.createObjectURL(pdf.output('blob'));
           window.open(url,'_blank');
@@ -179,10 +188,10 @@ export default function PharmacyPrescriptionsPage() {
                Header: 'Action',
                accessor: 'id',
                Cell: ({ row }: { row: { original: PrescriptionSummary } }) => (
-                    <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => openPrescription(row.original.id)}>
+                    <div className="d-flex flex-wrap gap-2"><button type="button" className="btn btn-sm btn-outline-primary" onClick={() => openPrescription(row.original.id)}>
                          <RiFileList3Line size={16} className="me-1" />
                          Review
-                    </button>
+                    </button>{['referred','fulfilled'].includes(row.original.status)&&<button type="button" className="btn btn-sm btn-outline-secondary" disabled={!!reprinting} onClick={()=>reprintReferral(row.original.id)}>{reprinting===row.original.id?'Preparing...':'Reprint referral'}</button>}</div>
                ),
           },
      ];
@@ -195,7 +204,7 @@ export default function PharmacyPrescriptionsPage() {
                          <small className="text-muted">Drug orders raised by clinicians during consultation, awaiting pharmacy fulfillment.</small>
                     </div>
                     <select className="form-select" style={{ width: 'auto' }} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as any)}>
-                         <option value="open">Open (pending/partial)</option>
+                         <option value="all">All prescriptions</option><option value="open">Open (pending/partial)</option>
                          <option value="fulfilled">Fulfilled</option>
                          <option value="referred">Referred out</option>
                          <option value="cancelled">Cancelled</option>
@@ -249,7 +258,7 @@ export default function PharmacyPrescriptionsPage() {
                                                                  {regimen ? <div className="text-muted small">{regimen}</div> : null}
                                                                  {item.dosageInstructions ? <div className="text-muted small fst-italic">{item.dosageInstructions}</div> : null}
                                                             </td>
-                                                            <td>{item.quantityOrdered}<div className="small text-muted">Available: {item.availableStock||0}<br/>GHS {Number(item.salePrice||0).toFixed(2)} / unit</div></td>
+                                                            <td>{item.quantityOrdered>0?item.quantityOrdered:<div><small className="d-block text-muted">Pharmacist to confirm</small><input aria-label={'Supply quantity for '+item.drugName} className="form-control form-control-sm" type="number" min="0.001" step="0.001" value={supplyQuantities[item.id]||''} disabled={submitting||!!payment.pending} onChange={e=>setSupplyQuantities(values=>({...values,[item.id]:e.target.value}))}/><button type="button" className="btn btn-sm btn-outline-primary mt-1" disabled={submitting||!!payment.pending||!Number(supplyQuantities[item.id])} onClick={async()=>{setSubmitting(true);setDetailError('');try{const r=await customFetchMutation('prescriptions/'+selected.id+'/items/'+item.id+'/supply-quantity','PUT',{quantity:Number(supplyQuantities[item.id])});if(!r?.success)throw new Error(r?.error?.message||'Unable to confirm quantity');await openPrescription(selected.id);}catch(e){setDetailError(e instanceof Error?e.message:'Unable to confirm quantity');}finally{setSubmitting(false);}}}>Confirm quantity</button><small className="d-block text-muted">Confirm before pharmacist review.</small></div>}<div className="small text-muted">Available: {item.availableStock||0}<br/>GHS {Number(item.salePrice||0).toFixed(2)} / unit</div></td>
                                                             <td>{item.quantityDispensed}</td>
                                                             <td><span className="badge text-bg-light border">{item.status}</span></td>
                                                             <td>
@@ -257,7 +266,7 @@ export default function PharmacyPrescriptionsPage() {
                                                                       <input
                                                                            type="number"
                                                                            min={0}
-                                                                           max={Math.min(item.quantityOrdered - item.quantityDispensed,item.availableStock||0)} step="0.001" disabled={submitting||!!payment.pending||!item.inventoryItemId}
+                                                                           max={Math.min(item.quantityOrdered - item.quantityDispensed,item.availableStock||0)} step="0.001" disabled={submitting||!!payment.pending||!item.inventoryItemId||!item.quantityOrdered}
                                                                            className="form-control form-control-sm"
                                                                            value={dispenseQuantities[item.id] ?? 0}
                                                                            onChange={(e) => setDispenseQuantities((current) => ({ ...current, [item.id]: Math.max(0, Number(e.target.value)) }))}
@@ -280,7 +289,7 @@ export default function PharmacyPrescriptionsPage() {
                                              </select>
                                         </div>
                                    </div>
-                                   <div className="modal-footer">
+                                   <div className="modal-footer">{selected.items.some(item=>item.status==='referred')&&<button type="button" className="btn btn-outline-secondary" disabled={!!reprinting} onClick={()=>reprintReferral(selected.id)}>Reprint referral slip</button>}
                                         <button type="button" className="btn btn-outline-secondary d-flex align-items-center gap-1" disabled={submitting||!!payment.pending} onClick={referRemaining}>
                                              <RiSendPlaneLine size={16} />
                                              Refer remaining out &amp; print slip
