@@ -1,79 +1,115 @@
 'use client';
 import Link from 'next/link';
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
-import { customFetch, customFetchMutation } from '../../../components/Auth/customFetch';
-import PharmacyPaymentFields, { usePharmacyPayment } from '../components/PharmacyPaymentFields';
+import { customFetch } from '../../../components/Auth/customFetch';
+import { useApplication } from '../../../components/Auth/useApplicationContext';
+import PharmacyPaymentFields,{usePharmacyDocument,usePharmacyPayment} from '../components/PharmacyPaymentFields';
+import { printPharmacyReceipt } from '../../../lib/pharmacy/receipt';
+import styles from './pos.module.css';
 
-type Medicine = { inventoryItemId: string; name: string; sku: string; salePrice: number; availableStock: number; dispensableStock?: number; requiresPrescription?: boolean };
-type Line = Medicine & { quantity: number };
-const money = (n: number) => `GHS ${Number(n).toFixed(2)}`;
-export default function PharmacySellPage() {
-     const payment = usePharmacyPayment('pos');
-     const [search, setSearch] = useState(''), [items, setItems] = useState<Medicine[]>([]), [cart, setCart] = useState<Line[]>([]);
-     const [customer, setCustomer] = useState(''), [method, setMethod] = useState('cash'), [error, setError] = useState(''), [busy, setBusy] = useState(false);
-     const [receipt, setReceipt] = useState<any>(null), [held, setHeld] = useState<any[]>([]), [heldId, setHeldId] = useState<string | null>(null);
-     const [loading, setLoading] = useState(false); const request = useRef(0);
-     const total = cart.reduce((cents, line) => cents + Math.round(Math.round(line.salePrice * 100) * line.quantity), 0) / 100;
-     const locked = busy || !!payment.pending;
-     const load = useCallback(async () => {
-          const id = ++request.current; setLoading(true);
-          try { const response = await customFetch(`pharmacy/catalogue?sellableOnly=true&count=30&search=${encodeURIComponent(search)}`); if (!response?.success) throw new Error(response?.error?.message || 'Unable to load medicines'); if (id === request.current) setItems(response.data.items || []); }
-          catch (e) { if (id === request.current) setError(e instanceof Error ? e.message : 'Unable to load medicines'); }
-          finally { if (id === request.current) setLoading(false); }
-     }, [search]);
-     useEffect(() => { const timer = setTimeout(load, 200); return () => clearTimeout(timer); }, [load]);
-     const loadHeld = useCallback(async () => { const r = await customFetch('pharmacy/sales/held?count=100'); if (r?.success) setHeld(r.data.sales || []); }, []);
-     useEffect(() => { loadHeld(); }, [loadHeld]);
-     const add = (item: Medicine) => {
-          if (locked) return;
-          if (item.requiresPrescription) { setError('Use the prescription queue to dispense this medicine.'); return; }
-          const available = item.dispensableStock ?? item.availableStock;
-          setCart(lines => {
-               const existing = lines.find(l => l.inventoryItemId === item.inventoryItemId);
-               if ((existing?.quantity || 0) + 1 > available) { setError('Insufficient unexpired stock.'); return lines; }
-               return existing ? lines.map(l => l.inventoryItemId === item.inventoryItemId ? { ...l, quantity: l.quantity + 1 } : l) : [...lines, { ...item, quantity: 1 }];
-          });
-          setReceipt(null);
+type PriceType='retail'|'wholesale';
+type Medicine={inventoryItemId:string;name:string;sku:string;salePrice:number;wholesalePrice?:number;availableStock:number;dispensableStock?:number;barcodes?:string[];requiresPrescription?:boolean};
+type Line=Medicine&{quantity:number};
+const money=(value:number)=>'GHS '+Number(value).toFixed(2);
+const unitPrice=(item:Medicine,type:PriceType)=>Number(type==='wholesale'?item.wholesalePrice||0:item.salePrice);
+const lineTotal=(item:Line,type:PriceType)=>Math.round(Math.round(unitPrice(item,type)*100)*Math.round(item.quantity*1000)/1000)/100;
+export default function PharmacySellPage(){
+     const app=useApplication() as any,payment=usePharmacyPayment('pos'),suspension=usePharmacyDocument('pos-suspend');
+     const [quantityDraft,setQuantityDraft]=useState<Record<string,string>>({}),[scanning,setScanning]=useState(0);
+     const scanQueue=useRef(Promise.resolve()),scanCount=useRef(0),addLatest=useRef<(item:Medicine)=>void>(()=>{}),cartRef=useRef<Line[]>([]);
+     const [search,setSearch]=useState(''),[items,setItems]=useState<Medicine[]>([]),[cart,setCart]=useState<Line[]>([]),[priceType,setPriceType]=useState<PriceType>('retail');
+     const [accounts,setAccounts]=useState<any[]>([]),[accountId,setAccountId]=useState(''),[split,setSplit]=useState<Record<string,{amount:string;received:string;reference:string}>>({cash:{amount:'',received:'',reference:''},mobile_money:{amount:'',received:'',reference:''},card:{amount:'',received:'',reference:''}});
+     const [customer,setCustomer]=useState(''),[method,setMethod]=useState('cash'),[error,setError]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false);
+     const [receipt,setReceipt]=useState<any>(null),[held,setHeld]=useState<any[]>([]),[heldId,setHeldId]=useState<string|null>(null),[showHeld,setShowHeld]=useState(false),[loading,setLoading]=useState(false),[active,setActive]=useState(0);
+     const searchInput=useRef<HTMLInputElement>(null),payPanel=useRef<HTMLDivElement>(null),generation=useRef(0),resultsFor=useRef(''),busyRef=useRef(false);
+     cartRef.current=cart;
+     const locked=busy||!!payment.pending||!!suspension.pending,total=cart.reduce((sum,line)=>sum+Math.round(lineTotal(line,priceType)*100),0)/100;
+     useEffect(()=>{customFetch('pharmacy/credit/accounts').then(r=>{if(r?.success)setAccounts(r.data||[]);}).catch(()=>{});},[]);
+     const focusSearch=()=>requestAnimationFrame(()=>searchInput.current?.focus());
+     const loadHeld=useCallback(async()=>{const r=await customFetch('pharmacy/sales/held?count=100');if(!r?.success)throw new Error(r?.error?.message||'Unable to load suspended sales');setHeld(r.data.sales||[]);},[]);
+     useEffect(()=>{loadHeld().catch(e=>setError(e.message));},[loadHeld]);
+     const lookup=useCallback(async(term:string)=>{
+          const token=++generation.current;if(!term.trim()){setItems([]);setLoading(false);resultsFor.current='';return [];}
+          setLoading(true);
+          try{const r=await customFetch('pharmacy/catalogue?sellableOnly=true&count=20&search='+encodeURIComponent(term.trim()));if(!r?.success)throw new Error(r?.error?.message||'Unable to search medicines');if(token!==generation.current)return [];
+               const rows:Medicine[]=r.data.items||[];setItems(rows);resultsFor.current=term.trim();setActive(0);return rows;
+          }catch(e){if(token===generation.current){setItems([]);setError(e instanceof Error?e.message:'Medicine search failed');}return [];}finally{if(token===generation.current)setLoading(false);}
+     },[]);
+     useEffect(()=>{const timer=setTimeout(()=>lookup(search),140);return()=>{clearTimeout(timer);generation.current++;};},[search,lookup]);
+     const add=(item:Medicine)=>{
+          if(locked||busyRef.current)return;
+          if(item.requiresPrescription){setError('This medicine requires a prescription. Dispense it from the prescription queue.');return;}
+          if(unitPrice(item,priceType)<=0){setError('Configure a '+priceType+' price for '+item.name+' before selling it.');return;}
+          const existing=cartRef.current.find(line=>line.inventoryItemId===item.inventoryItemId),next=Math.round(((existing?.quantity||0)+1)*1000)/1000,available=item.dispensableStock??item.availableStock;
+          if(next>available){setError('Only '+available+' unexpired units of '+item.name+' are available.');return;}
+          const updated=existing?cartRef.current.map(line=>line.inventoryItemId===item.inventoryItemId?{...line,...item,quantity:next}:line):[...cartRef.current,{...item,quantity:1}];cartRef.current=updated;setCart(updated);
+          setError('');setNotice(item.name+' added');setReceipt(null);payment.setAmount('');setSearch('');setItems([]);generation.current++;focusSearch();
      };
-     const checkout = async (event?: FormEvent) => {
-          event?.preventDefault(); if (busy || (!cart.length && !payment.pending)) return;
-          setBusy(true); setError('');
-          try {
-               const r = await payment.execute(heldId ? `pharmacy/sales/held/${heldId}/complete` : 'pharmacy/sales', { customerName: customer || 'Walk-in customer', paymentMethod: method, expectedTotal: total, lines: cart.map(l => ({ inventoryItemId: l.inventoryItemId, quantity: l.quantity })) });
-               if (!r?.success) throw new Error(r?.error?.message || 'Checkout could not be confirmed. Retry the original checkout.');
-               setReceipt(r.data); setCart([]); setCustomer(''); setHeldId(null); await Promise.all([load(), loadHeld()]);
-          } catch (e) { setError(e instanceof Error ? e.message : 'Checkout failed'); } finally { setBusy(false); }
+     addLatest.current=add;
+     const enqueueScan=(term:string,cached:Medicine[],chosen:number)=>{
+          scanCount.current++;setScanning(scanCount.current);setSearch('');setItems([]);generation.current++;
+          scanQueue.current=scanQueue.current.then(async()=>{
+               let rows=cached;
+               if(!rows.length){const r=await customFetch('pharmacy/catalogue?sellableOnly=true&count=20&search='+encodeURIComponent(term));if(!r?.success)throw new Error(r?.error?.message||'Unable to look up scanned medicine');rows=r.data.items||[];}
+               const item=rows.find(item=>(item.sku.toLowerCase()===term.toLowerCase()||item.barcodes?.some(code=>code.toLowerCase()===term.toLowerCase())))||rows[chosen]||rows[0];
+               if(!item)throw new Error('No medicine found for '+term);addLatest.current(item);
+          }).catch(error=>setError(error instanceof Error?error.message:'Unable to add scanned medicine')).finally(()=>{scanCount.current--;setScanning(scanCount.current);});
      };
-     const hold = async () => {
-          if (locked || !cart.length || heldId) return; setBusy(true); setError('');
-          try { const r = await customFetchMutation('pharmacy/sales/held', 'POST', { customerName: customer || 'Walk-in customer', lines: cart.map(l => ({ inventoryItemId: l.inventoryItemId, quantity: l.quantity })) }); if (!r?.success) throw new Error(r?.error?.message || 'Unable to hold sale'); setCart([]); setCustomer(''); await loadHeld(); }
-          catch (e) { setError(e instanceof Error ? e.message : 'Unable to hold sale'); } finally { setBusy(false); }
+     const setQuantity=(id:string,value:number)=>{
+          if(locked||!Number.isFinite(value))return;
+          if(value<=0){setCart(rows=>rows.filter(line=>line.inventoryItemId!==id));payment.setAmount('');return;}
+          const line=cart.find(line=>line.inventoryItemId===id);if(!line)return;
+          if(value>(line.dispensableStock??line.availableStock)){setError('Insufficient unexpired stock for '+line.name+'. Refresh or reduce the quantity.');return;}
+          setCart(rows=>rows.map(row=>row.inventoryItemId===id?{...row,quantity:Math.round(value*1000)/1000}:row));payment.setAmount('');setError('');
      };
-     const recall = async (id: string) => {
-          if (locked) return; if (cart.length && !window.confirm('Replace the current unsaved basket with this held sale?')) return;
-          setBusy(true); setError('');
-          try { const r = await customFetch(`pharmacy/sales/held/${id}`); if (!r?.success) throw new Error(r?.error?.message || 'Unable to recall sale'); setCart(r.data.lines.map((l: any) => ({ ...l, salePrice: l.unitPrice, availableStock: Number.MAX_SAFE_INTEGER }))); setCustomer(r.data.customerName); setHeldId(id); }
-          catch (e) { setError(e instanceof Error ? e.message : 'Unable to recall sale'); } finally { setBusy(false); }
+     const choosePrice=(type:PriceType)=>{
+          if(locked||type===priceType)return;
+          const missing=cart.filter(item=>unitPrice(item,type)<=0);if(missing.length){setError('Set a '+type+' price for '+missing.map(item=>item.name).join(', ')+' before changing this transaction.');return;}
+          setPriceType(type);payment.setAmount('');setError('');setNotice('All items now use '+type+' prices.');focusSearch();
      };
-     return <main className="container-fluid p-3 p-md-4">
-          <div className="d-flex justify-content-between flex-wrap gap-2 mb-3"><div><h1 className="h3">Pharmacy POS</h1><p className="text-muted mb-0">Select medicines, review the basket and collect payment.</p></div><div className="d-flex gap-3"><Link href="/pharmacy/cashier">Cashier / shift</Link><Link href="/pharmacy/prescriptions">Prescriptions</Link></div></div>
-          {error && <div className="alert alert-danger" role="alert">{error}</div>}
-          {payment.pending && <div className="alert alert-warning">A checkout needs confirmation. Its original items and payment details will be used. <button type="button" className="btn btn-warning" disabled={busy} onClick={() => checkout()}>Retry original checkout</button></div>}
-          <form onSubmit={checkout}><div className="row g-4">
-               <section className="col-lg-8">
-                    <div className="card mb-3"><div className="card-body"><label className="form-label fw-bold" htmlFor="medicine-search">Search or scan a medicine</label><input id="medicine-search" className="form-control form-control-lg" value={search} disabled={locked} onChange={e => setSearch(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); if (items.length === 1) add(items[0]); } }} placeholder="Medicine name or SKU" autoFocus />
-                         <div className="table-responsive mt-3" style={{ maxHeight: 280, overflowY: 'auto' }}><table className="table align-middle"><thead><tr><th>Medicine</th><th>Available</th><th>Price</th><th /></tr></thead><tbody>{items.map(item => <tr key={item.inventoryItemId}><td>{item.name}<small className="d-block text-muted">{item.sku}{item.requiresPrescription ? ' · Prescription required' : ''}</small></td><td>{item.dispensableStock ?? item.availableStock}</td><td>{money(item.salePrice)}</td><td><button type="button" className="btn btn-outline-primary btn-sm" disabled={locked || (item.dispensableStock ?? item.availableStock) < 1} onClick={() => add(item)}>Add</button></td></tr>)}</tbody></table>{loading ? <p role="status">Loading medicines…</p> : !items.length && <p>No matching medicines with sellable stock.</p>}</div>
-                    </div></div>
-                    <div className="card"><div className="card-body"><div className="d-flex justify-content-between"><h2 className="h5">Selected items</h2><span>{cart.length} item(s)</span></div>
-                         <div className="table-responsive"><table className="table align-middle"><thead><tr><th>Medicine</th><th>Quantity</th><th>Unit price</th><th>Total</th><th /></tr></thead><tbody>{cart.map(line => <tr key={line.inventoryItemId}><td>{line.name}</td><td><input aria-label={`Quantity for ${line.name}`} className="form-control" style={{ width: 100 }} type="number" min="0.001" step="0.001" required value={line.quantity} disabled={locked} onChange={e => { const count = Number(e.target.value); setCart(lines => lines.map(l => l.inventoryItemId === line.inventoryItemId ? { ...l, quantity: count } : l)); }} /></td><td>{money(line.salePrice)}</td><td>{money(Math.round(Math.round(line.salePrice * 100) * line.quantity) / 100)}</td><td><button type="button" className="btn btn-outline-danger btn-sm" disabled={locked} onClick={() => setCart(lines => lines.filter(l => l.inventoryItemId !== line.inventoryItemId))}>Remove</button></td></tr>)}</tbody></table></div>
-                         {!cart.length && <p className="text-muted">Added medicines appear here, directly below the selection area.</p>}
-                         <div className="d-flex gap-2"><button type="button" className="btn btn-outline-secondary" disabled={locked || !cart.length || !!heldId} onClick={hold}>Hold sale</button><button type="button" className="btn btn-outline-secondary" disabled={locked || !cart.length} onClick={() => { if (window.confirm('Clear this basket?')) { setCart([]); setHeldId(null); } }}>Clear basket</button></div>
-                    </div></div>
-                    {!!held.length && <div className="card mt-3"><div className="card-body"><h2 className="h5">Held sales</h2><div className="d-flex flex-wrap gap-2">{held.map(sale => <button type="button" className="btn btn-outline-secondary" disabled={locked} key={sale.id} onClick={() => recall(sale.id)}>{sale.customerName} · {money(sale.total)}</button>)}</div></div></div>}
+     const clear=()=>{if(locked)return;if(cart.length&&!window.confirm('Clear the current basket? A recalled suspended sale will remain saved.'))return;setCart([]);setQuantityDraft({});setHeldId(null);setCustomer('');setSearch('');setAccountId('');setSplit({cash:{amount:'',received:'',reference:''},mobile_money:{amount:'',received:'',reference:''},card:{amount:'',received:'',reference:''}});payment.setAmount('');setError('');focusSearch();};
+     const checkout=async(event?:FormEvent)=>{
+          event?.preventDefault();if(scanCount.current||busyRef.current||suspension.pending||(!cart.length&&!payment.pending))return;
+          busyRef.current=true;setBusy(true);setError('');
+          try{const r=await payment.execute(heldId?'pharmacy/sales/held/'+heldId+'/complete':'pharmacy/sales',{priceType,customerName:customer||'Walk-in customer',paymentMethod:method,expectedTotal:total,...(['credit','split'].includes(method)?{customerAccountId:accountId?Number(accountId):undefined,patientId:accountId?Number(accounts.find(a=>Number(a.id)===Number(accountId))?.patient_id):undefined,tenders:method==='split'?Object.entries(split).filter(([,leg])=>Number(leg.amount)>0).map(([method,leg])=>({method,amount:Number(leg.amount),received:leg.received?Number(leg.received):Number(leg.amount),reference:leg.reference})):undefined}:{}),lines:cart.map(line=>({inventoryItemId:line.inventoryItemId,quantity:line.quantity,priceType}))});if(!r?.success)throw new Error(r?.error?.message||'Checkout needs confirmation. Retry the original request.');
+               setReceipt(r.data);setCart([]);setQuantityDraft({});setHeldId(null);setCustomer('');setSearch('');setAccountId('');setSplit({cash:{amount:'',received:'',reference:''},mobile_money:{amount:'',received:'',reference:''},card:{amount:'',received:'',reference:''}});payment.setAmount('');payment.setReference('');setNotice('Sale completed. Your saved receipt is ready to print.');await loadHeld();focusSearch();
+          }catch(e){setError(e instanceof Error?e.message:'Unable to confirm checkout');}finally{busyRef.current=false;setBusy(false);}
+     };
+     const suspend=async()=>{
+          if(scanCount.current||busyRef.current||payment.pending||(!cart.length&&!suspension.pending))return;busyRef.current=true;setBusy(true);setError('');
+          try{const r=await suspension.execute('pharmacy/sales/held',{heldSaleId:heldId||undefined,priceType,customerName:customer||'Walk-in customer',lines:cart.map(line=>({inventoryItemId:line.inventoryItemId,quantity:line.quantity,priceType}))});if(!r?.success)throw new Error(r?.error?.message||'Suspension needs confirmation. Retry the original request.');
+               setCart([]);setQuantityDraft({});setCustomer('');setHeldId(null);setSearch('');payment.setAmount('');payment.setReference('');setNotice('Sale suspended. Stock and payment have not been deducted.');await loadHeld();focusSearch();
+          }catch(e){setError(e instanceof Error?e.message:'Unable to suspend sale');}finally{busyRef.current=false;setBusy(false);}
+     };
+     const recall=async(id:string)=>{
+          if(locked||busyRef.current)return;if(cart.length&&!window.confirm('Replace this basket? Unsaved changes will be lost.'))return;busyRef.current=true;setBusy(true);setError('');
+          try{const r=await customFetch('pharmacy/sales/held/'+id);if(!r?.success)throw new Error(r?.error?.message||'Suspended sale unavailable');
+               const types=new Set(r.data.lines.map((line:any)=>line.priceType||'retail'));const type=Array.from(types)[0] as PriceType;
+               setQuantityDraft({});setPriceType(type);setCart(r.data.lines.map((line:any)=>({...line,salePrice:line.retailPrice??(type==='retail'?line.unitPrice:0),wholesalePrice:line.wholesalePrice??(type==='wholesale'?line.unitPrice:0),availableStock:line.availableStock??line.quantity,dispensableStock:line.dispensableStock,quantity:Number(line.quantity)})));setCustomer(r.data.customerName);setHeldId(id);setReceipt(null);setShowHeld(false);payment.setAmount('');setNotice(types.size>1?'This older suspension used mixed prices. All items now use '+type+' pricing; review the total.':'Suspended sale recalled. Current prices and stock are checked before checkout.');focusSearch();
+          }catch(e){setError(e instanceof Error?e.message:'Unable to recall sale');}finally{busyRef.current=false;setBusy(false);}
+     };
+     const print=()=>{if(!receipt)return;try{printPharmacyReceipt(receipt,{name:typeof app?.company==='string'?app.company:app?.company?.name||'PHARMACY',address:app?.company?.address,phone:app?.company?.phonenumber,printedBy:app?.user?.username});}catch(e){setError(e instanceof Error?e.message:'Unable to print receipt');}};
+     useEffect(()=>{const keys=(event:KeyboardEvent)=>{if(event.key==='F2'){event.preventDefault();focusSearch();}else if(event.key==='F4'){event.preventDefault();payPanel.current?.querySelector<HTMLInputElement>('input[type="number"]')?.focus();}else if(event.key==='F8'){event.preventDefault();if(!locked)suspend();}else if(event.key==='F9'){event.preventDefault();if(!locked)(document.getElementById('pharmacy-checkout') as HTMLFormElement)?.requestSubmit();}};window.addEventListener('keydown',keys);return()=>window.removeEventListener('keydown',keys);});
+     return <main className={styles.page}>
+          <header className={styles.header}><div><span className={styles.eyebrow}>PHARMACY · POINT OF SALE</span><h1>Checkout</h1></div><nav className={styles.actions}><Link href="/pharmacy/cashier">Cashier & shift</Link><Link href="/pharmacy/prescriptions">Prescriptions</Link><button className="btn btn-outline-secondary" disabled={locked} onClick={()=>{setShowHeld(!showHeld);loadHeld().catch(e=>setError(e.message));}}>Suspended sales <span className="badge text-bg-secondary">{held.length}</span></button></nav></header>
+          {error&&<div className="alert alert-danger" role="alert">{error}</div>}<div className={styles.notice} role="status" aria-live="polite">{notice}</div>
+          {payment.pending&&<div className="alert alert-warning">Payment confirmation is pending. <button className="btn btn-warning" disabled={busy} onClick={()=>checkout()}>Retry original checkout</button></div>}
+          {suspension.pending&&<div className="alert alert-warning">Sale suspension needs confirmation. <button className="btn btn-warning" disabled={busy} onClick={suspend}>Retry original suspension</button></div>}
+          {showHeld&&<section className={styles.suspended}><h2>Suspended sales</h2>{held.length?<div className={styles.heldList}>{held.map(sale=><button key={sale.id} disabled={locked} onClick={()=>recall(sale.id)}><strong>{sale.customerName}</strong><span>{money(sale.total)}</span><small>{new Date(sale.createdAt).toLocaleString('en-GH')} · {sale.lines?.length||0} item(s)</small></button>)}</div>:<p>No suspended sales.</p>}</section>}
+          <form id="pharmacy-checkout" onSubmit={checkout} className={styles.layout}>
+               <section className={styles.basket}>
+                    <div className={styles.searchArea}><div className={styles.transaction}><div><h2>Current sale {heldId&&<span className="badge text-bg-info">Recalled</span>}</h2><p>One price basis applies to every item in this transaction.</p></div><div className={styles.priceSwitch} role="group" aria-label="Transaction pricing">{(['retail','wholesale'] as PriceType[]).map(type=><button type="button" key={type} aria-pressed={priceType===type} className={priceType===type?styles.selected:''} disabled={locked} onClick={()=>choosePrice(type)}>{type==='retail'?'Retail':'Wholesale'}</button>)}</div></div>
+                         <label htmlFor="medicine-search" className={styles.searchLabel}>Search medicine or scan barcode <kbd>F2</kbd></label>
+                         <div className={styles.searchBox}><input ref={searchInput} id="medicine-search" autoFocus autoComplete="off" role="combobox" aria-expanded={!!search.trim()} aria-controls="medicine-options" aria-autocomplete="list" aria-activedescendant={items[active]?'medicine-option-'+active:undefined} placeholder="Start typing a name or scan SKU, then press Enter" value={search} disabled={locked} onChange={event=>{setSearch(event.target.value);setItems([]);setLoading(!!event.target.value.trim());}} onKeyDown={async event=>{if(event.key==='Escape'){setSearch('');setItems([]);}if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();setActive(value=>Math.max(0,Math.min(items.length-1,value+(event.key==='ArrowDown'?1:-1))));}if(event.key==='Enter'){event.preventDefault();const term=search.trim();if(!term)return;enqueueScan(term,resultsFor.current===term?items:[],active);}}}/>
+                              {search.trim()&&<div id="medicine-options" role="listbox" className={styles.results}>{loading?<p>Searching…</p>:items.length?items.map((item,index)=><button type="button" role="option" aria-selected={active===index} id={'medicine-option-'+index} key={item.inventoryItemId} className={active===index?styles.highlight:''} disabled={locked} onMouseEnter={()=>setActive(index)} onClick={()=>add(item)}><span><strong>{item.name}</strong><small>{item.sku} · {item.dispensableStock??item.availableStock} available{item.requiresPrescription?' · Prescription required':''}</small></span><span>{unitPrice(item,priceType)>0?money(unitPrice(item,priceType)):'Price not set'} <b>＋</b></span></button>):<p>No medicines found. Try another name or SKU.</p>}</div>}
+                         </div>
+                    </div>
+                    <div className={styles.cartHeading}><h2>Basket <span>{scanning?'Adding scanned medicines…':cart.length+' item(s)'}</span></h2><button type="button" className="btn btn-sm btn-outline-secondary" disabled={locked||!!scanning||!cart.length} onClick={clear}>Clear basket</button></div>
+                    {cart.length?<div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>Medicine</th><th>Quantity</th><th>Unit price</th><th>Total</th><th/></tr></thead><tbody>{cart.map(line=><tr key={line.inventoryItemId}><td><strong>{line.name}</strong><small>{line.sku}</small></td><td><div className={styles.quantity}><button type="button" disabled={locked} aria-label={'Decrease '+line.name} onClick={()=>setQuantity(line.inventoryItemId,line.quantity-1)}>−</button><input aria-label={'Quantity for '+line.name} type="number" min="0.001" step="0.001" required max={line.dispensableStock??line.availableStock} value={quantityDraft[line.inventoryItemId]??line.quantity} disabled={locked} onChange={event=>{const value=event.target.value;setQuantityDraft(draft=>({...draft,[line.inventoryItemId]:value}));if(Number(value)>0)setQuantity(line.inventoryItemId,Number(value));}} onBlur={()=>setQuantityDraft(draft=>{const next={...draft};delete next[line.inventoryItemId];return next;})} onKeyDown={event=>{if(event.key==='Enter'){event.preventDefault();event.currentTarget.blur();focusSearch();}}}/><button type="button" disabled={locked} aria-label={'Increase '+line.name} onClick={()=>setQuantity(line.inventoryItemId,line.quantity+1)}>+</button></div></td><td>{money(unitPrice(line,priceType))}</td><td><strong>{money(lineTotal(line,priceType))}</strong></td><td><button type="button" className={styles.remove} disabled={locked} aria-label={'Remove '+line.name} onClick={()=>setQuantity(line.inventoryItemId,0)}>×</button></td></tr>)}</tbody></table></div>:<div className={styles.empty}><span>＋</span><h3>Ready for your next customer</h3><p>Search or scan a medicine above. Added items stay here while you continue scanning.</p></div>}
+                    <footer className={styles.basketFooter}><button type="button" className="btn btn-outline-primary" disabled={locked||!!scanning||!cart.length} onClick={suspend}>Suspend sale <kbd>F8</kbd></button><span>{priceType==='retail'?'Retail':'Wholesale'} transaction · {cart.reduce((sum,line)=>sum+line.quantity,0)} unit(s)</span></footer>
                </section>
-               <aside className="col-lg-4"><div className="card"><div className="card-body"><h2 className="h5">Payment</h2><label className="form-label d-block">Customer (optional)<input className="form-control" maxLength={255} value={customer} disabled={locked} onChange={e => setCustomer(e.target.value)} /></label><div className="d-flex justify-content-between fs-3 fw-bold my-4"><span>Total</span><span>{money(total)}</span></div><label className="form-label d-block">Payment method<select className="form-select" value={method} disabled={locked} onChange={e => { setMethod(e.target.value); payment.setAmount(''); }}><option value="cash">Cash</option><option value="mobile_money">Mobile money</option><option value="card">Card</option></select></label><PharmacyPaymentFields payment={payment} method={method} total={total} disabled={busy} /><button className="btn btn-success btn-lg w-100" type="submit" disabled={locked || !cart.length || !payment.setup?.shift || payment.setup?.day?.status!=='open' || !payment.setup?.routes?.some((r: any) => r.method === method)}>{busy ? 'Processing…' : 'Complete sale'}</button></div></div></aside>
-          </div></form>
-          {receipt && <section className="card mt-4 receipt" aria-live="polite"><div className="card-body"><h2 className="h4">Pharmacy receipt</h2><p>{receipt.receiptNumber}<br />{receipt.customerName} · {new Date(receipt.completedAt).toLocaleString()}</p><table className="table"><thead><tr><th>Medicine</th><th>Quantity</th><th>Unit price</th><th>Total</th></tr></thead><tbody>{receipt.lines?.map((l: any) => <tr key={l.id}><td>{l.name}</td><td>{l.quantity}</td><td>{money(l.unitPrice)}</td><td>{money(l.lineTotal)}</td></tr>)}</tbody></table><p className="fs-5">Total: {money(receipt.total)}<br />Received: {money(receipt.amountTendered)}<br /><strong>Change: {money(receipt.change)}</strong></p><p>{receipt.paymentMethod.replace('_', ' ')} {receipt.paymentReference || ''}</p><button type="button" className="btn btn-primary" onClick={() => window.print()}>Print receipt</button></div></section>}
-          <style jsx global>{`@media print { body * { visibility: hidden; } .receipt, .receipt * { visibility: visible; } .receipt { position: absolute; left: 0; top: 0; width: 100%; border: 0; } .receipt button { display: none; } }`}</style>
+               <aside className={styles.payment} ref={payPanel}><h2>Collect payment</h2><div className={styles.total}><span>Total due</span><strong>{money(total)}</strong></div><label className="form-label d-block">Customer (optional)<input className="form-control" maxLength={255} disabled={locked} value={customer} onChange={event=>setCustomer(event.target.value)} placeholder="Walk-in customer"/></label><label className="form-label d-block">Payment method<select className="form-select" value={method} disabled={locked} onChange={event=>{setMethod(event.target.value);payment.setAmount('');}}><option value="cash">Cash</option><option value="mobile_money">Mobile money</option><option value="card">Card</option><option value="split">Split payment / part credit</option><option value="credit">Approved patient credit</option></select></label>{['split','credit'].includes(method)&&<><label className="form-label d-block">Approved patient account {method==='split'?'(required for unpaid remainder)':''}<select className="form-select" required={method==='credit'} disabled={locked} value={accountId} onChange={e=>{setAccountId(e.target.value);const account=accounts.find(a=>Number(a.id)===Number(e.target.value));if(account)setCustomer([account.firstname,account.lastname].filter(Boolean).join(' '));}}><option value="">No credit account</option>{accounts.filter(a=>a.is_active).map(a=><option key={a.id} value={a.id}>{a.firstname} {a.lastname} · Available {money(Math.max(0,Number(a.credit_limit)-Number(a.outstanding)))}</option>)}</select></label>{method==='split'&&<div>{Object.entries(split).map(([key,leg])=><fieldset key={key} className="border rounded p-2 mb-2" disabled={locked}><legend style={{fontSize:12}}>{key.replace('_',' ')}</legend><label className="form-label d-block">Net amount<input className="form-control" type="number" min="0" step="0.01" value={leg.amount} onChange={e=>setSplit(value=>({...value,[key]:{...value[key],amount:e.target.value}}))}/></label>{Number(leg.amount)>0&&(key==='cash'?<label className="form-label d-block">Cash tendered<input className="form-control" type="number" min={Number(leg.amount)} step="0.01" value={leg.received} placeholder={leg.amount} onChange={e=>setSplit(value=>({...value,[key]:{...value[key],received:e.target.value}}))}/></label>:<label className="form-label d-block">Reference<input className="form-control" required maxLength={128} value={leg.reference} onChange={e=>setSplit(value=>({...value,[key]:{...value[key],reference:e.target.value}}))}/></label>)}</fieldset>)}<p>On account: {money(Math.max(0,total-Object.values(split).reduce((sum,leg)=>sum+Number(leg.amount||0),0)))}</p></div>}</>}{!['credit','split'].includes(method)&&<PharmacyPaymentFields payment={payment} method={method} total={total} disabled={locked}/>}<button type="button" className="btn btn-outline-secondary w-100 mb-2" disabled={locked||!!scanning||!cart.length||['split','credit'].includes(method)} onClick={()=>payment.setAmount(total.toFixed(2))}>Exact amount</button><button type="submit" className="btn btn-success btn-lg w-100" disabled={locked||!!scanning||!cart.length||!payment.setup?.shift||payment.setup?.day?.status!=='open'||(!['split','credit'].includes(method)&&!payment.setup?.routes?.some((route:any)=>route.method===method))}>{busy?'Processing…':'Complete sale'} <kbd>F9</kbd></button><p className={styles.shortcut}>F2 search · F4 amount · F8 suspend · F9 pay</p></aside>
+          </form>
+          {receipt&&<section className={styles.receipt}><div><span className="badge text-bg-success mb-2">Payment recorded</span><h2>Receipt {receipt.receiptNumber}</h2><p>{receipt.customerName} · {new Date(receipt.completedAt).toLocaleString('en-GH')}</p><strong>{money(receipt.total)}</strong><p>Outstanding {money(receipt.outstandingAmount||0)}</p><p>Received {money(receipt.amountTendered??receipt.total)} · Change {money(receipt.change||0)}</p></div><div className={styles.actions}><button type="button" className="btn btn-primary btn-lg" onClick={print}>Print 80 mm receipt</button><button type="button" className="btn btn-outline-secondary" onClick={()=>{setReceipt(null);focusSearch();}}>Next customer</button></div></section>}
      </main>;
 }

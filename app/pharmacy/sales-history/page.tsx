@@ -149,7 +149,7 @@ export default function PharmacySalesHistoryPage() {
      useEffect(() => { loadSales(); }, [loadSales]);
 
      const openReversal = (sale: Sale) => {
-          if(sale.accountingVersion!==2){setError('This legacy receipt belongs to the original books. Request a reviewed historical correction.');return;}
+          if(sale.accountingVersion<2){setError('This legacy receipt belongs to the original books. Request a reviewed historical correction.');return;}
           setTarget(sale);
           setDisposition('quarantine');
           setReversalType('refund');
@@ -211,7 +211,7 @@ export default function PharmacySalesHistoryPage() {
                accessor: 'receiptNumber',
                Cell: ({ row }: { row: { original: Sale } }) => (
                     <button type="button" className="btn btn-link p-0 fw-semibold text-decoration-none" onClick={() => openDetail(row.original)}>
-                         {row.original.receiptNumber}{row.original.accountingVersion!==2&&<span className="badge text-bg-secondary ms-2">Legacy</span>}
+                         {row.original.receiptNumber}{row.original.accountingVersion<2&&<span className="badge text-bg-secondary ms-2">Legacy</span>}
                     </button>
                ),
           },

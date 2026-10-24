@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import jsPDF from 'jspdf';
+import Link from 'next/link';
 import { RiCheckLine, RiFileList3Line, RiSendPlaneLine } from '@remixicon/react';
 import { customFetch, customFetchMutation } from '../../../components/Auth/customFetch';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
@@ -235,7 +236,7 @@ export default function PharmacyPrescriptionsPage() {
                          <div className="modal-dialog modal-lg">
                               <div className="modal-content">
                                    <div className="modal-header">
-                                        <h5 className="modal-title">Fulfill prescription</h5>
+                                        <h5 className="modal-title">Fulfill prescription</h5><Link className="btn btn-sm btn-outline-primary" href={'/pharmacy/clinical?prescriptionId='+selected.id}>Pharmacist review</Link>
                                         <button type="button" className="btn-close" onClick={closeDetail} />
                                    </div>
                                    <div className="modal-body">
