@@ -59,6 +59,7 @@ async function routeRequest(request: NextRequest) {
                 return NextResponse.redirect(new URL(returnTo, request.url));
             }
             if (role.replace(/[\s_-]/g, '') === 'superadmin') return NextResponse.redirect(new URL('/settings/facilities', request.url));
+            if (['doctor','medicalofficer','consultant','nurse','pharmacydoctor','pharmacynurse'].includes(role.replace(/[\s_-]/g,''))) return NextResponse.redirect(new URL('/doctor', request.url));
             if (role === 'clinician') return NextResponse.redirect(new URL('/doctor', request.url));
             if (role === 'patient') return NextResponse.redirect(new URL('/patientportal', request.url));
             if (role.replace(/[\s_-]/g,'').startsWith('pharmacy')) return NextResponse.redirect(new URL('/pharmacy', request.url));
@@ -73,6 +74,7 @@ async function routeRequest(request: NextRequest) {
             const normalizedRole = role.toString().toLowerCase().trim();
             // Pharmacy staff enter their own workspace; API authorization enforces the same boundary.
             const roleKey=normalizedRole.replace(/[\s_-]/g,'');
+            if(['pharmacydoctor','pharmacynurse'].includes(roleKey)&&currentPath.startsWith('/doctor'))return NextResponse.next();
             if(roleKey.startsWith('pharmacy')) {
                 if(!currentPath.startsWith('/pharmacy')&&!['/authentication/logout','/unauthorized'].includes(currentPath))return NextResponse.redirect(new URL('/pharmacy',request.url));
                 return NextResponse.next();
@@ -107,7 +109,7 @@ async function routeRequest(request: NextRequest) {
                 return response;
             }
 
-            if (currentPath.startsWith('/doctor') && !['clinician', 'admin', 'super admin'].includes(normalizedRole)) {
+            if (currentPath.startsWith('/doctor') && !['clinician','admin','manager','superadmin','doctor','medicalofficer','consultant','nurse','nursing','pharmacydoctor','pharmacynurse'].includes(roleKey)) {
                 return NextResponse.redirect(new URL('/unauthorized', request.url));
             }
 

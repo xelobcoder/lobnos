@@ -6,10 +6,12 @@ import { customFetch, customPost, currencyFormatter } from '../../Auth/customFet
 import TestPricingEditor, { pricingError } from '../billing-strategy/TestPricingEditor';
 import OrganizationPicker, { SelectedOrganization } from '../billing-strategy/OrganizationPicker';
 import { Mode, StrategyTest, priceTest } from '../billing-strategy/strategyUi';
+import { usePackageManager } from './packageAccess';
 import ApplicableClinicians from './ApplicableClinicians';
 import s from '../billing-strategy/StrategyWorkspace.module.css';
 
 export default function PackageEditor({ packageId }: { packageId?: string | null }) {
+    const manager = usePackageManager();
     const router = useRouter(), lock = useRef(false), alert = useRef<HTMLDivElement>(null);
     const [savedId, setSavedId] = useState<number | null>(null), [name, setName] = useState(''), [tests, setTests] = useState<StrategyTest[]>([]), [organizations, setOrganizations] = useState<SelectedOrganization[]>([]), [revision, setRevision] = useState('');
     const [mode, setMode] = useState<Mode>('absolute'), [value, setValue] = useState('0');
@@ -21,17 +23,17 @@ export default function PackageEditor({ packageId }: { packageId?: string | null
         setDirty(false); setLoaded(true);
     }
     useEffect(() => {
-        if (!packageId) return;
+        if (!manager || !packageId) return;
         let live = true; setLoading(true); setLoaded(false); setError('');
         customFetch(`packages/${packageId}/configuration`).then(result => { if (result?.status !== true || !result.data?.id) throw new Error(result?.message || 'Unable to load this package.'); if (live) hydrate(result.data); })
             .catch((err: unknown) => { if (live) setError(err instanceof Error ? err.message : 'Unable to load package.'); }).finally(() => { if (live) setLoading(false); });
         return () => { live = false; };
-    }, [packageId, retry]);
+    }, [manager, packageId, retry]);
     useEffect(() => { if (error) alert.current?.focus(); }, [error]);
     useEffect(() => { if (!dirty) return; const guard = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ''; }; window.addEventListener('beforeunload', guard); return () => window.removeEventListener('beforeunload', guard); }, [dirty]);
     function changed() { setDirty(true); setSuccess(''); }
     async function save() {
-        if (lock.current || !loaded) return;
+        if (!manager || lock.current || !loaded) return;
         setError(''); setSuccess('');
         if (!name.trim() || name.trim().length > 100) { setError('Enter a package name of 1–100 characters.'); return; }
         if (!tests.length) { setError('Select at least one test for this package.'); return; }
@@ -47,6 +49,7 @@ export default function PackageEditor({ packageId }: { packageId?: string | null
         } catch (err) { setError(err instanceof Error ? err.message : 'Unable to save this package. Your draft is kept.'); }
         finally { lock.current = false; setSaving(false); }
     }
+    if (!manager) return <div className={s.workspace}><h1>Package configuration is restricted</h1><p>Administrators and managers can change packages.</p><Link href={packageId ? `/billing/packages/${packageId}` : "/billing/packages"}>View packages</Link></div>;
     return <div className={`${s.workspace} ${s.packageWorkspace}`}><header className={s.header}><div><span className={s.eyebrow}>Billing configuration / Packages</span><h1>{id ? 'Edit package' : 'Create package'}</h1><p>Select the tests, set their prices and link organizations in one workspace.</p></div><Link className={s.secondary} href="/billing/packages" onClick={event => { if (saving || dirty) { event.preventDefault(); if (!saving) setLeave(true); } }}>All packages</Link></header>
         {error && <div ref={alert} tabIndex={-1} role="alert" className={s.error}>{error}{packageId && <button type="button" className={s.secondary} onClick={() => dirty ? setReload(true) : setRetry(retry + 1)}>Reload saved package</button>}</div>}
         {success && <div role="status" className={s.success}>{success}</div>}

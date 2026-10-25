@@ -1,31 +1,3 @@
-import { Suspense } from "react";
-import { ApplicationProvider } from "../../components/Auth/useApplicationContext";
-import PrimeLayout from "../../components/Layout/PrimeLayout";
-import { ConsulationLinks } from "../../components/Layout/links/categories/ConsultationLinks";
-import MAIN_LAYOUT from "../../components/Layout/MainLayout";
-
-
-
-
-
-
-
-
-export default function SMSLayout({
-     children,
-}: {
-     children: React.ReactNode;
-}) {
-
-     return (
-          <Suspense>
-               <ApplicationProvider>
-                    <MAIN_LAYOUT>
-                         <PrimeLayout links={ConsulationLinks}>
-                              {children}
-                         </PrimeLayout>
-                    </MAIN_LAYOUT>
-               </ApplicationProvider>
-          </Suspense>
-     );
-}
+import {Suspense} from 'react';
+import DoctorShell from '../../components/Practitioner/DoctorShell';
+export default function Layout({children}:{children:React.ReactNode}){return <Suspense fallback={<p>Loading practitioner workspace…</p>}><DoctorShell>{children}</DoctorShell></Suspense>;}

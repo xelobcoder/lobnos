@@ -1,19 +1,4 @@
-import React from 'react'
-
-export default function ClinicianAuthenticationView() {
-     return (
-          <div className='card'>
-               <div className='card-header bg-secondary-subtle pls-color fw-bold'>
-                    Authentication Changes
-               </div>
-               <div className='card-body'>
-                    <div className='grid-reg'>
-                         <label className='pls-label pls-color'>
-                              Authenticated
-                         </label>
-                         <input type='checkbox' />
-                    </div>
-               </div>
-          </div>
-     )
-}
+'use client';
+import Link from 'next/link';
+import {useSearchParams} from 'next/navigation';
+export default function View(){const id=useSearchParams().get('clinicianid');return <Link className="btn btn-outline-primary" href={id?`/doctor/access?clinicianid=${id}`:'/doctor/access'}>Manage practitioner access & invitations</Link>;}

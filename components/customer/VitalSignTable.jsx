@@ -29,26 +29,7 @@ export default function VitalSignTable({ groupedVitalSigns, openModal }) {
 		});
 	};
 
-	const getStatusIndicator = (value, range, type = 'normal') => {
-		if (!range || !value) return 'table-success';
-
-		const numValue = parseFloat(value);
-		if (isNaN(numValue)) return 'table-success';
-
-		if (type === 'bloodPressure') {
-			const [systolic, diastolic] = value.split('/').map(Number);
-			const systolicNormal = systolic >= range.systolic.min && systolic <= range.systolic.max;
-			const diastolicNormal = diastolic >= range.diastolic.min && diastolic <= range.diastolic.max;
-			if (systolicNormal && diastolicNormal) return 'table-success';
-			if (systolic > 180 || diastolic > 120) return 'table-danger';
-			return 'table-warning';
-		}
-
-		if (numValue >= range.min && numValue <= range.max) return 'table-success';
-		if (type === 'spo2' && numValue < 90) return 'table-danger';
-		if (type === 'temperature' && (numValue < 35 || numValue > 40)) return 'table-danger';
-		return 'table-warning';
-	};
+	const getStatusIndicator = (value) => value === null || value === undefined || value === '' ? 'table-secondary' : '';
 
 	return (
 		<div className={style.tablewrapper}>
@@ -129,19 +110,19 @@ export default function VitalSignTable({ groupedVitalSigns, openModal }) {
 											{formatTime(vitalSign)}
 										</td>
 										<td className={bpStatus}>
-											{vitalSign.bp} mmHg
+											{vitalSign.bp ?? 'Not recorded'} mmHg
 										</td>
 										<td className={pulseStatus}>
-											{vitalSign.pulse} bpm
+											{vitalSign.pulse ?? 'Not recorded'} bpm
 										</td>
 										<td className={spo2Status}>
-											{vitalSign.spo2}%
+											{vitalSign.spo2 ?? 'Not recorded'}%
 										</td>
 										<td>
-											<span style={{ fontWeight: '500' }}>{vitalSign.respiration} breaths/min</span>
+											<span style={{ fontWeight: '500' }}>{vitalSign.respiration ?? 'Not recorded'} breaths/min</span>
 										</td>
 										<td className={tempStatus}>
-											{vitalSign.temperature}°C
+											{vitalSign.temperature ?? 'Not recorded'}°C
 										</td>
 									</tr>
 								);

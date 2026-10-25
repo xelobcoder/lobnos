@@ -18,6 +18,7 @@ export default function Clinicians() {
 			</aside>}
 			<div className={styles.panel}>
 				<BasicInformationClinician />
+                {clinicianid&&<ClinicianAuthenticationView/>}
 			</div>
 		</div>
 		</main>

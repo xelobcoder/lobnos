@@ -29,8 +29,6 @@ export const NORMAL_RANGES = {
     temperature: { min: 36.1, max: 37.2 }
 };
 
-export const getStatusClass = (value, range) => {
-    if (value < range.min || value > range.max) return 'table-danger';
-    return 'table-success';
-};
+export const getStatusClass = (value) => value === null || value === undefined || value === '' || !Number.isFinite(Number(value)) ? 'table-secondary' : '';
+
 

@@ -1,7 +1,7 @@
 'use client'
 import styles from './login.module.css';
 import { RiShieldCrossFill, RiUserLine, RiLockLine, RiEyeLine, RiEyeOffLine, RiHospitalLine, RiStethoscopeLine, RiUserHeartLine } from '@remixicon/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Alert, Spinner } from 'react-bootstrap';
@@ -37,6 +37,7 @@ export default function PrimeLabLoginPage() {
 	const [recoveryBusy, setRecoveryBusy] = useState(false);
 	const [showPassword, setShowPassword] = useState(false);
 	const router = useRouter();
+	useEffect(()=>{const params=new URLSearchParams(window.location.search);if(params.get('mode')==='doctor')setLoginMode('doctor');const username=params.get('username');if(username&&/^[A-Za-z][A-Za-z0-9]{2,80}$/.test(username))setUserInformation(previous=>({...previous,username}));},[]);
 	const loginModes = [
 		{ key: 'center' as const, label: 'Center Login', icon: RiHospitalLine, description: 'For laboratory and administrative teams' },
 		{ key: 'doctor' as const, label: 'Doctor Login', icon: RiStethoscopeLine, description: 'For doctors and clinical partners' },
@@ -193,6 +194,7 @@ export default function PrimeLabLoginPage() {
 				marketer: '/crm/acquisition',
 				patient: '/patientportal',
 				clinician: '/doctor',
+                doctor:'/doctor',medical_officer:'/doctor',consultant:'/doctor',nurse:'/doctor',pharmacy_doctor:'/doctor',pharmacy_nurse:'/doctor',
 				'customer service representative': '/crm/overview',
 				admin: '/analytics',
 				manager: '/',

@@ -1,0 +1,33 @@
+'use client';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { clinicalApi } from './clinicalApi';
+import { customFetch } from '../Auth/customFetch';
+import { plsEncryption } from '../../lib/encryption';
+import s from './Practitioner.module.css';
+export default function PractitionerOrders({ kind }: {
+    kind: 'lab' | 'prescription' | 'results';
+}) {
+    const [rows, setRows] = useState<any[]>([]), [total, setTotal] = useState(0), [page, setPage] = useState(1), [query, setQuery] = useState(''), [from, setFrom] = useState(new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10)), [to, setTo] = useState(new Date().toISOString().slice(0, 10)), [error, setError] = useState(''), [loading, setLoading] = useState(true), [detail, setDetail] = useState<any>(null), [retry, setRetry] = useState(0);
+    const results = kind === 'results', lab = kind === 'lab';
+    useEffect(() => { let live = true; setLoading(true); setError(''); const timer = setTimeout(() => { clinicalApi('capabilities').then(async (caps) => { if (!caps.clinicianid)
+        throw Error('Link a practitioner account to view personal orders'); if (results && (!from || !to || from > to))
+        throw Error('Choose a valid date range'); const params = new URLSearchParams({ practitionerContext: 'self', clinicianId: String(caps.clinicianid), page: String(page), count: '20', search: query }); const result = await customFetch(results ? `clinician-portal/requests?clinicianid=${caps.clinicianid}&from=${from}&to=${to}` : `${lab ? 'entityorders' : 'prescriptions'}?${params}`); if (results ? result?.status !== 'success' : lab ? result?.status !== 'success' : result?.success !== true)
+        throw Error(result?.message || result?.error?.message || 'Unable to load requests'); const data = results ? result.result : lab ? result.result : result.data.prescriptions; if (live) {
+        setRows(data);
+        setTotal(results ? data.length : lab ? result.total : result.data.total);
+    } }).catch(e => { if (live)
+        setError(e.message); }).finally(() => { if (live)
+        setLoading(false); }); }, 250); return () => { live = false; clearTimeout(timer); }; }, [kind, page, query, from, to, retry]);
+    async function view(row: any) { setError(''); try {
+        const caps = await clinicalApi('capabilities');
+        const result = await customFetch(results ? `clinician-portal/results/${row.billingid}?clinicianid=${caps.clinicianid}` : `${lab ? 'entityorders' : 'prescriptions'}/${row.id}?practitionerContext=self`);
+        if (results ? result?.status !== 'success' : lab ? result?.status !== 'success' : result?.success !== true)
+            throw Error(result?.message || result?.error?.message || 'Request unavailable');
+        setDetail(results ? result.result : result.data || result.result);
+    }
+    catch (e: any) {
+        setError(e.message);
+    } }
+    return <main className={s.page}><header className={s.heading}><div><span className={s.eyebrow}>PRACTITIONER WORKSPACE</span><h1>{results ? 'Released results' : lab ? 'Laboratory referrals' : 'Prescriptions'}</h1><p>{results ? 'Review results available to your practitioner account.' : 'Track requests raised under your practitioner identity.'}</p></div><Link className={s.primary} href="/doctor/consultation">Find patient / new consultation</Link></header>{error && <div role="alert" className={s.error}>{error}<button onClick={() => setRetry(retry + 1)}>Retry</button></div>}<section className={s.panel}>{results ? <div className={s.twoColumns}><label className={s.field}>From<input type="date" value={from} onChange={e => setFrom(e.target.value)}/></label><label className={s.field}>To<input type="date" value={to} onChange={e => setTo(e.target.value)}/></label></div> : <label className={s.field}>Search requests<input type="search" value={query} onChange={e => { setQuery(e.target.value); setPage(1); }}/></label>}{loading ? <p role="status">Loading requests…</p> : <><div className={s.tableWrap}><table><thead><tr><th>Patient</th><th>Reference</th><th>Status</th><th>Date</th><th /></tr></thead><tbody>{rows.map(row => <tr key={row.id || row.billingid}><td><strong>{row.patientName || [row.firstname, row.lastname].filter(Boolean).join(' ') || `Patient #${row.patient_id || row.patientId}`}</strong>{row.fullpatientid && <small>{row.fullpatientid}</small>}</td><td>{row.id || `Bill #${row.billingid}`}</td><td><span className={s.badge}>{results ? `${row.approved_tests}/${row.total_tests} verified` : row.status}</span></td><td>{new Date(row.created_at || row.createdAt || row.billedon).toLocaleString('en-GB')}</td><td><button className={s.secondary} onClick={() => void view(row)}>View details</button></td></tr>)}</tbody></table></div>{!rows.length && <p className={s.empty}>No matching requests.</p>}{!results && <div className={s.actions}><span>{total} requests</span><button className={s.secondary} disabled={page === 1} onClick={() => setPage(page - 1)}>Previous</button><button className={s.secondary} disabled={page * 20 >= total} onClick={() => setPage(page + 1)}>Next</button></div>}</>}</section>{detail && <section className={s.panel} aria-label="Request details"><div className={s.sectionHeader}><h2>Request details</h2><button className={s.secondary} onClick={() => setDetail(null)}>Close details</button></div>{results ? <>{(detail.tests || []).map((test: any) => <p key={test.ascensionid}>{test.testname || test.name || `Test #${test.testid}`} · {test.approved ? 'Verified' : 'In progress'}</p>)}{(detail.reports || []).map((report: any, index: number) => <section key={index}><h3>{report.testname}</h3><div className={s.tableWrap}><table><thead><tr><th>Parameter</th><th>Result</th><th>Units</th><th>Reference interval</th></tr></thead><tbody>{(report.records || []).map((row: any, i: number) => <tr key={i}><td>{row.name}</td><td>{row.value}</td><td>{row.units}</td><td>{row.lowerlimit ?? ''} – {row.upperlimit ?? ''}</td></tr>)}</tbody></table></div><p>{report.comments}</p></section>)}{!detail.reports?.length && <p>No released report is available for this request yet.</p>}</> : <div className={s.tableWrap}><table><thead><tr><th>{lab ? 'Test' : 'Medicine'}</th><th>{lab ? 'Quantity' : 'Directions'}</th><th>Status</th></tr></thead><tbody>{(detail.lines || detail.items || []).map((row: any, i: number) => <tr key={row.id || i}><td>{row.test_name || row.testName || row.drugName || row.name}</td><td>{lab ? row.quantity : [row.dose, row.frequency, row.route, row.duration, row.dosageInstructions].filter(Boolean).join(' · ')}</td><td>{row.status || detail.status}</td></tr>)}</tbody></table></div>}</section>}</main>;
+}
