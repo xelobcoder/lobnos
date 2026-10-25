@@ -8,3 +8,5 @@
 @media(max-width:1050px){.reviewSave{display:none}}
 
 .bulkBar{display:flex;align-items:end;gap:12px;flex-wrap:wrap;padding:14px;background:var(--soft);border:1px solid var(--line);border-radius:7px}.bulkBar .field{flex:1;min-width:150px}.rowError{color:var(--bs-danger,#b42318)!important;font-weight:600}.workspace [aria-invalid=true]{border-color:var(--bs-danger,#b42318)!important}.organizationChips{display:flex;flex-wrap:wrap;gap:8px}.organizationChips>div{display:flex;align-items:center;gap:8px;border:1px solid var(--line);padding:7px 10px;border-radius:6px;max-width:100%;overflow-wrap:anywhere}
+
+.packageWorkspace .tableWrap{max-height:560px;overflow:auto}.packageWorkspace .table thead{position:sticky;top:0;z-index:1;background:var(--paper)}.packageWorkspace .summary{align-self:start;position:sticky;top:20px}@media(max-width:900px){.packageWorkspace .summary{position:static}}
