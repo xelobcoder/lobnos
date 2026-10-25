@@ -7,6 +7,13 @@ const developmentBaseUrl =
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    async headers() {
+        return [{ source: '/api/:path*', headers: [
+            { key: 'Cache-Control', value: 'private, no-store, max-age=0' },
+            { key: 'CDN-Cache-Control', value: 'no-store' },
+            { key: 'Cloudflare-CDN-Cache-Control', value: 'no-store' },
+        ] }];
+    },
 	distDir: process.env.PLS_BUILD_OUTPUT_DIR || ".next",
 	reactStrictMode: true,
 	// output: "standalone",

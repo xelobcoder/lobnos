@@ -2,8 +2,9 @@
 import React from "react";
 import ModernBillingWorkspace from '../Modern/ModernBillingWorkspace';
 import ModernBillingSetup from '../Modern/ModernBillingSetup';
+import ModernPayerSetup from '../Modern/ModernPayerSetup';
+import {ModernPromptPortal,InlineBillingPrompt} from '../Modern/ModernPrompts';
 import type { ModernDraft } from '../Modern/modernBilling';
-import modernStyles from '../Modern/ModernBilling.module.css';
 import MultiRenderingBillingSourceFields from "./RenderingBillingSourceFields";
 import MultiPACKAGESELECT from './MultiPACKAGESELECT';
 import MultiRenderingWithPatientId from "./MultiRenderingWithPatientId";
@@ -35,13 +36,9 @@ import { linkSavedRecordToQueue, parseQueueHandoff, withQueueHandoff } from '../
 
 
 
-export default function MultiBillingLayout({ billingContextProps }: { billingContextProps: billingContextProps }) {
+export default function MultiBillingLayout({ billingContextProps, layout='classic' }: { billingContextProps: billingContextProps; layout?:'classic'|'modern' }) {
     const application = useApplication();
-    const [layout,setLayout]=useState<'classic'|'modern'>('classic');
     const layoutGuardRef=useRef<(() => Promise<boolean>) | null>(null);
-    const layoutPreferenceKey='billing-layout:'+String(application?.tenantId||'')+':'+String(application?.user?.employeeid||'');
-    useEffect(()=>{try{setLayout(localStorage.getItem(layoutPreferenceKey)==='modern'?'modern':'classic');}catch{setLayout('classic');}},[layoutPreferenceKey]);
-    const chooseLayout=async(next:'classic'|'modern')=>{if(next===layout)return;if(layout==='modern'&&layoutGuardRef.current&&!(await layoutGuardRef.current()))return;setLayout(next);try{localStorage.setItem(layoutPreferenceKey,next);}catch{ /* Choice remains available for this session. */ }};
 
     const contextKey = JSON.stringify([
         application?.tenantId, application?.branchid, application?.user?.employeeid,
@@ -54,7 +51,6 @@ export default function MultiBillingLayout({ billingContextProps }: { billingCon
     return (
         <BillingContextPropsProvider key={contextKey} initialProps={billingContextProps}>
             <MultiBillingProvider>
-                <div className={layout==='modern'?modernStyles.compactChooser:modernStyles.chooser}><div><strong>Choose your billing layout</strong><p>Switch views anytime. Your current cart stays in place.</p></div><div className={modernStyles.chooserOptions} role="group" aria-label="Billing layout"><button type="button" aria-pressed={layout==='classic'} onClick={()=>chooseLayout('classic')}>Current multi-billing</button><button type="button" aria-pressed={layout==='modern'} onClick={()=>chooseLayout('modern')}>Modern UI Layout</button></div></div>
                 <MultiBillingLayoutContent modern={layout==='modern'} layoutGuardRef={layoutGuardRef}/>
             </MultiBillingProvider>
         </BillingContextPropsProvider>
@@ -274,6 +270,12 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
             if (!backendData || typeof backendData !== 'object' || !Array.isArray(backendData.testList)) {
                 throw new Error(typeof backendData === 'string' ? backendData :
                     backendData?.message || 'Failed to load billing data. Check the sales session and patient, then retry.');
+            }
+            if(modern && data.isPackageUsed && includeServices && !Array.isArray(backendData.servicesList)) {
+                const serviceCatalog=await customFetch(billingInitUrl({...data,isPackageUsed:false,packageid:undefined},true,ispricingcheckout));
+                if(!isActive())return;
+                if(!Array.isArray(serviceCatalog?.servicesList))throw new Error('Unable to load additional services for this package.');
+                backendData.servicesList=serviceCatalog.servicesList;
             }
             if (backendData.testList.length === 0 && (!modern || !backendData.servicesList?.length)) {
                 throw new Error('No tests are available for this billing source. Check the test catalog or pricing configuration, then retry.');
@@ -906,6 +908,7 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
         );
     }
 
+    const BillingDialog=modern?InlineBillingPrompt:Modal;
     return (
         <React.Fragment>
             {queueHandoff ? <div className="alert alert-info" role="status">Billing queue ticket #{queueHandoff.ticketId}. This saved bill will supply the client’s test progress on the queue dashboard. <a href="/operations/queue">Return to queue</a></div> : null}
@@ -938,17 +941,8 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
                     onReload={loadBackendBilling} onPackageChange={handlePackageActivation}
                     onServicesChange={checked=>{setUseServices(checked);setBillingData(prev=>({...prev,includeServices:checked}));}}
                     onReferenceChange={handleSpecialCodeChange} onReset={handleReset} onChangePayer={handleReturnToMulti}/>}
-                source={<>
-                    <MultiRenderingBillingSourceFields
-                                isClient={true}
-                                updateValuesToContext={handleOrganizationSelection}
-                                handleSelectedEntityClinician={handleSelectedEntityClinician}
-                                handleUrgencyChange={handleUrgencyChange}
-                                handleSelectedEntityInsurance={handleSelectedEntityInsurance}
-                            />
-                    {billingdata.isPackageUsed&&<MultiPACKAGESELECT/>}
-                    {billingdata.isAdjustment&&billingdata.adjustmentReason&&<div className="alert alert-info mt-3"><strong>Reason for adjustment</strong><p className="mb-0">{billingdata.adjustmentReason}</p></div>}
-                </>}
+                source={<ModernPayerSetup onOrganization={handleOrganizationSelection} onInsurance={handleSelectedEntityInsurance} onClinician={handleSelectedEntityClinician}/>}
+                promptActive={showDeliveryModal||showSampleLocationModal}
                 history={<PreviousRecordsHeader/>}
                 draft={modernEntryDraft} setDraft={setModernEntryDraft}
                 layoutGuardRef={layoutGuardRef||internalLayoutGuard}
@@ -1034,7 +1028,7 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
             )}
 
             {/* Receipt Options Modal */}
-            {showReceiptOptionsModal && (
+            {!modern && showReceiptOptionsModal && (
                 <ReceiptOptionsModal
                     open={showReceiptOptionsModal}
                     close={closeReceiptModal}
@@ -1043,7 +1037,8 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
                 />
             )}
 
-            <Modal
+            <ModernPromptPortal active={modern}>
+            <BillingDialog
                 show={showDeliveryModal}
                 onHide={() => {
                     if (savingDeliveryPreference) return;
@@ -1054,10 +1049,10 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
                 centered
                 size="lg"
             >
-                <Modal.Header closeButton>
-                    <Modal.Title className="fs-5 fw-semibold text-body-emphasis">Result Delivery Preferences</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
+                <BillingDialog.Header closeButton>
+                    <BillingDialog.Title className="fs-5 fw-semibold text-body-emphasis">Result Delivery Preferences</BillingDialog.Title>
+                </BillingDialog.Header>
+                <BillingDialog.Body>
                     <div className="text-muted mb-4 small">
                         Configure how results and delivery preferences will be handled for this transaction.
                     </div>
@@ -1212,8 +1207,8 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
                             Loading last saved delivery preference...
                         </div>
                     )}
-                </Modal.Body>
-                <Modal.Footer>
+                </BillingDialog.Body>
+                <BillingDialog.Footer>
                     <Button
                         variant="outline-secondary"
                         onClick={() => {
@@ -1247,10 +1242,10 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
                             'Submit & Save'
                         )}
                     </Button>
-                </Modal.Footer>
-            </Modal>
+                </BillingDialog.Footer>
+            </BillingDialog>
 
-            <Modal
+            <BillingDialog
                 show={showSampleLocationModal}
                 onHide={() => {
                     if (submittingHomeCollection) return;
@@ -1259,10 +1254,10 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
                 backdrop="static"
                 centered
             >
-                <Modal.Header closeButton>
-                    <Modal.Title className="fs-5 fw-semibold text-body-emphasis">Sample Collection Location</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
+                <BillingDialog.Header closeButton>
+                    <BillingDialog.Title className="fs-5 fw-semibold text-body-emphasis">Sample Collection Location</BillingDialog.Title>
+                </BillingDialog.Header>
+                <BillingDialog.Body>
                     <div className="text-muted mb-3 small">Where should the sample be taken for this billing?</div>
                     <div className="btn-group w-100 mb-3" role="group">
                         <input
@@ -1320,8 +1315,8 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
                             />
                         </div>
                     )}
-                </Modal.Body>
-                <Modal.Footer>
+                </BillingDialog.Body>
+                <BillingDialog.Footer>
                     <Button
                         variant="primary"
                         onClick={confirmSampleLocation}
@@ -1330,8 +1325,9 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
                     >
                         {submittingHomeCollection ? 'Scheduling…' : sampleLocationChoice === 'home' ? 'Schedule Home Collection' : 'Continue'}
                     </Button>
-                </Modal.Footer>
-            </Modal>
+                </BillingDialog.Footer>
+            </BillingDialog>
+            </ModernPromptPortal>
 
         </React.Fragment>
     );

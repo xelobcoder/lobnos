@@ -193,7 +193,7 @@ export default function MultiTrTable({portalMenu=false,entryDraft,setEntryDraft}
 
     if(portalMenu){
         const needsOrganization=selected?.isoutsourced==1;
-        const addDisabled=!selected||pricingPending||loadingOutsource||(needsOrganization&&!selectedOutsource?.value);
+        const addDisabled=!selected||Boolean(pricingPending);
         const add=()=>{if(!addDisabled)void addtoCart();};
         return <tr><td colSpan={3} className={styles.entryCell}>
             <div className={styles.quickEntry} onKeyDown={event=>{if(event.ctrlKey&&event.key==='Enter'){event.preventDefault();add();}}}>

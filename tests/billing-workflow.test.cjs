@@ -102,7 +102,7 @@ test('advanced init retains organization, insurer, NHIS, clinician, package and 
     assert.throws(() => helper.billingInitUrl({ ...types.defaultMultiBillingData, billingSource: 2 }, false, false), /billing entity/);
 });
 
-function harness({ advanced = false, api, billingContext = context, resume, query = '', selection = false, patientPage = false, submit, queueWarning = '' } = {}) {
+function harness({ advanced = false, api, billingContext = context, resume, query = '', selection = false, patientPage = false, submit, queueWarning = '', layout='classic' } = {}) {
     const states = [], effects = [], dependencies = [], cleanups = [];
     const calls = [], redirects = [], layoutPreferences = new Map();
     let cursor = 0, billingdata = { ...types.defaultMultiBillingData };
@@ -148,11 +148,13 @@ function harness({ advanced = false, api, billingContext = context, resume, quer
         if (name === 'next/navigation') return {
             useRouter: () => router, useParams: () => ({ patientid: 'encrypted', billingsourceid: '1' }), useSearchParams: () => new URLSearchParams(query),
         };
+        if (name.includes('ModernPrompts'))return {ModernPromptPortal:'modern-prompt-portal',InlineBillingPrompt:modal};
         if (name === 'react-bootstrap') return bootstrap;
         if (name === '@remixicon/react') return new Proxy({}, { get: (_, key) => key });
         if (name === 'react-toastify') return { toast: { error() {}, success() {}, info() {} } };
         if (name.includes('customFetch')) return { customFetch: fetch };
         if (name.includes('useApplicationContext')) return { useApplication: () => application };
+        if (name.includes('billingLayout')) return load(path.join('lib','Multi','billingLayout.ts'),()=>({}));
         if (name.includes('billingWorkflow')) return helper;
         if (name.includes('queueHandoff')) return { ...handoff, linkSavedRecordToQueue: async (source, values) => { calls.push(['QUEUE_LINK', plain(source), plain(values)]); return { warning: queueWarning }; } };
         if (name.includes('multiBillingValidation')) return { MultiValidateAndSubmitBillingInformation: async data => { calls.push(['SALE_SAVE', plain(data)]); return submit ? await submit(data) : { status: true, billingid: 120 }; } };
@@ -167,7 +169,7 @@ function harness({ advanced = false, api, billingContext = context, resume, quer
         return name;
     };
     const Component = load(patientPage
-        ? path.join('app', 'billing', 'patientid', '[patientid]', 'multi', '[billingsourceid]', 'page.tsx')
+        ? path.join('components', 'Billing', 'BillingPatientPage.tsx')
         : selection
         ? path.join('app', 'billing', 'patientid', '[patientid]', 'multi', 'page.tsx')
         : path.join('components', 'Billing', 'Multi', 'MultBillingLayout.tsx'), mocks, {
@@ -176,14 +178,15 @@ function harness({ advanced = false, api, billingContext = context, resume, quer
     }).default;
     return {
         calls, redirects, application, layoutPreferences,
-        chooseLayout(label){cursor=0;const outer=Component({billingContextProps:billingContext});const button=nodes(outer,node=>node.type==='button'&&text(node)===label)[0];assert.ok(button);button.props.onClick();},
+        chooseLayout(label){cursor=0;const outer=Component({billingContextProps:billingContext,layout});const button=nodes(outer,node=>node.type==='button'&&text(node)===label)[0];assert.ok(button);button.props.onClick();},
         get data() { return plain(billingdata); },
         setData(values) { billingdata = { ...billingdata, ...values }; },
-        providerKey() { cursor=0; return Component({ billingContextProps: billingContext }).key; },
+        providerKey() { cursor=0; return Component({ billingContextProps: billingContext,layout }).key; },
         render() {
             cursor = 0;
-            if (selection || patientPage) return Component();
-            const outer = Component({ billingContextProps: billingContext });
+            if(patientPage)return Component({layout});
+            if(selection)return Component();
+            const outer = Component({ billingContextProps: billingContext,layout });
             const children=outer.props.children.props.children;
             const content=Array.isArray(children)?children.find(child=>typeof child?.type==='function'):children;
             return content.type(content.props);
@@ -458,18 +461,27 @@ test('General sales keep the existing submit endpoint, payer identifier, payment
 });
 
 
-test('Modern UI Layout switches presentation without remounting billing context or changing the cart and submit contract',async()=>{
- const h=harness();h.render();await h.flush();h.render();await h.flush();
+test('Separate Modern page preserves billing context and submits through the existing save contract',async()=>{
+ const h=harness({layout:'modern'});h.render();await h.flush();h.render();await h.flush();
  h.setData({showsummary:true,cart:[{id:50,testid:50,name:'FBC',discountedValue:100,outsourceid:12}],servicesProvided:[],paid:25,amountPayable:100,balance:75});
  const before=h.data,key=h.providerKey(),calls=h.calls.length;
- h.chooseLayout('Modern UI Layout');
- const tree=h.render(),modern=nodes(tree,node=>node.props?.onContinue&&node.props?.onSubmit)[0];
- assert.ok(modern,'Modern workspace is not rendered');
+ const modern=nodes(h.render(),node=>node.props?.onContinue&&node.props?.onSubmit)[0];assert.ok(modern);
  modern.props.setDraft({items:[{kind:'test',id:99,row:{id:99,name:'Pending test'}}]});
  assert.deepEqual(h.data,before);assert.equal(h.providerKey(),key);assert.equal(h.calls.length,calls);
- assert.equal(h.layoutPreferences.get('billing-layout:397773:8'),'modern');
- await modern.props.onSubmit(h.data);
- assert.equal(h.calls.filter(call=>Array.isArray(call)&&call[0]==='SALE_SAVE').length,1);
- h.chooseLayout('Current multi-billing');assert.equal(h.providerKey(),key);assert.equal(h.layoutPreferences.get('billing-layout:397773:8'),'classic');
- h.chooseLayout('Modern UI Layout');const restored=nodes(h.render(),node=>node.props?.onContinue&&node.props?.onSubmit)[0];assert.equal(restored.props.draft.items[0].id,99);
+ await modern.props.onSubmit(h.data);assert.equal(h.calls.filter(call=>Array.isArray(call)&&call[0]==='SALE_SAVE').length,1);
+ assert.equal(nodes(h.render(),node=>node.props?.onContinue&&node.props?.onSubmit)[0].props.draft.items[0].id,99);
+});
+test('Saved billing layout routes preserve all context in both directions',()=>{
+ const helper=load(path.join('lib','Multi','billingLayout.ts'),()=>({}));
+ const query='suspendedDraftId=7&billingid=42&isAdjustment=1&adjustmentType=correction&adjustmentReason=A%26B&billingRequestId=8&queueTicketId=9&ispricingcheckout=1';
+ assert.equal(helper.resolveBillingLayout(undefined),'multi-compact');assert.equal(helper.resolveBillingLayout('invalid'),'multi-compact');
+ assert.equal(helper.billingLayoutUrl('/billing/patientid/encrypted/multi/4',query,'multi-primary-two'),'/billing/patientid/encrypted/multi-layout-two/4?'+query);
+ assert.equal(helper.billingLayoutUrl('/billing/patientid/encrypted/multi-layout-two/4',query,'multi-compact'),'/billing/patientid/encrypted/multi/4?'+query);
+});
+
+test('Patient entry honors the saved facility layout before mounting the billing engine',async()=>{
+ for(const [layout,preference,segment]of [['classic','multi-primary-two','multi-layout-two'],['modern','multi-compact','multi']]){
+  const h=harness({patientPage:true,layout,query:'suspendedDraftId=7&adjustmentReason=A%26B',api:async()=>({statusCode:200,status:'success',result:{patientid:101}})});
+  h.application.settings={billingLayout:preference};const tree=h.render();assert.match(text(tree),/configured billing layout/);await h.flush();assert.ok(h.redirects.some(url=>url.includes('/'+segment+'/1?')&&url.includes('suspendedDraftId=7')&&url.includes('adjustmentReason=A%26B')));
+ }
 });

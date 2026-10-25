@@ -19,9 +19,9 @@ export const MultiValidateAndSubmitBillingInformation = async function (
 	billingid?: number,
 ) {
 	try {
-		console.log(billingdata);
+
 		if (typeof billingdata !== "object" || !billingdata.billingSource) {
-			return { error: BillingFailures.invalidBillingData };
+			return { status: false, message: BillingFailures.invalidBillingData };
 		}
 
 		const {
@@ -91,44 +91,39 @@ export const MultiValidateAndSubmitBillingInformation = async function (
 		} = billingdata as any;
 
 
-		// Payment validation is now optional for order flow. Only validate if payments are present.
-		let paymentSum = 0;
-		const paymentModesSet = new Set();
-		if (Array.isArray(payments) && payments.length > 0 && !isAdjustment && adjustmentType != 'correction') {
-			for (const payment of payments) {
-				if (!payment || typeof payment.amount !== 'number' || payment.amount <= 0) {
-					return { error: 'Each payment must have a valid, positive amount.' };
+		// Benefits and insurer claims are not cash receipts. The server authorizes
+		// FOC coverage and recalculates free billing through paymentDetails.
+		const specialMode = paymentDetails?.mode || (payments.some((p: any) => p?.mode === 'free') ? 'free' : undefined);
+		const cashPayments = payments.filter((p: any) => !['foc', 'free', 'nhis'].includes(String(p?.mode)) && !(billingSource === 4 && p?.amount === 0));
+		if (!isAdjustment && adjustmentType !== 'correction') {
+			let paymentSum = 0;
+			for (const payment of cashPayments) {
+				if (!payment?.mode || !Number.isFinite(payment.amount) || payment.amount <= 0) {
+					return { status: false, message: 'Each cash payment needs a valid mode and positive amount.' };
 				}
-				if (!payment.mode) {
-					return { error: 'Each payment must have a valid payment mode.' };
-				}
-				if (paymentModesSet.has(payment.mode)) {
-					return { error: 'Duplicate payment modes are not allowed.' };
-				}
-				paymentModesSet.add(payment.mode);
 				paymentSum += payment.amount;
 			}
-			const expectedAmount = actualAmountPayable || amountPayable;
-			if (!(isAdjustment && adjustmentType === 'correction')) {
-				if (Math.abs(paymentSum - expectedAmount) > 0.009) {
-					return { error: 'Total payment amount must exactly match the amount payable.' };
-				}
+			if (paymentSum > Number(amountPayable) + 0.009) {
+				return { status: false, message: 'Total payment cannot exceed the amount payable.' };
+			}
+			if (specialMode !== 'foc' && Math.abs(paymentSum - Number(paid)) > 0.009) {
+				return { status: false, message: 'Payment entries do not match the amount received.' };
 			}
 		}
 
 		if ((paid > 0 && finalCart.length === 0 && finalServicesList.length === 0) || (cart.length === 0 && servicesProvided.length === 0)) {
-			return { error: BillingFailures.cartEmpty };
+			return { status: false, message: BillingFailures.cartEmpty };
 		}
 		if (!employeeid || !patientid || !branchid) {
-			return { error: BillingFailures.requiredParametersMissed };
+			return { status: false, message: BillingFailures.requiredParametersMissed };
 		}
 		if ((![1, 4].includes(billingSource)) && !entityId) {
-			return { error: BillingFailures.requiredParametersMissed };
+			return { status: false, message: BillingFailures.requiredParametersMissed };
 		}
 
 
 		if (billingSource == 4 && (!billingdata.nhismembershipid || !billingdata.claimscheckcode)) {
-			return { error: BillingFailures.NhisFailureMissingClaims }
+			return { status: false, message: BillingFailures.NhisFailureMissingClaims }
 		}
 
 		const isFinancialParamsAccurate =
@@ -136,13 +131,13 @@ export const MultiValidateAndSubmitBillingInformation = async function (
 				.every(val => typeof val === 'number' && !isNaN(val));
 
 		if (!isFinancialParamsAccurate) {
-			return { error: BillingFailures.requiredParametersMissed };
+			return { status: false, message: BillingFailures.requiredParametersMissed };
 		}
 
 		const backendData: any = {
 			amountPayable,
 			cart: finalCart.length > 0 ? finalCart : cart,
-			servicesProvided: finalServicesList.length > 0 ? finalServicesList : [],
+			servicesProvided: finalServicesList.length > 0 ? finalServicesList : (servicesProvided || []),
 			billingSource,
 			outstanding,
 			paid,
@@ -162,7 +157,7 @@ export const MultiValidateAndSubmitBillingInformation = async function (
 			billeddate,
 			entitytype,
 			samplingCenter: branchid,
-			payments,
+			payments: cashPayments,
 			isPromo,
 			paymentStatus,
 			paymentReceived,
@@ -183,7 +178,7 @@ export const MultiValidateAndSubmitBillingInformation = async function (
 			nhismembershipid,
 			focStaffId,
 			focReason,
-			paymentDetails,
+			paymentDetails: { ...paymentDetails, ...(specialMode ? { mode: specialMode } : {}), amount: cashPayments.reduce((sum: number, p: any) => sum + p.amount, 0) },
 			allowFocOverride,
 		};
 
@@ -210,6 +205,6 @@ export const MultiValidateAndSubmitBillingInformation = async function (
 		return response;
 	} catch (err: any) {
 		console.log(err)
-		return { status: "error", message: "Error occurred during transit", details: err.message };
+		return { status: false, message: "Error occurred during transit", details: err.message };
 	}
 };

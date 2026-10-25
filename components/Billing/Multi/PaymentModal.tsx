@@ -15,6 +15,8 @@ interface PaymentEntry {
 }
 
 interface PaymentModalProps {
+     renderPayment?: (model: any) => React.ReactNode;
+     inline?: boolean;
      show: boolean;
      onHide: () => void;
      payments: PaymentEntry[];
@@ -33,8 +35,12 @@ interface PaymentModalProps {
 }
 
 
+const InlinePaymentContainer = ({children}:any) => <section className="modern-inline-payment" aria-label="Payment details">{children}</section>;
+
 const PaymentModal: React.FC<PaymentModalProps> = ({
      show,
+     inline = false,
+     renderPayment,
      onHide,
      payments,
      availableModes,
@@ -62,6 +68,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           entityType: billingdata?.entityType,
           isNHISBilling
      });
+     const benefitPatientId=billingdata?.patientId||(renderPayment?billingdata?.patientid:undefined);
      const [paymentMode, setPaymentMode] = React.useState<'all' | 'items' | 'free' | 'nhis' | 'foc'>(isNHISBilling ? 'nhis' : 'all');
      const [paySelected, setPaySelected] = React.useState(false);
      const [selectedAmount, setSelectedAmount] = React.useState('');
@@ -246,11 +253,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
      }, [show]);
 
      React.useEffect(() => {
-          if (paymentMode === 'foc' && selectedFocStaffId && billingdata?.patientId) {
+          if (paymentMode === 'foc' && selectedFocStaffId && benefitPatientId) {
                setIsValidatingFoc(true);
                customPost('foc/validate', 'POST', {
                     employeeid: Number(selectedFocStaffId),
-                    patientid: Number(billingdata.patientId),
+                    patientid: Number(benefitPatientId),
                     grossAmount: payable,
                }).then((res) => {
                     if (res?.result) {
@@ -258,7 +265,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     }
                }).catch(() => { }).finally(() => setIsValidatingFoc(false));
           }
-     }, [paymentMode, selectedFocStaffId, payable, billingdata?.patientId]);
+     }, [paymentMode, selectedFocStaffId, payable, benefitPatientId]);
 
      React.useEffect(() => {
           if (paymentMode === 'all') {
@@ -312,7 +319,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           setIsSyncing(true);
 
           if (paymentMode === 'foc') {
-               if (!selectedFocStaffId) {
+               if (!selectedFocStaffId || !focValidationResult?.eligible || isValidatingFoc) {
                     setPayAllError('Please select an eligible staff member for FOC benefit.');
                     setIsSyncing(false);
                     return;
@@ -324,20 +331,20 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                const updatedCart = tests.map((test) => ({
                     ...test,
                     paidamount: 0,
-                    paymentstatus: patientPayable === 0 ? 'Paid' : 'pending',
+                    paymentstatus: 'pending',
                }));
 
                const updatedServices = services.map((service) => ({
                     ...service,
                     paidamount: 0,
-                    paymentstatus: patientPayable === 0 ? 'Paid' : 'pending',
+                    paymentstatus: 'pending',
                }));
 
                const newCurrentData = {
                     ...billingdata,
                     finalCart: updatedCart,
                     finalServicesList: updatedServices,
-                    paid: focCoverage,
+                    paid: 0,
                     focStaffId: Number(selectedFocStaffId),
                     focReason: focReason || 'Staff Medical Benefit',
                     focCoverage,
@@ -345,11 +352,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                          mode: 'foc',
                          focStaffId: Number(selectedFocStaffId),
                          focReason: focReason || 'Staff Medical Benefit',
-                         amount: focCoverage,
+                         amount: 0,
                     },
-                    payments: [{ mode: 'foc', amount: focCoverage }],
-                    balance: patientPayable,
-                    outstanding: patientPayable,
+                    payments: [],
+                    balance: 0,
+                    outstanding: payable,
                     openPaymentModal: 0,
                };
 
@@ -400,7 +407,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     finalServicesList: updatedServices,
                     paid: 0,
                     amountPayable: 0,
-                    payments: [{ mode: 'free', amount: 0 }],
+                    payments: [],
+                    paymentDetails: { mode: 'free', amount: 0 },
                     balance: 0,
                     openPaymentModal: 0,
                };
@@ -450,7 +458,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     finalServicesList: updatedServices,
                     paid: 0,
                     amountPayable: payable,
-                    payments: [{ mode: nhisModeValue, amount: 0 }],
+                    payments: [],
+                    paymentDetails: { mode: 'nhis', amount: 0 },
                     balance: payable,
                     outstanding: payable,
                     openPaymentModal: 0,
@@ -771,10 +780,24 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
      }, [pollInterval]);
 
 
+     if (renderPayment) return <>{renderPayment({
+          payable, billingdata, items, availableModes, isNHISBilling,
+          paymentMode, setPaymentMode, payAllPayments, setPayAllPayments,
+          payAllError, isSyncing, isValueSynchronized,
+          selectedItems, setSelectedItems, selectedAmount, setSelectedAmount,
+          bulkPerTestMode, setBulkPerTestMode, setSelectedPayments, setPaySelected, setIsValueSynchronized,
+          focAccounts, selectedFocStaffId, setSelectedFocStaffId, focReason, setFocReason,
+          focValidationResult, setFocValidationResult, isValidatingFoc,
+          freeServiceRequestStatus, freeServiceRequestError, freeServiceRequestId,
+          requesterReason, setRequesterReason, handleRequestFreeServiceAuth,
+          reset: handlePaymentModalReset, submit: handlePaymentSyncing,
+          skipDisabled: isSkipPaymentDisabled, skip: () => handlesubmit?.(billingdata),
+     })}</>;
+     const PaymentContainer = inline ? InlinePaymentContainer : Modal;
      return (
           <>
-               <Modal show={show} onHide={onHide} size={isNHISBilling ? "sm" : "lg"} backdrop="static" keyboard={false}>
-                    <Modal.Header closeButton>
+               <PaymentContainer show={show} onHide={onHide} size={isNHISBilling ? "sm" : "lg"} backdrop="static" keyboard={false}>
+                    <Modal.Header closeButton={!inline}>
                          <Modal.Title className="d-flex align-items-center gap-2">
                               <span>💳</span>
                               <span>Payment</span>
@@ -1254,12 +1277,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                          >
                               Skip Payment
                          </Button>
-                         <Button
+                         {!inline && (<Button
                               size="sm"
                               variant="outline-info"
                          >
                               Result Delivery Configutation
-                         </Button>
+                         </Button>)}
                          <Button
                               variant="primary"
                               size="sm"
@@ -1273,7 +1296,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                               {isSyncing ? 'Processing...' : 'Submit Payment'}
                          </Button>
                     </Modal.Footer>
-               </Modal >
+               </PaymentContainer >
           </>
      );
 };

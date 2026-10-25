@@ -17,10 +17,12 @@ interface PaymentEntry {
 
 
 interface MultiPaymentProps {
+    renderPayment?: (model:any)=>React.ReactNode;
+    inline?: boolean;
     handlesubmit?: (data: MultiBillingData) => Promise<any>;
 }
 
-const MultiPayment: React.FC<MultiPaymentProps> = ({ handlesubmit }) => {
+const MultiPayment: React.FC<MultiPaymentProps> = ({ handlesubmit, inline=false, renderPayment }) => {
     const context = useContext(MultiBillingContext);
     if (!context) throw new Error("MultiBillingContext not found");
     const { billingdata, setBillingData } = context;
@@ -128,7 +130,9 @@ const MultiPayment: React.FC<MultiPaymentProps> = ({ handlesubmit }) => {
     return (
         <React.Fragment>
             <PaymentModal
-                show={billingdata.openPaymentModal == 2}
+                renderPayment={renderPayment}
+                inline={inline}
+                show={inline || billingdata.openPaymentModal == 2}
                 onHide={() => {
                     if (billingdata.openPaymentModal === 2 || billingdata.openPaymentModal === 4) {
                         setBillingData(prev => ({ ...prev, openPaymentModal: 0 }));

@@ -94,6 +94,8 @@ test("server API proxy replaces browser authorization and preserves session and 
 	assert.equal(upstreamOptions.headers.get("pls-session"), "signed-session");
 	assert.equal(new TextDecoder().decode(upstreamOptions.body), "payload");
 	assert.equal(response.status, 201);
+	assert.match(response.headers.get("Cache-Control"), /private.*no-store/);
+	assert.equal(response.headers.get("Cloudflare-CDN-Cache-Control"), "no-store");
 	assert.equal(response.headers.get("content-length"), null);
 	assert.equal(await response.text(), "created");
 });

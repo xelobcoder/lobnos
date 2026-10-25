@@ -33,12 +33,14 @@ function createHandler(role, verified = true, settings = {}, tokenOverride) {
             if (name === "next/headers") return {
                 cookies: () => ({ set: (...args) => savedCookies.push(args) }),
             };
+            if (name.endsWith("serverBackendAccess")) return { getBackendAuthorization: () => "Bearer test-service-token" };
             if (name === "jose") return { SignJWT, jwtVerify: async () => ({}) };
             throw new Error(`Unexpected dependency: ${name}`);
         },
         process: { env: { NODE_ENV: "development", DEVELOPMENT_BASEURL: "http://localhost/api/v1/", JWT_SECRET_KEY: "synthetic-test-key" } },
         URL, TextEncoder, Date, console,
-        fetch: async (url) => {
+        fetch: async (url, options) => {
+            assert.equal(options.headers.Authorization, "Bearer test-service-token");
             assert.equal(url.searchParams.get("tenantId"), "397773");
             return {
                 ok: verified,

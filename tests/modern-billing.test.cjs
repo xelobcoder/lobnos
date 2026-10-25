@@ -31,9 +31,9 @@ test('Modern blocks duplicate tests without repricing or announcing a successful
  tree=h.render();nodes(tree,n=>n.type==='Select')[0].props.onChange(h.data.testList[0]);tree=h.render();h.find(tree,'Add test').props.onClick();
  assert.equal(h.calls.length,1);assert.match(text(h.render()),/already on this bill/);
 });
-test('Modern waits for required outsourcing choice and ignores a stale organization response',async()=>{
+test('Outsourcing lookup does not block entry and stale organization responses are ignored',async()=>{
  let resolve;const h=harness(entryFile,{fetch:()=>new Promise(done=>resolve=done)});let tree=h.render();
- nodes(tree,n=>n.type==='Select')[0].props.onChange({id:2,testid:2,name:'Outsourced',isoutsourced:1});tree=h.render();assert.equal(h.find(tree,'Add test').props.disabled,true);
+ nodes(tree,n=>n.type==='Select')[0].props.onChange({id:2,testid:2,name:'Outsourced',isoutsourced:1});tree=h.render();assert.equal(h.find(tree,'Add test').props.disabled,false);
  nodes(tree,n=>n.type==='Select')[0].props.onChange(h.data.testList[0]);resolve([{outsourceid:77,name:'Wrong late organization'}]);await Promise.resolve();await Promise.resolve();
  tree=h.render();assert.equal(h.draft.selectedOutsource,null);assert.equal(h.draft.organizations.length,0);h.find(tree,'Add test').props.onClick();assert.equal(h.calls[0].cart[0].id,1);assert.equal(h.calls[0].cart[0].organization,undefined);
 });
@@ -65,6 +65,6 @@ test('Modern preview merge preserves catalogues and workflow context while clear
  const result=helpers.mergePreview(data,{cart:[{id:10,testid:10}],servicesProvided:[],amountPayable:80});assert.equal(result.testList,data.testList);assert.equal(result.servicesList,data.servicesList);assert.equal(result.billingRequestId,8);assert.equal(result.adjustmentType,'correction');assert.equal(result.paid,0);assert.equal(result.balance,80);assert.equal(result.payments.length,0);
  assert.throws(()=>helpers.mergePreview(data,{cart:[],amountPayable:80}),/incomplete/);
 });
-test('Modern selection requires outsourcing and filters multiple search terms',()=>{
- const item={kind:'test',id:10,row:{name:'Full blood count',isoutsourced:1}};assert.match(helpers.selectionIssue({}, {items:[item]}),/outsourcing/);assert.equal(helpers.selectionIssue({}, {items:[{...item,row:{...item.row,outsourceid:7}}]}),null);assert.equal(helpers.filterCatalogue([item],'blood full','test').length,1);assert.equal(helpers.filterCatalogue([item],'blood','service').length,0);
+test('Modern allows unassigned outsourcing and filters multiple search terms',()=>{
+ const item={kind:'test',id:10,row:{name:'Full blood count',isoutsourced:1}};assert.equal(helpers.selectionIssue({}, {items:[item]}),null);assert.equal(helpers.selectionIssue({}, {items:[{...item,row:{...item.row,outsourceid:7}}]}),null);assert.equal(helpers.filterCatalogue([item],'blood full','test').length,1);assert.equal(helpers.filterCatalogue([item],'blood','service').length,0);
 });

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getBackendAuthorization } from '../../../../lib/serverBackendAccess';
 import { cookies } from 'next/headers';
 import { SignJWT, jwtVerify } from 'jose';
 
@@ -25,6 +26,7 @@ export async function POST(request: NextRequest) {
         const validationResponse = await fetch(validationUrl, {
             method: 'GET',
             headers: {
+                ...(getBackendAuthorization() ? { Authorization: getBackendAuthorization()! } : {}),
                 Cookie: `pls-prime-tenant-session=${encodeURIComponent(accessToken)}`,
                 'pls-prime-tenant-session': accessToken,
                 cache: 'no-store',

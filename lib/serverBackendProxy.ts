@@ -38,6 +38,9 @@ export async function proxyBackendRequest(
 		for (const name of ["connection", "content-encoding", "content-length", "transfer-encoding"]) {
 			responseHeaders.delete(name);
 		}
+		responseHeaders.set('Cache-Control', 'private, no-store, max-age=0');
+		responseHeaders.set('CDN-Cache-Control', 'no-store');
+		responseHeaders.set('Cloudflare-CDN-Cache-Control', 'no-store');
 		return new Response(upstream.body, {
 			status: upstream.status,
 			statusText: upstream.statusText,

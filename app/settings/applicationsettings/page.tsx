@@ -73,6 +73,7 @@ interface ApplicationSettingsData {
 	primaryColor?: string | null;
 	secondaryColor?: string | null;
 	ageVariationLimits: string | null
+	billingLayout?: 'multi-compact' | 'multi-primary-two';
 	workspaceLayout?: 'classic' | 'zoho' | 'claude' | 'ribbon' | 'slack' | 'portal';
 }
 

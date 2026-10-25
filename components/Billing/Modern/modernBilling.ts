@@ -32,8 +32,7 @@ export function selectionIssue(data: MultiBillingData, draft: ModernDraft): stri
     if (!draft.items.length) return 'Select at least one test or service to continue.';
     if (data.isPackageUsed && !data.packageid) return 'Select a package in billing setup.';
     if (new Set(draft.items.map(itemKey)).size !== draft.items.length) return 'Remove duplicate selections before reviewing.';
-    const missing = draft.items.find(item => item.kind === 'test' && Number(item.row.isoutsourced) === 1 && !item.row.organization?.outsourceid && !item.row.outsourceid);
-    return missing ? 'Choose an outsourcing organization for ' + itemName(missing) + '.' : null;
+    return null;
 }
 export function mergePreview(data: MultiBillingData, priced: any): MultiBillingData {
     if (!Array.isArray(priced?.cart) || !Array.isArray(priced?.servicesProvided) || !Number.isFinite(Number(priced.amountPayable))) throw new Error('The billing preview is incomplete. Please retry.');
@@ -47,3 +46,5 @@ export function filterCatalogue(items: SelectedItem[], query: string, kind: 'all
     const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
     return items.filter(item => (kind === 'all' || item.kind === kind) && terms.every(term => (itemName(item) + ' ' + (item.row.code || item.row.testCode || '')).toLowerCase().includes(term)));
 }
+
+export const catalogueKey = (data: MultiBillingData) => JSON.stringify([data.patientid,data.branchid,data.billingSource,data.entityId,data.entitytype,Boolean(data.isPackageUsed),data.packageid,Boolean(data.includeServices),data.useSpecialCode?data.specialCode:'',data.nhismembershipid,data.claimscheckcode]);

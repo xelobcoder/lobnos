@@ -23,6 +23,14 @@ export async function verifyPrimeToken(token: string) {
 }
 
 export async function proxy(request: NextRequest) {
+    const response = await routeRequest(request);
+    response.headers.set('Cache-Control', 'private, no-store, max-age=0');
+    response.headers.set('CDN-Cache-Control', 'no-store');
+    response.headers.set('Cloudflare-CDN-Cache-Control', 'no-store');
+    return response;
+}
+
+async function routeRequest(request: NextRequest) {
     const isLoginPage = request.nextUrl.pathname === '/authentications/login';
     const patientLogin = request.nextUrl.pathname.startsWith('/patientportal');
     const adminPortal = request.nextUrl.pathname === '/patient-portal-admin' || request.nextUrl.pathname.startsWith('/patient-portal-admin/');

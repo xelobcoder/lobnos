@@ -5,6 +5,7 @@ import { RiCheckboxCircleLine, RiShieldCheckLine, RiMoneyDollarCircleLine, RiFil
 import { customFetch } from '../../Auth/customFetch';
 
 interface ApplicationSettingsData {
+     billingLayout?: 'multi-compact' | 'multi-primary-two';
      PaidBillsBeforeTransaction: number;
      approvalbeforeprinting: number;
      AllowCrmToGiveDisocunt: number;
@@ -291,6 +292,16 @@ export const BillingSettingsTab: React.FC<BillingSettingsTabProps> = ({ settings
 
      return (
           <div>
+               <section className="border rounded p-4 mb-4" aria-labelledby="billing-layout-heading">
+                    <h5 id="billing-layout-heading" className="mb-2">Default billing layout</h5>
+                    <p className="text-muted small">Choose the billing page staff should open for patient transactions. Save application settings to apply this choice.</p>
+                    <Form.Label htmlFor="billing-layout">Billing layout</Form.Label>
+                    <Form.Select id="billing-layout" name="billingLayout" value={settings.billingLayout || 'multi-compact'} onChange={handleChange}>
+                         <option value="multi-compact">Multi-compact layout — current billing page</option>
+                         <option value="multi-primary-two">Multi-primary layout Two — guided billing with payment as step 4</option>
+                    </Form.Select>
+                    <p className="text-muted small mt-2 mb-0">Both layouts use the same billing records and financial rules.</p>
+               </section>
                {/* Billing ID Prefix Section */}
                <div className="border rounded p-4 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                     <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
