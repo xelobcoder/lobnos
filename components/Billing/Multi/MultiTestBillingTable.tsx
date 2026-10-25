@@ -9,7 +9,7 @@ import { currencyFormatter, customFetch } from "../../Auth/customFetch";
 import { MultiBillingContext } from "./MultiBillingContext";
 
 
-export default function MultiTestBillingTable({ canload }: { canload: boolean }) {
+export default function MultiTestBillingTable({ canload, addFirst=false, entryDraft, setEntryDraft }: { canload: boolean; addFirst?:boolean;entryDraft?:any;setEntryDraft?:any }) {
     const context = useContext(MultiBillingContext);
     if (!context) throw new Error("MultiBillingContext not found");
     const { billingdata, setBillingData, recalculateTotalBill } = context;
@@ -93,18 +93,19 @@ export default function MultiTestBillingTable({ canload }: { canload: boolean })
                 <thead className="text-capitalize">
                     <tr>
                         <th>Test</th>
-                        <th>Outsourcing To</th>
+                        {!addFirst&&<th>Outsourcing To</th>}
                         <th style={{ width: '10%' }}>Price</th>
-                        <th style={{ width: '10%' }}>Type</th>
-                        <th style={{ width: '10%' }}>Adj. value</th>
+                        {!addFirst&&<th style={{ width: '10%' }}>Type</th>}
+                        {!addFirst&&<th style={{ width: '10%' }}>Adj. value</th>}
                         <th style={{ width: '10%' }}>Action</th>
                     </tr>
                 </thead>
                 <tbody>
+                    {addFirst&&<MultiTrTable portalMenu entryDraft={entryDraft} setEntryDraft={setEntryDraft}/>}
                     {cart.length > 0 && cart.map((item: any, index: number) => (
                         <tr style={{ fontSize: '12px' }} className={item.isoutsourced === 1 ? 'table-warning' : ''} key={index}>
-                            <td>{item.name}</td>
-                            <td>
+                            <td>{item.name}{addFirst&&<div className="text-muted small">{item.organization?.name&&<span>Outsource: {item.organization.name} · </span>}{item.userAdjustmentType&&<span>{item.userAdjustmentType}: {currencyFormatter.format(item.userAdjustedValue??0)}</span>}{editingItem?.id===item.id&&(loading?<Spinner size="sm"/>:<Select menuPortalTarget={typeof document!=='undefined'?document.body:undefined} menuPosition="fixed" styles={{menuPortal:base=>({...base,zIndex:1060})}} options={organizations} onChange={handleOrganizationChange} defaultValue={organizations.find((org:any)=>org.value===item.outsourceid)} aria-label={'Outsourcing organization for '+item.name}/>)}</div>}</td>
+                            {!addFirst&&<td>
                                 {editingItem?.id === item.id ? (
                                     loading ? (
                                         <Spinner animation="border" size="sm" />
@@ -119,11 +120,12 @@ export default function MultiTestBillingTable({ canload }: { canload: boolean })
                                 ) : (
                                     item.organization?.name || "-"
                                 )}
-                            </td>
+                            </td>}
                             <td>{currencyFormatter.format(item.discountedValue ?? 0)}</td>
-                            <td>{item.userAdjustmentType || 'Normal Pricing'}</td>
-                            <td>{currencyFormatter.format(item.userAdjustedValue ?? 0)}</td>
+                            {!addFirst&&<td>{item.userAdjustmentType || 'Normal Pricing'}</td>}
+                            {!addFirst&&<td>{currencyFormatter.format(item.userAdjustedValue ?? 0)}</td>}
                             <td>
+                                {addFirst ? <div className="d-flex gap-1">{item.isoutsourced===1&&<button type="button" className="btn btn-sm btn-outline-primary" aria-label={'Edit outsourcing for '+item.name} onClick={()=>void handleEditTest(item)}><RiPencilLine size={16}/></button>}<button type="button" className="btn btn-sm btn-outline-danger" aria-label={'Remove '+item.name} onClick={()=>removeFromCart(item.id)}><RiDeleteBinLine size={16}/></button></div> : <>
                                 {item.isoutsourced === 1 && (
                                     <RiPencilLine
                                         className="text-primary"
@@ -138,13 +140,13 @@ export default function MultiTestBillingTable({ canload }: { canload: boolean })
                                     style={{ cursor: "pointer" }}
                                     size={16}
                                 />
+                                </>}
                             </td>
                         </tr>
                     ))}
-                    <MultiTrTable
-                    />
+                    {!addFirst&&<MultiTrTable/>}
                 </tbody>
-                <tfoot>
+                {addFirst?<tfoot><tr><td>{cart.length} tests</td><td>{currencyFormatter.format(billingdata.totalTestAmountPayable??0)}</td><td><button type="button" className="btn btn-sm btn-outline-danger" aria-label="Clear all tests" disabled={!cart.length} onClick={()=>setBillingData({...billingdata,cart:[],totaldiscount:0,totalTestAmountPayable:0})}>Clear</button></td></tr></tfoot>:<tfoot>
                     <tr >
                         <td colSpan={2}>Test Count {cart.length}</td>
                         <td>{currencyFormatter.format(billingdata.totalTestAmountPayable ?? 0)}</td>
@@ -158,7 +160,7 @@ export default function MultiTestBillingTable({ canload }: { canload: boolean })
                             </button>
                         </td>
                     </tr>
-                </tfoot>
+                </tfoot>}
             </Table>
         </div>
     );

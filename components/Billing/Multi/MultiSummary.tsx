@@ -16,13 +16,14 @@ import { Button } from "react-bootstrap";
 import { MultiBillingData } from "../../../lib/Multi/MultiTypes";
 
 interface MultiSummaryProps {
+    compact?: boolean;
     summaryData?: any;
     handlesubmit?: (data: MultiBillingData) => Promise<any>;
     generatedBillingid?: string | number;
     onDetermineSampleCollection?: () => void;
 }
 
-export default function MultiSummary({ summaryData, handlesubmit, generatedBillingid, onDetermineSampleCollection }: MultiSummaryProps) {
+export default function MultiSummary({ compact=false, summaryData, handlesubmit, generatedBillingid, onDetermineSampleCollection }: MultiSummaryProps) {
     const context = useContext(MultiBillingContext);
     if (!context) throw new Error("MultiBillingContext not found");
     const { billingdata, setBillingData } = context;
@@ -33,8 +34,8 @@ export default function MultiSummary({ summaryData, handlesubmit, generatedBilli
         return null;
     }
 
-    return (
-        <div>
+    const breakdown = (
+        <>
             <div className="list-group mx-2 text-sm my-2 billing-page-display-child">
                 <div className="list-group-item d-flex justify-content-between bg-secondary-subtle">
                     <span className="mt-2 fw-bold">Current Billing Details</span>
@@ -75,13 +76,13 @@ export default function MultiSummary({ summaryData, handlesubmit, generatedBilli
                     </span>
                     <span className="fw-bold">{currencyFormatter.format(data.actualAmount ? data.actualAmount : 0)}</span>
                 </div>
-                <div className="list-group-item d-flex justify-content-between  border-5 border-primary">
+                {!compact && <div className="list-group-item d-flex justify-content-between  border-5 border-primary">
                     <span className="d-flex align-items-center">
                         <RiWallet3Line className="me-2" />
                         Amt. Payable
                     </span>
                     <span className="fw-bold">{currencyFormatter.format(data.amountPayable ?? data.payable)}</span>
-                </div>
+                </div>}
                 <div className="list-group-item d-flex justify-content-between bg-secondary-subtle">
                     <span className="d-flex align-items-center">
                         <RiCheckboxCircleLine className="me-2" />
@@ -98,7 +99,10 @@ export default function MultiSummary({ summaryData, handlesubmit, generatedBilli
                 </div>
             </div>
 
-            <MultiBillingPageAdditionalInformation handlesubmit={handlesubmit} generatedBillingId={generatedBillingid?.toString()} onDetermineSampleCollection={onDetermineSampleCollection} />
-        </div>
+        </>
     );
+    return <div>
+        {compact ? <><div className="modern-payable"><span>Amount payable</span><strong>{currencyFormatter.format(data.amountPayable ?? data.payable)}</strong></div><details className="modern-breakdown"><summary>Charge breakdown, paid & balance</summary>{breakdown}</details></> : breakdown}
+        <MultiBillingPageAdditionalInformation handlesubmit={handlesubmit} generatedBillingId={generatedBillingid?.toString()} onDetermineSampleCollection={onDetermineSampleCollection} />
+    </div>;
 }

@@ -16,6 +16,7 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
      const [staff, setStaff] = useState([]);
      const [snapshots, setSnapshots] = useState({});
      const [snapshotsReady, setSnapshotsReady] = useState(false);
+     const [reviewKey,setReviewKey]=useState(0);
      const [snapshotError, setSnapshotError] = useState('');
      const snapshotRequest = useRef(0);
      const [pinValue, setPin] = useState('');
@@ -71,6 +72,7 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
                setResultSettings(nextSettings);
                setSnapshots(Object.fromEntries(ascensions.map((asc, index) => [asc.ascensionid, details[index]])));
                if (!isBulk) setStaff(details[0].staff);
+               setReviewKey(request);
                setSnapshotsReady(true);
           } catch (error) { if (request === snapshotRequest.current) setSnapshotError(error.message || 'Unable to load result revisions'); }
      }
@@ -125,14 +127,10 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
      const handleSaveValue = async () => {
           if (validatingSpinner || !snapshotsReady) return;
           if (isBulk && Array.isArray(ascensions) && ascensions.length > 0) {
-               // Bulk validation
-               const validationPromises = ascensions.map(asc => {
-                    return customPost(`test/approval/get/staffQualifiedToValidationResult?employeeid=${employeeid}&&ascensionid=${asc.ascensionid}&&ascensionId=${asc.ascensionid}`, 'PUT', { username: asc.fullname, employeeid, ascensionid: asc.ascensionid, approval_revision: snapshots[asc.ascensionid]?.approval_revision });
-               });
-
                try {
                     setValidatingSpinner(true);
-                    const results = await Promise.all(validationPromises);
+                    if(pinOnResultValidation){const pinResponse=await validatePin(employeeid,pinValue);if(pinResponse?.status!==true)throw new Error(pinResponse?.message||'PIN validation failed');}
+                    const results=await Promise.all(ascensions.map(asc=>customPost('test/approval/get/staffQualifiedToValidationResult?ascensionid='+asc.ascensionid,'PUT',{employeeid,ascensionid:asc.ascensionid,approval_revision:snapshots[asc.ascensionid]?.approval_revision})));
                     const allSuccess = results.every(r => r.status === true);
 
                     if (allSuccess) {
@@ -148,7 +146,7 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
                          await getInitData();
                     }
                } catch (error) {
-                    toast.error("Error during bulk validation");
+                    toast.error(error.message || "Error during bulk validation");
                } finally {
                     setValidatingSpinner(false);
                }
@@ -209,7 +207,7 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
                                    <PreviewPatientInformation patientid={selectedAscension.patientid} />
                                    <h5></h5>
                                    <div style={{ overflowX: 'auto' }} className="my-3">
-                                        <UseCustomResultTemplating
+                                        <UseCustomResultTemplating key={`result-${reviewKey}-${selectedAscension.ascensionid}`}
                                              isResultView={false}
                                              testid={selectedAscension.id}
                                              patientid={selectedAscension.patientid}
@@ -220,7 +218,7 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
                                    <ListGroup className="my-2">
                                         <ListGroup.Item className="bg-secondary-subtle fw-bold">Comments</ListGroup.Item>
                                         <ListGroup.Item>
-                                             <UseResultCommentSingle
+                                             <UseResultCommentSingle key={`comment-${reviewKey}-${selectedAscension.ascensionid}`}
                                                   patientid={selectedAscension.patientid}
                                                   testid={selectedAscension.id}
                                                   billingid={selectedAscension.billingid}
@@ -237,7 +235,7 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
                                              <PreviewPatientInformation patientid={asc.patientid} />
                                              <h5 className="mt-3"></h5>
                                              <div style={{ overflowX: 'auto' }} className="my-3">
-                                                  <UseCustomResultTemplating
+                                                  <UseCustomResultTemplating key={`result-${reviewKey}-${asc.ascensionid}`}
                                                        isResultView={false}
                                                        testid={asc.id}
                                                        patientid={asc.patientid}
@@ -248,7 +246,7 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
                                              <ListGroup>
                                                   <ListGroup.Item className="bg-secondary-subtle fw-bold">Comments</ListGroup.Item>
                                                   <ListGroup.Item>
-                                                       <UseResultCommentSingle
+                                                       <UseResultCommentSingle key={`comment-${reviewKey}-${asc.ascensionid}`}
                                                             patientid={asc.patientid}
                                                             testid={asc.id}
                                                             billingid={asc.billingid}

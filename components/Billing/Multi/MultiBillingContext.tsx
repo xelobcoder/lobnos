@@ -5,22 +5,25 @@ import { handleCheckout } from "./checkoutMulti";
 interface MultiBillingContextType {
 	billingdata: MultiBillingData;
 	setBillingData: React.Dispatch<React.SetStateAction<MultiBillingData>>;
-	recalculateTotalBill: (billingdata: MultiBillingData) => void;
+	pricingPending?: boolean;
+	recalculateTotalBill: (billingdata: MultiBillingData) => void | Promise<void>;
 }
 
 export const MultiBillingContext = createContext<MultiBillingContextType | undefined>(undefined);
 
 export const MultiBillingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	const [billingdata, setBillingData] = useState<MultiBillingData>(defaultMultiBillingData);
+	const [pricingRequests,setPricingRequests]=useState(0);
 	const recalculateTotalBill = (billingdata) => {
 		if ((billingdata.cart && billingdata.cart.length > 0 ) || (billingdata.servicesProvided && billingdata.servicesProvided.length > 0)) {
-			handleCheckout(billingdata, billingdata.specialCode ?? '',  setBillingData);
+			setPricingRequests(count=>count+1);
+			return handleCheckout(billingdata, billingdata.specialCode ?? '', setBillingData).finally(()=>setPricingRequests(count=>count-1));
 		}
 
 	};
 
 	return (
-		<MultiBillingContext.Provider value={{ billingdata, setBillingData, recalculateTotalBill }}>
+		<MultiBillingContext.Provider value={{ billingdata, setBillingData, recalculateTotalBill, pricingPending:pricingRequests>0 }}>
 			{children}
 		</MultiBillingContext.Provider>
 	);

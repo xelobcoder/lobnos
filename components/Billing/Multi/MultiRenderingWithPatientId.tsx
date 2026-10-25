@@ -6,7 +6,7 @@ import MultiServicesProvidedToPatientBilling from "./MultiServicesProvidedToPati
 
 
 
-export default function MultiRenderingWithPatientId(canload:{canload:boolean}) {
+export default function MultiRenderingWithPatientId(canload:{canload:boolean;addFirst?:boolean;entryDraft?:any;setEntryDraft?:any}) {
     const context = useContext(MultiBillingContext);
     if (!context) throw new Error("MultiBillingContext not found");
     const { billingdata } = context;
@@ -23,7 +23,7 @@ export default function MultiRenderingWithPatientId(canload:{canload:boolean}) {
     return (
         <div  >
             <Col>
-                <MultiTestBillingTable canload={canload.canload} />
+                <MultiTestBillingTable canload={canload.canload} addFirst={canload.addFirst} entryDraft={canload.entryDraft} setEntryDraft={canload.setEntryDraft} />
                 <MultiServicesProvidedToPatientBilling />
             </Col>
         </div>

@@ -1,5 +1,9 @@
 'use client';
 import React from "react";
+import ModernBillingWorkspace from '../Modern/ModernBillingWorkspace';
+import ModernBillingSetup from '../Modern/ModernBillingSetup';
+import type { ModernDraft } from '../Modern/modernBilling';
+import modernStyles from '../Modern/ModernBilling.module.css';
 import MultiRenderingBillingSourceFields from "./RenderingBillingSourceFields";
 import MultiPACKAGESELECT from './MultiPACKAGESELECT';
 import MultiRenderingWithPatientId from "./MultiRenderingWithPatientId";
@@ -33,6 +37,12 @@ import { linkSavedRecordToQueue, parseQueueHandoff, withQueueHandoff } from '../
 
 export default function MultiBillingLayout({ billingContextProps }: { billingContextProps: billingContextProps }) {
     const application = useApplication();
+    const [layout,setLayout]=useState<'classic'|'modern'>('classic');
+    const layoutGuardRef=useRef<(() => Promise<boolean>) | null>(null);
+    const layoutPreferenceKey='billing-layout:'+String(application?.tenantId||'')+':'+String(application?.user?.employeeid||'');
+    useEffect(()=>{try{setLayout(localStorage.getItem(layoutPreferenceKey)==='modern'?'modern':'classic');}catch{setLayout('classic');}},[layoutPreferenceKey]);
+    const chooseLayout=async(next:'classic'|'modern')=>{if(next===layout)return;if(layout==='modern'&&layoutGuardRef.current&&!(await layoutGuardRef.current()))return;setLayout(next);try{localStorage.setItem(layoutPreferenceKey,next);}catch{ /* Choice remains available for this session. */ }};
+
     const contextKey = JSON.stringify([
         application?.tenantId, application?.branchid, application?.user?.employeeid,
         billingContextProps.patientid, billingContextProps.categorytrackid, billingContextProps.billingid,
@@ -44,7 +54,8 @@ export default function MultiBillingLayout({ billingContextProps }: { billingCon
     return (
         <BillingContextPropsProvider key={contextKey} initialProps={billingContextProps}>
             <MultiBillingProvider>
-                <MultiBillingLayoutContent />
+                <div className={layout==='modern'?modernStyles.compactChooser:modernStyles.chooser}><div><strong>Choose your billing layout</strong><p>Switch views anytime. Your current cart stays in place.</p></div><div className={modernStyles.chooserOptions} role="group" aria-label="Billing layout"><button type="button" aria-pressed={layout==='classic'} onClick={()=>chooseLayout('classic')}>Current multi-billing</button><button type="button" aria-pressed={layout==='modern'} onClick={()=>chooseLayout('modern')}>Modern UI Layout</button></div></div>
+                <MultiBillingLayoutContent modern={layout==='modern'} layoutGuardRef={layoutGuardRef}/>
             </MultiBillingProvider>
         </BillingContextPropsProvider>
     );
@@ -53,7 +64,9 @@ export default function MultiBillingLayout({ billingContextProps }: { billingCon
 
 
 
-function MultiBillingLayoutContent() {
+function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolean;layoutGuardRef?:React.MutableRefObject<(() => Promise<boolean>) | null>}) {
+    const [modernEntryDraft,setModernEntryDraft]=useState<ModernDraft|null>(null);
+    const internalLayoutGuard=useRef<(() => Promise<boolean>) | null>(null);
     const { billingContextProps } = useBillingContextProps();
     const { categorytrackid, entitytype, entityname, entityid, patientid, billingid, isNewTransaction,
         isAdjustment, adjustmentType, adjustmentReason,
@@ -69,6 +82,7 @@ function MultiBillingLayoutContent() {
     const context = useContext(MultiBillingContext);
     if (!context) throw new Error("MultiBillingContext not found");
     const { billingdata, setBillingData, recalculateTotalBill } = context;
+    useEffect(()=>{setModernEntryDraft(null);},[billingdata.testList]);
     const router = useRouter();
     const queueSearchParams = useSearchParams();
     const queueHandoff = parseQueueHandoff(queueSearchParams);
@@ -203,6 +217,7 @@ function MultiBillingLayoutContent() {
 
 
     const handleReset = () => {
+        setModernEntryDraft(null);
         if (conversionSource !== undefined) {
             // Reset must reload the request, not silently detach it into an unrelated bill.
             setInitializationAttempt(value => value + 1);
@@ -260,7 +275,7 @@ function MultiBillingLayoutContent() {
                 throw new Error(typeof backendData === 'string' ? backendData :
                     backendData?.message || 'Failed to load billing data. Check the sales session and patient, then retry.');
             }
-            if (backendData.testList.length === 0) {
+            if (backendData.testList.length === 0 && (!modern || !backendData.servicesList?.length)) {
                 throw new Error('No tests are available for this billing source. Check the test catalog or pricing configuration, then retry.');
             }
 
@@ -918,6 +933,28 @@ function MultiBillingLayoutContent() {
                     </Button>
                 </div>
             )}
+            {modern ? <ModernBillingWorkspace
+                controls={<ModernBillingSetup ready={canLoadData} loading={loadingBackendBilling} specialCodeError={specialCodeError}
+                    onReload={loadBackendBilling} onPackageChange={handlePackageActivation}
+                    onServicesChange={checked=>{setUseServices(checked);setBillingData(prev=>({...prev,includeServices:checked}));}}
+                    onReferenceChange={handleSpecialCodeChange} onReset={handleReset} onChangePayer={handleReturnToMulti}/>}
+                source={<>
+                    <MultiRenderingBillingSourceFields
+                                isClient={true}
+                                updateValuesToContext={handleOrganizationSelection}
+                                handleSelectedEntityClinician={handleSelectedEntityClinician}
+                                handleUrgencyChange={handleUrgencyChange}
+                                handleSelectedEntityInsurance={handleSelectedEntityInsurance}
+                            />
+                    {billingdata.isPackageUsed&&<MultiPACKAGESELECT/>}
+                    {billingdata.isAdjustment&&billingdata.adjustmentReason&&<div className="alert alert-info mt-3"><strong>Reason for adjustment</strong><p className="mb-0">{billingdata.adjustmentReason}</p></div>}
+                </>}
+                history={<PreviousRecordsHeader/>}
+                draft={modernEntryDraft} setDraft={setModernEntryDraft}
+                layoutGuardRef={layoutGuardRef||internalLayoutGuard}
+                onContinue={handleAdvancedPayment} onSubmit={handleSubmit}
+                loading={loadingPanels} ready={canLoadData} saved={generatedBillingid}
+            /> : (
             <div className="card mt-2 multi-billing-card">
                 <MultiBillingHeader
                     billingdata={billingdata}
@@ -994,6 +1031,7 @@ function MultiBillingLayoutContent() {
                 </div>
 
             </div>
+            )}
 
             {/* Receipt Options Modal */}
             {showReceiptOptionsModal && (
