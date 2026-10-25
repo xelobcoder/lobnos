@@ -28,8 +28,8 @@ export interface SuspendedBillingDraft {
      isPackageUsed: boolean;
      packageid?: number;
      includeServices?: boolean;
-     nhismembershipid?: number | null;
-     claimscheckcode?: number;
+     nhismembershipid?: string | number | null;
+     claimscheckcode?: string | number;
      isPromo?: boolean;
      promoCode?: string | null;
      additionalInfo?: string;

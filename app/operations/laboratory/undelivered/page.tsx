@@ -6,10 +6,10 @@ import UndeliveredResultTable from "../../../../components/operations/Laboratory
 
 export default function UndeliveredPage() {
      const { applicationsettings } = useApplicationSettings();
-     const { user } = applicationsettings;
+     const user = applicationsettings?.user?.user || applicationsettings?.user;
 
      return (
-          <div className="container-fluid p-2">
+          <div className="container-fluid p-0">
                <UndeliveredResultTable employeeid={user?.employeeid} />
           </div>
      );

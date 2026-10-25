@@ -4,7 +4,12 @@ import AsyncSelect from "react-select/async";
 import { customFetch, reactSelectCustomStyles } from "../../Auth/customFetch";
 import { AsyncPatientFilteringloadOptions } from "../../serverActions/ActionFiltering";
 
-export default function AsyncPatientFiltering({ getSelectedPatient, isDisabled, placeholder = "Search patient using patient ID, email, fullname" }) {
+export default function AsyncPatientFiltering({ getSelectedPatient, isDisabled = false, inputId, placeholder = "Search patient using patient ID, email, fullname" }: {
+    getSelectedPatient: (patient: any) => void;
+    isDisabled?: boolean;
+    inputId?: string;
+    placeholder?: string;
+}) {
     const [isLoading, setLoading] = useState(false);
     const [selectedOption, setSelectedOption] = useState(null);
     const [isClient, setIsClient] = useState(false);
@@ -66,6 +71,10 @@ export default function AsyncPatientFiltering({ getSelectedPatient, isDisabled, 
         <div style={{ width: '100%' }}>
             {
                 isClient && <AsyncSelect
+                    inputId={inputId}
+                    instanceId={inputId}
+                    noOptionsMessage={({ inputValue }) => inputValue.length < 3 ? 'Type at least 3 characters to search' : 'No matching patients found'}
+                    loadingMessage={() => 'Searching patients...'}
                     styles={reactSelectCustomStyles}
                     className="react-select-container"
                     classNamePrefix="react-select"

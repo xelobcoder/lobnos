@@ -10,23 +10,23 @@ import { useApplication } from '../../Auth/useApplicationContext';
 import { roleAllowed } from '../../Auth/roles';
 import { saveSuspendedBilling } from '../../../lib/Multi/suspendedBilling';
 import type { MultiBillingData } from '../../../lib/Multi/MultiTypes';
-import { catalogueKey, draftFromBilling, filterCatalogue, itemId, itemKey, itemName, mergePreview, previewRequest, reviewKey, selectionIssue, type ModernDraft, type SelectedItem, type SelectionKind } from './modernBilling';
+import { catalogueKey, payerSetupIssue, draftFromBilling, filterCatalogue, itemId, itemKey, itemName, mergePreview, previewRequest, reviewKey, selectionIssue, type ModernDraft, type SelectedItem, type SelectionKind } from './modernBilling';
 import styles from './ModernWorkflow.module.css';
 
 type Props = {
     controls: React.ReactNode; source: React.ReactNode; history: React.ReactNode;
-    loading: boolean; ready: boolean; saved?: string | number; promptActive?:boolean;
+    loading: boolean; ready: boolean; loadedCatalogueKey: string | null; onLoadCatalogue: () => Promise<boolean>; saved?: string | number; promptActive?:boolean;
     draft: ModernDraft | null; setDraft: React.Dispatch<React.SetStateAction<ModernDraft | null>>;
     layoutGuardRef: React.MutableRefObject<(() => Promise<boolean>) | null>;
     onContinue: () => void; onSubmit: (data: MultiBillingData) => Promise<any>;
 };
 
-function ItemOptions({ item, canAdjust, onChange }: { item: SelectedItem; canAdjust: boolean; onChange: (changes: any) => void }) {
+function ItemOptions({ item, canAdjust, onChange, organizationOnly = false }: { item: SelectedItem; canAdjust: boolean; onChange: (changes: any) => void; organizationOnly?: boolean }) {
     const [organizations, setOrganizations] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [attempt, setAttempt] = useState(0);
-    const outsourced = item.kind === 'test' && Number(item.row.isoutsourced) === 1;
+    const outsourced = item.kind === 'test' && (Number(item.row.isoutsourced) === 1 || Boolean(item.row.organization?.outsourceid || item.row.outsourceid));
     const organizationId = item.row.organization?.outsourceid || item.row.outsourceid || '';
     useEffect(() => {
         if (!outsourced) return;
@@ -36,32 +36,32 @@ function ItemOptions({ item, canAdjust, onChange }: { item: SelectedItem; canAdj
             if (!active) return;
             if (!Array.isArray(response)) throw new Error('Unable to load organizations');
             setOrganizations(response);
-            if (response.length === 1 && !organizationId) onChange({ organization: response[0], outsourceid: response[0].outsourceid });
+            // Assignment is explicit; loading options never changes the reviewed bill.
         }).catch(() => { if (active) setError('Organizations could not be loaded. Billing can continue without an assignment.'); }).finally(() => { if (active) setLoading(false); });
         return () => { active = false; };
     }, [item.id, outsourced, attempt]);
     const fieldId = 'modern-option-' + itemKey(item);
-    return <div className={styles.itemOptions}>
+    return <div className={[styles.itemOptions, organizationOnly ? styles.organizationOnly : ''].join(' ')}>
         {outsourced && <div className={styles.organizationField}>
-            <label htmlFor={fieldId + '-organization'}>Outsourcing organization <span>Optional</span></label>
-            {error ? <div role="alert">{error} <button type="button" onClick={() => setAttempt(attempt + 1)}>Retry</button></div> : <select id={fieldId + '-organization'} disabled={loading} value={organizationId} onChange={event => {
+            <label htmlFor={fieldId + '-organization'}>{organizationOnly ? 'Receiving laboratory' : 'Outsourcing organization'} <span className={styles.optionalBadge}>Optional</span></label>
+            {error ? <div role="alert">{error} <button type="button" onClick={() => setAttempt(attempt + 1)}>Retry</button></div> : <select id={fieldId + '-organization'} aria-label={organizationOnly ? 'Receiving laboratory for ' + itemName(item) : undefined} disabled={loading} value={organizationId} onChange={event => {
                 const organization = organizations.find(row => String(row.outsourceid) === event.target.value);
                 onChange({ organization: organization || undefined, outsourceid: organization?.outsourceid || null });
             }}><option value="">{loading ? 'Loading organizations…' : 'No organization selected'}</option>{organizationId && !loading && !organizations.some(row => String(row.outsourceid) === String(organizationId)) && <option value={organizationId} disabled>Previous organization unavailable</option>}{organizations.map(row => <option key={row.outsourceid} value={row.outsourceid}>{row.name}</option>)}</select>}
             {!loading&&!error&&!organizations.length&&<p className={styles.helper}>No organizations configured. Billing can continue without an assignment.</p>}
             <button type="button" className={styles.backLink} disabled={loading} onClick={()=>setAttempt(value=>value+1)}>Refresh organizations</button>
         </div>}
-        <details className={styles.optionsDisclosure}><summary>Item options{item.row.userAdjustmentType ? ' · ' + item.row.userAdjustmentType : ''}{item.row.prioritised ? ' · Urgent' : ''}</summary>
+        {!organizationOnly && <details className={styles.optionsDisclosure}><summary>Item options{item.row.userAdjustmentType ? ' · ' + item.row.userAdjustmentType : ''}{item.row.prioritised ? ' · Urgent' : ''}</summary>
             <div className={styles.optionsGrid}>
                 <label htmlFor={fieldId + '-adjustment'}>Price adjustment<select id={fieldId + '-adjustment'} disabled={!canAdjust} value={item.row.userAdjustmentType || ''} onChange={event => onChange({ userAdjustmentType: event.target.value || null, userAdjustedValue: 0 })}><option value="">Normal pricing</option><option value="discount">Discount</option><option value="surcharge">Surcharge</option></select></label>
                 {item.row.userAdjustmentType && <label htmlFor={fieldId + '-value'}>Adjustment value<input id={fieldId + '-value'} type="number" min="0" step="0.01" value={item.row.userAdjustedValue ?? 0} disabled={!canAdjust} onChange={event => onChange({ userAdjustedValue: Math.max(0, Number(event.target.value) || 0) })}/></label>}
                 <label className={styles.check}><input type="checkbox" checked={Boolean(item.row.prioritised)} onChange={event => onChange({ prioritised: event.target.checked })}/> Urgent</label>
             </div>
-        </details>
+        </details>}
     </div>;
 }
 
-export default function ModernBillingWorkspace({ controls, source, history, loading, ready, saved, promptActive=false, draft: suppliedDraft, setDraft, layoutGuardRef, onContinue, onSubmit }: Props) {
+export default function ModernBillingWorkspace({ controls, source, history, loading, ready, loadedCatalogueKey, onLoadCatalogue, saved, promptActive=false, draft: suppliedDraft, setDraft, layoutGuardRef, onContinue, onSubmit }: Props) {
     const context = useContext(MultiBillingContext);
     if (!context) throw new Error('Billing context is required');
     const { billingdata: data, setBillingData } = context;
@@ -85,9 +85,7 @@ export default function ModernBillingWorkspace({ controls, source, history, load
     const errorRef = useRef<HTMLDivElement>(null);
     const inFlight = useRef(false);
     const mounted = useRef(true);
-    const catalogueStamp=useRef({tests:data.testList,services:data.servicesList,key:catalogueKey(data)});
-    if(catalogueStamp.current.tests!==data.testList||catalogueStamp.current.services!==data.servicesList) catalogueStamp.current={tests:data.testList,services:data.servicesList,key:catalogueKey(data)};
-    const catalogueCurrent=catalogueStamp.current.key===catalogueKey(data);
+    const catalogueCurrent = loadedCatalogueKey === catalogueKey(data);
     const currentKey = reviewKey(data, draft);
     const latestKey = useRef(currentKey); latestKey.current = currentKey;
     const reviewed = Boolean(draft.reviewedKey && draft.reviewedKey === currentKey);
@@ -116,7 +114,7 @@ export default function ModernBillingWorkspace({ controls, source, history, load
     };
     const updateOptions = (item: SelectedItem, changes: any) => { setDraft(previous => ({ items: (previous || draftFromBilling(data)).items.map(row => itemKey(row) === itemKey(item) ? { ...row, row: { ...row.row, ...changes } } : row) })); setError(''); };
     const review = async (): Promise<boolean> => {
-        if (inFlight.current) return false;
+        if (inFlight.current || loading) return false;
         if (!ready || !catalogueCurrent) { setStep(1); setError('Complete billing setup and load the current catalogue first.'); return false; }
         const issue = selectionIssue(data, draft);
         if (issue) { setStep(2); setError(issue); return false; }
@@ -164,9 +162,17 @@ export default function ModernBillingWorkspace({ controls, source, history, load
         } catch (failure) { setError(failure instanceof Error ? failure.message : 'Unable to suspend this bill'); }
         finally { inFlight.current = false; if (mounted.current) setBusy(false); }
     };
-    const nextFromSetup = () => {
-        if (!ready || !catalogueCurrent || (!data.testList?.length && !data.servicesList?.length)) { setError('Complete payer details and load the catalogue to continue.'); return; }
-        setStep(2); setError('');
+    const nextFromSetup = async () => {
+        if (loading || inFlight.current) return;
+        const issue = payerSetupIssue(data);
+        if (!ready || issue) { setError(issue || 'Billing setup is still loading. Please try again in a moment.'); return; }
+        if (!catalogueCurrent) {
+            inFlight.current = true; setBusy(true); setError('');
+            try { if (!await onLoadCatalogue() || !mounted.current) return; }
+            catch (error) { setError(error instanceof Error ? error.message : 'Unable to load the catalogue. Please retry.'); return; }
+            finally { inFlight.current = false; if (mounted.current) setBusy(false); }
+        }
+        if (mounted.current) { setStep(2); setError(''); }
     };
     const beginPayment = () => { if (reviewed && !busy) { setStep(4); setError(''); } };
     const countLabel = draft.items.length + ' item' + (draft.items.length === 1 ? '' : 's');
@@ -178,9 +184,9 @@ export default function ModernBillingWorkspace({ controls, source, history, load
     </div>;
 
     return <div className={styles.workspace}>
-        <section className={styles.transactionOptions} aria-label="Transaction options"><strong>Transaction options</strong><fieldset className={styles.fieldset} disabled={busy||promptActive||step===4}>{controls}</fieldset></section>
+        <section className={styles.transactionOptions} aria-label="Transaction options"><strong>Transaction options</strong><fieldset className={styles.fieldset} disabled={busy||loading||promptActive||step===4}>{controls}</fieldset></section>
         <header className={styles.heading}><div><p className={styles.eyebrow}>MULTI-LAYOUT-TWO</p><h1>{data.ispricingcheckout ? 'Build a quotation' : data.isAdjustment ? 'Review a billing adjustment' : 'Create a patient bill'}</h1><p>{payer}{data.entityname ? ' · ' + data.entityname : ''}{data.suspendedDraftId ? ' · Resumed draft #' + data.suspendedDraftId : ''}</p></div><button type="button" className={styles.secondary} disabled={busy || !draft.items.length || Boolean(data.isAdjustment)} onClick={() => setSuspendOpen(true)}><RiPauseCircleLine size={17}/> Suspend</button></header>
-        <nav className={styles.steps} aria-label="Billing progress">{(['Billing setup', 'Select items', 'Review charges', 'Payment'] as const).map((label, index) => <button key={label} type="button" aria-current={step === index + 1 ? 'step' : undefined} disabled={busy || index >= 2 && !draft.items.length || index === 3 && !reviewed} onClick={() => index === 2 ? void review() : index === 3 ? beginPayment() : (setError(''), setStep((index + 1) as 1 | 2))}><span>{step > index + 1 ? <RiCheckLine size={15}/> : index + 1}</span>{label}</button>)}</nav>
+        <nav className={styles.steps} aria-label="Billing progress">{(['Billing setup', 'Select items', 'Review charges', 'Payment'] as const).map((label, index) => <button key={label} type="button" aria-current={step === index + 1 ? 'step' : undefined} disabled={busy || index >= 2 && !draft.items.length || index === 3 && !reviewed} onClick={() => index === 2 ? void review() : index === 3 ? beginPayment() : index === 1 ? void nextFromSetup() : (setError(''), setStep(1))}><span>{step > index + 1 ? <RiCheckLine size={15}/> : index + 1}</span>{label}</button>)}</nav>
         {error && <div className={styles.error} role="alert" tabIndex={-1} ref={errorRef}>{error}<button type="button" aria-label="Dismiss error" onClick={() => setError('')}>×</button></div>}
         <span className="visually-hidden" role="status" aria-live="polite">{notice}</span>
 
@@ -190,8 +196,8 @@ export default function ModernBillingWorkspace({ controls, source, history, load
         <div hidden={promptActive||suspendOpen} className={styles.stepPages}>
         {step === 1 && <section className={styles.setup}>
             <div className={styles.sectionHeading}><span className={styles.stepLabel}>01 / BILLING SETUP</span><h2>Confirm who is paying</h2><p>Set the payer, referrals and any package before selecting the requested items.</p></div>
-            <div className={styles.setupFields}>{source}</div>
-            <div className={styles.sectionFooter}><span>{ready && data.testList?.length ? 'Catalogue loaded for this payer' : 'Complete the required details, then start the transaction'}</span><button type="button" className={styles.primary} disabled={loading} onClick={nextFromSetup}>Choose tests & services <RiArrowRightLine size={17}/></button></div>
+            <fieldset disabled={loading || busy} className={styles.fieldset}><div className={styles.setupFields}>{source}</div></fieldset>
+            <div className={styles.sectionFooter}><span>{catalogueCurrent && ready ? 'Catalogue loaded for this payer' : ready ? 'Continue to load tests and services for this payer' : 'Complete the required payer details'}</span><button type="button" className={styles.primary} disabled={loading || busy || !ready} onClick={()=>void nextFromSetup()}>{loading || busy ? 'Loading catalogue…' : 'Choose tests & services'} <RiArrowRightLine size={17}/></button></div>
         </section>}
 
         {step === 2 && <div className={styles.selectionGrid}>
@@ -206,7 +212,7 @@ export default function ModernBillingWorkspace({ controls, source, history, load
                 <fieldset disabled={busy} className={styles.fieldset}><div className={styles.results} id="modern-catalogue-results" role="listbox" aria-label="Available items" aria-multiselectable="true">{visible.map((item, index) => {
                     const checked = selected.has(itemKey(item)); const previouslyBilled = isPrevious(item);
                     return <button type="button" id={'modern-result-' + index} key={itemKey(item)} role="option" aria-selected={checked} aria-disabled={previouslyBilled} className={[styles.result, checked ? styles.selected : '', index === active ? styles.active : ''].join(' ')} onClick={() => { setActive(index); toggle(item); }}><span className={styles.selectionMark}>{checked && <RiCheckLine size={15}/>}</span><span className={styles.resultName}><strong>{itemName(item)}</strong><small>{previouslyBilled ? 'Already billed' : item.kind === 'service' ? 'Additional service' : Number(item.row.isoutsourced) === 1 ? 'Outsourced test · Organization optional' : 'Laboratory test'}</small></span><span className={styles.cataloguePrice}><strong>{currencyFormatter.format(Number(item.row.discountedValue ?? item.row.servicePrice ?? item.row.price ?? 0))}</strong><small>Catalogue price</small></span></button>;
-                })}{!visible.length && <div className={styles.empty}><RiSearchLine size={28}/><h3>{query ? 'No matching items' : data.isPackageUsed ? 'Package tests are already selected' : 'No items available'}</h3><p>{query ? 'Try a shorter name, a different spelling or change the item filter.' : 'Check your billing setup and catalogue configuration.'}</p>{query && <button type="button" className={styles.secondary} onClick={() => setQuery('')}>Clear search</button>}</div>}</div></fieldset>
+                })}{!visible.length && <div className={styles.empty}><RiSearchLine size={28}/><h3>{query ? 'No matching items' : data.catalogueNotice?.title || (data.isPackageUsed ? 'Package tests are already selected' : 'No items available')}</h3><p>{query ? 'Try a shorter name, a different spelling or change the item filter.' : data.catalogueNotice?.message || 'Check your billing setup and catalogue configuration.'}</p>{query && <button type="button" className={styles.secondary} onClick={() => setQuery('')}>Clear search</button>}</div>}</div></fieldset>
                 {filtered.length > limit && <button className={styles.showMore} type="button" onClick={() => setLimit(limit + 40)}>Show more items ({filtered.length - limit} remaining)</button>}
                 <p className={styles.keyboardHelp}>↑ ↓ Move · Enter Select / remove · Ctrl+Enter Review · F4 Review</p>
             </section>
@@ -227,6 +233,14 @@ export default function ModernBillingWorkspace({ controls, source, history, load
         </aside></div>}
         {step === 4 && <section className={styles.paymentStep} id="modern-payment-step" aria-label="Payment step">
             <div className={styles.sectionHeading}><span className={styles.stepLabel}>04 / PAYMENT</span><h2>Complete payment</h2><p>{payer} · {countLabel} · {currencyFormatter.format(Number(data.amountPayable || 0))}</p></div>
+            {draft.items.some(item => item.kind === 'test' && (Number(item.row.isoutsourced) === 1 || item.row.outsourceid)) && <section className={styles.receivingLaboratories} aria-label="Outsourced tests">
+                <header className={styles.receivingHeader}><div><h3>Receiving laboratories</h3><p>Choose a laboratory for each outsourced test, or assign it later.</p></div><span className={styles.optionalBadge}>Optional</span></header>
+                <div className={styles.receivingList}>{draft.items.filter(item => item.kind === 'test' && (Number(item.row.isoutsourced) === 1 || item.row.outsourceid)).map(item => <article className={styles.receivingRow} key={itemKey(item)}>
+                    <div className={styles.receivingTest}><strong>{itemName(item)}</strong><span>{item.row.organization?.name || (item.row.outsourceid ? 'Laboratory assigned' : 'Not assigned yet')}</span></div>
+                    <ItemOptions item={item} canAdjust={false} organizationOnly onChange={changes => updateOptions(item, changes)}/>
+                </article>)}</div>
+                <p className={styles.receivingNote}>Changing a laboratory requires charges to be reviewed again before payment.</p>
+            </section>}
             {!reviewed ? <div className={styles.empty}><p>The billing details have changed. Review the charges again before payment.</p><button type="button" className={styles.primary} onClick={()=>void review()}>Review charges</button></div> : Number(data.outstanding) <= 0 ? <div className={styles.zeroPayment}><p>No further payment is required. Confirm to complete the bill using the existing settlement rules.</p><button type="button" className={styles.primary} onClick={onContinue}>Complete bill</button></div> : <ModernPayment onSubmit={onSubmit}/>}
         </section>}
         </div></main>

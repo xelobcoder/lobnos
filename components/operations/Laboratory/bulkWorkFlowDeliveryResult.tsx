@@ -68,9 +68,9 @@ export default function BulkWorkFlowResultDeliveryModal({
 	};
 
 	return (
-		<Modal show={show} onHide={onHide} centered size="lg">
-			<Modal.Header closeButton>
-				<Modal.Title>Bulk Record Result Delivery ({items.length} items)</Modal.Title>
+		<Modal show={show} onHide={()=>{if(!loading)onHide()}} centered size="lg" backdrop="static" keyboard={!loading}>
+			<Modal.Header closeButton={!loading}>
+				<Modal.Title>Bulk Record result delivery ({items.length} items)</Modal.Title>
 			</Modal.Header>
 
 			<Modal.Body>
@@ -79,13 +79,13 @@ export default function BulkWorkFlowResultDeliveryModal({
 				</div>
 				<Form>
 					<Form.Group className="mb-3">
-						<Form.Label className="fw-semibold">Delivered Mode</Form.Label>
-						<select className="form-select" value={deliveredMode} onChange={(e) => setDeliveredMode(e.target.value)}>
+						<Form.Label className="fw-semibold">Delivery method</Form.Label>
+						<select aria-label="Delivery method" className="form-select" value={deliveredMode} onChange={(e) => setDeliveredMode(e.target.value)}>
 							<option value=''>Select delivery mode...</option>
-							<option value="whatapp">Whatsapp</option>
+							<option value="whatapp">WhatsApp</option>
 							<option value="email">Email</option>
-							<option value="hardcopy">Hard Copy</option>
-							<option value="phonecall">Phone Call</option>
+							<option value="hardcopy">Printed copy</option>
+							<option value="phonecall">Phone call</option>
 						</select>
 					</Form.Group>
 

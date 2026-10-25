@@ -4,7 +4,7 @@ import ModernBillingWorkspace from '../Modern/ModernBillingWorkspace';
 import ModernBillingSetup from '../Modern/ModernBillingSetup';
 import ModernPayerSetup from '../Modern/ModernPayerSetup';
 import {ModernPromptPortal,InlineBillingPrompt} from '../Modern/ModernPrompts';
-import type { ModernDraft } from '../Modern/modernBilling';
+import { catalogueKey, type ModernDraft } from '../Modern/modernBilling';
 import MultiRenderingBillingSourceFields from "./RenderingBillingSourceFields";
 import MultiPACKAGESELECT from './MultiPACKAGESELECT';
 import MultiRenderingWithPatientId from "./MultiRenderingWithPatientId";
@@ -62,6 +62,7 @@ export default function MultiBillingLayout({ billingContextProps, layout='classi
 
 function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolean;layoutGuardRef?:React.MutableRefObject<(() => Promise<boolean>) | null>}) {
     const [modernEntryDraft,setModernEntryDraft]=useState<ModernDraft|null>(null);
+    const [modernCatalogueKey, setModernCatalogueKey] = useState<string | null>(null);
     const internalLayoutGuard=useRef<(() => Promise<boolean>) | null>(null);
     const { billingContextProps } = useBillingContextProps();
     const { categorytrackid, entitytype, entityname, entityid, patientid, billingid, isNewTransaction,
@@ -259,7 +260,7 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
 
     // Backend-driven billing: load all info from backend
     const loadBackendBilling = async (data: MultiBillingData = billingdata, isActive = () => true) => {
-        const includeServices = useServices;
+        const includeServices = modern ? Boolean(data.includeServices) : useServices;
         const servicesList = data.servicesList || [];
         setLoadingBackendBilling(true);
         setBackendError(null);
@@ -277,13 +278,14 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
                 if(!Array.isArray(serviceCatalog?.servicesList))throw new Error('Unable to load additional services for this package.');
                 backendData.servicesList=serviceCatalog.servicesList;
             }
-            if (backendData.testList.length === 0 && (!modern || !backendData.servicesList?.length)) {
+            if (backendData.testList.length === 0 && (!modern || !backendData.servicesList?.length) && !backendData.catalogueNotice) {
                 throw new Error('No tests are available for this billing source. Check the test catalog or pricing configuration, then retry.');
             }
 
             let updated = {
                 ...data,
                 ...backendData,
+                catalogueNotice: backendData.catalogueNotice || null,
                 previousRecordsSummary: data.previousRecordsSummary,
                 entityId: backendData.entityId ?? data.entityId,
                 entitytype: backendData.entityType ?? data.entitytype,
@@ -359,11 +361,14 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
             }
             setBillingData(updated);
             setCatalogLoaded(true);
+            if (modern) setModernCatalogueKey(catalogueKey(updated));
             if (conversionSource || (data.cart && data.cart.length > 0 && data.isPackageUsed)) {
                 recalculateTotalBill(updated);
             }
+            return true;
         } catch (err) {
             if (isActive()) setBackendError(err instanceof Error ? err.message : 'Failed to load billing data from backend.');
+            return false;
         } finally {
             if (isActive()) setLoadingBackendBilling(false);
         }
@@ -562,9 +567,9 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
             }
             const resolvedBillingId =
                 billingdata?.billingid ? Number(billingdata.billingid) : (billingid ? Number(billingid) : undefined);
-            await completeBillingSubmission(billingdata, writeOffConfirmed,
+            const completed = await completeBillingSubmission(billingdata, writeOffConfirmed,
                 buildDefaultDeliveryPreferences(billingdata.cart || [], employeeid, resolvedBillingId), resolvedBillingId);
-            return;
+            return { status: completed };
         }
 
         // Initialize test delivery preferences
@@ -581,6 +586,7 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
 
         setPendingSubmit({ billingdata, writeOffConfirmed });
         setShowDeliveryModal(true);
+        return { status: false, pending: true };
     };
 
     const saveDeliveryPreferenceAndContinue = async () => {
@@ -833,6 +839,7 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
                 const restored = await resumeSuspendedBilling(suspendedDraftId, patientid, branchid, employeeid, ispricingcheckout);
                 if (!active) return;
                 setBillingData({ ...restored.billingdata, suspendNote: restored.notes });
+                if (modern) setModernCatalogueKey(catalogueKey(restored.billingdata));
                 setUseServices(Boolean(restored.billingdata.includeServices));
                 setUsePackage(restored.billingdata.isPackageUsed);
                 setInitializationComplete(true);
@@ -878,8 +885,8 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
     const canLoadData = (() => {
         if (billingdata.isPackageUsed && !billingdata.packageid) return false;
         if (billingdata.useSpecialCode && billingdata.specialCode && !specialCodeError) return true;
-        if (billingdata.billingSource == 4 && (billingdata.nhismembershipid && billingdata.nhismembershipid > 0) &&
-            (billingdata.claimscheckcode && billingdata.claimscheckcode > 0)) return true;
+        if (billingdata.billingSource == 4 && (billingdata.nhismembershipid && Number(billingdata.nhismembershipid) > 0) &&
+            (billingdata.claimscheckcode && Number(billingdata.claimscheckcode) > 0)) return true;
         const resolvedBillingSource = Number(billingdata.billingSource || categorytrackid);
         if (resolvedBillingSource > 1) {
             return !!(billingdata.entitytype && billingdata.entityId);
@@ -888,7 +895,7 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
     })();
 
 
-    if (loadingBackendBilling) {
+    if (loadingBackendBilling && !modern) {
         return (
             <div className="d-flex align-items-center justify-content-center" style={{ minHeight: 200 }}>
                 <Spinner animation="border" variant="primary" />
@@ -896,7 +903,7 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
             </div>
         );
     }
-    if (backendError) {
+    if (backendError && !modern) {
         return (
             <div className="alert alert-danger" role="alert">
                 {backendError}
@@ -936,6 +943,8 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
                     </Button>
                 </div>
             )}
+            {!modern && billingdata.catalogueNotice && <div className="alert alert-info" role="status"><strong>{billingdata.catalogueNotice.title}</strong><p className="mb-0">{billingdata.catalogueNotice.message}</p></div>}
+            {modern && backendError && <div className="alert alert-danger" role="alert">{backendError}<button type="button" className="btn btn-outline-danger ms-2" disabled={loadingBackendBilling} onClick={()=>void loadBackendBilling()}>Retry loading catalogue</button></div>}
             {modern ? <ModernBillingWorkspace
                 controls={<ModernBillingSetup ready={canLoadData} loading={loadingBackendBilling} specialCodeError={specialCodeError}
                     onReload={loadBackendBilling} onPackageChange={handlePackageActivation}
@@ -946,8 +955,9 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
                 history={<PreviousRecordsHeader/>}
                 draft={modernEntryDraft} setDraft={setModernEntryDraft}
                 layoutGuardRef={layoutGuardRef||internalLayoutGuard}
+                loadedCatalogueKey={modernCatalogueKey} onLoadCatalogue={async()=>Boolean(await loadBackendBilling())}
                 onContinue={handleAdvancedPayment} onSubmit={handleSubmit}
-                loading={loadingPanels} ready={canLoadData} saved={generatedBillingid}
+                loading={loadingPanels || loadingBackendBilling || !initializationComplete} ready={initializationComplete && canLoadData} saved={generatedBillingid}
             /> : (
             <div className="card mt-2 multi-billing-card">
                 <MultiBillingHeader

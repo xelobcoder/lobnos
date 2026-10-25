@@ -1,5 +1,5 @@
-
 "use client";
+import OutsourceAssignment from '../../../../../../components/operations/OutsourceAssignment';
 import { useSearchParams } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 import { LaboratoryWorkflow, workflowFor } from '../../../../../../lib/laboratoryWorkflow';
@@ -622,6 +622,7 @@ export default function ClientVisit() {
                                                             </div>
 
                                                             <div className="d-grid gap-2">
+                                                                 <OutsourceAssignment ascensionId={Number(selectedItem.ascension_id)}/>
                                                                  <SpecimenRecollectionPanel billingid={selectedItem.billingid} ascensionId={selectedItem.ascension_id} compact onChanged={() => loadTestTransactions(true)} />
                                                   {workflowFor(selectedItem).blockedReason && <div className="alert alert-warning py-2">{workflowFor(selectedItem).blockedReason}</div>}
                                                                  <button

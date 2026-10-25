@@ -780,6 +780,25 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
      }, [pollInterval]);
 
 
+     const handleModernSaveWithoutPayment = async () => {
+          if (isSyncing || isValueSynchronized || isNHISBilling) return;
+          const entered = payAllPayments.some(p => p.mode !== '') || selectedAmount !== '' || bulkPerTestMode !== '';
+          if (entered && !window.confirm('Save this bill without collecting payment? Entered payment details will not be recorded. The balance can be paid through Cash Collection.')) return;
+          setIsSyncing(true); setPayAllError('');
+          const pending = (row: any) => ({ ...row, paidamount: 0, amountPaid: 0, paymentstatus: 'pending', status: 'pending' });
+          const unpaid = { ...billingdata, cart: (billingdata.cart || []).map(pending), servicesProvided: (billingdata.servicesProvided || []).map(pending),
+               finalCart: (billingdata.cart || []).map(pending), finalServicesList: (billingdata.servicesProvided || []).map(pending),
+               payments: [], paymentDetails: null, paymentReceived: false, paymentStatus: 'pending', paid: 0, balance: payable, outstanding: payable,
+               focStaffId: undefined, focReason: undefined, focCoverage: undefined, openPaymentModal: 0 };
+          try {
+               const result: any = await handlesubmit?.(unpaid);
+               if (result?.pending) return;
+               if (result?.status !== true) throw new Error(result?.message || 'The bill was not saved. Your selections have been kept.');
+               setIsValueSynchronized(true);
+          } catch (error) { setPayAllError(error instanceof Error ? error.message : 'Unable to save the bill. Please retry.'); }
+          finally { setIsSyncing(false); }
+     };
+
      if (renderPayment) return <>{renderPayment({
           payable, billingdata, items, availableModes, isNHISBilling,
           paymentMode, setPaymentMode, payAllPayments, setPayAllPayments,
@@ -791,7 +810,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           freeServiceRequestStatus, freeServiceRequestError, freeServiceRequestId,
           requesterReason, setRequesterReason, handleRequestFreeServiceAuth,
           reset: handlePaymentModalReset, submit: handlePaymentSyncing,
-          skipDisabled: isSkipPaymentDisabled, skip: () => handlesubmit?.(billingdata),
+          skipDisabled: isNHISBilling || isSyncing || isValueSynchronized, skip: handleModernSaveWithoutPayment,
      })}</>;
      const PaymentContainer = inline ? InlinePaymentContainer : Modal;
      return (

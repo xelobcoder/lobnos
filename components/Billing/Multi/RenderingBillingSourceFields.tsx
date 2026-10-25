@@ -106,13 +106,13 @@ export default function MultiRenderingBillingSourceFields({
                             <Form.Group>
                                 <Form.Label className="small fw-bold">NHIS MEMBERSHIP CODE</Form.Label>
                                 <Form.Control
-                                    type="number"
+                                    type="text" inputMode="numeric" maxLength={64}
                                     placeholder="Enter NHIS ID"
                                     className="form-control"
                                     value={billingdata.nhismembershipid || ''}
                                     required
                                     onChange={(ev) => {
-                                        setBillingData({ ...billingdata, nhismembershipid: parseInt(ev.target.value) })
+                                        setBillingData({ ...billingdata, nhismembershipid: ev.target.value.replace(/\D/g,'') })
                                     }}
                                     size="sm"
                                 />
@@ -120,13 +120,13 @@ export default function MultiRenderingBillingSourceFields({
                             <Form.Group>
                                 <Form.Label className="small fw-bold">CLAIM CHECK CODE</Form.Label>
                                 <Form.Control
-                                    type="number"
+                                    type="text" inputMode="numeric" maxLength={64}
                                     placeholder="Enter CCC"
                                     className="form-control "
                                     value={billingdata.claimscheckcode || ''}
                                     required
                                     onChange={(ev) => {
-                                        setBillingData({ ...billingdata, claimscheckcode: parseInt(ev.target.value) })
+                                        setBillingData({ ...billingdata, claimscheckcode: ev.target.value.replace(/\D/g,'') })
                                     }}
                                     size="sm"
                                 />

@@ -55,6 +55,7 @@ export interface ServicesListItem {
 }
 
 export interface MultiBillingData {
+    catalogueNotice?: { code: string; title: string; message: string } | null;
 	allowAdvancePayment?: boolean;
 	openPaymentModal?: number;
 	useSpecialCode?: boolean;
@@ -64,14 +65,14 @@ export interface MultiBillingData {
 	suspendedDraftId?: number;
 	suspendNote?: string;
 	billingSource: number;
-	claimscheckcode?: number;
+	claimscheckcode?: string | number;
 	nhisnumber?: number;
 	outstanding?: number;
 	totalTestAmountPayable: number;
 	showsummary?: boolean;
 	patientid?: number | null;
 	entityId?: string | number | null;
-	nhismembershipid?: number | null;
+	nhismembershipid?: string | number | null;
 	entitytype?: entitytype;
 	excessAction?: 'balance' | 'refund';
 	isPackageUsed: boolean;

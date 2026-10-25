@@ -1,4 +1,5 @@
 'use client';
+import OutsourceAssignment from '../../../../../../../components/operations/OutsourceAssignment';
 
 import React, { useEffect, useState } from 'react';
 import { LaboratoryWorkflow, workflowFor } from '../../../../../../../lib/laboratoryWorkflow';
@@ -324,7 +325,8 @@ export default function MultipleClientVisit() {
                                                   ))}
                                              </div>
                                              <div className="d-grid gap-2">
-                                                  <SpecimenRecollectionPanel billingid={activeTest.billingid} ascensionId={activeTest.ascension_id} compact onChanged={() => loadTests(activePatient.patient)} />
+                                                  <OutsourceAssignment ascensionId={Number(activeTest.ascension_id)}/>
+                                                                 <SpecimenRecollectionPanel billingid={activeTest.billingid} ascensionId={activeTest.ascension_id} compact onChanged={() => loadTests(activePatient.patient)} />
                                                   {workflowFor(activeTest).blockedReason && <div className="alert alert-warning py-2">{workflowFor(activeTest).blockedReason}</div>}
                                                   <button className="btn btn-sm btn-outline-primary" disabled={!workflowFor(activeTest).canCollect} onClick={() => setWorkflow('collection')}>
                                                        {workflowFor(activeTest).collection === 'bypassed' && !workflowFor(activeTest).canCollect ? 'Collection Bypassed' : workflowFor(activeTest).collection === 'completed' ? 'Collection Completed' : !activeTest.collectionStartDate ? 'Collect Sample' : 'Complete Collection'}

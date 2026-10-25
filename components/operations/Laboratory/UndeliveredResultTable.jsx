@@ -1,516 +1,104 @@
 "use client";
-
-import React, { useEffect, useMemo, useState } from "react";
-import { Button, Dropdown, Form, Modal } from "react-bootstrap";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Modal } from "react-bootstrap";
 import dayjs from "dayjs";
-import PrimeTable from "../../accessories/Datatables/PrimeTable";
-import { customFetch } from "../../Auth/customFetch";
-import Loader from "../../accessories/Loader";
+import { customFetch, customPost } from "../../Auth/customFetch";
 import SingleWorkFlowResultDeliveryModal from "./singleWorkFlowDeliveryResult";
 import BulkWorkFlowResultDeliveryModal from "./bulkWorkFlowDeliveryResult";
-import DateFilterReusable from "./ResuableFilter/DateFilterReusable";
-import {
-     RiAlertLine,
-     RiCheckLine,
-     RiExternalLinkLine,
-     RiInboxArchiveLine,
-     RiTruckLine,
-} from "@remixicon/react";
+import { RiAlertLine, RiCheckLine, RiExternalLinkLine, RiInboxArchiveLine, RiTruckLine, RiRefreshLine, RiSearchLine, RiCloseLine, RiArrowLeftSLine, RiArrowRightSLine } from "@remixicon/react";
+import s from "./UndeliveredResults.module.css";
+import OperationsWorkspaceNavigation from "../OperationsWorkspaceNavigation";
 
-import { customPost } from '../../Auth/customFetch'
-
-const normalizeRecords = (records) => {
-     if (!Array.isArray(records)) return [];
-
-     return records.map((item) => ({
-          ...item,
-          fullname: `${item.firstname || ""} ${item.lastname || ""}`.trim(),
-          ascension_id: item.ascensionid,
-          current_stage: "COMPLETED + VALIDATED",
-          delivery_state: item.delivered_mode ? "DELIVERED" : "PENDING DELIVERY",
-     }));
-};
+const defaults = { search: "", startDate: "", endDate: "", mode: "", issuesOnly: false };
+const methods = { whatapp: 'WhatsApp', whatsapp: 'WhatsApp', email: 'Email', hardcopy: 'Printed copy', phonecall: 'Phone call' };
+const dateText = value => value && dayjs(value).isValid() ? dayjs(value).format('DD MMM YYYY, HH:mm') : 'Date unavailable';
+const normalizeRecords = records => records.map(item => ({ ...item, ascensionid: Number(item.ascensionid ?? item.ascension_id), ascension_id: Number(item.ascensionid ?? item.ascension_id), fullname: [item.firstname, item.middlename, item.lastname].filter(Boolean).join(' ') || item.fullname || 'Patient name unavailable' }));
 
 export default function UndeliveredResultTable({ employeeid }) {
-     const [rows, setRows] = useState([]);
-     const [loading, setLoading] = useState(true);
-     const [totalCount, setTotalCount] = useState(0);
-     const [showDeliveryModal, setShowDeliveryModal] = useState(false);
-     const [selectedRow, setSelectedRow] = useState(null);
-     const [selectedRows, setSelectedRows] = useState(new Set());
-     const [showBulkDeliveryModal, setShowBulkDeliveryModal] = useState(false);
-     const [showReasonModal, setShowReasonModal] = useState(false);
-     const [selectedNotDeliveredRow, setSelectedNotDeliveredRow] = useState(null);
-     const [notDeliveredReason, setNotDeliveredReason] = useState("");
-     const [savingReason, setSavingReason] = useState(false);
-     const [dateFilter, setDateFilter] = useState("");
-     const [dateRange, setDateRange] = useState({ startDate: "", endDate: "" });
-
-     const buildQueryString = (page = 1, count = 10, selectedDateRange = dateRange) => {
-          const params = new URLSearchParams({
-               page: String(page),
-               count: String(count),
-          });
-
-          if (selectedDateRange?.startDate) params.set("startDate", selectedDateRange.startDate);
-          if (selectedDateRange?.endDate) params.set("endDate", selectedDateRange.endDate);
-
-          return params.toString();
-     };
-
-     const loadUndelivered = async (page = 1, count = 10, selectedDateRange = dateRange) => {
-          const queryString = buildQueryString(page, count, selectedDateRange);
-          const response = await customFetch(
-               `result/delivery/record/result/undelivered?${queryString}`,
-          );
-
-          const dataset = response?.records?.dataset;
-          const normalized = normalizeRecords(dataset);
-          setRows(normalized);
-          setTotalCount(Number(response?.records?.totalcount || 0));
-
-          return normalized;
-     };
-
-     useEffect(() => {
-          const initialize = async () => {
-               try {
-                    setLoading(true);
-                    await loadUndelivered(1, 10);
-               } catch (error) {
-                    console.error("Failed to load undelivered results", error);
-                    setRows([]);
-               } finally {
-                    setLoading(false);
-               }
-          };
-
-          initialize();
-     }, []);
-
-     const handleRowSelection = (ascensionid) => {
-          setSelectedRows((prev) => {
-               const next = new Set(prev);
-               if (next.has(ascensionid)) {
-                    next.delete(ascensionid);
-               } else {
-                    next.add(ascensionid);
-               }
-               return next;
-          });
-     };
-
-     const handleSelectAll = () => {
-          if (rows.length > 0 && selectedRows.size === rows.length) {
-               setSelectedRows(new Set());
-               return;
-          }
-          setSelectedRows(new Set(rows.map((item) => item.ascensionid)));
-     };
-
-     const handleBulkDeliveryUpdate = () => {
-          if (selectedRows.size === 0) {
-               alert("Please select at least one result to update.");
-               return;
-          }
-          setShowBulkDeliveryModal(true);
-     };
-
-     const handleDateFilterSelection = (value) => {
-          setDateFilter(value);
-     };
-
-     const handleDateRangeSelection = async (startDate, endDate) => {
-          const nextRange = { startDate, endDate };
-          setDateRange(nextRange);
-          setLoading(true);
-
-          try {
-               await loadUndelivered(1, 10, nextRange);
-          } catch (error) {
-               console.error("Failed to filter undelivered results", error);
-               setRows([]);
-          } finally {
-               setLoading(false);
-          }
-     };
-
-     const handleResetDateFilter = async () => {
-          setDateFilter("");
-          setDateRange({ startDate: "", endDate: "" });
-          setLoading(true);
-
-          try {
-               await loadUndelivered(1, 10, { startDate: "", endDate: "" });
-          } catch (error) {
-               console.error("Failed to reset undelivered result filters", error);
-               setRows([]);
-          } finally {
-               setLoading(false);
-          }
-     };
-
-     const handleOpenReasonModal = (row) => {
-          setSelectedNotDeliveredRow(row);
-          setNotDeliveredReason("");
-          setShowReasonModal(true);
-     };
-
-     const handleSubmitNotDeliveredReason = async () => {
-          const trimmedReason = notDeliveredReason.trim();
-          if (!trimmedReason) {
-               alert("Please provide a reason why the result was not delivered.");
-               return;
-          }
-
-          if (trimmedReason.length > 500) {
-               alert("Reason cannot exceed 500 characters.");
-               return;
-          }
-
-          const billingid = selectedNotDeliveredRow?.billingid;
-          const ascensionid = selectedNotDeliveredRow?.ascensionid ?? selectedNotDeliveredRow?.ascension_id;
-
-          if (!billingid || !ascensionid) {
-               alert("Unable to record reason without a billing or ascension reference.");
-               return;
-          }
-
-          const payload = {
-               billingid: Number(billingid),
-               delivered_mode: "not_delivered",
-               delivered_by_employeeid: Number(employeeid),
-               delivered_at: new Date(),
-               ascensionid: Number(ascensionid),
-               notes: null,
-               failurenotes: trimmedReason || null,
-          };
-
-          try {
-               setSavingReason(true);
-               const response = await customPost("result/delivery/record", "POST", payload);
-               const success = response?.status === true || response?.statusCode === 200 || response?.status === "success";
-
-               if (success) {
-                    alert("Reason recorded successfully.");
-                    setShowReasonModal(false);
-                    setSelectedNotDeliveredRow(null);
-                    setNotDeliveredReason("");
-                    await loadUndelivered(1, 10, dateRange);
-               } else {
-                    alert("Failed to record the reason.");
-               }
-          } catch (error) {
-               console.error("Failed to record not delivered reason", error);
-               alert("Failed to record the reason.");
-          } finally {
-               setSavingReason(false);
-          }
-     };
-
-     const columns = useMemo(
-          () => [
-               {
-                    Header: () => (
-                         <input
-                              type="checkbox"
-                              className="form-check-input"
-                              checked={rows.length > 0 && selectedRows.size === rows.length}
-                              onChange={handleSelectAll}
-                         />
-                    ),
-                    id: "selection",
-                    accessor: "ascensionid",
-                    disableSortBy: true,
-                    Cell: ({ row }) => (
-                         <input
-                              type="checkbox"
-                              className="form-check-input"
-                              checked={selectedRows.has(row.original.ascensionid)}
-                              onChange={() => handleRowSelection(row.original.ascensionid)}
-                         />
-                    ),
-               },
-               {
-                    Header: "Patient",
-                    accessor: "fullname",
-                    Cell: ({ row }) => (
-                         <div>
-                              <div className="fw-bold text-uppercase">{row.original.fullname}</div>
-                              <small className="text-muted">{row.original.designation || ""}</small>
-                         </div>
-                    ),
-               },
-               {
-                    Header: "Patient ID",
-                    accessor: "fullpatientid",
-               },
-               {
-                    Header: "Billing/Ascension",
-                    accessor: "ascensionid",
-                    Cell: ({ row }) => (
-                         <div>
-                              <div>Bill: {row.original.billingid}</div>
-                              <div>Ascension: {row.original.ascensionid}</div>
-                         </div>
-                    ),
-               },
-               {
-                    Header: "Requested Delivery",
-                    accessor: "requested_mode",
-                    Cell: ({ value, row }) => (
-                         <div>
-                              <span className="badge text-bg-info text-uppercase">
-                                   {(value || "not set").toString()}
-                              </span>
-                              {row.original.requested_mode_detail ? (
-                                   <div className="text-muted small mt-1">
-                                        {row.original.requested_mode_detail}
-                                   </div>
-                              ) : null}
-                         </div>
-                    ),
-               },
-               {
-                    Header: "Failure Notes",
-                    accessor: "failurenotes",
-                    Cell: ({ value }) => (
-                         <div style={{ width: '200px', textOverflow: "ellipsis", whiteSpace: "nowrap", overflow: "hidden" }} >
-                              {value ? (
-                                   <span className="text-danger">{value}</span>
-                              ) : (
-                                   <span className="text-muted small">N/A</span>
-                              )}
-                         </div>
-                    )
-               },
-               {
-                    Header: "Current Stage",
-                    accessor: "current_stage",
-                    Cell: ({ row }) => (
-                         <div className="d-flex flex-column gap-1">
-                              <span className="badge text-bg-success d-inline-flex align-items-center gap-1">
-                                   <RiCheckLine size={14} />
-                                   Completed
-                              </span>
-                              <span className="badge text-bg-primary d-inline-flex align-items-center gap-1">
-                                   <RiCheckLine size={14} />
-                                   Validated
-                              </span>
-                              <span className="badge text-bg-warning text-dark d-inline-flex align-items-center gap-1">
-                                   <RiAlertLine size={14} />
-                                   Pending Delivery
-                              </span>
-                         </div>
-                    ),
-               },
-               {
-                    Header: "Created",
-                    accessor: "created_at",
-                    Cell: ({ value }) =>
-                         value ? dayjs(value).format("DD-MM-YYYY hh:mm A") : "N/A",
-               },
-               {
-                    Header: "Action",
-                    id: "action",
-                    Cell: ({ row }) => (
-                         <Dropdown>
-                              <Dropdown.Toggle
-                                   size="sm"
-                                   variant="outline-secondary"
-                                   className="d-inline-flex align-items-center justify-content-center"
-                                   style={{ width: 36, height: 32, padding: 0 }}
-                                   aria-label="Row actions"
-                              >
-                                   <span className="fs-5 lh-1">⋮</span>
-                              </Dropdown.Toggle>
-
-                              <Dropdown.Menu>
-                                   <Dropdown.Item
-                                        onClick={() => {
-                                             setSelectedRow(row.original);
-                                             setShowDeliveryModal(true);
-                                        }}
-                                   >
-                                        <span className="d-inline-flex align-items-center gap-2">
-                                             <RiTruckLine size={16} />
-                                             Record Delivery
-                                        </span>
-                                   </Dropdown.Item>
-                                   <Dropdown.Item onClick={() => handleOpenReasonModal(row.original)}>
-                                        <span className="d-inline-flex align-items-center gap-2">
-                                             <RiAlertLine size={16} />
-                                             Record Not Delivered Reason
-                                        </span>
-                                   </Dropdown.Item>
-                                   <Dropdown.Item
-                                        onClick={() => {
-                                             const patientid = row.original.patientid;
-                                             const billingid = row.original.billingid;
-                                             window.open(
-                                                  `/operations/laboratory/main/dailyRequest/visit?billingid=${encodeURIComponent(billingid)}&patientid=${encodeURIComponent(patientid)}&&isOpenSideBarShow=false`,
-                                                  "_blank",
-                                                  "noopener,noreferrer",
-                                             );
-                                        }}
-                                   >
-                                        <span className="d-inline-flex align-items-center gap-2">
-                                             <RiExternalLinkLine size={16} />
-                                             Open Visit
-                                        </span>
-                                   </Dropdown.Item>
-                              </Dropdown.Menu>
-                         </Dropdown>
-                    ),
-               },
-          ],
-          [rows, selectedRows],
-     );
-
-     if (loading) return <Loader />;
-
-     return (
-          <div>
-               {showBulkDeliveryModal ? (
-                    <BulkWorkFlowResultDeliveryModal
-                         show={showBulkDeliveryModal}
-                         onHide={() => setShowBulkDeliveryModal(false)}
-                         employeeid={Number(employeeid)}
-                         items={rows.filter((item) => selectedRows.has(item.ascensionid))}
-                         onSuccess={async () => {
-                              setSelectedRows(new Set());
-                              await loadUndelivered(1, 10);
-                         }}
-                    />
-               ) : null}
-
-               {selectedRow ? (
-                    <SingleWorkFlowResultDeliveryModal
-                         key={String(selectedRow.ascensionid)}
-                         item={selectedRow}
-                         employeeid={Number(employeeid)}
-                         workflow={"resultDelivery"}
-                         show={showDeliveryModal}
-                         onHide={() => {
-                              setShowDeliveryModal(false);
-                              setSelectedRow(null);
-                         }}
-                         onSuccess={async () => {
-                              setShowDeliveryModal(false);
-                              setSelectedRow(null);
-                              setSelectedRows(new Set());
-                              await loadUndelivered(1, 10);
-                         }}
-                    />
-               ) : null}
-
-               <Modal show={showReasonModal} onHide={() => {
-                    setShowReasonModal(false);
-                    setSelectedNotDeliveredRow(null);
-                    setNotDeliveredReason("");
-               }} centered>
-                    <Modal.Header closeButton>
-                         <Modal.Title>Record Why Result Was Not Delivered</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-                         <Form>
-                              <Form.Group className="mb-2">
-                                   <Form.Label>Reason</Form.Label>
-                                   <Form.Control
-                                        as="textarea"
-                                        rows={4}
-                                        value={notDeliveredReason}
-                                        onChange={(e) => setNotDeliveredReason(e.target.value)}
-                                        placeholder="Enter the reason the result could not be delivered"
-                                   />
-                              </Form.Group>
-                         </Form>
-                    </Modal.Body>
-                    <Modal.Footer>
-                         <Button variant="secondary" onClick={() => {
-                              setShowReasonModal(false);
-                              setSelectedNotDeliveredRow(null);
-                              setNotDeliveredReason("");
-                         }} disabled={savingReason}>
-                              Cancel
-                         </Button>
-                         <Button variant="warning" onClick={handleSubmitNotDeliveredReason} disabled={savingReason}>
-                              {savingReason ? "Saving..." : "Save Reason"}
-                         </Button>
-                    </Modal.Footer>
-               </Modal>
-
-               <div className="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2">
-                    <div>
-                         <h5 className="mb-1 d-flex align-items-center gap-2">
-                              <RiInboxArchiveLine size={20} />
-                              Undelivered Laboratory Results
-                         </h5>
-                         <small className="text-muted">
-                              Completed and validated results that are pending delivery to clients.
-                         </small>
-                    </div>
-                    <span className="badge text-bg-dark">Total Undelivered: {totalCount}</span>
-               </div>
-
-               <div className="border rounded p-3 mb-3 bg-light-subtle">
-                    <div className="d-flex flex-wrap align-items-end justify-content-between gap-2">
-                         <div className="flex-grow-1" style={{ minWidth: 260 }}>
-                              <label className="form-label small mb-1">Filter by delivery date</label>
-                              <DateFilterReusable
-                                   value={dateFilter}
-                                   onChange={handleDateFilterSelection}
-                                   onDateRangeChange={handleDateRangeSelection}
-                                   className="w-100"
-                                   label="Filter by"
-                              />
-                         </div>
-                         <button
-                              type="button"
-                              className="btn btn-outline-secondary btn-sm"
-                              onClick={handleResetDateFilter}
-                              disabled={loading}
-                         >
-                              Clear Filter
-                         </button>
-                    </div>
-               </div>
-
-               <div className="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2">
-                    <div className="d-flex align-items-center gap-2">
-                         <button
-                              type="button"
-                              className="btn btn-sm btn-primary d-inline-flex align-items-center gap-1"
-                              onClick={handleBulkDeliveryUpdate}
-                              disabled={selectedRows.size === 0}
-                         >
-                              <RiTruckLine size={16} />
-                              Bulk Update Delivery ({selectedRows.size})
-                         </button>
-                    </div>
-                    {selectedRows.size > 0 ? (
-                         <small className="text-muted">{selectedRows.size} selected on current page</small>
-                    ) : null}
-               </div>
-
-               <PrimeTable
-                    column={columns}
-                    data={rows}
-                    filtering={true}
-                    serverSideFiltering={true}
-                    urlparams={{}}
-                    handleSeverSideProcessing={async (pagination) => {
-                         try {
-                              const currentPage = Number(pagination?.page || 1);
-                              const currentCount = Number(pagination?.count || 10);
-                              const result = await loadUndelivered(currentPage, currentCount, dateRange);
-                              return { result, error: false };
-                         } catch (error) {
-                              console.error("Failed server-side processing for undelivered results", error);
-                              return { result: [], error: true };
-                         }
-                    }}
-               />
-          </div>
-     );
+    const [rows, setRows] = useState([]), [total, setTotal] = useState(null), [loading, setLoading] = useState(true), [error, setError] = useState('');
+    const [draftFilters, setDraftFilters] = useState({ ...defaults }), [filters, setFilters] = useState({ ...defaults }), [filterError, setFilterError] = useState('');
+    const [page, setPage] = useState(1), [size, setSize] = useState(20), [revision, setRevision] = useState(0), [notice, setNotice] = useState('');
+    const [selected, setSelected] = useState(new Set()), [deliveryRow, setDeliveryRow] = useState(null), [bulkOpen, setBulkOpen] = useState(false);
+    const [issueRow, setIssueRow] = useState(null), [reason, setReason] = useState(''), [reasonError, setReasonError] = useState(''), [savingReason, setSavingReason] = useState(false);
+    const request = useRef(0), allCheckbox = useRef(null), issueLock = useRef(false);
+    const refresh = useCallback(() => { setSelected(new Set()); setRevision(value => value + 1); }, []);
+    useEffect(() => {
+        const id = ++request.current; let live = true;
+        setLoading(true); setError(''); setSelected(new Set());
+        const query = new URLSearchParams({ page: String(page), count: String(size) });
+        for (const key of ['search','startDate','endDate','mode']) if (filters[key]) query.set(key, filters[key]);
+        if (filters.issuesOnly) query.set('issuesOnly', 'true');
+        customFetch(`result/delivery/record/result/undelivered?${query}`).then(response => {
+            if (!live || request.current !== id) return;
+            if (response?.status !== true || !Array.isArray(response?.records?.dataset)) throw new Error(response?.message || 'Unable to load undelivered results. Please retry.');
+            const count = Math.max(0, Number(response.records.totalcount) || 0), last = Math.max(1, Math.ceil(count / size));
+            if (page > last) { setPage(last); return; }
+            setRows(normalizeRecords(response.records.dataset)); setTotal(count);
+        }).catch(failure => { if (live && request.current === id) { setRows([]); setTotal(null); setError(failure.message || 'Unable to load undelivered results.'); } }).finally(() => { if (live && request.current === id) setLoading(false); });
+        return () => { live = false; };
+    }, [filters, page, size, revision]);
+    useEffect(() => { if (allCheckbox.current) allCheckbox.current.indeterminate = selected.size > 0 && selected.size < rows.length; }, [selected, rows]);
+    const issueCount = rows.filter(row => row.failurenotes || row.delivered_mode === 'not_delivered').length;
+    const selectedItems = useMemo(() => rows.filter(row => selected.has(row.ascensionid)), [rows, selected]);
+    const hasFilters = Object.entries(filters).some(([key,value]) => value !== defaults[key]);
+    const pages = Math.max(1, Math.ceil((total || 0) / size));
+    const change = (key, value) => setDraftFilters(previous => ({ ...previous, [key]: value }));
+    function apply(event) {
+        event.preventDefault(); setNotice('');
+        if (draftFilters.startDate && draftFilters.endDate && draftFilters.startDate > draftFilters.endDate) { setFilterError('The end date must be on or after the start date.'); return; }
+        setFilterError(''); setSelected(new Set()); setPage(1); setFilters({ ...draftFilters, search: draftFilters.search.trim() });
+    }
+    function clear() { setDraftFilters({ ...defaults }); setFilters({ ...defaults }); setPage(1); setFilterError(''); setSelected(new Set()); setNotice(''); }
+    function toggle(id) { setSelected(previous => { const next = new Set(previous); next.has(id) ? next.delete(id) : next.add(id); return next; }); }
+    function openIssue(row) { setIssueRow(row); setReason(''); setReasonError(''); }
+    async function saveIssue(event) {
+        event.preventDefault(); if (issueLock.current) return;
+        if (!reason.trim()) { setReasonError('Enter the reason delivery was unsuccessful.'); return; }
+        issueLock.current = true; setSavingReason(true); setReasonError('');
+        try {
+            const response = await customPost('result/delivery/record', 'POST', { billingid: Number(issueRow.billingid), ascensionid: Number(issueRow.ascensionid), delivered_mode: 'not_delivered', delivered_at: new Date().toISOString(), notes: null, failurenotes: reason.trim() });
+            if (response?.status !== true && response?.status !== 'success') throw new Error(response?.message || 'The delivery issue could not be saved. Please retry.');
+            setIssueRow(null); setReason(''); setNotice('Delivery issue recorded. The result remains in the pending queue.'); refresh();
+        } catch (failure) { setReasonError(failure.message || 'Unable to save this delivery issue. Your note has been kept.'); }
+        finally { issueLock.current = false; setSavingReason(false); }
+    }
+    return <main className={s.page}>
+        <header className={s.heading}><div><span className={s.eyebrow}>LABORATORY / RESULT DELIVERY</span><h1>Undelivered results</h1><p>Review ready results, follow up on delivery issues and record each handover.</p></div><button type="button" className={s.secondary} disabled={loading} onClick={refresh}><RiRefreshLine size={18} aria-hidden="true"/>Refresh</button></header>
+        <OperationsWorkspaceNavigation current="delivery"/>
+        <section className={s.summary} aria-label="Delivery queue summary">
+            <div className={s.primaryMetric}><span className={s.metricIcon}><RiInboxArchiveLine size={22}/></span><div><span>{hasFilters ? 'Matching undelivered results' : 'Awaiting delivery'}</span><strong>{total == null ? '—' : total.toLocaleString()}</strong></div></div>
+            <div><span className={s.metricIcon}><RiCheckLine size={22}/></span><div><span>Ready on this page</span><strong>{loading ? '—' : rows.length}</strong></div></div>
+            <div><span className={s.issueIcon}><RiAlertLine size={22}/></span><div><span>Delivery issues on this page</span><strong>{loading ? '—' : issueCount}</strong></div></div>
+        </section>
+        <section className={s.panel} aria-label="Results pending delivery">
+            <form className={s.filters} onSubmit={apply}>
+                <div className={s.filterHeading}><h2>Find results</h2><span>Dates refer to result completion</span></div>
+                <div className={s.filterGrid}><label className={s.searchField}>Search results<div><RiSearchLine size={18} aria-hidden="true"/><input type="search" maxLength={100} value={draftFilters.search} onChange={event=>change('search',event.target.value)} placeholder="Patient, patient ID, test or bill number"/></div></label>
+                    <label>Requested delivery<select value={draftFilters.mode} onChange={event=>change('mode',event.target.value)}><option value="">Any method</option>{Object.entries(methods).filter(([key])=>key!=='whatsapp').map(([value,label])=><option key={value} value={value}>{label}</option>)}<option value="unspecified">Not specified</option></select></label>
+                    <label>Completed from<input type="date" value={draftFilters.startDate} max={draftFilters.endDate || undefined} onChange={event=>change('startDate',event.target.value)}/></label>
+                    <label>Completed to<input type="date" value={draftFilters.endDate} min={draftFilters.startDate || undefined} onChange={event=>change('endDate',event.target.value)}/></label>
+                </div><div className={s.filterFooter}><label className={s.check}><input type="checkbox" checked={draftFilters.issuesOnly} onChange={event=>change('issuesOnly',event.target.checked)}/>Only results with delivery issues</label><div className={s.actions}><button type="button" className={s.textButton} onClick={clear}>Clear filters</button><button type="submit" className={s.primary} disabled={loading}>Apply filters</button></div></div>
+                {filterError && <p className={s.error} role="alert">{filterError}</p>}
+            </form>
+            <div className={s.queueToolbar}><div><h2>Delivery queue</h2><span>{loading ? 'Loading results…' : error ? 'Results unavailable' : `${total?.toLocaleString() || 0} results${hasFilters ? ' matching your filters' : ' awaiting delivery'}`}</span></div><div className={s.actions}><label className={s.pageSize}>Rows per page<select value={size} disabled={loading} onChange={event=>{setSize(Number(event.target.value));setPage(1);setSelected(new Set());}}>{[10,20,50,100].map(value=><option key={value} value={value}>{value}</option>)}</select></label><button type="button" className={s.primary} disabled={loading || !selected.size} onClick={()=>setBulkOpen(true)}><RiTruckLine size={18} aria-hidden="true"/>Record selected{selected.size ? ` (${selected.size})` : ''}</button></div></div>
+            {notice && <div className={s.notice} role="status">{notice}<button type="button" aria-label="Dismiss notification" onClick={()=>setNotice('')}><RiCloseLine size={18}/></button></div>}
+            {selected.size>0 && <div className={s.selection}><strong>{selected.size} selected on this page</strong><span>Record delivery only after the result has been handed over or sent.</span><button type="button" onClick={()=>setSelected(new Set())}>Clear selection</button></div>}
+            {error ? <div className={s.empty} role="alert"><RiAlertLine size={32}/><h3>We couldn’t load the delivery queue</h3><p>{error}</p><button type="button" className={s.secondary} onClick={refresh}>Retry</button></div> : loading && !rows.length ? <div className={s.empty} role="status"><RiRefreshLine size={30}/><h3>Loading the delivery queue…</h3><p>Checking completed and validated results.</p></div> : !rows.length ? <div className={s.empty}><RiInboxArchiveLine size={36}/><h3>{hasFilters ? 'No results match these filters' : 'You’re all caught up'}</h3><p>{hasFilters ? 'Try another patient, test or completion date.' : 'There are no completed and validated results awaiting delivery.'}</p>{hasFilters && <button type="button" className={s.secondary} onClick={clear}>Clear filters</button>}</div> : <>
+                <div className={s.tableWrap} role="region" aria-label="Undelivered results table" tabIndex={0} aria-busy={loading}><table className={s.table}><thead><tr><th className={s.checkboxColumn}><input ref={allCheckbox} type="checkbox" aria-label="Select all results on this page" disabled={loading} checked={rows.length>0 && selected.size===rows.length} onChange={()=>setSelected(selected.size===rows.length ? new Set() : new Set(rows.map(row=>row.ascensionid)))}/></th><th>Patient</th><th>Test / ready since</th><th>Requested delivery</th><th>Follow-up</th><th>Actions</th></tr></thead><tbody>{rows.map(row=><tr key={row.ascensionid} data-selected={selected.has(row.ascensionid) || undefined}>
+                    <td><input type="checkbox" aria-label={`Select ${row.fullname} — ${row.test_name || 'result'}`} disabled={loading} checked={selected.has(row.ascensionid)} onChange={()=>toggle(row.ascensionid)}/></td>
+                    <td><div className={s.patient}><strong>{row.fullname}</strong><span>{row.fullpatientid || row.patientid || 'Patient ID unavailable'}</span><small>Bill #{row.billingid} · Accession #{row.ascensionid}</small></div></td>
+                    <td><div className={s.record}><strong>{row.test_name || row.name || 'Laboratory test'}</strong><span>{dateText(row.completed_at)}</span><small className={s.validated}><RiCheckLine size={14} aria-hidden="true"/>Completed & validated</small></div></td>
+                    <td><div className={s.record}><span className={s.method}>{methods[row.requested_mode] || (row.requested_mode ? String(row.requested_mode).replaceAll('_',' ') : 'Not specified')}</span>{row.requested_mode_detail && <span className={s.deliveryDetail}>{row.requested_mode_detail}</span>}</div></td>
+                    <td>{row.failurenotes || row.delivered_mode==='not_delivered' ? <div className={s.issue}><span><RiAlertLine size={14} aria-hidden="true"/>Delivery issue</span><p>{row.failurenotes || 'A previous delivery attempt was unsuccessful.'}</p></div> : <span className={s.pending}>Awaiting handover</span>}</td>
+                    <td><div className={s.rowActions}><button type="button" className={s.deliverButton} disabled={loading} onClick={()=>setDeliveryRow(row)}><RiTruckLine size={16} aria-hidden="true"/>Record delivery</button><div><button type="button" className={s.issueButton} disabled={loading} onClick={()=>openIssue(row)}>Log issue</button><a href={`/operations/laboratory/main/dailyRequest/visit?billingid=${encodeURIComponent(row.billingid)}&patientid=${encodeURIComponent(row.patientid)}&isOpenSideBarShow=false`} target="_blank" rel="noopener noreferrer">Open visit<RiExternalLinkLine size={14} aria-hidden="true"/></a></div></div></td>
+                </tr>)}</tbody></table></div>
+                <footer className={s.pagination}><span>Showing {(page-1)*size+1}–{Math.min(page*size,total || 0)} of {total?.toLocaleString()} results</span><div><button type="button" className={s.secondary} aria-label="Previous page" disabled={loading || page===1} onClick={()=>setPage(value=>value-1)}><RiArrowLeftSLine size={18}/>Previous</button><span>Page {page} of {pages}</span><button type="button" className={s.secondary} aria-label="Next page" disabled={loading || page>=pages} onClick={()=>setPage(value=>value+1)}>Next<RiArrowRightSLine size={18}/></button></div></footer>
+            </>}
+        </section>
+        {deliveryRow && <SingleWorkFlowResultDeliveryModal key={deliveryRow.ascensionid} show onHide={()=>setDeliveryRow(null)} workflow="resultDelivery" item={deliveryRow} employeeid={Number(employeeid)} onSuccess={()=>{setDeliveryRow(null);setNotice('Result delivery recorded.');refresh();}}/>}
+        {bulkOpen && <BulkWorkFlowResultDeliveryModal show onHide={()=>setBulkOpen(false)} employeeid={Number(employeeid)} items={selectedItems} onSuccess={()=>{setBulkOpen(false);refresh();}}/>}
+        <Modal show={!!issueRow} onHide={()=>{if(!savingReason)setIssueRow(null)}} centered backdrop="static" keyboard={!savingReason}><form onSubmit={saveIssue}>
+            <Modal.Header closeButton={!savingReason}><Modal.Title>Record a delivery issue</Modal.Title></Modal.Header><Modal.Body>{issueRow && <div className={s.issueContext}><strong>{issueRow.fullname}</strong><span>{issueRow.test_name || 'Laboratory result'} · Bill #{issueRow.billingid}</span></div>}<p className={s.help}>Keep a note for the next person following up. This result will remain awaiting delivery.</p><label className={s.reasonLabel} htmlFor="undelivered-reason">What prevented delivery?</label><textarea id="undelivered-reason" className={s.reasonInput} autoFocus rows={4} maxLength={500} required disabled={savingReason} value={reason} onChange={event=>setReason(event.target.value)} placeholder="For example, the patient could not be reached."/><div className={s.characterCount}>{reason.length}/500 characters</div>{reasonError && <div className={s.error} role="alert">{reasonError}</div>}</Modal.Body><Modal.Footer><button type="button" className={s.secondary} disabled={savingReason} onClick={()=>setIssueRow(null)}>Cancel</button><button type="submit" className={s.primary} disabled={savingReason || !reason.trim()}>{savingReason ? 'Saving…' : 'Save delivery issue'}</button></Modal.Footer>
+        </form></Modal>
+    </main>;
 }

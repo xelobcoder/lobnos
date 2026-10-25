@@ -9,6 +9,7 @@ import { customFetch, customFetchMutation } from '../Auth/customFetch';
 import SpecimenRecollectionPanel from './SpecimenRecollectionPanel';
 import CollectionSupplies from './CollectionSupplies';
 import CollectionPlanEditor from './CollectionPlanEditor';
+import OutsourceAssignment from '../operations/OutsourceAssignment';
 
 type AscensionCandidate = { ascensionId: number; testId: number; testName: string };
 type CandidateGroup = {
@@ -154,6 +155,7 @@ export default function CollectionSampleModal({ show, hide, collection, removeCo
           <Modal show={show} size="xl" backdrop="static" keyboard={false} animation={false} onHide={hide} dialogClassName="mt-3">
                <Modal.Header closeButton className="bg-light"><div><Modal.Title className="h5">Physical Sample Collection</Modal.Title><div className="text-muted">{fullname} ({patientid}) · Billing {billingid}</div></div></Modal.Header>
                <Modal.Body className="p-4">
+                    {show && billingid && <OutsourceAssignment billingId={Number(billingid)}/>}
                     {!loading && <SpecimenRecollectionPanel billingid={Number(billingid)} samples={samples} onChanged={load} />}
                     {loading ? <div className="text-center py-5"><Spinner animation="border" /><p className="mt-3 mb-0">Loading sample requirements...</p></div> : <>
                          {samples.length > 0 && <section className="mb-4"><h2 className="h6 mb-3">Physical samples</h2><div className="row g-3">{samples.map((sample) => <div className="col-lg-6" key={sample.id}><article className="border bg-light p-3 h-100" style={{ borderRadius: 6 }}><div className="d-flex justify-content-between gap-3"><div><strong className="fs-6">{sample.sample_uid}</strong><div className="text-muted">{sample.sample_type_name || 'Specimen'} · {sample.container_type_name || 'Container'}</div></div><span className="text-capitalize fw-semibold">{sample.status.replace(/_/g, ' ')}</span></div><div className="mt-3"><span className="text-muted">Linked tests:</span> {sample.tests.map((test) => test.testName).join(', ')}</div><div className="small text-muted mt-2">Actual amount: {sample.quantity ?? 'Not recorded'} {sample.unit || ''}</div><SampleBarcode sample={sample} />{sample.status !== 'planned' && <CollectionSupplies sampleId={sample.id} sampleOptions={samples} />}{sample.status === 'collection_started' && <div className="d-flex flex-wrap gap-2 mt-3"><button type="button" className="btn btn-outline-primary" disabled={busyKey === `sample-${sample.id}`} onClick={() => addContainer(sample)}>+ Add another container</button><button type="button" className="btn btn-success d-flex align-items-center gap-2" disabled={busyKey === `sample-${sample.id}`} onClick={() => completeSample(sample)}><RiCheckboxCircleLine size={19} />{busyKey === `sample-${sample.id}` ? 'Working...' : 'Complete collection'}</button></div>}{['collected', 'received', 'accepted'].includes(sample.status) && <div className="alert alert-secondary mt-3 mb-0 py-2">Collection is complete. Reception and validation are handled in their dedicated workspaces.</div>}</article></div>)}</div></section>}

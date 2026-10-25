@@ -104,7 +104,7 @@ const MultiPayment: React.FC<MultiPaymentProps> = ({ handlesubmit, inline=false,
         setNewPayment(np => ({ ...np, amount: value }));
     };
 
-    if (!paymentModes || paymentModes.length === 0) {
+    if ((!paymentModes || paymentModes.length === 0) && !renderPayment) {
         return <div className="alert alert-warning">No payment modes available</div>;
     }
 
@@ -116,7 +116,7 @@ const MultiPayment: React.FC<MultiPaymentProps> = ({ handlesubmit, inline=false,
             earlyReturn = <div className="alert alert-info">No payment required. Previous paid amount matches new payable.</div>;
         }
     }
-    if (!earlyReturn && payments.length === 0 && availableModes.length === 0) {
+    if (!earlyReturn && payments.length === 0 && availableModes.length === 0 && !renderPayment) {
         earlyReturn = <div className="alert alert-warning">No payments made and no payment modes available</div>;
     }
 

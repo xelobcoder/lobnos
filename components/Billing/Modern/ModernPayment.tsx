@@ -34,7 +34,7 @@ export function ModernPaymentView({model:m}:{model:any}) {
             {m.payAllError&&<div className={styles.error} role="alert">{m.payAllError}</div>}
             <button type="button" className={styles.primary} disabled={submitDisabled} onClick={()=>void m.submit()}>{m.isSyncing?'Processing payment…':m.isValueSynchronized?'Payment submitted':m.paymentMode==='nhis'?'Submit NHIS claim':'Confirm & save payment'}</button>
             <button type="button" className={styles.secondary} disabled={busy} onClick={m.reset}>Reset payment details</button>
-            <button type="button" className={styles.backLink} disabled={busy||m.skipDisabled} onClick={()=>void m.skip()}>Save without payment</button>
+            <button type="button" className={styles.backLink} disabled={busy||m.skipDisabled} onClick={()=>void m.skip()}>Save bill · Pay later at Cash Collection</button>
             <p className={styles.helper}>The transaction is saved only after the required billing checks and approvals.</p>
         </aside>
     </div>;

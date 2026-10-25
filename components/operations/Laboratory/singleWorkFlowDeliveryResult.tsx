@@ -61,22 +61,22 @@ export default function SingleWorkFlowResultDeliveryModal({
 	};
 
 	return (
-		<Modal show={show} onHide={onHide} centered>
-			<Modal.Header closeButton>
-				<Modal.Title>Record Result Delivery</Modal.Title>
+		<Modal show={show} onHide={()=>{if(!loading)onHide()}} centered backdrop="static" keyboard={!loading}>
+			<Modal.Header closeButton={!loading}>
+				<Modal.Title>Record result delivery</Modal.Title>
 			</Modal.Header>
 
 			<Modal.Body>
 				<Form>
 
 					<Form.Group className="mb-2">
-						<Form.Label>Delivered Mode</Form.Label>
-						<select className="form-select form-select-sm" value={deliveredMode} onChange={(e) => setDeliveredMode(e.target.value)}>
-							<option value=''>select mode result was delivered to the client</option>
-							<option value="whatapp">Whatapp</option>
+						<Form.Label>Delivery method</Form.Label>
+						<select aria-label="Delivery method" className="form-select" value={deliveredMode} onChange={(e) => setDeliveredMode(e.target.value)}>
+							<option value=''>Select a delivery method</option>
+							<option value="whatapp">WhatsApp</option>
 							<option value="email">Email</option>
-							<option value={'hardcopy'}>Hard Copy</option>
-							<option value={'phonecall'}>Phone Call</option>
+							<option value={'hardcopy'}>Printed copy</option>
+							<option value={'phonecall'}>Phone call</option>
 						</select>
 					</Form.Group>
 
