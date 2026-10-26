@@ -1,31 +1,8 @@
-"use client"
-import React, { useState } from 'react';
-import AddNewDrugFormPLSMASTER from '../../../../components/Drugs/NewDrugFormComponent';
-import DrugsListPLSMASTER from '../../../../components/Drugs/DrugsListComponent';
-
-const defaultEditData = { editid: null, category: null, editing: false, drugName: null}
-
-
-
-export default function PLSDRUGSMASTERLISS() {
-    const [editing, setEditing] = useState(defaultEditData);
-
-    const handleEditDrug = (data) => {
-        const { id, category,drug ,categoryid} = data;
-        setEditing({ editing: true, editid: id,drugName:drug,category:categoryid})
-    }
-
-    const resetEditDrug = (data) => {
-        setEditing(defaultEditData);
-    }
-
-    return (
-        <div className="p-2">
-                <h5 className='heightedBorder bg-body-secondary p-2'>Drug Management</h5>
-                <hr/>
-                <AddNewDrugFormPLSMASTER editing={editing} />
-                <hr/>
-                <DrugsListPLSMASTER resetEditDrug={resetEditDrug} handleEditDrug={handleEditDrug} />
-            </div>
-    );
-}
+'use client';
+import { useRef, useState } from 'react';
+import { RiCapsuleLine } from '@remixicon/react';
+import DrugForm from '../../../../components/Drugs/NewDrugFormComponent';
+import DrugList from '../../../../components/Drugs/DrugsListComponent';
+import s from '../../../../components/accessories/DirectoryWorkspace.module.css';
+const blank={editid:null,category:'',editing:false,drugName:''};
+export default function DrugsPage(){const[editing,setEditing]=useState<any>(blank),[revision,setRevision]=useState(0),[notice,setNotice]=useState('');const editor=useRef<HTMLDivElement>(null);return <main className={s.workspace}><header className={s.header}><div className={s.heading}><span className={s.icon} aria-hidden="true"><RiCapsuleLine size={24}/></span><div><span className={s.eyebrow}>APPLICATION SETTINGS / MEDICINE CATALOGUE</span><h1>Drugs</h1><p>Maintain drug names and categories for a clear, consistent catalogue.</p></div></div><a className={s.secondary} href="/settings/applicationsettings/drugs/drugCategoryView">Manage categories</a></header>{notice&&<div className={s.success} role="status">{notice}</div>}<div className={s.split}><div ref={editor}><DrugForm editing={editing} onCancel={()=>setEditing(blank)} onSaved={()=>{setEditing(blank);setRevision(v=>v+1);setNotice('Drug saved.')}}/></div><DrugList refreshTrigger={revision} handleEditDrug={row=>{setNotice('');setEditing({editing:true,editid:row.id,drugName:row.drug,category:String(row.categoryid??row.category??'')});editor.current?.scrollIntoView({behavior:'smooth',block:'start'})}} resetEditDrug={row=>{if(editing.editid===row?.id)setEditing(blank);setNotice('Drug deleted.')}}/></div></main>}

@@ -1,75 +1,8 @@
-"use client";
-
-import React, { useState } from "react";
-import CommissionConfigForm from "../../../../../../components/Commission/Admin/CommissionConfigForm";
-import CommissionConfigList from "../../../../../../components/Commission/Admin/CommissionConfigList";
-import { CommissionConfig } from "../../../../../../lib/commission/commissionApi";
-
-export default function CommissionConfigsPage() {
-     const [editingConfig, setEditingConfig] = useState<CommissionConfig | null>(
-          null
-     );
-     const [showForm, setShowForm] = useState(false);
-     const [refreshKey, setRefreshKey] = useState(0);
-
-     const handleConfigSaved = (config: CommissionConfig) => {
-          setEditingConfig(null);
-          setShowForm(false);
-          setRefreshKey((prev) => prev + 1);
-     };
-
-     const handleEdit = (config: CommissionConfig) => {
-          setEditingConfig(config);
-          setShowForm(true);
-     };
-
-     const handleCancel = () => {
-          setEditingConfig(null);
-          setShowForm(false);
-     };
-
-     const handleDelete = () => {
-          setRefreshKey((prev) => prev + 1);
-     };
-
-     return (
-          <div className="container-fluid px-4 py-3">
-               <div className="d-flex justify-content-between align-items-center mb-4">
-                    <div>
-                         <h1 className="h3 mb-0">Commission Configurations</h1>
-                         <small className="text-muted">
-                              Manage commission calculation rules and settings
-                         </small>
-                    </div>
-                    <button
-                         className="btn btn-primary"
-                         onClick={() => {
-                              setEditingConfig(null);
-                              setShowForm(!showForm);
-                         }}
-                    >
-                         {showForm ? "Cancel" : "+ New Configuration"}
-                    </button>
-               </div>
-
-               {showForm && (
-                    <div className="mb-4">
-                         <CommissionConfigForm
-                              configId={editingConfig?.id}
-                              onSaved={handleConfigSaved}
-                              onCancel={handleCancel}
-                         />
-                    </div>
-               )}
-
-               <section>
-                    <h5 className="mb-3">Active Configurations</h5>
-                    <CommissionConfigList
-                         onEdit={handleEdit}
-                         onDelete={handleDelete}
-                         refreshTrigger={refreshKey}
-                    />
-               </section>
-          </div>
-     );
-}
+'use client';
+import { useState } from 'react';
+import { RiPercentLine, RiAddLine } from '@remixicon/react';
+import CommissionConfigForm from '../../../../../../components/Commission/Admin/CommissionConfigForm';
+import CommissionConfigList from '../../../../../../components/Commission/Admin/CommissionConfigList';
+import { CommissionConfig } from '../../../../../../lib/commission/commissionApi';
+import s from '../../../../../../components/accessories/DirectoryWorkspace.module.css';
+export default function CommissionConfigsPage(){const[editor,setEditor]=useState<{id?:number}|null>(null),[notice,setNotice]=useState('');return <main className={s.workspace}><header className={s.header}><div className={s.heading}><span className={s.icon} aria-hidden="true"><RiPercentLine size={24}/></span><div><span className={s.eyebrow}>COMMISSIONS / CALCULATION RULES</span><h1>{editor?editor.id?'Edit commission configuration':'New commission configuration':'Commission configurations'}</h1><p>{editor?'Define the calculation, check the preview and set the rule’s validity.':'Define reusable calculation rules, then assign them to organizations and practitioners.'}</p></div></div>{!editor&&<div className={s.actions}><a className={s.secondary} href="/settings/applicationsettings/commisions-defaults">Commission defaults</a><a className={s.secondary} href="/settings/applicationsettings/commisions-defaults/commissions/assignments">Assignments</a><button className={s.primary} onClick={()=>{setNotice('');setEditor({})}}><RiAddLine size={18}/>New configuration</button></div>}</header>{notice&&<div className={s.success} role="status">{notice}</div>}{editor?<CommissionConfigForm key={editor.id||'new'} configId={editor.id} onCancel={()=>setEditor(null)} onSaved={(_config:CommissionConfig)=>{setEditor(null);setNotice('Commission configuration saved.')}}/>:<CommissionConfigList onEdit={config=>{setNotice('');setEditor({id:config.id})}}/>}</main>}

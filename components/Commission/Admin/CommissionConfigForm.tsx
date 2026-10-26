@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useForm, Controller, Resolver } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { toast } from "react-toastify";
@@ -21,6 +21,7 @@ import {
 import { useApplicationSettings } from "../../Auth/useApplicationContext";
 import Loader from "../../isLoading";
 import TierBuilder from "./TierBuilder";
+import s from "./CommissionConfigWorkspace.module.css";
 
 interface CommissionConfigFormProps {
      configId?: number;
@@ -151,6 +152,10 @@ export default function CommissionConfigForm({
 }: CommissionConfigFormProps) {
      const [loading, setLoading] = useState(configId ? true : false);
      const [saving, setSaving] = useState(false);
+     const [loadError, setLoadError] = useState("");
+     const [saveError, setSaveError] = useState("");
+     const [revision, setRevision] = useState(0);
+     const saveLock = useRef(false);
      const [serviceAmount, setServiceAmount] = useState(100);
      const [volumeServiceCount, setVolumeServiceCount] = useState(1);
      const [actualQuotaValue, setActualQuotaValue] = useState(100000);
@@ -192,9 +197,10 @@ export default function CommissionConfigForm({
      useEffect(() => {
           if (configId) {
                const fetchConfig = async () => {
+                    setLoading(true); setLoadError("");
                     try {
                          const response = await getCommissionConfig(configId);
-                         if (response?.status === "success") {
+                         if (response?.status === "success" && response.result) {
                               const config = response.result;
                               setValue("name", config.name);
                               setValue("description", config.description || "");
@@ -210,32 +216,35 @@ export default function CommissionConfigForm({
                               setValue("quota_target", toOptionalNumber(config.quota_target));
                               setValue("effective_from", toDateInputValue(config.effective_from));
                               setValue("effective_to", toDateInputValue(config.effective_to));
-                              setValue("is_active", config.is_active);
+                              setValue("is_active", Number(config.is_active) === 1);
                               if (config.tiers) {
                                    setTiers(normalizeCommissionTiers(config.tiers));
                               }
-                         }
+                         } else { throw new Error(response?.message || "Failed to load configuration"); }
                     } catch (error) {
-                         toast.error("Failed to load configuration");
+                         setLoadError("Failed to load configuration. Retry before editing this rule.");
                     } finally {
                          setLoading(false);
                     }
                };
                fetchConfig();
           }
-     }, [configId, setValue]);
+     }, [configId, setValue, revision]);
 
      const onSubmit = async (data: CommissionConfig) => {
+          if (saveLock.current) return;
+          setSaveError("");
           const configData = { ...data };
           delete configData.commission_base;
           const requiresTiers = ["tiered", "volume", "quota", "accelerating"].includes(data.commission_type);
           const tierRangeError = requiresTiers ? validateCommissionTierRanges(tiers) : null;
           if (tierRangeError) {
-               toast.error(tierRangeError);
+               setSaveError(tierRangeError);
                return;
           }
 
           try {
+               saveLock.current = true;
                setSaving(true);
                const payload: CommissionConfig = {
                     ...configData,
@@ -271,11 +280,12 @@ export default function CommissionConfigForm({
                          onSaved(response.result);
                     }
                } else {
-                    toast.error(response?.message || "Failed to save configuration");
+                    setSaveError(response?.message || "Failed to save configuration");
                }
           } catch (error: any) {
-               toast.error(error?.message || "An error occurred");
+               setSaveError(error?.message || "An error occurred");
           } finally {
+               saveLock.current = false;
                setSaving(false);
           }
      };
@@ -343,10 +353,13 @@ export default function CommissionConfigForm({
           }
      };
 
+     if (loadError) return <div role="alert" className="alert alert-danger">{loadError}<div className="d-flex gap-2 mt-3"><button type="button" className="btn btn-outline-secondary" onClick={() => setRevision(v => v + 1)}>Retry configuration</button><button type="button" className="btn btn-outline-secondary" onClick={onCancel}>Back to configurations</button></div></div>;
      return (
-          <div className="card">
+          <div className={`${s.form} card`}>
                <div className="card-body">
                     <form onSubmit={handleSubmit(onSubmit)}>
+                         {saveError && <div role="alert" className="alert alert-danger">{saveError}</div>}
+                         <fieldset disabled={saving}>
                          <div className="row g-4">
                               <div className="col-lg-8">
                                    {/* Configuration Name */}
@@ -360,6 +373,7 @@ export default function CommissionConfigForm({
                                              render={({ field }) => (
                                                   <input
                                                        {...field}
+                                                       id={field.name}
                                                        type="text"
                                                        className={`form-control ${errors.name ? "is-invalid" : ""}`}
                                                        placeholder="e.g., Specialist Doctor Commission"
@@ -381,6 +395,7 @@ export default function CommissionConfigForm({
                                              render={({ field }) => (
                                                   <textarea
                                                        {...field}
+                                                       id={field.name}
                                                        value={field.value || ""}
                                                        className="form-control"
                                                        rows={2}
@@ -401,6 +416,7 @@ export default function CommissionConfigForm({
                                                   render={({ field }) => (
                                                        <select
                                                             {...field}
+                                                            id={field.name}
                                                             className={`form-select ${errors.commission_type ? "is-invalid" : ""}`}
                                                        >
                                                             <option value="percentage">Percentage (%)</option>
@@ -438,6 +454,7 @@ export default function CommissionConfigForm({
                                                        <div className="input-group">
                                                             <input
                                                                  {...field}
+                                                                 id={field.name}
                                                                  value={field.value ?? ""}
                                                                  type="number"
                                                                  step="0.01"
@@ -469,6 +486,7 @@ export default function CommissionConfigForm({
                                                        <div className="input-group">
                                                             <input
                                                                  {...field}
+                                                                 id={field.name}
                                                                  value={field.value ?? ""}
                                                                  type="number"
                                                                  step="0.01"
@@ -507,6 +525,7 @@ export default function CommissionConfigForm({
                                                             <span className="input-group-text">GHS</span>
                                                             <input
                                                                  {...field}
+                                                                 id={field.name}
                                                                  value={field.value ?? ""}
                                                                  type="number"
                                                                  step="0.01"
@@ -569,7 +588,7 @@ export default function CommissionConfigForm({
                                                   name="volume_period"
                                                   control={control}
                                                   render={({ field }) => (
-                                                       <select {...field} value={field.value ?? "monthly"} className="form-select">
+                                                       <select {...field} id={field.name} value={field.value ?? "monthly"} className="form-select">
                                                             <option value="daily">Daily</option>
                                                             <option value="weekly">Weekly</option>
                                                             <option value="monthly">Monthly</option>
@@ -594,6 +613,7 @@ export default function CommissionConfigForm({
                                                             <span className="input-group-text">GHS</span>
                                                             <input
                                                                  {...field}
+                                                                 id={field.name}
                                                                  value={field.value ?? ""}
                                                                  type="number"
                                                                  step="0.01"
@@ -625,6 +645,7 @@ export default function CommissionConfigForm({
                                                             <span className="input-group-text">GHS</span>
                                                             <input
                                                                  {...field}
+                                                                 id={field.name}
                                                                  value={field.value ?? ""}
                                                                  type="number"
                                                                  step="0.01"
@@ -655,6 +676,7 @@ export default function CommissionConfigForm({
                                                             <span className="input-group-text">GHS</span>
                                                             <input
                                                                  {...field}
+                                                                 id={field.name}
                                                                  value={field.value ?? ""}
                                                                  type="number"
                                                                  step="0.01"
@@ -688,6 +710,7 @@ export default function CommissionConfigForm({
                                                             <span className="input-group-text">GHS</span>
                                                             <input
                                                                  {...field}
+                                                                 id={field.name}
                                                                  value={field.value ?? ""}
                                                                  type="number"
                                                                  step="0.01"
@@ -714,7 +737,7 @@ export default function CommissionConfigForm({
                                                   name="period_cap_reset"
                                                   control={control}
                                                   render={({ field }) => (
-                                                       <select {...field} className="form-select">
+                                                       <select {...field} id={field.name} className="form-select">
                                                             <option value="daily">Daily</option>
                                                             <option value="weekly">Weekly</option>
                                                             <option value="monthly">Monthly</option>
@@ -763,6 +786,7 @@ export default function CommissionConfigForm({
                                                   render={({ field }) => (
                                                        <input
                                                             {...field}
+                                                            id={field.name}
                                                             value={field.value ?? ""}
                                                             type="date"
                                                             className="form-control"
@@ -787,6 +811,7 @@ export default function CommissionConfigForm({
                                                   render={({ field }) => (
                                                        <input
                                                             {...field}
+                                                            id={field.name}
                                                             value={field.value ?? ""}
                                                             type="date"
                                                             className="form-control"
@@ -818,6 +843,40 @@ export default function CommissionConfigForm({
                                         </div>
                                    </div>
 
+                                   {/* Action Buttons */}
+                                   <div className="d-flex gap-2 pt-3">
+                                        <button
+                                             type="submit"
+                                             className="btn btn-primary"
+                                             disabled={saving}
+                                        >
+                                             {saving ? (
+                                                  <>
+                                                       <span
+                                                            className="spinner-border spinner-border-sm me-2"
+                                                            role="status"
+                                                            aria-hidden="true"
+                                                       ></span>
+                                                       Saving...
+                                                  </>
+                                             ) : (
+                                                  "Save Configuration"
+                                             )}
+                                        </button>
+                                        {onCancel && (
+                                             <button
+                                                  type="button"
+                                                  className="btn btn-secondary"
+                                                  disabled={saving}
+                                                  onClick={onCancel}
+                                             >
+                                                  Cancel
+                                             </button>
+                                        )}
+                                   </div>
+                              </div>
+
+                              <div className="col-lg-4">
                                    {/* Preview Section */}
                                    <div className="border rounded p-3 mb-3 bg-white">
                                         <h6 className="fw-bold mb-2">Commission Preview</h6>
@@ -921,41 +980,9 @@ export default function CommissionConfigForm({
                                         )}
                                    </div>
 
-                                   {/* Action Buttons */}
-                                   <div className="d-flex gap-2 pt-3">
-                                        <button
-                                             type="submit"
-                                             className="btn btn-primary"
-                                             disabled={saving}
-                                        >
-                                             {saving ? (
-                                                  <>
-                                                       <span
-                                                            className="spinner-border spinner-border-sm me-2"
-                                                            role="status"
-                                                            aria-hidden="true"
-                                                       ></span>
-                                                       Saving...
-                                                  </>
-                                             ) : (
-                                                  "Save Configuration"
-                                             )}
-                                        </button>
-                                        {onCancel && (
-                                             <button
-                                                  type="button"
-                                                  className="btn btn-secondary"
-                                                  onClick={onCancel}
-                                             >
-                                                  Cancel
-                                             </button>
-                                        )}
-                                   </div>
-                              </div>
 
-                              <div className="col-lg-4">
-                                   <div className="border rounded p-3 bg-white h-100">
-                                        <h6 className="fw-bold mb-3">Commission Type Guide</h6>
+                                   <details className="border rounded p-3 bg-white">
+                                        <summary className="fw-medium mb-3">How this calculation works</summary>
                                         <h5 className="fs-6 mb-2">
                                              {formatCommissionType(commissionType)}
                                         </h5>
@@ -993,9 +1020,10 @@ export default function CommissionConfigForm({
                                                   A GHS 25,000 performance amount with 3%, 5%, and 8% bands pays each portion at its own rate, not the highest rate on the full amount.
                                              </div>
                                         )}
-                                   </div>
+                                   </details>
                               </div>
                          </div>
+                    </fieldset>
                     </form>
                </div>
           </div>

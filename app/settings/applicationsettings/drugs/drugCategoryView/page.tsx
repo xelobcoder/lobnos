@@ -1,26 +1,8 @@
-"use client"
-import { useState } from "react";
-import DrugCategoryForm from "../../../../../components/Drugs/addNewDrugCategory";
-import DrugCategoryTable from "../../../../../components/Drugs/DrugCategoryTable";
-import { Container } from "react-bootstrap";
-const defaultEditData = { editid: null, description: null, editing: false, name: null }
-export default function DrugCategoryPage() {
-    const [editing, setEditing] = useState(defaultEditData);
-
-    const handleEditCategory = (data) => {
-        const { id, description, categoryName } = data;
-        setEditing({ editing: true, editid: id, description, name: categoryName })
-    }
-
-    const resetEditCategory = (data) => {
-        setEditing(defaultEditData);
-    }
-
-
-    return (
-        <Container fluid>
-            <DrugCategoryForm edit={editing} reset={resetEditCategory} />
-            <DrugCategoryTable handleEditCategory={handleEditCategory} />
-        </Container>
-    );
-}
+'use client';
+import { useRef, useState } from 'react';
+import { RiCapsuleLine } from '@remixicon/react';
+import DrugCategoryForm from '../../../../../components/Drugs/addNewDrugCategory';
+import DrugCategoryTable from '../../../../../components/Drugs/DrugCategoryTable';
+import s from '../../../../../components/accessories/DirectoryWorkspace.module.css';
+const blank={editid:null,description:'',editing:false,name:''};
+export default function DrugCategoryPage(){const [edit,setEdit]=useState<any>(blank),[revision,setRevision]=useState(0),[notice,setNotice]=useState('');const editor=useRef<HTMLDivElement>(null);return <main className={s.workspace}><header className={s.header}><div className={s.heading}><span className={s.icon} aria-hidden="true"><RiCapsuleLine size={24}/></span><div><span className={s.eyebrow}>MEDICINE CATALOGUE</span><h1>Drug categories</h1><p>Organize medicines into clear, reusable categories.</p></div></div></header>{notice&&<div className={s.success} role="status">{notice}</div>}<div className={s.split}><div ref={editor}><DrugCategoryForm edit={edit} reset={()=>setEdit(blank)} onSaved={()=>{setEdit(blank);setRevision(v=>v+1);setNotice('Drug category saved.')}}/></div><DrugCategoryTable refreshTrigger={revision} handleEditCategory={row=>{setNotice('');setEdit({editing:true,editid:row.id,name:row.categoryName,description:row.description||''});editor.current?.scrollIntoView({behavior:'smooth',block:'start'})}} onDeleted={id=>{if(edit.editid===id)setEdit(blank);setNotice('Drug category deleted.')}}/></div></main>}
