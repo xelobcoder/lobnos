@@ -1,3 +1,4 @@
+import { RiTimeLine } from '@remixicon/react';
 import { Link } from '../types';
 import {
     RiSettings4Line,
@@ -124,7 +125,7 @@ export const ApplicationSettingsLinks: Link[] =
                 { title: 'Billing Strategy', link: '/billing/billing-strategy/strategies', icon: <RiStarHalfLine /> },
                 { title: 'Insurance Companies', link: '/billing/insurance', icon: <RiGitRepositoryFill /> },
                 { title: 'Free Service Authorization', link: '/billing/admin/free-service-authorization-approval', icon: <RiShieldCheckLine /> },
-                { title: "Night Adjustments", link: "/settings/applicationsettings/night-adjustments", icon: <RiMoonClearLine /> },
+                { title: "Time Based Adjustment", link: "/settings/applicationsettings/time-adjustments", icon: <RiTimeLine /> },
                 { title: "commisions-defaults", link: "/settings/applicationsettings/commisions-defaults", icon: <RiMailSettingsLine /> }
             ]
         },

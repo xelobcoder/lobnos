@@ -38,7 +38,7 @@ function parsePaidAmount(paid) {
 }
 
 function applyNightAdjustment(cart, nightAdjustmentMode, nightAdjustmentValue) {
-     console.log('Applying night adjustment:', nightAdjustmentMode, nightAdjustmentValue);
+     console.log('Applying time-based adjustment:', nightAdjustmentMode, nightAdjustmentValue);
      return cart.map(item => {
           let adjustedValue = 0;
           if (!item.originalValue) {

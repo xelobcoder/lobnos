@@ -530,9 +530,9 @@ const CrmLinks: Link[] = [
                     icon: <RiRefundLine />
                },
                {
-                    title: "Night Adjustments",
-                    link: "/billing/settings/night-adjustments",
-                    icon: <RiMoonLine />
+                    title: "Time Based Adjustment",
+                    link: "/settings/applicationsettings/time-adjustments",
+                    icon: <RiTimeLine />
                }
           ]
      }
@@ -911,9 +911,9 @@ const BillingSalesLink: Link[] = [
           icon: <RiRefundLine />
      },
      {
-          title: "Night Adjustments",
-          link: "/billing/settings/night-adjustments",
-          icon: <RiMoonLine />
+          title: "Time Based Adjustment",
+          link: "/settings/applicationsettings/time-adjustments",
+          icon: <RiTimeLine />
      },
        {
              title: "Staff FOC Benefit",
@@ -1210,7 +1210,7 @@ export const ApplicationBillingLinks = function (branchid: number, employeeid: n
      return [
           { title: 'Filter Client', link: '/billing/patientid', icon: <RiUserSearchLine /> },
           { title: 'packages', link: '/billing/packages/create-new-package', icon: <RiPagesLine /> },
-          { title: 'Bill settings Night Adjustment', link: '/billing/settings/night-adjustments', icon: <RiMoonLine /> },
+          { title: 'Time Based Adjustment', link: '/settings/applicationsettings/time-adjustments', icon: <RiTimeLine /> },
           { title: 'Daily Transactions', link: '/billing/sales/branches', icon: <RiExchangeDollarLine /> },
           { title: "Refund Admin", link: `/billing/refund/refundAdmin/${employeeid}`, icon: <RiRefundLine /> },
           { title: "Refund FrontDesk Representative", link: `/billing/refund/${employeeid}`, icon: <RiRefundLine /> },

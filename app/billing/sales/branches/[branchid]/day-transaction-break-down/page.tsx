@@ -329,7 +329,7 @@ type SectionKey =
 const sectionNavItems: { id: SectionKey; title: string; subtitle: string }[] = [
     { id: 'executiveSummary', title: 'Executive Summary', subtitle: 'High-level metrics and snapshot' },
     { id: 'financialCharts', title: 'Financial Charts', subtitle: 'Revenue and payment mode visuals' },
-    { id: 'nightAdjustmentImpact', title: 'Night Adjustment Impact', subtitle: 'Night shift adjustments and totals' },
+    { id: 'nightAdjustmentImpact', title: 'Time Based Adjustment Impact', subtitle: 'Time-period adjustments and totals' },
     { id: 'auditTrailActions', title: 'Audit Trail', subtitle: 'Tracking operational activity counts' },
     { id: 'organizationCommissions', title: 'Organization Commissions', subtitle: 'Commission earned by organizations' },
     { id: 'clinicianSales', title: 'Clinician Sales', subtitle: 'Clinician performance sales data' },

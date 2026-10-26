@@ -1,3 +1,4 @@
+import { RiTimeLine } from '@remixicon/react';
 import { Link } from '../types';
 import { 
     RiUserSearchLine,
@@ -13,7 +14,7 @@ export const ApplicationBillingLinks = function (branchid: number, employeeid: n
     return [
         { title: 'Filter Client', link: '/billing/patientid', icon: <RiUserSearchLine /> },
         { title: 'packages', link: '/billing/packages/create-new-package', icon: <RiPagesLine /> },  // Updated icon
-        { title: 'Bill settings Night Adjustment', link: '/billing/settings/night-adjustments', icon: <RiMoonLine /> },
+        { title: 'Time Based Adjustment', link: '/settings/applicationsettings/time-adjustments', icon: <RiTimeLine /> },
         { title: 'Daily Transactions', link: '/billing/sales/branches', icon: <RiExchangeDollarLine /> },
         { title: "Refund Admin", link: `/billing/refund/refundAdmin/${employeeid}`, icon: <RiRefundLine /> },
         { title: "Refund FrontDesk Representative", link: `/billing/refund/${employeeid}`, icon: <RiRefundLine /> },

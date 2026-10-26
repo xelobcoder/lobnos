@@ -12,9 +12,9 @@ export default function TransactionServicesList({ previousTransactions = [], han
                     <th>Cost</th>
                     <th>Discount</th>
                     <th>Amount Incurred Due Tax</th>
-                    <th>Night Adjustment</th>
-                    <th>Night Adjustment Mode</th>
-                    <th>Night Adjustment Value</th>
+                    <th>Time Based Adjustment</th>
+                    <th>Time Based Adjustment Mode</th>
+                    <th>Time Based Adjustment Value</th>
                     <th>Total Cost</th>
                     <th>Total Payable</th>
                     <th>Tax Value</th>

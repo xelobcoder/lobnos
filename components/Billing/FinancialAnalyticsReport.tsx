@@ -667,7 +667,7 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
 
                         <div className={styles.sectionDivider}></div>
 
-                        <Card title="Night Adjustment Impact Analysis" icon={<RiLineChartLine />}>
+                        <Card title="Time Based Adjustment Impact Analysis" icon={<RiLineChartLine />}>
                             {Array.isArray(dailyNightAdjustmentImpact) && dailyNightAdjustmentImpact.length > 0 ? (
                                 <div className="table-responsive">
                                     <table className="table table-sm table-hover table-striped small">
@@ -675,9 +675,9 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                                             <tr>
                                                 <th className="text-start">Report Date</th>
                                                 <th className="text-start">Earned Revenue</th>
-                                                <th className="text-start">Total Night Adjustment Payable</th>
+                                                <th className="text-start">Total Time Based Adjustment Payable</th>
                                                 <th className="text-start">Total Normal Payable</th>
-                                                <th className="text-start">Night Adjustment Cases</th>
+                                                <th className="text-start">Time Based Adjustment Cases</th>
                                                 <th className="text-start">Normal Cases</th>
                                                 <th className="text-start">Total Cases</th>
                                             </tr>
@@ -714,7 +714,7 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                             ) : (
                                 <div className={styles.emptyState}>
                                     <RiLineChartLine size={32} style={{ opacity: 0.5, marginBottom: '0.5rem' }} />
-                                    <p>No night adjustment data available for the selected period.</p>
+                                    <p>No time-based adjustment data available for the selected period.</p>
                                 </div>
                             )}
                         </Card>

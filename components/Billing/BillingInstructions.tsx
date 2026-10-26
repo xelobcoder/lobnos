@@ -165,7 +165,7 @@ const sections = [
         title: '3. Finalizing the Bill',
         steps: [
             '**Review Summary:** The right-side panel shows a complete breakdown of charges, discounts, and the final total.',
-            '**Check for Adjustments:** Look for a 🟡 **Night Adjustment** badge. This is applied automatically to eligible tests during night hours.',
+            '**Check for Adjustments:** Look for a 🟡 **Time Based Adjustment** badge. This is applied automatically to eligible tests during the configured daily time period.',
             '**Finalize:** Click the `Bill Client` button to generate the invoice. You can then print a receipt or return to the dashboard.',
         ],
     },

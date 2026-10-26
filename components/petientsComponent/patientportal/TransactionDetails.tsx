@@ -338,7 +338,7 @@ const TransactionDetails: React.FC<TransactionDetailsProps> = ({
                                         <th>Total Payable</th>
                                         <th>NHIS</th>
                                         <th>PHIS</th>
-                                        <th>Night Adjustment</th>
+                                        <th>Time Based Adjustment</th>
                                         <th>Night Value</th>
                                         <th>Night Mode</th>
                                         <th>Package Used</th>

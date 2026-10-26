@@ -373,7 +373,7 @@ export default function EndSessionModal({
                                                                                                                    <th>Status</th>
                                                                                                                    <th>Amount Refunded</th>
                                                                                                                    <th>Outstanding</th>
-                                                                                                                   <th>Night Adjustment</th>
+                                                                                                                   <th>Time Based Adjustment</th>
                                                                                                               </tr>
                                                                                                          </thead>
                                                                                                          <tbody>

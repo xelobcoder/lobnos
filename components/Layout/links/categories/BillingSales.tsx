@@ -108,8 +108,8 @@ export const BillingSalesLink: Link[] = [
         roles: ['admin', 'super-admin', 'super_admin', 'manager', 'accountant', 'cashier', 'front desk', 'frontdesk', 'customer service representative', 'billing']
     },
     {
-        title: "Night Adjustments",
-        link: "/billing/settings/night-adjustments",
-        icon: <RiMoonLine />
+        title: "Time Based Adjustment",
+        link: "/settings/applicationsettings/time-adjustments",
+        icon: <RiTimeLine />
     }
 ];

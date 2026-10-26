@@ -630,12 +630,12 @@ export default function PreviousTransactionSummaryPage() {
 					{registrationType && (
 						<div className="mb-2 bg-body-tertiary border border-bottom br-5 p-2 text-sm"><strong>Registration Type:</strong> {registrationType}</div>
 					)}
-					{/* Night Adjustment Details */}
+					{/* Time Based Adjustment Details */}
 					{hasNightAdjustment && (
 						<div className="mb-2 bg-body-tertiary border border-bottom br-5 p-2 text-sm">
-							<strong>Night Adjustment:</strong> Yes<br />
-							<strong>Night Adjustment Value:</strong> {nightAdjustmentValue}<br />
-							<strong>Night Adjustment Mode:</strong> {nightAdjustmentMode}
+							<strong>Time Based Adjustment:</strong> Yes<br />
+							<strong>Time Based Adjustment Value:</strong> {nightAdjustmentValue}<br />
+							<strong>Time Based Adjustment Mode:</strong> {nightAdjustmentMode}
 						</div>
 					)}
 					{/* Insurance Details */}
