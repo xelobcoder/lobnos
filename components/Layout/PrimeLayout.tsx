@@ -392,7 +392,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links: suppliedLink
                             <button
                                 type="button"
                                 className={styles.headerIconBtn}
-                                onClick={() => handleNavigation(`/human-resource/profile?employeeid=${employeeid}&&isOpenSideBarShow=false`)}
+                                onClick={() => handleNavigation(normalizedRole.startsWith('pharmacy')||normalizedRole==='pharmacist'?'/account/roles':`/human-resource/profile?employeeid=${employeeid}&&isOpenSideBarShow=false`)}
                                 title="Profile"
                                 aria-label="Open profile"
                             >
@@ -455,7 +455,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links: suppliedLink
                                     </div>
                                 )}
                             </div>}
-                            <span className={styles.headerIconDivider} aria-hidden="true" />
+                            <NextLink href="/account/roles" className="btn btn-sm btn-outline-secondary" title="Choose your assigned role and location">Switch role</NextLink><span className={styles.headerIconDivider} aria-hidden="true" />
                             <a
                                 href="/authentication/logout"
                                 className={`${styles.headerIconBtn} ${styles.headerIconLogout}`}
@@ -543,7 +543,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links: suppliedLink
                                     <button
                                         type="button"
                                         className={workspaceStyles.claudeAccount}
-                                        onClick={() => handleNavigation(`/human-resource/profile?employeeid=${employeeid}&&isOpenSideBarShow=false`)}
+                                        onClick={() => handleNavigation(normalizedRole.startsWith('pharmacy')||normalizedRole==='pharmacist'?'/account/roles':`/human-resource/profile?employeeid=${employeeid}&&isOpenSideBarShow=false`)}
                                         aria-label="Open profile"
                                     >
                                         <span className={workspaceStyles.claudeAvatar} aria-hidden="true">

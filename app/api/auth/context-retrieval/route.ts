@@ -44,6 +44,7 @@ export async function GET(request: NextRequest) {
 
           const data = await response.json()
           const { message, statusCode, status } = data;
+          if (data.code === 'SESSION_ROLE_CHANGED') return Response.json({error:data.message,code:data.code},{status:409});
           if (response.status >= 500) return Response.json({ error: 'The session service is temporarily unavailable. Please try again.' }, { status: 502 });
           if (status != true) {
                const denied = response.status === 401 || response.status === 403 || statusCode === 401 || statusCode === 403 || data.isExpired === true;

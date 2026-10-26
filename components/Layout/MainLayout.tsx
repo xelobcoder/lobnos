@@ -16,18 +16,26 @@ export default function MAIN_LAYOUT({ children }) {
           setChecking(true);
           setContextError('');
           try {
-               const retrieveContext = await fetch('/api/auth/context-retrieval', {
+               let retrieveContext = await fetch('/api/auth/context-retrieval', {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' },
                     cache: 'no-store', signal,
                });
-               const data = await retrieveContext.json();
+               let data = await retrieveContext.json();
+               if(data?.code==='SESSION_ROLE_CHANGED') {
+                    const recovery=await fetch('/api/auth/refresh-role-session',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}',credentials:'include',cache:'no-store',signal});
+                    const recoveryData=await recovery.json();
+                    if(!recovery.ok||recoveryData?.status!==true)throw new Error(recoveryData?.error||'Your workspace session could not be restored. Sign out and sign in again.');
+                    retrieveContext=await fetch('/api/auth/context-retrieval',{headers:{'Content-Type':'application/json'},credentials:'include',cache:'no-store',signal});
+                    data=await retrieveContext.json();
+                    if(data?.code==='SESSION_ROLE_CHANGED')throw new Error('Your active role could not be confirmed. Sign out and sign in again.');
+               }
                if (signal.aborted) return;
                const { user, error, redirect, settings } = data;
                const authenticatedUser = user?.user ?? user;
 
                if (retrieveContext.status === 401 || (error && redirect === '/authentications/login')) {
-                    window.location.replace('/authentications/login');
+                    window.location.replace('/authentication/logout');
                     return null;
                }
                if (!retrieveContext.ok || error) throw new Error(typeof error === 'string' ? error : data.message || 'Unable to verify your session. Please try again.');
@@ -60,8 +68,9 @@ export default function MAIN_LAYOUT({ children }) {
 
      if (contextError) return <section className="alert alert-danger m-3" role="alert">
           <h1 className="h5">Unable to load your workspace</h1><p>{contextError}</p>
-          <div className="d-flex flex-wrap gap-2"><button type="button" className="btn btn-primary" disabled={checking} onClick={() => setRetry(value => value + 1)}>{checking ? 'Retrying…' : 'Try again'}</button><a className="btn btn-outline-secondary" href="/authentications/login">Sign in again</a></div>
+          <div className="d-flex flex-wrap gap-2"><button type="button" className="btn btn-primary" disabled={checking} onClick={() => setRetry(value => value + 1)}>{checking ? 'Retrying…' : 'Try again'}</button><a className="btn btn-outline-secondary" href="/authentication/logout">Sign out and sign in again</a></div>
      </section>;
+     if (checking) return <p className="p-3" role="status">Restoring your workspace session...</p>;
      if (!applicationsettings) return <p className="p-3" role="status">Loading your workspace…</p>;
      return (
           <div >

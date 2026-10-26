@@ -43,9 +43,9 @@ export async function POST(request: NextRequest) {
 
         const user = validatedSession?.user?.user;
         const settings = validatedSession?.settings;
-        const allowedRoles = ["marketer", "storekeeper", "sonographer", "accountant", "scientist", "manager", "admin", "super-admin", "customer service representative", "patient", "clinician"];
+        const allowedRoles = ["marketer", "storekeeper", "sonographer", "accountant", "scientist", "manager", "admin", "super-admin", "customer service representative", "patient", "clinician", "pharmacist", "pharmacy_manager", "pharmacy_cashier", "pharmacy_accountant", "pharmacy_storekeeper", "pharmacy_dispensary_officer", "pharmacy_doctor", "pharmacy_nurse", "doctor", "medical_officer", "consultant", "nurse", "phelobotomist", "phlebotomist"];
         const userRole = user?.role?.toLowerCase();
-        if (!user || !allowedRoles.includes(userRole)) {
+        if (!user || (!allowedRoles.includes(userRole) && String(userRole).replace(/[ _-]/g,'')!=='superadmin')) {
             return NextResponse.json({ error: 'Invalid role' }, { status: 403 });
         }
 

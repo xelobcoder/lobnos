@@ -1,4 +1,5 @@
 'use client'
+import {workspaceDestination} from '../../../lib/workspaceDestination';
 import styles from './login.module.css';
 import { RiShieldCrossFill, RiUserLine, RiLockLine, RiEyeLine, RiEyeOffLine, RiHospitalLine, RiStethoscopeLine, RiUserHeartLine } from '@remixicon/react';
 import { useEffect, useState } from 'react';
@@ -208,7 +209,7 @@ export default function PrimeLabLoginPage() {
 				? returnTo
 				: String(role || '').toLowerCase().replace(/[\s_-]/g, '') === 'superadmin'
 				? '/settings/facilities'
-				: destinations[role] || '/';
+				: ['admin','manager','pharmacist'].includes(role) ? workspaceDestination(role,backendResponse.moduleConfiguration||backendResponse.settings?.moduleConfiguration) : destinations[role] || '/';
 			// Reload the authenticated shell rather than reusing the anonymous router cache.
 			window.location.replace(destination);
 

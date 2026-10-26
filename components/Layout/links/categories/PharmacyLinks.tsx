@@ -19,5 +19,6 @@ export const PharmacyLinks:Link[]=[
      {title:'Patient Credit & Invoices',link:'/pharmacy/accounts',icon:<RiMoneyDollarCircleLine/>,roles:[...selling,'pharmacy_accountant']},
      {title:'NHIS Claims',link:'/pharmacy/nhis',icon:<RiFileListLine/>,roles:[...management,'pharmacy_accountant']},
      {title:'Pharmacy Finances',link:'/pharmacy/finance',icon:<RiMoneyDollarCircleLine/>,roles:[...management,'pharmacy_accountant']},
+     {title:'Staff & roles',link:'/account/staff',icon:<RiSettings3Line/>,roles:management},
      {title:'Settings',link:'/pharmacy/settings',icon:<RiSettings3Line/>,roles:management},
 ];

@@ -56,7 +56,7 @@ export function DoctorShellContent({ children }: { children: React.ReactNode }) 
             <div className={s.sectionLabel}>Clinical workspace</div>
             <nav className={s.nav} aria-label="Practitioner navigation">{nav(clinicalLinks)}</nav>
             <div className={s.sectionLabel}>Account & access</div>
-            <nav className={s.nav} aria-label="Practitioner account">{nav(accessLinks)}{caps?.canManage && <Link href="/"><RiArrowGoBackLine size={19} aria-hidden="true"/><span>Application home</span></Link>}</nav>
+            <nav className={s.nav} aria-label="Practitioner account">{nav(accessLinks)}{user?.role&&user.role!=='clinician'&&<Link href="/account/roles" onClick={event=>{if((window as any).__clinicalUnsaved&&!window.confirm('Save your clinical work before switching roles. Leave this page?'))event.preventDefault();}}><RiUserSettingsLine size={19} aria-hidden="true"/><span>Switch role &amp; location</span></Link>}{caps?.canManage && <Link href="/"><RiArrowGoBackLine size={19} aria-hidden="true"/><span>Application home</span></Link>}</nav>
             <footer className={s.footer}><span>{roleLabel}</span><button type="button" disabled={loggingOut} onClick={() => { if (!(window as any).__clinicalUnsaved || window.confirm('Discard unsaved clinical changes and sign out?')) void handleLogout(setLoggingOut); }}><RiLogoutBoxRLine size={18} aria-hidden="true"/>{loggingOut ? 'Signing out…' : 'Sign out'}</button><small>Prime Laboratory Software</small></footer>
         </aside>
         <div className={s.content}><header className={s.header}>
