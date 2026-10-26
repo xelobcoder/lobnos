@@ -24,6 +24,7 @@ export function ControlParametersModal({
     onSuccess
 }: ControlParametersModalProps) {
     const [loading, setLoading] = useState(false);
+    const [defaults,setDefaults]=useState<{warningLimit:number;actionLimit:number}|null>(null);
     const [parameters, setParameters] = useState<ControlParameterType[]>([]);
     const [currentParameter, setCurrentParameter] = useState<ControlParameterType | null>(null);
     const [currentIndex, setCurrentIndex] = useState<number | null>(null);
@@ -39,19 +40,22 @@ export function ControlParametersModal({
     const fetchParameters = async () => {
         try {
             setLoading(true);
+            const config=await customFetch('qc/settings').catch(()=>null);
+            const limits=config?.status===true?config.settings:null;setDefaults(limits);
             const response = await customFetch(`controlparameters/material/${materialId}`);
             if (response && Array.isArray(response) && response.length > 0) {
                 setParameters(response);
             } else {
                 const testFields = await customFetch(`testpanel/list/customtestrule?testid=${associatedTests}`);
             if (testFields && Array.isArray(testFields)) {
+                if(!limits)throw Error('Load QC setup defaults before creating parameters');
                 const transformedFields = testFields.map(field => ({
                     parameter: field.name,
                     value: 0,
                     unit: field.units || '',
                     standardDeviation: 0,
-                    warningLimit: field.upperlimit ? parseFloat(field.upperlimit) : 0,
-                    actionLimit: field.lowerlimit ? parseFloat(field.lowerlimit) : 0,
+                    warningLimit: limits.warningLimit,
+                    actionLimit: limits.actionLimit,
                     controlMaterialId: materialId,
                     validationNotes: ''
                 }));
@@ -111,13 +115,14 @@ export function ControlParametersModal({
     };
 
     const handleAddParameter = () => {
+        if(!defaults){toast.error('Reload parameters to load QC defaults before adding a parameter');return;}
         setCurrentParameter({
             parameter: '',
             value: 0,
             unit: '',
             standardDeviation: 0,
-            warningLimit: 0,
-            actionLimit: 0,
+            warningLimit: defaults.warningLimit,
+            actionLimit: defaults.actionLimit,
             controlMaterialId: materialId,
             validationNotes: ''
         });

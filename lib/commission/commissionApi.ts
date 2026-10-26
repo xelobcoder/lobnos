@@ -143,7 +143,7 @@ export async function getCommissionAssignments(
      let url = `commission/assignments?page=${page}&count=${count}&sortby=${sortby}`;
      if (filterType && filterType !== "all") url += `&filterType=${filterType}`;
      if (filterName) url += `&filterName=${encodeURIComponent(filterName)}`;
-     if (status && status !== "all") url += `&status=${status}`;
+     if (status) url += `&status=${encodeURIComponent(status)}`;
      if (commission_config_id) url += `&commission_config_id=${commission_config_id}`;
      return customFetch(url);
 }

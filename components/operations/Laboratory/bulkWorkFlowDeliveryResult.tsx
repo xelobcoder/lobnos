@@ -70,7 +70,7 @@ export default function BulkWorkFlowResultDeliveryModal({
 	return (
 		<Modal show={show} onHide={()=>{if(!loading)onHide()}} centered size="lg" backdrop="static" keyboard={!loading}>
 			<Modal.Header closeButton={!loading}>
-				<Modal.Title>Bulk Record result delivery ({items.length} items)</Modal.Title>
+				<Modal.Title>Record selected deliveries ({items.length} items)</Modal.Title>
 			</Modal.Header>
 
 			<Modal.Body>
@@ -119,7 +119,7 @@ export default function BulkWorkFlowResultDeliveryModal({
 					Cancel
 				</Button>
 				<Button variant="primary" onClick={handleSubmit} disabled={loading || !deliveredMode}>
-					{loading ? <><Spinner size="sm" className="me-2" />Submitting...</> : `Update ${items.length} Items`}
+					{loading ? <><Spinner size="sm" className="me-2" />Submitting...</> : `Record ${items.length} deliveries`}
 				</Button>
 			</Modal.Footer>
 		</Modal>

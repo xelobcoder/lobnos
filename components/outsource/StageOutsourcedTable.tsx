@@ -2,12 +2,22 @@
 import React from 'react';
 import PrimeTable from '../accessories/Datatables/PrimeTable';
 import { customFetch, customPost } from '../Auth/customFetch';
-import { Test } from '../../app/operations/laboratory/outsourced/[stage]/page';
+type OutsourcedTestRow = {
+    testid: number | string;
+    serviceid: number | string;
+    billingid: number | string;
+    name: string;
+    testprice: number | string;
+    organizationType: string;
+    outsourcingorganizationName: string | null;
+    requestedby: string | null;
+    completedby: string | null;
+};
 import { useApplicationSettings } from '../Auth/useApplicationContext';
 import { ToastContainer, toast } from 'react-toastify';
 
 export default function StageOutsourcedTable({ data, stage }: {
-    data: Test[], stage: "resolved" | "unresolved"
+    data: OutsourcedTestRow[], stage: "resolved" | "unresolved"
 }) {
     const employeeid = useApplicationSettings().applicationsettings.user.employeeid;
 
@@ -54,7 +64,7 @@ export default function StageOutsourcedTable({ data, stage }: {
     const handleSeverSideProcessing = async (pagination: { count: number, page: number }) => {
         try {
             const { count, page } = pagination;
-            const response: Test[] = await customFetch(`outsourced/testpanel/${stage}?count=${count}&page=${page}`);
+            const response: OutsourcedTestRow[] = await customFetch(`outsourced/testpanel/${stage}?count=${count}&page=${page}`);
 
             if (response && Array.isArray(response)) {
                 return { result: response, error: false };

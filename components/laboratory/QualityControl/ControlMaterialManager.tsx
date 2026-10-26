@@ -279,8 +279,8 @@ export function ControlMaterialManager() {
 
     return (
         <div>
-            <Row className="">
-                <Col className='d-flex justify-content-end'>
+            <Row className="mb-3">
+                <Col><h3>Control materials</h3></Col><Col xs="auto" className='d-flex justify-content-end'>
                     <Button
                         variant="outline-primary"
                         size='sm'

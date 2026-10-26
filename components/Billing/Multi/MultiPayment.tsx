@@ -140,7 +140,7 @@ const MultiPayment: React.FC<MultiPaymentProps> = ({ handlesubmit, inline=false,
                 }}
                 handlesubmit={handlesubmit}
                 payments={payments}
-                availableModes={availableModes}
+                availableModes={renderPayment ? paymentModes : availableModes}
                 payable={payable}
                 setNewPayment={setNewPayment}
                 setBillingData={setBillingData}

@@ -48,18 +48,18 @@ export function QCParameterInput({ parameter, reading, onReadingChange }: QCPara
 
     return (
         <div className={`${styles.parameterInput} ${getStatusClass()}`} data-parameter={parameter.parameter}>
-            <Form.Group>
+            <Form.Group controlId={`qc-reading-${parameter.id}`}>
                 <Form.Label>{parameter.parameter}</Form.Label>
                 {renderTargetValue()}
                 <Form.Control 
                     type="number" 
                     step="0.0001"
                     key={parameter.id}
-                    defaultValue={reading?.value || ''}
+                    value={reading?.value ?? ''}
                     onChange={(e) => onReadingChange(parameter.id,parameter.parameter, e.target.value)}
                     required
                 />
-                {parameter.standardDeviation && parameter.standardDeviation !== '0' && reading?.status && (
+                {parameter.standardDeviation && parameter.standardDeviation !== '0' && (reading?.status==='warning'||reading?.status==='critical') && (
                     <Form.Text className={`text-${reading.status}`}>
                         {reading.status === 'warning' ? 'Warning: ' : 'Critical: '}
                         Value outside limits

@@ -35,10 +35,10 @@ export function QCReadingForm({
             <Col md={6}>
                 <Card className={styles.readingCard}>
                     <Card.Body>
-                        <h5 className="mb-4">QC Reading Entry</h5>
+                        <h5 className="mb-4">Create a QC session</h5>
                         <Form>
                             <Form.Group className="mb-3">
-                                <Form.Label>Device</Form.Label>
+                                <Form.Label htmlFor="qc-session-device">Device</Form.Label>
                                 <Select
                                     value={selectedDevice}
                                     onChange={onDeviceChange}
@@ -46,13 +46,14 @@ export function QCReadingForm({
                                     styles={reactSelectCustomStyles}
                                     placeholder={loadingDevices ? "Loading devices..." : "Select Device"}
                                     isLoading={loadingDevices}
-                                    isDisabled={loadingDevices}
+                                    isDisabled={loadingDevices || loadingParameters}
                                     instanceId="device-select"
+                                    inputId="qc-session-device"
                                 />
                             </Form.Group>
                             
                             <Form.Group className="mb-3">
-                                <Form.Label>Control Material</Form.Label>
+                                <Form.Label htmlFor="qc-session-control">Control material</Form.Label>
                                 <Select
                                     value={selectedControl}
                                     onChange={onControlChange}
@@ -60,8 +61,9 @@ export function QCReadingForm({
                                     styles={reactSelectCustomStyles}
                                     placeholder={loadingControls ? "Loading controls..." : "Select Control Material"}
                                     isLoading={loadingControls}
-                                    isDisabled={!selectedDevice || loadingControls}
+                                    isDisabled={!selectedDevice || loadingControls || loadingParameters}
                                     instanceId="control-material-select"
+                                    inputId="qc-session-control"
                                 />
                             </Form.Group>
 
@@ -71,7 +73,7 @@ export function QCReadingForm({
                                     disabled={!selectedDevice || !selectedControl || loadingParameters}
                                     onClick={onContinue}
                                 >
-                                    {loadingParameters ? "Loading Parameters..." : "Continue to Results Entry"}
+                                    {loadingParameters ? "Creating session…" : "Create QC session"}
                                 </Button>
                             </div>
                         </Form>
@@ -82,7 +84,7 @@ export function QCReadingForm({
             <Col md={6}>
                 <Card className={`${styles.readingCard} ${styles.recentRecords}`}>
                     <Card.Body>
-                        <h5 className="mb-3">Recent Records</h5>
+                        <h5 className="mb-3">Session selection</h5>
                         {selectedDevice && selectedControl ? (
                             <div className={styles.deviceInfo}>
                                 <div className={styles.deviceName}>
@@ -94,7 +96,7 @@ export function QCReadingForm({
                             </div>
                         ) : (
                             <div className="text-muted">
-                                Select a device and control material to view recent QC records
+                                Choose a device first, then select its control material. After creating the session, open QC sessions to review and record its results.
                             </div>
                         )}
                     </Card.Body>

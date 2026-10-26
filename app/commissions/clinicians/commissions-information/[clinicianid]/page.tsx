@@ -128,7 +128,7 @@ export default function ClinicianCommissionPage(props: { params: Promise<{ clini
             const payload = {
                 startDate, endDate, commissionDue: Number(selectedCommissionDue.toFixed(2)), settlementMode, waiverReason, amountPaid: amount,
                 commissionType: "paid", paymentMethod: bulkPayMethod, employeeid,
-                recipient_type: "clinician", branchid, recipientid: params.clinicianid,
+                recipient_type: "clinician", branchid, recipientid: Number(params.clinicianid),
                 services: Array.from(selectedRecords).map(index => commissionData[index].serviceid),
             };
             const response = await customPost("commission-payments/commission/batch/process-services?employeeid=" + employeeid + "&branchid=" + branchid, "POST", payload);

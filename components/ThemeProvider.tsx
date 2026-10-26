@@ -47,8 +47,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                // Set default layout structure to sidebar-full
                root.setAttribute('data-layout-structure', 'sidebar-full');
                // Apply saved font preference
-               const savedFont = getFontPreference();
-               applyFontToDocument(savedFont);
+               if (!root.style.getPropertyValue('--theme-font-family')) {
+                    applyFontToDocument(getFontPreference());
+               }
                localStorage.setItem('theme', theme);
           }
      }, [theme, mounted]);

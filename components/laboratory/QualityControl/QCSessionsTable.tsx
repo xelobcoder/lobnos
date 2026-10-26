@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { customFetch, customFetchMutation } from '../../Auth/customFetch';
 import { roleAllowed } from '../../Auth/roles';
 import { Modal, Table, Button, Spinner, Form } from 'react-bootstrap';
-import PrimeTable from '../../accessories/Datatables/PrimeTable';
+
 import { toast } from 'react-toastify';
-import { handleServerSideQCSessions } from '../../serverActions/ActionFiltering';
+
 import globalStyles from '../../../styles/SmsTemplateList.module.css'; // Existing global styles
 import chartComponentStyles from './Chart.module.css';
 import { RiCheckFill, RiErrorWarningFill, RiCloseCircleFill } from '@remixicon/react';
@@ -120,65 +120,32 @@ export const QCSessionsTable: React.FC = () => {
     const currentUser = useApplication()?.user;
     const employeeId = Number(currentUser?.employeeid);
     const canBypassQc = roleAllowed(currentUser?.role, ['admin']);
+    const [listError,setListError]=useState(''),[readingsError,setReadingsError]=useState(''),[reviewError,setReviewError]=useState(''),[reviewedSession,setReviewedSession]=useState<QCSession|null>(null),[chartsOpen,setChartsOpen]=useState(false);
+    const listRequest=useRef(0),readingRequest=useRef(0),reviewLock=useRef(false);
 
     useEffect(() => {
         fetchSessions(rows, currentPage);
     }, [currentPage, rows]);
 
-    const fetchSessions = async (limit: number, page: number) => {
-        setLoading(true);
-        try {
-            const response: FetchResponse = await customFetch(`qc-sessions?limit=${limit}&page=${page}`);
-            if (response?.data && Array.isArray(response.data)) {
-                setSessions(response.data);
-                setTotalRecords(response.total || 0);
-                setTotalPages(response.totalPages || 0);
-            } else {
-                setSessions([]); setTotalRecords(0); setTotalPages(0);
-            }
-        } catch (error) {
-            console.error('Error fetching QC sessions:', error);
-            toast.error('Failed to fetch QC sessions.');
-            setSessions([]); setTotalRecords(0); setTotalPages(0);
-        } finally {
-            setLoading(false);
-        }
+    const fetchSessions = async (limit:number,page:number) => {
+        const request=++listRequest.current;setLoading(true);setListError('');
+        try{const response:FetchResponse=await customFetch(`qc-sessions?limit=${limit}&page=${page}`);if(request!==listRequest.current)return;
+            if(!Array.isArray(response?.data))throw Error('QC sessions could not be loaded');
+            const last=Math.max(1,Number(response.totalPages)||1);if(page>last){setCurrentPage(last);return}
+            setSessions(response.data);setTotalRecords(Number(response.total)||0);setTotalPages(last);
+        }catch{if(request!==listRequest.current)return;setListError('QC sessions could not be loaded. Please retry.');setSessions([])}
+        finally{if(request===listRequest.current)setLoading(false)}
     };
 
     const fetchReadings = async (session: QCSession) => {
-        const sessionId = session.id;
-        setReadingsLoading(true);
+        const request=++readingRequest.current;setReviewedSession(session);setDisplayReadingsModal(true);setReadingsLoading(true);setReadingsError('');setReviewError('');setCurrentReadings([]);setWestgardViolations({});setChartsOpen(false);
         try {
-            const response: QCReading[] = await customFetch(`qc-readings/session/${sessionId}?page=1&limit=100`);
-            if (response && Array.isArray(response) && response.length > 0) {
-                const defaultMean = response[0]?.mean || response[0]?.value;
-                const readingsWithMean = response.map(reading => ({
-                    ...reading,
-                    mean: reading.mean || defaultMean || reading.value
-                }));
-                const violations = evaluateWestgardRules(readingsWithMean);
-                setWestgardViolations(violations);
-                setCurrentReadings(readingsWithMean);
-                setDisplayReadingsModal(true);
-            } else {
-                setCurrentReadings([]);
-                setWestgardViolations({});
-                if (response && response.length === 0) {
-                    toast.info("No readings found for this session.");
-                    // Redirect to the QC recording page
-                    router.push(`/operations/laboratory/quality-control/qc-recording/${sessionId}?controlmaterialId=${session.controlMaterialId}`);
-                } else {
-                    toast.info("Unexpected data format for readings.");
-                }
-            }
-        } catch (error) {
-            console.error(`Error fetching readings for session ${sessionId}:`, error);
-            setCurrentReadings([]);
-            setWestgardViolations({});
-            toast.error("Something went wrong while fetching readings.");
-        } finally {
-            setReadingsLoading(false);
-        }
+            const response=await customFetch(`qc-readings/session/${session.id}?page=1&limit=100`);
+            if(request!==readingRequest.current)return;
+            if(!Array.isArray(response))throw Error('Readings could not be loaded');
+            setCurrentReadings(response);setWestgardViolations(evaluateWestgardRules(response));
+        }catch(error:any){if(request===readingRequest.current)setReadingsError(error.message||'Readings could not be loaded')}
+        finally{if(request===readingRequest.current)setReadingsLoading(false)}
     };
 
     const evaluateWestgardRules = (readings: QCReading[]): { [key: string]: WestgardViolation[] } => {
@@ -190,7 +157,7 @@ export const QCSessionsTable: React.FC = () => {
         sortedReadings.forEach((reading, index) => {
             violations[reading.id] = [];
             const value = parseFloat(reading.value);
-            const mean = parseFloat(reading.mean || reading.value);
+            const mean = parseFloat(reading.mean || '');
             const sd = parseFloat(reading.standardDeviation);
 
             if (isNaN(value) || isNaN(mean) || isNaN(sd) || sd === 0) {
@@ -205,7 +172,7 @@ export const QCSessionsTable: React.FC = () => {
                 const prevReading = sortedReadings[index - 1];
                 if (prevReading.parameterId === reading.parameterId) {
                     const prevValue = parseFloat(prevReading.value);
-                    const prevMean = parseFloat(prevReading.mean || prevReading.value);
+                    const prevMean = parseFloat(prevReading.mean || '');
                     const prevSd = parseFloat(prevReading.standardDeviation);
                     if (!isNaN(prevValue) && !isNaN(prevMean) && !isNaN(prevSd) && prevSd !== 0) {
                         const prevZScore = (prevValue - prevMean) / prevSd;
@@ -220,7 +187,7 @@ export const QCSessionsTable: React.FC = () => {
             }
             const relevantPrevReadings = sortedReadings.slice(0, index).filter(r => r.parameterId === reading.parameterId).reverse();
             if (relevantPrevReadings.length >= 3) {
-                const lastFourZScores = [zScore, ...relevantPrevReadings.slice(0, 3).map(r => (parseFloat(r.value) - parseFloat(r.mean || r.value)) / parseFloat(r.standardDeviation))].filter(z => !isNaN(z));
+                const lastFourZScores = [zScore, ...relevantPrevReadings.slice(0, 3).map(r => (parseFloat(r.value) - parseFloat(r.mean || '')) / parseFloat(r.standardDeviation))].filter(z => !isNaN(z));
                 if (lastFourZScores.length === 4 && lastFourZScores.every(z => Math.abs(z) > 1) && lastFourZScores.every(z_ => Math.sign(z_) === Math.sign(lastFourZScores[0]))) {
                     violations[reading.id].push({ rule: '4_1s', description: '4 consecutive points > ±1SD (same side).' });
                 }
@@ -257,7 +224,7 @@ export const QCSessionsTable: React.FC = () => {
     };
 
     const hideReadingsModal = () => {
-        setDisplayReadingsModal(false); setCurrentReadings([]); setWestgardViolations({});
+        readingRequest.current++;setReviewedSession(null);setDisplayReadingsModal(false); setCurrentReadings([]); setWestgardViolations({});
     };
 
     const handleNewReading = (session: QCSession) => {
@@ -265,11 +232,12 @@ export const QCSessionsTable: React.FC = () => {
     };
 
     const reviewSession = async (session: QCSession, decision: 'accepted' | 'bypassed', reason?: string) => {
+        if(reviewLock.current)return false;
         if (!employeeId) {
             toast.error('Your employee session could not be identified.');
             return false;
         }
-        setReviewingSessionId(session.id);
+        reviewLock.current=true;setReviewingSessionId(session.id);setReviewError('');
         try {
             const action = decision === 'accepted' ? 'accept-for-results' : 'bypass-for-results';
             const response = await customFetchMutation(`qc-sessions/${session.id}/${action}?employeeid=${employeeId}`, 'POST', decision === 'bypassed' ? { reason } : {});
@@ -278,10 +246,10 @@ export const QCSessionsTable: React.FC = () => {
             await fetchSessions(rows, currentPage);
             return true;
         } catch (error: any) {
-            toast.error(error?.message || error?.error || 'Could not save QC review');
+            setReviewError(error?.message || error?.error || 'Could not save QC review');toast.error(error?.message || error?.error || 'Could not save QC review');
             return false;
         } finally {
-            setReviewingSessionId(null);
+            reviewLock.current=false;setReviewingSessionId(null);
         }
     };
 
@@ -295,47 +263,6 @@ export const QCSessionsTable: React.FC = () => {
             setBypassReason('');
         }
     };
-
-    const columns = [
-        { accessor: 'control_material_name', Header: 'Material Name' },
-        { accessor: 'created_by_username', Header: 'Created By' },
-        {
-            accessor: 'createdAt', Header: 'Created At',
-            Cell: ({ value }: { value: string }) => value ? new Date(value).toLocaleString() : 'N/A'
-        },
-        {
-            accessor: 'actions', Header: 'Actions', Cell: ({ row }: { row: { original: QCSession } }) => (
-                <div className="d-flex flex-wrap align-items-center gap-2">
-                    <Button variant="outline-primary" size='sm' onClick={() => fetchReadings(row.original)}>View Readings</Button>
-                    <Button
-                        variant="outline-primary"
-                        size="sm"
-                        onClick={() => handleNewReading(row.original)}
-                    >
-                        New Reading
-                    </Button>
-                    <Button
-                        variant="success"
-                        size="sm"
-                        disabled={reviewingSessionId === row.original.id}
-                        onClick={() => void reviewSession(row.original, 'accepted')}
-                    >
-                        {reviewingSessionId === row.original.id ? <Spinner size="sm" /> : 'Accept QC'}
-                    </Button>
-                    {canBypassQc && (
-                        <Button
-                            variant="outline-danger"
-                            size="sm"
-                            disabled={reviewingSessionId === row.original.id}
-                            onClick={() => setBypassSession(row.original)}
-                        >
-                            Bypass QC
-                        </Button>
-                    )}
-                </div>
-            )
-        }
-    ];
 
     const formatNumericString = (valueStr: string | null | undefined, decimalPlaces: number = 2): string => {
         if (valueStr === null || valueStr === undefined) return 'N/A';
@@ -353,23 +280,23 @@ export const QCSessionsTable: React.FC = () => {
 
     return (
         <div>
-            <h3>QC Sessions</h3>
-            <PrimeTable column={columns} data={sessions || []} serverSideFiltering={true} handleSeverSideProcessing={handleServerSideQCSessions} filtering={true} />
+            <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3"><span className="text-muted">{totalRecords} sessions · Page {currentPage} of {Math.max(1,totalPages)}</span><div className="d-flex align-items-center gap-2"><label htmlFor="qc-page-size">Rows</label><select id="qc-page-size" className="form-select" value={rows} disabled={loading} onChange={e=>{setRows(Number(e.target.value));setCurrentPage(1)}}>{[10,20,50].map(n=><option key={n} value={n}>{n}</option>)}</select><Button variant="outline-primary" disabled={loading} onClick={()=>void fetchSessions(rows,currentPage)}>Refresh sessions</Button></div></div>
+            {listError?<div role="alert" className="alert alert-danger">{listError} <Button variant="outline-danger" onClick={()=>void fetchSessions(rows,currentPage)}>Retry sessions</Button></div>:loading?<div role="status" className="p-4">Loading QC sessions…</div>:!sessions.length?<div className="p-4 text-center text-muted">No QC sessions found. Use New QC session to begin.</div>:<><div className="table-responsive" role="region" aria-label="QC session list" tabIndex={0}><Table><thead><tr><th>Control material / session</th><th>Created by</th><th>Created</th><th>Actions</th></tr></thead><tbody>{sessions.map(session=><tr key={session.id}><td><strong>{session.control_material_name}</strong><small className="d-block text-muted">{session.id}</small></td><td>{session.created_by_username||'Not recorded'}</td><td>{session.createdAt?new Date(session.createdAt).toLocaleString():'Not recorded'}</td><td><div className="d-flex flex-wrap gap-2"><Button variant="outline-primary" disabled={reviewingSessionId!==null} onClick={()=>void fetchReadings(session)}>Review results</Button><Button variant="outline-secondary" disabled={reviewingSessionId!==null} onClick={()=>handleNewReading(session)}>Record readings</Button>{canBypassQc&&<Button variant="outline-danger" disabled={reviewingSessionId!==null} onClick={()=>{setBypassReason('');setReviewError('');setBypassSession(session)}}>Bypass QC</Button>}</div></td></tr>)}</tbody></Table></div><div className="d-flex justify-content-between align-items-center mt-3"><Button variant="outline-primary" disabled={currentPage===1||loading} onClick={()=>setCurrentPage(p=>p-1)}>Previous page</Button><span>Page {currentPage}</span><Button variant="outline-primary" disabled={currentPage>=totalPages||loading} onClick={()=>setCurrentPage(p=>p+1)}>Next page</Button></div></>}
 
 
             <Modal
                 show={Boolean(bypassSession)}
-                onHide={() => { setBypassSession(null); setBypassReason(''); }}
+                onHide={() => { if(!reviewingSessionId){setBypassSession(null);setBypassReason('')} }}
                 animation={false}
                 centered={false}
                 dialogClassName="mt-3"
             >
-                <Modal.Header closeButton>
+                <Modal.Header closeButton={!reviewingSessionId}>
                     <Modal.Title>Record QC Bypass</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <p className="mb-2">A reason will be recorded in the QC audit trail.</p>
-                    <Form.Group>
+                    {reviewError&&<div role="alert" className="alert alert-danger">{reviewError}</div>}<Form.Group controlId="qc-bypass-reason">
                         <Form.Label>Reason</Form.Label>
                         <Form.Control
                             as="textarea"
@@ -381,23 +308,23 @@ export const QCSessionsTable: React.FC = () => {
                     </Form.Group>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="outline-secondary" onClick={() => { setBypassSession(null); setBypassReason(''); }}>Cancel</Button>
+                    <Button variant="outline-secondary" disabled={reviewingSessionId!==null} onClick={() => { setBypassSession(null); setBypassReason(''); }}>Cancel</Button>
                     <Button variant="danger" disabled={!bypassReason.trim() || reviewingSessionId !== null} onClick={() => void submitBypass()}>
                         {reviewingSessionId ? <Spinner size="sm" className="me-2" /> : null}Record Bypass
                     </Button>
                 </Modal.Footer>
             </Modal>
 
-            <Modal show={displayReadingsModal} onHide={hideReadingsModal} size="xl" backdrop="static">
-                <Modal.Header closeButton>
-                    <Modal.Title>Session Readings & QC Analysis</Modal.Title>
+            <Modal show={displayReadingsModal} onHide={()=>{if(!reviewingSessionId)hideReadingsModal()}} size="xl" backdrop="static" keyboard={!reviewingSessionId}>
+                <Modal.Header closeButton={!reviewingSessionId}>
+                    <Modal.Title>Review QC results</Modal.Title>
                 </Modal.Header>
-                <Modal.Body style={{ fontFamily: "'Inter', sans-serif" }}> {/* Apply a nice font family */}
+                <Modal.Body><p className="text-muted">{reviewedSession?.control_material_name} · Session {reviewedSession?.id}</p>{reviewError&&<div role="alert" className="alert alert-danger">{reviewError}</div>}
                     {readingsLoading ? (
                         <div className="text-center py-5"><Spinner animation="border" style={{ color: CHART_COLORS.primary }} /> <span style={{ marginLeft: '10px', color: CHART_COLORS.textMuted }}>Loading readings...</span></div>
-                    ) : Object.keys(groupedReadings).length > 0 ? (
+                    ) : readingsError ? <div role="alert" className="alert alert-danger">{readingsError} <Button variant="outline-danger" onClick={()=>reviewedSession&&void fetchReadings(reviewedSession)}>Retry readings</Button></div> : Object.keys(groupedReadings).length > 0 ? (
                         <>
-                            {Object.entries(groupedReadings).map(([parameterKey, data]) => {
+                            <details onToggle={e=>setChartsOpen(e.currentTarget.open)} className="mb-3"><summary className="text-primary">Levey–Jennings charts and analysis</summary>{chartsOpen && Object.entries(groupedReadings).map(([parameterKey, data]) => {
                                 const chartData = prepareChartData(data.readings);
                                 if (chartData.length === 0) {
                                     return (
@@ -532,9 +459,9 @@ export const QCSessionsTable: React.FC = () => {
                                         </div>
                                     </div>
                                 );
-                            })}
+                            })}</details>
 
-                            <h5 className="mt-5 mb-3" style={{ color: CHART_COLORS.text }}>Readings Details</h5>
+                            <h5 className="mt-3 mb-3" style={{ color: CHART_COLORS.text }}>Readings Details</h5>
                             <Table className={globalStyles.table} striped bordered hover responsive size="sm">
                                 <thead>
                                     <tr>
@@ -587,7 +514,7 @@ export const QCSessionsTable: React.FC = () => {
                     )}
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={hideReadingsModal}>Close</Button>
+                    <Button variant="secondary" disabled={reviewingSessionId!==null} onClick={hideReadingsModal}>Close</Button>{reviewedSession&&<Button variant="outline-primary" disabled={readingsLoading||reviewingSessionId!==null} onClick={()=>handleNewReading(reviewedSession)}>Record readings</Button>}<Button variant="success" disabled={readingsLoading||!!readingsError||!currentReadings.length||currentReadings.some(r=>r.status!=='normal')||reviewingSessionId!==null} onClick={async()=>{if(reviewedSession&&await reviewSession(reviewedSession,'accepted'))hideReadingsModal()}}>{reviewingSessionId?'Saving review…':'Accept QC for results'}</Button>
                 </Modal.Footer>
             </Modal>
         </div>

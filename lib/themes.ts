@@ -105,7 +105,10 @@ export const applyApplicationSettingsToDocument = (settings: any) => {
           if (typeof value === 'string' && value.trim()) root.style.setProperty(name, value.trim());
      };
 
-     setIfPresent('--theme-font-family', normalizeFontFamily(settings.fontFamily));
+     const fontFamily=normalizeFontFamily(settings.fontFamily);
+     setIfPresent('--theme-font-family', fontFamily);
+     setIfPresent('--bs-body-font-family', 'var(--theme-font-family)');
+     saveFontPreference(fontFamily);
      setIfPresent('--theme-font-size', settings.fontsize);
      setIfPresent('--theme-text-color', settings.textcolor);
      const headerBackground = settings.headerColor || '#ffffff';
@@ -147,11 +150,12 @@ export const normalizeFontFamily = (fontValue: unknown): string => {
      const value = fontValue.trim();
      const fontName = value.split(',')[0].replace(/["']/g, '').trim().toLowerCase();
      return availableFonts.find((font) =>
-          font.value === value || font.name.toLowerCase() === fontName
+          font.value === value || font.value.toLowerCase() === value.split(',')[0].trim().toLowerCase() || font.name.toLowerCase() === fontName
      )?.value || DEFAULT_FONT_FAMILY;
 };
 
 export const workspaceFontFamily = (settings?: { workspaceLayout?: string; fontFamily?: unknown }): string => {
+     if (typeof settings?.fontFamily === 'string' && settings.fontFamily.trim()) return normalizeFontFamily(settings.fontFamily);
      switch (settings?.workspaceLayout) {
           case 'slack': return 'var(--font-lato), Lato, "Helvetica Neue", Helvetica, Arial, sans-serif';
           case 'ribbon': return '"Segoe UI", var(--font-segoe, "Segoe UI"), Arial, sans-serif';
@@ -187,13 +191,13 @@ export const availableTableThemes = [
 
 export const saveFontPreference = (fontValue: string) => {
      if (typeof window !== 'undefined') {
-          localStorage.setItem('lobnos-font-preference', fontValue);
+          try { localStorage.setItem('lobnos-font-preference', fontValue); } catch { /* Font application must work when browser storage is unavailable. */ }
      }
 };
 
 export const getFontPreference = (): string => {
      if (typeof window !== 'undefined') {
-          return normalizeFontFamily(localStorage.getItem('lobnos-font-preference'));
+          try { return normalizeFontFamily(localStorage.getItem('lobnos-font-preference')); } catch { return DEFAULT_FONT_FAMILY; }
      }
      return DEFAULT_FONT_FAMILY;
 };
@@ -223,4 +227,5 @@ export const applyFontToDocument = (fontValue: string) => {
 
      const root = document.documentElement;
      root.style.setProperty('--theme-font-family', normalizeFontFamily(fontValue));
+     root.style.setProperty('--bs-body-font-family', 'var(--theme-font-family)');
 };

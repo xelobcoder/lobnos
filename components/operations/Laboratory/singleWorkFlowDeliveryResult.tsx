@@ -96,8 +96,8 @@ export default function SingleWorkFlowResultDeliveryModal({
 				<Button variant="secondary" onClick={onHide} disabled={loading}>
 					Cancel
 				</Button>
-				<Button variant="primary" onClick={handleSubmit} disabled={loading}>
-					{loading ? "Submitting..." : "Submit"}
+				<Button variant="primary" onClick={handleSubmit} disabled={loading || !deliveredMode}>
+					{loading ? "Submitting..." : "Record delivery"}
 				</Button>
 			</Modal.Footer>
 		</Modal>

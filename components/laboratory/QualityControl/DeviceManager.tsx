@@ -167,7 +167,7 @@ export function DeviceManager() {
 
 
     if (loading) {
-        <div className="text-center p-4">Loading...</div>
+        return <div role="status" className="text-center p-4">Loading laboratory devices…</div>;
     }
 
     const handleServerFiltering = async (pagination: { page: number, count: number }) => {

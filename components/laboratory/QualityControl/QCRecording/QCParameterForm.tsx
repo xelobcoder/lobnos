@@ -32,8 +32,8 @@ export function QCParameterForm({
             <Card.Body>
                 <div className="d-flex justify-content-between align-items-center mb-4">
                     <h5>Enter Control Readings</h5>
-                    <Button variant="outline-secondary" onClick={onCancel}>
-                        Back to Selection
+                    <Button variant="outline-secondary" disabled={isSubmitting} onClick={onCancel}>
+                        Back to QC sessions
                     </Button>
                 </div>
 
@@ -47,7 +47,7 @@ export function QCParameterForm({
                     </Alert>
                 )}
 
-                <Form onSubmit={onSubmit}>
+                <Form onSubmit={onSubmit}><fieldset disabled={isSubmitting}>
                     <Row>
                         {controlParameters.map(parameter => (
                             <Col md={6} key={parameter.id}>
@@ -87,7 +87,7 @@ export function QCParameterForm({
                             Cancel
                         </Button>
                     </div>
-                </Form>
+                </fieldset></Form>
             </Card.Body>
         </Card>
     );

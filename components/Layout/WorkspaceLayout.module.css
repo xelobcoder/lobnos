@@ -15,7 +15,8 @@
     grid-template-areas: "header header" "sidebar content";
     grid-template-columns: auto minmax(0, 1fr);
     grid-template-rows: var(--header-height) minmax(0, 1fr);
-    font-family: var(--font-inter), Inter, "Source Sans Pro", Helvetica, Arial, sans-serif;
+    font-family: var(--theme-font-family, var(--font-inter));
+    font-weight: 400;
     font-size: 13px;
     line-height: 1.6;
     background: var(--workspace-content-bg);
@@ -140,7 +141,7 @@
     background: #2366da;
     color: white;
     font-size: 10px;
-    font-weight: 750;
+    font-weight: 600;
     letter-spacing: -0.03em;
 }
 
@@ -207,7 +208,7 @@
     background: #d97757;
     color: #fff;
     font-size: 9px;
-    font-weight: 750;
+    font-weight: 600;
     letter-spacing: -0.04em;
 }
 
@@ -378,7 +379,7 @@
 .claudeAccountText strong {
     color: var(--workspace-text);
     font-size: 12px;
-    font-weight: 550;
+    font-weight: 500;
 }
 
 .claudeAccountText small {
@@ -409,7 +410,7 @@
     background: #2366da;
     color: #fff;
     font-size: 11px;
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .brandText {
@@ -421,7 +422,7 @@
 
 .brandText strong {
     font-size: 13px;
-    font-weight: 650;
+    font-weight: 500;
     letter-spacing: -0.03em;
     line-height: 1.35;
 }
@@ -656,7 +657,6 @@
     --workspace-selected-text: #3f0e40;
     --workspace-content-bg: #f8f8f8;
     grid-template-rows: 58px minmax(0, 1fr);
-    --theme-font-family: var(--font-lato), Lato, "Helvetica Neue", Helvetica, Arial, sans-serif;
     --bs-body-font-family: var(--theme-font-family);
     font-family: var(--theme-font-family);
     line-height: 1.45;
@@ -712,7 +712,7 @@
     border-radius: 7px;
     color: #ffffff;
     font-size: 9px;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: -0.03em;
 }
 
@@ -720,7 +720,7 @@
     overflow: hidden;
     color: var(--workspace-text);
     font-size: 14px;
-    font-weight: 650;
+    font-weight: 500;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -740,7 +740,7 @@
     border-radius: 6px;
     color: var(--workspace-muted);
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.01em;
 }
 
@@ -797,7 +797,7 @@
 .slackLayout .active:hover {
     background: var(--workspace-selected);
     color: var(--workspace-selected-text);
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .slackLayout .active .icon,
@@ -842,7 +842,6 @@
 
 .shell.portalLayout,
 :global(html[data-layout-structure="sidebar-full"]) .shell.portalLayout {
-    --theme-font-family: var(--font-inter), Inter, "Segoe UI", Helvetica, Arial, sans-serif;
     --theme-header-bg: #fff;
     --theme-header-text: #111827;
     --theme-header-border: #e9ecef;

@@ -1,134 +1,18 @@
-"use client"
-import React, { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
+'use client';
+import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { customFetch, customPost } from '../../../Auth/customFetch';
 import { DeviceOption, ControlMaterialOption } from './types';
 import { QCReadingForm } from './QCReadingForm';
 import { fetchDevices } from '../lib';
 import { useApplication } from '../../../Auth/useApplicationContext';
-
-interface Device {
-    id: string;
-    deviceName: string;
-    model: string;
-}
-
-interface Control {
-    id: string;
-    name: string;
-    lotNumber: string;
-}
-
-
-
-export function QCSessionCreator() {
-    const [selectedDevice, setSelectedDevice] = useState<DeviceOption | null>(null);
-    const [selectedControl, setSelectedControl] = useState<ControlMaterialOption | null>(null);
-    const [devices, setDevices] = useState<DeviceOption[]>([]);
-    const [loadingDevices, setLoadingDevices] = useState(false);
-    const [controlMaterials, setControlMaterials] = useState<ControlMaterialOption[]>([]);
-    const [loadingControls, setLoadingControls] = useState(false);
-    const [loadingParameters, setLoadingParameters] = useState(false);
-    const EMPLOYEEID = useApplication().user.employeeid;
-
-    useEffect(() => {
-        getUserDevices();
-    }, []);
-
-    const getUserDevices = async () => {
-        try {
-            setLoadingDevices(true);
-            const response = await fetchDevices();
-            if (!response) throw new Error('Failed to fetch devices');
-            
-            const deviceOptions = response.map((device: Device) => ({
-                value: device.id,
-                label: `${device.deviceName} (${device.model})`,
-                device: device
-            }));
-            setDevices(deviceOptions);
-        } catch (error: any) {
-            console.error('Failed to load devices:', error);
-            toast.error(error.message || 'Failed to load devices');
-        } finally {
-            setLoadingDevices(false);
-        }
-    };
-
-    const fetchControlMaterials = async (deviceId: string) => {
-        try {
-            setLoadingControls(true);
-            const response = await customFetch(`controlmaterials/device/${deviceId}`);
-            if (!response) throw new Error('Failed to fetch control materials');
-            
-            const controlOptions = response.map((control: Control) => ({
-                value: control.id,
-                label: `${control.name} (${control.lotNumber})`,
-                control: control
-            }));
-            
-            setControlMaterials(controlOptions);
-        } catch (error: any) {
-            console.error('Failed to load control materials:', error);
-            toast.error(error.message || 'Failed to load control materials');
-        } finally {
-            setLoadingControls(false);
-        }
-    };
-
-    const handleDeviceChange = (selected: DeviceOption | null) => {
-        setSelectedDevice(selected);
-        setSelectedControl(null);
-        setControlMaterials([]);
-        if (selected?.value) {
-            fetchControlMaterials(selected.value);
-        }
-    };
-
-    const handleControlChange = (selected: ControlMaterialOption | null) => {
-        setSelectedControl(selected);
-    };
-
-    const createSession = async () => {
-        if (!selectedDevice || !selectedControl) {
-            toast.error('Please select device and control material first');
-            return;
-        }
-
-        try {
-            setLoadingParameters(true); // Set loadingParameters to true before API call
-            const sessionData = {
-                controlMaterialId: selectedControl.value,
-                createdby: EMPLOYEEID,
-                updatedby: EMPLOYEEID
-            };
-
-            const response = await customPost('qc-sessions', 'POST', sessionData);
-            if (response.status === true ) {
-                toast.success('QC session created successfully');
-            } else {
-                throw new Error('Failed to create QC session');
-            }
-        } catch (error: any) {
-            console.error('Error creating QC session:', error);
-            toast.error(error.message || 'Failed to create QC session');
-        } finally {
-            setLoadingParameters(false); 
-        }
-    };
-
-    return (
-        <QCReadingForm
-            selectedDevice={selectedDevice}
-            selectedControl={selectedControl}
-            devices={devices}
-            controlMaterials={controlMaterials}
-            loadingDevices={loadingDevices}
-            loadingControls={loadingControls}
-            loadingParameters={loadingParameters} 
-            onDeviceChange={handleDeviceChange}
-            onControlChange={handleControlChange}
-            onContinue={createSession}
-        />
-    );
+export function QCSessionCreator(){
+ const router=useRouter(),employeeid=useApplication()?.user?.employeeid;
+ const [device,setDevice]=useState<DeviceOption|null>(null),[control,setControl]=useState<ControlMaterialOption|null>(null),[devices,setDevices]=useState<DeviceOption[]>([]),[controls,setControls]=useState<ControlMaterialOption[]>([]),[loadingDevices,setLoadingDevices]=useState(true),[loadingControls,setLoadingControls]=useState(false),[saving,setSaving]=useState(false),[error,setError]=useState(''),[revision,setRevision]=useState(0),[unknownCreated,setUnknownCreated]=useState(false),[created,setCreated]=useState<{id:string;controlMaterialId:string}|null>(null);
+ const request=useRef(0),lock=useRef(false);
+ useEffect(()=>{let live=true;setLoadingDevices(true);fetchDevices().then(r=>{if(!live)return;if(!Array.isArray(r))throw Error('Devices could not be loaded');setDevices(r.map(d=>({value:d.id,label:`${d.deviceName} (${d.model})`,device:d})));setError('')}).catch(e=>{if(live)setError(e.message||'Devices could not be loaded')}).finally(()=>{if(live)setLoadingDevices(false)});return()=>{live=false}},[revision]);
+ useEffect(()=>{const id=++request.current;setControls([]);setControl(null);if(!device){setLoadingControls(false);return}setLoadingControls(true);setError('');customFetch(`controlmaterials/device/${device.value}`).then(r=>{if(id!==request.current)return;if(!Array.isArray(r))throw Error('Control materials could not be loaded');setControls(r.map(c=>({value:c.id,label:`${c.name} (${c.lotNumber})`,control:c})))}).catch(e=>{if(id===request.current)setError(e.message||'Control materials could not be loaded')}).finally(()=>{if(id===request.current)setLoadingControls(false)});return()=>{request.current++}},[device,revision]);
+ const recording=(session:{id:string;controlMaterialId:string})=>`/operations/laboratory/quality-control/qc-recording/${encodeURIComponent(session.id)}/${encodeURIComponent(session.controlMaterialId)}`;
+ async function create(){if(lock.current||!device||!control||created)return;lock.current=true;setSaving(true);setError('');try{const r=await customPost('qc-sessions','POST',{controlMaterialId:control.value,createdby:employeeid,updatedby:employeeid});if(r?.status!==true)throw Error(r?.error||r?.message||'QC session could not be created');if(!r.id){setUnknownCreated(true);throw Error('Session created, but its reference was not returned. Open QC sessions before trying again.')}const session={id:String(r.id),controlMaterialId:String(r.controlMaterialId||control.value)};setCreated(session);router.push(recording(session))}catch(e:any){setError(e.message||e.error||'QC session could not be created')}finally{lock.current=false;setSaving(false)}}
+ return <div>{unknownCreated?<div role="alert" className="alert alert-warning">Session creation succeeded, but its reference was not returned. <a href="/operations/laboratory/quality-control?tab=sessions">Find the session before creating another</a>.</div>:null}{error&&<div role="alert" className="alert alert-danger">{error}<button type="button" className="btn btn-outline-danger ms-3" disabled={saving} onClick={()=>setRevision(v=>v+1)}>Reload lists</button></div>}{unknownCreated?null:created?<div role="status" className="alert alert-success">QC session created. <a href={recording(created)}>Continue to record readings</a></div>:<><QCReadingForm selectedDevice={device} selectedControl={control} devices={devices} controlMaterials={controls} loadingDevices={loadingDevices} loadingControls={loadingControls} loadingParameters={saving} onDeviceChange={setDevice} onControlChange={setControl} onContinue={create}/>{!loadingDevices&&!devices.length&&<p className="text-muted">No devices available. Add a device in the Devices tab first.</p>}{device&&!loadingControls&&!controls.length&&!error&&<p className="text-muted">No control materials found for this device. Add a material in the Control materials tab.</p>}</>}</div>
 }

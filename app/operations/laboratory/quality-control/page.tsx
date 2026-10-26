@@ -1,69 +1,37 @@
 "use client"
-import React, { useState } from 'react'
-import { Tabs, Tab, Container } from 'react-bootstrap'
+import React from 'react'
+import { QualityControlWorkspace } from '../../../../components/laboratory/QualityControl/QualityControlWorkspace'
 import dynamic from 'next/dynamic'
 
 const DeviceManager = dynamic(
   () => import('../../../../components/laboratory/QualityControl/DeviceManager').then(mod => ({ default: mod.DeviceManager })),
-  { loading: () => <div>Loading...</div> }
+  { loading: () => <div role="status" className="p-4">Loading quality-control workspace…</div> }
 )
 
 const QCDashboard = dynamic(
   () => import('../../../../components/laboratory/QualityControl/Dashboard/QCDashboard').then(mod => ({ default: mod.QCDashboard })),
-  { loading: () => <div>Loading...</div> }
+  { loading: () => <div role="status" className="p-4">Loading quality-control workspace…</div> }
 )
 
 const QCSetup = dynamic(
   () => import('../../../../components/laboratory/QualityControl/Setup/QCSetup').then(mod => ({ default: mod.QCSetup })),
-  { loading: () => <div>Loading...</div> }
+  { loading: () => <div role="status" className="p-4">Loading quality-control workspace…</div> }
 )
 
 const ControlMaterialManager = dynamic(
   () => import('../../../../components/laboratory/QualityControl/ControlMaterialManager').then(mod => ({ default: mod.ControlMaterialManager })),
-  { loading: () => <div>Loading...</div> }
+  { loading: () => <div role="status" className="p-4">Loading quality-control workspace…</div> }
 )
 
 const QCSessionsTable = dynamic(
   () => import('../../../../components/laboratory/QualityControl/QCSessionsTable').then(mod => ({ default: mod.QCSessionsTable })),
-  { loading: () => <div>Loading...</div> }
+  { loading: () => <div role="status" className="p-4">Loading quality-control workspace…</div> }
 )
 
 const QCSessionCreator = dynamic(
   () => import('../../../../components/laboratory/QualityControl/QCRecording/QCSessionCreator').then(mod => ({ default: mod.QCSessionCreator })),
-  { loading: () => <div>Loading...</div> }
+  { loading: () => <div role="status" className="p-4">Loading quality-control workspace…</div> }
 )
 
-export default function QualityControlPage() {
-  const [activeTab, setActiveTab] = useState('dashboard')
-
-  return (
-    <Container fluid>
-      <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k || 'dashboard')} className="mb-4">
-        <Tab eventKey="dashboard" title="Dashboard">
-          {activeTab === 'dashboard' && <QCDashboard />}
-        </Tab>
-        
-        <Tab eventKey="devices" title="Devices">
-          {activeTab === 'devices' && <DeviceManager />}
-        </Tab>
-        
-        <Tab eventKey="controls" title="Control Materials">
-          {activeTab === 'controls' && <ControlMaterialManager />}
-        </Tab>
-        
-        <Tab eventKey="setup" title="QC Setup">
-          {activeTab === 'setup' && <QCSetup />}
-        </Tab>
-        
-        <Tab eventKey="new-session" title="New QC Session">
-          {activeTab === 'new-session' && <QCSessionCreator />}
-        </Tab>
-
-        <Tab eventKey="sessions" title="QC Sessions">
-          {activeTab === 'sessions' && <QCSessionsTable />}
-        </Tab>
-        
-      </Tabs>
-    </Container>
-  )
-}
+const panels={dashboard:QCDashboard,sessions:QCSessionsTable,'new-session':QCSessionCreator,controls:ControlMaterialManager,devices:DeviceManager,setup:QCSetup};
+export default function QualityControlPage(){return <QualityControlWorkspace panels={panels}/>}

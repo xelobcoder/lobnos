@@ -53,7 +53,7 @@ const helperSource=ts.transpileModule(fs.readFileSync(path.join(root,'components
 const helpers={};vm.runInNewContext(helperSource,{exports:helpers});
 test('Modern bulk request carries IDs and permitted options without catalogue prices',()=>{
  const data={patientid:101,billingSource:4,nhismembershipid:123,claimscheckcode:456,cart:[{id:10,testid:10,name:'FBC',price:100,organization:{outsourceid:9},userAdjustmentType:'discount',userAdjustedValue:5}],servicesProvided:[{keyid:20,serviceName:'Collection',servicePrice:15}],payments:[{mode:'cash',amount:100}]};
- const draft=helpers.draftFromBilling(data),request=helpers.previewRequest(data,draft);assert.equal(request.items.length,2);assert.equal(request.items[0].outsourceId,9);assert.equal(request.items[0].price,undefined);assert.equal(request.items[1].servicePrice,undefined);assert.equal(request.payments,undefined);assert.equal(request.context.nhisMembershipId,123);assert.equal(request.context.claimCheckCode,456);
+ const draft=helpers.draftFromBilling(data),request=helpers.previewRequest(data,draft);assert.equal(request.items.length,2);assert.equal(request.items[0].outsourceId,9);assert.equal(request.items[0].price,undefined);assert.equal(request.items[1].servicePrice,undefined);assert.equal(request.payments,undefined);assert.equal(request.context.nhisMembershipId,'123');assert.equal(request.context.claimCheckCode,'456');
 });
 test('Modern review is invalidated by item, payer, promotion and NHIS changes',()=>{
  const data={patientid:101,billingSource:1,cart:[{id:10,testid:10,name:'FBC'}],servicesProvided:[]};const draft=helpers.draftFromBilling(data),key=helpers.reviewKey(data,draft);

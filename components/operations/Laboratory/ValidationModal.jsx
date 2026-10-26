@@ -199,7 +199,7 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
                     <Modal.Body>
                          <Button variant="outline-secondary" size="sm" className="mb-2" disabled={validatingSpinner} onClick={getInitData}>Reload latest results</Button>
                          {snapshotError && <p role="alert" className="text-danger">{snapshotError}</p>}
-                         {!snapshotsReady ? <p><Spinner size="sm" /> Loading current result revisions...</p> : <>
+                         {!snapshotsReady ? <p role="status"><Spinner as="span" size="sm" aria-hidden="true" /> Loading current result revisions...</p> : <>
                          {Object.values(snapshots).some(item => item.requires_revalidation) && <div role="alert" className="alert alert-warning">These results were changed after validation. Review the current values and validate again. Previous approvals do not apply to this revision.</div>}
                          <p className="small text-muted">Your approval is recorded as the signed-in user. Final release occurs only after the required validators have approved this result revision.</p>
                          {!isBulk ? (

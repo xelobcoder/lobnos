@@ -30,7 +30,6 @@ import { useApplicationSettings } from "../Auth/useApplicationContext";
 import { Link as LinkType } from "./links/types";
 import { AccountantRoleLinks, AdminRoleLinks, FrontdeskRoleLinks, LaboratoryScientistRoleLinks, PhelobotomyRoleLinks, SonographerRoleLinks, SuperAdminRoleLinks } from "../FrontPageView/RoleLinks";
 import { FontSelector } from "./FontSelector";
-import { getFontPreference, applyFontToDocument } from "../../lib/themes";
 import { useTheme } from "../ThemeProvider";
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { customFetch, customFetchMutation } from '../Auth/customFetch';
@@ -114,10 +113,6 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links: suppliedLink
         setIsMobileSidebarOpen(false);
     }, [modulePath]);
 
-    useEffect(() => {
-        const savedFont = getFontPreference();
-        applyFontToDocument(savedFont);
-    }, []);
 
     useEffect(() => {
         if (daysToExpiration !== undefined && daysToExpiration !== null && daysToExpiration <= 0) {

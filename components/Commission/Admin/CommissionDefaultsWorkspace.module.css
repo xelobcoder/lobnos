@@ -1,0 +1,2 @@
+.workspace h1{font-weight:600}.workspace h2,.workspace h3{font-weight:500}.workspace :global(button){font-weight:500}.current{margin-top:20px;padding-top:16px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px}.current strong{font-weight:500}.guide{font-size:.95em;line-height:1.6}.guide summary{cursor:pointer;color:var(--accent)}.guide p{margin-top:12px!important}
+@media(max-width:600px){.workspace :global(header)>:global(div:last-child){width:100%}.workspace :global(header)>:global(div:first-child){align-items:flex-start}}

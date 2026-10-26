@@ -315,7 +315,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           return false;
      })();
 
-     const handlePaymentSyncing = async () => {
+     const modernSubmitLock=React.useRef(false);
+     const performPaymentSyncing = async () => {
           setIsSyncing(true);
 
           if (paymentMode === 'foc') {
@@ -360,9 +361,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     openPaymentModal: 0,
                };
 
-               setBillingData(newCurrentData);
+               if (!renderPayment || !handlesubmit) setBillingData(newCurrentData);
                if (handlesubmit) {
-                    const result = await handlesubmit(newCurrentData);
+                    const result:any = await handlesubmit(newCurrentData);
+                    if(renderPayment && result?.status!==true && !result?.pending)setPayAllError(result?.message||'Payment was not saved. Your entries are retained; please retry.');
                     if (result?.status === true) {
                          setIsValueSynchronized(true);
                          setIsSyncing(false);
@@ -413,9 +415,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     openPaymentModal: 0,
                };
 
-               setBillingData(newCurrentData);
+               if (!renderPayment || !handlesubmit) setBillingData(newCurrentData);
                if (handlesubmit) {
-                    const result = await handlesubmit(newCurrentData);
+                    const result:any = await handlesubmit(newCurrentData);
+                    if(renderPayment && result?.status!==true && !result?.pending)setPayAllError(result?.message||'Payment was not saved. Your entries are retained; please retry.');
                     if (result?.status === true) {
                          setIsValueSynchronized(true);
                          setIsSyncing(false);
@@ -465,9 +468,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     openPaymentModal: 0,
                };
 
-               setBillingData(newCurrentData);
+               if (!renderPayment || !handlesubmit) setBillingData(newCurrentData);
                if (handlesubmit) {
-                    const result = await handlesubmit(newCurrentData);
+                    const result:any = await handlesubmit(newCurrentData);
+                    if(renderPayment && result?.status!==true && !result?.pending)setPayAllError(result?.message||'Payment was not saved. Your entries are retained; please retry.');
                     if (result?.status === true) {
                          setIsValueSynchronized(true);
                          setIsSyncing(false);
@@ -485,7 +489,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                const hasFreePayment = payAllPayments.some(p => String(p.mode).toLowerCase() === 'free');
 
                const total = payAllPayments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
-               if (!hasFreePayment && total !== payable) {
+               if (!hasFreePayment && (renderPayment ? Math.round(total*100)!==Math.round(payable*100) : total !== payable)) {
                     setPayAllError(`Total payment must equal exactly ${payable.toLocaleString(undefined, { minimumFractionDigits: 2 })}`);
                     setIsSyncing(false);
                     return;
@@ -588,13 +592,14 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     finalServicesList: updatedServices,
                     paid: actualTotalPaid,
                     amountPayable: hasFreePayment ? 0 : billingdata.amountPayable,
-                    payments: [...(billingdata.payments || []), ...payAllPayments],
+                    payments: renderPayment ? payAllPayments.map(p=>({...p,amount:Math.round(Number(p.amount)*100)/100})) : [...(billingdata.payments || []), ...payAllPayments],
                     balance: hasFreePayment ? 0 : Math.max(0, payable - actualTotalPaid),
                     openPaymentModal: 0,
                }
-               setBillingData(newCurrentData);
+               if (!renderPayment || !handlesubmit) setBillingData(newCurrentData);
                if (handlesubmit) {
-                    const result = await handlesubmit(newCurrentData);
+                    const result:any = await handlesubmit(newCurrentData);
+                    if(renderPayment && result?.status!==true && !result?.pending)setPayAllError(result?.message||'Payment was not saved. Your entries are retained; please retry.');
                     if (result?.status === true) {
                          setIsValueSynchronized(true);
                          setIsSyncing(false)
@@ -676,13 +681,14 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     paid: currentTotalPaid,
                     finalCart: updatedCart,
                     finalServicesList: updatedServices,
-                    payments: [...(billingdata.payments || []), { mode: bulkPerTestMode, amount: paymentAmount }],
+                    payments: renderPayment ? [{mode:bulkPerTestMode,amount:paymentAmount}] : [...(billingdata.payments || []), { mode: bulkPerTestMode, amount: paymentAmount }],
                     balance: payable - currentTotalPaid,
                     openPaymentModal: 0,
                }
-               setBillingData(newCurrentData);
+               if (!renderPayment || !handlesubmit) setBillingData(newCurrentData);
                if (handlesubmit) {
-                    const result = await handlesubmit(newCurrentData);
+                    const result:any = await handlesubmit(newCurrentData);
+                    if(renderPayment && result?.status!==true && !result?.pending)setPayAllError(result?.message||'Payment was not saved. Your entries are retained; please retry.');
                     if (result?.status === true) {
                          setIsValueSynchronized(true);
                          setIsSyncing(false);
@@ -695,6 +701,16 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           }
           setIsSyncing(false);
      }
+
+     // Modern drafts are submitted without first committing tentative payment allocations.
+     const handlePaymentSyncing = async () => {
+          if(!renderPayment)return performPaymentSyncing();
+          if(modernSubmitLock.current || isValueSynchronized)return;
+          modernSubmitLock.current=true;setPayAllError('');
+          try{await performPaymentSyncing()}
+          catch(error){setPayAllError(error instanceof Error?error.message:'Payment was not saved. Please retry.');}
+          finally{modernSubmitLock.current=false;setIsSyncing(false)}
+     };
 
      // Request free services authorization
      const handleRequestFreeServiceAuth = async () => {

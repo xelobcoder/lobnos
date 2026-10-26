@@ -117,7 +117,7 @@ export default function OrganizationCommissionDetails(props: { params: Promise<{
                 startDate, endDate, commissionDue: Number(selectedCommissionDue.toFixed(2)), settlementMode, waiverReason,
                 amountPaid: amount, commissionType: "paid", paymentMethod: bulkPayMethod,
                 employeeid, recipient_type: "organization", branchid,
-                recipientid: params.organization, services: Array.from(selectedRecords),
+                recipientid: Number(params.organization), services: Array.from(selectedRecords),
             };
             const response = await customPost(
                 `commission-payments/commission/batch/process-services?employeeid=${employeeid}&branchid=${branchid}`, "POST", payload

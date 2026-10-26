@@ -11,7 +11,6 @@
     --theme-header-bg: var(--bs-primary);
     --theme-header-text: var(--bs-white);
     --theme-header-border: var(--bs-primary);
-    --theme-font-family: "Segoe UI", var(--font-segoe, "Segoe UI"), Arial, sans-serif;
     --bs-body-font-family: var(--theme-font-family);
     --ribbon-surface: var(--bs-body-bg);
     --ribbon-chrome: var(--bs-tertiary-bg);

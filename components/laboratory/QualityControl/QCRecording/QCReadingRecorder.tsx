@@ -1,5 +1,6 @@
 "use client"
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { customFetch, customPost } from '../../../Auth/customFetch';
 import { ControlParameter, Reading, ReadingStatus } from './types';
@@ -19,51 +20,15 @@ export function QCReadingRecorder({ sessionId, controlId }: QCReadingRecorderPro
     const [loadingParameters, setLoadingParameters] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const EMPLOYEEID = useApplication().user.employeeid;
+    const router=useRouter(),submitLock=useRef(false);
 
-    useEffect(() => {
-        if (sessionId && controlId) {
-            loadExistingReadings();
-            handleControlParameters(controlId);
-        }
-    }, [sessionId, controlId]);
-
-    const loadExistingReadings = async () => {
-        try {
-            const response = await customFetch(`qc-readings/session/${sessionId}/${controlId}`);
-            if (response && Array.isArray(response) && response.length > 0) {
-                // Transform the readings into the expected format
-                const existingReadings: Record<string, Reading> = {};
-                response.forEach(reading => {
-                    existingReadings[reading.parameter] = {
-                        value: reading.value,
-                        status: reading.status as ReadingStatus,
-                        parameterId: reading.parameterId,
-                        parameterName: reading.parameter
-                    };
-                });
-                setReadings(existingReadings);
-                setComments(response[0]?.comments || '');
-            }
-        } catch (error: any) {
-            console.error('Error loading existing readings:', error);
-            toast.error(error.message || 'Failed to load existing readings');
-        }
-    };
-
-    const handleControlParameters = async (controlId: string) => {
-        try {
-            setLoadingParameters(true);
-            const response = await customFetch(`controlparameters/material/${controlId}`);
-            if (!response) throw new Error('Failed to fetch control parameters');
-            
-            setControlParameters(response);
-        } catch (error: any) {
-            console.error('Failed to load control parameters:', error);
-            toast.error(error.message || 'Failed to load control parameters');
-        } finally {
-            setLoadingParameters(false);
-        }
-    };
+    const [loadError,setLoadError]=useState(''),[revision,setRevision]=useState(0);
+    useEffect(()=>{let live=true;setLoadingParameters(true);setLoadError('');setReadings({});setControlParameters([]);
+        Promise.all([customFetch(`qc-readings/session/${sessionId}/${controlId}`),customFetch(`controlparameters/material/${controlId}`)]).then(([existing,parameters])=>{
+            if(!live)return;if(!Array.isArray(existing)||!Array.isArray(parameters))throw Error('The session readings and control parameters could not be loaded.');
+            const next:Record<string,Reading>={};existing.forEach(reading=>{next[reading.parameter]={value:reading.value,status:reading.status as ReadingStatus,parameterId:reading.parameterId,parameterName:reading.parameter}});setReadings(next);setControlParameters(parameters);setComments(existing[0]?.comments||'');
+        }).catch(e=>{if(live)setLoadError(e.message||'Unable to load this QC session')}).finally(()=>{if(live)setLoadingParameters(false)});return()=>{live=false}
+    },[sessionId,controlId,revision]);
 
     const parseNumericValue = (value: string) => parseFloat(value);
 
@@ -132,6 +97,7 @@ export function QCReadingRecorder({ sessionId, controlId }: QCReadingRecorderPro
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if(submitLock.current||loadingParameters||loadError||!controlParameters.length)return;
         const errors: string[] = [];
 
         controlParameters.forEach(param => {
@@ -161,8 +127,8 @@ export function QCReadingRecorder({ sessionId, controlId }: QCReadingRecorderPro
         }
 
         try {
-            setIsSubmitting(true);
-            const qcReadings = Object.entries(readings).map(([parameterName, reading]) => ({
+            submitLock.current=true;setIsSubmitting(true);
+            const qcReadings = controlParameters.map(parameter => {const reading=readings[parameter.parameter];return ({
                 sessionId,
                 controlMaterialId: controlId,
                 parameter: reading.parameterName,
@@ -171,24 +137,28 @@ export function QCReadingRecorder({ sessionId, controlId }: QCReadingRecorderPro
                 status: reading.status,
                 createdby: EMPLOYEEID,
                 updatedby: EMPLOYEEID
-            }));
+            })});
 
             const finalReadingData = { readings: qcReadings, sessionId, comments };
             const response: { status: boolean } = await customPost('qc-readings/batch', 'POST', finalReadingData);
 
             if (response.status === true) {
                 toast.success('QC readings saved successfully');
+                router.push(`/operations/laboratory/quality-control?tab=sessions`);
             } else {
-                throw new Error('Failed to save QC readings');
+                throw new Error((response as any)?.error||'Failed to save QC readings');
             }
         } catch (error: any) {
             console.error('Error saving QC readings:', error);
-            toast.error(error.message || 'Failed to save QC readings');
+            setValidationErrors([error.message||'Failed to save QC readings']);
         } finally {
-            setIsSubmitting(false);
+            submitLock.current=false;setIsSubmitting(false);
         }
     };
 
+    if(loadingParameters)return <div role="status" className="p-4">Loading session readings and control parameters…</div>;
+    if(loadError)return <div role="alert" className="alert alert-danger">{loadError} <button className="btn btn-outline-danger" onClick={()=>setRevision(v=>v+1)}>Retry session</button></div>;
+    if(!controlParameters.length)return <div className="alert alert-warning">No control parameters are configured. Configure the material before recording readings. <a href="/operations/laboratory/quality-control?tab=controls">Open control materials</a></div>;
     return (
         <QCParameterForm
             controlParameters={controlParameters}
@@ -199,7 +169,7 @@ export function QCReadingRecorder({ sessionId, controlId }: QCReadingRecorderPro
             onReadingChange={handleReadingChange}
             onCommentsChange={(value) => setComments(value)}
             onSubmit={handleSubmit}
-            onCancel={() => {/* Handle cancel action */}}
+            onCancel={() => {if(!isSubmitting)router.push('/operations/laboratory/quality-control?tab=sessions')}}
         />
     );
 }

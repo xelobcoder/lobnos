@@ -1,58 +1,14 @@
-"use client"
-import React from 'react';
-import { Card, Row, Col, Form, Button } from 'react-bootstrap';
-
-export function QCSetup() {
-    return (
-        <Row>
-            <Col md={6}>
-                <Card className="mb-4">
-                    <Card.Body>
-                        <h5>QC Rules Configuration</h5>
-                        <Form>
-                            <Form.Group className="mb-3">
-                                <Form.Label>Default Warning Limits (SD)</Form.Label>
-                                <Form.Control type="number" defaultValue={2} />
-                            </Form.Group>
-                            <Form.Group className="mb-3">
-                                <Form.Label>Default Action Limits (SD)</Form.Label>
-                                <Form.Control type="number" defaultValue={3} />
-                            </Form.Group>
-                            <Form.Group className="mb-3">
-                                <Form.Check 
-                                    type="checkbox"
-                                    label="Enable Westgard Rules"
-                                    defaultChecked
-                                />
-                            </Form.Group>
-                            <Button variant="primary">Save Rules</Button>
-                        </Form>
-                    </Card.Body>
-                </Card>
-            </Col>
-            <Col md={6}>
-                <Card>
-                    <Card.Body>
-                        <h5>Notification Settings</h5>
-                        <Form>
-                            <Form.Group className="mb-3">
-                                <Form.Check 
-                                    type="checkbox"
-                                    label="Email Notifications"
-                                />
-                            </Form.Group>
-                            <Form.Group className="mb-3">
-                                <Form.Check 
-                                    type="checkbox"
-                                    label="System Notifications"
-                                    defaultChecked
-                                />
-                            </Form.Group>
-                            <Button variant="primary">Save Settings</Button>
-                        </Form>
-                    </Card.Body>
-                </Card>
-            </Col>
-        </Row>
-    );
+'use client';
+import { useEffect, useState } from 'react';
+import { customFetch, customFetchMutation } from '../../../Auth/customFetch';
+import { useApplication } from '../../../Auth/useApplicationContext';
+import { roleAllowed } from '../../../Auth/roles';
+type Settings={warningLimit:number;actionLimit:number;revision:number};
+export function QCSetup(){
+ const canSave=roleAllowed(useApplication()?.user?.role,['admin','manager']);
+ const [saved,setSaved]=useState<Settings|null>(null),[draft,setDraft]=useState({warningLimit:'',actionLimit:''}),[loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState(''),[revision,setRevision]=useState(0);
+ useEffect(()=>{let live=true;setLoading(true);setError('');customFetch('qc/settings').then(r=>{if(!live)return;if(r?.status!==true||!r.settings)throw Error(r?.error||'QC settings could not be loaded');setSaved(r.settings);setDraft({warningLimit:String(r.settings.warningLimit),actionLimit:String(r.settings.actionLimit)});setNotice('')}).catch(e=>{if(live)setError(e.message)}).finally(()=>{if(live)setLoading(false)});return()=>{live=false}},[revision]);
+ const dirty=!!saved&&(Number(draft.warningLimit)!==saved.warningLimit||Number(draft.actionLimit)!==saved.actionLimit);
+ async function save(e:React.FormEvent){e.preventDefault();if(!saved||saving||!canSave)return;const warningLimit=Number(draft.warningLimit),actionLimit=Number(draft.actionLimit);if(!Number.isFinite(warningLimit)||warningLimit<=0||!Number.isFinite(actionLimit)||actionLimit<=warningLimit||actionLimit>100){setError('Use positive limits; the action limit must exceed the warning limit (maximum 100 SD).');return}setSaving(true);setError('');setNotice('');try{const r=await customFetchMutation('qc/settings','PUT',{warningLimit,actionLimit,revision:saved.revision});if(r?.status!==true)throw Error(r?.error||r?.message||'QC settings could not be saved');setSaved(r.settings);setDraft({warningLimit:String(r.settings.warningLimit),actionLimit:String(r.settings.actionLimit)});setNotice('QC defaults saved. Existing control parameters and readings are unchanged.')}catch(e:any){setError(e.message||e.error||'QC settings could not be saved')}finally{setSaving(false)}}
+ return <div><div className="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3"><div><h3>Default control limits</h3><p className="text-muted mb-0">Used when adding new control parameters. Each material keeps its own saved limits.</p></div><button type="button" className="btn btn-outline-primary" disabled={loading||saving} onClick={()=>{if(!dirty||window.confirm('Discard unsaved QC defaults and reload?'))setRevision(v=>v+1)}}>Reload settings</button></div>{error&&<div className="alert alert-danger" role="alert">{error}</div>}{notice&&<div className="alert alert-success" role="status">{notice}</div>}{loading?<div role="status" className="p-3">Loading QC settings…</div>:saved&&<form onSubmit={save}><fieldset disabled={!canSave||saving}><div className="row g-3"><label className="col-sm-6">Warning limit (SD)<input type="number" className="form-control mt-2" min="0.0001" max="100" step="0.0001" required value={draft.warningLimit} onChange={e=>{setDraft({...draft,warningLimit:e.target.value});setNotice('')}}/></label><label className="col-sm-6">Action limit (SD)<input type="number" className="form-control mt-2" min="0.0001" max="100" step="0.0001" required value={draft.actionLimit} onChange={e=>{setDraft({...draft,actionLimit:e.target.value});setNotice('')}}/></label></div><div className="d-flex gap-3 align-items-center mt-3"><button className="btn btn-primary" type="submit" disabled={!dirty}>{saving?'Saving…':'Save QC defaults'}</button><span className="text-muted small">{dirty?'Unsaved changes':'Up to date'}</span></div></fieldset>{!canSave&&<p className="text-muted mt-3">Only administrators and managers can change QC defaults.</p>}</form>}<div className="border rounded p-3 mt-4"><h3>Rules and notifications</h3><p className="mb-2">Westgard analysis remains part of session review. These defaults do not enable, disable or change review rules.</p><p className="text-muted mb-0">Email and system notification preferences are not available here; no notification service is connected to these settings.</p></div></div>
 }

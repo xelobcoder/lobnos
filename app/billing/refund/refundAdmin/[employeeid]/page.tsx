@@ -6,7 +6,7 @@ import { RiErrorWarningLine } from '@remixicon/react';
 
 export default async function RefundAdminPage(
     props: {
-        params: Promise<{ employeeid: number }>,
+        params: Promise<{ employeeid: string }>,
         searchParams?: Promise<{
             status: string,
         }>
@@ -14,7 +14,7 @@ export default async function RefundAdminPage(
 ) {
     const searchParams = await props.searchParams;
     let result: any = [];
-    const { employeeid } = await params;
+    const { employeeid } = await props.params;
     const status = searchParams?.status || 'pending';
 
     try {

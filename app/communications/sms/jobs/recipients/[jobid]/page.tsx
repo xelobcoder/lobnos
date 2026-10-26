@@ -19,7 +19,7 @@ function formatDate(dateStr: string) {
      return d.toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
-const SmsJobRecipientsPage: React.FC<{ params: { jobid: string } }> = props => {
+const SmsJobRecipientsPage: React.FC<{ params: Promise<{ jobid: string }> }> = props => {
      const params = use(props.params);
      const jobid = params.jobid;
      const [recipients, setRecipients] = useState<any[]>([]);
