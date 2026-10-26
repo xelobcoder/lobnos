@@ -586,6 +586,7 @@ export default function AuthenticationIndexPage() {
                                         >
                                              <option value="">Select Role</option>
                                              <option value="admin">Admin</option>
+                                             <option value="cashier">Cashier</option>
                                              <option value="marketer">Marketer</option>
                                              <option value="scientist">Scientist</option>
                                              <option value="customer service representative">Customer Service Representative</option>

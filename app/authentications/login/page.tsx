@@ -187,7 +187,8 @@ export default function PrimeLabLoginPage() {
 			setMessage('Login successful. Redirecting...');
 			const { role } = cookieResult;
 			const destinations: Record<string, string> = {
-				pharmacy_cashier: '/pharmacy/sell',
+				cashier:'/billing/cash-collection',
+                pharmacy_cashier: '/pharmacy/sell',
 				pharmacy_manager: '/pharmacy',
 				pharmacy_storekeeper: '/pharmacy/inventory',
 				pharmacy_dispensary_officer: '/pharmacy/prescriptions',

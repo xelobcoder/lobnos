@@ -4,6 +4,8 @@ import React from 'react';
 import { Card, Row, Col } from 'react-bootstrap';
 import Link from 'next/link';
 import { RiMoneyDollarCircleLine, RiFileTextLine, RiShieldCheckLine, RiBuilding2Line, RiStethoscopeLine, RiRefund2Line, RiCashLine, RiReceiptLine, RiArrowRightLine, RiShoppingCartLine } from '@remixicon/react';
+import {canAccessRolePage} from '../../../lib/roleNavigationPolicy';
+import {canAccessFacilityModule} from '../../../lib/facilityModuleAccess';
 import { useApplication } from '../../../components/Auth/useApplicationContext';
 
 const operationsSections = [
@@ -91,7 +93,9 @@ const operationsSections = [
 ];
 
 export default function CRMOVERVIEWPAGE() {
-     const employeeid = useApplication()?.user?.employeeid;
+     const app=useApplication();
+     const employeeid = app?.user?.employeeid;
+     const sections=operationsSections.filter(section=>canAccessRolePage(app?.user?.role,section.href,app?.settings||{})&&canAccessFacilityModule(section.href,app?.settings?.moduleConfiguration));
 
      return (
           <div className="container-fluid p-3">
@@ -105,7 +109,7 @@ export default function CRMOVERVIEWPAGE() {
 
                                    <div className="flex-grow-1">
                                         <Row className="g-3">
-                                             {operationsSections.map((section, index) => {
+                                             {sections.map((section, index) => {
                                                   const href = section.requiresEmployeeId && employeeid
                                                        ? `${section.href}/${employeeid}`
                                                        : section.href;

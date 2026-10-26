@@ -35,6 +35,8 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { customFetch, customFetchMutation } from '../Auth/customFetch';
 import { roleAllowed } from '../Auth/roles';
 import { canAccessFacilityModule } from '../../lib/facilityModuleAccess';
+import {canAccessRolePage,roleWorkspace} from '../../lib/roleNavigationPolicy';
+import {roleSidebarSource,filterRoleSidebar,roleSidebarQuickLinks} from './links/RoleSidebars';
 
 
 interface PrimeLayoutProps {
@@ -44,7 +46,7 @@ interface PrimeLayoutProps {
 
 const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links: suppliedLinks }) => {
     const { company, user, daysToExpiration, settings } = useApplicationSettings().applicationsettings;
-    const links = user?.role === 'marketer' ? MarketerLinks : suppliedLinks;
+    const links = roleSidebarSource(user?.role,suppliedLinks);
     const { theme, toggleTheme } = useTheme();
     const router = useRouter();
     const modulePath = usePathname();
@@ -86,21 +88,11 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links: suppliedLink
     const [unreadCount, setUnreadCount] = useState<number>(0);
     const normalizedRole = String(user?.role || '').toLowerCase().trim().replace(/_/g, '-');
     const isSuperAdmin = normalizedRole.replace(/[\s-]/g, '') === 'superadmin';
-    const roleLinks = isSuperAdmin ? SuperAdminRoleLinks : (roleViews[user.role] || []).filter(item =>
-        canAccessFacilityModule(item.href || "", settings?.moduleConfiguration, { smsActivated: settings?.smsActivated }));
-    const visibleLinks = useMemo(() => {
-        const filterLinks = (items: LinkType[]): LinkType[] => items
-            .filter((item) => !item.roles || roleAllowed(user?.role, item.roles))
-            .filter((item) => isSuperAdmin || canAccessFacilityModule(item.link || "", settings?.moduleConfiguration,
-                { smsActivated: settings?.smsActivated }))
-            .map((item) => ({
-                ...item,
-                children: item.children ? filterLinks(item.children) : item.children,
-            }))
-            .filter((item) => !item.children || item.children.length > 0 || item.link);
-
-        return filterLinks(links || []);
-    }, [links, user?.role, isSuperAdmin, settings?.moduleConfiguration, settings?.smsActivated]);
+    const workspaceRole=roleWorkspace(user?.role);
+    const useRoleShortcuts=!['admin','superadmin','manager'].includes(workspaceRole);
+    const roleLinks = (useRoleShortcuts ? roleSidebarQuickLinks(user?.role,suppliedLinks,settings||{}) : isSuperAdmin ? SuperAdminRoleLinks : (roleViews[workspaceRole] || [])).filter(item =>
+        canAccessRolePage(user?.role,item.href||'',settings||{}) && (isSuperAdmin||canAccessFacilityModule(item.href||'',settings?.moduleConfiguration,{smsActivated:settings?.smsActivated})));
+    const visibleLinks = useMemo(() => filterRoleSidebar(links||[],user?.role,settings||{}),[links,user?.role,settings]);
     const canViewNotifications = roleAllowed(user?.role, ['admin', 'manager']);
     const activeNavigationPath = useMemo(() => findActiveNavigationPath(visibleLinks, modulePath || ''), [visibleLinks, modulePath]);
     const employeeid = user?.employeeid || 0;
@@ -591,9 +583,9 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links: suppliedLink
                                 </li>)}
                             </ol>
                         </nav>}
-                        {isSuperAdmin || canAccessFacilityModule(modulePath || "", settings?.moduleConfiguration,
-                            { smsActivated: settings?.smsActivated })
-                            ? children : <div className="alert alert-warning" role="alert">This module is not activated for your facility. Contact your platform administrator.</div>}
+                        {canAccessRolePage(user?.role,modulePath||"",settings||{}) && (isSuperAdmin || canAccessFacilityModule(modulePath || "", settings?.moduleConfiguration,
+                            { smsActivated: settings?.smsActivated }))
+                            ? children : <div className="alert alert-warning" role="alert">This page is not available for your active role or facility. Use Switch role to choose an assigned workspace.</div>}
                     </div>
                 </main>
             </div>

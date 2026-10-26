@@ -36,7 +36,7 @@ export function DoctorShellContent({ children }: { children: React.ReactNode }) 
     const roleLabel = ({ external: 'Referring practitioner', facility: 'Facility practitioner', pharmacy: 'Pharmacy practitioner', oversight: 'Clinical oversight', triage: 'Vital signs & triage' } as Record<string,string>)[caps?.practiceType] || 'Practitioner';
     const clinicalLinks = [
         { href:'/doctor', label:'Overview', icon:RiDashboardLine },
-        { href:'/doctor/consultation', label:caps?.practiceType === 'triage' ? 'Patients & vital signs' : 'Consultations', icon:RiStethoscopeLine },
+        ...(!caps?.setupRequired ? [{ href:'/doctor/consultation', label:caps?.practiceType === 'triage' ? 'Patients & vital signs' : 'Consultations', icon:RiStethoscopeLine }] : []),
         ...(caps?.canLab ? [{href:'/doctor/orders',label:'Lab referrals',icon:RiTestTubeLine}] : []),
         ...(caps?.canReadResults ? [{href:'/doctor/validated-test-results',label:'Released results',icon:RiFileCheckLine}] : []),
         ...(caps?.canPrescribe ? [{href:'/doctor/drug-orders',label:'Prescriptions',icon:RiCapsuleLine}] : []),
@@ -62,7 +62,7 @@ export function DoctorShellContent({ children }: { children: React.ReactNode }) 
         <div className={s.content}><header className={s.header}>
             <button ref={menuButton} type="button" className={s.menuButton} aria-label="Open menu" aria-expanded={drawerOpen} aria-controls="doctor-navigation" onClick={()=>setDrawerOpen(open=>!open)}><RiMenuLine size={22}/></button>
             <div className={s.headerTitle}><small>Doctor portal</small><strong>{current}</strong></div>
-            <div className={s.headerRight}><span className={s.date}>{new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</span><span className={s.avatar} aria-hidden="true">{initials}</span><div className={s.profile}><strong>{username}</strong><small>{roleLabel}</small></div><span className={caps ? s.status : s.statusPending}>{caps ? 'Signed in' : error ? 'Check access' : 'Checking access'}</span></div>
+            <div className={s.headerRight}><span className={s.date}>{new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</span><span className={s.avatar} aria-hidden="true">{initials}</span><div className={s.profile}><strong>{username}</strong><small>{roleLabel}</small></div><span className={caps ? s.status : s.statusPending}>{caps?.setupRequired ? 'Setup required' : caps ? 'Signed in' : error ? 'Check access' : 'Checking access'}</span></div>
         </header><div id="doctor-content" className={s.main}>{error && <div role="alert" className={s.error}>{error}</div>}{children}</div></div>
     </div>;
 }

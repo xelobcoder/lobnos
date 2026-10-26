@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
+import {canAccessRolePage,isMasterPlatformPath,roleWorkspace} from './lib/roleNavigationPolicy';
 
 export interface UserPayload {
     user: {
@@ -31,6 +32,7 @@ export async function proxy(request: NextRequest) {
 }
 
 async function routeRequest(request: NextRequest) {
+    if(request.nextUrl.pathname==='/authentication/logout')return NextResponse.next();
     const isLoginPage = request.nextUrl.pathname === '/authentications/login';
     const patientLogin = request.nextUrl.pathname.startsWith('/patientportal');
     const adminPortal = request.nextUrl.pathname === '/patient-portal-admin' || request.nextUrl.pathname.startsWith('/patient-portal-admin/');
@@ -73,6 +75,14 @@ async function routeRequest(request: NextRequest) {
             const currentPath = request.nextUrl.pathname;
             const normalizedRole = role.toString().toLowerCase().trim();
             if(currentPath==='/account/roles'||currentPath==='/account/staff'){if(['patient','clinician'].includes(normalizedRole))return NextResponse.redirect(new URL('/unauthorized',request.url));return NextResponse.next();}
+            const activeRole=roleWorkspace(role);
+            if(isMasterPlatformPath(currentPath)&&activeRole!=='superadmin')return NextResponse.redirect(new URL('/unauthorized',request.url));
+            if(['admin','superadmin'].includes(activeRole)){
+                if(currentPath.startsWith('/patientportal'))return NextResponse.redirect(new URL('/patient-portal-admin',request.url));
+                return NextResponse.next();
+            }
+            if(!canAccessRolePage(role,currentPath,settings||{}))return NextResponse.redirect(new URL('/unauthorized',request.url));
+            if(['crm','cashier','marketer'].includes(activeRole))return NextResponse.next();
             // Pharmacy staff enter their own workspace; API authorization enforces the same boundary.
             const roleKey=normalizedRole.replace(/[\s_-]/g,'');
             if(['pharmacydoctor','pharmacynurse'].includes(roleKey)&&currentPath.startsWith('/doctor'))return NextResponse.next();
@@ -222,6 +232,20 @@ async function routeRequest(request: NextRequest) {
 export const config = {
     matcher: [
         '/account/:path*',
+        '/pharmacy/:path*',
+        '/accounting/:path*',
+        '/organization/:path*',
+        '/clinicians/:path*',
+        '/clinician/:path*',
+        '/appointments/:path*',
+        '/compliance/:path*',
+        '/email-services/:path*',
+        '/sms/:path*',
+        '/human-resource/:path*',
+        '/authentication/:path*',
+        '/master/:path*',
+        '/master-platform/:path*',
+        '/platform/:path*',
         '/dashboard/:path*',
         '/authentications/login',
         '/billing/:path*',
