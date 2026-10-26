@@ -1,19 +1,21 @@
 import React from 'react';
 import { Dropdown } from 'react-bootstrap';
+import TableDropdownMenu from '../accessories/Datatables/TableDropdownMenu';
 import { RiMoreFill, RiUserHeartLine } from '@remixicon/react';
 import { plsEncryption } from '../../lib/encryption';
 import { useApplicationSettings } from '../Auth/useApplicationContext';
 import { roleAllowed } from '../Auth/roles';
 
 const CustomersActions = ({ item, callActivation, gotoPrevTrans, toast, router, handleBilling }) => {
+     const toggleId=React.useId();
      const { applicationsettings } = useApplicationSettings();
      const canAccessPortal = roleAllowed(applicationsettings?.user?.role, ['admin', 'manager', 'scientist']);
      return (
-          <Dropdown>
-               <Dropdown.Toggle variant="outline-secondary" id="archives-dropdown" >
-                    <RiMoreFill size={24} />
+          <Dropdown align="end">
+               <Dropdown.Toggle variant="outline-secondary" id={toggleId} aria-label={`Actions for customer ${item.patientid}`} >
+                    <RiMoreFill size={18} aria-hidden="true"/> Actions
                </Dropdown.Toggle>
-               <Dropdown.Menu className="m-0 p-0">
+               <TableDropdownMenu aria-labelledby={toggleId}>
                     {canAccessPortal && (
                          <Dropdown.Item className='text-capitalize' onClick={() => router.push(`/crm/customers/transactions/${plsEncryption(item.patientid.toString())}#patient-portal-access`)}>
                               <RiUserHeartLine size={24} /> Patient Portal
@@ -87,7 +89,7 @@ const CustomersActions = ({ item, callActivation, gotoPrevTrans, toast, router, 
                          </svg>View Previous Transactions(Test)
                     </Dropdown.Item>
 
-               </Dropdown.Menu>
+               </TableDropdownMenu>
           </Dropdown>
      );
 };

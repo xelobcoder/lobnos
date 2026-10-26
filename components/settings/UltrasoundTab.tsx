@@ -39,8 +39,8 @@ export const UltrasoundTab: React.FC<UltrasoundTabProps> = ({ settings, handleCh
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Header Font Size (px)</label>
-                              <Form.Control
+                              <label htmlFor="settings-setting-ultrasoundSettings.fontSize" className="pls-label">Header Font Size (px)</label>
+                              <Form.Control id="settings-setting-ultrasoundSettings.fontSize"
                                    type="number"
                                    name="ultrasoundSettings.fontSize"
                                    value={settings.ultrasoundSettings?.fontSize || 14}
@@ -56,8 +56,8 @@ export const UltrasoundTab: React.FC<UltrasoundTabProps> = ({ settings, handleCh
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Content Font Size (px)</label>
-                              <Form.Control
+                              <label htmlFor="settings-setting-ultrasoundSettings.contentFontSize" className="pls-label">Content Font Size (px)</label>
+                              <Form.Control id="settings-setting-ultrasoundSettings.contentFontSize"
                                    type="number"
                                    name="ultrasoundSettings.contentFontSize"
                                    value={settings.ultrasoundSettings?.contentFontSize || 12}
@@ -73,8 +73,8 @@ export const UltrasoundTab: React.FC<UltrasoundTabProps> = ({ settings, handleCh
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Section Title Font Size (px)</label>
-                              <Form.Control
+                              <label htmlFor="settings-setting-ultrasoundSettings.sectionTitleFontSize" className="pls-label">Section Title Font Size (px)</label>
+                              <Form.Control id="settings-setting-ultrasoundSettings.sectionTitleFontSize"
                                    type="number"
                                    name="ultrasoundSettings.sectionTitleFontSize"
                                    value={settings.ultrasoundSettings?.sectionTitleFontSize || 16}
@@ -90,8 +90,8 @@ export const UltrasoundTab: React.FC<UltrasoundTabProps> = ({ settings, handleCh
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Line Height</label>
-                              <Form.Control
+                              <label htmlFor="settings-setting-ultrasoundSettings.lineHeight" className="pls-label">Line Height</label>
+                              <Form.Control id="settings-setting-ultrasoundSettings.lineHeight"
                                    type="text"
                                    name="ultrasoundSettings.lineHeight"
                                    value={settings.ultrasoundSettings?.lineHeight || "1.5"}
@@ -106,8 +106,8 @@ export const UltrasoundTab: React.FC<UltrasoundTabProps> = ({ settings, handleCh
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Header Font Family</label>
-                              <Form.Select
+                              <label htmlFor="settings-setting-ultrasoundSettings.fontFamily" className="pls-label">Header Font Family</label>
+                              <Form.Select id="settings-setting-ultrasoundSettings.fontFamily"
                                    name="ultrasoundSettings.fontFamily"
                                    value={settings.ultrasoundSettings?.fontFamily || 'Arial, Helvetica, sans-serif'}
                                    onChange={handleChange}
@@ -124,8 +124,8 @@ export const UltrasoundTab: React.FC<UltrasoundTabProps> = ({ settings, handleCh
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Content Font Family</label>
-                              <Form.Select
+                              <label htmlFor="settings-setting-ultrasoundSettings.contentFontFamily" className="pls-label">Content Font Family</label>
+                              <Form.Select id="settings-setting-ultrasoundSettings.contentFontFamily"
                                    name="ultrasoundSettings.contentFontFamily"
                                    value={settings.ultrasoundSettings?.contentFontFamily || 'Arial, Helvetica, sans-serif'}
                                    onChange={handleChange}
@@ -142,9 +142,9 @@ export const UltrasoundTab: React.FC<UltrasoundTabProps> = ({ settings, handleCh
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Header Background Color</label>
+                              <label htmlFor="settings-setting-ultrasoundSettings.headerBackgroundColor" className="pls-label">Header Background Color</label>
                               <div className="d-flex align-items-center gap-2">
-                                   <Form.Control
+                                   <Form.Control id="settings-setting-ultrasoundSettings.headerBackgroundColor"
                                         type="color"
                                         name="ultrasoundSettings.headerBackgroundColor"
                                         value={settings.ultrasoundSettings?.headerBackgroundColor || '#ffffff'}
@@ -166,9 +166,9 @@ export const UltrasoundTab: React.FC<UltrasoundTabProps> = ({ settings, handleCh
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Header Text Color</label>
+                              <label htmlFor="settings-setting-ultrasoundSettings.headerTextColor" className="pls-label">Header Text Color</label>
                               <div className="d-flex align-items-center gap-2">
-                                   <Form.Control
+                                   <Form.Control id="settings-setting-ultrasoundSettings.headerTextColor"
                                         type="color"
                                         name="ultrasoundSettings.headerTextColor"
                                         value={settings.ultrasoundSettings?.headerTextColor || '#000000'}
@@ -190,9 +190,9 @@ export const UltrasoundTab: React.FC<UltrasoundTabProps> = ({ settings, handleCh
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Content Color</label>
+                              <label htmlFor="settings-setting-ultrasoundSettings.contentColor" className="pls-label">Content Color</label>
                               <div className="d-flex align-items-center gap-2">
-                                   <Form.Control
+                                   <Form.Control id="settings-setting-ultrasoundSettings.contentColor"
                                         type="color"
                                         name="ultrasoundSettings.contentColor"
                                         value={settings.ultrasoundSettings?.contentColor || '#333333'}
@@ -214,7 +214,7 @@ export const UltrasoundTab: React.FC<UltrasoundTabProps> = ({ settings, handleCh
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg d-flex align-items-center">
-                              <label className="pls-label mb-0 me-3">Show Technique Section</label>
+                              <label htmlFor="ultrasoundSettings.showTechnique" className="pls-label mb-0 me-3">Show Technique Section</label>
                               <Form.Check
                                    type="switch"
                                    id="ultrasoundSettings.showTechnique"
@@ -229,7 +229,7 @@ export const UltrasoundTab: React.FC<UltrasoundTabProps> = ({ settings, handleCh
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg d-flex align-items-center">
-                              <label className="pls-label mb-0 me-3">Show Disclaimer Section</label>
+                              <label htmlFor="ultrasoundSettings.showDisclaimer" className="pls-label mb-0 me-3">Show Disclaimer Section</label>
                               <Form.Check
                                    type="switch"
                                    id="ultrasoundSettings.showDisclaimer"
@@ -243,8 +243,8 @@ export const UltrasoundTab: React.FC<UltrasoundTabProps> = ({ settings, handleCh
 
                {settings.ultrasoundSettings?.showDisclaimer && (
                     <div className="form-row mt-3">
-                         <label className="pls-label">Disclaimer Text</label>
-                         <Form.Control
+                         <label htmlFor="settings-setting-ultrasoundSettings.disclaimerText" className="pls-label">Disclaimer Text</label>
+                         <Form.Control id="settings-setting-ultrasoundSettings.disclaimerText"
                               as="textarea"
                               name="ultrasoundSettings.disclaimerText"
                               value={settings.ultrasoundSettings?.disclaimerText || ''}
@@ -258,7 +258,7 @@ export const UltrasoundTab: React.FC<UltrasoundTabProps> = ({ settings, handleCh
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg d-flex align-items-center">
-                              <label className="pls-label mb-0 me-3">Allow Ultrasound Images</label>
+                              <label htmlFor="ultrasoundSettings.allowUltrasoundImages" className="pls-label mb-0 me-3">Allow Ultrasound Images</label>
                               <Form.Check
                                    type="switch"
                                    id="ultrasoundSettings.allowUltrasoundImages"

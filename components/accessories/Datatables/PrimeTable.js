@@ -494,7 +494,7 @@ export default function PrimeTable({
 			)}
 
 			{loadError && <div className={style.loadError} role="alert">{loadError}<button type="button" disabled={isLoading} onClick={() => RunServerAction(queryParams.page, queryParams.count)}>Retry</button></div>}
-			<div className={style.tableViewport} ref={tableWrapRef} tabIndex={0} role="region" aria-label="Data table; scroll horizontally to view more columns">
+			<div className={style.tableViewport} data-row-count={isLoading?undefined:rows.length} ref={tableWrapRef} tabIndex={0} role="region" aria-label="Data table; scroll horizontally to view more columns">
 				<table
 					className={`${style.table} ${compact ? style.tableCompact : ''}`}
 

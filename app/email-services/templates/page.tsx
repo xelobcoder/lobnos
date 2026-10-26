@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
+import ui from "../../../components/Billing/billing-strategy/StrategyWorkspace.module.css";
 import { Alert, Badge, Button, Card, Col, Form, Modal, Row, Spinner } from 'react-bootstrap';
 import { RiAddLine, RiDeleteBinLine, RiEyeLine, RiFileCopyLine, RiMailLine, RiRefreshLine, RiSaveLine } from '@remixicon/react';
 import { toast } from 'react-toastify';
@@ -154,7 +155,7 @@ export default function EmailTemplatesPage() {
      ];
 
      return (
-          <div className={`container-fluid ${styles.pageRoot}`}>
+          <div className={`${ui.workspace} ${styles.pageRoot}`}>
                <PrimeToast />
                <EmailPageHero
                     title="Email Templates"
@@ -184,7 +185,7 @@ export default function EmailTemplatesPage() {
                     </Card.Body>
                </Card>
 
-               <Modal show={templateModalOpen} onHide={() => setTemplateModalOpen(false)} size="xl" centered>
+               <Modal className={styles.dialog} show={templateModalOpen} onHide={() => setTemplateModalOpen(false)} size="xl" centered>
                     <Modal.Header closeButton>
                          <Modal.Title className="text-capitalize">{templateModalMode} Template</Modal.Title>
                     </Modal.Header>
@@ -192,42 +193,42 @@ export default function EmailTemplatesPage() {
                          <Row className="g-3">
                               <Col md={7}>
                                    <Form.Group className="mb-2">
-                                        <Form.Label>Name</Form.Label>
-                                        <Form.Control disabled={templateModalMode === 'view'} value={templateForm.name || ''} onChange={(e) => setTemplateForm((prev) => ({ ...prev, name: e.target.value }))} maxLength={150} />
+                                        <Form.Label htmlFor="templates-setting-name">Name</Form.Label>
+                                        <Form.Control id="templates-setting-name" disabled={templateModalMode === 'view'} value={templateForm.name || ''} onChange={(e) => setTemplateForm((prev) => ({ ...prev, name: e.target.value }))} maxLength={150} />
                                    </Form.Group>
                                    <Row className="g-2 mb-2">
                                         <Col md={6}>
                                              <Form.Group>
-                                                  <Form.Label>Category</Form.Label>
-                                                  <Form.Select disabled={templateModalMode === 'view'} value={templateForm.category || ''} onChange={(e) => setTemplateForm((prev) => ({ ...prev, category: e.target.value }))}>
+                                                  <Form.Label htmlFor="templates-setting-category">Category</Form.Label>
+                                                  <Form.Select id="templates-setting-category" disabled={templateModalMode === 'view'} value={templateForm.category || ''} onChange={(e) => setTemplateForm((prev) => ({ ...prev, category: e.target.value }))}>
                                                        {TEMPLATE_CATEGORIES.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
                                                   </Form.Select>
                                              </Form.Group>
                                         </Col>
                                         <Col md={6}>
                                              <Form.Group>
-                                                  <Form.Label>Status</Form.Label>
-                                                  <Form.Select disabled={templateModalMode === 'view'} value={templateForm.status || 'active'} onChange={(e) => setTemplateForm((prev) => ({ ...prev, status: e.target.value }))}>
+                                                  <Form.Label htmlFor="templates-setting-status">Status</Form.Label>
+                                                  <Form.Select id="templates-setting-status" disabled={templateModalMode === 'view'} value={templateForm.status || 'active'} onChange={(e) => setTemplateForm((prev) => ({ ...prev, status: e.target.value }))}>
                                                        {STATUS_OPTIONS.map((status) => <option key={status} value={status}>{status}</option>)}
                                                   </Form.Select>
                                              </Form.Group>
                                         </Col>
                                    </Row>
                                    <Form.Group className="mb-2">
-                                        <Form.Label>Subject</Form.Label>
-                                        <Form.Control disabled={templateModalMode === 'view'} value={templateForm.subject || ''} maxLength={255} onFocus={() => setFocusedField('subject')} onChange={(e) => setTemplateForm((prev) => ({ ...prev, subject: e.target.value }))} />
+                                        <Form.Label htmlFor="templates-setting-subject">Subject</Form.Label>
+                                        <Form.Control id="templates-setting-subject" disabled={templateModalMode === 'view'} value={templateForm.subject || ''} maxLength={255} onFocus={() => setFocusedField('subject')} onChange={(e) => setTemplateForm((prev) => ({ ...prev, subject: e.target.value }))} />
                                    </Form.Group>
                                    <Form.Group className="mb-2">
-                                        <Form.Label>HTML Body</Form.Label>
-                                        <Form.Control disabled={templateModalMode === 'view'} as="textarea" rows={8} value={templateForm.htmlBody || ''} onFocus={() => setFocusedField('htmlBody')} onChange={(e) => setTemplateForm((prev) => ({ ...prev, htmlBody: e.target.value }))} />
+                                        <Form.Label htmlFor="templates-setting-html-body">HTML Body</Form.Label>
+                                        <Form.Control id="templates-setting-html-body" disabled={templateModalMode === 'view'} as="textarea" rows={8} value={templateForm.htmlBody || ''} onFocus={() => setFocusedField('htmlBody')} onChange={(e) => setTemplateForm((prev) => ({ ...prev, htmlBody: e.target.value }))} />
                                    </Form.Group>
                                    <Form.Group className="mb-2">
-                                        <Form.Label>Plain Text Body</Form.Label>
-                                        <Form.Control disabled={templateModalMode === 'view'} as="textarea" rows={4} value={templateForm.plainTextBody || ''} onFocus={() => setFocusedField('plainTextBody')} onChange={(e) => setTemplateForm((prev) => ({ ...prev, plainTextBody: e.target.value }))} />
+                                        <Form.Label htmlFor="templates-setting-plain-text-body">Plain Text Body</Form.Label>
+                                        <Form.Control id="templates-setting-plain-text-body" disabled={templateModalMode === 'view'} as="textarea" rows={4} value={templateForm.plainTextBody || ''} onFocus={() => setFocusedField('plainTextBody')} onChange={(e) => setTemplateForm((prev) => ({ ...prev, plainTextBody: e.target.value }))} />
                                    </Form.Group>
                                    <Form.Group>
-                                        <Form.Label>Variables (comma separated)</Form.Label>
-                                        <Form.Control disabled={templateModalMode === 'view'} value={(templateForm.variables || []).join(', ')} onChange={(e) => setTemplateForm((prev) => ({ ...prev, variables: e.target.value.split(',').map((x) => x.trim()).filter(Boolean) }))} />
+                                        <Form.Label htmlFor="templates-setting-variables-comma-separated-">Variables (comma separated)</Form.Label>
+                                        <Form.Control id="templates-setting-variables-comma-separated-" disabled={templateModalMode === 'view'} value={(templateForm.variables || []).join(', ')} onChange={(e) => setTemplateForm((prev) => ({ ...prev, variables: e.target.value.split(',').map((x) => x.trim()).filter(Boolean) }))} />
                                    </Form.Group>
                               </Col>
                               <Col md={5}>

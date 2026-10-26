@@ -1,5 +1,6 @@
 "use client"
-import React, { useEffect, useState } from 'react';
+import ui from "../../../../components/settings/SettingsWorkspace.module.css";
+import React, { useEffect, useState, useRef } from 'react';
 import { Button, Nav, Tab } from 'react-bootstrap';
 import { defaultResultSettings, ResultSettings } from '../../../../components/ResultView/result-settings';
 import { customFetch, customPost } from '../../../../components/Auth/customFetch';
@@ -31,13 +32,18 @@ const SettingsForm = () => {
 	});
 	const [loading, setLoading] = useState<boolean>(true);
 	const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+    const lock=useRef(false);
+    const [notice,setNotice]=useState("");
+    const [error,setError]=useState("");
+    const [loadError,setLoadError]=useState("");
 
 
 	const loadApplicationResultSettings = async () => {
 		try {
-			setLoading(true);
+			setLoading(true); setLoadError("");
 			const response = await customFetch(`applicationsetting/resultsettings`);
-			if (response && Object.keys(response).length == 0) return;
+			if(!response || response.error || response.status===false || response.status==="error")throw new Error("Settings unavailable");
+            if (Object.keys(response).length == 0) return;
 			// Merge in default column names if missing
 			const merged = {
 				...defaultResultSettings,
@@ -49,7 +55,7 @@ const SettingsForm = () => {
 			};
 			setSettings(merged);
 		} catch (error) {
-			toast.error("Failed to load settings", { autoClose: 500, position: "top-center" });
+			setLoadError("Report settings could not be loaded. Retry before editing.");
 		} finally {
 			setLoading(false);
 		}
@@ -65,13 +71,13 @@ const SettingsForm = () => {
 			const key = name.split('.')[1];
 			setSettings((prev) => ({
 				...prev,
-				companyInfo: { ...prev.companyInfo, [key]: type === 'number' ? Number(value) : value },
+				companyInfo: { ...prev.companyInfo, [key]: type === 'checkbox' ? checked : type === 'number' ? Number(value) : value },
 			}));
 		} else if (name.startsWith('patientInfo.')) {
 			const key = name.split('.')[1];
 			setSettings((prev) => ({
 				...prev,
-				patientInfo: { ...prev.patientInfo, [key]: value },
+				patientInfo: { ...prev.patientInfo, [key]: type === 'checkbox' ? checked : value },
 			}));
 		} else if (name.startsWith('testBody.')) {
 			const key = name.split('.')[1];
@@ -92,7 +98,7 @@ const SettingsForm = () => {
 			const key = name.split('.')[1];
 			setSettings((prev) => ({
 				...prev,
-				comments: { ...prev.comments, [key]: value },
+				comments: { ...prev.comments, [key]: type === 'checkbox' ? checked : value },
 			}));
 		} else if (type === 'checkbox') {
 			setSettings((prev) => ({ ...prev, [name]: checked }));
@@ -104,30 +110,32 @@ const SettingsForm = () => {
 	};
 
 	const handleSubmit = async (e) => {
+        e.preventDefault();
+        if(lock.current)return;
+        lock.current=true;setError("");setNotice("");
 		try {
-			e.preventDefault();
 			setIsSubmitting(true);
 			const response: { status: 'success' | "error" | 'failed' | boolean, message: string } = await customPost(`applicationsetting/resultsettings`, "PUT", { data: settings });
 			const { status, message } = response;
 			if (status === 'success' || status === true) {
-				toast.success(message || "Settings updated successfully", { autoClose: 500, position: "top-center" });
+				setNotice(message || "Report settings saved.");
 			} else {
-				toast.error(message || "Failed to update settings", { autoClose: 500, position: "top-center" });
+				setError(message || "Settings were not saved. Your edits have been kept.");
 			}
 		} catch (error) {
-			toast.error("An error occurred while updating settings", { autoClose: 500, position: "top-center" });
+			setError("Settings were not saved. Your edits have been kept.");
 		} finally {
-			setIsSubmitting(false);
-			loadApplicationResultSettings();
+			setIsSubmitting(false); lock.current=false;
 		}
 	};
 
 	if (loading) return <Loader />;
+    if(loadError)return <div role="alert" className="alert alert-danger">{loadError}<button className="btn btn-outline-secondary ms-3" onClick={loadApplicationResultSettings}>Retry settings</button></div>;
 
 	return (
-		<div className="border bg-white border-secondary-subtle mx-2 p-2">
+		<div className={ui.workspace}>
 			<div className="mx-2 d-flex justify-content-between align-items-center mb-3">
-				<h5 className="text-capitalize pls-label bg-secondary-subtle p-3 pls-color br-5 mb-0">Report Settings</h5>
+				<div><span className={ui.eyebrow}>APPLICATION SETTINGS</span><h1>Report settings</h1><p className={ui.description}>Configure report content, company details and presentation without changing result data.</p></div>
 				<Button
 					disabled={isSubmitting}
 					variant="primary"
@@ -139,7 +147,8 @@ const SettingsForm = () => {
 				</Button>
 			</div>
 
-			<Tab.Container defaultActiveKey="general">
+			{error&&<div role="alert" className="alert alert-danger">{error}</div>}{notice&&<div role="status" className="alert alert-success">{notice}</div>}
+            <fieldset disabled={isSubmitting}><Tab.Container defaultActiveKey="general">
 				<Nav variant="tabs" className="border-bottom-0 px-3">
 					<Nav.Item>
 						<Nav.Link eventKey="general" className="d-flex align-items-center">
@@ -194,7 +203,7 @@ const SettingsForm = () => {
 						<CommentsTab settings={settings} handleChange={handleChange} />
 					</Tab.Pane>
 				</Tab.Content>
-			</Tab.Container>
+			</Tab.Container></fieldset>
 		</div>
 	);
 };

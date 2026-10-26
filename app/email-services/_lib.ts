@@ -188,8 +188,8 @@ export function statusBadge(status: string | undefined) {
 
 export async function callGet(endpoint: string) {
      const response = await customFetch(endpoint);
-     if (response?.status === 'error') {
-          throw new Error(response?.message || 'Request failed. Please try again.');
+     if (response?.status === 'error' || response?.status === false || response?.success === false || response?.error) {
+          throw new Error(response?.message || response?.error || 'Request failed. Please try again.');
      }
      return response;
 }
@@ -197,8 +197,8 @@ export async function callGet(endpoint: string) {
 export async function callMutate(endpoint: string, method: string, body: any = {}) {
      const response = await customPost(endpoint, method, body);
      if (!response) throw new Error('Request failed. Please try again.');
-     if (response?.status === 'error') {
-          throw new Error(response?.message || 'Request failed. Please try again.');
+     if (response?.status === 'error' || response?.status === false || response?.success === false || response?.error) {
+          throw new Error(response?.message || response?.error || 'Request failed. Please try again.');
      }
      return response;
 }

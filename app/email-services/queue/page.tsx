@@ -1,21 +1,28 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
-import { Badge, Button, Card, Col, Form, Modal, Row, Spinner } from 'react-bootstrap';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import ui from "../../../components/Billing/billing-strategy/StrategyWorkspace.module.css";
+import { Modal } from 'react-bootstrap';
 import { RiEyeLine, RiPlayCircleLine, RiRefreshLine, RiSendPlane2Line } from '@remixicon/react';
 import { toast } from 'react-toastify';
-import { EmailProvider, EmailTemplate, QueueItem, PRIORITIES, QUEUE_STATUSES, callGet, callMutate, defaultQueueForm, mapProviderFromApi, mapTemplateFromApi, parseJsonArray, parseJsonObject, parseList, statusBadge } from '../_lib';
-import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
+import { EmailProvider, EmailTemplate, QueueItem, PRIORITIES, QUEUE_STATUSES, callGet, callMutate, defaultQueueForm, mapProviderFromApi, mapTemplateFromApi, parseJsonArray, parseList } from '../_lib';
+
 import PrimeToast from '../../../components/accessories/PrimeToast';
 import { useApplication } from '../../../components/Auth/useApplicationContext';
-import styles from '../email-standard.module.css';
-import EmailPageHero from '../_components/EmailPageHero';
+import styles from './EmailQueueWorkspace.module.css';
+
 
 export default function EmailQueuePage() {
      const app = useApplication();
      const employeeid = Number(app?.user?.employeeid || 0);
 
-     const [loading, setLoading] = useState(false);
+     const [loading, setLoading] = useState(true);
+     const [busy, setBusy] = useState('');
+     const [error, setError] = useState('');
+     const [query, setQuery] = useState('');
+     const [page, setPage] = useState(1);
+     const actionLock = useRef(false);
+     const requestId = useRef(0);
      const [templates, setTemplates] = useState<EmailTemplate[]>([]);
      const [providers, setProviders] = useState<EmailProvider[]>([]);
      const [queueItems, setQueueItems] = useState<QueueItem[]>([]);
@@ -25,40 +32,41 @@ export default function EmailQueuePage() {
      const [queueLimit, setQueueLimit] = useState(50);
      const [queuePayloadViewer, setQueuePayloadViewer] = useState<any>(null);
 
-     const loadTemplates = async () => {
-          const response = await callGet('email/templates');
-          setTemplates(parseList<EmailTemplate>(response).map(mapTemplateFromApi));
-     };
-
-     const loadProviders = async () => {
-          const response = await callGet('email/providers');
-          setProviders(parseList<EmailProvider>(response).map(mapProviderFromApi));
-     };
-
      const loadQueue = async () => {
-          const response = await callGet(`email/queue?limit=${queueLimit}`);
-          setQueueItems(parseList<QueueItem>(response));
-     };
-
-     const loadAll = async () => {
-          setLoading(true);
+          const id = ++requestId.current;
+          setLoading(true); setError('');
           try {
-               await Promise.all([loadTemplates(), loadProviders(), loadQueue()]);
-          } catch (err: any) {
-               toast.error(err?.message || 'Failed to load queue data');
-          } finally {
-               setLoading(false);
-          }
+               const response = await callGet('email/queue?limit=' + queueLimit);
+               if (id === requestId.current) setQueueItems(parseList<QueueItem>(response));
+          } catch (err) {
+               if (id === requestId.current) setError(err instanceof Error ? err.message : 'Unable to load email queue.');
+          } finally { if (id === requestId.current) setLoading(false); }
      };
-
      useEffect(() => {
-          loadAll();
+          let live = true;
+          Promise.all([callGet('email/templates'), callGet('email/providers')]).then(([templatesResponse, providersResponse]) => {
+               if (!live) return;
+               setTemplates(parseList<EmailTemplate>(templatesResponse).map(mapTemplateFromApi));
+               setProviders(parseList<EmailProvider>(providersResponse).map(mapProviderFromApi));
+          }).catch((err) => { if (live) toast.error(err?.message || 'Unable to load templates and providers.'); });
+          return () => { live = false; };
+     }, []);
+     useEffect(() => {
+          void loadQueue();
+          return () => { requestId.current++; };
      }, [queueLimit]);
-
-     const filteredQueueItems = useMemo(() => {
-          if (selectedQueueStatus === 'all') return queueItems;
-          return queueItems.filter((item) => (item.status || '').toLowerCase() === selectedQueueStatus);
-     }, [queueItems, selectedQueueStatus]);
+     const filteredQueueItems = useMemo(() => queueItems.filter(item =>
+          (selectedQueueStatus === 'all' || item.status?.toLowerCase() === selectedQueueStatus) &&
+          (!query.trim() || [item.id, item.subject, item.to_json, item.status, item.priority].some(value => String(value || '').toLowerCase().includes(query.trim().toLowerCase())))
+     ), [queueItems, selectedQueueStatus, query]);
+     const maxPage = Math.max(1, Math.ceil(filteredQueueItems.length / 10));
+     const currentPage = Math.min(page, maxPage);
+     const displayed = filteredQueueItems.slice((currentPage - 1) * 10, currentPage * 10);
+     async function runAction(label: string, action: () => Promise<void>) {
+          if (actionLock.current) return;
+          actionLock.current = true; setBusy(label);
+          try { await action(); } finally { actionLock.current = false; setBusy(''); }
+     }
 
      const queueEmail = async () => {
           const to = queueForm.to.split(',').map((x) => x.trim()).filter(Boolean);
@@ -75,6 +83,13 @@ export default function EmailQueuePage() {
                return;
           }
 
+          let variables: Record<string, any>, attachments: any[];
+          try {
+               variables = JSON.parse(queueForm.variablesJson || '{}');
+               attachments = JSON.parse(queueForm.attachmentsJson || '[]');
+               if (!variables || Array.isArray(variables) || typeof variables !== 'object') throw new Error('Variables must be a JSON object.');
+               if (!Array.isArray(attachments)) throw new Error('Attachments must be a JSON array.');
+          } catch (err) { toast.error(err instanceof Error ? err.message : 'Check the JSON fields.'); return; }
           const payload: any = {
                templateId: queueForm.templateId ? Number(queueForm.templateId) : undefined,
                providerId: queueForm.providerId ? Number(queueForm.providerId) : undefined,
@@ -84,8 +99,8 @@ export default function EmailQueuePage() {
                subject: queueForm.subject || undefined,
                htmlBody: queueForm.htmlBody || undefined,
                plainTextBody: queueForm.plainTextBody || undefined,
-               variables: parseJsonObject(queueForm.variablesJson),
-               attachments: parseJsonArray(queueForm.attachmentsJson),
+               variables,
+               attachments,
                scheduledAt: queueForm.scheduledAt ? new Date(queueForm.scheduledAt).toISOString() : undefined,
                priority: queueForm.priority,
                referenceType: queueForm.referenceType || undefined,
@@ -134,96 +149,55 @@ export default function EmailQueuePage() {
           }
      };
 
-     const queueColumns = [
-          { Header: 'Queue ID', accessor: 'id' },
-          { Header: 'Status', accessor: 'status', Cell: ({ row }: any) => <Badge bg={statusBadge(row.original.status)}>{row.original.status}</Badge> },
-          { Header: 'Priority', accessor: 'priority', Cell: ({ row }: any) => <span className="text-capitalize">{row.original.priority || '-'}</span> },
-          { Header: 'Subject', accessor: 'subject' },
-          { Header: 'Recipients', accessor: 'to_json', Cell: ({ row }: any) => (parseJsonArray(row.original.to_json) as any[]).length || 0 },
-          { Header: 'Scheduled At', accessor: 'scheduled_at', Cell: ({ row }: any) => row.original.scheduled_at ? new Date(row.original.scheduled_at).toLocaleString() : '-' },
-          { Header: 'Retry', accessor: 'retry_count', Cell: ({ row }: any) => row.original.retry_count || 0 },
-          { Header: 'Created At', accessor: 'created_at', Cell: ({ row }: any) => row.original.created_at ? new Date(row.original.created_at).toLocaleString() : '-' },
-          {
-               Header: 'Actions',
-               accessor: 'queueActions',
-               Cell: ({ row }: any) => (
-                    <div className="d-flex gap-1 flex-wrap">
-                         <Button size="sm" variant="outline-primary" onClick={() => processQueueItem(row.original)}><RiPlayCircleLine size={14} /></Button>
-                         <Button size="sm" variant="outline-warning" onClick={() => retryQueueItem(row.original)}><RiRefreshLine size={14} /></Button>
-                         <Button size="sm" variant="outline-secondary" onClick={() => setQueuePayloadViewer(row.original)}><RiEyeLine size={14} /></Button>
+     function field(key: keyof typeof defaultQueueForm, label: string, options: { textarea?: boolean; type?: string; required?: boolean; placeholder?: string; wide?: boolean } = {}) {
+          const props = { id: 'email-' + key, value: queueForm[key], required: options.required, placeholder: options.placeholder, onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setQueueForm(previous => ({ ...previous, [key]: event.target.value })) };
+          return <div className={ui.field + (options.wide ? ' ' + ui.spanAll : '')}><label htmlFor={props.id}>{label}{options.required ? ' *' : ''}</label>{options.textarea ? <textarea {...props} rows={4} /> : <input {...props} type={options.type || 'text'} />}</div>;
+     }
+     function dateLabel(value?: string) {
+          if (!value) return '-';
+          const date = new Date(value);
+          return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
+     }
+     return <main className={ui.workspace + ' ' + styles.workspace}>
+          <PrimeToast />
+          <header className={ui.header}><div className={ui.heading}><span className={ui.icon}><RiSendPlane2Line size={24} aria-hidden="true" /></span><div><span className={ui.eyebrow}>Email services</span><h1>Email queue</h1><p>Create outbound emails, monitor delivery, and manage processing.</p></div></div><div className={ui.actions}><button className={ui.secondary} disabled={loading || !!busy} onClick={() => void loadQueue()}><RiRefreshLine size={18} aria-hidden="true" />Refresh queue</button><a href="#compose-email" className={ui.primary}><RiSendPlane2Line size={18} aria-hidden="true" />New email</a></div></header>
+          <div className={ui.stats} aria-label="Loaded email overview">{[['Loaded emails', queueItems.length], ['Pending / scheduled', queueItems.filter(item => ['pending', 'scheduled'].includes(item.status?.toLowerCase())).length], ['Failed emails', queueItems.filter(item => item.status?.toLowerCase() === 'failed').length]].map(([label, count]) => <div className={ui.stat} key={label}><span className={ui.icon}><RiSendPlane2Line size={21} aria-hidden="true" /></span><div><strong>{loading ? '-' : count}</strong><span>{label}</span></div></div>)}</div>
+          <form id="compose-email" onSubmit={event => { event.preventDefault(); void runAction('queue', queueEmail); }}>
+               <fieldset disabled={!!busy}>
+                    <div className={ui.editorGrid}>
+                         <div className={ui.formSections}>
+                              <section className={ui.panel} aria-labelledby="compose-heading"><div className={ui.sectionTitle}><h2 id="compose-heading">1. Delivery & recipients</h2><span className={ui.badge}>New email</span></div><div className={ui.fields}>
+                                   <div className={ui.field}><label htmlFor="email-template">Template</label><select id="email-template" value={queueForm.templateId} onChange={event => setQueueForm(previous => ({ ...previous, templateId: event.target.value }))}><option value="">No template (direct body)</option>{templates.map(template => <option key={template.id} value={template.id}>{template.name}</option>)}</select></div>
+                                   <div className={ui.field}><label htmlFor="email-provider">Provider</label><select id="email-provider" value={queueForm.providerId} onChange={event => setQueueForm(previous => ({ ...previous, providerId: event.target.value }))}><option value="">Use default provider</option>{providers.map(provider => <option key={provider.id} value={provider.id}>{provider.name}</option>)}</select></div>
+                                   {field('to', 'To', { required: true, wide: true, placeholder: 'patient@example.com, other@example.com' })}
+                                   {field('cc', 'CC', { placeholder: 'Optional copy recipients' })}{field('bcc', 'BCC', { placeholder: 'Optional hidden copy recipients' })}
+                              </div><p className={ui.help + ' ' + styles.help}>Separate multiple recipient addresses with commas.</p></section>
+                              <section className={ui.panel} aria-labelledby="content-heading"><div className={ui.sectionTitle}><h2 id="content-heading">2. Email content</h2><span className={ui.badge}>{queueForm.templateId ? 'Template selected' : 'Direct message'}</span></div><p className={ui.help + ' ' + styles.intro}>{queueForm.templateId ? 'The selected template supplies the content. Add overrides below if needed.' : 'Provide a subject and HTML body for this email.'}</p><div className={ui.fields}>{field('subject', 'Subject', { required: !queueForm.templateId, wide: true })}{field('htmlBody', 'HTML body', { required: !queueForm.templateId, textarea: true, wide: true })}{field('plainTextBody', 'Plain text body (optional)', { textarea: true, wide: true })}</div></section>
+                              <section className={ui.panel} aria-labelledby="options-heading"><div className={ui.sectionTitle}><h2 id="options-heading">3. Scheduling & options</h2><span className={ui.badge}>Optional</span></div><div className={ui.fields}>
+                                   <div className={ui.field}><label htmlFor="email-priority">Priority</label><select id="email-priority" value={queueForm.priority} onChange={event => setQueueForm(previous => ({ ...previous, priority: event.target.value }))}>{PRIORITIES.map(priority => <option key={priority} value={priority}>{priority}</option>)}</select></div>
+                                   {field('scheduledAt', 'Schedule at', { type: 'datetime-local' })}
+                                   {field('referenceType', 'Reference type')}{field('referenceId', 'Reference ID')}
+                              </div><details className={styles.advanced}><summary>Advanced: variables & attachments</summary><p className={ui.help}>Use a JSON object for template variables and a JSON array for attachments.</p><div className={ui.fields}>{field('variablesJson', 'Variables (JSON object)', { textarea: true })}{field('attachmentsJson', 'Attachments (JSON array)', { textarea: true })}</div></details></section>
+                              <div className={ui.saveBar}><p className={ui.help}>Review recipients and content before queuing.</p><button type="submit" className={ui.primary} disabled={!!busy}><RiSendPlane2Line size={18} aria-hidden="true" />{busy === 'queue' ? 'Queuing email...' : 'Queue email'}</button></div>
+                         </div>
+                         <aside className={ui.panel + ' ' + ui.summary} aria-labelledby="email-summary"><h2 id="email-summary">Email summary</h2><dl><div><dt>Content</dt><dd>{templates.find(template => String(template.id) === queueForm.templateId)?.name || (queueForm.templateId ? 'Selected template' : 'Direct message')}</dd></div><div><dt>Provider</dt><dd>{providers.find(provider => String(provider.id) === queueForm.providerId)?.name || 'Default provider'}</dd></div><div><dt>Recipients (To)</dt><dd>{queueForm.to.split(',').filter(value => value.trim()).length}</dd></div><div><dt>Priority</dt><dd className={styles.capitalize}>{queueForm.priority}</dd></div><div><dt>Schedule</dt><dd>{queueForm.scheduledAt ? dateLabel(queueForm.scheduledAt) : 'No scheduled time'}</dd></div></dl><div className={ui.notice}><p className={ui.help}>Queuing creates a delivery job. Follow its progress in the monitor below.</p></div></aside>
                     </div>
-               ),
-          },
-     ];
-
-     return (
-          <div className={`container-fluid ${styles.pageRoot} d-flex flex-column gap-3`}>
-               <PrimeToast />
-               <EmailPageHero
-                    title="Queue Operations"
-                    subtitle="Create outbound jobs, monitor processing status, and execute retries with consistent queue tooling."
-                    icon={<RiSendPlane2Line size={16} />}
-                    badge="Queue Center"
-                    stats={[
-                         { label: 'Queued', value: queueItems.length },
-                         { label: 'Templates', value: templates.length },
-                         { label: 'Providers', value: providers.length },
-                    ]}
-               />
-
-               <Card className={styles.surfaceCard}>
-                    <Card.Header className={`${styles.surfaceHeader} d-flex align-items-center gap-2`}>
-                         <RiSendPlane2Line size={18} /> <strong>Queue New Email</strong>
-                    </Card.Header>
-                    <Card.Body>
-                         {loading ? (
-                              <div className="d-flex align-items-center gap-2"><Spinner size="sm" /> Loading queue options...</div>
-                         ) : (
-                              <Row className="g-3">
-                                   <Col md={4}><Form.Group><Form.Label>Template</Form.Label><Form.Select value={queueForm.templateId} onChange={(e) => setQueueForm((prev) => ({ ...prev, templateId: e.target.value }))}><option value="">No template (direct body)</option>{templates.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</Form.Select></Form.Group></Col>
-                                   <Col md={4}><Form.Group><Form.Label>Provider</Form.Label><Form.Select value={queueForm.providerId} onChange={(e) => setQueueForm((prev) => ({ ...prev, providerId: e.target.value }))}><option value="">Use default provider</option>{providers.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</Form.Select></Form.Group></Col>
-                                   <Col md={4}><Form.Group><Form.Label>Priority</Form.Label><Form.Select value={queueForm.priority} onChange={(e) => setQueueForm((prev) => ({ ...prev, priority: e.target.value }))}>{PRIORITIES.map((priority) => <option key={priority} value={priority}>{priority}</option>)}</Form.Select></Form.Group></Col>
-                                   <Col md={12}><Form.Group><Form.Label>To (comma separated)</Form.Label><Form.Control value={queueForm.to} onChange={(e) => setQueueForm((prev) => ({ ...prev, to: e.target.value }))} placeholder="patient@example.com, other@example.com" /></Form.Group></Col>
-                                   <Col md={6}><Form.Group><Form.Label>CC</Form.Label><Form.Control value={queueForm.cc} onChange={(e) => setQueueForm((prev) => ({ ...prev, cc: e.target.value }))} /></Form.Group></Col>
-                                   <Col md={6}><Form.Group><Form.Label>BCC</Form.Label><Form.Control value={queueForm.bcc} onChange={(e) => setQueueForm((prev) => ({ ...prev, bcc: e.target.value }))} /></Form.Group></Col>
-                                   <Col md={12}><Form.Group><Form.Label>Subject</Form.Label><Form.Control value={queueForm.subject} onChange={(e) => setQueueForm((prev) => ({ ...prev, subject: e.target.value }))} /></Form.Group></Col>
-                                   <Col md={12}><Form.Group><Form.Label>HTML Body</Form.Label><Form.Control as="textarea" rows={4} value={queueForm.htmlBody} onChange={(e) => setQueueForm((prev) => ({ ...prev, htmlBody: e.target.value }))} /></Form.Group></Col>
-                                   <Col md={12}><Form.Group><Form.Label>Plain Text Body</Form.Label><Form.Control as="textarea" rows={3} value={queueForm.plainTextBody} onChange={(e) => setQueueForm((prev) => ({ ...prev, plainTextBody: e.target.value }))} /></Form.Group></Col>
-                                   <Col md={6}><Form.Group><Form.Label>Variables JSON</Form.Label><Form.Control as="textarea" rows={4} value={queueForm.variablesJson} onChange={(e) => setQueueForm((prev) => ({ ...prev, variablesJson: e.target.value }))} /></Form.Group></Col>
-                                   <Col md={6}><Form.Group><Form.Label>Attachments JSON Array</Form.Label><Form.Control as="textarea" rows={4} value={queueForm.attachmentsJson} onChange={(e) => setQueueForm((prev) => ({ ...prev, attachmentsJson: e.target.value }))} /></Form.Group></Col>
-                                   <Col md={4}><Form.Group><Form.Label>Schedule At</Form.Label><Form.Control type="datetime-local" value={queueForm.scheduledAt} onChange={(e) => setQueueForm((prev) => ({ ...prev, scheduledAt: e.target.value }))} /></Form.Group></Col>
-                                   <Col md={4}><Form.Group><Form.Label>Reference Type</Form.Label><Form.Control value={queueForm.referenceType} onChange={(e) => setQueueForm((prev) => ({ ...prev, referenceType: e.target.value }))} /></Form.Group></Col>
-                                   <Col md={4}><Form.Group><Form.Label>Reference ID</Form.Label><Form.Control value={queueForm.referenceId} onChange={(e) => setQueueForm((prev) => ({ ...prev, referenceId: e.target.value }))} /></Form.Group></Col>
-                                   <Col md={12}><Button variant="success" onClick={queueEmail}><RiSendPlane2Line size={14} className="me-1" />Queue Email</Button></Col>
-                              </Row>
-                         )}
-                    </Card.Body>
-               </Card>
-
-               <Card className={styles.surfaceCard}>
-                    <Card.Header className={`${styles.surfaceHeader} d-flex justify-content-between align-items-center flex-wrap gap-2`}>
-                         <strong>Queue Monitor</strong>
-                         <div className="d-flex gap-2 align-items-center flex-wrap">
-                              <Form.Select style={{ width: 120 }} value={queueLimit} onChange={(e) => setQueueLimit(Number(e.target.value))}>{[20, 50, 100].map((opt) => <option key={opt} value={opt}>{opt}</option>)}</Form.Select>
-                              <Button size="sm" variant="outline-secondary" onClick={() => loadQueue()}><RiRefreshLine size={14} /></Button>
-                              <Button size="sm" variant="outline-primary" onClick={processQueueBatch}><RiPlayCircleLine size={14} className="me-1" />Process Pending Emails</Button>
-                         </div>
-                    </Card.Header>
-                    <Card.Body>
-                         <div className="d-flex gap-2 flex-wrap mb-3">
-                              <Button size="sm" variant={selectedQueueStatus === 'all' ? 'dark' : 'outline-dark'} onClick={() => setSelectedQueueStatus('all')}>all</Button>
-                              {QUEUE_STATUSES.map((status) => <Button key={status} size="sm" variant={selectedQueueStatus === status ? 'dark' : 'outline-dark'} onClick={() => setSelectedQueueStatus(status)} className="text-capitalize">{status}</Button>)}
-                         </div>
-                         <PrimeTable column={queueColumns} data={filteredQueueItems} filtering={true} handleSeverSideProcessing={() => { }} />
-                    </Card.Body>
-               </Card>
-
-               <Modal show={Boolean(queuePayloadViewer)} onHide={() => setQueuePayloadViewer(null)} size="lg">
-                    <Modal.Header closeButton><Modal.Title>Queue Payload Viewer #{queuePayloadViewer?.id}</Modal.Title></Modal.Header>
-                    <Modal.Body>
-                         <pre className="bg-body-tertiary border rounded p-2 mb-0" style={{ whiteSpace: 'pre-wrap' }}>{JSON.stringify(queuePayloadViewer || {}, null, 2)}</pre>
-                    </Modal.Body>
-               </Modal>
-          </div>
-     );
+               </fieldset>
+          </form>
+          {error && <div className={ui.error} role="alert">{error}<button className={ui.secondary} disabled={loading || !!busy} onClick={() => void loadQueue()}>Retry loading</button></div>}
+          <section className={ui.panel + ' ' + styles.monitor} aria-labelledby="monitor-heading" aria-busy={loading}>
+               <div className={styles.monitorHeading}><div><h2 id="monitor-heading">Queue monitor</h2><p className={ui.help}>Counts and filters apply to the loaded emails.</p></div><button className={ui.secondary} disabled={loading || !!busy} onClick={() => void runAction('batch', processQueueBatch)}><RiPlayCircleLine size={18} aria-hidden="true" />{busy === 'batch' ? 'Processing...' : 'Process pending emails (up to 20)'}</button></div>
+               <div className={ui.toolbar}>
+                    <div className={ui.field}><label htmlFor="email-queue-search">Search emails</label><input id="email-queue-search" type="search" placeholder="Subject, recipient or queue ID" value={query} onChange={event => { setQuery(event.target.value); setPage(1); }} /></div>
+                    <div className={ui.field}><label htmlFor="email-queue-status">Status</label><select id="email-queue-status" value={selectedQueueStatus} onChange={event => { setSelectedQueueStatus(event.target.value); setPage(1); }}><option value="all">All statuses</option>{QUEUE_STATUSES.map(status => <option key={status} value={status}>{status}</option>)}</select></div>
+                    <div className={ui.field}><label htmlFor="email-queue-limit">Load limit</label><select id="email-queue-limit" value={queueLimit} disabled={!!busy} onChange={event => { setQueueLimit(Number(event.target.value)); setPage(1); }}>{[20, 50, 100].map(limit => <option key={limit} value={limit}>{limit} emails</option>)}</select></div>
+                    <button className={ui.secondary + ' ' + styles.refresh} disabled={loading || !!busy} onClick={() => void loadQueue()}><RiRefreshLine size={18} aria-hidden="true" />Refresh</button>
+               </div>
+               {loading ? <div className={ui.empty} role="status">Loading email queue...</div> : !filteredQueueItems.length ? <div className={ui.empty}><RiSendPlane2Line size={32} aria-hidden="true" /><h3>{queueItems.length ? 'No matching emails' : error ? 'Email queue unavailable' : 'No queued emails'}</h3><p>{queueItems.length ? 'Try a different search or clear the filters.' : error ? 'Retry loading to view queued emails.' : 'Create an email above to add a delivery job.'}</p>{queueItems.length > 0 && <button className={ui.secondary} onClick={() => { setQuery(''); setSelectedQueueStatus('all'); setPage(1); }}>Clear filters</button>}</div> : <>
+                    <div className={ui.tableWrap} tabIndex={0} role="region" aria-label="Email queue table"><table className={ui.table}><thead><tr><th scope="col">Email</th><th scope="col">Status / priority</th><th scope="col">Recipients</th><th scope="col">Scheduled</th><th scope="col">Retries</th><th scope="col">Created</th><th scope="col">Actions</th></tr></thead><tbody>{displayed.map(item => <tr key={item.id}><td><strong>{item.subject || 'No subject'}</strong><p>Queue #{item.id}</p></td><td><span className={ui.badge + ' ' + (item.status === 'sent' ? ui.active : item.status === 'failed' ? ui.expired : '')}>{item.status || 'Unknown'}</span><p className={styles.capitalize}>{item.priority || '-'}</p></td><td>{parseJsonArray(item.to_json).length}</td><td>{dateLabel(item.scheduled_at)}</td><td>{item.retry_count || 0}</td><td>{dateLabel(item.created_at)}</td><td><div className={ui.actions}><button className={ui.textButton} disabled={!!busy} aria-label={'Process email ' + item.id} onClick={() => void runAction('process-' + item.id, () => processQueueItem(item))}><RiPlayCircleLine size={16} aria-hidden="true" />Process</button><button className={ui.textButton} disabled={!!busy} aria-label={'Retry email ' + item.id} onClick={() => void runAction('retry-' + item.id, () => retryQueueItem(item))}><RiRefreshLine size={16} aria-hidden="true" />Retry</button><button className={ui.textButton} aria-label={'View payload for email ' + item.id} onClick={() => setQueuePayloadViewer(item)}><RiEyeLine size={16} aria-hidden="true" />View</button></div></td></tr>)}</tbody></table></div>
+                    <footer className={ui.footer}><span className={ui.muted} aria-live="polite">{(currentPage - 1) * 10 + 1}-{Math.min(currentPage * 10, filteredQueueItems.length)} of {filteredQueueItems.length} emails</span><nav className={ui.pager} aria-label="Email queue pages"><button className={ui.secondary} disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)}>Previous</button><span>Page {currentPage} of {maxPage}</span><button className={ui.secondary} disabled={currentPage === maxPage} onClick={() => setPage(currentPage + 1)}>Next</button></nav></footer>
+               </>}
+          </section>
+          <Modal show={Boolean(queuePayloadViewer)} onHide={() => setQueuePayloadViewer(null)} size="lg"><Modal.Header closeButton><Modal.Title>Email payload #{queuePayloadViewer?.id}</Modal.Title></Modal.Header><Modal.Body><pre className={styles.payload}>{JSON.stringify(queuePayloadViewer || {}, null, 2)}</pre></Modal.Body></Modal>
+     </main>;
 }

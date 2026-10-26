@@ -5,6 +5,7 @@ const management=['admin','pharmacy_manager'];
 export const PharmacyLinks:Link[]=[
      {title:'Overview',link:'/pharmacy',icon:<RiDashboardLine/>},
      {title:'Point of Sale',link:'/pharmacy/sell',icon:<RiShoppingCartLine/>,roles:selling},
+     {title:'Counter invoices',link:'/pharmacy/counter',icon:<RiFileListLine/>,roles:[...selling,'pharmacy_accountant']},
      {title:'Cashier & Shift',link:'/pharmacy/cashier',icon:<RiBankCardLine/>,roles:[...selling,'pharmacy_accountant']},
      {title:'Prescriptions',link:'/pharmacy/prescriptions',icon:<RiFileListLine/>,roles:selling},
      {title:'Sales History',link:'/pharmacy/sales-history',icon:<RiFileListLine/>},

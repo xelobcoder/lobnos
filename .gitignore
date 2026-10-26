@@ -71,3 +71,6 @@ launcher/cmd/launcher/.next/
 # temporary folders created during development
 launcher/temp*/
 launcher/app/
+# Email delivery-log route source (not runtime logs).
+!/app/email-services/logs/
+!/app/email-services/logs/page.tsx

@@ -110,7 +110,9 @@ export default function SampleValidationComponent() {
 				<input
 					type="checkbox"
 					checked={data.length > 0 && selectedItems.length === data.length}
-					indeterminate={selectedItems.length > 0 && selectedItems.length < data.length}
+					ref={node => { if (node) node.indeterminate = selectedItems.length > 0 && selectedItems.length < data.length; }}
+                    aria-label="Select all samples"
+                    aria-checked={selectedItems.length > 0 && selectedItems.length < data.length ? "mixed" : data.length > 0 && selectedItems.length === data.length}
 					onChange={e => {
 						if (e.target.checked) {
 							setSelectedItems(data.map(item => item.billingid));

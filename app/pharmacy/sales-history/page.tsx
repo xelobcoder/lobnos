@@ -1,12 +1,15 @@
 'use client';
 
-import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useState, useRef } from 'react';
 import { RiEyeLine, RiFileListLine, RiRefund2Line } from '@remixicon/react';
 import {printPharmacyReceipt} from '../../../lib/pharmacy/receipt';
 import {useApplication} from '../../../components/Auth/useApplicationContext';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 import { customFetch, customFetchMutation } from '../../../components/Auth/customFetch';
 
+import filterStyles from './filters.module.css';
+import DateFilterReusable from '../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable';
+const emptyFilters={search:'',dateFrom:'',dateTo:'',status:'',paymentMethod:'',minTotal:'',maxTotal:''};
 type ReversalType = 'refund' | 'void' | 'cancel';
 
 type SaleLine = {
@@ -104,6 +107,9 @@ export default function PharmacySalesHistoryPage() {
           catch(e){setError(e instanceof Error?e.message:'Unable to reprint receipt');}finally{setPrinting(null);}
      };
 
+     const [draft,setDraft]=useState(emptyFilters),[filters,setFilters]=useState(emptyFilters),[loading,setLoading]=useState(true),[total,setTotal]=useState(0);
+     const generation=useRef(0),dateChoice=useRef('All');
+     const [datePreset,setDatePreset]=useState('All');
      const [sales, setSales] = useState<Sale[]>([]);
      const [error, setError] = useState<string | null>(null);
      const [notice, setNotice] = useState<string | null>(null);
@@ -124,40 +130,29 @@ export default function PharmacySalesHistoryPage() {
      const effectiveReason = selectedReason === OTHER_REASON || !selectedReason ? customReason.trim() : selectedReason;
 
      const loadSales = useCallback(async (page = 1, count = DEFAULT_PAGE_SIZE) => {
+          const token=++generation.current;setLoading(true);
           try {
                setError(null);
                setLastQuery({ page, count });
-               const response = await customFetch(`pharmacy/sales-history?page=${page}&count=${count}`);
+               const response = await customFetch(`pharmacy/sales-history?${new URLSearchParams({page:String(page),count:String(count),...Object.fromEntries(Object.entries(filters).filter(([,value])=>value!==''))})}`);
+               if(token!==generation.current)return {result:[],error:false};
                if (response?.success) {
+                    setTotal(Number(response.data.total||0));
                     const currentSales: Sale[] = response.data.sales || [];
                     setSales(currentSales);
                     return { result: currentSales, error: false };
                }
-               setError(response?.error?.message || 'Unable to load pharmacy sales history.');
+               setSales([]);setTotal(0);setError(response?.error?.message || 'Unable to load pharmacy sales history.');
           } catch {
-               setError('Unable to load pharmacy sales history.');
-          }
+               if(token===generation.current){setSales([]);setTotal(0);setError('Unable to load pharmacy sales history.');}
+          } finally {if(token===generation.current)setLoading(false);}
           return { result: [], error: true };
-     }, []);
+     }, [filters]);
 
 
-     const handleServerProcessing = async (pagination: { page: number, count: number }) => {
-          try {
-               const { page, count } = pagination;
-               const response = await customFetch(`pharmacy/sales-history?page=${page}&count=${count}`);
-               if (response?.success && response.data.sales && Array.isArray(response.data.sales)) {
-                    const currentSales: Sale[] = response.data.sales || [];
-                    return { result: currentSales, error: false };
-               } else {
-                    return { result: [], error: true }
-               }
-          } catch (err) {
-               return { result: [], error: true }
-          }
-     };
-
-     useEffect(() => { loadSales(); }, [loadSales]);
-
+     useEffect(() => {loadSales();return()=>{generation.current++;}},[loadSales]);
+     function applyFilters(event:FormEvent){event.preventDefault();if(draft.dateFrom&&draft.dateTo&&draft.dateFrom>draft.dateTo){setError('The start date cannot be after the end date.');return}if(draft.minTotal!==''&&draft.maxTotal!==''&&Number(draft.minTotal)>Number(draft.maxTotal)){setError('Minimum total cannot exceed maximum total.');return}const next={...draft,search:draft.search.trim()};setDraft(next);if(JSON.stringify(next)===JSON.stringify(filters))loadSales(1,lastQuery.count);else setFilters(next)}
+     function clearFilters(){dateChoice.current='All';setDatePreset('All');setDraft({...emptyFilters});setError(null);if(JSON.stringify(filters)===JSON.stringify(emptyFilters))loadSales();else setFilters({...emptyFilters})}
      const openReversal = (sale: Sale) => {
           if((sale.accountingVersion??0)<2){setError('This legacy receipt belongs to the original books. Request a reviewed historical correction.');return;}
           setTarget(sale);
@@ -204,7 +199,7 @@ export default function PharmacySalesHistoryPage() {
                if (response?.success) {
                     setNotice(`Receipt ${target.receiptNumber} was ${response.data.status}. ${response.data.restockedItems.length} item(s) returned to stock.`);
                     setTarget(null);
-                    await loadSales(lastQuery.page, lastQuery.count);
+                    await loadSales(1, lastQuery.count);
                     return;
                }
                setModalError(response?.error?.message || 'Unable to reverse this sale.');
@@ -281,14 +276,9 @@ export default function PharmacySalesHistoryPage() {
                     </div>
                )}
 
-               <SalesHistoryTable
-                    column={columns}
-                    data={sales}
-                    filtering={true}
-                    serverSideFiltering={true}
-                    rowStyling={saleRowStyling}
-                    handleSeverSideProcessing={handleServerProcessing}
-               />
+               <form onSubmit={applyFilters} className={filterStyles.filters} aria-label="Sales history filters"><div className={filterStyles.grid}><label className={filterStyles.search}>Receipt, counter code or customer<input type="search" className="form-control" maxLength={255} value={draft.search} placeholder="Search all sales" onChange={e=>setDraft({...draft,search:e.target.value})}/></label><div className={filterStyles.date}><label htmlFor="pharmacy-sales-period">Sale date</label><DateFilterReusable id="pharmacy-sales-period" className="" label="Sale date period" value={datePreset} onChange={value=>{dateChoice.current=value||'All';setDatePreset(value||'All')}} onDateRangeChange={(start,end)=>setDraft(previous=>({...previous,dateFrom:dateChoice.current==='All'?'':start,dateTo:dateChoice.current==='All'?'':end}))}/><small className="text-muted">{draft.dateFrom&&draft.dateTo?draft.dateFrom+' to '+draft.dateTo:'All dates'}</small></div><label>Status<select className="form-select" aria-label="Sale status" value={draft.status} onChange={e=>setDraft({...draft,status:e.target.value})}><option value="">All statuses</option>{['completed','refunded','voided','cancelled'].map(status=><option key={status} value={status}>{status[0].toUpperCase()+status.slice(1)}</option>)}</select></label><label>Payment method<select className="form-select" aria-label="Filter payment method" value={draft.paymentMethod} onChange={e=>setDraft({...draft,paymentMethod:e.target.value})}><option value="">All methods</option>{[['cash','Cash'],['mobile_money','Mobile money'],['card','Card'],['split','Split payment'],['credit','Credit']].map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label><label>Minimum total (GHS)<input className="form-control" type="number" min="0" step="0.01" value={draft.minTotal} onChange={e=>setDraft({...draft,minTotal:e.target.value})}/></label><label>Maximum total (GHS)<input className="form-control" type="number" min="0" step="0.01" value={draft.maxTotal} onChange={e=>setDraft({...draft,maxTotal:e.target.value})}/></label></div><div className={filterStyles.actions}><span className="text-muted">{loading?'Loading sales…':total+' matching sale'+(total===1?'':'s')}{JSON.stringify(draft)!==JSON.stringify(filters)?' · Unapplied filter changes':''}</span><div><button type="button" className="btn btn-outline-secondary" onClick={clearFilters}>Clear filters</button><button type="submit" className="btn btn-primary">Apply filters</button><button type="button" className="btn btn-outline-secondary" disabled={loading} onClick={()=>loadSales(lastQuery.page,lastQuery.count)}>Refresh results</button></div></div></form>
+               {loading?<div role="status" className="text-center p-4">Loading sales history…</div>:<SalesHistoryTable column={columns} data={sales} filtering={false} serverSideFiltering={false} rowStyling={saleRowStyling}/>}
+               <footer className={filterStyles.actions} aria-label="Sales history pagination"><label>Rows per page <select aria-label="Sales rows per page" className="form-select d-inline-block w-auto ms-2" value={lastQuery.count} disabled={loading} onChange={e=>loadSales(1,Number(e.target.value))}>{[10,20,50,100].map(n=><option key={n}>{n}</option>)}</select></label><div><span>Page {lastQuery.page} of {Math.max(1,Math.ceil(total/lastQuery.count))}</span><button type="button" className="btn btn-outline-secondary" disabled={loading||lastQuery.page<=1} onClick={()=>loadSales(lastQuery.page-1,lastQuery.count)}>Previous sales page</button><button type="button" className="btn btn-outline-secondary" disabled={loading||lastQuery.page*lastQuery.count>=total} onClick={()=>loadSales(lastQuery.page+1,lastQuery.count)}>Next sales page</button></div></footer>
 
                {target && (
                     <>

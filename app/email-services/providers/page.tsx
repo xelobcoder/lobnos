@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import ui from "../../../components/Billing/billing-strategy/StrategyWorkspace.module.css";
 import { Badge, Button, Card, Col, Form, Modal, Row, Spinner } from 'react-bootstrap';
 import { RiAddLine, RiDeleteBinLine, RiRefreshLine, RiSaveLine, RiTestTubeLine } from '@remixicon/react';
 import { toast } from 'react-toastify';
@@ -16,20 +17,24 @@ export default function EmailProvidersPage() {
      const employeeid = Number(app?.user?.employeeid || 0);
 
      const [loading, setLoading] = useState(false);
+     const [loadError,setLoadError]=useState('');
      const [providers, setProviders] = useState<EmailProvider[]>([]);
 
      const [providerModalOpen, setProviderModalOpen] = useState(false);
      const [providerModalMode, setProviderModalMode] = useState<'create' | 'edit'>('create');
      const [providerForm, setProviderForm] = useState<EmailProvider>(defaultProviderForm);
      const [showProviderPassword, setShowProviderPassword] = useState(false);
+     const [savingProvider,setSavingProvider]=useState(false);
+     const [saveError,setSaveError]=useState('');
+     const saveLock=useRef(false);
 
      const loadProviders = async () => {
-          setLoading(true);
+          setLoading(true);setLoadError('');
           try {
                const response = await callGet('email/providers');
                setProviders(parseList<EmailProvider>(response).map(mapProviderFromApi));
           } catch (err: any) {
-               toast.error(err?.message || 'Failed to load providers');
+               setLoadError(err?.message || 'Failed to load providers');
           } finally {
                setLoading(false);
           }
@@ -40,6 +45,8 @@ export default function EmailProvidersPage() {
      }, []);
 
      const saveProvider = async () => {
+          if(saveLock.current)return;
+          setSaveError('');
           if (!providerForm.name?.trim() || !providerForm.host?.trim() || !providerForm.username?.trim() || !providerForm.fromEmail?.trim() || !providerForm.fromName?.trim()) {
                toast.error('Name, host, username, from email and from name are required');
                return;
@@ -71,6 +78,7 @@ export default function EmailProvidersPage() {
                updatedBy: employeeid || undefined,
           };
 
+          saveLock.current=true;setSavingProvider(true);
           try {
                if (providerModalMode === 'create') {
                     await callMutate('email/providers', 'POST', payload);
@@ -82,8 +90,8 @@ export default function EmailProvidersPage() {
                setProviderModalOpen(false);
                await loadProviders();
           } catch (err: any) {
-               toast.error(err?.message || 'Unable to save provider');
-          }
+               setSaveError(err?.message || 'Unable to save provider. Your entries have been kept.');
+          } finally {saveLock.current=false;setSavingProvider(false);}
      };
 
      const deleteProvider = async (item: EmailProvider) => {
@@ -138,38 +146,38 @@ export default function EmailProvidersPage() {
                accessor: 'providerActions',
                Cell: ({ row }: any) => (
                     <div className="d-flex gap-1 flex-wrap">
-                         <Button size="sm" variant="outline-primary" onClick={() => { setProviderModalMode('edit'); setProviderForm({ ...row.original, password: '' }); setProviderModalOpen(true); }}>Edit</Button>
-                         <Button size="sm" variant="outline-success" onClick={() => testProvider(row.original)}><RiTestTubeLine size={14} /></Button>
-                         <Button size="sm" variant="outline-info" onClick={() => sendTestEmail(row.original)}>Send test</Button>
-                         <Button size="sm" variant="outline-danger" onClick={() => deleteProvider(row.original)}><RiDeleteBinLine size={14} /></Button>
+                         <Button size="sm" variant="outline-primary" onClick={() => { setProviderModalMode('edit'); setProviderForm({ ...row.original, password: '' }); setSaveError('');setShowProviderPassword(false);setProviderModalOpen(true); }}>Edit</Button>
+                         <Button size="sm" variant="outline-success" onClick={() => testProvider(row.original)}><RiTestTubeLine size={14} className="me-1"/>Test connection</Button>
+                         <Button size="sm" variant="outline-secondary" onClick={() => sendTestEmail(row.original)}>Send test</Button>
+                         <Button size="sm" variant="outline-danger" onClick={() => deleteProvider(row.original)}><RiDeleteBinLine size={14} className="me-1"/>Delete</Button>
                     </div>
                ),
           },
      ];
 
      return (
-          <div className={`container-fluid ${styles.pageRoot}`}>
+          <div className={`${ui.workspace} ${styles.pageRoot}`}>
                <PrimeToast />
                <EmailPageHero
-                    title="Provider Routing"
-                    subtitle="Configure SMTP providers, fallback preferences, and secure connection behavior from one standardized panel."
+                    title="Email providers"
+                    subtitle="Manage sending accounts, connection settings and the default email provider."
                     icon={<RiTestTubeLine size={16} />}
                     badge="Provider Control"
                     stats={[
                          { label: 'Providers', value: providers.length },
-                         { label: 'Loading', value: loading ? 'Yes' : 'No' },
+
                     ]}
                />
                <Card className={styles.surfaceCard}>
                     <Card.Header className={`${styles.surfaceHeader} d-flex justify-content-between align-items-center`}>
                          <strong className={styles.surfaceTitle}>Email Providers</strong>
                          <div className={styles.headerActions}>
-                              <Button size="sm" variant="outline-secondary" onClick={() => loadProviders()}><RiRefreshLine size={14} /></Button>
+                              <Button size="sm" variant="outline-secondary" onClick={() => loadProviders()}><RiRefreshLine size={14} className="me-1"/>Refresh providers</Button>
                               <Button size="sm" variant="success" onClick={() => { setProviderModalMode('create'); setProviderForm(defaultProviderForm); setProviderModalOpen(true); }}><RiAddLine size={14} className="me-1" />New Provider</Button>
                          </div>
                     </Card.Header>
                     <Card.Body>
-                         {loading ? (
+                         {loadError ? <div role="alert" className="alert alert-danger">{loadError}<Button variant="outline-secondary" className="ms-3" onClick={loadProviders}>Retry providers</Button></div> : loading ? (
                               <div className="d-flex align-items-center gap-2"><Spinner size="sm" /> Loading providers...</div>
                          ) : (
                               <PrimeTable column={providerColumns} data={providers} filtering={true} handleSeverSideProcessing={() => { }} />
@@ -177,27 +185,27 @@ export default function EmailProvidersPage() {
                     </Card.Body>
                </Card>
 
-               <Modal show={providerModalOpen} onHide={() => setProviderModalOpen(false)} centered>
+               <Modal className={styles.dialog} show={providerModalOpen} onHide={() => {if(!savingProvider)setProviderModalOpen(false)}} backdrop={savingProvider?'static':true} keyboard={!savingProvider} centered>
                     <Modal.Header closeButton>
                          <Modal.Title className="text-capitalize">{providerModalMode} Provider</Modal.Title>
                     </Modal.Header>
-                    <Modal.Body>
+                    <Modal.Body>{saveError&&<div role="alert" className="alert alert-danger">{saveError}</div>}<fieldset disabled={savingProvider}>
                          <Row className="g-2">
-                              <Col md={12}><Form.Group><Form.Label>Name</Form.Label><Form.Control value={providerForm.name || ''} onChange={(e) => setProviderForm((prev) => ({ ...prev, name: e.target.value }))} /></Form.Group></Col>
-                              <Col md={8}><Form.Group><Form.Label>Host</Form.Label><Form.Control value={providerForm.host || ''} onChange={(e) => setProviderForm((prev) => ({ ...prev, host: e.target.value }))} /></Form.Group></Col>
-                              <Col md={4}><Form.Group><Form.Label>Port</Form.Label><Form.Control type="number" value={providerForm.port || 587} onChange={(e) => setProviderForm((prev) => ({ ...prev, port: Number(e.target.value) }))} /></Form.Group></Col>
-                              <Col md={6}><Form.Group><Form.Label>Username</Form.Label><Form.Control value={providerForm.username || ''} onChange={(e) => setProviderForm((prev) => ({ ...prev, username: e.target.value }))} /></Form.Group></Col>
+                              <Col md={12}><Form.Group><Form.Label htmlFor="providers-setting-name">Name</Form.Label><Form.Control id="providers-setting-name" value={providerForm.name || ''} onChange={(e) => setProviderForm((prev) => ({ ...prev, name: e.target.value }))} /></Form.Group></Col>
+                              <Col md={8}><Form.Group><Form.Label htmlFor="providers-setting-host">Host</Form.Label><Form.Control id="providers-setting-host" value={providerForm.host || ''} onChange={(e) => setProviderForm((prev) => ({ ...prev, host: e.target.value }))} /></Form.Group></Col>
+                              <Col md={4}><Form.Group><Form.Label htmlFor="providers-setting-port">Port</Form.Label><Form.Control id="providers-setting-port" type="number" value={providerForm.port || 587} onChange={(e) => setProviderForm((prev) => ({ ...prev, port: Number(e.target.value) }))} /></Form.Group></Col>
+                              <Col md={6}><Form.Group><Form.Label htmlFor="providers-setting-username">Username</Form.Label><Form.Control id="providers-setting-username" value={providerForm.username || ''} onChange={(e) => setProviderForm((prev) => ({ ...prev, username: e.target.value }))} /></Form.Group></Col>
                               <Col md={6}>
                                    <Form.Group>
-                                        <Form.Label>Password</Form.Label>
+                                        <Form.Label htmlFor="providers-setting-password">Password</Form.Label>
                                         <div className="d-flex gap-1">
-                                             <Form.Control type={showProviderPassword ? 'text' : 'password'} value={providerForm.password || ''} placeholder={providerModalMode === 'edit' && providerForm.hasPassword ? 'Saved - leave blank to keep' : ''} onChange={(e) => setProviderForm((prev) => ({ ...prev, password: e.target.value }))} />
+                                             <Form.Control id="providers-setting-password" type={showProviderPassword ? 'text' : 'password'} value={providerForm.password || ''} placeholder={providerModalMode === 'edit' && providerForm.hasPassword ? 'Saved - leave blank to keep' : ''} onChange={(e) => setProviderForm((prev) => ({ ...prev, password: e.target.value }))} />
                                              <Button variant="outline-secondary" onClick={() => setShowProviderPassword((prev) => !prev)}>{showProviderPassword ? 'Hide' : 'Show'}</Button>
                                         </div>
                                    </Form.Group>
                               </Col>
-                              <Col md={6}><Form.Group><Form.Label>From Email</Form.Label><Form.Control type="email" value={providerForm.fromEmail || ''} onChange={(e) => setProviderForm((prev) => ({ ...prev, fromEmail: e.target.value }))} /></Form.Group></Col>
-                              <Col md={6}><Form.Group><Form.Label>From Name</Form.Label><Form.Control value={providerForm.fromName || ''} onChange={(e) => setProviderForm((prev) => ({ ...prev, fromName: e.target.value }))} /></Form.Group></Col>
+                              <Col md={6}><Form.Group><Form.Label htmlFor="providers-setting-from-email">From Email</Form.Label><Form.Control id="providers-setting-from-email" type="email" value={providerForm.fromEmail || ''} onChange={(e) => setProviderForm((prev) => ({ ...prev, fromEmail: e.target.value }))} /></Form.Group></Col>
+                              <Col md={6}><Form.Group><Form.Label htmlFor="providers-setting-from-name">From Name</Form.Label><Form.Control id="providers-setting-from-name" value={providerForm.fromName || ''} onChange={(e) => setProviderForm((prev) => ({ ...prev, fromName: e.target.value }))} /></Form.Group></Col>
                               <Col md={12}>
                                    <div className="d-flex gap-3">
                                         <Form.Check type="switch" id="provider-secure" label="Secure (TLS)" checked={Boolean(providerForm.secure)} onChange={(e) => setProviderForm((prev) => ({ ...prev, secure: e.target.checked }))} />
@@ -206,10 +214,10 @@ export default function EmailProvidersPage() {
                                    </div>
                               </Col>
                          </Row>
-                    </Modal.Body>
+                    </fieldset></Modal.Body>
                     <Modal.Footer>
-                         <Button variant="secondary" onClick={() => setProviderModalOpen(false)}>Close</Button>
-                         <Button variant="success" onClick={saveProvider}><RiSaveLine size={14} className="me-1" />Save</Button>
+                         <Button variant="secondary" disabled={savingProvider} onClick={() => setProviderModalOpen(false)}>Close</Button>
+                         <Button variant="success" disabled={savingProvider} onClick={saveProvider}><RiSaveLine size={14} className="me-1" />{savingProvider?'Saving…':'Save'}</Button>
                     </Modal.Footer>
                </Modal>
           </div>

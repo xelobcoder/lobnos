@@ -38,7 +38,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ settings, handleChange
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg d-flex align-items-center">
-                              <label className="pls-label mb-0 me-3">Show &quot;Comments&quot; Heading</label>
+                              <label htmlFor="comments.showHeading" className="pls-label mb-0 me-3">Show &quot;Comments&quot; Heading</label>
                               <Form.Check
                                    type="switch"
                                    id="comments.showHeading"
@@ -53,9 +53,9 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ settings, handleChange
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Heading Color</label>
+                              <label htmlFor="settings-setting-comments.headingColor" className="pls-label">Heading Color</label>
                               <div className="d-flex gap-2 align-items-center">
-                                   <Form.Control
+                                   <Form.Control id="settings-setting-comments.headingColor"
                                         type="color"
                                         name="comments.headingColor"
                                         value={comments.headingColor || '#000000'}
@@ -77,8 +77,8 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ settings, handleChange
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Font Family</label>
-                              <Form.Select
+                              <label htmlFor="settings-setting-comments.fontFamily" className="pls-label">Font Family</label>
+                              <Form.Select id="settings-setting-comments.fontFamily"
                                    name="comments.fontFamily"
                                    value={comments.fontFamily}
                                    onChange={handleChange}
@@ -95,8 +95,8 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ settings, handleChange
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Font Size</label>
-                              <Form.Control
+                              <label htmlFor="settings-setting-comments.fontSize" className="pls-label">Font Size</label>
+                              <Form.Control id="settings-setting-comments.fontSize"
                                    type="number"
                                    name="comments.fontSize"
                                    value={comments.fontSize ?? 13}
@@ -112,9 +112,9 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ settings, handleChange
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Text Color</label>
+                              <label htmlFor="settings-setting-comments.color" className="pls-label">Text Color</label>
                               <div className="d-flex gap-2 align-items-center">
-                                   <Form.Control
+                                   <Form.Control id="settings-setting-comments.color"
                                         type="color"
                                         name="comments.color"
                                         value={comments.color || '#000000'}
@@ -136,9 +136,9 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ settings, handleChange
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Background Color</label>
+                              <label htmlFor="settings-setting-comments.backgroundColor" className="pls-label">Background Color</label>
                               <div className="d-flex gap-2 align-items-center">
-                                   <Form.Control
+                                   <Form.Control id="settings-setting-comments.backgroundColor"
                                         type="color"
                                         name="comments.backgroundColor"
                                         value={comments.backgroundColor && comments.backgroundColor !== 'transparent' ? comments.backgroundColor : '#ffffff'}
@@ -161,8 +161,8 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ settings, handleChange
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Text Alignment</label>
-                              <Form.Select
+                              <label htmlFor="settings-setting-comments.textAlign" className="pls-label">Text Alignment</label>
+                              <Form.Select id="settings-setting-comments.textAlign"
                                    name="comments.textAlign"
                                    value={comments.textAlign || 'left'}
                                    onChange={handleChange}
@@ -180,7 +180,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ settings, handleChange
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg d-flex align-items-center">
-                              <label className="pls-label mb-0 me-3">Italic</label>
+                              <label htmlFor="comments.fontStyle" className="pls-label mb-0 me-3">Italic</label>
                               <Form.Check
                                    type="switch"
                                    id="comments.fontStyle"
@@ -195,7 +195,7 @@ export const CommentsTab: React.FC<CommentsTabProps> = ({ settings, handleChange
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg d-flex align-items-center">
-                              <label className="pls-label mb-0 me-3">Bold</label>
+                              <label htmlFor="comments.fontWeight" className="pls-label mb-0 me-3">Bold</label>
                               <Form.Check
                                    type="switch"
                                    id="comments.fontWeight"

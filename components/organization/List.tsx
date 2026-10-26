@@ -18,7 +18,7 @@ import PrimeTable from "../accessories/Datatables/PrimeTable";
 import { Dropdown, Button, Card } from 'react-bootstrap';
 import { orgainzationServerSideProcessing } from "../serverActions/ActionFiltering";
 import ExcelExportButton from "../common/ExcelExportButton";
-import '../../styles/organization-list.css';
+import TableDropdownMenu from '../accessories/Datatables/TableDropdownMenu';
 import { useApplication } from "../Auth/useApplicationContext";
 import styles from '../common/DirectoryWorkspace.module.css';
 
@@ -108,13 +108,14 @@ export default function OrganizationList() {
 							variant="outline-secondary"
 							size="sm"
 							id={`dropdown-${row.original.id}`}
-							className="border-0 rounded-circle p-2 d-flex align-items-center justify-content-center"
-							style={{ width: '32px', height: '32px' }}
+							className="d-inline-flex align-items-center gap-1"
+                            aria-label={`Actions for organization ${row.original.name || row.original.id}`}
+							style={{ minHeight: '40px' }}
 						>
-							<RiMoreLine size={16} />
+							<RiMoreLine size={16} aria-hidden="true"/>Actions
 						</Dropdown.Toggle>
 
-						<Dropdown.Menu className="shadow-lg border-0 rounded-3" style={{ minWidth: '260px', maxWidth: '340px', width: '100%' }}>
+						<TableDropdownMenu aria-labelledby={`dropdown-${row.original.id}`}>
 							<div className="px-3 py-2 border-bottom">
 								<small className="text-muted fw-semibold text-uppercase">Actions for</small>
 								<div className="fw-bold text-dark small">{row.original.name}</div>
@@ -161,7 +162,7 @@ export default function OrganizationList() {
 									<small className="text-muted">Permanently remove</small>
 								</div>
 							</Dropdown.Item>
-						</Dropdown.Menu>
+						</TableDropdownMenu>
 					</Dropdown>
 				)
 			},

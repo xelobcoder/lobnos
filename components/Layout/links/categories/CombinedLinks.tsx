@@ -645,7 +645,7 @@ const ApplicationSettingsLinks: Link[] = [
           icon: <RiGift2Line />,
           children: [
                { title: 'Promo Codes', link: '/settings/promos/promo-code-generation', icon: <RiGift2Line /> },
-               { title: 'Campaigns', link: '/settings/promos/campaign-creation', icon: <RiGift2Line /> }
+               { title: 'Campaigns', link: '/settings/campaign', icon: <RiGift2Line /> }
           ]
      },
      {

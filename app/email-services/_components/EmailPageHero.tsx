@@ -1,43 +1,7 @@
 import React from 'react';
-import { Card } from 'react-bootstrap';
+import ui from '../../../components/Billing/billing-strategy/StrategyWorkspace.module.css';
 import styles from '../email-standard.module.css';
-
-type HeroStat = {
-     label: string;
-     value: string | number;
-};
-
-type EmailPageHeroProps = {
-     title: string;
-     subtitle: string;
-     icon: React.ReactNode;
-     badge?: string;
-     stats?: HeroStat[];
-};
-
-export default function EmailPageHero({ title, subtitle, icon, badge, stats = [] }: EmailPageHeroProps) {
-     return (
-          <Card className={styles.heroCard}>
-               <Card.Body className={styles.heroBody}>
-                    <div className={styles.heroTitleRow}>
-                         <h5 className={styles.heroTitle}>
-                              <span className={styles.heroIcon}>{icon}</span>
-                              {title}
-                         </h5>
-                         {badge ? <span className={styles.heroBadge}>{badge}</span> : null}
-                    </div>
-                    <p className={styles.heroDescription}>{subtitle}</p>
-                    {stats.length > 0 ? (
-                         <div className={styles.heroStatsRow}>
-                              {stats.map((stat) => (
-                                   <div key={stat.label} className={styles.heroStatChip}>
-                                        <span className={styles.heroStatLabel}>{stat.label}</span>
-                                        <span className={styles.heroStatValue}>{stat.value}</span>
-                                   </div>
-                              ))}
-                         </div>
-                    ) : null}
-               </Card.Body>
-          </Card>
-     );
+type HeroStat={label:string;value:string|number};
+export default function EmailPageHero({title,subtitle,icon,badge,stats=[]}:{title:string;subtitle:string;icon:React.ReactNode;badge?:string;stats?:HeroStat[]}){
+ return <><header className={ui.header}><div className={ui.heading}><span className={ui.icon} aria-hidden="true">{icon}</span><div><span className={ui.eyebrow}>Communications / Email</span><h1>{title}</h1><p>{subtitle}</p></div></div>{badge&&<span className={ui.badge}>{badge}</span>}</header>{stats.length>0&&<div className={styles.metrics} aria-label="Email overview">{stats.map(stat=><div key={stat.label} className={ui.stat}><strong>{stat.value}</strong><span>{stat.label}</span></div>)}</div>}</>
 }

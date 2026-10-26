@@ -51,8 +51,8 @@ export const CompanyTab: React.FC<CompanyTabProps> = ({ settings, handleChange }
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Company Name Font Size (px)</label>
-                              <Form.Control
+                              <label htmlFor="settings-setting-companyInfo.namefontsize" className="pls-label">Company Name Font Size (px)</label>
+                              <Form.Control id="settings-setting-companyInfo.namefontsize"
                                    type="number"
                                    name="companyInfo.namefontsize"
                                    value={settings.companyInfo.namefontsize}
@@ -68,8 +68,8 @@ export const CompanyTab: React.FC<CompanyTabProps> = ({ settings, handleChange }
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Company Subname Font Size (px)</label>
-                              <Form.Control
+                              <label htmlFor="settings-setting-companyInfo.subnameFontSize" className="pls-label">Company Subname Font Size (px)</label>
+                              <Form.Control id="settings-setting-companyInfo.subnameFontSize"
                                    type="number"
                                    name="companyInfo.subnameFontSize"
                                    value={settings.companyInfo.subnameFontSize}
@@ -85,9 +85,9 @@ export const CompanyTab: React.FC<CompanyTabProps> = ({ settings, handleChange }
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Company Name Color</label>
+                              <label htmlFor="settings-setting-companyInfo.color" className="pls-label">Company Name Color</label>
                               <div className="d-flex align-items-center gap-2">
-                                   <Form.Control
+                                   <Form.Control id="settings-setting-companyInfo.color"
                                         type="color"
                                         name="companyInfo.color"
                                         value={settings.companyInfo.color}
@@ -118,9 +118,9 @@ export const CompanyTab: React.FC<CompanyTabProps> = ({ settings, handleChange }
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Company Subname Color</label>
+                              <label htmlFor="settings-setting-companyInfo.subnameColor" className="pls-label">Company Subname Color</label>
                               <div className="d-flex align-items-center gap-2">
-                                   <Form.Control
+                                   <Form.Control id="settings-setting-companyInfo.subnameColor"
                                         type="color"
                                         name="companyInfo.subnameColor"
                                         value={settings.companyInfo.subnameColor}
@@ -142,8 +142,8 @@ export const CompanyTab: React.FC<CompanyTabProps> = ({ settings, handleChange }
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Company Information Font Family</label>
-                              <Form.Select
+                              <label htmlFor="settings-setting-companyInfo.fontFamily" className="pls-label">Company Information Font Family</label>
+                              <Form.Select id="settings-setting-companyInfo.fontFamily"
                                    name="companyInfo.fontFamily"
                                    value={settings.companyInfo.fontFamily || ''}
                                    onChange={(e) => handleChange({ target: { name: 'companyInfo.fontFamily', value: e.target.value, type: 'text' } })}
@@ -160,8 +160,8 @@ export const CompanyTab: React.FC<CompanyTabProps> = ({ settings, handleChange }
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Letterhead Type</label>
-                              <Form.Select
+                              <label htmlFor="settings-setting-companyInfo.headerType" className="pls-label">Letterhead Type</label>
+                              <Form.Select id="settings-setting-companyInfo.headerType"
                                    name="companyInfo.headerType"
                                    value={headerType}
                                    onChange={handleHeaderTypeChange}

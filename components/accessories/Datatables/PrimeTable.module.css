@@ -361,3 +361,6 @@
  .paginationMeta { justify-content:center; white-space:normal; }
 }
 @media(prefers-reduced-motion:reduce) { .tableWrapper * { scroll-behavior:auto; transition:none; } }
+
+/* A short table should fit its records; portaled actions do not need reserved space. */
+.tableViewport[data-row-count="1"]{min-height:0}

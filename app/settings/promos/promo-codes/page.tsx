@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import ui from "../../../../components/settings/SettingsWorkspace.module.css";
 import { Card, Spinner, Alert } from "react-bootstrap";
 import { customFetch } from "../../../../components/Auth/customFetch";
 import PrimeTable from "../../../../components/accessories/Datatables/PrimeTable";
@@ -51,7 +52,7 @@ export default function PromoCodesListPage() {
 		{ Header: "Times Used", accessor: "times_used" },
 		{ Header: "Valid From", accessor: "valid_from", Cell: ({ row }: any) => row.original.valid_from ? new Date(row.original.valid_from).toLocaleString() : "-" },
 		{ Header: "Valid To", accessor: "valid_to", Cell: ({ row }: any) => row.original.valid_to ? new Date(row.original.valid_to).toLocaleString() : "-" },
-		{ Header: "Active", accessor: "is_active", Cell: ({ row }: any) => row.original.is_active ? "Yes" : "No" },
+		{ Header: "Active", accessor: "is_active", Cell: ({ row }: any) => Number(row.original.is_active)===1 ? "Yes" : "No" },
 		{ Header: "Created", accessor: "created_at", Cell: ({ row }: any) => row.original.created_at ? new Date(row.original.created_at).toLocaleString() : "-" },
 		{ Header: "Updated", accessor: "updated_at", Cell: ({ row }: any) => row.original.updated_at ? new Date(row.original.updated_at).toLocaleString() : "-" },
 	];
@@ -76,7 +77,7 @@ export default function PromoCodesListPage() {
 	};
 
 	return (
-		<div className="py-4">
+		<div className={ui.workspace}>
 			<Card>
 				<Card.Header style={{ fontSize: 22, fontWeight: 600 }} className="d-flex justify-content-between align-items-center">
 					<span>Promo Codes</span>

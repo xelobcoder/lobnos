@@ -18,8 +18,8 @@ export const ReportOptionsTab: React.FC<ReportOptionsTabProps> = ({ settings, ha
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Template</label>
-                              <Form.Select
+                              <label htmlFor="settings-setting-template" className="pls-label">Template</label>
+                              <Form.Select id="settings-setting-template"
                                    name="template"
                                    value={settings.template}
                                    onChange={handleChange}
@@ -36,7 +36,7 @@ export const ReportOptionsTab: React.FC<ReportOptionsTabProps> = ({ settings, ha
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg d-flex align-items-center">
-                              <label className="pls-label mb-0 me-3">Include Signature</label>
+                              <label htmlFor="includeSignature" className="pls-label mb-0 me-3">Include Signature</label>
                               <Form.Check
                                    type="switch"
                                    id="includeSignature"
@@ -51,7 +51,7 @@ export const ReportOptionsTab: React.FC<ReportOptionsTabProps> = ({ settings, ha
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg d-flex align-items-center">
-                              <label className="pls-label mb-0 me-3">Include Limitations</label>
+                              <label htmlFor="includeLimitations" className="pls-label mb-0 me-3">Include Limitations</label>
                               <Form.Check
                                    type="switch"
                                    id="includeLimitations"
@@ -65,8 +65,8 @@ export const ReportOptionsTab: React.FC<ReportOptionsTabProps> = ({ settings, ha
 
                {settings.includeLimitations && (
                     <div className="form-row mt-3">
-                         <label className="pls-label">Limitations Text</label>
-                         <Form.Control
+                         <label htmlFor="settings-setting-limitations" className="pls-label">Limitations Text</label>
+                         <Form.Control id="settings-setting-limitations"
                               as="textarea"
                               name="limitations"
                               value={settings.limitations}
@@ -80,7 +80,7 @@ export const ReportOptionsTab: React.FC<ReportOptionsTabProps> = ({ settings, ha
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg d-flex align-items-center">
-                              <label className="pls-label mb-0 me-3">Include Barcode</label>
+                              <label htmlFor="includeBarcode" className="pls-label mb-0 me-3">Include Barcode</label>
                               <Form.Check
                                    type="switch"
                                    id="includeBarcode"
@@ -95,7 +95,7 @@ export const ReportOptionsTab: React.FC<ReportOptionsTabProps> = ({ settings, ha
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg d-flex align-items-center">
-                              <label className="pls-label mb-0 me-3">Show End Of Result</label>
+                              <label htmlFor="showEndOfResult" className="pls-label mb-0 me-3">Show End Of Result</label>
                               <Form.Check
                                    type="switch"
                                    id="showEndOfResult"
@@ -110,7 +110,7 @@ export const ReportOptionsTab: React.FC<ReportOptionsTabProps> = ({ settings, ha
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg d-flex align-items-center">
-                              <label className="pls-label mb-0 me-3">Use General Validation</label>
+                              <label htmlFor="useGeneraralValidation" className="pls-label mb-0 me-3">Use General Validation</label>
                               <Form.Check
                                    type="switch"
                                    id="useGeneraralValidation"
@@ -125,7 +125,7 @@ export const ReportOptionsTab: React.FC<ReportOptionsTabProps> = ({ settings, ha
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg d-flex align-items-center">
-                              <label className="pls-label mb-0 me-3">Use Individual Validations</label>
+                              <label htmlFor="useIndividualValidations" className="pls-label mb-0 me-3">Use Individual Validations</label>
                               <Form.Check
                                    type="switch"
                                    id="useIndividualValidations"
@@ -140,7 +140,7 @@ export const ReportOptionsTab: React.FC<ReportOptionsTabProps> = ({ settings, ha
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg d-flex align-items-center">
-                              <label className="pls-label mb-0 me-3">Show Method</label>
+                              <label htmlFor="showMethod" className="pls-label mb-0 me-3">Show Method</label>
                               <Form.Check
                                    type="switch"
                                    id="showMethod"
@@ -155,7 +155,7 @@ export const ReportOptionsTab: React.FC<ReportOptionsTabProps> = ({ settings, ha
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg d-flex align-items-center">
-                              <label className="pls-label mb-0 me-3">Use Instrumentation</label>
+                              <label htmlFor="useInstrumentation" className="pls-label mb-0 me-3">Use Instrumentation</label>
                               <Form.Check
                                    type="switch"
                                    id="useInstrumentation"
@@ -170,7 +170,7 @@ export const ReportOptionsTab: React.FC<ReportOptionsTabProps> = ({ settings, ha
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg d-flex align-items-center">
-                              <label className="pls-label mb-0 me-3">Use Report Title</label>
+                              <label htmlFor="useReportTitle" className="pls-label mb-0 me-3">Use Report Title</label>
                               <Form.Check
                                    type="switch"
                                    id="useReportTitle"

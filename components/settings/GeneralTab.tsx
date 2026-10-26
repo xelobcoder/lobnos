@@ -39,8 +39,8 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, handleChange }
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Font Family</label>
-                              <Form.Select
+                              <label htmlFor="settings-setting-fontfamily" className="pls-label">Font Family</label>
+                              <Form.Select id="settings-setting-fontfamily"
                                    name="fontfamily"
                                    value={settings.fontfamily}
                                    onChange={handleChange}
@@ -57,8 +57,8 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, handleChange }
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Patient Information Font Family</label>
-                              <Form.Select
+                              <label htmlFor="settings-setting-patientInfo.fontFamily" className="pls-label">Patient Information Font Family</label>
+                              <Form.Select id="settings-setting-patientInfo.fontFamily"
                                    name="patientInfo.fontFamily"
                                    value={settings.patientInfo?.fontFamily || settings.fontfamily}
                                    onChange={handleChange}
@@ -75,8 +75,8 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, handleChange }
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Test Name Font Size (px)</label>
-                              <Form.Control
+                              <label htmlFor="settings-setting-testnameFontSize" className="pls-label">Test Name Font Size (px)</label>
+                              <Form.Control id="settings-setting-testnameFontSize"
                                    type="number"
                                    name="testnameFontSize"
                                    value={settings.testnameFontSize}
@@ -92,8 +92,8 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, handleChange }
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Table Header Font Size (px)</label>
-                              <Form.Control
+                              <label htmlFor="settings-setting-testTableHeaderFontSize" className="pls-label">Table Header Font Size (px)</label>
+                              <Form.Control id="settings-setting-testTableHeaderFontSize"
                                    type="number"
                                    name="testTableHeaderFontSize"
                                    value={settings.testTableHeaderFontSize}
@@ -109,9 +109,9 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, handleChange }
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Test Name Color</label>
+                              <label htmlFor="settings-setting-testnameColor" className="pls-label">Test Name Color</label>
                               <div className="d-flex align-items-center gap-2">
-                                   <Form.Control
+                                   <Form.Control id="settings-setting-testnameColor"
                                         type="color"
                                         name="testnameColor"
                                         value={settings.testnameColor}
@@ -151,9 +151,9 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, handleChange }
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Main Report Header Background</label>
+                              <label htmlFor="settings-setting-mainReportHeaderBgColor" className="pls-label">Main Report Header Background</label>
                               <div className="d-flex align-items-center gap-2">
-                                   <Form.Control
+                                   <Form.Control id="settings-setting-mainReportHeaderBgColor"
                                         type="color"
                                         name="mainReportHeaderBgColor"
                                         value={settings.mainReportHeaderBgColor}
@@ -187,9 +187,9 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, handleChange }
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Main Report Header Text Color</label>
+                              <label htmlFor="settings-setting-mainReportHeaderColor" className="pls-label">Main Report Header Text Color</label>
                               <div className="d-flex align-items-center gap-2">
-                                   <Form.Control
+                                   <Form.Control id="settings-setting-mainReportHeaderColor"
                                         type="color"
                                         name="mainReportHeaderColor"
                                         value={settings.mainReportHeaderColor}
@@ -223,9 +223,9 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, handleChange }
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Test Table Header Background</label>
+                              <label htmlFor="settings-setting-testTableHeaderBackgroundColor" className="pls-label">Test Table Header Background</label>
                               <div className="d-flex align-items-center gap-2">
-                                   <Form.Control
+                                   <Form.Control id="settings-setting-testTableHeaderBackgroundColor"
                                         type="color"
                                         name="testTableHeaderBackgroundColor"
                                         value={settings.testTableHeaderBackgroundColor}
@@ -259,9 +259,9 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, handleChange }
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Test Table Header Text Color</label>
+                              <label htmlFor="settings-setting-testTableHeaderTextColor" className="pls-label">Test Table Header Text Color</label>
                               <div className="d-flex align-items-center gap-2">
-                                   <Form.Control
+                                   <Form.Control id="settings-setting-testTableHeaderTextColor"
                                         type="color"
                                         name="testTableHeaderTextColor"
                                         value={settings.testTableHeaderTextColor}
@@ -299,8 +299,8 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, handleChange }
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Font Size</label>
-                              <Form.Control
+                              <label htmlFor="settings-setting-testBody.fontSize" className="pls-label">Font Size</label>
+                              <Form.Control id="settings-setting-testBody.fontSize"
                                    type="number"
                                    name="testBody.fontSize"
                                    value={settings.testBody.fontSize}
@@ -316,8 +316,8 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, handleChange }
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Font Family</label>
-                              <Form.Select
+                              <label htmlFor="settings-setting-testBody.fontFamily" className="pls-label">Font Family</label>
+                              <Form.Select id="settings-setting-testBody.fontFamily"
                                    name="testBody.fontFamily"
                                    value={settings.testBody.fontFamily}
                                    onChange={handleChange}
@@ -334,9 +334,9 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, handleChange }
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Text Color</label>
+                              <label htmlFor="settings-setting-testBody.color" className="pls-label">Text Color</label>
                               <div className="d-flex align-items-center gap-2">
-                                   <Form.Control
+                                   <Form.Control id="settings-setting-testBody.color"
                                         type="color"
                                         name="testBody.color"
                                         value={settings.testBody.color}
@@ -370,7 +370,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, handleChange }
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg d-flex align-items-center">
-                              <label className="pls-label mb-0 me-3">Highlight Flags</label>
+                              <label htmlFor="testBody.highlightFlags" className="pls-label mb-0 me-3">Highlight Flags</label>
                               <Form.Check
                                    type="switch"
                                    id="testBody.highlightFlags"
@@ -387,9 +387,9 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, handleChange }
                          <div className="row mt-3">
                               <div className="col-12">
                                    <div className="form-row grid-reg">
-                                        <label className="pls-label">High Flag Color</label>
+                                        <label htmlFor="settings-setting-testBody.hightFlagColor" className="pls-label">High Flag Color</label>
                                         <div className="d-flex align-items-center gap-2">
-                                             <Form.Control
+                                             <Form.Control id="settings-setting-testBody.hightFlagColor"
                                                   type="color"
                                                   name="testBody.hightFlagColor"
                                                   value={settings.testBody.hightFlagColor}
@@ -423,9 +423,9 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, handleChange }
                          <div className="row mt-3">
                               <div className="col-12">
                                    <div className="form-row grid-reg">
-                                        <label className="pls-label">Low Flag Color</label>
+                                        <label htmlFor="settings-setting-testBody.lowFlagColor" className="pls-label">Low Flag Color</label>
                                         <div className="d-flex align-items-center gap-2">
-                                             <Form.Control
+                                             <Form.Control id="settings-setting-testBody.lowFlagColor"
                                                   type="color"
                                                   name="testBody.lowFlagColor"
                                                   value={settings.testBody.lowFlagColor}
@@ -461,7 +461,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, handleChange }
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg d-flex align-items-center">
-                              <label className="pls-label mb-0 me-3">Bold Parameters</label>
+                              <label htmlFor="testBody.boldenParameter" className="pls-label mb-0 me-3">Bold Parameters</label>
                               <Form.Check
                                    type="switch"
                                    id="testBody.boldenParameter"
@@ -476,7 +476,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, handleChange }
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg d-flex align-items-center">
-                              <label className="pls-label mb-0 me-3">Bold Values</label>
+                              <label htmlFor="testBody.boldenValue" className="pls-label mb-0 me-3">Bold Values</label>
                               <Form.Check
                                    type="switch"
                                    id="testBody.boldenValue"
@@ -491,7 +491,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, handleChange }
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg d-flex align-items-center">
-                              <label className="pls-label mb-0 me-3">Bold Units</label>
+                              <label htmlFor="testBody.boldenUnits" className="pls-label mb-0 me-3">Bold Units</label>
                               <Form.Check
                                    type="switch"
                                    id="testBody.boldenUnits"
@@ -509,8 +509,8 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, handleChange }
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Investigation Column</label>
-                              <Form.Control
+                              <label htmlFor="settings-setting-testBody.trFirstColumnName" className="pls-label">Investigation Column</label>
+                              <Form.Control id="settings-setting-testBody.trFirstColumnName"
                                    type="text"
                                    name="testBody.trFirstColumnName"
                                    value={settings.testBody.trFirstColumnName}
@@ -524,8 +524,8 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, handleChange }
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Value Column</label>
-                              <Form.Control
+                              <label htmlFor="settings-setting-testBody.trSecondColumnName" className="pls-label">Value Column</label>
+                              <Form.Control id="settings-setting-testBody.trSecondColumnName"
                                    type="text"
                                    name="testBody.trSecondColumnName"
                                    value={settings.testBody.trSecondColumnName}
@@ -539,8 +539,8 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, handleChange }
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Units Column</label>
-                              <Form.Control
+                              <label htmlFor="settings-setting-testBody.trThirdColumnName" className="pls-label">Units Column</label>
+                              <Form.Control id="settings-setting-testBody.trThirdColumnName"
                                    type="text"
                                    name="testBody.trThirdColumnName"
                                    value={settings.testBody.trThirdColumnName || ''}
@@ -554,8 +554,8 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, handleChange }
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Range Column</label>
-                              <Form.Control
+                              <label htmlFor="settings-setting-testBody.trFourthColumnName" className="pls-label">Range Column</label>
+                              <Form.Control id="settings-setting-testBody.trFourthColumnName"
                                    type="text"
                                    name="testBody.trFourthColumnName"
                                    value={settings.testBody.trFourthColumnName || ''}
@@ -569,8 +569,8 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, handleChange }
                <div className="row mt-3">
                     <div className="col-12">
                          <div className="form-row grid-reg">
-                              <label className="pls-label">Flag Column</label>
-                              <Form.Control
+                              <label htmlFor="settings-setting-testBody.trFifthColumnName" className="pls-label">Flag Column</label>
+                              <Form.Control id="settings-setting-testBody.trFifthColumnName"
                                    type="text"
                                    name="testBody.trFifthColumnName"
                                    value={settings.testBody.trFifthColumnName || ''}

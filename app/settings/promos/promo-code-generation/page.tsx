@@ -1,5 +1,6 @@
 'use client'
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import ui from "../../../../components/settings/SettingsWorkspace.module.css";
 import { RiCouponLine, RiFileTextLine, RiHashtag, RiCalendarEventLine, RiPercentLine, RiMoneyDollarCircleLine, RiTimeLine, RiCheckboxCircleLine } from "@remixicon/react";
 import { customPost } from "../../../../components/Auth/customFetch";
 import { toast } from "react-toastify";
@@ -34,10 +35,15 @@ export default function PromoCodeGenerationForm() {
 			valid_to: "",
 		},
 	});
-	const [success, setSuccess] = useState("");
+	const saveLock=useRef(false);
+    const [success, setSuccess] = useState("");
 	const [error, setError] = useState("");
 
 	const onSubmit = async (data) => {
+        if(saveLock.current)return;
+        if(data.valid_to && data.valid_to < data.valid_from){setError("Valid to must follow valid from.");return;}
+        if(data.discount_type==="percentage" && Number(data.discount_value)>100){setError("Percentage discounts cannot exceed 100%.");return;}
+        saveLock.current=true;
 		setError("");
 		setSuccess("");
 		try {
@@ -47,15 +53,14 @@ export default function PromoCodeGenerationForm() {
 			const requestUrl = 'promo-codes';
 			const response: { status: boolean, error: string, id?: number } = await customPost(requestUrl, 'POST', requestData);
 			if (response.status === true) {
-				toast.success("Promo code created successfully!");
+				setSuccess("Promo code created successfully!");
 				reset();
 			} else {
-				toast.error(response.error || "Failed to create promo code.");
+				setError(response.error || "Failed to create promo code.");
 			}
 		} catch (err) {
 			setError("Failed to create promo code.");
-			toast.error("Failed to create promo code.");
-		}
+			} finally {saveLock.current=false;}
 	};
 
 	useEffect(() => {
@@ -71,7 +76,7 @@ export default function PromoCodeGenerationForm() {
 	}, [setValue]);
 
 	return (
-		<div className="container-fluid">
+		<div className={ui.workspace}>
 			<div className="border border-1 br-5 bg-white p-4">
 				<div className="d-flex justify-content-between align-items-center mb-4">
 					<h4 className="mb-0 fw-bold">Create Promo Code</h4>
@@ -79,7 +84,7 @@ export default function PromoCodeGenerationForm() {
 						View Promo Codes List
 					</a>
 				</div>
-				<form onSubmit={handleSubmit(onSubmit)}>
+				<form onSubmit={handleSubmit(onSubmit)}><fieldset disabled={isSubmitting}>
 					<div className="form-row grid-reg mb-3">
 						<label className="pls-label">
 							<RiCouponLine size={16} className="me-2" />
@@ -130,7 +135,7 @@ export default function PromoCodeGenerationForm() {
 							Discount Type *
 						</label>
 						<div >
-							<select {...register("discount_type")} className="custom-select" aria-label="Discount Type">
+							<select {...register("discount_type")} className="form-select" aria-label="Discount Type">
 								<option value="flat">Flat</option>
 								<option value="percentage">Percentage</option>
 							</select>
@@ -174,8 +179,8 @@ export default function PromoCodeGenerationForm() {
 						</div>
 					</div>
 
-					{error && <div className="alert alert-danger d-flex align-items-center mt-3">{error}</div>}
-					{success && <div className="alert alert-success d-flex align-items-center mt-3">{success}</div>}
+					{error && <div role="alert" className="alert alert-danger d-flex align-items-center mt-3">{error}</div>}
+					{success && <div role="status" className="alert alert-success d-flex align-items-center mt-3">{success}</div>}
 
 					<div className="form-row grid-reg mt-4">
 						<div>
@@ -184,7 +189,7 @@ export default function PromoCodeGenerationForm() {
 							</button>
 						</div>
 					</div>
-				</form>
+				</fieldset></form>
 			</div>
 		</div>
 	);
