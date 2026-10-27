@@ -1,4 +1,5 @@
 import React, { useState, useContext } from "react";
+import {useApplication} from "../../Auth/useApplicationContext";
 import { Button } from "react-bootstrap";
 import { MultiBillingContext } from "./MultiBillingContext";
 import PaymentModal from "./PaymentModal";
@@ -23,6 +24,7 @@ interface MultiPaymentProps {
 }
 
 const MultiPayment: React.FC<MultiPaymentProps> = ({ handlesubmit, inline=false, renderPayment }) => {
+    const separateCashier = useApplication()?.settings?.labCheckoutMode === 'separate_cashier';
     const context = useContext(MultiBillingContext);
     if (!context) throw new Error("MultiBillingContext not found");
     const { billingdata, setBillingData } = context;
@@ -104,7 +106,7 @@ const MultiPayment: React.FC<MultiPaymentProps> = ({ handlesubmit, inline=false,
         setNewPayment(np => ({ ...np, amount: value }));
     };
 
-    if ((!paymentModes || paymentModes.length === 0) && !renderPayment) {
+    if ((!paymentModes || paymentModes.length === 0) && !renderPayment && !separateCashier) {
         return <div className="alert alert-warning">No payment modes available</div>;
     }
 
@@ -116,7 +118,7 @@ const MultiPayment: React.FC<MultiPaymentProps> = ({ handlesubmit, inline=false,
             earlyReturn = <div className="alert alert-info">No payment required. Previous paid amount matches new payable.</div>;
         }
     }
-    if (!earlyReturn && payments.length === 0 && availableModes.length === 0 && !renderPayment) {
+    if (!earlyReturn && payments.length === 0 && availableModes.length === 0 && !renderPayment && !separateCashier) {
         earlyReturn = <div className="alert alert-warning">No payments made and no payment modes available</div>;
     }
 

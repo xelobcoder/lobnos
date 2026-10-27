@@ -116,15 +116,15 @@ export default function Activator() {
 
 
     const callActivation = async (stat: string, ptid: string | number, toast: any, cb: any) => {
-        const status = await handleActivation(stat, ptid, toast, cb);
-        if (status == true) {
-            const prev = [...tempStore];
-            const matchedIndex = prev.findIndex((item) => item.patientid == ptid);
-            if (matchedIndex >= 0) {
-                const desiredStatus = stat == 'TRUE' ? 'FALSE' : 'TRUE'
-                prev[matchedIndex]['activation_status'] = desiredStatus;
+        try {
+            const status = await handleActivation(stat, ptid, toast, cb);
+            if (status === true) {
+                setStore(previous => previous.map(item => item.patientid == ptid
+                    ? { ...item, activation_status: stat === 'TRUE' ? 'FALSE' : 'TRUE' }
+                    : item));
             }
-            setStore(prev);
+        } catch {
+            toast.error('Unable to update the patient status. Please try again.');
         }
     }
 
@@ -195,10 +195,6 @@ export default function Activator() {
                 {row.original.agetype ? row.original.age + ' ' + row.original.agetype : 'N/A'}({row.original.gender === 'male' ? 'M' : row.original.gender === 'female' ? 'F' : 'N/A'})
             </div>,
             filteringMode: 'text'
-        },
-        {
-            Header: "dob", accessor: "dob", Cell: ({ value }) => formatDateOrNA(value),
-            filteringMode: 'date'
         },
         {
             Header: "relative details", accessor: 'relativecontactname', Cell: ({ row }) => (

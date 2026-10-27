@@ -1,3 +1,4 @@
+import styles from "./OrganizationWorkspace.module.css";
 import React, { useCallback, useEffect, useState } from "react";
 import { regions, organizationDefaultBasicInfo, customFetch, customFile, customPost, validateFormData } from "../Auth/customFetch";
 import Loader from "../accessories/Loader";
@@ -26,12 +27,12 @@ const customStyles = `
   }
   
   .image-upload-area:hover {
-	border-color: #0d6efd;
+	border-color: var(--pls-primary, #2e7d32);
   }
   
   .image-upload-area.dragging {
 	border-color: #0d6efd;
-	background: #f0f8ff;
+	background: var(--bs-tertiary-bg, #f5f8f6);
   }
 `;
 
@@ -45,6 +46,8 @@ export default function OrganizationBasicForm({ organizationid }) {
 	const [dragging, setDragging] = useState(false);
 	const [formValues, setFormValues] = useState(organizationDefaultBasicInfo);
 	const [formErrors, setFormErrors] = useState({});
+	const [saving, setSaving] = useState(false);
+	const [logoUploading, setLogoUploading] = useState(false);
 	const [showPostCreateModal, setShowPostCreateModal] = useState(false);
 	const [excelFile, setExcelFile] = useState(null);
 	const [uploading, setUploading] = useState(false);
@@ -79,7 +82,7 @@ export default function OrganizationBasicForm({ organizationid }) {
 	}, [organizationid]);
 
 	const loadOrganizationImage = useCallback(() => {
-		const imageUrl = `${process.env.BASEURL}/organization/profile/image?id=${organizationid}`;
+		const imageUrl = `/api/organization-logo?id=${organizationid}&v=${Date.now()}`;
 		setSelectedImage(imageUrl);
 	}, [organizationid]);
 
@@ -104,10 +107,8 @@ export default function OrganizationBasicForm({ organizationid }) {
 
 	const handleChange = (e) => {
 		const { name, value } = e.target;
-		setFormValues({
-			...formValues,
-			[name]: value,
-		});
+		setFormValues(previous => ({...previous, [name]: value}));
+		setFormErrors(previous => ({...previous, [name]: undefined}));
 	};
 
 	const resetFormForNewOrganization = () => {
@@ -128,6 +129,8 @@ export default function OrganizationBasicForm({ organizationid }) {
 
 	const onSubmit = async (e) => {
 		e.preventDefault();
+		if (saving) return;
+		setFormErrors({});
 		const validationErrors = validateFields(formValues);
 		if (Object.keys(validationErrors).length) {
 			setFormErrors(validationErrors);
@@ -144,6 +147,7 @@ export default function OrganizationBasicForm({ organizationid }) {
 		const handleResponseCallBack = (response) => {
 			const { status, message, statusCode } = response || {};
 			if (status === "exist") {
+				setFormErrors({name: message || 'An organization with this name already exists.'});
 				return toast.warning(message);
 			}
 
@@ -154,52 +158,46 @@ export default function OrganizationBasicForm({ organizationid }) {
 				return;
 			}
 
-			toast.error(message || "Unable to create organization");
+			if (response?.field) setFormErrors({[response.field]: message});
+			toast.error(message || 'Unable to create organization');
 		}
 		try {
+			setSaving(true);
 			if (!organizationid) {
-				validateFormData(updatedFormValues, false, ["name", "mobile"], "new/organizations", handleResponseCallBack);
+				await validateFormData(updatedFormValues, false, ["name", "mobile"], "new/organizations", handleResponseCallBack);
 			} else {
 				const updateInfo = await customPost("organization/update/basic", "PUT", updatedFormValues);
-				toast.success(updateInfo?.message);
+				if (updateInfo?.status === true) toast.success(updateInfo.message || 'Organization updated');
+				else {
+					if (updateInfo?.field) setFormErrors({[updateInfo.field]: updateInfo.message});
+					toast.error(updateInfo?.message || updateInfo?.error || 'Unable to save organization');
+				}
 			}
 		} catch (err) {
-			toast.error('Something wrong occurred');
-		}
+			toast.error('Unable to save the organization. Please try again.');
+		} finally { setSaving(false); }
 	};
 
 	const uploadImageCall = async (file) => {
-		if (!file) return;
-		try {
-			const formData = new FormData();
-			formData.append('organizations', file);
-
-			console.log('Uploading image...');
-			const response = await customFile(`organization/profile/image?id=${organizationid}`, formData);
-			console.log('Image upload response:', response);
-		} catch (error) {
-			console.error('Error during upload:', error);
-			return null;
-		}
-	}
-
-	const handleImageUpload = async (event) => {
-		const file = event.target.files[0];
-		if (file) {
-			setSelectedImage(URL.createObjectURL(file));
-			await uploadImageCall(file);
-		}
-	};
-
-	const handleDrop = async (event) => {
-		event.preventDefault();
-		setDragging(false);
-		const file = event.dataTransfer.files[0];
-		if (file) {
-			setSelectedImage(URL.createObjectURL(file));
-			await uploadImageCall(file);
-		}
-	};
+        if (!file || logoUploading) return;
+        if (!['image/png', 'image/jpeg'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+            toast.error('Choose a PNG or JPEG image up to 5 MB.'); return;
+        }
+        setLogoUploading(true);
+        try {
+            const body = new FormData(); body.append('organizations', file);
+            const response = await customFile(`organization/profile/image?id=${organizationid}`, body);
+            if (response?.status !== true) throw new Error(response?.message || 'Unable to upload logo');
+            loadOrganizationImage(); toast.success('Organization logo saved');
+        } catch (error) { toast.error(error.message || 'Unable to upload logo'); }
+        finally { setLogoUploading(false); }
+    };
+    const handleImageUpload = async (event) => {
+        const file = event.target.files[0]; event.target.value = ''; await uploadImageCall(file);
+    };
+    const handleDrop = async (event) => {
+        event.preventDefault(); setDragging(false); await uploadImageCall(event.dataTransfer.files[0]);
+    };
 
 	const handleDragOver = (event) => {
 		event.preventDefault();
@@ -353,8 +351,15 @@ export default function OrganizationBasicForm({ organizationid }) {
 		setSelectedRows([]);
 	};
 
+    const inputField = (name, label, type, placeholder, required = false) => <div className={styles.field}>
+        <label htmlFor={`organization-${name}`}>{label}{required ? ' *' : ''}</label>
+        <input id={`organization-${name}`} name={name} type={type} placeholder={placeholder} value={formValues[name] ?? ''} onChange={handleChange}
+            aria-required={required} aria-invalid={Boolean(formErrors[name])} aria-describedby={formErrors[name] ? `organization-${name}-error` : undefined}/>
+        {formErrors[name] && <span id={`organization-${name}-error`} className={styles.rowError} role="alert">{formErrors[name]}</span>}
+    </div>;
+
 	if (isloading) return (
-		<div className="container-fluid py-4">
+		<div className={styles.form}>
 			<style>{customStyles}</style>
 			<div className="card">
 				<div className="card-body p-4 text-center">
@@ -368,14 +373,14 @@ export default function OrganizationBasicForm({ organizationid }) {
 	);
 
 	return (
-		<div className="container-fluid py-4">
+		<div className={styles.form}>
 			<style>{customStyles}</style>
 
-			<div className="d-flex justify-content-between align-items-center mb-4">
-				<h4 className="d-flex align-items-center gap-2 mb-0">
+			<div className={styles.formHeader}>
+				<h2 className="d-flex align-items-center gap-2 mb-0">
 					<RiBuildingLine size={20} />
-					{message}
-				</h4>
+					{organizationid ? "Organization details" : "Contact and location details"}
+				</h2>
 				{!organizationid && (
 					<button
 						type="button"
@@ -388,243 +393,47 @@ export default function OrganizationBasicForm({ organizationid }) {
 				)}
 			</div>
 
-			<div className="card">
-				<div className="card-body">
-					<form onSubmit={onSubmit} autoComplete="off">
-						<div className="row">
-							{organizationid && (
-								<div className="col-md-4 mb-4">
-									<h6 className="mb-3">Organization Logo</h6>
-									<div
-										className={`image-upload-area d-flex flex-column align-items-center justify-content-center${dragging ? ' dragging' : ''}`}
-										style={{ minHeight: 180, cursor: 'pointer' }}
-										onClick={() => document.getElementById('fileInput').click()}
-										onDrop={handleDrop}
-										onDragOver={handleDragOver}
-										onDragLeave={handleDragLeave}
-									>
-										{selectedImage ? (
-											<div className="text-center">
-												<img
-													src={selectedImage}
-													alt="Organization Logo"
-													className="img-thumbnail mb-2"
-													style={{ maxWidth: '100%', maxHeight: 140, borderRadius: 4 }}
-												/>
-												<div className="d-flex align-items-center justify-content-center gap-1 text-primary">
-													<RiEditLine size={14} />
-													<small>Click to change</small>
-												</div>
-											</div>
-										) : (
-											<div className="text-center">
-												<RiUploadLine className="text-muted mb-2" size={24} />
-												<p className="text-muted mb-1">Click to upload logo</p>
-												<small className="text-muted">PNG, JPG up to 5MB</small>
-											</div>
-										)}
-									</div>
-									<input
-										type="file"
-										id="fileInput"
-										accept="image/*"
-										onChange={handleImageUpload}
-										style={{ display: 'none' }}
-									/>
-								</div>
-							)}
-							<div className={`col-md-${organizationid ? '8' : '12'}`}>
-								<h6 className="mb-3">Basic Information</h6>
-								<div className="mb-3">
-									<label className="form-label">Organization Name *</label>
-									<div className="input-group">
-										<span className="input-group-text">
-											<RiBuildingLine size={16} />
-										</span>
-										<input
-											type="text"
-											className={`form-control ${formErrors.name ? 'is-invalid' : ''}`}
-											autoComplete="off"
-											placeholder="Enter organization name"
-											name="name"
-											value={formValues.name}
-											onChange={handleChange}
-										/>
-										{formErrors.name && (
-											<div className="invalid-feedback">
-												{formErrors.name}
-											</div>
-										)}
-									</div>
-								</div>
-								<div className="mb-3">
-									<label className="form-label">Location</label>
-									<div className="input-group">
-										<span className="input-group-text">
-											<RiMapPinLine size={16} />
-										</span>
-										<input
-											type="text"
-											className="form-control"
-											autoComplete="off"
-											placeholder="City or district"
-											name="location"
-											value={formValues.location}
-											onChange={handleChange}
-										/>
-									</div>
-								</div>
-								<div className="mb-3">
-									<label className="form-label">Street Address</label>
-									<input
-										type="text"
-										className="form-control"
-										autoComplete="off"
-										placeholder="Street name and number"
-										name="street"
-										value={formValues.street}
-										onChange={handleChange}
-									/>
-								</div>
-								<div className="mb-3">
-									<label className="form-label">Mobile Number *</label>
-									<div className="input-group">
-										<span className="input-group-text">
-											<RiPhoneLine size={16} />
-										</span>
-										<input
-											type="tel"
-											className={`form-control ${formErrors.mobile ? 'is-invalid' : ''}`}
-											autoComplete="off"
-											minLength={10}
-											maxLength={10}
-											inputMode="tel"
-											placeholder="0595964565"
-											name="mobile"
-											value={formValues.mobile}
-											onChange={handleChange}
-										/>
-										{formErrors.mobile && (
-											<div className="invalid-feedback">
-												{formErrors.mobile}
-											</div>
-										)}
-									</div>
-								</div>
-								<div className="mb-3">
-									<label className="form-label">Full Address</label>
-									<textarea
-										className="form-control"
-										rows={3}
-										autoComplete="off"
-										placeholder="Complete address"
-										name="address"
-										value={formValues.address}
-										onChange={handleChange}
-									/>
-								</div>
-								<div className="mb-3">
-									<label className="form-label">Email Address</label>
-									<div className="input-group">
-										<span className="input-group-text">
-											<RiMailLine size={16} />
-										</span>
-										<input
-											type="email"
-											className={`form-control ${formErrors.email ? 'is-invalid' : ''}`}
-											autoComplete="off"
-											placeholder="contact@organization.com"
-											name="email"
-											value={formValues.email}
-											onChange={handleChange}
-										/>
-										{formErrors.email && (
-											<div className="invalid-feedback">
-												{formErrors.email}
-											</div>
-										)}
-									</div>
-								</div>
-								<div className="mb-3">
-									<label className="form-label">Website</label>
-									<div className="input-group">
-										<span className="input-group-text">
-											<RiGlobalLine size={16} />
-										</span>
-										<input
-											type="url"
-											className={`form-control ${formErrors.website ? 'is-invalid' : ''}`}
-											autoComplete="off"
-											placeholder="https://www.organization.com"
-											name="website"
-											value={formValues.website}
-											onChange={handleChange}
-										/>
-										{formErrors.website && (
-											<div className="invalid-feedback">
-												{formErrors.website}
-											</div>
-										)}
-									</div>
-								</div>
-								<div className="mb-3">
-									<label className="form-label">GPS Coordinates</label>
-									<input
-										type="text"
-										className="form-control"
-										autoComplete="off"
-										placeholder="GPS coordinates"
-										name="gpsmapping"
-										value={formValues.gpsmapping}
-										onChange={handleChange}
-									/>
-								</div>
-								<div className="mb-3">
-									<label className="form-label">Region</label>
-									<select
-										className="form-select"
-										name="region"
-										autoComplete="off"
-										value={formValues.region}
-										onChange={handleChange}
-									>
-										<option value="">Select Region</option>
-										{regions.map((region, index) => (
-											<option key={index} value={region}>
-												{region}
-											</option>
-										))}
-									</select>
-								</div>
-								<div className="mb-3">
-									<label className="form-label">Organization Type</label>
-									<select
-										className="form-select"
-										name="type"
-										autoComplete="off"
-										value={formValues.type}
-										onChange={handleChange}
-									>
-										<option value="">Select Type</option>
-										<option value="hospital">Hospital</option>
-										<option value="clinic">Clinic</option>
-										<option value="research">Research Facility</option>
-										<option value="laboratory">Laboratory</option>
-										<option value="pharmacy">Pharmacy</option>
-									</select>
-								</div>
-								<div className="d-flex justify-content-center mt-4 pt-3 border-top border-secondary-subtle">
-									<button
-										type="submit"
-										className="btn btn-primary btn-lg px-5 py-3 d-flex align-items-center gap-2"
-									>
-										<RiSaveLine size={20} />
-										{organizationid ? "Update Organization" : "Add Organization"}
-									</button>
-								</div>
-							</div>
-						</div>
-					</form>
+            <div className={styles.editorShell}><div>
+                <form onSubmit={onSubmit} autoComplete="off" noValidate>
+                    <div className={styles.editorGrid}>
+                        <div className={styles.formSections}>
+                            <section className={styles.panel} aria-labelledby="organization-identity-heading">
+                                <h3 id="organization-identity-heading">Identity and contact</h3>
+                                <p className={styles.sectionHelp}>Use the organization’s own details. Contact numbers and email addresses must be unique within your facility.</p>
+                                <div className={styles.fields}>
+                                    {inputField('name', 'Organization name', 'text', 'Enter organization name', true)}
+                                    <div className={styles.field}><label htmlFor="organization-type">Organization type</label><select id="organization-type" name="type" value={formValues.type ?? ''} onChange={handleChange}><option value="">Select type</option>{[['hospital','Hospital'],['clinic','Clinic'],['research','Research facility'],['laboratory','Laboratory'],['pharmacy','Pharmacy']].map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></div>
+                                    {inputField('mobile', 'Contact number', 'tel', '0201234567', true)}
+                                    {inputField('email', 'Email address', 'email', 'contact@organization.com')}
+                                    {inputField('website', 'Website', 'url', 'https://example.com')}
+                                </div>
+                            </section>
+                            <section className={styles.panel} aria-labelledby="organization-location-heading">
+                                <h3 id="organization-location-heading">Location</h3><p className={styles.sectionHelp}>Add the details staff need to identify and contact this partner.</p>
+                                <div className={styles.fields}>
+                                    {inputField('location', 'Location', 'text', 'City or district')}
+                                    <div className={styles.field}><label htmlFor="organization-region">Region</label><select id="organization-region" name="region" value={formValues.region ?? ''} onChange={handleChange}><option value="">Select region</option>{regions.map(region=><option key={region} value={region}>{region}</option>)}</select></div>
+                                    {inputField('street', 'Street address', 'text', 'Street name and number')}
+                                    {inputField('gpsmapping', 'GPS coordinates', 'text', 'GPS coordinates')}
+                                    <div className={`${styles.field} ${styles.spanAll}`}><label htmlFor="organization-address">Full address</label><textarea id="organization-address" name="address" rows={2} value={formValues.address ?? ''} onChange={handleChange}/></div>
+                                </div>
+                            </section>
+                        </div>
+                        <aside className={`${styles.summary} ${styles.panel}`} aria-label="Organization summary">
+                            <div><span className={styles.eyebrow}>PARTNER PROFILE</span><h3>{formValues.name || 'New organization'}</h3></div>
+                            {organizationid ? <div>
+                                <label className={`${styles.logoDrop} ${dragging ? styles.logoDragging : ''}`} onDrop={handleDrop} onDragOver={handleDragOver} onDragLeave={handleDragLeave}>
+                                    {selectedImage ? <img src={selectedImage} alt="Organization logo" onError={()=>setSelectedImage(null)}/> : <RiBuildingLine size={36} aria-hidden="true"/>}
+                                    <span>{logoUploading ? 'Uploading logo…' : 'Choose or drop a logo'}</span>
+                                    <input className="visually-hidden" aria-label="Upload organization logo" type="file" accept="image/png,image/jpeg" onChange={handleImageUpload} disabled={logoUploading}/>
+                                </label>
+                                <p className={styles.help}>PNG or JPEG · up to 5 MB</p>
+                            </div> : <p className={styles.help}>Save the organization first to upload its logo and add contact people or payment arrangements.</p>}
+                            <dl><div><dt>Contact</dt><dd>{formValues.mobile || 'Not provided'}</dd></div><div><dt>Email</dt><dd>{formValues.email || 'Not provided'}</dd></div><div><dt>Location</dt><dd>{formValues.location || 'Not provided'}</dd></div></dl>
+                        </aside>
+                    </div>
+                    <div className={styles.saveBar}><span className={styles.help}>* Required fields</span><button type="submit" className={styles.primary} disabled={saving || logoUploading}><RiSaveLine size={18} aria-hidden="true"/>{saving ? 'Saving…' : organizationid ? 'Save changes' : 'Create organization'}</button></div>
+                </form>
 
 					{/* Excel Import Modal */}
 					<Modal show={showExcelModal} onHide={() => setShowExcelModal(false)} backdrop="static" keyboard={false} fullscreen>

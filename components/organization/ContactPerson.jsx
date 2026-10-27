@@ -1,4 +1,5 @@
-'use client'
+'use client';
+import styles from './OrganizationWorkspace.module.css';
 import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -19,7 +20,7 @@ export default function ContactPerson({ organizationid }) {
 	const [data, setData] = useState(defaultData);
 	const [loading, setLoading] = useState(true);
 
-	const { control, handleSubmit, reset, formState: { errors } } = useForm({
+	const { control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm({
 		defaultValues: defaultData,
 		resolver: yupResolver(schema),
 	});
@@ -31,7 +32,7 @@ export default function ContactPerson({ organizationid }) {
 				const result = await customFetch(`organization/contactperson?id=${organizationid}`);
 				if (Array.isArray(result) && result.length > 0) {
 					setData(result[0]);
-					reset(result[0])
+					reset(Object.fromEntries(Object.keys(defaultData).map(key=>[key,result[0][key] ?? ''])))
 				}
 				setLoading(false);
 			}
@@ -45,21 +46,19 @@ export default function ContactPerson({ organizationid }) {
 	}, [organizationid]);
 
 	const onSubmit = async (formData) => {
-		const postResponse = await customPost(`organization/update/contact`, "PUT", { organizationid, ...formData });
-		const { status, message } = postResponse;
-		if (status === true) {
-			toast.success(message);
-		} else {
-			toast.error(message);
-		}
-	};
+        try {
+            const result = await customPost('organization/update/contact', 'PUT', {organizationid, ...formData});
+            if (result?.status === true) toast.success(result.message || 'Contact saved');
+            else toast.error(result?.message || result?.error || 'Unable to save contact');
+        } catch { toast.error('Unable to save contact. Please try again.'); }
+    };
 
 	const renderingContact = () => {
 		if (loading) return <Loader />;
 		return (
-			<Card className="bg-white p-4">
+			<Card className={styles.panel}>
 				<Card.Body>
-					<Form onSubmit={handleSubmit(onSubmit)}>
+					<Form className={`${styles.fields} ${styles.profileFields}`} onSubmit={handleSubmit(onSubmit)}>
 						<Form.Group className="grid-reg my-2" controlId="formName">
 							<Form.Label>Contact Person</Form.Label>
 							<Controller
@@ -70,9 +69,8 @@ export default function ContactPerson({ organizationid }) {
 										<Form.Control
 											className="custom-input"
 											type="text"
-											value={data.name}
 											placeholder="Contact Person"
-											{...field}
+											{...field} value={field.value ?? ''}
 											isInvalid={!!errors.name}
 										/>
 										<Form.Control.Feedback type="invalid">
@@ -93,9 +91,8 @@ export default function ContactPerson({ organizationid }) {
 										<Form.Control
 											className="custom-input"
 											type="email"
-											value={data.email}
 											placeholder="Contact Email"
-											{...field}
+											{...field} value={field.value ?? ''}
 											isInvalid={!!errors.email}
 										/>
 										<Form.Control.Feedback type="invalid">
@@ -116,10 +113,9 @@ export default function ContactPerson({ organizationid }) {
 										<Form.Control
 											className="custom-input"
 											type="tel"
-											value={data.mobile}
 											inputMode="tel"
 											placeholder="Mobile Number"
-											{...field}
+											{...field} value={field.value ?? ''}
 											isInvalid={!!errors.mobile}
 										/>
 										<Form.Control.Feedback type="invalid">
@@ -130,8 +126,8 @@ export default function ContactPerson({ organizationid }) {
 							/>
 						</Form.Group>
 
-						<Form.Group className="d-flex justify-content-start mt-3">
-							<Button type="submit" variant="primary">
+						<Form.Group className={`${styles.saveBar} ${styles.spanAll}`}>
+							<Button type="submit" disabled={isSubmitting} className={styles.primary}>
 								Save Changes
 							</Button>
 						</Form.Group>

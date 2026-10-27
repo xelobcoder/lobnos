@@ -1,4 +1,5 @@
 "use client";
+import styles from "../../../components/organization/OrganizationWorkspace.module.css";
 import { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -11,12 +12,12 @@ function PartnerWorkspace({ orgid }: { orgid: string }) {
     const [savedName, setSavedName] = useState("");
     const [saved, setSaved] = useState(false);
     return (
-        <main className="container-fluid py-3" style={{ maxWidth: 1200 }}>
-            <Link href="/settings/outsource" className="d-inline-block mb-3">← Outsourcing partners</Link>
-            <header className="mb-4">
-                <h1 className="h4 mb-2">{savedName || "Update outsourcing partner"}</h1>
+        <main className={styles.workspace}>
+            <Link href="/settings/outsource" className={styles.back}>← Outsourcing partners</Link>
+            <header className={styles.header}><div><span className={styles.eyebrow}>Outsourcing partners</span>
+                <h1 >{savedName || "Update outsourcing partner"}</h1>
                 <p className="text-muted mb-0">Review the organization details, then manage the tests this partner provides and their agreed costs and turnaround times.</p>
-            </header>
+            </div></header>
             {saved && <div className="alert alert-success d-flex flex-wrap justify-content-between align-items-center gap-3" role="status">
                 <div><strong>Organization details saved.</strong><div>Next, review the partner’s services, costs and turnaround times.</div></div>
                 <button type="button" className="btn btn-success" onClick={() => { setActiveTab("services"); setSaved(false); }}>Continue to services</button>

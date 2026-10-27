@@ -1,3 +1,4 @@
+import styles from './OrganizationWorkspace.module.css';
 import React, { useCallback, useEffect, useState } from "react";
 import { customFetch, customPost, organizationPaymentDefault } from "../Auth/customFetch";
 import Loader from "../accessories/Loader";
@@ -8,6 +9,7 @@ export default function PaymentModule({ organizationid }) {
   const [data, setData] = useState(organizationPaymentDefault);
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
+  const [saving,setSaving] = useState(false);
   const [formData, setFormData] = useState(organizationPaymentDefault);
 
   // Fetch payment data
@@ -87,18 +89,20 @@ export default function PaymentModule({ organizationid }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (saving) return;
     if (validateForm()) {
       try {
+        setSaving(true);
         const pushResponse = await customPost(`organization/update/payment`, "PUT", { organizationid, ...formData });
-        const { status, statusCode, message } = pushResponse;
+        const { status, message } = pushResponse || {};
         if (status === true) {
           toast.success('updated successfully');
         } else {
-          toast.error('something wrong occured');
+          toast.error(message || 'Unable to save payment arrangements');
         }
       } catch (err) {
-        toast.error("An error occurred");
-      }
+        toast.error("Unable to save payment arrangements. Please try again.");
+      } finally { setSaving(false); }
     }
   };
 
@@ -107,16 +111,16 @@ export default function PaymentModule({ organizationid }) {
     if (loading) return <Loader />;
 
     return (
-      <Card className="bg-white p-4">
+      <Card className={styles.panel}>
         <Card.Body>
-          <Form onSubmit={handleSubmit}>
+          <Form className={`${styles.fields} ${styles.profileFields}`} onSubmit={handleSubmit}>
             <Form.Group className="grid-reg my-2" controlId="formModule">
               <Form.Label>Payment Method</Form.Label>
               <Form.Control
                 as="select"
                 className="custom-input"
                 name="module"
-                value={formData.module}
+                value={formData.module ?? ''}
                 onChange={handleInputChange}
                 isInvalid={!!errors.module}
               >
@@ -138,7 +142,7 @@ export default function PaymentModule({ organizationid }) {
                 type="number"
                 className="custom-input"
                 name="commission"
-                value={formData.commission}
+                value={formData.commission ?? ''}
                 onChange={handleInputChange}
                 isInvalid={!!errors.commission}
               />
@@ -155,7 +159,7 @@ export default function PaymentModule({ organizationid }) {
                     type="tel"
                     className="custom-input"
                     name="momo"
-                    value={formData.momo}
+                    value={formData.momo ?? ''}
                     onChange={handleInputChange}
                     isInvalid={!!errors.momo}
                   />
@@ -170,7 +174,7 @@ export default function PaymentModule({ organizationid }) {
                     type="text"
                     className="custom-input"
                     name="momoname"
-                    value={formData.momoname}
+                    value={formData.momoname ?? ''}
                     onChange={handleInputChange}
                     isInvalid={!!errors.momoname}
                   />
@@ -189,7 +193,7 @@ export default function PaymentModule({ organizationid }) {
                     type="text"
                     className="custom-input"
                     name="account"
-                    value={formData.account}
+                    value={formData.account ?? ''}
                     onChange={handleInputChange}
                     isInvalid={!!errors.account}
                   />
@@ -204,7 +208,7 @@ export default function PaymentModule({ organizationid }) {
                     type="text"
                     className="custom-input"
                     name="bankname"
-                    value={formData.bankname}
+                    value={formData.bankname ?? ''}
                     onChange={handleInputChange}
                     isInvalid={!!errors.bankname}
                   />
@@ -219,7 +223,7 @@ export default function PaymentModule({ organizationid }) {
                     type="text"
                     className="custom-input"
                     name="branch"
-                    value={formData.branch}
+                    value={formData.branch ?? ''}
                     onChange={handleInputChange}
                     isInvalid={!!errors.branch}
                   />
@@ -234,7 +238,7 @@ export default function PaymentModule({ organizationid }) {
                     type="text"
                     className="custom-input"
                     name="accountname"
-                    value={formData.accountname}
+                    value={formData.accountname ?? ''}
                     onChange={handleInputChange}
                     isInvalid={!!errors.accountname}
                   />
@@ -245,9 +249,9 @@ export default function PaymentModule({ organizationid }) {
               </>
             )}
 
-            <Form.Group className="d-flex justify-content-start mt-3">
-              <Button type="submit" variant="primary">
-                Submit
+            <Form.Group className={`${styles.saveBar} ${styles.spanAll}`}>
+              <Button type="submit" disabled={saving} className={styles.primary}>
+                Save payment arrangements
               </Button>
             </Form.Group>
           </Form>

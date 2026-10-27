@@ -7,7 +7,7 @@ import { useState } from "react";
 import OrganizationSetupSettings from "./OrganizationSettings"
 import { useParams } from "next/navigation";
 import Link from 'next/link';
-import styles from '../common/DirectoryWorkspace.module.css';
+import styles from './OrganizationWorkspace.module.css';
 
 export default function OrganizationNavigationalTabs() {
     const [activeKey, setActiveKey] = useState('home');
@@ -26,11 +26,11 @@ export default function OrganizationNavigationalTabs() {
             <Tab eventKey="home" title="Organization details">
                 <OrganizationBasicForm organizationid={organizationId} />
             </Tab>
-            <Tab eventKey="contact" title="Contact Person">
-                <ContactPerson organizationid={organizationId} />
+            <Tab eventKey="contact" title="Contact person">
+                <h2>Contact person</h2><p className={styles.tabIntro}>Keep the primary contact up to date for communication with this organization.</p><ContactPerson organizationid={organizationId} />
             </Tab>
             <Tab eventKey="payment" title="Payment arrangements">
-                <PaymentModule organizationid={organizationId} />
+                <h2>Payment arrangements</h2><p className={styles.tabIntro}>Manage commission and the account used to pay this organization.</p><PaymentModule organizationid={organizationId} />
             </Tab>
             {/* <Tab eventKey="settings" title="settings">
                 {activeKey === "settings" && <OrganizationSetupSettings organizationid={organizationId} />}

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react"
-import { customFetch, deleteOrganization, handleChangeWithState, updatePagination } from "../Auth/customFetch"
+import { customFetch, customPost, handleChangeWithState, updatePagination } from "../Auth/customFetch"
 import {
 	RiEditLine,
 	RiDeleteBinLine,
@@ -20,7 +20,7 @@ import { orgainzationServerSideProcessing } from "../serverActions/ActionFilteri
 import ExcelExportButton from "../common/ExcelExportButton";
 import TableDropdownMenu from '../accessories/Datatables/TableDropdownMenu';
 import { useApplication } from "../Auth/useApplicationContext";
-import styles from '../common/DirectoryWorkspace.module.css';
+import styles from './OrganizationWorkspace.module.css';
 
 type Organization = {
 	id: number | string;
@@ -91,77 +91,47 @@ export default function OrganizationList() {
 			Header: "Actions",
 			accessor: "actions",
 			Cell: ({ row }) => {
-				const handleDelete = async (e) => {
-					e.preventDefault();
-					if (window.confirm(`Are you sure you want to delete "${row.original.name}"? This action cannot be undone.`)) {
-						const response = await deleteOrganization(row.original.id, getOrganizationData,currentEmployeeId);
-						if (response && response?.status == true) {
-							alert("Deleted successfully");
-							getOrganizationData()
-						}
-					}
-				};
+                const handleDelete = async (event) => {
+                    event.preventDefault();
+                    if (!window.confirm(`Are you sure you want to delete "${row.original.name}"? This action cannot be undone and may affect financial records.`)) return;
+                    try {
+                        const response = await customPost(`organization?id=${row.original.id}&&employeeid=${currentEmployeeId}`, 'DELETE', {});
+                        if (response?.status == true) {
+                            alert('Deleted successfully');
+                            getOrganizationData();
+                        } else {
+                            alert(response?.message || response?.error || 'Unable to delete this organization. Please try again.');
+                        }
+                    } catch {
+                        alert('Unable to delete this organization. Please try again.');
+                    }
+                };
 
 				return (
-					<Dropdown align="end">
+					<Dropdown align="end" drop="up">
 						<Dropdown.Toggle
 							variant="outline-secondary"
 							size="sm"
 							id={`dropdown-${row.original.id}`}
 							className="d-inline-flex align-items-center gap-1"
                             aria-label={`Actions for organization ${row.original.name || row.original.id}`}
-							style={{ minHeight: '40px' }}
+							style={{ minHeight: '32px' }}
 						>
 							<RiMoreLine size={16} aria-hidden="true"/>Actions
 						</Dropdown.Toggle>
 
 						<TableDropdownMenu aria-labelledby={`dropdown-${row.original.id}`}>
-							<div className="px-3 py-2 border-bottom">
-								<small className="text-muted fw-semibold text-uppercase">Actions for</small>
-								<div className="fw-bold text-dark small">{row.original.name}</div>
-							</div>
-
-							<Dropdown.Item
-								as={Link}
-								href={`/billing/billing-strategy/organization/${row.original.id}/check`}
-								className="py-2 px-3 d-flex align-items-center"
-							>
-								<div className="bg-primary bg-opacity-10 rounded-circle me-3 d-flex align-items-center justify-content-center" style={{ width: '32px', height: '32px' }}>
-									<RiEyeLine className="text-primary" size={14} />
-								</div>
-								<div>
-									<div className="fw-semibold small">Create Pricing</div>
-									<small className="text-muted">Set up billing strategy</small>
-								</div>
-							</Dropdown.Item>
-
-							<Dropdown.Item
-								onClick={(ev) => { handleEditing(row.original.id) }}
-								className="py-2 px-3 d-flex align-items-center"
-							>
-								<div className="bg-info bg-opacity-10 rounded-circle me-3 d-flex align-items-center justify-content-center" style={{ width: '32px', height: '32px' }}>
-									<RiEditLine className="text-info" size={14} />
-								</div>
-								<div>
-									<div className="fw-semibold small">Edit Details</div>
-									<small className="text-muted">Update organization info</small>
-								</div>
-							</Dropdown.Item>
-
-							<Dropdown.Divider className="my-1" />
-
-							<Dropdown.Item
-								className="py-2 px-3 d-flex align-items-center text-danger"
-								onClick={handleDelete}
-							>
-								<div className="bg-danger bg-opacity-10 rounded-circle me-3 d-flex align-items-center justify-content-center" style={{ width: '32px', height: '32px' }}>
-									<RiDeleteBinLine className="text-danger" size={14} />
-								</div>
-								<div>
-									<div className="fw-semibold small">Delete Organization</div>
-									<small className="text-muted">Permanently remove</small>
-								</div>
-							</Dropdown.Item>
+                            <Dropdown.Header className="text-truncate" title={row.original.name}>{row.original.name}</Dropdown.Header>
+                            <Dropdown.Item as={Link} href={`/billing/billing-strategy/organization/${row.original.id}/check`}>
+                                <RiEyeLine size={16} aria-hidden="true" /> Create Pricing
+                            </Dropdown.Item>
+                            <Dropdown.Item onClick={() => handleEditing(row.original.id)}>
+                                <RiEditLine size={16} aria-hidden="true" /> Edit Details
+                            </Dropdown.Item>
+                            <Dropdown.Divider className="my-1" />
+                            <Dropdown.Item className="text-danger" onClick={handleDelete}>
+                                <RiDeleteBinLine size={16} aria-hidden="true" /> Delete Organization
+                            </Dropdown.Item>
 						</TableDropdownMenu>
 					</Dropdown>
 				)
@@ -221,14 +191,19 @@ export default function OrganizationList() {
 		<main className={styles.workspace}>
 			<header className={styles.header}>
 				<div><span className={styles.eyebrow}>REFERRAL PARTNERS</span><h1>Organizations</h1><p>Find an organization, update its contact details, and manage its billing arrangements.</p></div>
-				<div className={styles.actions}><ExcelExportButton data={organization} filename="organizations" columns={exportColumns} disabled={!organization.length || isloading} /><Link href="/organization/new" className="btn btn-primary"><RiAddLine size={18} aria-hidden="true" /> New organization</Link></div>
+				<div className={styles.actions}><ExcelExportButton data={organization} filename="organizations" columns={exportColumns} disabled={!organization.length || isloading} /><Link href="/organization/new" className={styles.primary}><RiAddLine size={18} aria-hidden="true" /> New organization</Link></div>
 			</header>
+            <div className={styles.stats} aria-label="Current page summary">
+                <div className={styles.stat}><RiBuildingLine size={24} aria-hidden="true"/><div><strong>{organization.length}</strong><span>Organizations on this page</span></div></div>
+                <div className={styles.stat}><RiPhoneLine size={24} aria-hidden="true"/><div><strong>{organization.filter(row=>row.mobile).length}</strong><span>With a contact number</span></div></div>
+                <div className={styles.stat}><RiMailLine size={24} aria-hidden="true"/><div><strong>{organization.filter(row=>row.email).length}</strong><span>With an email address</span></div></div>
+            </div>
 			<section className={styles.panel}>
-				<form className={styles.toolbar} onSubmit={event => { event.preventDefault(); void filterButton(); }}>
+				<form className={`${styles.toolbar} ${styles.directorySearch}`} onSubmit={event => { event.preventDefault(); void filterButton(); }}>
 					<label htmlFor="organization-search-type">Search by<select id="organization-search-type" className="form-select" value={filter.type} onChange={event => setFilter({ ...filter, type: event.target.value })}><option value="organization">Organization name</option><option value="email">Email address</option><option value="contact">Contact number</option></select></label>
 					<label htmlFor="organization-search" style={{ flex: 1 }}>Find an organization<input id="organization-search" className="form-control" type="search" value={filter.value} onChange={event => setFilter({ ...filter, value: event.target.value })} placeholder="Enter a name, email or contact number" /></label>
-					<button type="submit" className="btn btn-primary" disabled={isloading}><RiSearchLine size={16} aria-hidden="true" /> Search</button>
-					<button type="button" className="btn btn-outline-secondary" disabled={isloading} onClick={() => { setFilter({ type: 'organization', value: '' }); setAppliedFilter({ type: 'organization', value: '' }); setOrganization(originalOrganizations); setLoadError(''); }}>Clear</button>
+					<button type="submit" className={styles.primary} disabled={isloading}><RiSearchLine size={16} aria-hidden="true" /> Search</button>
+					<button type="button" className={styles.secondary} disabled={isloading} onClick={() => { setFilter({ type: 'organization', value: '' }); setAppliedFilter({ type: 'organization', value: '' }); setOrganization(originalOrganizations); setLoadError(''); }}>Clear</button>
 				</form>
 				{loadError && <div className="alert alert-danger" role="alert">{loadError}<button type="button" className="btn btn-link" onClick={getOrganizationData}>Retry</button></div>}
 				{isloading ? <p className="py-4" role="status">Loading organizations…</p> : !loadError && <>

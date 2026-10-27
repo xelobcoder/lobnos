@@ -6,6 +6,7 @@ import { customFetch } from '../../Auth/customFetch';
 
 interface ApplicationSettingsData {
      billingLayout?: 'multi-compact' | 'multi-primary-two';
+     labCheckoutMode?: 'direct' | 'separate_cashier';
      PaidBillsBeforeTransaction: number;
      approvalbeforeprinting: number;
      AllowCrmToGiveDisocunt: number;
@@ -301,6 +302,16 @@ export const BillingSettingsTab: React.FC<BillingSettingsTabProps> = ({ settings
                          <option value="multi-primary-two">Multi-primary layout Two — guided billing with payment as step 4</option>
                     </Form.Select>
                     <p className="text-muted small mt-2 mb-0">Both layouts use the same billing records and financial rules.</p>
+               </section>
+               <section className="border rounded p-4 mb-4" aria-labelledby="lab-checkout-heading">
+                    <h5 id="lab-checkout-heading">Laboratory payment workflow</h5>
+                    <p className="text-muted small">Choose who collects payment after registration and billing. Save application settings to apply this choice.</p>
+                    <Form.Label htmlFor="lab-checkout-mode">Payment collection</Form.Label>
+                    <Form.Select id="lab-checkout-mode" name="labCheckoutMode" value={settings.labCheckoutMode || 'direct'} onChange={handleChange}>
+                         <option value="direct">Registrar collects payment — current workflow</option>
+                         <option value="separate_cashier">Separate cashier — generate a four-character payment code</option>
+                    </Form.Select>
+                    <p className="text-muted small mt-2 mb-0">Separate cashier mode saves a pending bill. The cashier enters its code in Cash Collection, receives payment and prints the normal receipt. Existing FOC, insurance and clinical release rules still apply.</p>
                </section>
                {/* Billing ID Prefix Section */}
                <div className="border rounded p-4 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>

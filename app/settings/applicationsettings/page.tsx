@@ -74,6 +74,7 @@ interface ApplicationSettingsData {
 	secondaryColor?: string | null;
 	ageVariationLimits: string | null
 	billingLayout?: 'multi-compact' | 'multi-primary-two';
+     labCheckoutMode?: 'direct' | 'separate_cashier';
 	workspaceLayout?: 'classic' | 'zoho' | 'claude' | 'ribbon' | 'slack' | 'portal';
 }
 

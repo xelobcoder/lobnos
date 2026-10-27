@@ -1,4 +1,5 @@
 'use client'
+import styles from '../../../../components/organization/OrganizationWorkspace.module.css';
 import dayjs from "dayjs";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
@@ -128,14 +129,13 @@ export default function OutsourcedCasesTrackingPage() {
      ];
 
      return (
-          <div>
-               <h2 className="alert alert-primary text-muted small col-4">Outsourced Cases Tracking</h2>
+          <main className={styles.workspace}><header className={styles.header}><div><span className={styles.eyebrow}>Outsourcing</span><h1>Outsourced cases</h1><p>Track outsourced tests, record expenses, and confirm completed work.</p></div></header><section className={styles.panel}>
                <PrimeTable
                     column={columns}
                     data={cases}
                     serverSideFiltering={true}
                     handleSeverSideProcessing={handleServerSideProcessing}
                />
-          </div>
+          </section></main>
      );
 }

@@ -56,6 +56,7 @@ const SummaryTile = ({ label, value, tone, active }: { label: string; value: str
 
 export default function CashCollection() {
      const [searchPatientId, setSearchPatientId]       = useState<string>('');
+     const [cashierCode, setCashierCode] = useState('');
      const [searchBillingId, setSearchBillingId]       = useState<string>('');
      const [statusFilter, setStatusFilter]             = useState<string>(useSearchParams()?.get('paymentstatus') || 'pending');
      const [billingRecords, setBillingRecords]         = useState<BillingRecord[]>([]);
@@ -152,13 +153,22 @@ export default function CashCollection() {
      };
 
      const doSearch = async (pid?: string, bid?: string) => {
-          const pId = pid !== undefined ? pid : searchPatientId;
-          const bId = bid !== undefined ? bid : searchBillingId;
+          let pId = pid !== undefined ? pid : searchPatientId;
+          let bId = bid !== undefined ? bid : searchBillingId;
+          let searchStatus = statusFilter;
           
           if (!pId.trim() && !bId.trim()) return;
           
           setIsLoading(true);
           setHasSearched(true);
+          if (/^[A-Za-z][A-Za-z2-9]{3}$/.test(bId.trim())) {
+               try {
+                    const match: any = await customFetch(`billing/lab-counter/lookup?code=${encodeURIComponent(bId.trim())}`);
+                    if (match?.status !== true || !match.data) throw new Error(match?.message || 'Cashier code not found');
+                    bId = String(match.data.billingid); pId = String(match.data.patientid); searchStatus = 'all';
+                    setSearchBillingId(bId); setSearchPatientId(pId); setStatusFilter('all');
+               } catch (error) { toast.error(error instanceof Error ? error.message : 'Unable to find this cashier code'); setIsLoading(false); return; }
+          }
 
           if (pId.trim() && !isNaN(parseInt(pId))) {
                try {
@@ -173,7 +183,7 @@ export default function CashCollection() {
           }
 
           try {
-               let url = `billing/client/bulk/outstanding?status=${statusFilter}`;
+               let url = `billing/client/bulk/outstanding?status=${searchStatus}`;
                if (pId.trim()) url += `&patientid=${pId}`;
                if (bId.trim()) url += `&billingid=${bId}`;
                
@@ -407,7 +417,11 @@ export default function CashCollection() {
      const changeDue        = Number.isFinite(tenderedAmount) ? tenderedAmount - totalReady : null;
 
      return (
-          <div>
+          <><form className="d-flex flex-wrap align-items-end gap-2 border rounded p-3 mb-3" onSubmit={event=>{event.preventDefault();void doSearch('',cashierCode);}}>
+          <div><label htmlFor="lab-cashier-code" className="form-label">Cashier code</label><input id="lab-cashier-code" className="form-control" value={cashierCode} onChange={event=>setCashierCode(event.target.value.toUpperCase())} maxLength={4} placeholder="e.g. DC29" autoComplete="off"/></div>
+          <button className="btn btn-primary" type="submit" disabled={isLoading || cashierCode.trim().length!==4}>Find bill</button>
+          <small className="text-muted">Enter the four-character code from registration to collect payment or reprint a receipt.</small>
+     </form><div>
                <div className="d-flex align-items-center justify-content-between mb-3">
                     <div className="d-flex align-items-center gap-4">
                          <div>
@@ -455,7 +469,7 @@ export default function CashCollection() {
                                    <input
                                         type="text"
                                         className="form-control form-control-sm"
-                                        placeholder="Billing ID…"
+                                        placeholder="Bill ID or cashier code…"
                                         style={{ width: 130, fontSize: '0.8rem' }}
                                         value={searchBillingId}
                                         onChange={e => setSearchBillingId(e.target.value)}
@@ -915,5 +929,6 @@ export default function CashCollection() {
                </div>
           </div>
 
+     </>
      );
 }

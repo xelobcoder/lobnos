@@ -9,6 +9,6 @@ const TableDropdownMenu=forwardRef<HTMLDivElement,DropdownMenuProps>(function Ta
  const [container,setContainer]=useState<HTMLElement|null>(null);
  useEffect(()=>{setContainer(document.body)},[]);
  if(!container)return null;
- return createPortal(<Dropdown.Menu {...props} ref={ref} className={`${styles.menu} ${className}`} popperConfig={{...popperConfig,strategy:'fixed',modifiers:[...(popperConfig?.modifiers||[]),{name:'flip',options:{rootBoundary:'viewport',padding:8}},{name:'preventOverflow',options:{rootBoundary:'viewport',boundary:'viewport',altAxis:true,padding:8}}]}}>{children}</Dropdown.Menu>,container);
+ return createPortal(<Dropdown.Menu {...props} ref={ref} className={`${styles.menu} ${className}`} popperConfig={{...popperConfig,strategy:'fixed',modifiers:[...(popperConfig?.modifiers||[]),{name:'flip',options:{rootBoundary:'viewport',boundary:'viewport',padding:8}},{name:'preventOverflow',options:{rootBoundary:'viewport',boundary:'viewport',altAxis:true,padding:8}},{name:'computeStyles',options:{adaptive:false,gpuAcceleration:false}},{name:'hide',enabled:false}]}}>{children}</Dropdown.Menu>,container);
 });
 export default TableDropdownMenu;

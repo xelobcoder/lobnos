@@ -815,6 +815,20 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           finally { setIsSyncing(false); }
      };
 
+     const separateCashier = applicationsettings?.settings?.labCheckoutMode === 'separate_cashier' && !billingdata.isAdjustment && !billingdata.billingid && !isNHISBilling;
+     if (separateCashier && paymentMode !== 'foc') {
+          if (!show) return null;
+          return <section className="border rounded p-4" aria-label="Cashier handoff">
+               <h3 className="h5">Send this bill to the cashier</h3>
+               <p>Save the reviewed charges without collecting payment. A four-character code will be generated for the cashier to retrieve the bill.</p>
+               <p className="text-muted">Amount payable: <strong>{payable.toFixed(2)}</strong></p>
+               {payAllError && <div className="alert alert-danger" role="alert">{payAllError}</div>}
+               <div className="d-flex gap-2 flex-wrap">
+                    <button type="button" className="btn btn-primary" disabled={isSyncing || isValueSynchronized} onClick={()=>void handleModernSaveWithoutPayment()}>{isSyncing ? 'Saving bill…' : 'Save bill & generate cashier code'}</button>
+                    <button type="button" className="btn btn-outline-secondary" disabled={isSyncing || isValueSynchronized} onClick={()=>setPaymentMode('foc')}>Apply staff benefit instead</button>
+               </div>
+          </section>;
+     }
      if (renderPayment) return <>{renderPayment({
           payable, billingdata, items, availableModes, isNHISBilling,
           paymentMode, setPaymentMode, payAllPayments, setPayAllPayments,

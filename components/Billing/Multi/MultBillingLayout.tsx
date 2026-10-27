@@ -1,4 +1,5 @@
 'use client';
+import LabCashierHandoff from '../LabCashierHandoff';
 import React from "react";
 import ModernBillingWorkspace from '../Modern/ModernBillingWorkspace';
 import ModernBillingSetup from '../Modern/ModernBillingSetup';
@@ -74,6 +75,7 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
     const employeeid = useApplication().user?.employeeid || 0;
     const role = useApplication().user?.role
     const cachedSettings = useApplication().settings;
+    const [cashierCode, setCashierCode] = useState<string | null>(null);
     const preparingSubmitRef = useRef(false);
     const promptSettingsRef = useRef<RegistrationPromptSettings | null>(null);
     const context = useContext(MultiBillingContext);
@@ -215,6 +217,8 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
 
     const handleReset = () => {
         setModernEntryDraft(null);
+        setCashierCode(null);
+        setGeneratedBillingid(undefined);
         if (conversionSource !== undefined) {
             // Reset must reload the request, not silently detach it into an unrelated bill.
             setInitializationAttempt(value => value + 1);
@@ -440,7 +444,7 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
 
     const submitBillingInternal = async (billingdata: MultiBillingData, writeOffConfirmed = false) => {
         if (isSaving) return;
-        if (generatedBillingid && (suspendedDraftId || conversionSource || queueHandoff)) {
+        if (generatedBillingid && (suspendedDraftId || conversionSource || queueHandoff || cashierCode)) {
             toast.info(`This sale has already been saved as billing ${generatedBillingid}. Do not submit it again.`);
             return;
         }
@@ -505,6 +509,7 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
                 if (typeof window !== 'undefined') {
                     const billingId = response.billingid || response.data?.billingid;
                     setGeneratedBillingid(billingId);
+                    setCashierCode(response.cashierCode || response.data?.cashierCode || null);
                     if (queueHandoff && billingId) {
                         const linked = await linkSavedRecordToQueue(queueHandoff, { patientid: Number(billingdata.patientid), billingid: Number(billingId) });
                         setQueueLinkWarning(linked.warning);
@@ -918,6 +923,7 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
     const BillingDialog=modern?InlineBillingPrompt:Modal;
     return (
         <React.Fragment>
+            {cashierCode && <LabCashierHandoff code={cashierCode}/>}
             {queueHandoff ? <div className="alert alert-info" role="status">Billing queue ticket #{queueHandoff.ticketId}. This saved bill will supply the client’s test progress on the queue dashboard. <a href="/operations/queue">Return to queue</a></div> : null}
             {queueLinkWarning ? <div className="alert alert-warning" role="alert">{generatedBillingid ? `Bill ${generatedBillingid} was saved. ` : ''}{queueLinkWarning} <a href="/operations/queue">Open queue</a>
                 {generatedBillingid && queueHandoff ? <Button className="ms-2" size="sm" variant="outline-secondary" disabled={retryingQueueLink} onClick={async () => {
