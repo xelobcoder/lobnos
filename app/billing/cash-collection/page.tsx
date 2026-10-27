@@ -1,10 +1,10 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
+import styles from './CashCollection.module.css';
 import Link from 'next/link';
 import DateFilterReusable from '../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable';
 import { customFetch, customPost, fetchPatientPersonalInfo } from '../../../components/Auth/customFetch';
 import { toast } from 'react-toastify';
-import BillingPagePatientInformation from '../../../components/Billing/BillingContextComponents/PersonalInfoView';
 import { useSearchParams } from 'next/navigation';
 import { plsDecryption, plsEncryption } from '../../../lib/encryption';
 import { useApplication } from '../../../components/Auth/useApplicationContext';
@@ -46,13 +46,6 @@ const SkeletonRow = () => (
 
 const money = (n: number) =>
      '₵' + (Number.isFinite(n) ? n : 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-const SummaryTile = ({ label, value, tone, active }: { label: string; value: string; tone: string; active?: boolean }) => (
-     <div className={`flex-fill px-3 py-2 border rounded ${active ? `bg-${tone}-subtle border-${tone}` : 'bg-white'}`} style={{ minWidth: 150, transition: 'background .2s, border-color .2s' }}>
-          <div className="text-muted text-uppercase fw-semibold" style={{ fontSize: '0.7rem', letterSpacing: '0.6px' }}>{label}</div>
-          <div className={`fw-bold text-${tone}`} style={{ fontSize: '1.05rem', fontVariantNumeric: 'tabular-nums' }}>{value}</div>
-     </div>
-);
 
 export default function CashCollection() {
      const [searchPatientId, setSearchPatientId]       = useState<string>('');
@@ -156,12 +149,16 @@ export default function CashCollection() {
           let pId = pid !== undefined ? pid : searchPatientId;
           let bId = bid !== undefined ? bid : searchBillingId;
           let searchStatus = statusFilter;
+          let cashierLookup = false;
           
           if (!pId.trim() && !bId.trim()) return;
           
           setIsLoading(true);
           setHasSearched(true);
           if (/^[A-Za-z][A-Za-z2-9]{3}$/.test(bId.trim())) {
+               cashierLookup = true;
+               setBillingRecords([]); setSelectedBillingId(null); setPatientInfo(null); setPatientId(null);
+               setStagedData({}); setGlobalPaymentMode(''); setTendered(''); setPaidBills([]);
                try {
                     const match: any = await customFetch(`billing/lab-counter/lookup?code=${encodeURIComponent(bId.trim())}`);
                     if (match?.status !== true || !match.data) throw new Error(match?.message || 'Cashier code not found');
@@ -191,6 +188,7 @@ export default function CashCollection() {
                
                if (r?.success && r?.data?.records?.length > 0) {
                     setBillingRecords(r.data.records);
+                    if (cashierLookup) setPaidBills(r.data.records.filter(rec => Number(rec.paid) > 0).map(rec => rec.billingid));
                     
                     const recordIds = r.data.records.map(rec => rec.billingid);
                     if (preselectBilling.current && recordIds.includes(preselectBilling.current)) {
@@ -417,22 +415,25 @@ export default function CashCollection() {
      const changeDue        = Number.isFinite(tenderedAmount) ? tenderedAmount - totalReady : null;
 
      return (
-          <><form className="d-flex flex-wrap align-items-end gap-2 border rounded p-3 mb-3" onSubmit={event=>{event.preventDefault();void doSearch('',cashierCode);}}>
-          <div><label htmlFor="lab-cashier-code" className="form-label">Cashier code</label><input id="lab-cashier-code" className="form-control" value={cashierCode} onChange={event=>setCashierCode(event.target.value.toUpperCase())} maxLength={4} placeholder="e.g. DC29" autoComplete="off"/></div>
-          <button className="btn btn-primary" type="submit" disabled={isLoading || cashierCode.trim().length!==4}>Find bill</button>
-          <small className="text-muted">Enter the four-character code from registration to collect payment or reprint a receipt.</small>
-     </form><div>
+          <main className={styles.workspace}>
+          <header className={styles.header}><div><span className={styles.eyebrow}>PAYMENTS & RECEIPTS</span><h1>Cash Collection</h1><p>Find a bill, review the balance, then collect payment and print the receipt.</p></div><Link href="/billing/receipts" className="btn btn-outline-secondary">Receipt history</Link></header>
+          <form className={styles.searchBar} aria-label="Find a bill" onSubmit={event=>{event.preventDefault();void(cashierCode.trim()?doSearch('',cashierCode):doSearch());}}>
+               <label htmlFor="lab-cashier-code">Cashier code<input id="lab-cashier-code" className="form-control" value={cashierCode} onChange={event=>{setCashierCode(event.target.value.toUpperCase());setSearchBillingId('');setSearchPatientId('');}} maxLength={4} placeholder="e.g. DC29" autoComplete="off"/></label>
+               <label htmlFor="collection-patient">Patient ID<input id="collection-patient" className="form-control" value={searchPatientId} onChange={event=>{setSearchPatientId(event.target.value);setCashierCode('');}} placeholder="Patient ID"/></label>
+               <label htmlFor="collection-bill">Bill ID<input id="collection-bill" className="form-control" value={searchBillingId} onChange={event=>{setSearchBillingId(event.target.value);setCashierCode('');}} placeholder="Bill ID"/></label>
+               <label htmlFor="collection-status">Payment status<select id="collection-status" className="form-select" value={statusFilter} onChange={event=>setStatusFilter(event.target.value)}><option value="all">All</option><option value="pending">Pending</option><option value="completed">Completed</option></select></label>
+               <button className="btn btn-primary" type="submit" disabled={isLoading||(!cashierCode.trim()&&!searchPatientId.trim()&&!searchBillingId.trim())}>{isLoading?'Finding bill…':'Find bill'}</button>
+          </form>
+          <ol className={styles.steps}><li><span>1</span> Find the patient’s bill</li><li><span>2</span> Review services and amounts</li><li><span>3</span> Collect payment & print</li></ol>
+          <div>
                <div className="d-flex align-items-center justify-content-between mb-3">
                     <div className="d-flex align-items-center gap-4">
-                         <div>
-                              <h4 className="mb-0 fw-bold fs-5">Cash Collection</h4>
-                              <p className="text-body-secondary mb-0 small">Collect outstanding patient balances</p>
-                         </div>
+                         
 
                     </div>
                </div>
 
-               <div className="card shadow-sm" style={{ fontSize: '0.85rem' }}>
+               <div className="card shadow-sm" style={{ fontSize: 'inherit' }}>
 
                     <div className="card-header bg-white border-bottom py-2 px-3">
                          {patientInfo && (
@@ -440,10 +441,10 @@ export default function CashCollection() {
                                    <div className="d-flex align-items-center gap-2 rounded-circle bg-primary-subtle text-primary fw-bold justify-content-center" style={{ width: 36, height: 36 }}>
                                         {String(patientInfo?.fullname ?? patientInfo?.firstname ?? '?').trim().charAt(0).toUpperCase()}
                                    </div>
-                                   <div style={{ fontSize: '0.8rem' }}><BillingPagePatientInformation data={patientInfo} loadingststate={false} /></div>
+                                   <div className={styles.patientSummary}><strong>{patientInfo.fullname || [patientInfo.firstname,patientInfo.middlename,patientInfo.lastname].filter(Boolean).join(' ')}</strong><div className={styles.patientMeta}><span>Patient ID: {patientInfo.fullpatientid || patientInfo.patientid || patientId}</span>{patientInfo.gender&&<span>{patientInfo.gender}</span>}{patientInfo.age&&<span>{patientInfo.age} {patientInfo.ageType || patientInfo.agetype || ''}</span>}{patientInfo.mobile_number&&<span>{patientInfo.mobile_number}</span>}{patientInfo.email&&<span>{patientInfo.email}</span>}</div></div>
                                    <div className="d-flex gap-2 ms-auto">
-                                        {patientId && <span className="badge bg-primary-subtle text-primary border border-primary-subtle fw-semibold">Patient #{patientId}</span>}
-                                        {selectedBillingId && <span className="badge bg-danger-subtle text-danger border border-danger-subtle fw-semibold">Billing #{selectedBillingId}</span>}
+                                        
+                                        {selectedBillingId && <span className={styles.billBadge}>Bill #{selectedBillingId}</span>}
                                    </div>
                               </div>
                          )}
@@ -454,37 +455,7 @@ export default function CashCollection() {
                               {patientId && (
                                    <Link href={`/billing/patientid/${plsEncryption(patientId.toString())}/multi`} className="btn btn-sm btn-outline-secondary">&larr; Back to Billing</Link>
                               )}
-                              <div className="d-flex gap-2 align-items-center ms-auto">
-                                   {hasSearched && (<>
-                                   <small className="text-muted me-1">Switch to</small>
-                                   <input
-                                        type="text"
-                                        className="form-control form-control-sm"
-                                        placeholder="Patient ID…"
-                                        style={{ width: 130, fontSize: '0.8rem' }}
-                                        value={searchPatientId}
-                                        onChange={e => setSearchPatientId(e.target.value)}
-                                        onKeyDown={e => e.key === 'Enter' && doSearch()}
-                                   />
-                                   <input
-                                        type="text"
-                                        className="form-control form-control-sm"
-                                        placeholder="Bill ID or cashier code…"
-                                        style={{ width: 130, fontSize: '0.8rem' }}
-                                        value={searchBillingId}
-                                        onChange={e => setSearchBillingId(e.target.value)}
-                                        onKeyDown={e => e.key === 'Enter' && doSearch()}
-                                   />
-                                   <select className="form-select form-select-sm" style={{ width: 110, fontSize: '0.8rem' }} value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-                                        <option value="all">All</option>
-                                        <option value="pending">Pending</option>
-                                        <option value="completed">Completed</option>
-                                   </select>
-                                   <button className="btn btn-sm btn-primary px-3" style={{ fontSize: '0.8rem' }} onClick={() => doSearch()} disabled={isLoading}>
-                                        {isLoading ? <><span className="spinner-border spinner-border-sm me-1" />Searching…</> : 'Search'}
-                                   </button>
-                                   </>)}
-                              </div>
+                              
                          </div>
                     </div>
 
@@ -504,13 +475,15 @@ export default function CashCollection() {
                     )}
 
                     {hasSearched && billingRecords.length > 0 && (
-                         <div className="d-flex flex-wrap gap-2 p-3 bg-light border-bottom">
-                              <SummaryTile label="Outstanding" value={money(totalOutstanding)} tone="danger" />
-                              <SummaryTile label="Already paid" value={money(totalPaidSoFar)} tone="secondary" />
-                              <SummaryTile label="Collecting now" value={money(totalReady)} tone="success" active={totalReady > 0} />
-                                                            <SummaryTile label="Waive-off" value={money(totalWaiveOff)} tone="warning" active={totalWaiveOff > 0} />
-                              <SummaryTile label="Remaining after" value={money(remainingAfter)} tone="primary" />
-                         </div>
+                         <section className={styles.summary} aria-labelledby="collection-summary-heading">
+                              <div className={styles.summaryHeading}><h2 id="collection-summary-heading">Payment overview</h2><span>Across {billingRecords.length} loaded {billingRecords.length===1?'bill':'bills'}</span></div>
+                              <dl className={styles.summaryGrid}>
+                                   <div className={styles.balanceCard}><dt>Current balance</dt><dd className={styles.summaryValue} data-long={money(totalOutstanding).length>12}>{money(totalOutstanding)}</dd><dd className={styles.summaryHelp}>Outstanding before this payment</dd></div>
+                                   <div className={styles.collectCard} data-error={hasErrors}><dt>Collecting now <span className={styles.previewBadge}>Not yet recorded</span></dt><dd className={styles.summaryValue} data-long={money(totalReady).length>12}>{money(totalReady)}</dd><dd className={styles.summaryHelp}>{hasErrors?'Check the entered amounts':totalReady>0?`${stagedEntries.length} ${stagedEntries.length===1?'service':'services'} entered`:'Enter an amount in the services below'}</dd></div>
+                                   <div className={styles.remainingCard}><dt>Remaining after payment</dt><dd className={styles.summaryValue} data-long={money(remainingAfter).length>12}>{money(remainingAfter)}</dd><dd className={styles.summaryHelp}>{totalOutstanding===0?'No outstanding balance':remainingAfter===0?'No balance after this entry':totalWaiveOff>0?'Includes the entered waive-off':'Balance left after the entered payment'}</dd></div>
+                              </dl>
+                              <div className={styles.summaryFooter}><div className={styles.summaryMeta}><span>Already paid <strong>{money(totalPaidSoFar)}</strong></span>{totalWaiveOff>0&&<span className={styles.waiverChip}>Waive-off entered <strong>{money(totalWaiveOff)}</strong></span>}</div><span className={styles.summaryHint}>Confirm with Collect Payment below.</span></div>
+                         </section>
                     )}
 
                     <div className="card-body p-0">
@@ -542,12 +515,15 @@ export default function CashCollection() {
                               </div>
 
                               {outstandingList && (
-                                   <div className="d-flex flex-wrap gap-2 p-3 bg-light border-bottom">
-                                        <SummaryTile label="Patients owing" value={String(outstandingList.summary.patients)} tone="primary" />
-                                        <SummaryTile label="Unsettled bills" value={String(outstandingList.summary.bills)} tone="secondary" />
-                                        <SummaryTile label="Total outstanding" value={money(outstandingList.summary.totalOutstanding)} tone="danger" />
-                                        <SummaryTile label="Already paid on these" value={money(outstandingList.summary.totalPaid)} tone="success" />
-                                   </div>
+                                   <section className={styles.directoryOverview} aria-labelledby="outstanding-overview-heading">
+                                        <div className={styles.summaryHeading}><h2 id="outstanding-overview-heading">Outstanding overview</h2><span>Across the current filters</span></div>
+                                        <dl className={styles.directoryTotals}>
+                                             <div className={styles.overviewTotal}><dt>Amount outstanding</dt><dd data-long={money(outstandingList.summary.totalOutstanding).length>12}>{money(outstandingList.summary.totalOutstanding)}</dd></div>
+                                             <div><dt>Patients with a balance</dt><dd>{outstandingList.summary.patients.toLocaleString()}</dd></div>
+                                             <div><dt>Unsettled bills</dt><dd>{outstandingList.summary.bills.toLocaleString()}</dd></div>
+                                             <div><dt>Already paid on these bills</dt><dd>{money(outstandingList.summary.totalPaid)}</dd></div>
+                                        </dl>
+                                   </section>
                               )}
 
                               <div style={{ maxHeight: 'calc(100vh - 430px)', minHeight: 240, overflowY: 'auto' }}>
@@ -620,28 +596,29 @@ export default function CashCollection() {
                                    <p className="text-muted small mb-0">This patient has no outstanding billing records matching the selected filter</p>
                               </div>
                          ) : (
-                              <div className="row g-0">
+                              <div className={styles.collectionGrid}>
 
-                                   <div className="                                   col-12 col-md-5 col-xl-4 border-end bg-body-tertiary" style={{ height: panelHeight, overflowY: 'auto' }}>
+                                   <aside className={styles.billList} aria-label="Patient bills">
                                         <div className="p-2">
                                              <div className="mb-2">
                                                   <div className="d-flex align-items-center justify-content-between mb-2">
-                                                       <span className="text-uppercase fw-semibold text-body-secondary" style={{ fontSize: '0.8rem', letterSpacing: '0.6px' }}>
+                                                       <span className="text-uppercase fw-semibold text-body-secondary" style={{ fontSize: 'inherit', letterSpacing: '0.6px' }}>
                                                             Open bills <span className="text-body-tertiary">({billingRecords.length})</span>
                                                        </span>
-                                                       <button className="btn btn-link btn-sm p-0 text-decoration-none fw-semibold" style={{ fontSize: '0.72rem' }} onClick={payAllOutstanding}>
-                                                            Stage all
+                                                       <button className="btn btn-link btn-sm p-0 text-decoration-none fw-semibold" style={{ fontSize: 'inherit' }} onClick={payAllOutstanding}>
+                                                            Use all balances
                                                        </button>
                                                   </div>
                                                   <div className="input-group input-group-sm">
-                                                       <span className="input-group-text bg-white text-body-secondary" style={{ fontSize: '0.7rem' }}>Waive-off all</span>
+                                                       <span className="input-group-text bg-white text-body-secondary" style={{ fontSize: 'inherit' }}>Waive-off all</span>
                                                        <input
                                                             type="number"
                                                             className="form-control"
                                                             placeholder="0.00"
+                                                                                                    aria-label="Total waive-off"
                                                             value={globalWaiveOff}
                                                             onChange={e => applyGlobalWaiveOff(e.target.value)}
-                                                            style={{ fontSize: '0.75rem', textAlign: 'right' }}
+                                                            style={{ fontSize: 'inherit', textAlign: 'right' }}
                                                        />
                                                   </div>
                                              </div>
@@ -675,7 +652,7 @@ export default function CashCollection() {
                                                                       ₵{outstanding.toFixed(2)}
                                                                  </span>
                                                             </div>
-                                                            <div className="d-flex justify-content-between align-items-center text-body-secondary" style={{ fontSize: '0.9rem' }}>
+                                                            <div className="d-flex justify-content-between align-items-center text-body-secondary" style={{ fontSize: 'inherit' }}>
                                                                  <span>
                                                                       {new Date(record.billedon).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' })}
                                                                       <span className={`ms-2 text-${statusTone}-emphasis fw-semibold`}>{status}</span>
@@ -684,43 +661,43 @@ export default function CashCollection() {
                                                             </div>
                                                             {(hasAdjustment || staged > 0 || record.isAdjustment === 1) && (
                                                                  <div className="d-flex flex-wrap gap-1 mt-1">
-                                                                      {record.isAdjustment === 1 && <span className="badge bg-warning text-dark" style={{ fontSize: '0.75rem' }}>ADJ</span>}
-                                                                      {hasAdjustment && <span className="badge bg-primary-subtle text-primary" style={{ fontSize: '0.75rem' }}>Net ₵{netOutstanding.toFixed(2)}</span>}
-                                                                      {staged > 0 && <span className="badge bg-success" style={{ fontSize: '0.75rem' }}>₵{staged.toFixed(2)} staged</span>}
+                                                                      {record.isAdjustment === 1 && <span className="badge bg-warning text-dark" style={{ fontSize: 'inherit' }}>ADJ</span>}
+                                                                      {hasAdjustment && <span className="badge bg-primary-subtle text-primary" style={{ fontSize: 'inherit' }}>Net ₵{netOutstanding.toFixed(2)}</span>}
+                                                                      {staged > 0 && <span className="badge bg-success" style={{ fontSize: 'inherit' }}>₵{staged.toFixed(2)} entered</span>}
                                                                  </div>
                                                             )}
                                                             {netOutstanding > 0 && isSelected && (
                                                                  <button
                                                                       className="                                                                      btn btn-primary w-100 fw-semibold mt-2"
-                                                                                                                                            style={{ fontSize: '0.95rem', padding: '8px 0' }}
+                                                                                                                                            style={{ fontSize: 'inherit', padding: '8px 0' }}
                                                                       onClick={e => { e.stopPropagation(); payBillingRecord(record.billingid); }}
                                                                  >
-                                                                      Stage full balance
+                                                                      Use full balance
                                                                  </button>
                                                             )}
                                                        </div>
                                                   );
                                              })}
                                         </div>
-                                   </div>
+                                   </aside>
 
-                                   <div className="col-12 col-md-7 col-xl-8 d-flex flex-column" style={{ height: panelHeight }}>
+                                   <div className={styles.detailPanel}>
 
                                         {selectedRecord ? (
                                              <>
-                                                  <div style={{ flex: 1, overflowY: 'auto' }}>
+                                                  <div className={styles.serviceArea}>
                                                        <div className="p-3">
                                                             <div className="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
                                                                  <div>
                                                                       <h5 className="mb-0 fw-bold fs-6">Services</h5>
-                                                                      <span className="text-muted" style={{ fontSize: "0.9rem" }}>Billing #{selectedRecord.billingid}</span>
+                                                                      <span className="text-muted" style={{ fontSize: 'inherit' }}>Billing #{selectedRecord.billingid}</span>
                                                                  </div>
                                                                  <div className="d-flex align-items-center gap-3">
                                                                       <div className="form-check form-switch mb-0">
                                                                            <input className="form-check-input" type="checkbox" role="switch" id="hide-paid" checked={hidePaid} onChange={e => setHidePaid(e.target.checked)} />
                                                                            <label className="form-check-label small text-muted" htmlFor="hide-paid">Hide fully paid</label>
                                                                       </div>
-                                                                      <span className="badge bg-secondary" style={{ fontSize: "0.85rem" }}>{selectedRecord.serviceDetails.length} service(s)</span>
+                                                                      <span className="badge bg-secondary" style={{ fontSize: 'inherit' }}>{selectedRecord.serviceDetails.length} service(s)</span>
                                                                  </div>
                                                             </div>
 
@@ -730,7 +707,7 @@ export default function CashCollection() {
                                                                  </div>
                                                             )}
 
-                                                            <table className="table table-hover align-middle mb-0" style={{ fontSize: '0.82rem', fontVariantNumeric: 'tabular-nums' }}>
+                                                            <table className="table table-hover align-middle mb-0" style={{ fontSize: 'inherit', fontVariantNumeric: 'tabular-nums' }}>
                                                                  <thead className="table-light sticky-top" style={{ top: 0, zIndex: 10 }}>
                                                                       <tr>
                                                                            <th>Service</th>
@@ -762,15 +739,15 @@ export default function CashCollection() {
                                                                                 <tr key={service.serviceid} style={{ background: rowBg }}>
                                                                                      <td>
                                                                                           <div className="fw-medium">{service.service_name}</div>
-                                                                                          {isPaid && <span className="badge bg-success-subtle text-success border border-success-subtle" style={{ fontSize: '0.65rem' }}>PAID</span>}
-                                                                                          {!isPaid && (staged > 0 || waive > 0) && !hasError && <span className="badge bg-warning-subtle text-warning border border-warning-subtle" style={{ fontSize: '0.65rem' }}>STAGED</span>}
+                                                                                          {isPaid && <span className="badge bg-success-subtle text-success border border-success-subtle" style={{ fontSize: 'inherit' }}>PAID</span>}
+                                                                                          {!isPaid && (staged > 0 || waive > 0) && !hasError && <span className="badge bg-warning-subtle text-warning border border-warning-subtle" style={{ fontSize: 'inherit' }}>ENTERED</span>}
                                                                                      </td>
                                                                                      <td className="text-end">₵{payable.toFixed(2)}</td>
                                                                                      <td className="text-end text-success fw-medium">₵{paid.toFixed(2)}</td>
                                                                                      <td className="text-end">
-                                                                                          <div className={`fw-bold ${balance > 0 ? 'text-danger' : 'text-muted'}`} style={{ fontSize: '0.9rem', textDecoration: (waive > 0) ? 'line-through' : 'none', opacity: (waive > 0) ? 0.6 : 1 }}>₵{balance.toFixed(2)}</div>
+                                                                                          <div className={`fw-bold ${balance > 0 ? 'text-danger' : 'text-muted'}`} style={{ fontSize: 'inherit', textDecoration: (waive > 0) ? 'line-through' : 'none', opacity: (waive > 0) ? 0.6 : 1 }}>₵{balance.toFixed(2)}</div>
                                                                                           {!isPaid && (waive > 0) && (
-                                                                                               <div className="text-primary fw-bold" style={{ fontSize: '0.9rem' }}>
+                                                                                               <div className="text-primary fw-bold" style={{ fontSize: 'inherit' }}>
                                                                                                     Net: {netBalance.toFixed(2)}
                                                                                                </div>
                                                                                           )}
@@ -785,7 +762,7 @@ export default function CashCollection() {
                                                                                                     min={0}
                                                                                                     max={balance}
                                                                                                     step="0.01"
-                                                                                                    value={stagedSvc.waiveOff}
+                                                                                                    aria-label={`Waive-off for ${service.service_name}`} value={stagedSvc.waiveOff}
                                                                                                     onChange={e => handleValueChange(service.serviceid, 'waiveOff', e.target.value, balance)}
                                                                                                />
                                                                                           ) : <small className="text-muted">—</small>}
@@ -797,17 +774,17 @@ export default function CashCollection() {
                                                                                                          <input
                                                                                                               type="number"
                                                                                                               className={`form-control ${hasError ? 'border-danger' : staged > 0 ? 'border-warning' : ''}`}
-                                                                                                              style={{ width: 110, fontSize: '0.95rem' }}
+                                                                                                              style={{ width: 110, fontSize: 'inherit' }}
                                                                                                               placeholder="0.00"
                                                                                                               min={0}
                                                                                                               max={balance}
                                                                                                               step="0.01"
-                                                                                                              value={stagedSvc.payment}
+                                                                                                              aria-label={`Amount for ${service.service_name}`} value={stagedSvc.payment}
                                                                                                               onChange={e => handleValueChange(service.serviceid, 'payment', e.target.value, balance)}
                                                                                                          />
                                                                                                          <button
                                                                                                               className="btn btn-outline-primary"
-                                                                                                              style={{ fontSize: '0.85rem', whiteSpace: 'nowrap' }}
+                                                                                                              style={{ fontSize: 'inherit', whiteSpace: 'nowrap' }}
                                                                                                               disabled={Math.abs(staged - balance) < 0.005 && waive === 0}
                                                                                                               onClick={() => {
                                                                                                                    setStagedData(prev => ({
@@ -820,11 +797,11 @@ export default function CashCollection() {
                                                                                                                    }));
                                                                                                               }}
                                                                                                          >
-                                                                                                              Pay Full
+                                                                                                              Use balance
                                                                                                          </button>
                                                                                                     </div>
                                                                                                     {hasError && (
-                                                                                                         <div className="text-danger mt-1" style={{ fontSize: '0.85rem' }}>
+                                                                                                         <div className="text-danger mt-1" style={{ fontSize: 'inherit' }}>
                                                                                                               ⚠ Total exceeds balance of ₵{balance.toFixed(2)}
                                                                                                          </div>
                                                                                                     )}
@@ -844,14 +821,14 @@ export default function CashCollection() {
                                                   </div>
 
                                                   {stagedEntries.length > 0 && (
-                                                       <div className="border-top bg-light p-3" style={{ flexShrink: 0 }}>
+                                                       <div className={styles.paymentDock}>
                                                             <div className="d-flex flex-wrap align-items-center gap-2">
                                                                  <div className="me-auto">
                                                                       <div className="fw-bold text-success lh-1" style={{ fontSize: "1.6rem" }}>
                                                                            {money(totalReady)}
                                                                       </div>
                                                                       <div className="d-flex gap-2 mt-1">
-                                                                           {totalWaiveOff > 0 && <span className="badge bg-warning text-dark" style={{ fontSize: '0.75rem' }}>Waive-off: ₵{totalWaiveOff.toFixed(2)}</span>}
+                                                                           {totalWaiveOff > 0 && <span className="badge bg-warning text-dark" style={{ fontSize: 'inherit' }}>Waive-off: ₵{totalWaiveOff.toFixed(2)}</span>}
                                                                       </div>
                                                                       <small className="text-muted">{stagedEntries.length} service(s) ready</small>
                                                                  </div>
@@ -872,7 +849,7 @@ export default function CashCollection() {
                                                                            ))}
                                                                       </div>
                                                                       {!globalPaymentMode && (
-                                                                           <small className="text-warning fw-medium d-block mt-1" style={{ fontSize: '0.72rem' }}>
+                                                                           <small className="text-warning fw-medium d-block mt-1" style={{ fontSize: 'inherit' }}>
                                                                                 Select a payment method to proceed
                                                                            </small>
                                                                       )}
@@ -929,6 +906,6 @@ export default function CashCollection() {
                </div>
           </div>
 
-     </>
+     </main>
      );
 }

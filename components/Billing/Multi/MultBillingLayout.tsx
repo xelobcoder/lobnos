@@ -510,6 +510,10 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
                     const billingId = response.billingid || response.data?.billingid;
                     setGeneratedBillingid(billingId);
                     setCashierCode(response.cashierCode || response.data?.cashierCode || null);
+                    if (!response.cashierCode && !response.data?.cashierCode && billingId && cachedSettings?.labCheckoutMode === 'separate_cashier') {
+                        try { const lookup:any = await customFetch(`billing/lab-counter/lookup?billingid=${billingId}`); if(lookup?.status===true)setCashierCode(lookup.data.code); }
+                        catch { toast.warning('The bill was saved. Its cashier code can be recovered using the bill ID.'); }
+                    }
                     if (queueHandoff && billingId) {
                         const linked = await linkSavedRecordToQueue(queueHandoff, { patientid: Number(billingdata.patientid), billingid: Number(billingId) });
                         setQueueLinkWarning(linked.warning);

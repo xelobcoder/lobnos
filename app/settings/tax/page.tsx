@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { getDataAndUpdateState, customPost } from '../../../components/Auth/customFetch'
+import { customFetch, customPost } from '../../../components/Auth/customFetch'
 import { Form, Alert, Table } from 'react-bootstrap'
 import { RiEditLine, RiDeleteBinLine } from '@remixicon/react'
 import { toast } from 'react-toastify'
@@ -20,7 +20,7 @@ interface TaxItem {
 
 const taxSchema = z.object({
   id: z.number().optional(),
-  name: z.string().min(1, 'Tax name is required'),
+  name: z.string().trim().min(1, 'Tax name is required'),
   value: z.string().min(1, 'Tax value is required')
     .regex(/^\d+(\.\d{1,2})?$/, 'Must be a valid number with up to 2 decimal places')
 })
@@ -34,7 +34,7 @@ export default function Application_Taxes_List() {
     handleSubmit,
     reset,
     setValue,
-    formState: { errors }
+    formState: { errors, isSubmitting }
   } = useForm<TaxFormData>({
     resolver: zodResolver(taxSchema),
     defaultValues: {
@@ -52,7 +52,11 @@ export default function Application_Taxes_List() {
   const getdata = useCallback(async () => {
     try {
       setError(null)
-      await getDataAndUpdateState(setData, 'application/tax', null, setIsLoading as any)
+      setIsLoading(true)
+      const response:any = await customFetch('application/tax')
+      if (response?.status !== 'success' || !Array.isArray(response.result)) throw new Error(response?.message || 'Unable to load taxes')
+      setData(response.result)
+      setIsLoading(false)
     } catch (err) {
       setError('Failed to load tax data')
       setIsLoading(false)
@@ -64,7 +68,7 @@ export default function Application_Taxes_List() {
   useEffect(() => {
     if (editing.isEdit && editing.editdata) {
       setValue('name', editing.editdata.name)
-      setValue('value', editing.editdata.value)
+      setValue('value', String(editing.editdata.value ?? ''))
     }
   }, [editing.isEdit, editing.editdata, setValue])
 
@@ -72,11 +76,11 @@ export default function Application_Taxes_List() {
     if (!id || typeof value !== 'boolean') return
     try {
       const response = await customPost("application/tax/activation", 'PUT', { id, status: value })
-      if (response.status === "success") {
-        toast.success(response.message, { position: "top-center" })
+      if (response?.status === "success") {
+        toast.success(response?.message, { position: "top-center" })
         setData(prevData => prevData.map(item => item.id === id ? { ...item, apply: value ? "Yes" : 'No' } : item))
       } else {
-        toast.error(response.message, { position: 'top-center' })
+        toast.error(response?.message, { position: 'top-center' })
       }
     } catch (err) {
       toast.error("Failed to update tax status", { position: 'top-center' })
@@ -87,11 +91,12 @@ export default function Application_Taxes_List() {
     if (!id || !window.confirm('Are you sure you want to delete this tax record?')) return
     try {
       const response = await customPost(`application/tax?id=${id}`, 'DELETE', {})
-      if (response.status === "success") {
-        toast.success(response.message, { position: "top-center" })
+      if (response?.status === "success") {
+        toast.success(response?.message, { position: "top-center" })
         setData(prevData => prevData.filter(item => item.id !== id))
+        setSelectedItems(previous=>previous.filter(selected=>selected!==id))
       } else {
-        toast.error(response.message, { position: 'top-center' })
+        toast.error(response?.message, { position: 'top-center' })
       }
     } catch (err) {
       toast.error("Failed to delete tax record", { position: 'top-center' })
@@ -102,21 +107,23 @@ export default function Application_Taxes_List() {
     if (!selectedItems.length || !window.confirm(`Delete ${selectedItems.length} selected items?`)) return
 
     try {
+      const deleted:number[] = []
       let successCount = 0
       let failCount = 0
 
       for (const id of selectedItems) {
         const response = await customPost(`application/tax?id=${id}`, 'DELETE', {})
-        if (response.status === "success") {
+        if (response?.status === "success") {
           successCount++
+          deleted.push(id)
         } else {
           failCount++
         }
       }
 
       if (successCount > 0) {
-        setData(prevData => prevData.filter(item => !selectedItems.includes(item.id)))
-        setSelectedItems([])
+        setData(prevData => prevData.filter(item => !deleted.includes(item.id)))
+        setSelectedItems(previous => previous.filter(id=>!deleted.includes(id)))
         toast.success(`Successfully deleted ${successCount} items`)
       }
 
@@ -130,17 +137,20 @@ export default function Application_Taxes_List() {
 
   const onSubmit = async (formData: TaxFormData) => {
     try {
+      setError(null)
       const payload = editing.isEdit && editing.editdata ? { ...formData, id: editing.editdata.id } : formData
       const response = await customPost('application/tax', editing.isEdit ? "PUT" : 'POST', payload)
-      if (response.status === 'success') {
-        toast.success(response.message)
+      if (response?.status === 'success') {
+        toast.success(response?.message)
         await getdata()
         reset()
         setEditing({ editdata: null, isEdit: false })
       } else {
-        toast.error(response.message)
+        setError(response?.message || 'Unable to save tax')
+        toast.error(response?.message || 'Unable to save tax')
       }
     } catch (err) {
+      setError('Failed to save tax record. Please retry.')
       toast.error("Failed to save tax record")
     }
   }
@@ -154,14 +164,14 @@ export default function Application_Taxes_List() {
       <Form onSubmit={handleSubmit(onSubmit)} className="mb-4">
         <div className="row g-3">
           <div className="col-md-12">
-            <Form.Group className='grid-reg'>
+            <Form.Group className='grid-reg' controlId="tax-name">
               <Form.Label className='pls-label'>Tax Name</Form.Label>
               <Form.Control type="text" {...register('name')} isInvalid={!!errors.name} />
               <Form.Control.Feedback type="invalid">{errors.name?.message}</Form.Control.Feedback>
             </Form.Group>
           </div>
           <div className="col-md-12">
-            <Form.Group className='grid-reg'>
+            <Form.Group className='grid-reg' controlId="tax-value">
               <Form.Label className='pls-label'>Tax Value (%)</Form.Label>
               <Form.Control type="text" {...register('value')} isInvalid={!!errors.value} />
               <Form.Control.Feedback type="invalid">{errors.value?.message}</Form.Control.Feedback>
@@ -169,7 +179,7 @@ export default function Application_Taxes_List() {
           </div>
           <div className="col-12">
             <div className="d-flex gap-2">
-              <button type="submit" className="btn btn-outline-primary btn-sm">
+              <button type="submit" disabled={isSubmitting} className="btn btn-primary">
                 {editing.isEdit ? 'Update' : 'Add'} Tax
               </button>
               {editing.isEdit && (

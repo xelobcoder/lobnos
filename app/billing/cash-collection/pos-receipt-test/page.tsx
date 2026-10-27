@@ -1,6 +1,6 @@
 "use client";
 
-import jsPDF from "jspdf";
+import {labThermalReceiptPdf,receiptLogoDataUrl} from "../../../../lib/billing/thermalReceipt";
 import { useState, useEffect } from "react";
 import useCompanyImageUrl from "../../../../components/Auth/useCompanyImageUrl";
 import CompanyHeaders, { CompanyHeadersProps } from "../../../../components/ResultView/CompanyHeaders";
@@ -130,6 +130,7 @@ interface PaymentHistory {
 interface ReceiptData {
      receiptId: number;
      receiptNumber: string;
+     cashierCode?: string | null;
      billing: BillingData;
      patient: PatientData;
      services: ServiceData[];
@@ -151,6 +152,7 @@ export default function PosReceiptTestPage() {
      const [patientData, setPatientData] = useState<PatientData | null>(null);
      const [companyInfo, setCompanyInfo] = useState<CompanyHeadersProps['companyInfo'] | null>(null);
      const [paymentHistory, setPaymentHistory] = useState<PaymentHistory[]>([]);
+     const [cashierCode,setCashierCode]=useState<string|null>(null);
      const [receiptId, setReceiptId] = useState<number | null>(null);
      const [receiptNumber, setReceiptNumber] = useState<string | null>(null);
      const [loading, setLoading] = useState(true);
@@ -189,6 +191,7 @@ export default function PosReceiptTestPage() {
                     setPaymentHistory(response.data.paymenthistory || []);
                     setReceiptId(response.data.receiptId);
                     setReceiptNumber(response.data.receiptNumber);
+                    setCashierCode(response.data.cashierCode || null);
 
                     // Company info is already included in the receipt data
                     if (response.data.companyInfo) {
@@ -232,7 +235,6 @@ export default function PosReceiptTestPage() {
 
      const handleRetry = () => {
           setRetryCount(prev => prev + 1);
-          fetchData();
      };
 
      useEffect(() => {
@@ -253,261 +255,8 @@ export default function PosReceiptTestPage() {
           if (!billingData || !companyInfo) return;
 
           try {
-               const pdf = new jsPDF({
-                    orientation: 'portrait',
-                    unit: 'mm',
-                    format: [80, 297]
-               });
-
-               const pageWidth = pdf.internal.pageSize.getWidth();
-               const leftMargin = 8;
-               const rightMargin = pageWidth - 8;
-               let yPosition = 10;
-
-               const now = new Date();
-               const dateStr = dayjs(now).format('DD-MM-YYYY');
-               const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
-
-               const total = parseFloat(billingData.totalcost || '0');
-
-               const subtotal = services.reduce((sum, service) => sum + parseFloat(service.totalcost || '0'), 0);
-               const tax = services.reduce((sum, service) => sum + parseFloat(service.taxValue || '0'), 0);
-               const discount = services.reduce((sum, service) => sum + parseFloat(service.discount || '0'), 0);
-
-               const formatCurrency = (amount: number) => `GHS ${amount.toFixed(2)}`;
-               const companyName = companyInfo.name || 'COMPANY NAME';
-
-               const splitTextIntoLines = (text: string, maxCharsPerLine: number = 20): string[] => {
-                    const words = text.split(' ');
-                    const lines: string[] = [];
-                    let currentLine = '';
-                    for (const word of words) {
-                         if ((currentLine + ' ' + word).trim().length <= maxCharsPerLine) {
-                              currentLine = currentLine ? currentLine + ' ' + word : word;
-                         } else {
-                              if (currentLine) lines.push(currentLine);
-                              currentLine = word;
-                         }
-                    }
-                    if (currentLine) lines.push(currentLine);
-
-                    return lines;
-               };
-
-               // Load company logo
-               let logoImage: string | null = null;
-               if (companyLogoUrl) {
-                    try {
-                         const response = await fetch(companyLogoUrl);
-                         const blob = await response.blob();
-                         const reader = new FileReader();
-                         logoImage = await new Promise<string>((resolve) => {
-                              reader.onload = () => resolve(reader.result as string);
-                              reader.readAsDataURL(blob);
-                         });
-                    } catch (e) {
-                    }
-               }
-
-               // Add company logo if available
-               if (logoImage) {
-                    pdf.addImage(logoImage, 'JPEG', pageWidth / 2 - 7.5, yPosition, 15, 15);
-                    yPosition += 20;
-               }
-
-               const companyNameLines = splitTextIntoLines(companyName, 20);
-
-               pdf.setFontSize(10);
-               pdf.setFont('times', 'bold');
-
-               companyNameLines.forEach((line, index) => {
-                    pdf.text(line, pageWidth / 2, yPosition, { align: 'center' });
-                    yPosition += 5;
-               });
-
-               pdf.setFontSize(7);
-               pdf.setFont('times', 'normal');
-               const address = companyInfo.address || 'Address not available';
-               const phone = String(companyInfo.phonenumber || 'Phone not available');
-
-               const maxContactLength = 35;
-               const displayAddress = address.length > maxContactLength
-                    ? address.substring(0, maxContactLength - 3) + '...'
-                    : address;
-               const displayPhone = `Tel: ${phone}`.length > maxContactLength
-                    ? `Tel: ${phone}`.substring(0, maxContactLength - 3) + '...'
-                    : `Tel: ${phone}`;
-
-               pdf.text(displayAddress, pageWidth / 2, yPosition, { align: 'center' });
-               yPosition += 3;
-               pdf.text(displayPhone, pageWidth / 2, yPosition, { align: 'center' });
-               yPosition += 6;
-
-               pdf.setFontSize(9);
-               pdf.setFont('times', 'bold');
-               pdf.text('PATIENT INFORMATION', pageWidth / 2, yPosition, { align: 'center' });
-               yPosition += 4;
-               pdf.setFont('times', 'normal');
-
-               if (patientData) {
-                    pdf.text('Patient ID:', leftMargin, yPosition);
-                    pdf.text(patientData.fullpatientid, rightMargin, yPosition, { align: 'right' });
-                    yPosition += 3;
-                    pdf.text('Name:', leftMargin, yPosition);
-                    pdf.text(`${patientData.designation} ${patientData.firstname} ${patientData.lastname}`, rightMargin, yPosition, { align: 'right' });
-                    yPosition += 3;
-                    pdf.text('Phone:', leftMargin, yPosition);
-                    pdf.text(String(patientData.mobile_number), rightMargin, yPosition, { align: 'right' });
-                    yPosition += 3;
-               }
-
-               pdf.text('Receipt #:', leftMargin, yPosition);
-               pdf.text(receiptNumber || `RCP-${billingData?.billingid}-${Date.now()}`, rightMargin, yPosition, { align: 'right' });
-               yPosition += 3;
-               pdf.text('Bill ID:', leftMargin, yPosition);
-               pdf.text(String(billingData?.billingid || 'N/A'), rightMargin, yPosition, { align: 'right' });
-               yPosition += 3;
-               pdf.text('Date:', leftMargin, yPosition);
-               pdf.text(billingData ? dayjs(billingData.billedon).format("DD-MM-YYYY HH:MM"): 'N/A', rightMargin, yPosition, { align: 'right' });
-               yPosition += 3;
-               pdf.text('Printed:', leftMargin, yPosition);
-               pdf.text(`${dateStr} ${timeStr}`, rightMargin, yPosition, { align: 'right' });
-               yPosition += 3;
-
-               const isNHIS = services.some(service => service.serviceCategory === 'NHIS');
-               if (isNHIS) {
-                    pdf.setFont('times', 'bold');
-                    pdf.setFontSize(8);
-                    pdf.text('Billing Type:', leftMargin, yPosition);
-                    pdf.text('NHIS', rightMargin, yPosition, { align: 'right' });
-                    yPosition += 3;
-                    pdf.setFont('times', 'normal');
-               }
-
-               yPosition += 3;
-
-               pdf.text('----------------------------------------------------------------------------------------------------', 0, yPosition, { align: 'left' });
-               yPosition += 5;
-
-               pdf.setFontSize(10);
-               pdf.setFont('times', 'bold');
-               pdf.text('SERVICES RENDERED', pageWidth / 2, yPosition, { align: 'center' });
-               yPosition += 4;
-
-               pdf.text('----------------------------------------------------------------------------------------------------', 0, yPosition, { align: 'left' });
-               yPosition += 3;
-
-               pdf.setFontSize(8);
-               pdf.setFont('times', 'bold');
-               pdf.text('SERVICE', leftMargin, yPosition);
-               pdf.text('AMOUNT', rightMargin, yPosition, { align: 'right' });
-               yPosition += 3;
-
-               pdf.text('----------------------------------------------------------------------------------------------------', 0, yPosition, { align: 'left' });
-               yPosition += 3;
-
-               pdf.setFont('times', 'normal');
-               services.forEach((service) => {
-                    const cost = parseFloat(service.totalcost || '0');
-                    const serviceName = (service.test_report_title || service.service_name);
-                    const displayName = serviceName.length > 25 ? serviceName.substring(0, 22) + '...' : serviceName;
-
-                    pdf.text(displayName, leftMargin, yPosition);
-                    pdf.text(formatCurrency(cost), rightMargin, yPosition, { align: 'right' });
-                    yPosition += 4;
-               });
-
-               pdf.text('----------------------------------------------------------------------------------------------------', 0, yPosition, { align: 'left' });
-               yPosition += 3;
-
-               pdf.setFontSize(9);
-               pdf.setFont('times', 'bold');
-               pdf.text('SUBTOTAL', leftMargin, yPosition);
-               pdf.text(formatCurrency(subtotal), rightMargin, yPosition, { align: 'right' });
-               yPosition += 4;
-
-               pdf.text('TAX', leftMargin, yPosition);
-               pdf.text(formatCurrency(tax), rightMargin, yPosition, { align: 'right' });
-               yPosition += 4;
-
-               pdf.text('DISCOUNT', leftMargin, yPosition);
-               pdf.text(formatCurrency(discount), rightMargin, yPosition, { align: 'right' });
-               yPosition += 4;
-
-               pdf.text('----------------------------------------------------------------------------------------------------', 0, yPosition, { align: 'left' });
-               yPosition += 3;
-
-               pdf.setFontSize(9);
-               pdf.text('TOTAL AMOUNT', leftMargin, yPosition);
-               pdf.text(formatCurrency(total), rightMargin, yPosition, { align: 'right' });
-               yPosition += 6;
-
-               pdf.text('----------------------------------------------------------------------------------------------------', 0, yPosition, { align: 'left' });
-               yPosition += 3;
-
-               pdf.setFontSize(9);
-               pdf.setFont('times', 'bold');
-               pdf.text('PAYMENT SUMMARY', pageWidth / 2, yPosition, { align: 'center' });
-               yPosition += 4;
-
-               pdf.text('----------------------------------------------------------------------------------------------------', 0, yPosition, { align: 'left' });
-               yPosition += 3;
-
-               pdf.setFontSize(8);
-               pdf.setFont('times', 'normal');
-               const paid = parseFloat(billingData.paid || '0');
-               const balance = parseFloat(billingData.balance || '0');
-               const outstanding = total - paid;
-               const refunded = parseFloat(billingData.totalrefunded || '0');
-               pdf.text(`Total Amount:`, leftMargin, yPosition);
-               pdf.text(formatCurrency(total), rightMargin, yPosition, { align: 'right' });
-               yPosition += 4;
-               pdf.text(`Amount Paid:`, leftMargin, yPosition);
-               pdf.text(formatCurrency(paid), rightMargin, yPosition, { align: 'right' });
-               yPosition += 4;
-
-               // Show outstanding amount for partial payments
-               if (paid < total && !isNHIS) {
-                    pdf.text(`Outstanding:`, leftMargin, yPosition);
-                    pdf.text(formatCurrency(outstanding), rightMargin, yPosition, { align: 'right' });
-                    yPosition += 4;
-               }
-
-               if (isNHIS && outstanding > 0) {
-                    pdf.text(`Insurance Claim:`, leftMargin, yPosition);
-                    pdf.text(formatCurrency(outstanding), rightMargin, yPosition, { align: 'right' });
-                    yPosition += 4;
-               }
-
-               pdf.setFont('times', 'bold');
-               const paymentStatus = isNHIS ? 'INSURANCE CLAIM' : (paid >= total ? 'FULLY PAID' : 'PARTIAL PAYMENT');
-               pdf.text(`Payment Status: ${paymentStatus}`, leftMargin, yPosition);
-               yPosition += 4;
-
-               const paymentMethodText = isNHIS ? 'NHIS (Insurance Claim)' : 'CASH / POS';
-               pdf.text(`Payment Method: ${paymentMethodText}`, leftMargin, yPosition);
-               yPosition += 6;
-
-               pdf.text('----------------------------------------------------------------------------------------------------', 0, yPosition, { align: 'left' });
-               yPosition += 3;
-
-               pdf.setFontSize(8);
-               pdf.setFont('times', 'bold');
-               pdf.text('Thank you for your business!', pageWidth / 2, yPosition, { align: 'center' });
-               yPosition += 4;
-
-               pdf.setFontSize(7);
-               pdf.setFont('times', 'normal');
-               pdf.text('This is a system-generated receipt.', pageWidth / 2, yPosition, { align: 'center' });
-               yPosition += 3;
-               pdf.text('Please retain for your records.', pageWidth / 2, yPosition, { align: 'center' });
-               yPosition += 3;
-               pdf.text(`Printed by: ${printedBy} (${printedByRole})`, pageWidth / 2, yPosition, { align: 'center' });
-               yPosition += 4;
-
-               pdf.text('----------------------------------------------------------------------------------------------------', 0, yPosition, { align: 'left' });
-
-               // autoPrint() embeds a flag in the PDF that tells the PDF viewer to open the print dialog automatically
+               const logo = await receiptLogoDataUrl(companyLogoUrl || '');
+               const pdf = labThermalReceiptPdf({billing:billingData,services,patient:patientData,companyInfo,paymenthistory:paymentHistory,receiptId,receiptNumber,cashierCode,generatedAt:billingData.billedon},{logo,printedBy});
                pdf.autoPrint();
                const pdfBlob = pdf.output('blob');
                const blobUrl = URL.createObjectURL(pdfBlob);
@@ -522,6 +271,7 @@ export default function PosReceiptTestPage() {
                } else {
                     URL.revokeObjectURL(blobUrl);
                     toast.warning('Popups are blocked. Please allow popups for this site to print receipts.');
+                    return;
                }
 
                // Update receipt as printed

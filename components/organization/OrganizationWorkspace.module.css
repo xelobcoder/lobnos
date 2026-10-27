@@ -24,3 +24,5 @@
 @media(max-width:767px){.directorySearch{grid-template-columns:1fr 1fr}.directorySearch label{grid-column:1/-1}.directorySearch button{width:100%}.workspace .editorShell .panel{padding:16px}}
 
 .profileFields :global(.grid-reg){display:flex;flex-direction:column;align-items:stretch;gap:7px;margin:0!important}.profileFields :global(.grid-reg)>label{margin:0}.profileFields .saveBar{margin-top:12px}.profileFields :global(.form-control){width:100%}.profileFields :global(.card-body){padding:0}
+
+@media(max-width:767px){.workspace .summary dl{display:none}}

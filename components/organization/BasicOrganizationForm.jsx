@@ -376,7 +376,7 @@ export default function OrganizationBasicForm({ organizationid }) {
 		<div className={styles.form}>
 			<style>{customStyles}</style>
 
-			<div className={styles.formHeader}>
+			{!organizationid && (<div className={styles.formHeader}>
 				<h2 className="d-flex align-items-center gap-2 mb-0">
 					<RiBuildingLine size={20} />
 					{organizationid ? "Organization details" : "Contact and location details"}
@@ -391,7 +391,7 @@ export default function OrganizationBasicForm({ organizationid }) {
 						Import Excel
 					</button>
 				)}
-			</div>
+			</div>)}
 
             <div className={styles.editorShell}><div>
                 <form onSubmit={onSubmit} autoComplete="off" noValidate>
