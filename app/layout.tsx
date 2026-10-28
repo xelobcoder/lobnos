@@ -55,7 +55,7 @@ export default function SRootLayout({
 }) {
 
      return (
-          <html lang="en" className={`${inter.variable} ${raleway.variable} ${openSans.variable} ${lato.variable} ${roboto.variable} ${nunitoSans.variable} ${sourceSans.variable} ${poppins.variable} ${ibmPlexSans.variable} ${notoSans.variable} ${workSans.variable} ${dmSans.variable} ${publicSans.variable} ${firaSans.variable}`} style={{ '--font-candara': 'Candara, sans-serif', '--font-segoe': '"Segoe UI", Tahoma, sans-serif' } as React.CSSProperties}>
+          <html lang="en" className={`${inter.variable} ${raleway.variable} ${openSans.variable} ${lato.variable} ${roboto.variable} ${nunitoSans.variable} ${sourceSans.variable} ${poppins.variable} ${ibmPlexSans.variable} ${notoSans.variable} ${workSans.variable} ${dmSans.variable} ${publicSans.variable} ${firaSans.variable}`} style={{ '--font-avenir-next': '"Avenir Next for Intuit", "Avenir Next", Avenir, var(--font-nunito-sans), sans-serif', '--font-zoho-puvi': '"Zoho Puvi", var(--font-inter), Arial, sans-serif', '--font-candara': 'Candara, sans-serif', '--font-segoe': '"Segoe UI", Tahoma, sans-serif' } as React.CSSProperties}>
                <head></head>
                <body>
                     <ThemeProvider>

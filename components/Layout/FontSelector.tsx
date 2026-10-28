@@ -39,7 +39,7 @@ export const FontSelector: React.FC<FontSelectorProps> = ({ isOpen, onClose }) =
      return (
           <div className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
                style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(2px)', zIndex: 1050 }}>
-               <div className="bg-body rounded shadow-lg p-3 border" style={{ maxWidth: '400px', width: '90%' }}>
+               <div className="bg-body rounded shadow-lg p-3 border" style={{ maxWidth: '400px', width: '90%', maxHeight: 'calc(100dvh - 2rem)', overflowY: 'auto' }}>
                     <div className="d-flex justify-content-between align-items-center mb-4">
                          <h5 className="mb-0 d-flex align-items-center text-body">
                               <RiFontSize size={20} className="me-2" />
@@ -94,6 +94,7 @@ export const FontSelector: React.FC<FontSelectorProps> = ({ isOpen, onClose }) =
                                                             <RiCheckLine size={16} className="position-absolute top-50 end-0 translate-middle-y me-2 text-light" />
                                                        )}
                                                        <div className="fw-semibold text-body">{font.name}</div>
+                                                       {font.note && <small className="d-block mt-1">{font.note}</small>}
                                                   </button>
                                              </div>
                                         ))}

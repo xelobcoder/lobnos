@@ -1,0 +1,19 @@
+.embedded { min-width: 0; font-family: inherit; }
+.embedded :global(.card-body) { padding: .7rem !important; }
+.embedded :global(.card-body.p-0) { padding: 0 !important; }
+.embedded :global(.card-body h3) { font-size: 1.15rem; }
+.embedded :global(.card.mt-5) { margin-top: 1rem !important; }
+.embedded :global(.card-header) { padding: .7rem 1rem !important; }
+.embedded :global(.card-header h5) { font-size: 1rem; }
+
+.servicesTable.servicesTable { min-width: 2660px; }
+.servicesTable > thead > tr > th[data-column="organization"], .servicesTable > thead > tr > th[data-column="clinician"], .servicesTable > thead > tr > th[data-column="adjustmenttype"] { width: 180px !important; text-align: left !important; }
+.servicesTable > thead > tr > th[data-column="details"] { width: 150px !important; text-align: left !important; }
+.servicesTable > thead > tr > th[data-column="actions"] { width: 230px !important; }
+.servicesTable td[data-column="organization"], .servicesTable td[data-column="clinician"], .servicesTable td[data-column="adjustmenttype"], .servicesTable td[data-column="details"] { text-align: left; }
+.servicesTable td:is([data-column="cost"],[data-column="totalcost"],[data-column="totalpayable"],[data-column="paidamount"],[data-column="adjustmentvalue"],[data-column="outstanding"],[data-column="tax"],[data-column="refunded"]) { white-space: nowrap !important; font-variant-numeric: tabular-nums; text-align: right !important; }
+
+.servicesTable td:global(.fw-semibold) { font-weight: 400 !important; }
+.servicesTable td[data-column="fullname"] small { display: block; }
+
+.servicesTable > thead > tr > th[data-column="adjustmentvalue"] { width: 180px !important; }

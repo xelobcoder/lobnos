@@ -1,5 +1,7 @@
 "use client";
 import { useEffect, useState, use } from "react";
+import DailySalesBreakdown,{type SalesSelection} from "../../../../../components/Billing/DailySalesBreakdown";
+import inlineStyles from "./DailySalesInline.module.css";
 import BilledSummary from "../../../../../components/Billing/BillingSumamry/BilledSummary";
 import { plsDecryption } from "../../../../../lib/encryption";
 import { customFetch } from "../../../../../components/Auth/customFetch";
@@ -40,6 +42,9 @@ export default function DailySalesViewCustomerRepresentative(
 		const day = String(today.getDate()).padStart(2, "0");
 		return `${year}-${month}-${day}`;
 	};
+    const [inlineSelection,setInlineSelection]=useState<SalesSelection>(null);
+    const [salesError,setSalesError]=useState("");
+    const [retrySales,setRetrySales]=useState(0);
     const [transactions, setTransactions] = useState<any[]>([]);
     const [summary, setSummary] = useState<any>(undefined);
     const [expensesPaymentMade, setExpensesPaymentMade] = useState<any[]>([]);
@@ -99,9 +104,10 @@ export default function DailySalesViewCustomerRepresentative(
 	}, [branchid]);
 
     useEffect(() => {
+        let current=true;setInlineSelection(null);
 		async function fetchData() {
 			if (!branchIdState) return;
-			setIsLoading(true);
+			setIsLoading(true);setSalesError("");
 			const queryFrom = isDailyRestrictedView ? getTodayDateString() : activeQuery.from;
 			const queryTo = isDailyRestrictedView ? getTodayDateString() : activeQuery.to;
 			let endpoint = "billing/payment/info/client";
@@ -115,25 +121,29 @@ export default function DailySalesViewCustomerRepresentative(
 			endpoint = endpoint + `&&branchid=${branchIdState}&&isloadall=true`;
 			try {
 				const data = await customFetch(endpoint);
+                if(!current)return;
 				if (data.status === "success" && data.statusCode === 200) {
 					setTransactions(data.data);
 					setSummary(data.summary);
 					setExpensesPaymentMade(data.expensesPaymentMade || []);
 				} else {
+                    setSalesError(data?.message||"Unable to load daily sales. Please retry.");
 					setTransactions([]);
 					setSummary(undefined);
 					setExpensesPaymentMade([]);
 				}
 			} catch (error) {
+                if(!current)return;setSalesError("Unable to load daily sales. Please retry.");
 				setTransactions([]);
 				setSummary(undefined);
 				setExpensesPaymentMade([]);
 			} finally {
-				setIsLoading(false);
+				if(current)setIsLoading(false);
 			}
 		}
 		fetchData();
-	}, [branchIdState, activeQuery.from, activeQuery.to, isDailyRestrictedView]);
+        return()=>{current=false;};
+	}, [branchIdState, activeQuery.from, activeQuery.to, isDailyRestrictedView,retrySales]);
 
     const handleSearchClick = () => {
 		// Update activeQuery to trigger fetch
@@ -155,12 +165,11 @@ export default function DailySalesViewCustomerRepresentative(
 	}
 
     return (
-		<div>
-			{canExportSalesReport && (
-				<div className="d-flex justify-content-end mt-3">
-					<SalesReportModal key={branchIdState} branchId={branchIdState} from={activeQuery.from} to={activeQuery.to} />
-				</div>
-			)}
+		<div className={inlineStyles.page}>
+			<div className="d-flex justify-content-end gap-2 flex-wrap mt-3">
+                    {!isLoading&&!salesError&&<DailySalesBreakdown transactions={transactions} branchid={branchIdState} from={activeQuery.from} to={activeQuery.to} canReport={canExportSalesReport} canExpenses={canViewAdvancedSales} onSelection={setInlineSelection}/>}
+                    {canExportSalesReport&&<SalesReportModal key={branchIdState} branchId={branchIdState} from={activeQuery.from} to={activeQuery.to}/>}
+                </div>
 			{isDailyRestrictedView ? (
 				<div className="d-flex align-items-center justify-content-between mt-3 mb-3 flex-wrap gap-2">
 					<span className="text-muted small">Showing sales for today only</span>
@@ -194,15 +203,17 @@ export default function DailySalesViewCustomerRepresentative(
 			)}
 
 			{/* Summary component below filters */}
-			{branchIdState && <BilledSummary branchid={branchIdState} from={activeQuery.from} to={activeQuery.to} summary={summary} />}
+			{branchIdState&&!isLoading&&!salesError && <BilledSummary branchid={branchIdState} from={activeQuery.from} to={activeQuery.to} summary={summary} />}
 
+            {salesError&&<div role="alert" className="alert alert-danger">{salesError}<button className="btn btn-sm btn-outline-danger ms-3" onClick={()=>setRetrySales(retrySales+1)}>Retry sales</button></div>}
+            {inlineSelection&&<div className="alert alert-info py-2" role="status">Transaction list filtered to <strong>{inlineSelection.label}</strong>. {transactions.filter(row=>inlineSelection.billIds.includes(Number(row.billingid))).length} matching loaded bills. Some selected receipts may belong to bills outside this billing period. <button className="btn btn-sm btn-link" onClick={()=>setInlineSelection(null)}>Show all transactions</button></div>}
 			{/* Table component at the bottom */}
 			<BilledClientsView
-				data={transactions ? transactions : []}
+				data={inlineSelection?transactions.filter(row=>inlineSelection.billIds.includes(Number(row.billingid))):(transactions||[])}
 				branchid={branchIdState}
 				expensesPaymentMade={expensesPaymentMade}
 				isLoading={isLoading}
-				datequery={datequery}
+				datequery={activeQuery}
 				setDatequery={setDatequery}
 				showFilters={false}
 			/>

@@ -102,6 +102,7 @@ export default function ApplicationCustomizationClientLevel() {
                          <Form.Group className="grid-reg mt-2" controlId="fontFamily">
                               <Form.Label className="pls-label">Font Family:</Form.Label>
                               {hasLoaded && <Select options={fontFamilyOptions} value={fontFamilyOptions.find((option) => option.value === customization.fontFamily)} onChange={(option) => option && setCustomization((current) => ({ ...current, fontFamily: option.value }))} styles={reactSelectCustomStyles} placeholder="Select Font Family" />}
+                              <Form.Text className="d-block">{availableFonts.find((font) => font.value === customization.fontFamily)?.note || "The selected font applies throughout the application."}</Form.Text>
                          </Form.Group>
                          <Form.Group className="grid-reg mt-2" controlId="fontsize">
                               <Form.Label className="pls-label">Font Size:</Form.Label>

@@ -125,12 +125,21 @@ export const applyApplicationSettingsToDocument = (settings: any) => {
      setIfPresent('--theme-secondary', settings.secondaryColor);
 };
 
-export const availableFonts = [
+export interface ApplicationFontOption {
+     name: string;
+     value: string;
+     aliases?: string[];
+     note?: string;
+}
+
+export const availableFonts: ApplicationFontOption[] = [
      { name: 'Candara', value: "var(--font-candara)" },
      { name: 'Open Sans', value: "var(--font-open-sans)" },
      { name: 'Segoe UI', value: "var(--font-segoe)" },
      { name: 'Raleway', value: "var(--font-raleway)" },
-     { name: 'Lato', value: "var(--font-lato)" },
+     { name: 'Lato (Slack)', value: "var(--font-lato)", aliases: ['Lato', 'Slack', 'Slack Lato'], note: 'Loaded with the application.' },
+     { name: 'Avenir Next (QuickBooks style)', value: "var(--font-avenir-next)", aliases: ['Avenir Next', 'Avenir Next for Intuit', 'Avenir', 'QuickBooks'], note: 'Uses an installed Avenir font; otherwise uses the loaded Nunito Sans fallback.' },
+     { name: 'Zoho Puvi', value: "var(--font-zoho-puvi)", aliases: ['Puvi', 'Zoho'], note: 'Uses an installed Zoho Puvi font; otherwise uses the loaded Inter fallback.' },
      { name: 'Roboto', value: "var(--font-roboto)" },
      { name: 'Nunito Sans', value: "var(--font-nunito-sans)" },
      { name: 'Source Sans', value: "var(--font-source-sans)" },
@@ -150,7 +159,7 @@ export const normalizeFontFamily = (fontValue: unknown): string => {
      const value = fontValue.trim();
      const fontName = value.split(',')[0].replace(/["']/g, '').trim().toLowerCase();
      return availableFonts.find((font) =>
-          font.value === value || font.value.toLowerCase() === value.split(',')[0].trim().toLowerCase() || font.name.toLowerCase() === fontName
+          font.value === value || font.value.toLowerCase() === value.split(',')[0].trim().toLowerCase() || font.name.toLowerCase() === fontName || font.aliases?.some((alias) => alias.toLowerCase() === fontName)
      )?.value || DEFAULT_FONT_FAMILY;
 };
 

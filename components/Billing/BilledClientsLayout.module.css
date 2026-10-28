@@ -1,0 +1,91 @@
+/* Native table following the supplied reference: white rows and light dividers. */
+.viewport { width: 100%; max-width: 100%; min-width: 0; overflow-x: auto; overscroll-behavior-inline: contain; position: relative; }
+.fit { width: 100%; min-width: 1930px; table-layout: fixed; border-collapse: separate; border-spacing: 0; font-family: inherit; font-size: .82rem; font-weight: 400; background: var(--bs-body-bg,#fff); color: var(--bs-body-color); }
+.fit > :is(thead,tbody) > tr > :is(th,td) { padding: .5rem .35rem; vertical-align: middle; white-space: normal; overflow-wrap: anywhere; border-bottom: 1px solid var(--bs-border-color,#dce5ef); }
+.fit > thead > tr > th { background: var(--bs-body-bg,#fff); color: var(--bs-secondary-color,#526780); font-weight: 400; text-align: left; border-right: 1px solid var(--bs-border-color,#dce5ef); padding-block: .7rem; }
+.fit > thead > tr > th:last-child { border-right: 0; }
+.fit > thead > tr > th[data-column="billedon"] { width: 180px; }
+.fit > thead > tr > th[data-column="fullname"] { width: 240px; }
+.fit > thead > tr > th[data-column="status"] { width: 160px; }
+.fit > thead > tr > th[data-column="paymentstatus"] { width: 140px; }
+.fit > thead > tr > th[data-column="actions"] { width: 130px; }
+.fit > thead > tr > th:not([data-column="billedon"]):not([data-column="fullname"]):not([data-column="status"]):not([data-column="paymentstatus"]):not([data-column="actions"]) { width: 120px; text-align: right; }
+.fit td:not([data-column="billedon"]):not([data-column="fullname"]):not([data-column="status"]):not([data-column="paymentstatus"]):not([data-column="actions"]) { text-align: right; }
+.fit > tbody > tr { background: var(--bs-body-bg,#fff); }
+.fit > tbody > tr:hover { background: var(--bs-tertiary-bg,#f4f8fc); }
+.fit td > div { min-width: 0; }
+.fit td[data-column="fullname"] > div > span { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.fit td[data-column="fullname"] :global(.fw-semibold) { font-weight: 500 !important; }
+.fit td[data-column="billedon"] > div > span { background: transparent !important; color: inherit !important; padding: 0 !important; }
+.fit td[data-column="paymentstatus"] > span { display: inline-block; padding: 2px 3px; border-radius: 2px; font-size: .78rem; color: var(--bs-body-color) !important; }
+.fit td[data-column="actions"] > div { flex-wrap: wrap; gap: .25rem !important; }
+.fit td[data-column="actions"] :global(.btn) { font: inherit; font-size: .78rem; padding: .2rem .3rem; white-space: normal; max-width: 100%; }
+.fit td[data-column="actions"] svg { flex-shrink: 0; }
+.money { display: inline-block; white-space: nowrap; overflow-wrap: normal; font-variant-numeric: tabular-nums; }
+.fit > :is(thead,tbody) > tr > [data-column="billedon"],
+.fit > :is(thead,tbody) > tr > [data-column="fullname"] {
+  position: sticky; z-index: 2; background: var(--bs-body-bg,#fff);
+}
+.fit > :is(thead,tbody) > tr > [data-column="billedon"] { left: 0; }
+.fit > :is(thead,tbody) > tr > [data-column="fullname"] { left: 180px; box-shadow: 2px 0 0 var(--bs-border-color,#dce5ef); }
+.fit > thead > tr > :is([data-column="billedon"],[data-column="fullname"]) { z-index: 3; }
+.fit > tbody > tr:hover > :is([data-column="billedon"],[data-column="fullname"]) { background: var(--bs-tertiary-bg,#f4f8fc); }
+.filters { display: flex; flex-wrap: wrap; align-items: end; gap: .75rem; padding: .75rem; background: var(--bs-tertiary-bg,#eef4fd); border-bottom: 1px solid var(--bs-border-color); }
+.filters > div:first-child { flex: 2 1 260px; }
+.filters > div:not(:first-child) { flex: 1 1 150px; }
+.filters label { font-size: .85rem; margin-bottom: .3rem; }
+.filters :global(.form-control), .filters :global(.form-select) { min-height: 34px; font: inherit; font-size: .85rem; }
+.filters > small { align-self: center; color: var(--bs-secondary-color); }
+.testBreakdown { padding: .5rem; text-align: left; }
+.testBreakdown table { width: 100%; max-width: 100% !important; table-layout: fixed; }
+.testBreakdown table :is(th,td) { white-space: normal; overflow-wrap: anywhere; }
+.empty { text-align: center !important; padding: 2rem 1rem !important; color: var(--bs-secondary-color); }
+@media(max-width:1100px) { .fit > :is(thead,tbody) > tr > :is(th,td) { padding: .4rem .15rem; } .fit td[data-column="actions"] :global(.btn) { padding: .2rem .15rem; } }
+
+/* Highlight identity, payment state and outstanding amounts without changing values. */
+.fit > :is(thead,tbody) > tr > :is([data-column="billedon"],[data-column="fullname"]),
+.fit > tbody > tr:hover > :is([data-column="billedon"],[data-column="fullname"]) {
+  background: var(--bs-primary-bg-subtle,#e7f1ff);
+  text-transform: uppercase;
+}
+
+/* Outstanding controls the whole row; payment status retains its own color. */
+.fit > tbody > tr:global(.table-danger) > td {
+  background: var(--bs-danger-bg-subtle,#f8d7da) !important;
+}
+.fit > tbody > tr > td[data-column="paymentstatus"] {
+  background: var(--bs-secondary-bg,#e9ecef) !important;
+  color: var(--bs-body-color);
+}
+.fit > tbody > tr > td[data-column="paymentstatus"][data-payment-status="paid"] {
+  background: var(--bs-success-bg-subtle,#d1e7dd) !important;
+  color: var(--bs-success-text-emphasis,#0f5132);
+}
+.fit > tbody > tr > td[data-column="paymentstatus"][data-payment-status="partial"] {
+  background: var(--bs-warning-bg-subtle,#fff3cd) !important;
+  color: var(--bs-warning-text-emphasis,#664d03);
+}
+.fit > tbody > tr > td[data-column="paymentstatus"][data-payment-status="pending"] {
+  background: var(--bs-danger-bg-subtle,#f8d7da) !important;
+  color: var(--bs-danger-text-emphasis,#842029);
+}
+.fit td[data-column="paymentstatus"] > span { color: inherit !important; }
+
+/* One-line headings remain visible while the table scrolls in either direction. */
+.fit > thead > tr > th { position: sticky; top: 0; z-index: 3; white-space: nowrap; overflow-wrap: normal; }
+.fit > thead > tr > :is([data-column="billedon"],[data-column="fullname"]) { z-index: 4; }
+
+.floatingHeader {
+  display: none;
+  position: fixed;
+  overflow: hidden;
+  z-index: 1020;
+  pointer-events: none;
+  box-shadow: 0 2px 5px #152c4220;
+}
+.floatingHeader .fit { margin: 0; }
+
+.testsOffcanvas { --bs-offcanvas-width: min(1450px,96vw); }
+.testsOffcanvas :global(.offcanvas-header) { border-bottom: 1px solid var(--bs-border-color); }
+.testsOffcanvas :global(.offcanvas-body) { padding: .75rem; }
+@media(max-width:767px) { .testsOffcanvas { --bs-offcanvas-width: 100vw; } }

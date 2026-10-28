@@ -5,6 +5,7 @@ import { customFetch, currencyFormatter } from "../../Auth/customFetch";
 import { RiFileList3Line, RiWalletLine, RiRefund2Line, RiCheckboxCircleLine, RiAlarmWarningLine, RiMoneyDollarCircleLine, RiBarChartLine, RiEyeLine, RiEyeOffLine, RiCheckLine } from "@remixicon/react";
 import { useApplication } from "../../Auth/useApplicationContext";
 import { roleAllowed } from "../../Auth/roles";
+import styles from "./BilledSummary.module.css";
 import AnalyticSummaryCard, { type SummaryVariant } from "../AnalyticSummaryCard";
 
 const COLOR_BORDER = 'var(--bs-border-color)';
@@ -158,9 +159,9 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 	return (
 		<div className="p-3 border rounded-3 bg-body" >
 			<div className="mb-3">
-				<div className="d-flex justify-content-between align-items-center">
+				<div className={styles.header}>
 					<div>
-						<h5 className="mb-1 fw-bold text-body d-flex align-items-center gap-2"><RiMoneyDollarCircleLine className="text-primary" size={24} />Financial Summary</h5>
+						<h5 className="mb-1 fw-bold text-body d-flex align-items-center gap-2"><RiMoneyDollarCircleLine className="text-primary" size={24} />Billing Summary</h5>
 						{branch && (
 							<div className="d-flex align-items-center gap-2">
 								<span className="text-muted small">Branch:</span>
@@ -171,17 +172,11 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 							</div>
 						)}
 					</div>
-					<div className="d-flex align-items-center gap-3 flex-wrap">
-						<h6 className="mb-0 fw-bold text-dark">
-							Transactions: {Number(internalSummary.transactioncount || 0).toLocaleString()}
-						</h6>
-						<h6 className="mb-0 fw-bold text-dark">
-							Total Billing: {Number(internalSummary.total_billing || 0).toLocaleString()}
-						</h6>
-						<h6 className="mb-0 fw-bold text-dark">
-							Patients Registered: {Number(internalSummary.total_patients_registered || 0).toLocaleString()}
-						</h6>
-					</div>
+                    <dl className={styles.counts} aria-label="Billing activity counts">
+                        <div><dt>Transactions</dt><dd>{Number(internalSummary.transactioncount || 0).toLocaleString()}</dd></div>
+                        <div><dt>Total Billing</dt><dd>{Number(internalSummary.total_billing || 0).toLocaleString()}</dd></div>
+                        <div><dt>Patients Registered</dt><dd>{Number(internalSummary.total_patients_registered || 0).toLocaleString()}</dd></div>
+                    </dl>
 					<div className="d-flex align-items-center gap-2">
 
 						{isAdmin && (
@@ -220,11 +215,11 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 							</div>
 							<div className="col-md-6 col-lg-3">
 								<AnalyticCard
-									title="Cash Collected"
+									title="Paid on period services"
 									value={Number(internalSummary.cash_collected)}
 									Icon={RiWalletLine}
 									variant="success"
-									subtitle="Payments received"
+									subtitle="Cumulative payments on selected services"
 								/>
 							</div>
 							<div className="col-md-6 col-lg-3">
@@ -281,11 +276,11 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 							{canViewExpenseMetrics && (
 								<div className="col-md-6 col-lg-3">
 									<AnalyticCard
-										title="Net Operating Cash"
+										title="Paid Less Expenses"
 										value={Number(internalSummary.net_operating_cash)}
 										Icon={RiBarChartLine}
 										variant="success"
-										subtitle="Cash after expenses"
+										subtitle="Selected-service payments less period expenses"
 									/>
 								</div>
 							)}
@@ -333,7 +328,7 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 										>
 											<RiWalletLine style={{ fontSize: "0.8rem", color: "white" }} />
 										</div>
-										<span className="small fw-medium text-muted">Cash Collected</span>
+										<span className="small fw-medium text-muted">Paid on period services</span>
 									</div>
 									<span className="fw-semibold text-dark small">
 										{currencyFormatter.format(Number(internalSummary.cash_collected) || 0)}
@@ -474,7 +469,7 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 											>
 												<RiBarChartLine style={{ fontSize: "0.8rem", color: "white" }} />
 											</div>
-											<span className="small fw-medium text-muted">Net Operating Cash</span>
+											<span className="small fw-medium text-muted">Paid Less Expenses</span>
 										</div>
 										<span className={`fw-semibold small ${Number(internalSummary.net_operating_cash) >= 0 ? 'text-success' : 'text-danger'}`}>
 											{currencyFormatter.format(Number(internalSummary.net_operating_cash) || 0)}
