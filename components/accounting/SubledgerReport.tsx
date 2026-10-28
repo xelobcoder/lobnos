@@ -2,7 +2,7 @@
 import dayjs from "dayjs";
 import Link from "next/link";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import PrimeTable from "../../components/accessories/Datatables/PrimeTable";
+import PrimeTable from "./AccountingTable";
 import ReportShell, { formatRange } from "./ReportShell";
 import { currencyFormatter } from "../Auth/customFetch";
 import DateFilterReusable from "../operations/Laboratory/ResuableFilter/DateFilterReusable";
@@ -133,7 +133,7 @@ export default function SubledgerReport({ ledger, title, subtitle, partyLabel }:
      ];
 
      return (
-          <ReportShell
+          <ReportShell basis="accrual"
                title={title}
                subtitle={subtitle}
                range={formatRange(documentFrom, documentTo)}

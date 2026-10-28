@@ -266,6 +266,7 @@ export default function BankReconciliationPage() {
                     </>
                }
           >
+               <div className="mb-3"><Link href="/accounting/control-history" className="btn btn-sm btn-outline-secondary">View control history</Link></div>
                {accounts.length === 0 && (
                     <div className="alert alert-warning d-flex align-items-center justify-content-between flex-wrap gap-2 py-2">
                          <span>No bank accounts have been set up yet, so there is nothing to reconcile.</span>

@@ -1,6 +1,8 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
+import { allocateWaiver } from '../../../lib/billing/allocateWaiver';
 import styles from './CashCollection.module.css';
+import {RiPrinterLine} from '@remixicon/react';
 import Link from 'next/link';
 import DateFilterReusable from '../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable';
 import { customFetch, customPost, fetchPatientPersonalInfo } from '../../../components/Auth/customFetch';
@@ -48,6 +50,7 @@ const money = (n: number) =>
      '₵' + (Number.isFinite(n) ? n : 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export default function CashCollection() {
+     const paymentAttempt = useRef<{ fingerprint: string; key: string } | null>(null);
      const [searchPatientId, setSearchPatientId]       = useState<string>('');
      const [cashierCode, setCashierCode] = useState('');
      const [searchBillingId, setSearchBillingId]       = useState<string>('');
@@ -291,12 +294,13 @@ export default function CashCollection() {
           const totalOutstanding = outstandingServices.reduce((sum, s) => sum + (parseFloat(s.totalpayable) - parseFloat(s.paidamount)), 0);
           if (totalOutstanding === 0) return;
 
+          const balances = outstandingServices.map(s => Math.max(0, Math.round(parseFloat(s.totalpayable) * 100) - Math.round(parseFloat(s.paidamount) * 100)));
+          const allocations = allocateWaiver(balances, Math.round(totalWaive * 100));
           setStagedData(prev => {
                const newData = { ...prev };
-               outstandingServices.forEach(s => {
-                    const bal = parseFloat(s.totalpayable) - parseFloat(s.paidamount);
-                    const proportion = bal / totalOutstanding;
-                    const serviceWaive = Math.min(bal, totalWaive * proportion);
+               outstandingServices.forEach((s, index) => {
+                    const bal = balances[index] / 100;
+                    const serviceWaive = allocations[index] / 100;
                     
                     newData[s.serviceid] = {
                          payment: (bal - serviceWaive).toFixed(2),
@@ -319,14 +323,14 @@ export default function CashCollection() {
                const safeP = isNaN(p) ? 0 : p;
                const safeW = isNaN(w) ? 0 : w;
 
-               if (type !== 'payment' && (safeP + safeW) > balance + 0.01) {
+               if (type !== 'payment' && (Math.round(safeP * 100) + Math.round(safeW * 100)) > Math.round(balance * 100)) {
                     const remaining = Math.max(0, balance - safeW);
                     updated.payment = remaining > 0 ? remaining.toFixed(2) : '';
                     p = remaining;
                }
                
                const finalTotal = (isNaN(p) ? 0 : p) + safeW;
-               updated.error = finalTotal > (balance + 0.05);
+               updated.error = !Number.isFinite(p) || !Number.isFinite(w) || !/^\d*(?:\.\d{0,2})?$/.test(updated.payment) || !/^\d*(?:\.\d{0,2})?$/.test(updated.waiveOff) || safeP < 0 || safeW < 0 || Math.round(finalTotal * 100) > Math.round(balance * 100);
                
                return { ...prev, [serviceId]: updated };
           });
@@ -353,12 +357,12 @@ export default function CashCollection() {
      
      const totalReady     = stagedEntries.reduce((s, [_, v]) => {
           const val = parseFloat(v.payment);
-          return s + (isNaN(val) ? 0 : val);
-     }, 0);
+          return s + (isNaN(val) ? 0 : Math.round(val * 100));
+     }, 0) / 100;
      const totalWaiveOff  = stagedEntries.reduce((s, [_, v]) => {
           const val = parseFloat(v.waiveOff);
-          return s + (isNaN(val) ? 0 : val);
-     }, 0);
+          return s + (isNaN(val) ? 0 : Math.round(val * 100));
+     }, 0) / 100;
      
      const hasErrors      = stagedEntries.some(([_, v]) => v.error);
      const canSubmit      = stagedEntries.length > 0 && !!globalPaymentMode && !hasErrors;
@@ -387,15 +391,25 @@ export default function CashCollection() {
                }
           });
 
+          const fingerprint = JSON.stringify({ employeeid, allPayments });
+          if (paymentAttempt.current?.fingerprint !== fingerprint) {
+               let saved: { fingerprint: string; key: string } | null = null;
+               try { saved = JSON.parse(sessionStorage.getItem('cash-collection-payment-attempt') || 'null'); } catch { /* Storage may be unavailable. */ }
+               paymentAttempt.current = saved?.fingerprint === fingerprint && typeof saved.key === 'string' ? saved : { fingerprint, key: crypto.randomUUID() };
+               try { sessionStorage.setItem('cash-collection-payment-attempt', JSON.stringify(paymentAttempt.current)); } catch { /* In-memory retries remain safe. */ }
+          }
           setIsLoading(true);
           try {
                const r = await customPost('billing/multi-service/payment', 'POST', {
+                    request_key: paymentAttempt.current.key,
                     service_payments: allPayments, employeeid,
                     total_amount: totalReady,
                     total_waive_off: totalWaiveOff,
                     description: `Cash collection for ${stagedEntries.length} service(s). Waive-off: ${totalWaiveOff.toFixed(2)}`
                });
                if (r?.success == true) {
+                    paymentAttempt.current = null;
+                    try { sessionStorage.removeItem('cash-collection-payment-attempt'); } catch { /* Storage may be unavailable. */ }
                     toast.success(r.message || 'Payment recorded successfully');
                     setStagedData({}); setGlobalPaymentMode(''); setTendered('');
                     setPaidBills(Array.from(new Set(allPayments.map(p => p.billing_id))));
@@ -666,15 +680,10 @@ export default function CashCollection() {
                                                                       {staged > 0 && <span className="badge bg-success" style={{ fontSize: 'inherit' }}>₵{staged.toFixed(2)} entered</span>}
                                                                  </div>
                                                             )}
-                                                            {netOutstanding > 0 && isSelected && (
-                                                                 <button
-                                                                      className="                                                                      btn btn-primary w-100 fw-semibold mt-2"
-                                                                                                                                            style={{ fontSize: 'inherit', padding: '8px 0' }}
-                                                                      onClick={e => { e.stopPropagation(); payBillingRecord(record.billingid); }}
-                                                                 >
-                                                                      Use full balance
-                                                                 </button>
-                                                            )}
+                                                            {((netOutstanding > 0 && isSelected) || Number(record.paid) > 0) && <div className={styles.billActions}>
+                                                                 {netOutstanding > 0 && isSelected && <button type="button" className="btn btn-primary" onClick={event=>{event.stopPropagation();payBillingRecord(record.billingid);}}>Use full balance</button>}
+                                                                 {Number(record.paid)>0 && <Link className="btn btn-outline-secondary" href={`/billing/cash-collection/pos-receipt-test?billingid=${record.billingid}&is_pos=true`} target="_blank" rel="noopener noreferrer" prefetch={false} aria-label={`Reprint receipt for bill ${record.billingid}`} onClick={event=>event.stopPropagation()}><RiPrinterLine size={16} aria-hidden="true"/>Reprint receipt</Link>}
+                                                            </div>}
                                                        </div>
                                                   );
                                              })}

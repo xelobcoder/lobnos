@@ -90,6 +90,8 @@ export interface FinancialOverview {
           totalLiabilities: number; equity: number; netAssets: number;
           balanceDifference: number;
      };
+     accountSnapshot?: Array<{accountCode:string;name:string;type:string;normalBalance:string;balance:number;basis:string}>;
+     expenseBreakdown?: Array<{accountCode:string;name:string;amount:number}>;
      trend: { periods: string[]; revenue: number[]; expenses: number[]; profit: number[] };
 }
 
@@ -294,6 +296,18 @@ function query(params: Record<string, string | number | undefined | null>): stri
 }
 
 export const accountingApi = {
+     budgets(filters: { page?: number; count?: number; year?: number } = {}) { return customFetch(`${BASE}/budgets${query(filters)}`); },
+     budget(id: number) { return customFetch(`${BASE}/budgets/${id}`); },
+     saveBudget(payload: any, id?: number) { return customPost(`${BASE}/budgets${id ? `/${id}` : ""}`, id ? "PUT" : "POST", payload); },
+     archiveBudget(id: number, version: number) { return customPost(`${BASE}/budgets/${id}/archive`, "POST", { version }); },
+     recurringExpenses(filters: { page?: number; count?: number } = {}) { return customFetch(`${BASE}/recurring-expenses${query(filters)}`); },
+     recurringOptions(search = "") { return customFetch(`${BASE}/recurring-expenses/options${query({search})}`); },
+     saveRecurringExpense(payload: any, id?: number) { return customPost(`${BASE}/recurring-expenses${id ? `/${id}` : ""}`, id ? "PUT" : "POST", payload); },
+     recurringHistory(id: number, page = 1) { return customFetch(`${BASE}/recurring-expenses/${id}/occurrences${query({page,count:25})}`); },
+     runDueExpenses() { return customPost(`${BASE}/recurring-expenses/run-due`, "POST", {}); },
+     cashForecast(payload: any) { return customPost(`${BASE}/cash-flow-forecast`, "POST", payload); },
+     classifyCashFlow(journalEntryId: number, amounts: { operating: number; investing: number; financing: number }) { return customPost(`${BASE}/reports/cash-flow/${journalEntryId}/classification`, 'POST', amounts); },
+     controlHistory(filters: { page?: number; count?: number; action?: string; from?: string; to?: string }) { return customFetch(`${BASE}/control-history${query(filters)}`); },
      outstandingReceivables(filters: { from?: string; to?: string; search?: string; page?: number; count?: number; sortby?: string }): Promise<ApiResponse<OutstandingDocuments>> {
           return customFetch(`${BASE}/reports/receivables${query(filters)}`);
      },
@@ -462,8 +476,9 @@ export const accountingApi = {
           return customPost(`${BASE}/authority/delegations/${id}`, "DELETE", {});
      },
 
-     cashFlow(from: string, to: string): Promise<ApiResponse<any>> {
-          return customFetch(`${BASE}/reports/cash-flow${query({ from, to })}`);
+     generalLedgerSummary(filters: {from?:string;to?:string;accountCode?:string;sourceModule?:string}): Promise<ApiResponse<any>> { return customFetch(`${BASE}/reports/general-ledger-summary${query(filters)}`); },
+     cashFlow(from: string, to: string, method: 'direct' | 'indirect' = 'direct'): Promise<ApiResponse<any>> {
+          return customFetch(`${BASE}/reports/cash-flow${query({ from, to, method })}`);
      },
 
      revenueAnalysis(from: string, to: string, branchId?: number): Promise<ApiResponse<any>> {
@@ -518,7 +533,7 @@ export const accountingApi = {
      subledgerStatement(
           ledger: "AR" | "AP",
           partyType: string,
-          partyId: number,
+          partyId: number | string,
           from?: string,
           to?: string,
           paging?: { page?: number; count?: number }

@@ -1,7 +1,7 @@
 "use client";
 import dayjs from "dayjs";
 import React, { useCallback, useEffect, useRef, useState, use } from "react";
-import PrimeTable from "../../../../../../components/accessories/Datatables/PrimeTable";
+import PrimeTable from "../../../../../../components/accounting/AccountingTable";
 import ReportShell, { formatRange } from "../../../../../../components/accounting/ReportShell";
 import { currencyFormatter } from "../../../../../../components/Auth/customFetch";
 import DateFilterReusable from "../../../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
@@ -14,7 +14,7 @@ export default function SubledgerStatementPage(
 ) {
      const params = use(props.params);
      const ledger = String(params.ledger).toUpperCase() === "AP" ? "AP" : "AR";
-     const partyId = Number(params.partyId);
+     const partyId = String(params.partyId);
      const currentYear = dayjs().year();
 
      const [from, setFrom] = useState(dayjs(`${currentYear}-01-01`).format("YYYY-MM-DD"));
@@ -84,7 +84,7 @@ export default function SubledgerStatementPage(
      const label = ledger === "AR" ? "Customer Statement" : "Supplier Statement";
 
      return (
-          <ReportShell
+          <ReportShell basis="accrual"
                title={label}
                subtitle={`${params.partyType} #${partyId}`}
                reportTitle={label}

@@ -1,5 +1,6 @@
 "use client";
 import dayjs from "dayjs";
+import {useSearchParams} from "next/navigation";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { RiBarChartLine, RiMoneyDollarCircleLine, RiRefund2Line, RiWalletLine } from "@remixicon/react";
 import AccountingSummary from "../../../components/accounting/AccountingSummary";
@@ -13,10 +14,11 @@ function money(value: number): string {
 }
 
 export default function IncomeStatementPage() {
+     const searchParams=useSearchParams();
      const currentYear = dayjs().year();
-     const [from, setFrom] = useState(dayjs(`${currentYear}-01-01`).format("YYYY-MM-DD"));
-     const [to, setTo] = useState(dayjs().format("YYYY-MM-DD"));
-     const [dateFilter, setDateFilter] = useState("This Year");
+     const [from, setFrom] = useState(searchParams.get("from")||dayjs(`${currentYear}-01-01`).format("YYYY-MM-DD"));
+     const [to, setTo] = useState(searchParams.get("to")||dayjs().format("YYYY-MM-DD"));
+     const [dateFilter, setDateFilter] = useState(searchParams.get("from")?"Custom Range":"This Year");
      const [statement, setStatement] = useState<IncomeStatement | null>(null);
      const [loading, setLoading] = useState(false);
      const [error, setError] = useState<string | null>(null);
@@ -81,7 +83,7 @@ export default function IncomeStatementPage() {
      );
 
      return (
-          <ReportShell
+          <ReportShell basis="accrual"
                title="Profit &amp; Loss"
                subtitle="Revenue less cost of sales and operating expenses"
                reportTitle="PROFIT &amp; LOSS"

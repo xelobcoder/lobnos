@@ -49,6 +49,7 @@ export const AccountingLinks: Link[] = [
           link: "/accounting/general-ledger",
           icon: <RiBookletLine size={20} />,
           children: [
+               { title: "Chart of Accounts", link: "/accounting/chart-of-accounts", icon: <RiBookletLine size={18} /> },
                { title: "General Ledger", link: "/accounting/general-ledger", icon: <RiFileList3Line size={18} /> },
                { title: "Accounts Receivable", link: "/accounting/receivables", icon: <RiUserReceived2Line size={18} /> },
                { title: "Accounts Payable", link: "/accounting/payables", icon: <RiUserShared2Line size={18} /> }
@@ -59,6 +60,7 @@ export const AccountingLinks: Link[] = [
           link: "/accounting/trial-balance",
           icon: <RiScales3Line size={20} />,
           children: [
+               { title: "Reports centre", link: "/accounting/reports", icon: <RiFileList3Line size={18} /> },
                { title: "Trial Balance", link: "/accounting/trial-balance", icon: <RiScales3Line size={18} /> },
                { title: "Profit & Loss", link: "/accounting/income-statement", icon: <RiLineChartLine size={18} /> },
                { title: "Balance Sheet", link: "/accounting/balance-sheet", icon: <RiBarChartBoxLine size={18} /> },
@@ -90,6 +92,15 @@ export const AccountingLinks: Link[] = [
           ]
      },
      {
+          title: "Planning & Bills", link: "/accounting/budgets", icon: <RiFundsLine size={20} />,
+          children: [
+               { title: "Budgets", link: "/accounting/budgets", icon: <RiBarChartBoxLine size={18} /> },
+               { title: "Recurring expenses", link: "/accounting/recurring-expenses", icon: <RiCalendarCheckLine size={18} /> },
+               { title: "Bills & payments", link: "/accounting/bills", icon: <RiFileList3Line size={18} /> },
+               { title: "Cash-flow forecast", link: "/accounting/cash-flow-forecast", icon: <RiLineChartLine size={18} /> }
+          ]
+     },
+     {
           title: "Management",
           link: "/accounting/management/revenue",
           icon: <RiPieChartLine size={20} />,
@@ -118,7 +129,8 @@ export const AccountingLinks: Link[] = [
                { title: "Posting Exceptions", link: "/accounting/posting-health", icon: <RiPulseLine size={18} /> },
                { title: "Delegated Authority", link: "/accounting/delegations", icon: <RiShieldCheckLine size={18} /> },
                { title: "Expense Controls", link: "/accounting/expense-controls", icon: <RiShieldCheckLine size={18} /> },
-               { title: "Audit Trail", link: "/accounting/general-ledger", icon: <RiFileList3Line size={18} /> }
+               { title: "Control history", link: "/accounting/control-history", icon: <RiFileList3Line size={18} /> },
+               { title: "Journal audit trail", link: "/accounting/general-ledger", icon: <RiFileList3Line size={18} /> }
           ]
      }
 ];

@@ -1,23 +1,23 @@
 .page {
      min-height: 100%;
-     padding: 2rem clamp(1rem, 3vw, 3rem);
-     background: linear-gradient(135deg, var(--bs-body-bg) 0%, var(--bs-secondary-bg) 52%, var(--bs-tertiary-bg) 100%);
+     padding: 1.35rem clamp(.85rem, 2vw, 2rem);
+     background: var(--bs-body-bg);
      color: var(--bs-body-color);
 }
 
 .page h1 {
      font-size: clamp(1.65rem, 2.4vw, 2.2rem);
-     font-weight: 700;
+     font-weight: 600;
      letter-spacing: 0;
 }
 
 .eyebrow,
 .sectionKicker {
      color: #1c766c;
-     font-size: .7rem;
-     font-weight: 700;
-     letter-spacing: .12em;
-     text-transform: uppercase;
+     font-size: .83rem;
+     font-weight: 600;
+     letter-spacing: 0;
+     text-transform: none;
 }
 
 .eyebrow {
@@ -34,7 +34,7 @@
      padding: .55rem .8rem;
      border: 1px solid var(--bs-border-color);
      border-radius: 999px;
-     background: var(--bs-tertiary-bg);
+     background: var(--bs-body-bg);
      color: var(--bs-secondary-color);
      font-size: .8rem;
 }
@@ -55,7 +55,7 @@
      border: 1px solid var(--bs-border-color);
      border-top: 4px solid transparent;
      border-radius: .45rem;
-     background: var(--bs-tertiary-bg);
+     background: var(--bs-body-bg);
      color: var(--bs-body-color);
      box-shadow: 0 8px 22px rgba(34, 55, 50, .05);
      transition: transform .18s ease, box-shadow .18s ease;
@@ -73,9 +73,9 @@
 
 .metricLabel {
      font-size: .78rem;
-     font-weight: 700;
-     text-transform: uppercase;
-     letter-spacing: .08em;
+     font-weight: 600;
+     text-transform: none;
+     letter-spacing: 0;
 }
 
 .metricDetail,
@@ -107,7 +107,7 @@
      overflow: hidden;
      border: 1px solid var(--bs-border-color);
      border-radius: .45rem;
-     background: var(--bs-tertiary-bg);
+     background: var(--bs-body-bg);
      box-shadow: 0 8px 22px rgba(34, 55, 50, .04);
 }
 
@@ -115,7 +115,7 @@
      display: flex;
      align-items: center;
      justify-content: space-between;
-     padding: 1.2rem 1.35rem;
+     padding: .9rem 1.1rem;
      border-bottom: 1px solid var(--bs-border-color);
 }
 
@@ -126,7 +126,7 @@
 .panelHeader h2 {
      margin: .25rem 0 0;
      font-size: 1.05rem;
-     font-weight: 700;
+     font-weight: 600;
 }
 
 .reportList {
@@ -161,15 +161,16 @@
 }
 
 .queueValue {
-     font-size: 1.65rem;
-     font-weight: 700;
+     font-size: 1.35rem;
+     font-variant-numeric: tabular-nums;
+     font-weight: 600;
 }
 
 .queueLabel {
      color: var(--bs-secondary-color);
-     font-size: .72rem;
-     text-transform: uppercase;
-     letter-spacing: .08em;
+     font-size: .85rem;
+     text-transform: none;
+     letter-spacing: 0;
 }
 
 .queueStatus {
@@ -204,3 +205,75 @@
           align-self: flex-start;
      }
 }
+.quickActions{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.1rem}.quickActions a{display:inline-flex;align-items:center;gap:.4rem;min-height:36px}
+.trendGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin-bottom:.9rem}
+.trendMonth{min-width:0;border:1px solid var(--bs-border-color);border-radius:8px;padding:.8rem}
+.trendHeading{display:flex;justify-content:space-between;gap:.6rem;flex-wrap:wrap;font-size:.87rem;margin-bottom:.5rem}
+.trendHeading span{font-variant-numeric:tabular-nums;color:var(--bs-secondary-color)}
+.trendValues{display:flex;flex-direction:column;gap:.2rem;font-size:.83rem;margin-bottom:.6rem;font-variant-numeric:tabular-nums}
+@media(max-width:1000px){.trendGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:575px){.trendGrid{grid-template-columns:1fr}.quickActions a{flex:1 1 auto;justify-content:center}.page h1{font-size:1.5rem}.queueValue{overflow-wrap:anywhere}}
+
+.performanceItem{min-width:0}
+@media(max-width:575px){.performanceItem{display:flex;align-items:center;justify-content:space-between;flex-direction:row-reverse;gap:.75rem}.performanceItem .queueValue{font-size:1.15rem;overflow-wrap:normal;white-space:nowrap}}
+
+.commitmentCard{display:block;text-decoration:none;color:var(--bs-body-color);border:1px solid var(--bs-border-color);border-radius:10px;background:var(--bs-body-bg);padding:1rem 1.1rem}.commitmentCard>div{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:.4rem}.commitmentCard strong{font-size:1.4rem;font-weight:600;font-variant-numeric:tabular-nums}.commitmentCard small{color:var(--bs-secondary-color)}.commitmentCard:hover{border-color:var(--accounting-accent,#1c766c)}
+
+.financialGrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:1rem;margin-bottom:1rem}
+.financialGrid .panel{min-width:0}
+.compactHeader{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;padding:1.1rem 1.2rem .9rem;border-bottom:1px solid var(--bs-border-color)}
+.compactHeader h2{font-size:1.03rem;font-weight:600;margin:0}
+.compactHeader p{font-size:.85rem;color:var(--bs-secondary-color);margin:.35rem 0 0}
+.textAction{display:inline-flex;align-items:center;gap:.3rem;white-space:nowrap;text-decoration:none;font-size:.84rem;min-height:30px;color:var(--bs-body-color)}
+.textAction:hover{text-decoration:underline;color:var(--bs-primary)}
+.comparisonWrap{padding:.3rem 1.2rem 1.1rem;overflow-x:auto}
+.comparison{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.comparison th,.comparison td{padding:.95rem .6rem;border-bottom:1px solid var(--bs-border-color)}
+.comparison th:first-child{padding-left:0;text-align:left}
+.comparison th:last-child,.comparison td:last-child{padding-right:0}
+.comparison thead th{font-size:.8rem;font-weight:500;color:var(--bs-secondary-color);text-align:right}
+.comparison thead small{display:block;margin-top:.15rem;font-size:.76rem;font-weight:400}
+.comparison tbody th{font-weight:500;font-size:.9rem}
+.comparison td{text-align:right;font-size:1rem;white-space:nowrap}
+.comparison a{color:var(--bs-body-color);text-decoration:none;display:inline-block;padding:.2rem 0}
+.comparison a:hover{text-decoration:underline}
+.comparison .profitRow th,.comparison .profitRow td{font-weight:600;border-bottom:0;padding-top:1.15rem}
+.positionTotals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.8rem;padding:1.15rem 1.2rem;border-bottom:1px solid var(--bs-border-color)}
+.positionTotals a{color:var(--bs-body-color);text-decoration:none;min-width:0}
+.positionTotals span{display:block;color:var(--bs-secondary-color);font-size:.83rem;margin-bottom:.4rem}
+.positionTotals strong{font-weight:600;font-size:1.15rem;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.positionTotals a:hover span{text-decoration:underline}
+.positionDetails{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.15rem 1.3rem;padding:.7rem 1.2rem 1rem}
+.positionDetails a{display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.45rem 0;color:var(--bs-body-color);text-decoration:none;font-size:.85rem;min-width:0}
+.positionDetails a:hover span{text-decoration:underline}
+.positionDetails strong{font-weight:500;white-space:nowrap;font-variant-numeric:tabular-nums}
+.negative{color:var(--bs-danger-text-emphasis,#b42318)!important}
+.toolsPanel{margin-bottom:1rem}
+.toolGroups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+.toolGroups nav{padding:.9rem 1.2rem 1.1rem;min-width:0}
+.toolGroups nav+nav{border-left:1px solid var(--bs-border-color)}
+.toolGroups h3{font-size:.8rem;color:var(--bs-secondary-color);font-weight:500;margin:0 0 .6rem}
+.toolLinks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem}
+.toolLinks a{border:1px solid var(--bs-border-color);border-radius:6px;padding:.6rem .75rem;display:flex;align-items:center;justify-content:space-between;gap:.5rem;font-size:.87rem;color:var(--bs-body-color);text-decoration:none;min-height:40px}
+.toolLinks a:hover{background:var(--bs-tertiary-bg);border-color:var(--bs-secondary-color)}
+.toolLinks svg{flex-shrink:0}
+.postingStrip{display:flex;align-items:center;justify-content:space-between;gap:.8rem 1.5rem;flex-wrap:wrap;padding:.85rem .15rem;font-size:.84rem;color:var(--bs-secondary-color)}
+.postingStrip>div{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+.postingStrip strong{font-weight:500;color:var(--bs-body-color)}
+.postingStrip a{display:inline-flex;align-items:center;gap:.4rem;color:var(--bs-body-color);text-decoration:none;min-height:32px}
+.postingStrip a:hover{text-decoration:underline}
+@media(max-width:1199px){.financialGrid{grid-template-columns:1fr}}
+@media(max-width:575px){.compactHeader{padding:1rem;flex-wrap:wrap;gap:.4rem}.comparisonWrap{padding:.25rem 1rem .65rem}.comparison th,.comparison td{padding:.8rem .3rem}.comparison td{font-size:.9rem}.comparison thead th{font-size:.76rem}.comparison tbody th{font-size:.84rem}.positionTotals{padding:1rem;gap:.7rem;grid-template-columns:1fr}.positionTotals a{display:flex;justify-content:space-between;gap:1rem;align-items:center}.positionTotals span{margin:0}.positionTotals strong{font-size:1.05rem;white-space:nowrap}.positionDetails{grid-template-columns:1fr;padding:.6rem 1rem 1rem}.toolGroups{grid-template-columns:1fr}.toolGroups nav{padding:1rem}.toolGroups nav+nav{border-left:0;border-top:1px solid var(--bs-border-color)}.toolLinks{grid-template-columns:1fr}.postingStrip{padding:.5rem .2rem}.postingStrip>div{gap:.4rem .6rem}}
+
+.periodSelect{min-width:145px;font-size:.84rem;min-height:34px}.periodComparison{border-top:1px solid var(--bs-border-color)}.periodComparison>summary{padding:.7rem 1.2rem;font-size:.83rem;color:var(--bs-secondary-color);cursor:pointer}.positionDetails{border-top:1px solid var(--bs-border-color)}
+
+/* Flat dashboard surfaces follow the active company theme. */
+.page{background:var(--theme-body-bg,var(--bs-tertiary-bg));font-family:inherit}
+.panel{border:0;border-radius:0;box-shadow:none;background:var(--theme-card-bg,var(--bs-body-bg))}
+.panelHeader,.compactHeader{border-bottom:0}
+.panelHeader svg,.sectionKicker,.eyebrow{color:var(--accounting-accent,var(--theme-accent,var(--bs-primary)))}
+.commitmentCard{border:0;border-radius:0;padding:1.05rem 1.2rem;background:var(--theme-card-bg,var(--bs-body-bg))}
+.commitmentCard:hover{background:color-mix(in srgb,var(--accounting-accent,var(--bs-primary)) 4%,var(--theme-card-bg,var(--bs-body-bg)))}
+.commitmentCard>div{align-items:flex-start}.commitmentCard strong{font-size:1.6rem;line-height:1.2}
+.toolLinks a{border:0;border-radius:0;background:var(--bs-tertiary-bg)}
+.toolGroups nav+nav{border:0}.positionDetails,.periodComparison{border-color:color-mix(in srgb,var(--bs-border-color) 55%,transparent)}

@@ -14,7 +14,8 @@ const statusMap = {
 };
 
 const formatDate = value => value && !Number.isNaN(new Date(value).getTime()) ? new Date(value).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}) : 'Not set';
-const InvoiceList = ({ branchid, employeeid }) => {
+/** @param {{branchid: number, employeeid: number, heading?: string, extraActions?: import("react").ReactNode}} props */
+const InvoiceList = ({ branchid, employeeid, heading = "Invoices & payments", extraActions = null }) => {
      const router = useRouter();
      const searchParams = useSearchParams();
      const payInvoiceId = Number(searchParams.get('payInvoice') || 0);
@@ -345,7 +346,7 @@ const InvoiceList = ({ branchid, employeeid }) => {
 
      return (
           <main className={styles.workspace}>
-               <header className={styles.header}><div><span className={styles.eyebrow}>EXPENSES / INVOICES</span><h1>Invoices & payments</h1><p>Review supplier invoices, record payments and follow their history.</p></div><div className={styles.headerActions}><Link className="btn btn-outline-secondary" href="/billing/expenses">View expenses</Link><Button variant="primary" disabled={loading} onClick={getInvoiceData}><RiRefreshLine size={16} aria-hidden="true"/> Refresh</Button></div></header>
+               <header className={styles.header}><div><span className={styles.eyebrow}>EXPENSES / INVOICES</span><h1>{heading}</h1><p>Review supplier invoices, record payments and follow their history.</p></div><div className={styles.headerActions}>{extraActions}<Link className="btn btn-outline-secondary" href="/billing/expenses">View expenses</Link><Button variant="primary" disabled={loading} onClick={getInvoiceData}><RiRefreshLine size={16} aria-hidden="true"/> Refresh</Button></div></header>
                <section className={styles.summary} aria-label="Current page invoice summary"><article><span>Matching invoices</span><strong>{loading?'—':total}</strong><small>For the applied filters</small></article><article><span>Invoice value</span><strong>{loading?'—':currencyFormatter.format(pageAmount)}</strong><small>On this page</small></article><article><span>Open invoices</span><strong>{loading?'—':pendingCount}</strong><small>On this page · {paidCount} paid</small></article></section>
                <section className={styles.panel}><div className={styles.panelHeading}><div><h2>Invoice register</h2><p>Filter by invoice date and status to find the records you need.</p></div></div>
                <form className={styles.filters} onSubmit={event=>{event.preventDefault();handleSearch();}}><label htmlFor="invoice-from">From date<input id="invoice-from" name="from" type="date" className="form-control" value={localFilter.from} onChange={handleInputChange}/></label><label htmlFor="invoice-to">To date<input id="invoice-to" name="to" type="date" min={localFilter.from||undefined} className="form-control" value={localFilter.to} onChange={handleInputChange}/></label><label htmlFor="invoice-status">Invoice status<select id="invoice-status" className="form-select" value={localFilter.status} onChange={handleStatusChange}><option value="">All statuses</option><option value="Pending">Pending</option><option value="Approved">Approved</option><option value="Paid">Paid</option><option value="Rejected">Rejected</option></select></label><Button type="submit" variant="primary" disabled={loading}><RiSearchLine size={16} aria-hidden="true"/> Apply filters</Button><Button type="button" variant="outline-secondary" disabled={loading} onClick={handleClear}>Reset</Button></form>

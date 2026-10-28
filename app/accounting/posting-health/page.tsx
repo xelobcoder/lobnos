@@ -5,7 +5,7 @@ import dayjs from "dayjs";
 import React, { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import AccountingSummary from "../../../components/accounting/AccountingSummary";
-import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
+import PrimeTable from "../../../components/accounting/AccountingTable";
 import ReportShell from "../../../components/accounting/ReportShell";
 import { accountingApi, OutboxHealth } from "../../../lib/accounting/accountingApi";
 

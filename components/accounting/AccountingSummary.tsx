@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import React from "react";
+import styles from "./AccountingSummary.module.css";
 
 export type AccountingSummaryMetric = {
      label: string;
@@ -26,21 +27,16 @@ export default function AccountingSummary({
           <div className={rowClassName}>
                {metrics.map(({ label, value, Icon, variant, subtitle, href }) => {
                     const content = (
-                         <div className={`border-0 shadow-sm bg-${variant} bg-gradient text-white rounded-3 h-100`}>
-                              <div className="p-3">
-                                   <div className="d-flex justify-content-between align-items-center mb-1">
-                                        <span className="small text-uppercase fw-semibold opacity-75">{label}</span>
-                                        <Icon size={22} className="opacity-75" />
-                                   </div>
-                                   <h3 className="fw-bold mb-0">{value}</h3>
-                                   <span className="small opacity-75">{subtitle}</span>
-                              </div>
+                         <div className={styles.card} data-tone={variant}>
+                              <div className={styles.heading}><span>{label}</span><span className={styles.icon}><Icon size={18} aria-hidden="true" /></span></div>
+                              <div className={styles.value}>{value}</div>
+                              <div className={styles.detail}>{subtitle}</div>
                          </div>
                     );
 
                     return (
                          <div className={columnClassName} key={label}>
-                              {href ? <Link href={href} className="d-block h-100 text-decoration-none">{content}</Link> : content}
+                              {href ? <Link href={href} className={styles.link}>{content}</Link> : content}
                          </div>
                     );
                })}

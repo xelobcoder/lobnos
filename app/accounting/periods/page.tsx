@@ -1,9 +1,10 @@
 "use client";
+import Link from "next/link";
 import { RiLockLine, RiLockUnlockLine } from "@remixicon/react";
 import dayjs from "dayjs";
 import React, { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
+import PrimeTable from "../../../components/accounting/AccountingTable";
 import ReportShell from "../../../components/accounting/ReportShell";
 import { currencyFormatter } from "../../../components/Auth/customFetch";
 import { useApplication } from "../../../components/Auth/useApplicationContext";
@@ -139,6 +140,7 @@ export default function AccountingPeriodsPage() {
                title="Accounting Periods"
                subtitle="Closing a period stops new postings landing in it. A period only closes when its debits equal its credits."
           >
+               <div className="mb-3"><Link href="/accounting/control-history" className="btn btn-sm btn-outline-secondary">View control history</Link></div>
                {loading && <div className="text-muted small mb-2">Loading periods...</div>}
                <PrimeTable column={column} data={rows} filtering isExpoerted handleSeverSideProcessing={undefined} />
           </ReportShell>

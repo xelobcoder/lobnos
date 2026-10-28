@@ -13,7 +13,7 @@ import {
 import dayjs from "dayjs";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
+import PrimeTable from "../../../components/accounting/AccountingTable";
 import ReportShell from "../../../components/accounting/ReportShell";
 import { currencyFormatter, customFetch } from "../../../components/Auth/customFetch";
 import { useApplicationSettings } from "../../../components/Auth/useApplicationContext";

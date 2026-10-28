@@ -5,7 +5,7 @@ import Link from "next/link";
 import React, { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import * as XLSX from "xlsx";
-import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
+import PrimeTable from "../../../components/accounting/AccountingTable";
 import AccountingGuard, { useIsAccountingOwner } from "../../../components/accounting/AccountingGuard";
 import ReportShell from "../../../components/accounting/ReportShell";
 import { accountingApi, BankAccount, ChartAccount } from "../../../lib/accounting/accountingApi";

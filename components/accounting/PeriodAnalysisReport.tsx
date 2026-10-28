@@ -1,9 +1,10 @@
 "use client";
 import dayjs from "dayjs";
+import {useSearchParams} from "next/navigation";
 import { RiBarChartLine } from "@remixicon/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import AccountingSummary from "./AccountingSummary";
-import PrimeTable from "../accessories/Datatables/PrimeTable";
+import PrimeTable from "./AccountingTable";
 import ReportShell, { formatRange } from "./ReportShell";
 import { currencyFormatter } from "../Auth/customFetch";
 import DateFilterReusable from "../operations/Laboratory/ResuableFilter/DateFilterReusable";
@@ -16,10 +17,11 @@ interface Props {
 }
 
 export default function PeriodAnalysisReport({ type, title, subtitle }: Props) {
+     const searchParams=useSearchParams();
      const currentYear = dayjs().year();
-     const [from, setFrom] = useState(dayjs(`${currentYear}-01-01`).format("YYYY-MM-DD"));
-     const [to, setTo] = useState(dayjs().format("YYYY-MM-DD"));
-     const [dateFilter, setDateFilter] = useState("This Year");
+     const [from, setFrom] = useState(searchParams.get("from")||dayjs(`${currentYear}-01-01`).format("YYYY-MM-DD"));
+     const [to, setTo] = useState(searchParams.get("to")||dayjs().format("YYYY-MM-DD"));
+     const [dateFilter, setDateFilter] = useState(searchParams.get("from")?"Custom Range":"This Year");
      const [rows, setRows] = useState<any[]>([]);
      const [periods, setPeriods] = useState<string[]>([]);
      const [totals, setTotals] = useState<Record<string, number>>({});

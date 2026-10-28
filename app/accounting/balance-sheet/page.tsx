@@ -110,7 +110,7 @@ export default function BalanceSheetPage() {
      const totalEquity = (totals?.equity || 0) + (totals?.retainedProfit || 0);
 
      return (
-          <ReportShell
+          <ReportShell basis="accrual"
                title="Balance Sheet"
                subtitle="Assets against liabilities and equity, classified into current and non-current"
                reportTitle="BALANCE SHEET"

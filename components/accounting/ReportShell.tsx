@@ -1,11 +1,16 @@
 "use client";
+import styles from "./ReportShell.module.css";
 import dayjs from "dayjs";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import { accountingApi } from "../../lib/accounting/accountingApi";
 import { RiPrinterLine } from "@remixicon/react";
 import ExportPdfButton from "../reports/ExportPdfButton";
 import type { ReportPdfSpec } from "../reports/reportPdf";
 
 interface Props {
+     exportable?: boolean;
+     basis?: "accrual" | "cash-flow";
      title: string;
      subtitle?: string;
      reportTitle?: string;
@@ -17,51 +22,33 @@ interface Props {
      getPdfSpec?: () => Promise<Partial<ReportPdfSpec>> | Partial<ReportPdfSpec>;
 }
 
-export default function ReportShell({ title, subtitle, reportTitle, range, filters, actions, children, getPdfSpec }: Props) {
+export default function ReportShell({ title, subtitle, reportTitle, range, filters, actions, children, getPdfSpec, basis, exportable = true }: Props) {
+     const [health, setHealth] = useState<any>(null);
+     useEffect(() => {
+          if (!basis) return;
+          let active = true;
+          accountingApi.outboxHealth().then(response => { if (active) setHealth(response?.status === 'success' && response.result ? response.result : { unavailable: true }); }).catch(() => { if (active) setHealth({ unavailable: true }); });
+          return () => { active = false; };
+     }, [basis, range]);
+     const unresolved = Number(health?.pending || 0) + Number(health?.failed || 0) + Number(health?.deadLetter || 0);
      return (
-          <div className="container-fluid py-5 ">
-               <div className="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
-                    <div>
-                         <h4 className="mb-1">{title}</h4>
-                         {subtitle && <small className="text-muted">{subtitle}</small>}
-                    </div>
-                 
-                    <div className="d-flex align-items-center gap-2">
+          <div className={styles.page}>
+               <nav className={styles.breadcrumb} aria-label="Breadcrumb"><Link href="/accounting">Accounting</Link><span aria-hidden="true"> / </span><span aria-current="page">{title}</span></nav>
+               <header className={styles.header}>
+                    <div><h1 className={styles.title}>{title}</h1>{subtitle && <p className={styles.subtitle}>{subtitle}</p>}</div>
+                    <div className={styles.actions}>
                          {actions}
-                         <ExportPdfButton
-                              title={title}
-                              subtitle={subtitle}
-                              period={range}
-                              targetSelector="[data-pdf-root]"
-                              filtersSelector="[data-pdf-filters]"
-                              getSpec={getPdfSpec}
-                         />
-                         <button className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" onClick={() => window.print()}>
-                              <RiPrinterLine size={16} /> Print
-                         </button>
+                         {exportable && <><ExportPdfButton title={title} subtitle={subtitle} period={range} targetSelector="[data-pdf-root]" filtersSelector="[data-pdf-filters]" getSpec={getPdfSpec} />
+                         <button type="button" className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" onClick={() => window.print()}><RiPrinterLine size={16} aria-hidden="true" /> Print</button></>}
                     </div>
-               </div>
-
-               {filters && (
-                    <div className="card border-0 bg-white mb-3" data-pdf-filters>
-                         <div className="card-body py-3">
-                              <div className="row g-2 align-items-end">{filters}</div>
-                         </div>
-                    </div>
-               )}
-
-               <div className="card border-0 shadow-sm" data-pdf-root>
-                    <div className="card-body">
-                         {reportTitle && (
-                              <div className="text-center mb-3">
-                                   <h3 className="fw-bold">{reportTitle}</h3>
-                                   {range && <small className="text-muted">{range}</small>}
-                              </div>
-                         )}
-                            <hr/>
-                         {children}
-                    </div>
-               </div>
+               </header>
+               {filters && <section className={styles.filters} aria-label="Report filters" data-pdf-filters><div className="row g-2 align-items-end">{filters}</div></section>}
+               <section className={styles.report} data-pdf-root aria-label={reportTitle || title}>
+                    {reportTitle && <div className={styles.printTitle}><h2>{reportTitle}</h2>{range && <p>{range}</p>}</div>}
+                    {(range || basis) && <div className={styles.meta}>{range && <span>{range}</span>}{basis && <span>{basis === "accrual" ? "Accrual basis · Posted ledger" : "Cash movements · Posted ledger"}</span>}</div>}
+                    {basis && (unresolved > 0 || health?.unavailable) && <div role="alert" className="alert alert-warning">{health?.unavailable ? "Posting status could not be verified. Review accounting postings before relying on this report." : `${unresolved} accounting posting(s) remain unresolved. This report includes posted entries only.`} <Link href="/accounting/posting-health">Review postings</Link></div>}
+                    {children}
+               </section>
           </div>
      );
 }

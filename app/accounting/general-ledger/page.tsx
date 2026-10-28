@@ -2,7 +2,7 @@
 import dayjs from "dayjs";
 import { useSearchParams } from "next/navigation";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
+import PrimeTable from "../../../components/accounting/AccountingTable";
 import ReportShell, { formatRange } from "../../../components/accounting/ReportShell";
 import { currencyFormatter } from "../../../components/Auth/customFetch";
 import DateFilterReusable from "../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
@@ -23,6 +23,9 @@ export default function GeneralLedgerPage() {
      const [rows, setRows] = useState<any[]>([]);
      const [total, setTotal] = useState(0);
      const latestRequest = useRef(0);
+     const [view,setView]=useState(searchParams.get('view')==='summary'?'summary':(searchParams.get('accountCode')||searchParams.get('view')==='transactions')?'transactions':'summary');
+     const [summary,setSummary]=useState<any>(null),[summaryError,setSummaryError]=useState('');
+     useEffect(()=>{let cancelled=false;setSummary(null);setSummaryError('');accountingApi.generalLedgerSummary({from,to,accountCode:accountCode||undefined,sourceModule:sourceModule||undefined}).then(response=>{if(response.status!=='success')throw new Error(response.message||'Unable to load account totals');if(!cancelled)setSummary(response.result);}).catch(error=>{if(!cancelled)setSummaryError(error.message);});return()=>{cancelled=true;};},[from,to,accountCode,sourceModule]);
 
      const handleSeverSideProcessing =
           async ({
@@ -159,7 +162,7 @@ export default function GeneralLedgerPage() {
      return (
           <ReportShell
                title="General Ledger"
-               subtitle={`${total} posted journal lines`}
+               subtitle={view==='summary'?"Opening balances, period activity and closing balances by account":`${total} posted journal lines`}
                range={formatRange(from, to)}
                filters={
                     <>
@@ -227,14 +230,15 @@ export default function GeneralLedgerPage() {
                     </div>
                )}
 
-               <PrimeTable
+               <div className="d-flex gap-2 mb-3" role="group" aria-label="Ledger view"><button className={`btn btn-sm ${view==='summary'?'btn-primary':'btn-outline-secondary'}`} aria-pressed={view==='summary'} onClick={()=>setView('summary')}>Account summary</button><button className={`btn btn-sm ${view==='transactions'?'btn-primary':'btn-outline-secondary'}`} aria-pressed={view==='transactions'} onClick={()=>setView('transactions')}>Transactions</button></div>
+               {view==='summary'?<>{summaryError?<div role="alert" className="alert alert-danger">{summaryError}</div>:!summary?<p role="status">Loading account balances…</p>:<div className="table-responsive"><table className="table align-middle"><caption>Balances follow each account’s normal debit or credit side. Select an account to review its transactions.</caption><thead><tr><th>Account</th><th>Normal side</th><th className="text-end">Opening balance</th><th className="text-end">Debit</th><th className="text-end">Credit</th><th className="text-end">Closing balance</th></tr></thead><tbody>{summary.rows.map((row:any)=><tr key={row.accountCode}><td><button className="btn btn-link text-start p-0" onClick={()=>{setAccountCode(row.accountCode);setView('transactions');}}>{row.accountName}</button><small className="d-block text-muted">{row.accountCode}</small></td><td>{row.normalBalance}</td>{[row.openingBalance,row.debits,row.credits,row.closingBalance].map((amount,index)=><td className="text-end text-nowrap" key={index}>{currencyFormatter.format(amount)}</td>)}</tr>)}{!summary.rows.length&&<tr><td colSpan={6}>No posted activity or opening balances in this selection.</td></tr>}</tbody><tfoot><tr><th colSpan={3}>Period totals</th><th className="text-end">{currencyFormatter.format(summary.totals.debits)}</th><th className="text-end">{currencyFormatter.format(summary.totals.credits)}</th><td/></tr></tfoot></table></div>}</>:<PrimeTable
                     column={column}
                     data={rows}
                     filtering
                     isExpoerted
                     serverSideFiltering
                     handleSeverSideProcessing={handleSeverSideProcessing}
-               />
+               />}
           </ReportShell>
      );
 }

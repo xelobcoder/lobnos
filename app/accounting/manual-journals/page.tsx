@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 import Link from "next/link";
 import React, { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
+import PrimeTable from "../../../components/accounting/AccountingTable";
 import ReportShell from "../../../components/accounting/ReportShell";
 import { useApplication } from "../../../components/Auth/useApplicationContext";
 import { accountingApi, ManualJournalStatus } from "../../../lib/accounting/accountingApi";

@@ -1,7 +1,7 @@
 "use client";
 import dayjs from "dayjs";
 import React, { useCallback, useEffect, useState } from "react";
-import PrimeTable from "../accessories/Datatables/PrimeTable";
+import PrimeTable from "./AccountingTable";
 import ReportShell, { formatRange } from "./ReportShell";
 import { currencyFormatter } from "../Auth/customFetch";
 import DateFilterReusable from "../operations/Laboratory/ResuableFilter/DateFilterReusable";

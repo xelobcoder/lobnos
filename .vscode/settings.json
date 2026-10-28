@@ -8,5 +8,7 @@
 	"editor.lineHeight": 20,
 	"workbench.sideBar.location": "left",
 	"terminal.integrated.splitCwd": "workspaceRoot",
-	"terminal.integrated.shellIntegration.enabled": true
+	"terminal.integrated.shellIntegration.enabled": true,
+	"editor.formatOnSave": true,
+	"editor.defaultFormatter": "esbenp.prettier-vscode"
 }

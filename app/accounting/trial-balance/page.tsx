@@ -52,7 +52,7 @@ export default function TrialBalancePage() {
      })).filter((group) => group.rows.length > 0);
 
      return (
-          <ReportShell
+          <ReportShell basis="accrual"
                title="Trial Balance"
                subtitle="Cumulative account balances through the selected date. Earlier postings remain included."
                reportTitle="TRIAL BALANCE"
