@@ -1,0 +1,28 @@
+.workspace { min-width:0; color:var(--bs-body-color); font-family:inherit; font-size:.9rem; }
+.content { padding:20px; min-width:0; }
+.content :global(h2), .content :global(h3) { font-family:inherit; font-size:1.3rem; font-weight:600!important; letter-spacing:-.02em; }
+.content :global(.btn) { font-family:inherit; font-size:.875rem; font-weight:500; padding:8px 12px; }
+.content :global(.btn-sm) { padding:5px 9px; font-size:.82rem; }
+.content :global(.btn-lg) { font-size:.875rem; padding:9px 14px; }
+.content :global(.form-control), .content :global(.form-select) { font-size:.9rem; min-height:38px; }
+.content :global(.card) { box-shadow:none; border-color:var(--bs-border-color); }
+.content :global(th) { font-size:.8rem; font-weight:600; white-space:nowrap; }
+.content :global(td) { font-size:.85rem; vertical-align:middle; }
+.content :global(.table-responsive) { max-width:100%; }
+@media(max-width:767px) { .content { padding:12px; } }
+
+.pageHeader { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:20px; flex-wrap:wrap; }
+.pageHeader p { color:var(--bs-secondary-color); margin:5px 0 0; }
+.composerGrid { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(290px,1fr); gap:24px; align-items:start; }
+.section { padding:0 0 20px; margin-bottom:20px; border-bottom:1px solid var(--bs-border-color); }
+.section h3,.reviewPanel h3 { font-size:1rem; margin-bottom:16px; }
+.reviewPanel { background:var(--bs-tertiary-bg); padding:20px; border-radius:6px; }
+.reviewNumbers { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.reviewNumbers dt { font-size:.8rem; font-weight:400; color:var(--bs-secondary-color); }
+.reviewNumbers dd { font-size:1.5rem; font-weight:600; margin:3px 0 0; }
+.recipientList { list-style:none; padding:0; margin:6px 0; }
+.recipientList li { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 0; border-bottom:1px solid var(--bs-border-color); }
+.recipientList strong { font-weight:500; }.recipientList small { display:block; color:var(--bs-secondary-color); }
+.messagePreview { background:var(--bs-body-bg); padding:14px; margin:12px 0; overflow-wrap:anywhere; }
+.messagePreview small { color:var(--bs-secondary-color); }.messagePreview p { white-space:pre-wrap; margin:8px 0 0; }
+@media(max-width:900px) { .composerGrid {grid-template-columns:1fr;} }

@@ -1,10 +1,2 @@
-import React from 'react'
-
-
-export default function SmsPage() {
-     return (
-          <div>
-
-          </div>
-     )
-}
+import { redirect } from 'next/navigation';
+export default function SmsPage() { redirect('/communications/sms/dashboard'); }

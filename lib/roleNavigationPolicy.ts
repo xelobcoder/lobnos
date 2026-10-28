@@ -21,6 +21,7 @@ export function canAccessRolePage(role:unknown,value:string,settings:NavigationS
  if(['nurse','nursing'].includes(key))return within(p,'/doctor')||within(p,'/operations/laboratory/vitals');
  if(['clinician','doctor','medicalofficer','consultant','pharmacydoctor','pharmacynurse'].includes(key))return within(p,'/doctor');
  if(key==='marketer')return p==='/crm'||within(p,'/crm/acquisition');
+ if(key==='crm'&&(p==='/communications/sms'||['/communications/sms/dashboard','/communications/sms/jobs','/communications/sms/templates'].some(root=>within(p,root))))return true;
  if(key==='crm')return ['/crm/overview','/crm/customers','/crm/registration','/crm/leads','/crm/birthdays','/crm/validated','/crm/pricelist','/crm/referral-codes','/appointments','/operations/queue','/operations/laboratory/undelivered','/billing/patientid','/billing/entity-orders','/billing/suspended-transactions'].some(root=>within(p,root))||['/billing/packages','/clinicians','/clinicians/add-new','/organization'].includes(p);
  if(key==='cashier')return ['/billing/cash-collection','/billing/receipts','/billing/organization-invoices','/billing/billing-sessions/sales-session'].some(root=>within(p,root))||p==='/crm/pricelist';
  if(key==='scientist')return ['/operations/laboratory','/operations/phelobotomy','/operations/phlebotomy','/phelobotomy','/phlebotomy'].some(root=>within(p,root))||p==='/operations/queue'||(within(p,'/crm/registration')&&Number(settings.allowScientistToRegisterClient)===1);
@@ -28,7 +29,7 @@ export function canAccessRolePage(role:unknown,value:string,settings:NavigationS
  if(key==='sonographer')return within(p,'/operations/imaging');
  if(key==='storekeeper')return within(p,'/inventory');
  if(key==='accountant')return ['/human-resource/payroll','/accounting','/billing/expenses','/billing/insurance','/billing/cash-collection','/billing/receipts','/billing/organization-invoices','/billing/sales','/billing/billing-sessions','/inventory/analytics','/commission-payments','/sales'].some(root=>within(p,root))||['/organization','/clinicians','/crm/pricelist'].includes(p);
- if(key==='manager')return ['/crm','/billing','/operations','/inventory','/appointments','/organization','/clinicians','/doctor','/compliance','/settings/applicationsettings/testpanels','/settings/applicationsettings/patient-portal','/settings/outsource'].some(root=>within(p,root));
+ if(key==='manager')return ['/communications/sms','/crm','/billing','/operations','/inventory','/appointments','/organization','/clinicians','/doctor','/compliance','/settings/applicationsettings/testpanels','/settings/applicationsettings/patient-portal','/settings/outsource'].some(root=>within(p,root));
  if(key==='pharmacymanager')return within(p,'/pharmacy');
  if(key==='pharmacystorekeeper')return ['/pharmacy/inventory','/pharmacy/stock','/pharmacy/stock-control','/pharmacy/catalogue','/pharmacy/analytics'].some(root=>within(p,root))||p==='/pharmacy';
  if(key==='pharmacyaccountant')return ['/pharmacy/counter','/pharmacy/cashier','/pharmacy/finance','/pharmacy/accounts','/pharmacy/analytics','/pharmacy/nhis','/pharmacy/sales-history','/pharmacy/stock','/pharmacy/catalogue'].some(root=>within(p,root))||p==='/pharmacy';

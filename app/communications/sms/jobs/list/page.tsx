@@ -1,136 +1,23 @@
-'use client';
-import React, { useEffect, useState } from 'react';
-import Spinner from 'react-bootstrap/Spinner';
-import Alert from 'react-bootstrap/Alert';
-import Button from 'react-bootstrap/Button';
-import PrimeTable from '../../../../../components/accessories/Datatables/PrimeTable';
-import { handleServerProcessingSmsJobs } from '../../../../../components/serverActions/ActionFiltering';
-import { customFetch } from '../../../../../components/Auth/customFetch';
-import { RiAddLine } from '@remixicon/react';
-import { useRouter } from 'next/navigation';
-
-const statusColors: Record<string, string> = {
-     sent: 'success',
-     pending: 'warning',
-     failed: 'danger',
-};
-
-function formatDate(dateStr: string) {
-     if (!dateStr) return '';
-     const d = new Date(dateStr);
-     return d.toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+"use client";
+import React,{useEffect,useState} from 'react';
+import Link from 'next/link';
+import {customFetch,customPost} from '../../../../../components/Auth/customFetch';
+import {useApplication} from '../../../../../components/Auth/useApplicationContext';
+import {smsCapabilities,smsStatusLabels,smsStatusColors,smsError} from '../../../../../lib/sms';
+import styles from '../../SmsWorkspace.module.css';
+export default function CampaignHistory(){
+ const caps=smsCapabilities(useApplication().user?.role);
+ const [jobs,setJobs]=useState<any[]>([]),[total,setTotal]=useState(0),[page,setPage]=useState(1),[status,setStatus]=useState(''),[category,setCategory]=useState(''),[from,setFrom]=useState(''),[to,setTo]=useState('');
+ const [loading,setLoading]=useState(true),[error,setError]=useState(''),[revision,setRevision]=useState(0),[cancel,setCancel]=useState<any>(null),[cancelling,setCancelling]=useState(false);
+ useEffect(()=>{let current=true;setLoading(true);setError('');const query=new URLSearchParams({page:String(page),count:'15',status,category,from,to});
+  customFetch('prime/sms-jobs-paginated?'+query).then(result=>{if(!current)return;if(!Array.isArray(result?.jobs))throw new Error(smsError(result,'Unable to load campaigns'));setJobs(result.jobs);setTotal(Number(result.total)||0);}).catch(e=>{if(current)setError(smsError(e,'Unable to load campaigns'));}).finally(()=>{if(current)setLoading(false);});return()=>{current=false;};
+ },[page,status,category,from,to,revision]);
+ async function cancelCampaign(){if(cancelling||!cancel)return;setCancelling(true);try{const result=await customPost(`prime/sms-jobs/${cancel.jobid}/cancel`,'POST',{});if(result?.status!=='cancelled')throw new Error(smsError(result,'Unable to cancel campaign'));setCancel(null);setRevision(value=>value+1);}catch(e){setError(smsError(e,'Unable to cancel campaign'));}finally{setCancelling(false);}}
+ const change=(setter:any)=>(e:any)=>{setter(e.target.value);setPage(1);};
+ if(!caps.read)return <div role="alert" className="alert alert-info">You do not have access to SMS campaign history.</div>;
+ return <div><header className={styles.pageHeader}><div><h2>SMS campaigns</h2><p>Track processing, provider submission and confirmed delivery.</p></div>{caps.send&&<Link className="btn btn-primary" href="/communications/sms/jobs">Compose message</Link>}</header>
+ <div className="row g-2 mb-3 align-items-end"><label className="col-md-3 form-label">Status<select aria-label="Campaign status" className="form-select" value={status} onChange={change(setStatus)}><option value="">All statuses</option>{['pending','scheduled','processing','submitted','delivered','partialfailed','failed','unknown','cancelled','sent'].map(value=><option key={value} value={value}>{smsStatusLabels[value]}</option>)}</select></label><label className="col-md-3 form-label">Category<select aria-label="Campaign category" className="form-select" value={category} onChange={change(setCategory)}><option value="">All categories</option><option value="patient">Patients</option><option value="clinician">Practitioners</option><option value="organization">Organizations</option></select></label><label className="col-md-2 form-label">From<input aria-label="From date" type="date" className="form-control" value={from} onChange={change(setFrom)}/></label><label className="col-md-2 form-label">To<input aria-label="To date" type="date" className="form-control" value={to} min={from||undefined} onChange={change(setTo)}/></label><div className="col-md-2 mb-2"><button className="btn btn-outline-secondary" onClick={()=>{setStatus('');setCategory('');setFrom('');setTo('');setPage(1);}}>Clear filters</button></div></div>
+ {cancel&&<div role="alert" className="alert alert-warning"><p>Cancel unsent messages in campaign #{cancel.jobid}? Messages already submitted to the provider cannot be recalled.</p><button className="btn btn-danger me-2" disabled={cancelling} onClick={cancelCampaign}>{cancelling?'Cancelling…':'Confirm cancellation'}</button><button className="btn btn-outline-secondary" disabled={cancelling} onClick={()=>setCancel(null)}>Keep campaign</button></div>}
+ {error?<div role="alert" className="alert alert-danger">{error}<button className="btn btn-sm btn-outline-danger ms-3" onClick={()=>setRevision(value=>value+1)}>Retry</button></div>:loading?<p role="status">Loading campaigns…</p>:<><p className="text-muted small">{total} campaign(s) match these filters</p>{!jobs.length?<div className="py-4 text-center"><h3>No campaigns found</h3><p className="text-muted">Adjust your filters or compose a message.</p></div>:<div className="table-responsive"><table className="table table-hover align-middle"><thead><tr><th>Campaign</th><th>Created by</th><th>Timing</th><th>Status</th><th>Recipient progress</th><th>Actions</th></tr></thead><tbody>{jobs.map(job=>{const p=job.progress||{},submitted=Number(p.submitted||0)+Number(p.sent||0),delivered=Number(p.delivered||0),failed=Number(p.failed||0),queued=Number(p.queued||0),unknown=Number(p.unknown||0);return <tr key={job.jobid}><td><strong>#{job.jobid}</strong><div className="text-capitalize text-muted">{job.category} · {job.recipientscope}</div></td><td>{job.createdbyusername||'System'}<div className="small text-muted">{new Date(job.createdat).toLocaleString()}</div></td><td>{job.sendtype==='scheduled'?new Date(job.scheduledat).toLocaleString():'Immediate'}</td><td><span className={`badge bg-${smsStatusColors[job.status]||'secondary'}`}>{smsStatusLabels[job.status]||job.status}</span></td><td><div>{delivered} delivered · {submitted} submitted</div><small className="text-muted">{queued} queued · {failed} failed · {unknown} need review</small></td><td><div className="d-flex gap-2 flex-wrap"><Link className="btn btn-sm btn-outline-primary" href={`/communications/sms/jobs/recipients/${job.jobid}`}>View messages</Link>{caps.manage&&['queued','processing'].includes(job.dispatchstate)&&<button className="btn btn-sm btn-outline-danger" onClick={()=>setCancel(job)}>Cancel unsent</button>}</div></td></tr>})}</tbody></table></div>}<div className="d-flex justify-content-between align-items-center mt-3"><span className="text-muted small">Page {page} of {Math.max(1,Math.ceil(total/15))}</span><div className="d-flex gap-2"><button className="btn btn-sm btn-outline-secondary" disabled={page<=1} onClick={()=>setPage(value=>value-1)}>Previous</button><button className="btn btn-sm btn-outline-secondary" disabled={page*15>=total} onClick={()=>setPage(value=>value+1)}>Next</button></div></div></>}
+ </div>;
 }
-
-
-const SmsJobsListPage: React.FC = () => {
-     const [jobs, setJobs] = useState<any[]>([]);
-     const [total, setTotal] = useState<number>(0);
-     const [loading, setLoading] = useState(true);
-     const [error, setError] = useState('');
-     const router = useRouter();
-
-     const fetchJobs = () => {
-          setLoading(true);
-          customFetch('prime/sms-jobs-paginated')
-               .then((data) => {
-                    if (data && Array.isArray(data.jobs)) {
-                         setJobs(data.jobs);
-                         setTotal(data.total || data.jobs.length);
-                    } else {
-                         setError('No jobs found.');
-                    }
-               })
-               .catch(() => setError('Failed to fetch jobs.'))
-               .finally(() => setLoading(false));
-     };
-
-     useEffect(() => {
-          fetchJobs();
-     }, []);
-
-
-     const handleCreateJobRedirect = () => {
-          router.push('/communications/sms/jobs');
-     };
-
-
-     const columns = [
-          { Header: 'Job ID', accessor: 'jobid' },
-          {
-               Header: 'Category', accessor: 'category', Cell: ({ cell: { value } }) => <span className="text-capitalize">{value}</span>
-          },
-          {
-               Header: 'Recipient Scope', accessor: 'recipientscope', Cell: ({ cell: { value } }) => <span className="text-capitalize">{value}</span>
-          },
-          {
-               Header: 'Send Type', accessor: 'sendtype', Cell: ({ cell: { value } }) => <span className="text-capitalize">{value}</span>
-          },
-          {
-               Header: ' username', accessor: 'createdbyusername', Cell: ({ cell: { value } }) => <span className="text-capitalize">{value}</span>
-          },
-          {
-               Header: 'Status', accessor: 'status', Cell: ({ cell: { value } }) => <span className={`badge bg-${statusColors[value] || 'secondary'}`}>{value}</span>
-          },
-          {
-               Header: 'Created At', accessor: 'createdat', Cell: ({ cell: { value } }) => formatDate(value)
-          },
-          {
-               Header: 'Scheduled At', accessor: 'scheduledat', Cell: ({ cell: { value } }) => value ? formatDate(value) : '-'
-          },
-          {
-               Header: 'Recipients',
-               id: 'recipients',
-               Cell: ({ row }) => {
-                    const job = row.original;
-                    const jobid = job.jobid;
-                    return (
-                         <a
-                              className="btn btn-sm btn-outline-primary"
-                              href={`/communications/sms/jobs/recipients/${jobid}`}
-                              style={{ minWidth: 110 }}
-                         >
-                              View Recipients
-                         </a>
-                    );
-               }
-          },
-     ]
-
-
-     if (loading) {
-          return (
-               <div className="d-flex align-items-center justify-content-center py-5">
-                    <Spinner animation="border" variant="primary" />
-                    <span className="ms-3">Loading jobs...</span>
-               </div>
-          )
-     }
-
-     if (error) {
-          return (
-               <Alert variant="danger" className="mt-4">
-                    {error}
-               </Alert>
-          );
-     }
-
-     return (
-          <div className="mt-4">
-               <div className="d-flex justify-content-between align-items-center mb-2">
-                    <h3 className="fw-semibold mb-2" style={{ fontSize: '1.25rem' }}>SMS Jobs</h3>
-                    <Button variant="primary" size="sm" onClick={handleCreateJobRedirect}>
-                         <RiAddLine size={18} className="me-1" /> Create SMS Jobs
-                    </Button>
-               </div>
-               <div className="mb-2 text-muted small" style={{ fontSize: '0.95rem' }}>Total: {total}</div>
-               <PrimeTable
-                    data={jobs}
-                    column={columns}
-                    serverSideFiltering={true}
-                    handleSeverSideProcessing={handleServerProcessingSmsJobs}
-               />
-          </div>
-     );
-};
-
-export default SmsJobsListPage;

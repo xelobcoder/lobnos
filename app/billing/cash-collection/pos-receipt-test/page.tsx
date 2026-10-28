@@ -183,8 +183,6 @@ export default function PosReceiptTestPage() {
 
                const response = await customFetch(`billing/client/generate/receipt?tenantId=${tenantId}&billingid=${billingid}&employeeid=${employeeid}`);
                if (response?.status === 'success' && response?.data) {
-                    console.log('Billing Data:', response.data.billing);
-                    console.log('Billing Source:', response.data.billing?.billingSource);
                     setBillingData(response.data.billing);
                     setPatientData(response.data.patient);
                     setServices(response.data.services);

@@ -1,3 +1,4 @@
+import SmsWorkspace from "./SmsWorkspace";
 import { Suspense } from "react";
 import { ApplicationProvider } from "../../../components/Auth/useApplicationContext";
 import PrimeLayout from "../../../components/Layout/PrimeLayout";
@@ -20,7 +21,7 @@ export default function SMSLayout({
                <ApplicationProvider>
                     <MAIN_LAYOUT>
                          <PrimeLayout links={SmsLinks}>
-                              {children}
+                              <SmsWorkspace>{children}</SmsWorkspace>
                          </PrimeLayout>
                     </MAIN_LAYOUT>
                </ApplicationProvider>

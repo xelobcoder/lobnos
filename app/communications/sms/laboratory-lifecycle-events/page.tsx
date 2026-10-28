@@ -10,6 +10,9 @@ import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable
 import styles from './LaboratorySMSLifecycle.module.css';
 import EditTemplateModal from './EditTemplateModal';
 
+import { useApplication } from '../../../../components/Auth/useApplicationContext';
+import { smsCapabilities } from '../../../../lib/sms';
+
 interface Event {
     eventid: number;
     code: string;
@@ -22,6 +25,7 @@ interface Event {
 
 
 export default function LaboratorySMSLifecycle() {
+    const canConfigure = smsCapabilities(useApplication().user?.role).setup;
     const [events, setEvents] = useState<Event[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
@@ -294,14 +298,14 @@ export default function LaboratorySMSLifecycle() {
                     <div className="d-flex gap-2">
                         <button
                             className={`btn btn-sm ${event.active === 1 ? 'btn-outline-danger' : 'btn-outline-success'}`}
-                            onClick={() => toggleEventStatus(event.eventid, event.active)}
+                            disabled={!canConfigure} onClick={() => toggleEventStatus(event.eventid, event.active)}
                         >
                             {event.active === 1 ? 'Deactivate' : 'Activate'}
                         </button>
                         {editingEvent?.eventid !== event.eventid && (
                             <button
                                 className="btn btn-sm btn-outline-primary"
-                                onClick={() => handleEditTemplate(event.eventid)}
+                                disabled={!canConfigure} onClick={() => handleEditTemplate(event.eventid)}
                             >
                                 Edit Template
                             </button>
@@ -358,7 +362,7 @@ export default function LaboratorySMSLifecycle() {
                 <div className="card-body">
                     <PrimeTable
                         data={events}
-                        column={columns}
+                        column={canConfigure ? columns : columns.filter(column => column.accessor !== 'actions')}
                         serverSideFiltering={false}
                         handleSeverSideProcessing={null}
                     />

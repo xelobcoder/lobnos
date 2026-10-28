@@ -12,6 +12,9 @@ import { customPost, customFetch } from '../../../../components/Auth/customFetch
 import { handleServerProcessingSmsTemplates } from '../../../../components/serverActions/ActionFiltering';
 
 
+import { useApplication } from '../../../../components/Auth/useApplicationContext';
+import { smsCapabilities } from '../../../../lib/sms';
+
 type TemplateCategory = 'patient' | 'clinician' | 'organization';
 
 interface SMSTemplate {
@@ -46,7 +49,7 @@ const fetchTemplates = async () => {
 const fetchTemplate = async (id: string) => {
      const data = await customFetch(`prime/sms-templates/${id}`);
      if (!data) throw new Error('Failed to fetch template');
-     return data;
+     return { ...data, id: String(data.templateid ?? data.id) };
 };
 
 const createTemplate = async (data: Partial<SMSTemplate>) => {
@@ -63,10 +66,11 @@ const updateTemplate = async (id: string, data: Partial<SMSTemplate>) => {
 
 const deleteTemplate = async (id: string) => {
      const result = await customPost(`prime/sms-templates/${id}`, 'DELETE', {});
-     if (!result) throw new Error('Failed to delete template');
+     if (!result || Number(result.deleted) < 1) throw new Error('Failed to delete template');
 };
 
 const SmsTemplatesPage: React.FC = () => {
+     const canManage = smsCapabilities(useApplication().user?.role).manage;
      const [templates, setTemplates] = useState<SMSTemplate[]>([]);
      const [loading, setLoading] = useState(false);
      const [formLoading, setFormLoading] = useState(false);
@@ -143,8 +147,8 @@ const SmsTemplatesPage: React.FC = () => {
      };
 
      const handleFormSubmit = async (status: boolean) => {
+          if (!status) return;
           try {
-               if (!status) return;
                setFormLoading(true);
                await loadTemplates();
           } catch (e: any) {
@@ -160,7 +164,7 @@ const SmsTemplatesPage: React.FC = () => {
 
      const columns = [
           { Header: 'Template Name', accessor: 'name' },
-          { Header: 'Body', accessor: 'body' },
+          { Header: 'Message', accessor: 'body', Cell: ({ value }: any) => <span title={value} style={{ maxWidth: 420, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', whiteSpace: 'normal', overflowWrap: 'anywhere' }}>{value}</span> },
           { Header: 'Category', accessor: 'category', Cell: ({ value }: { value: TemplateCategory }) => categoryOptions.find((c) => c.value === value)?.label || value },
           { Header: 'Created By', accessor: 'createdBy' },
           { Header: 'Created At', accessor: 'createdAt', Cell: ({ value }: { value: string }) => new Date(value).toLocaleString() },
@@ -200,7 +204,7 @@ const SmsTemplatesPage: React.FC = () => {
      //                     </Card.Header>
      //                     <Card.Body className="text-center">
      //                          <h3 className="mb-3">No SMS Templates Found</h3>
-     //                          <Button variant="primary" onClick={handleCreate}>Create Template</Button>
+     //                          <Button variant="primary" onClick={handleCreate}>Create template</Button>
      //                     </Card.Body>
      //                </Card>
      //           </div>
@@ -208,35 +212,36 @@ const SmsTemplatesPage: React.FC = () => {
      // }
 
      return (
-          <div className="container-fluid px-4 py-3">
+          <div className="container-fluid p-0">
                <div className="row mb-4">
                     <div className="col-12">
-                         <div className="d-flex justify-content-between align-items-center">
+                         <div className="d-flex flex-wrap gap-3 justify-content-between align-items-center">
                               <div>
-                                   <h2 className="mb-1 fw-bold">SMS Template Management</h2>
+                                   <h2 className="mb-1 fw-bold">SMS templates</h2>
                                    <p className="text-muted mb-0">Create and manage SMS templates for patient, clinician, and organization communications</p>
                               </div>
-                              <button className="btn btn-primary btn-lg" onClick={handleCreate}>
+                              {canManage && <button className="btn btn-primary btn-lg" onClick={handleCreate}>
                                    <RiAddCircleLine size={20} className="me-2" style={{ display: 'inline-block', verticalAlign: 'middle' }} />
-                                   Create Template
-                              </button>
+                                   Create template
+                              </button>}
                          </div>
                     </div>
                </div>
 
+               {error && <div role="alert" className="alert alert-danger d-flex justify-content-between align-items-center"><span>{error}</span><Button variant="outline-danger" size="sm" onClick={loadTemplates} disabled={loading}>Retry</Button></div>}
                <div className="row g-3">
                     <div className="col-12">
-                         <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                              {templates.length === 0 && !loading ? (
+                         <div className="bg-body p-3" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              {templates.length === 0 && !loading && !error ? (
                                    <div className="text-center py-5">
                                         <div style={{ fontSize: '48px', marginBottom: '16px', color: 'var(--bs-tertiary-color)' }}>
                                              📋
                                         </div>
                                         <h5 className="fw-semibold mb-2">No SMS Templates Yet</h5>
                                         <p className="text-muted mb-4">Start by creating your first SMS template to send messages to patients, clinicians, or organizations</p>
-                                        <button className="btn btn-primary" onClick={handleCreate}>
+                                        {canManage && <button className="btn btn-primary" onClick={handleCreate}>
                                              Create First Template
-                                        </button>
+                                        </button>}
                                    </div>
                               ) : (
                                    <>
@@ -247,7 +252,7 @@ const SmsTemplatesPage: React.FC = () => {
                                         </div>
                                         <PrimeTable
                                              data={templates}
-                                             column={columns}
+                                             column={canManage ? columns : columns.filter(column => column.accessor !== 'actions')}
                                              serverSideFiltering={true}
                                              handleSeverSideProcessing={handleServerProcessingSmsTemplates}
                                         />

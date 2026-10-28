@@ -26,11 +26,12 @@ const TemplateFormModal: React.FC<TemplateFormProps> = ({ visible, onCancel, onS
 	const [selectedPlaceholder, setSelectedPlaceholder] = useState('');
 	const [usedPlaceholders, setUsedPlaceholders] = useState<string[]>([]);
 	const [saving, setSaving] = useState(false);
+	const [saveError, setSaveError] = useState('');
 	const employeeid = useApplication().user?.employeeid
 
 	useEffect(() => {
-		console.log('TemplateFormModal visible:', visible);
 		if (visible) {
+			setSaveError('');
 			setForm({
 				name: initialValues?.name || '',
 				body: initialValues?.body || '',
@@ -45,7 +46,7 @@ const TemplateFormModal: React.FC<TemplateFormProps> = ({ visible, onCancel, onS
 					setPlaceholders({});
 					console.error('Invalid placeholders data from backend:', data);
 				}
-			});
+			}).catch(() => { setPlaceholders({}); toast.error('Unable to load template placeholders. Retry opening the editor.'); });
 		}
 	}, [visible, initialValues]);
 
@@ -95,12 +96,14 @@ const TemplateFormModal: React.FC<TemplateFormProps> = ({ visible, onCancel, onS
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
+		if (saving || loading) return;
 		if (!employeeid || !form.name || !form.body || !form.category) {
 			console.error('Missing required fields');
 			toast.error('Please fill in all required fields');
 			return;
 		}
 		setSaving(true);
+		setSaveError('');
 		const payload = {
 			name: form.name,
 			body: form.body,
@@ -108,18 +111,21 @@ const TemplateFormModal: React.FC<TemplateFormProps> = ({ visible, onCancel, onS
 			createdBy: employeeid,
 		};
 		try {
-			const response = await customPost('prime/sms-templates', 'POST', payload);
-			if (response && response.id) {
+			const id = initialValues?.id ?? initialValues?.templateid;
+			const response = await customPost(id ? `prime/sms-templates/${id}` : 'prime/sms-templates', id ? 'PUT' : 'POST', payload);
+			if (response && (id ? Number(response.updated) > 0 : Number(response.id) > 0)) {
 				toast.success('SMS template saved successfully!');
-				onSubmit(true);
+				await onSubmit(true);
 			} else {
-				toast.error('Failed to save SMS template - Invalid response');
-				onSubmit(false);
+				setSaveError(typeof response?.error === 'string' ? response.error : 'Unable to save this template. Your changes have been kept.');
+				toast.error('Unable to save SMS template');
+				await onSubmit(false);
 			}
 		} catch (err) {
 			console.error('Failed to create template', err);
-			toast.error('Failed to save SMS template');
-			onSubmit(false);
+			setSaveError('Unable to save this template. Your changes have been kept. Please retry.');
+			toast.error('Unable to save SMS template');
+			await onSubmit(false);
 		} finally {
 			setSaving(false);
 		}
@@ -139,15 +145,16 @@ const TemplateFormModal: React.FC<TemplateFormProps> = ({ visible, onCancel, onS
 
 	return (
 		<>
-			<Modal show={visible} onHide={onCancel} size="lg" backdrop="static" keyboard={false} centered style={{ zIndex: 9999 }}>
+			<Modal show={visible} onHide={() => { if (!saving) onCancel(); }} size="lg" backdrop="static" keyboard={false} centered>
 				<Form onSubmit={handleSubmit}>
-					<Modal.Header closeButton className="border-bottom">
-						<Modal.Title className="fw-bold">
+					<Modal.Header closeButton={!saving} className="border-bottom">
+						<Modal.Title className="fw-semibold">
 							<RiMailSendLine size={20} className="me-2" style={{ verticalAlign: 'middle' }} />
-							{initialValues?.id ? 'Edit SMS Template' : 'Create New SMS Template'}
+							{(initialValues?.id ?? initialValues?.templateid) ? 'Edit SMS Template' : 'Create New SMS Template'}
 						</Modal.Title>
 					</Modal.Header>
-					<Modal.Body className="p-4">
+					<Modal.Body className="p-3">
+                        {saveError && <div role="alert" className="alert alert-danger">{saveError}</div>}
 						<div className="row">
 							<div className="col-md-6 border-end pe-4">
 								<h6 className="fw-semibold mb-3 text-primary">Template Details</h6>
@@ -158,7 +165,7 @@ const TemplateFormModal: React.FC<TemplateFormProps> = ({ visible, onCancel, onS
 										value={form.name}
 										onChange={handleChange}
 										required
-										disabled={loading}
+										disabled={loading || saving}
 										placeholder="e.g., Appointment Reminder"
 										className="form-control-sm"
 									/>
@@ -171,7 +178,7 @@ const TemplateFormModal: React.FC<TemplateFormProps> = ({ visible, onCancel, onS
 										value={form.category}
 										onChange={handleCategoryChange}
 										required
-										disabled={loading}
+										disabled={loading || saving}
 										className="form-select-sm"
 									>
 										<option value="">Select a category</option>

@@ -65,6 +65,8 @@ export default function PreviousTransactionWorkspace({billingid: billingidParam,
 	const [submitting, setSubmitting] = useState(false);
 	const [PaymentMode, setPaymentMode] = useState('');
 	const [loading, setLoading] = useState(true);
+	const [loadError, setLoadError] = useState('');
+	const loadRevision = useRef(0);
 	const [previousServices, setPreviousServices] = useState<Service[]>([]);
     const servicesViewportRef = useRef<HTMLDivElement>(null);
     usePageStickyTableHeader(servicesViewportRef, `${embedded}:${loading}`, 1046);
@@ -154,42 +156,35 @@ export default function PreviousTransactionWorkspace({billingid: billingidParam,
 	};
 
 	const fetchRecords = async (billingid: number) => {
+		const revision = ++loadRevision.current;
+		setLoading(true);
+		setLoadError('');
 		try {
+			if (!Number.isSafeInteger(billingid) || billingid <= 0) throw new Error('Invalid billing ID.');
 			const [summaryRes, servicesRes] = await Promise.all([
 				customFetch(`billing/previous/transaction/data?billingid=${billingid}`),
 				customFetch(`billing/information/single?billingid=${billingid}`)
 			]);
-			if (summaryRes && Array.isArray(summaryRes.result) && summaryRes.result.length > 0) {
-				setBillingData(summaryRes.result[0]);
-			} else {
-				setBillingData({});
+			if (revision !== loadRevision.current) return;
+			if (!Array.isArray(summaryRes?.result) || !summaryRes.result.length ||
+				!Array.isArray(servicesRes?.result) || summaryRes?.status === false || servicesRes?.status === false) {
+				throw new Error('Billing data is unavailable. Reload to review this transaction.');
 			}
-			if (servicesRes && Array.isArray(servicesRes.result)) {
-				setPreviousServices(servicesRes.result as Service[]);
-			} else if (servicesRes) {
-				setPreviousServices([servicesRes] as Service[]);
-			} else {
-				setPreviousServices([]);
-			}
-		} catch (err) {
+			setBillingData(summaryRes.result[0]);
+			setPreviousServices(servicesRes.result as Service[]);
+		} catch {
+			if (revision !== loadRevision.current) return;
 			setBillingData({});
 			setPreviousServices([]);
+			setLoadError('Unable to load this transaction. No balances or actions are available until it reloads successfully.');
+		} finally {
+			if (revision === loadRevision.current) setLoading(false);
 		}
-	}
+	};
 
 	useEffect(() => {
-		const fetchData = async () => {
-			setLoading(true);
-			let billingidNum = Number(billingidParam);
-			if (isNaN(billingidNum)) {
-				setLoading(false);
-				toast.error('Invalid billing ID');
-				return;
-			}
-			await fetchRecords(billingidNum);
-			setLoading(false);
-		};
-		fetchData();
+		void fetchRecords(Number(billingidParam));
+		return () => { loadRevision.current++; };
 	}, [billingidParam]);
 
 	const [refundAllReason, setRefundAllReason] = useState('');
@@ -913,6 +908,13 @@ export default function PreviousTransactionWorkspace({billingid: billingidParam,
 			else if (Array.isArray(res)) setPaymentModes(res);
 		});
 	}, []);
+
+	if (loadError && !loading) return (
+		<div className="alert alert-danger m-3" role="alert">
+			<p className="mb-2">{loadError}</p>
+			<Button variant="outline-danger" onClick={() => void fetchRecords(Number(billingidParam))}>Retry loading transaction</Button>
+		</div>
+	);
 
 	if (loading) {
 		return (

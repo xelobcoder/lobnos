@@ -1,154 +1,23 @@
-'use client';
-import React, { useEffect, useState, use } from 'react';
-import Spinner from 'react-bootstrap/Spinner';
-import Alert from 'react-bootstrap/Alert';
-import { toast } from 'react-toastify';
-import PrimeTable from '../../../../../../components/accessories/Datatables/PrimeTable';
-import { handleServerRecipientSmsJobs } from '../../../../../../components/serverActions/ActionFiltering';
-import { customFetch } from '../../../../../../components/Auth/customFetch';
-
-const statusColors: Record<string, string> = {
-     sent: 'success',
-     pending: 'warning',
-     failed: 'danger',
-};
-
-function formatDate(dateStr: string) {
-     if (!dateStr) return '';
-     const d = new Date(dateStr);
-     return d.toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+"use client";
+import React,{use,useEffect,useState} from 'react';
+import Link from 'next/link';
+import {customFetch,customPost} from '../../../../../../components/Auth/customFetch';
+import {useApplication} from '../../../../../../components/Auth/useApplicationContext';
+import {smsCapabilities,smsStatusLabels,smsStatusColors,smsError} from '../../../../../../lib/sms';
+import styles from '../../../SmsWorkspace.module.css';
+export default function CampaignMessages({params}:{params:Promise<{jobid:string}>}){
+ const {jobid}=use(params),caps=smsCapabilities(useApplication().user?.role);
+ const [rows,setRows]=useState<any[]>([]),[total,setTotal]=useState(0),[page,setPage]=useState(1),[status,setStatus]=useState(''),[search,setSearch]=useState(''),[phone,setPhone]=useState('');
+ const [busy,setBusy]=useState(''),[loading,setLoading]=useState(true),[error,setError]=useState(''),[revision,setRevision]=useState(0),[report,setReport]=useState<any>(null),[providerId,setProviderId]=useState(''),[notice,setNotice]=useState('');
+ useEffect(()=>{let current=true;setLoading(true);setError('');const query=new URLSearchParams({includeMeta:'1',page:String(page),count:'20',status,search});customFetch(`prime/sms-job-recipients/by-job/${jobid}?${query}`).then(result=>{if(!current)return;if(!Array.isArray(result?.recipients))throw new Error(smsError(result,'Unable to load messages'));setRows(result.recipients);setTotal(Number(result.total)||0);}).catch(e=>{if(current)setError(smsError(e,'Unable to load messages'));}).finally(()=>{if(current)setLoading(false);});return()=>{current=false;};},[jobid,page,status,search,revision]);
+ async function retry(row:any){if(busy)return;setBusy(String(row.recid));setError('');try{const result=await customPost(`prime/sms/failed/transaction/retry/${jobid}/${row.refid}`,'POST',{});if(result?.status!=='success')throw new Error(smsError(result,'Unable to queue retry'));setNotice(result.message);setRevision(value=>value+1);}catch(e){setError(smsError(e,'Unable to queue retry'));}finally{setBusy('');}}
+ async function reconcile(){if(busy||!report)return;setBusy('report');setError('');try{const result=await customPost(`prime/sms-jobs/${jobid}/reconcile`,'POST',{recid:report.recid,...(!report.messageid&&providerId?{messageId:providerId}:{})});if(result?.status!=='success')throw new Error(smsError(result,'Unable to check provider status'));setNotice(result.checked?'Provider status refreshed.':'No matching provider report was confirmed. The message has not been retried.');setReport(null);setRevision(value=>value+1);}catch(e){setError(smsError(e,'Unable to check provider status'));}finally{setBusy('');}}
+ if(!caps.read)return <div role="alert" className="alert alert-info">You do not have access to SMS messages.</div>;
+ return <div><header className={styles.pageHeader}><div><h2>Campaign #{jobid} · Messages</h2><p>Submitted means accepted by the provider. Delivered requires a delivery report.</p></div><Link className="btn btn-outline-secondary" href="/communications/sms/jobs/list">Back to campaigns</Link></header>
+ <form className="row g-2 mb-3 align-items-end" onSubmit={e=>{e.preventDefault();setSearch(phone);setPage(1);}}><label className="col-md-4 form-label">Delivery status<select aria-label="Delivery status" className="form-select" value={status} onChange={e=>{setStatus(e.target.value);setPage(1);}}><option value="">All statuses</option>{['queued','submitting','submitted','delivered','failed','unknown','cancelled','sent'].map(value=><option key={value} value={value}>{smsStatusLabels[value]}</option>)}</select></label><label className="col-md-5 form-label">Phone number<input aria-label="Phone number filter" className="form-control" value={phone} onChange={e=>setPhone(e.target.value)} placeholder="Search recipient number"/></label><div className="col-md-3 mb-2"><button className="btn btn-outline-primary" type="submit">Search</button><button type="button" className="btn btn-link" onClick={()=>{setPhone('');setSearch('');setStatus('');setPage(1);}}>Clear</button></div></form>
+ {notice&&<div role="status" className="alert alert-info">{notice}</div>}
+ {report&&<section className="alert alert-info" aria-label="Provider report check"><h3>Check provider report</h3><p>Unknown messages are held to prevent duplicate delivery. Use the reference from your provider account to reconcile them.</p><label className="form-label w-100">Provider message ID<input aria-label="Provider message ID" className="form-control" value={report.messageid||providerId} readOnly={!!report.messageid} onChange={e=>setProviderId(e.target.value)} /></label><button className="btn btn-primary me-2" disabled={!!busy||!(report.messageid||providerId)} onClick={reconcile}>{busy==='report'?'Checking…':'Check status'}</button><button className="btn btn-outline-secondary" disabled={!!busy} onClick={()=>setReport(null)}>Close</button></section>}
+ {error&&<div role="alert" className="alert alert-danger">{error}<button className="btn btn-sm btn-outline-danger ms-3" onClick={()=>setRevision(value=>value+1)}>Reload messages</button></div>}
+ {loading?<p role="status">Loading messages…</p>:!rows.length&&!error?<p>No messages match these filters.</p>:<><p className="text-muted small">{total} message(s)</p><div className="table-responsive"><table className="table table-hover align-middle"><thead><tr><th>Recipient</th><th>Message</th><th>Delivery status</th><th>Submitted at</th><th>Action</th></tr></thead><tbody>{rows.map(row=><tr key={row.recid}><td className="text-nowrap">{row.phonee164}<div className="text-muted small">Reference {row.refid}</div></td><td><span style={{display:'block',maxWidth:420,whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{row.personalizedbody}</span></td><td><span className={`badge bg-${smsStatusColors[row.deliverystatus]||'secondary'}`}>{smsStatusLabels[row.deliverystatus]||row.deliverystatus}</span>{row.errorcode&&<small className="d-block text-muted mt-1" style={{maxWidth:220}}>{row.errorcode}</small>}</td><td>{row.sentat?new Date(row.sentat).toLocaleString():'—'}</td><td>{caps.send&&row.deliverystatus==='failed'&&<button className="btn btn-sm btn-outline-danger" disabled={!!busy} onClick={()=>retry(row)}>{busy===String(row.recid)?'Queuing…':'Retry failed message'}</button>}{caps.send&&['submitted','sent','unknown'].includes(row.deliverystatus)&&<button className="btn btn-sm btn-outline-primary" disabled={!!busy} onClick={()=>{setReport(row);setProviderId('');}}>Check provider</button>}</td></tr>)}</tbody></table></div><div className="d-flex gap-2 justify-content-end"><button className="btn btn-sm btn-outline-secondary" disabled={page<=1} onClick={()=>setPage(value=>value-1)}>Previous</button><span className="align-self-center small">Page {page}</span><button className="btn btn-sm btn-outline-secondary" disabled={page*20>=total} onClick={()=>setPage(value=>value+1)}>Next</button></div></>}
+ </div>;
 }
-
-const SmsJobRecipientsPage: React.FC<{ params: Promise<{ jobid: string }> }> = props => {
-     const params = use(props.params);
-     const jobid = params.jobid;
-     const [recipients, setRecipients] = useState<any[]>([]);
-     const [loading, setLoading] = useState(true);
-     const [error, setError] = useState('');
-
-     useEffect(() => {
-          setLoading(true);
-          customFetch(`prime/sms-job-recipients/by-job/${jobid}`)
-               .then((data) => {
-                    if (Array.isArray(data)) {
-                         setRecipients(data);
-                    } else {
-                         setError('No recipients found.');
-                    }
-               })
-               .catch(() => setError('Failed to fetch recipients.'))
-               .finally(() => setLoading(false));
-     }, [jobid]);
-
-     const [retrying, setRetrying] = useState<{ [refid: string]: boolean }>({});
-
-     const handleRetry = async (refid: string) => {
-          setRetrying(prev => ({ ...prev, [refid]: true }));
-          try {
-               const response = await customFetch(`prime/sms/failed/transaction/retry/${jobid}/${refid}`);
-               if (response && response.status === 'success') {
-                    // Refresh the data after successful retry
-                    const data = await customFetch(`prime/sms-job-recipients/by-job/${jobid}`);
-                    if (Array.isArray(data)) setRecipients(data);
-                    toast.success('SMS retry initiated successfully.');
-               } else {
-                    // Handle failed retry
-                    const message = response?.message || 'Failed to retry sending SMS. Please try again later.';
-                    toast.error(message);
-               }
-          } catch (e) {
-               toast.error('Retry failed. Please try again later.');
-          } finally {
-               setRetrying(prev => ({ ...prev, [refid]: false }));
-          }
-     };
-
-     const columns = [
-          { Header: 'Recipient ID', accessor: 'recid' },
-          { Header: 'Phone', accessor: 'phonee164' },
-          {
-               Header: 'Personalized Body', accessor: 'personalizedbody',
-               Cell: ({ cell: { value } }) => (
-                    <span style={{ maxWidth: 300, whiteSpace: 'pre-line', wordBreak: 'break-word', display: 'inline-block' }}>{value}</span>
-               )
-          },
-          {
-               Header: 'Delivery Status', accessor: 'deliverystatus',
-               Cell: ({ cell: { value }, row }) => {
-                    const rec = row.original;
-                    return (
-                         <>
-                              <span className={`badge bg-${statusColors[value] || 'secondary'}`}>{value}</span>
-                              {value === 'failed' && (
-                                   <button
-                                        className="btn btn-sm btn-outline-danger ms-2"
-                                        disabled={!!retrying[rec.refid]}
-                                        onClick={() => handleRetry(rec.refid)}
-                                   >
-                                        {retrying[rec.refid] ? 'Retrying...' : 'Retry'}
-                                   </button>
-                              )}
-                         </>
-                    );
-               }
-          },
-          {
-               Header: 'Sent At', accessor: 'sentat',
-               Cell: ({ cell: { value } }) => value ? formatDate(value) : '-'
-          },
-          { Header: 'Message ID', accessor: 'messageid' },
-          {
-               Header: 'Error Code', accessor: 'errorcode',
-               Cell: ({ cell: { value } }) => value || '-'
-          },
-     ];
-
-     if (loading) {
-          return (
-               <div className="container mt-4">
-                    <h4 className="fw-semibold mb-3" style={{ fontSize: '1.1rem' }}>Recipients for Job #{jobid}</h4>
-                    <div className="d-flex align-items-center justify-content-center py-5">
-                         <Spinner animation="border" variant="primary" />
-                         <span className="ms-3">Loading recipients...</span>
-                    </div>
-               </div>
-          );
-     }
-
-     if (error) {
-          return (
-               <div className="container mt-4">
-                    <h4 className="fw-semibold mb-3" style={{ fontSize: '1.1rem' }}>Recipients for Job #{jobid}</h4>
-                    <Alert variant="danger">
-                         {error}
-                    </Alert>
-               </div>
-          );
-     }
-
-     if (recipients.length === 0) {
-          return (
-               <div className="container mt-4">
-                    <h4 className="fw-semibold mb-3" style={{ fontSize: '1.1rem' }}>Recipients for Job #{jobid}</h4>
-                    <Alert variant="info">
-                         No recipients found for this job.
-                    </Alert>
-               </div>
-          );
-     }
-
-     return (
-          <div>
-               <h4 className="fw-semibold mb-3" style={{ fontSize: '1.1rem' }}>Recipients for Job #{jobid}</h4>
-               <PrimeTable
-                    data={recipients}
-                    column={columns}
-                    urlparams={{ jobid }}
-                    serverSideFiltering={true}
-                    handleSeverSideProcessing={handleServerRecipientSmsJobs}
-               />
-          </div>
-     );
-};
-
-export default SmsJobRecipientsPage;
