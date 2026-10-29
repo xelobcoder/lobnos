@@ -1157,6 +1157,7 @@ const PayrollLinks: Link[] = [
 
 // SMS Links
 const SmsLinks: Link[] = [
+     { title: "Contact groups", link: "/communications/sms/contact-groups", icon: <RiFileListLine /> },
      { title: "SMS Dashboard", link: "/communications/sms/dashboard", icon: <RiDashboardLine /> },
      { title: "SMS Jobs", link: "/communications/sms/jobs/list", icon: <RiFileListLine /> },
      { title: 'Create SMS Job', link: '/communications/sms/jobs', icon: <RiFileAddLine /> },

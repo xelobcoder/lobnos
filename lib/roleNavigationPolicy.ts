@@ -9,6 +9,8 @@ export function canAccessRolePage(role:unknown,value:string,settings:NavigationS
  const p=navigationPath(value),key=roleWorkspace(role);if(!p||!p.startsWith('/'))return false;
  if(isMasterPlatformPath(p))return isSuperAdminRole(role);
  if(key==='admin'||isSuperAdminRole(role))return true;
+ if(within(p,'/communications/sms/contact-groups'))return key==='manager';
+ if(within(p,'/communications/sms/provider'))return false;
  if(p==='/billing/packages'&&['crm','cashier','accountant','manager','scientist','phlebotomist','sonographer'].includes(key))return true;
  // Preserve the existing dedicated management-page permission; this does not allow patient impersonation.
  if(key==='manager'&&within(p,'/patient-portal-admin'))return true;

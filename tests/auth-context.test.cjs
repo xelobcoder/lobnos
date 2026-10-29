@@ -13,6 +13,11 @@ function handler(body, status = 200) {
         require(name) {
             if (name.endsWith('requestHeaders')) return { getRequestContext: async () => ({ PLS_SESSION: 'synthetic', PLS_PRIME_TENANT_SESSION: 'synthetic-tenant', tenantId: 42 }) };
             if (name.endsWith('serverBackendAccess')) return { getBackendAuthorization: () => '' };
+            if (name === 'next/server') return { NextResponse: { json(body, options) {
+                const response = Response.json(body, options);
+                response.cookies = { set(name, value) { response.headers.append('Set-Cookie', `${name}=${value}; Path=/; Max-Age=0; HttpOnly`); } };
+                return response;
+            } } };
             return {};
         },
         fetch: async () => new Response(JSON.stringify(body), { status }),
@@ -65,3 +70,13 @@ test('the layout catches failed and incomplete context responses without an unha
         assert.equal(checking, false);
     }
 });
+
+for (const code of ['SESSION_REPLACED', 'SESSION_EXPIRED', 'SESSION_INVALID']) {
+    test(`${code} clears both credentials before redirecting, preventing a login loop`, async () => {
+        const response = await handler({ status: false, code, message: 'Sign in again', isExpired: true }, 401);
+        assert.equal(response.status, 401);
+        const cookies = response.headers.get('set-cookie');
+        for (const name of ['PLS-SESSION', 'pls-prime-tenant-session', 'loginsessionId']) assert.ok(cookies.includes(`${name}=`));
+        assert.equal((await response.json()).code, code);
+    });
+}

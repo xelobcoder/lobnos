@@ -157,6 +157,7 @@ export const ApplicationSettingsLinks: Link[] =
                 { title: "Email Providers", link: "/email-services/providers", icon: <RiSettings4Line /> },
                 { title: "Email Notification Events", link: "/email-services/notifications/events", icon: <RiFileTextLine /> },
                 { title: "Email Queue", link: "/email-services/queue", icon: <RiListCheck2 /> },
+                { title: "SMS Contact groups", link: "/communications/sms/contact-groups", icon: <RiMessage2Line /> },
                 { title: "SMS Dashboard", link: "/communications/sms/dashboard", icon: <RiMessage2Line /> },
                 { title: "SMS Templates", link: "/communications/sms/templates", icon: <RiFileTextLine /> }
             ]

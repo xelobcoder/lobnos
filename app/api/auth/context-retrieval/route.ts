@@ -1,6 +1,17 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getRequestContext } from '../../../../components/serverActions/requestHeaders';
 import { getBackendAuthorization } from '../../../../lib/serverBackendAccess';
+
+// Expire both frontend and backend credentials before returning an auth rejection.
+// A frontend JWT can remain valid after the backend session was replaced elsewhere.
+function rejectedSession(message: string, code?: string) {
+     const response = NextResponse.json({ error: message, code, redirect: '/authentications/login' }, { status: 401 });
+     for (const name of ['PLS-SESSION', 'pls-prime-tenant-session', 'loginsessionId']) {
+          response.cookies.set(name, '', { path: '/', maxAge: 0, httpOnly: true, sameSite: 'lax' });
+     }
+     response.headers.set('Cache-Control', 'private, no-store');
+     return response;
+}
 
 export async function GET(request: NextRequest) {
      try {
@@ -14,13 +25,7 @@ export async function GET(request: NextRequest) {
 
           const context = await getRequestContext();
           if (!context || !context['PLS_PRIME_TENANT_SESSION'] || !context['PLS_SESSION'] || !context.tenantId) {
-               return new Response(
-                    JSON.stringify({ error: 'Session not found', redirect: '/authentications/login' }),
-                    {
-                         status: 401,
-                         headers: { 'Content-Type': 'application/json' },
-                    }
-               );
+               return rejectedSession('Session not found');
           }
 
 
@@ -48,8 +53,9 @@ export async function GET(request: NextRequest) {
           if (response.status >= 500) return Response.json({ error: 'The session service is temporarily unavailable. Please try again.' }, { status: 502 });
           if (status != true) {
                const denied = response.status === 401 || response.status === 403 || statusCode === 401 || statusCode === 403 || data.isExpired === true;
+               if (denied) return rejectedSession(message || 'Your session has ended. Please sign in again.', data.code);
                return new Response(
-                    JSON.stringify({ error: message || 'Unable to validate the session.', ...(denied ? { redirect: '/authentications/login' } : {}) }),
+                    JSON.stringify({ error: message || 'Unable to validate the session.' }),
                     {
                          status: denied ? 401 : 502,
                          headers: { 'Content-Type': 'application/json' },

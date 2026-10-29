@@ -7,3 +7,8 @@ for(const role of ['admin','super_admin','manager','customer service representat
 });
 for(const role of ['cashier','scientist','accountant','marketer','patient','clinician','pharmacist'])test(role+' does not acquire campaign privileges',()=>{assert.equal(smsCapabilities(role).send,false);assert.equal(canAccessRolePage(role,'/communications/sms/jobs'),false);});
 test('customer service can view templates without editing or setup authority',()=>{assert.equal(smsCapabilities('customer service representative').manage,false);assert.equal(smsCapabilities('customer service representative').setup,false);assert.equal(canAccessRolePage('customer service representative','/settings/facilities'),false);});
+
+for(const role of ['manager','customer service representative','cashier','scientist'])test(role+' cannot access SMS provider secrets/settings',()=>assert.equal(canAccessRolePage(role,'/communications/sms/provider'),false));
+
+for(const role of ['admin','manager'])test(role+' can manage SMS contact synchronization',()=>{assert.equal(smsCapabilities(role).sync,true);assert.equal(canAccessRolePage(role,'/communications/sms/contact-groups'),true);});
+for(const role of ['customer service representative','cashier','scientist','accountant'])test(role+' cannot synchronize contact groups',()=>{assert.equal(smsCapabilities(role).sync,false);assert.equal(canAccessRolePage(role,'/communications/sms/contact-groups'),false);});
