@@ -1,4 +1,5 @@
 'use client';
+import screens from '../PayrollScreens.module.css';
 
 import { useState, useEffect } from 'react';
 import { customFetch } from '../../../../components/Auth/customFetch';
@@ -26,7 +27,7 @@ import {
 import dayjs from 'dayjs';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_ACCENT = 'var(--pls-primary, #2e7d32)';
 const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
 const COLOR_BORDER = 'var(--bs-border-color)';
 const COLOR_TOOLTIP_BG = 'var(--bs-body-bg)';
@@ -238,6 +239,7 @@ export default function PayrollAnalyticsPage() {
      }, []);
 
      const fetchAnalytics = async () => {
+          if (!startDate || !endDate || startDate > endDate) { setError('Choose a valid date range: start date must not be after end date.'); return; }
           setLoading(true);
           setError(null);
           try {
@@ -290,7 +292,7 @@ export default function PayrollAnalyticsPage() {
      const CustomTooltip = ({ active, payload, label }: any) => {
           if (active && payload && payload.length) {
                return (
-                    <div className="rounded-lg border p-2 shadow-sm"
+                    <div className={screens.panel}
                          style={{ backgroundColor: COLOR_TOOLTIP_BG, borderColor: COLOR_BORDER, minWidth: '220px', fontSize: '0.8rem' }}>
                          <div className="mb-2">
                               <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Period</span>
@@ -314,15 +316,15 @@ export default function PayrollAnalyticsPage() {
 
      if (error) {
           return (
-               <div className="container-fluid px-4 py-3">
-                    <div className="alert alert-danger">{error}</div>
+               <div className={screens.page}>
+                    <div role="alert" className="alert alert-danger">{error}</div>
                </div>
           );
      }
 
      if (!analyticsData) {
           return (
-               <div className="container-fluid px-4 py-3">
+               <div className={screens.page}>
                     <div className="alert alert-info">No analytics data available</div>
                </div>
           );
@@ -353,7 +355,7 @@ export default function PayrollAnalyticsPage() {
      } = analyticsData;
 
      return (
-          <div className="container-fluid px-4 py-3">
+          <div className={screens.page}>
                {/* Executive Header */}
                <div className="card mb-4" style={{ borderRadius: '0.75rem', borderColor: COLOR_BORDER }}>
                     <div className="card-body py-3 px-4">
@@ -366,7 +368,8 @@ export default function PayrollAnalyticsPage() {
                                         <RiBriefcaseLine size={24} style={{ color: COLOR_ACCENT }} />
                                    </div>
                                    <div>
-                                        <h1 className="h5 fw-bold mb-1">Payroll Analytics</h1>
+                                        <span className={screens.eyebrow}>Payroll / Payroll analytics</span>
+<h1 className={screens.title}>Payroll Analytics</h1>
                                         <p className="text-muted small mb-0">
                                              Executive overview of compensation, workforce, and compliance performance
                                         </p>
@@ -579,8 +582,8 @@ export default function PayrollAnalyticsPage() {
                     <div className="row mb-4">
                          <div className="col-12">
                               <SectionCard title="Period-over-Period Performance" icon={<RiLineChartLine size={20} style={{ color: COLOR_ACCENT }} className="me-2" />}>
-                                   <div className="table-responsive">
-                                        <table className="table table-sm table-hover text-start mb-0 align-middle">
+                                   <div className={screens.tableWrap}>
+                                        <table className={screens.table}>
                                              <thead>
                                                   <tr>
                                                        <th className="text-start">Metric</th>
@@ -625,7 +628,7 @@ export default function PayrollAnalyticsPage() {
                          <div className="col-12">
                               <div className="card" style={{ borderRadius: '0.75rem', borderColor: COLOR_BORDER }}>
                                    <div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
-                                        <div className="d-flex justify-content-between align-items-center">
+                                        <div className={screens.toolbar}>
                                              <h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
                                                   {/* <RiTrendingUpLine size={22} style={{ color: COLOR_ACCENT }} className="me-2" /> */}
                                                   Compensation Distribution by Type
@@ -788,8 +791,8 @@ export default function PayrollAnalyticsPage() {
                     {payrollPeriods && payrollPeriods.length > 0 && (
                          <div className="col-lg-6">
                               <SectionCard title="Payroll Period Metrics" icon={<RiFileList3Line size={20} style={{ color: COLOR_ACCENT }} className="me-2" />}>
-                                   <div className="table-responsive">
-                                        <table className="table table-sm table-hover text-start mb-0">
+                                   <div className={screens.tableWrap}>
+                                        <table className={screens.table}>
                                              <thead>
                                                   <tr>
                                                        <th className="text-start">Status</th>
@@ -881,8 +884,8 @@ export default function PayrollAnalyticsPage() {
                               >
                                    {detailTab === 'allowances' && (
                                         allowanceBonus && allowanceBonus.length > 0 ? (
-                                             <div className="table-responsive">
-                                                  <table className="table table-sm table-hover text-start mb-0">
+                                             <div className={screens.tableWrap}>
+                                                  <table className={screens.table}>
                                                        <thead>
                                                             <tr>
                                                                  <th className="text-start">Type</th>
@@ -905,8 +908,8 @@ export default function PayrollAnalyticsPage() {
                                    )}
                                    {detailTab === 'bonuses' && (
                                         bonuses && bonuses.length > 0 ? (
-                                             <div className="table-responsive">
-                                                  <table className="table table-sm table-hover text-start mb-0">
+                                             <div className={screens.tableWrap}>
+                                                  <table className={screens.table}>
                                                        <thead>
                                                             <tr>
                                                                  <th className="text-start">Type</th>
@@ -942,8 +945,8 @@ export default function PayrollAnalyticsPage() {
                                    )}
                                    {detailTab === 'deductions' && (
                                         otherDeductions && otherDeductions.length > 0 ? (
-                                             <div className="table-responsive">
-                                                  <table className="table table-sm table-hover text-start mb-0">
+                                             <div className={screens.tableWrap}>
+                                                  <table className={screens.table}>
                                                        <thead>
                                                             <tr>
                                                                  <th className="text-start">Type</th>
@@ -1011,7 +1014,7 @@ export default function PayrollAnalyticsPage() {
                     <div className="col-12">
                          <div className="card" style={{ borderRadius: '0.75rem', borderColor: COLOR_BORDER }}>
                               <div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
-                                   <div className="d-flex justify-content-between align-items-center">
+                                   <div className={screens.toolbar}>
                                         <h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
                                              <RiMoneyDollarCircleLine size={22} style={{ color: COLOR_ACCENT }} className="me-2" />
                                              Detailed Compensation Breakdown
@@ -1039,8 +1042,8 @@ export default function PayrollAnalyticsPage() {
                                              <p>Click &ldquo;Load Compensation Data&rdquo; to view detailed breakdown</p>
                                         </div>
                                    ) : (
-                                        <div className="table-responsive">
-                                             <table className="table table-hover text-start">
+                                        <div className={screens.tableWrap}>
+                                             <table className={screens.table}>
                                                   <thead className="table-light">
                                                        <tr>
                                                             <th className="text-start">Compensation Type</th>
@@ -1092,8 +1095,8 @@ export default function PayrollAnalyticsPage() {
                     {attendance && attendance.length > 0 && (
                          <div className="col-md-6">
                               <SectionCard title="Attendance Summary" icon={<RiTimeLine size={20} style={{ color: COLOR_ACCENT }} className="me-2" />}>
-                                   <div className="table-responsive">
-                                        <table className="table table-sm table-hover text-start mb-0">
+                                   <div className={screens.tableWrap}>
+                                        <table className={screens.table}>
                                              <thead>
                                                   <tr>
                                                        <th className="text-start">Status</th>
@@ -1123,8 +1126,8 @@ export default function PayrollAnalyticsPage() {
                     {leave && leave.length > 0 && (
                          <div className="col-md-6">
                               <SectionCard title="Leave Statistics" icon={<RiCalendarEventLine size={20} style={{ color: COLOR_SECONDARY }} className="me-2" />}>
-                                   <div className="table-responsive">
-                                        <table className="table table-sm table-hover text-start mb-0">
+                                   <div className={screens.tableWrap}>
+                                        <table className={screens.table}>
                                              <thead>
                                                   <tr>
                                                        <th className="text-start">Type</th>
@@ -1220,8 +1223,8 @@ export default function PayrollAnalyticsPage() {
                                              </BarChart>
                                         </ResponsiveContainer>
                                    </div>
-                                   <div className="table-responsive mt-3">
-                                        <table className="table table-sm table-hover text-start mb-0">
+                                   <div className={screens.tableWrap}>
+                                        <table className={screens.table}>
                                              <thead>
                                                   <tr>
                                                        <th className="text-start">Salary Band</th>

@@ -1,4 +1,5 @@
 'use client';
+import screens from '../../PayrollScreens.module.css';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -49,7 +50,7 @@ interface DepartmentStats {
      total_employees: number;
 }
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_ACCENT = 'var(--pls-primary, #2e7d32)';
 const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
 const COLOR_BORDER = 'var(--bs-border-color)';
 const COLOR_SUCCESS = '#198754';
@@ -124,7 +125,7 @@ export default function AttendanceSummaryPage() {
      const CustomTooltip = ({ active, payload, label }: any) => {
           if (active && payload && payload.length) {
                return (
-                    <div className="rounded-lg border p-2 shadow-sm"
+                    <div className={screens.panel}
                          style={{ backgroundColor: 'var(--bs-body-bg)', borderColor: COLOR_BORDER, minWidth: '200px' }}>
                          <div className="mb-2">
                               <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Month</span>
@@ -207,7 +208,7 @@ export default function AttendanceSummaryPage() {
 
      if (loading) {
           return (
-               <div className="container-fluid px-4 py-3">
+               <div className={screens.page}>
                     <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '400px' }}>
                          <RiLoader4Line size={48} className="animate-spin me-3" style={{ color: COLOR_ACCENT }} />
                          <span>Loading attendance summary...</span>
@@ -218,13 +219,14 @@ export default function AttendanceSummaryPage() {
 
      return (
           <div>
-          <div className="container-fluid px-4 py-3">
+          <div className={screens.page}>
   
-               <div className="d-flex align-items-center justify-content-between mb-4">
+               <div className={screens.header}>
                     <div className="d-flex align-items-center">
                          <RiCalendarEventLine size={28} style={{ color: COLOR_ACCENT }} className="me-2" />
                          <div>
-                              <h1 className="h4 mb-0 fw-bold">Attendance Summary</h1>
+                              <span className={screens.eyebrow}>Payroll / Attendance</span>
+<h1 className={screens.title}>Attendance Summary</h1>
                               <p className="text-muted mb-0 small">Monthly attendance analytics and trends</p>
                          </div>
                     </div>
@@ -240,11 +242,11 @@ export default function AttendanceSummaryPage() {
                </div>
 
                {/* Filters */}
-               <div className="border rounded p-3 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+               <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                     <div className="row g-3 align-items-end">
                          <div className="col-md-3">
                               <label className="form-label">Month</label>
-                              <select
+                              <select aria-label="Month"
                                    className="form-select"
                                    value={selectedMonth}
                                    onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
@@ -258,13 +260,13 @@ export default function AttendanceSummaryPage() {
                          </div>
                          <div className="col-md-3">
                               <label className="form-label">Year</label>
-                              <select
+                              <select aria-label="Year"
                                    className="form-select"
                                    value={selectedYear}
                                    onChange={(e) => setSelectedYear(parseInt(e.target.value))}
                               >
-                                   {Array.from({ length: 5 }, (_, i) => (
-                                        <option key={2024 - i} value={2024 - i}>{2024 - i}</option>
+                                   {Array.from({ length: 10 }, (_, i) => (
+                                        <option key={2030 - i} value={2030 - i}>{2030 - i}</option>
                                    ))}
                               </select>
                          </div>
@@ -290,7 +292,7 @@ export default function AttendanceSummaryPage() {
                {summary && (
                     <div className="row g-3 mb-4">
                          <div className="col-md-3">
-                              <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <div className={screens.metric} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                    <div className="d-flex align-items-center">
                                         <RiUserLine size={24} style={{ color: COLOR_ACCENT }} className="me-3" />
                                         <div>
@@ -301,7 +303,7 @@ export default function AttendanceSummaryPage() {
                               </div>
                          </div>
                          <div className="col-md-3">
-                              <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <div className={screens.metric} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                    <div className="d-flex align-items-center">
 
                                         <div>
@@ -312,7 +314,7 @@ export default function AttendanceSummaryPage() {
                               </div>
                          </div>
                          <div className="col-md-3">
-                              <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <div className={screens.metric} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                    <div className="d-flex align-items-center">
                                         <RiCloseCircleLine size={24} className="text-danger me-3" />
                                         <div>
@@ -323,7 +325,7 @@ export default function AttendanceSummaryPage() {
                               </div>
                          </div>
                          <div className="col-md-3">
-                              <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <div className={screens.metric} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                    <div className="d-flex align-items-center">
                                         <RiTimeLine size={24} className="text-info me-3" />
                                         <div>
@@ -394,8 +396,8 @@ export default function AttendanceSummaryPage() {
                <h5 className="mb-0 fw-semibold">Department-wise Attendance</h5>
                <small className="text-muted">Attendance statistics by department</small>
           </div>
-          <div className="table-responsive">
-               <table className="table table-hover table-striped mb-0">
+          <div className={screens.tableWrap}>
+               <table className={screens.table}>
                     <thead className="table-light">
                          <tr>
                               <th className="border-0">Department</th>

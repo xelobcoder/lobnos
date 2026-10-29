@@ -1,4 +1,5 @@
 'use client';
+import screens from '../../PayrollScreens.module.css';
 
 
 import {
@@ -35,7 +36,7 @@ interface PayrollPeriod {
      reversal_reason?: string;
 }
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_ACCENT = 'var(--pls-primary, #2e7d32)';
 const COLOR_BORDER = 'var(--bs-border-color)';
 
 const currencyFormatter = new Intl.NumberFormat('en-GH', {
@@ -169,7 +170,7 @@ export default function ReversePayrollPaymentsPage() {
 
      if (error) {
           return (
-               <div className="container-fluid px-4 py-3">
+               <div className={screens.page}>
                     <div className="d-flex flex-column justify-content-center align-items-center text-center" style={{ minHeight: '400px' }}>
                          <RiErrorWarningLine size={48} className="mb-3 text-danger" />
                          <h5 className="fw-medium mb-1">Error Loading Data</h5>
@@ -183,13 +184,14 @@ export default function ReversePayrollPaymentsPage() {
      }
 
      return (
-          <div className="container-fluid px-4 py-3">
+          <div className={screens.page}>
                {/* Page Header */}
-               <div className="d-flex justify-content-between align-items-center mb-4">
+               <div className={screens.header}>
                     <div className="d-flex align-items-center">
                          <RiArrowGoBackLine size={28} style={{ color: COLOR_ACCENT }} className="me-2" />
                          <div>
-                              <h1 className="h4 mb-0 fw-bold">Reverse Payroll Payments</h1>
+                              <span className={screens.eyebrow}>Payroll / Payroll operations</span>
+<h1 className={screens.title}>Reverse Payroll Payments</h1>
                               <p className="text-muted mb-0 small">Reverse processed payroll periods</p>
                          </div>
                     </div>
@@ -200,7 +202,7 @@ export default function ReversePayrollPaymentsPage() {
                     <div className="alert alert-success alert-dismissible fade show" role="alert">
                          <RiCheckLine size={20} className="me-2" />
                          {reverseSuccess}
-                         <button type="button" className="btn-close" onClick={() => setReverseSuccess(null)}></button>
+                         <button type="button" className="btn-close" aria-label="Dismiss message" onClick={() => setReverseSuccess(null)}></button>
                     </div>
                )}
 
@@ -215,7 +217,7 @@ export default function ReversePayrollPaymentsPage() {
                     <div className="row g-3">
                          {periods.map((period) => (
                               <div key={period.id} className="col-12">
-                                   <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                         <div className="row align-items-center">
                                              <div className="col-md-3">
                                                   <div className="d-flex align-items-center mb-2">
@@ -304,7 +306,7 @@ export default function ReversePayrollPaymentsPage() {
                                              <RiAlertLine size={24} className="text-warning me-2" />
                                              Confirm Payroll Reversal
                                         </h5>
-                                        <button type="button" className="btn-close" onClick={handleCancelReverse}></button>
+                                        <button type="button" className="btn-close" aria-label="Dismiss message" onClick={handleCancelReverse}></button>
                                    </div>
                                    <div className="modal-body">
                                         {selectedPeriod && (

@@ -1,8 +1,12 @@
 'use client';
+import screens from '../../PayrollScreens.module.css';
+import PayrollWorkflowRibbon from '../../PayrollWorkflowRibbon';
+import { usePayrollFeedback } from '../../../../../components/HR/Payroll/usePayrollFeedback';
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import jsPDF from 'jspdf';
+import Modal from 'react-bootstrap/Modal';
 import autoTable from 'jspdf-autotable';
 import Link from 'next/link';
 import { customFetch, customPost } from '../../../../../components/Auth/customFetch';
@@ -146,9 +150,10 @@ const formatDisplayLabel = (value: string): string => {
           .toUpperCase();
 };
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_ACCENT = 'var(--pls-primary, #2e7d32)';
 
 export default function PayrollPeriodDetailPage() {
+     const { notify, feedback } = usePayrollFeedback();
      const params = useParams();
      const router = useRouter();
      const periodId = params?.id as string;
@@ -228,12 +233,12 @@ export default function PayrollPeriodDetailPage() {
 
                if (response?.status === 'success') {
                     await fetchPeriodDetails();
-                    alert('Payroll period approved successfully');
+                    notify('Payroll period approved successfully', 'success');
                } else {
-                    alert(response?.message || 'Failed to approve payroll');
+                    notify(response?.message || 'Failed to approve payroll');
                }
           } catch (err: any) {
-               alert(err?.message || 'Error approving payroll');
+               notify(err?.message || 'Error approving payroll');
           } finally {
                setActionLoading(false);
           }
@@ -252,12 +257,12 @@ export default function PayrollPeriodDetailPage() {
 
                if (response?.status === 'success') {
                     await fetchPeriodDetails();
-                    alert('Payroll period locked successfully');
+                    notify('Payroll period locked successfully', 'success');
                } else {
-                    alert(response?.message || 'Failed to lock payroll');
+                    notify(response?.message || 'Failed to lock payroll');
                }
           } catch (err: any) {
-               alert(err?.message || 'Error locking payroll');
+               notify(err?.message || 'Error locking payroll');
           } finally {
                setActionLoading(false);
           }
@@ -281,15 +286,17 @@ export default function PayrollPeriodDetailPage() {
 
                if (response?.status === 'success') {
                     await fetchPeriodDetails();
-                    alert('Payroll period marked as paid successfully');
+                    notify('Payroll period marked as paid successfully', 'success');
+                    return true;
                } else {
-                    alert(response?.message || 'Failed to mark as paid');
+                    notify(response?.message || 'Failed to mark as paid');
                }
           } catch (err: any) {
-               alert(err?.message || 'Error marking as paid');
+               notify(err?.message || 'Error marking as paid');
           } finally {
                setActionLoading(false);
           }
+          return false;
      };
 
 
@@ -299,13 +306,13 @@ export default function PayrollPeriodDetailPage() {
                const url = `payroll/periods/${periodId}/revert-status`;
                const response = await customPost(url, 'POST', { target_status: target_status, reverted_by: user?.employeeid });
                if (response?.status === 'success') {
-                    alert(`Payroll period status reverted to ${target_status} successfully`)
+                    notify(`Payroll period status reverted to ${target_status} successfully`)
                     await fetchPeriodDetails();
                } else {
-                    alert(response?.message || `Failed to revert payroll period status to ${target_status}`);
+                    notify(response?.message || `Failed to revert payroll period status to ${target_status}`);
                }
           } catch (err: any) {
-               alert(err?.message || `Error reverting payroll period status to ${target_status}`);
+               notify(err?.message || `Error reverting payroll period status to ${target_status}`);
           }
      };
 
@@ -314,16 +321,23 @@ export default function PayrollPeriodDetailPage() {
           setActionLoading(true);
           try {
                const response = await customPost(`payroll/periods/${periodId}/recalculate-period`, 'POST', { recalculated_by: user.employeeid });
-               if (response?.status === 'success') {
+               if (response?.result) {
                     await fetchPeriodDetails();
                     await fetchTransactions(1, pageSize);
                     setCurrentPage(1);
-                    alert('Payroll period recalculated successfully');
+               }
+               if (response?.result?.errors?.length) {
+                    notify(response.result.errors.map((item: any) => `Employee ${item.employeeid}: ${item.error}`).join('\n'));
+               } else if (response?.status === 'success') {
+                    await fetchPeriodDetails();
+                    await fetchTransactions(1, pageSize);
+                    setCurrentPage(1);
+                    notify('Payroll period recalculated successfully', 'success');
                } else {
-                    alert(response?.message || 'Failed to recalculate payroll period');
+                    notify(response?.message || 'Failed to recalculate payroll period');
                }
           } catch (err: any) {
-               alert(err?.message || 'Error recalculating payroll period');
+               notify(err?.message || 'Error recalculating payroll period');
           } finally {
                setActionLoading(false);
           }
@@ -337,11 +351,11 @@ export default function PayrollPeriodDetailPage() {
 
      const confirmMarkPaid = async () => {
           if (!paymentDate || !paymentMethod) {
-               alert('Please fill in all payment details');
+               notify('Please fill in all payment details');
                return;
           }
-          await handleMarkPaid(paymentDate, paymentMethod);
-          setShowPaymentModal(false);
+          const paid = await handleMarkPaid(paymentDate, paymentMethod);
+          if (paid) setShowPaymentModal(false);
      };
 
      const viewTransactionDetails = (transaction: PayrollTransaction) => {
@@ -618,7 +632,7 @@ export default function PayrollPeriodDetailPage() {
           doc.setFont('helvetica', 'normal');
           doc.text(`Generated on ${new Date().toLocaleString()}`, margin, pageHeight - 6);
           doc.text('Page 1 of 1', pageWidth - margin, pageHeight - 6, { align: 'right' });
-          doc.text(`© ${new Date().getFullYear()} ${company.name || 'Company'}. All rights reserved.`, pageWidth / 2, pageHeight - 6, { align: 'center' });
+          doc.text(`Â© ${new Date().getFullYear()} ${company.name || 'Company'}. All rights reserved.`, pageWidth / 2, pageHeight - 6, { align: 'center' });
 
           const fileName = `Payslip_${transaction.employee_name.replace(/[^a-zA-Z0-9]/g, '_')}_${period.period_name.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
           return { doc, fileName };
@@ -636,7 +650,7 @@ export default function PayrollPeriodDetailPage() {
                setPayslipPreviewUrl(url);
                setShowPayslipModal(true);
           } catch (error) {
-               alert('Error generating payslip. Please try again.');
+               notify('Error generating payslip. Please try again.');
           } finally {
                setPayslipGenerating(null);
           }
@@ -703,7 +717,8 @@ export default function PayrollPeriodDetailPage() {
 
      if (error || !period) {
           return (
-               <div className="container-fluid px-4 py-3">
+               <div className={screens.page}>
+               {feedback}
                     <div className="d-flex flex-column justify-content-center align-items-center text-center" style={{ minHeight: '400px' }}>
                          <RiErrorWarningLine size={48} className="mb-3 text-danger" />
                          <h5 className="fw-medium mb-1">Error Loading Data</h5>
@@ -717,9 +732,10 @@ export default function PayrollPeriodDetailPage() {
      }
 
      return (
-          <div className="container-fluid px-4 py-3">
+          <div className={screens.page}>
+               {feedback}
                {/* Header */}
-               <div className="d-flex align-items-center mb-4">
+               <div className={screens.header}>
                     <Link href="/human-resource/payroll/periods" className="btn btn-outline-secondary btn-sm me-3">
                          <RiArrowLeftLine size={18} />
                     </Link>
@@ -728,7 +744,8 @@ export default function PayrollPeriodDetailPage() {
                               <div className="d-flex align-items-center">
                                    <RiCalendarLine size={28} style={{ color: COLOR_ACCENT }} className="me-2" />
                                    <div>
-                                        <h1 className="h4 mb-0 fw-bold">{period.period_name}</h1>
+                                        <span className={screens.eyebrow}>Payroll / Payroll operations</span>
+<h1 className={screens.title}>{period.period_name}</h1>
                                         <p className="text-muted mb-0 small">
                                              {formatDate(period.period_start_date)} - {formatDate(period.period_end_date)}
                                         </p>
@@ -739,10 +756,11 @@ export default function PayrollPeriodDetailPage() {
                     </div>
                </div>
 
+               <PayrollWorkflowRibbon status={period.status} />
                {/* Summary Cards */}
                <div className="row g-3 mb-4">
                     <div className="col-md-3">
-                         <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className={screens.metric} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex align-items-center mb-2">
                                    <RiUserLine size={20} className="me-2 text-info" />
                                    <span className="fw-medium text-muted small">Employees</span>
@@ -751,7 +769,7 @@ export default function PayrollPeriodDetailPage() {
                          </div>
                     </div>
                     <div className="col-md-3">
-                         <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex align-items-center mb-2">
                                    <RiMoneyDollarCircleLine size={20} className="me-2 text-success" />
                                    <span className="fw-medium text-muted small">Gross Salary</span>
@@ -760,7 +778,7 @@ export default function PayrollPeriodDetailPage() {
                          </div>
                     </div>
                     <div className="col-md-3">
-                         <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex align-items-center mb-2">
                                    <RiMoneyDollarCircleLine size={20} className="me-2 text-danger" />
                                    <span className="fw-medium text-muted small">Total Deductions</span>
@@ -769,7 +787,7 @@ export default function PayrollPeriodDetailPage() {
                          </div>
                     </div>
                     <div className="col-md-3">
-                         <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex align-items-center mb-2">
                                    <RiMoneyDollarCircleLine size={20} className="me-2 text-primary" />
                                    <span className="fw-medium text-muted small">Net Salary</span>
@@ -794,7 +812,7 @@ export default function PayrollPeriodDetailPage() {
                </div>
 
                {/* Transactions Table */}
-               <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+               <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                     <div className="d-flex justify-content-between align-items-center mb-3">
                          <div>
                               <h5 className="mb-0 fw-semibold d-flex align-items-center">
@@ -819,8 +837,8 @@ export default function PayrollPeriodDetailPage() {
                               )}
                          </div>
                     ) : (
-                         <div className="table-responsive">
-                              <table className="table table-hover table-sm">
+                         <div className={screens.tableWrap}>
+                              <table className={screens.table}>
                                    <thead className="table-light">
                                         <tr>
                                              <th className="text-start">Employee</th>
@@ -971,21 +989,15 @@ export default function PayrollPeriodDetailPage() {
 
                {/* Payment Modal */}
                {showPaymentModal && (
-                    <div
-                         className="modal show d-block"
-                         tabIndex={-1}
-                         style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
-                         onClick={() => setShowPaymentModal(false)}
-                    >
-                         <div className="modal-dialog modal-dialog-centered" onClick={(e) => e.stopPropagation()}>
-                              <div className="modal-content">
+                    <Modal show={showPaymentModal} onHide={() => !actionLoading && setShowPaymentModal(false)} backdrop="static" keyboard={!actionLoading} centered aria-labelledby="payroll-payment-title">
                                    <div className="modal-header">
-                                        <h5 className="modal-title fw-bold">Mark Payroll as Paid</h5>
-                                        <button type="button" className="btn-close" onClick={() => setShowPaymentModal(false)}></button>
+                                        <h5 id="payroll-payment-title" className="modal-title fw-bold">Mark Payroll as Paid</h5>
+                                        <button type="button" className="btn-close" disabled={actionLoading} aria-label="Close payment review" onClick={() => setShowPaymentModal(false)}></button>
                                    </div>
                                    <div className="modal-body">
+                                        {feedback}
                                         <div className="mb-3">
-                                             <label htmlFor="paymentDate" className="form-label fw-medium">Payment Date</label>
+                                             <label htmlFor="paymentDate" className="form-label fw-medium">Payment Date <span className="text-danger" aria-hidden="true">*</span></label>
                                              <input
                                                   type="date"
                                                   className="form-control"
@@ -996,7 +1008,7 @@ export default function PayrollPeriodDetailPage() {
                                              />
                                         </div>
                                         <div className="mb-3">
-                                             <label htmlFor="paymentMethod" className="form-label fw-medium">Payment Method</label>
+                                             <label htmlFor="paymentMethod" className="form-label fw-medium">Payment Method <span className="text-danger" aria-hidden="true">*</span></label>
                                              <select
                                                   className="form-select"
                                                   id="paymentMethod"
@@ -1014,7 +1026,7 @@ export default function PayrollPeriodDetailPage() {
                                         </div>
                                    </div>
                                    <div className="modal-footer">
-                                        <button type="button" className="btn btn-secondary" onClick={() => setShowPaymentModal(false)}>
+                                        <button type="button" className="btn btn-secondary" disabled={actionLoading} onClick={() => setShowPaymentModal(false)}>
                                              Cancel
                                         </button>
                                         <button
@@ -1033,9 +1045,7 @@ export default function PayrollPeriodDetailPage() {
                                              )}
                                         </button>
                                    </div>
-                              </div>
-                         </div>
-                    </div>
+                    </Modal>
                )}
 
                {/* Transaction Details Modal */}
@@ -1050,20 +1060,20 @@ export default function PayrollPeriodDetailPage() {
                               <div className="modal-content">
                                    <div className="modal-header">
                                         <h5 className="modal-title fw-bold">Payroll Transaction Details</h5>
-                                        <button type="button" className="btn-close" onClick={() => setShowTransactionModal(false)}></button>
+                                        <button type="button" className="btn-close" aria-label="Dismiss message" onClick={() => setShowTransactionModal(false)}></button>
                                    </div>
                                    <div className="modal-body">
                                         {/* Employee Information */}
                                         <div className="row g-3 mb-4">
                                              <div className="col-md-6">
-                                                  <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+                                                  <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
                                                        <div className="text-muted small mb-1">Employee</div>
                                                        <div className="fw-bold">{selectedTransaction.employee_name}</div>
                                                        <div className="small text-muted">{selectedTransaction.email}</div>
                                                   </div>
                                              </div>
                                              <div className="col-md-6">
-                                                  <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+                                                  <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
                                                        <div className="text-muted small mb-1">Role & Branch</div>
                                                        <div className="fw-bold">{selectedTransaction.employee_role}</div>
                                                        <div className="small text-muted">{selectedTransaction.branch_name}</div>
@@ -1076,37 +1086,37 @@ export default function PayrollPeriodDetailPage() {
                                              <h6 className="fw-bold text-success mb-3">Earnings Breakdown</h6>
                                              <div className="row g-3">
                                                   <div className="col-md-4">
-                                                       <div className="border rounded p-3">
+                                                       <div className={screens.detailItem}>
                                                             <div className="text-muted small mb-1">Basic Salary</div>
                                                             <div className="fw-bold fs-6">{currencyFormatter.format(Number(selectedTransaction.basic_salary ?? 0))}</div>
                                                        </div>
                                                   </div>
                                                   <div className="col-md-4">
-                                                       <div className="border rounded p-3">
+                                                       <div className={screens.detailItem}>
                                                             <div className="text-muted small mb-1">Hourly Earnings</div>
                                                             <div className="fw-bold fs-6">{currencyFormatter.format(Number(selectedTransaction.hourly_earnings ?? 0))}</div>
                                                        </div>
                                                   </div>
                                                   <div className="col-md-4">
-                                                       <div className="border rounded p-3">
+                                                       <div className={screens.detailItem}>
                                                             <div className="text-muted small mb-1">Overtime Earnings</div>
                                                             <div className="fw-bold fs-6">{currencyFormatter.format(Number(selectedTransaction.overtime_earnings ?? 0))}</div>
                                                        </div>
                                                   </div>
                                                   <div className="col-md-4">
-                                                       <div className="border rounded p-3">
+                                                       <div className={screens.detailItem}>
                                                             <div className="text-muted small mb-1">Commission Earnings</div>
                                                             <div className="fw-bold fs-6">{currencyFormatter.format(Number(selectedTransaction.commission_earnings ?? 0))}</div>
                                                        </div>
                                                   </div>
                                                   <div className="col-md-4">
-                                                       <div className="border rounded p-3">
+                                                       <div className={screens.detailItem}>
                                                             <div className="text-muted small mb-1">Total Allowances</div>
                                                             <div className="fw-bold fs-6">{currencyFormatter.format(Number(selectedTransaction.total_allowances ?? 0))}</div>
                                                        </div>
                                                   </div>
                                                   <div className="col-md-4">
-                                                       <div className="border rounded p-3">
+                                                       <div className={screens.detailItem}>
                                                             <div className="text-muted small mb-1">Total Bonuses</div>
                                                             <div className="fw-bold fs-6">{currencyFormatter.format(Number(selectedTransaction.total_bonuses ?? 0))}</div>
                                                        </div>
@@ -1115,8 +1125,8 @@ export default function PayrollPeriodDetailPage() {
 
                                              {(selectedAllowanceRows.length > 0 || selectedBonusDetails.length > 0) && (
                                                   <div className="mt-3">
-                                                       <div className="table-responsive">
-                                                            <table className="table table-sm table-hover text-start mb-0">
+                                                       <div className={screens.tableWrap}>
+                                                            <table className={screens.table}>
                                                                  <thead className="table-light">
                                                                       <tr>
                                                                            <th className="text-start">Type</th>
@@ -1152,19 +1162,19 @@ export default function PayrollPeriodDetailPage() {
                                         {/* Salary Summary */}
                                         <div className="row g-3 mb-4">
                                              <div className="col-md-4">
-                                                  <div className="border rounded p-3 bg-success bg-opacity-10">
+                                                  <div className={screens.detailItem}>
                                                        <div className="text-muted small mb-1">Gross Salary</div>
                                                        <div className="fw-bold fs-5 text-success">{currencyFormatter.format(Number(selectedTransaction.gross_salary ?? 0))}</div>
                                                   </div>
                                              </div>
                                              <div className="col-md-4">
-                                                  <div className="border rounded p-3 bg-danger bg-opacity-10">
+                                                  <div className={screens.detailItem}>
                                                        <div className="text-muted small mb-1">Total Deductions</div>
                                                        <div className="fw-bold fs-5 text-danger">{currencyFormatter.format(Number(selectedTransaction.total_deductions ?? 0))}</div>
                                                   </div>
                                              </div>
                                              <div className="col-md-4">
-                                                  <div className="border rounded p-3 bg-primary bg-opacity-10">
+                                                  <div className={screens.detailItem}>
                                                        <div className="text-muted small mb-1">Net Salary</div>
                                                        <div className="fw-bold fs-5 text-primary">{currencyFormatter.format(Number(selectedTransaction.net_salary ?? 0))}</div>
                                                   </div>
@@ -1175,8 +1185,8 @@ export default function PayrollPeriodDetailPage() {
                                         <div className="mb-4">
                                              <h6 className="fw-bold text-danger mb-3">Deductions Breakdown</h6>
                                              {selectedDeductionDetails.length > 0 ? (
-                                                  <div className="table-responsive">
-                                                       <table className="table table-sm table-hover text-start mb-0">
+                                                  <div className={screens.tableWrap}>
+                                                       <table className={screens.table}>
                                                             <thead className="table-light">
                                                                  <tr>
                                                                       <th className="text-start">Deduction</th>
@@ -1204,13 +1214,13 @@ export default function PayrollPeriodDetailPage() {
                                              ) : (
                                                   <div className="row g-3">
                                                        <div className="col-md-6">
-                                                            <div className="border rounded p-3">
+                                                            <div className={screens.detailItem}>
                                                                  <div className="text-muted small mb-1">Total Deductions</div>
                                                                  <div className="fw-bold fs-6">{currencyFormatter.format(Number(selectedTransaction.total_deductions ?? 0))}</div>
                                                             </div>
                                                        </div>
                                                        <div className="col-md-6">
-                                                            <div className="border rounded p-3">
+                                                            <div className={screens.detailItem}>
                                                                  <div className="text-muted small mb-1">Other Deductions</div>
                                                                  <div className="fw-bold fs-6">{currencyFormatter.format(Number(selectedTransaction.total_other_deductions ?? 0))}</div>
                                                             </div>
@@ -1220,7 +1230,7 @@ export default function PayrollPeriodDetailPage() {
 
                                              {selectedTaxReliefDetails.length > 0 && (
                                                   <div className="mt-3">
-                                                       <div className="border rounded p-3 mb-3" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+                                                       <div className={screens.panel} style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
                                                             <div className="small text-muted mb-1">Tax Relief Summary</div>
                                                             <div className="fw-bold">
                                                                  Total Relief Applied: {currencyFormatter.format(toNumber(incomeTaxDetail?.tax_relief_total ?? selectedTransaction.tax_relief ?? 0))}
@@ -1230,8 +1240,8 @@ export default function PayrollPeriodDetailPage() {
                                                             </div>
                                                        </div>
 
-                                                       <div className="table-responsive">
-                                                            <table className="table table-sm table-hover text-start mb-0">
+                                                       <div className={screens.tableWrap}>
+                                                            <table className={screens.table}>
                                                                  <thead className="table-light">
                                                                       <tr>
                                                                            <th className="text-start">Relief Name</th>
@@ -1263,25 +1273,25 @@ export default function PayrollPeriodDetailPage() {
                                              <h6 className="fw-bold text-secondary mb-3">Work Summary</h6>
                                              <div className="row g-3">
                                                   <div className="col-md-3">
-                                                       <div className="border rounded p-3 text-center">
+                                                       <div className={screens.detailItem}>
                                                             <div className="text-muted small mb-1">Days Worked</div>
                                                             <div className="fw-bold fs-5">{selectedTransaction.days_worked ?? 0}</div>
                                                        </div>
                                                   </div>
                                                   <div className="col-md-3">
-                                                       <div className="border rounded p-3 text-center">
+                                                       <div className={screens.detailItem}>
                                                             <div className="text-muted small mb-1">Hours Worked</div>
                                                             <div className="fw-bold fs-5">{Number(selectedTransaction.hours_worked ?? 0)}</div>
                                                        </div>
                                                   </div>
                                                   <div className="col-md-3">
-                                                       <div className="border rounded p-3 text-center">
+                                                       <div className={screens.detailItem}>
                                                             <div className="text-muted small mb-1">Overtime Hours</div>
                                                             <div className="fw-bold fs-5">{Number(selectedTransaction.overtime_hours ?? 0)}</div>
                                                        </div>
                                                   </div>
                                                   <div className="col-md-3">
-                                                       <div className="border rounded p-3 text-center">
+                                                       <div className={screens.detailItem}>
                                                             <div className="text-muted small mb-1">Days Absent</div>
                                                             <div className="fw-bold fs-5">{selectedTransaction.days_absent ?? 0}</div>
                                                        </div>
@@ -1292,7 +1302,7 @@ export default function PayrollPeriodDetailPage() {
                                         {/* Status & Payment */}
                                         <div className="row g-3">
                                              <div className="col-md-6">
-                                                  <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+                                                  <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
                                                        <div className="text-muted small mb-1">Status</div>
                                                        <span className={`badge fs-6 px-3 py-2 ${selectedTransaction.status === 'paid' ? 'bg-success' : selectedTransaction.status === 'pending' ? 'bg-warning' : 'bg-secondary'}`}>
                                                             {selectedTransaction.status}
@@ -1300,7 +1310,7 @@ export default function PayrollPeriodDetailPage() {
                                                   </div>
                                              </div>
                                              <div className="col-md-6">
-                                                  <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+                                                  <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
                                                        <div className="text-muted small mb-1">Payment Method</div>
                                                        <div className="fw-bold">{selectedTransaction.payment_method || 'Not paid'}</div>
                                                        {selectedTransaction.payment_date && (
@@ -1332,7 +1342,7 @@ export default function PayrollPeriodDetailPage() {
                               <div className="modal-content" style={{ height: '90vh' }}>
                                    <div className="modal-header">
                                         <h5 className="modal-title fw-bold">Payslip Preview</h5>
-                                        <button type="button" className="btn-close" onClick={closePayslipPreview}></button>
+                                        <button type="button" className="btn-close" aria-label="Dismiss message" onClick={closePayslipPreview}></button>
                                    </div>
                                    <div className="modal-body p-0" style={{ height: 'calc(90vh - 130px)' }}>
                                         <iframe

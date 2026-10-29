@@ -1,4 +1,5 @@
 'use client';
+import screens from '../PayrollScreens.module.css';
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
@@ -56,7 +57,7 @@ type BonusFormState = {
      payment_date: string;
 };
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_ACCENT = 'var(--pls-primary, #2e7d32)';
 const BONUS_TYPES: Bonus['bonus_type'][] = ['performance', 'annual', 'project', 'retention', 'holiday', 'spot'];
 const TAX_METHODS: Bonus['tax_method'][] = ['aggregate', 'separate', 'bonus_rate'];
 const STATUS_OPTIONS: Bonus['status'][] = ['pending', 'approved', 'rejected', 'paid'];
@@ -328,14 +329,15 @@ export default function BonusesPage() {
      };
 
      return (
-          <div className="container-fluid px-4 py-3">
-               <div className="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+          <div className={screens.page}>
+               <div className={screens.header}>
                     <div className="d-flex align-items-center">
                          <button type="button" onClick={() => router.push('/human-resource/payroll')} className="btn btn-outline-secondary btn-sm me-3">
                               <RiArrowLeftLine size={18} />
                          </button>
                          <div>
-                              <h1 className="h4 mb-0 fw-bold d-flex align-items-center">
+                              <span className={screens.eyebrow}>Payroll / Pay additions & deductions</span>
+<h1 className={screens.title}>
                                    <RiAwardLine size={24} style={{ color: COLOR_ACCENT }} className="me-2" />
                                    Employee Bonuses
                               </h1>
@@ -347,14 +349,14 @@ export default function BonusesPage() {
                     </button>
                </div>
 
-               {error && <div className="alert alert-danger">{error}</div>}
+               {error && <div role="alert" className="alert alert-danger">{error}</div>}
 
                <div className="row g-4 mb-4">
                     <div className="col-lg-4">
-                         <div className="border rounded p-4 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <h5 className="fw-semibold mb-3">Employee Context</h5>
                               <label className="form-label fw-medium">Employee</label>
-                              <select className="form-select mb-3" value={selectedEmployeeId} onChange={(event) => setSelectedEmployeeId(event.target.value)} disabled={employeesLoading}>
+                              <select aria-label="Employee" className="form-select mb-3" value={selectedEmployeeId} onChange={(event) => setSelectedEmployeeId(event.target.value)} disabled={employeesLoading}>
                                    <option value="">Select employee</option>
                                    {employees.map((employee) => (
                                         <option key={employee.employeeid} value={employee.employeeid}>
@@ -363,7 +365,7 @@ export default function BonusesPage() {
                                    ))}
                               </select>
 
-                              <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+                              <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
                                    <div className="small text-muted mb-1">Selected Employee</div>
                                    <div className="fw-bold">{selectedEmployee?.username || 'None selected'}</div>
                                    <div className="small text-muted">{selectedEmployee?.role || 'Choose an employee to load bonuses'}</div>
@@ -374,25 +376,25 @@ export default function BonusesPage() {
                     <div className="col-lg-8">
                          <div className="row g-3">
                               <div className="col-md-3">
-                                   <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <div className={screens.metric} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                         <div className="small text-muted mb-1">Total Bonuses</div>
                                         <div className="fs-4 fw-bold">{summary.total}</div>
                                    </div>
                               </div>
                               <div className="col-md-3">
-                                   <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <div className={screens.metric} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                         <div className="small text-muted mb-1">Pending</div>
                                         <div className="fs-4 fw-bold">{summary.pending}</div>
                                    </div>
                               </div>
                               <div className="col-md-3">
-                                   <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <div className={screens.metric} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                         <div className="small text-muted mb-1">Approved</div>
                                         <div className="fs-4 fw-bold">{summary.approved}</div>
                                    </div>
                               </div>
                               <div className="col-md-3">
-                                   <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                         <div className="small text-muted mb-1">Total Amount</div>
                                         <div className="fw-bold">{currencyFormatter.format(summary.totalAmount)}</div>
                                    </div>
@@ -401,14 +403,14 @@ export default function BonusesPage() {
                     </div>
                </div>
 
-               <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+               <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                     <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
                          <h5 className="mb-0">Bonus List</h5>
                          <div className="small text-muted">{selectedEmployee ? `${selectedEmployee.username}'s bonuses` : 'Select an employee to view bonuses'}</div>
                     </div>
 
-                    <div className="table-responsive">
-                         <table className="table table-hover table-sm text-start mb-0">
+                    <div className={screens.tableWrap}>
+                         <table className={screens.table}>
                               <thead className="table-light">
                                    <tr>
                                         <th className="text-start">Bonus Type</th>
@@ -473,11 +475,11 @@ export default function BonusesPage() {
                                         </button>
                                    </div>
 
-                                   <form onSubmit={handleSubmit} className="p-4">
+                                   <form onSubmit={handleSubmit} className="p-4"><fieldset disabled={submitting} className={screens.formFields}>
                                         <div className="row g-3">
                                              <div className="col-md-6">
-                                                  <label className="form-label fw-medium">Employee</label>
-                                                  <select name="employeeid" className="form-select" value={formData.employeeid} onChange={handleChange} required>
+                                                  <label className="form-label fw-medium">Employee <span className="text-danger" aria-hidden="true">*</span></label>
+                                                  <select aria-label="Employee" name="employeeid" className="form-select" value={formData.employeeid} onChange={handleChange} required>
                                                        <option value="">Select employee</option>
                                                        {employees.map((employee) => (
                                                             <option key={employee.employeeid} value={employee.employeeid}>
@@ -488,19 +490,19 @@ export default function BonusesPage() {
                                              </div>
                                              <div className="col-md-6">
                                                   <label className="form-label fw-medium">Bonus Type</label>
-                                                  <select name="bonus_type" className="form-select" value={formData.bonus_type} onChange={handleChange}>
+                                                  <select aria-label="Bonus Type" name="bonus_type" className="form-select" value={formData.bonus_type} onChange={handleChange}>
                                                        {BONUS_TYPES.map((type) => (
                                                             <option key={type} value={type}>{type}</option>
                                                        ))}
                                                   </select>
                                              </div>
                                              <div className="col-md-6">
-                                                  <label className="form-label fw-medium">Amount</label>
-                                                  <input type="number" min="0" step="0.01" name="amount" className="form-control" value={formData.amount} onChange={handleChange} required />
+                                                  <label className="form-label fw-medium">Amount <span className="text-danger" aria-hidden="true">*</span></label>
+                                                  <input aria-label="Amount" type="number" min="0" step="0.01" name="amount" className="form-control" value={formData.amount} onChange={handleChange} required />
                                              </div>
                                              <div className="col-md-6">
                                                   <label className="form-label fw-medium">Tax Method</label>
-                                                  <select name="tax_method" className="form-select" value={formData.tax_method} onChange={handleChange}>
+                                                  <select aria-label="Tax Method" name="tax_method" className="form-select" value={formData.tax_method} onChange={handleChange}>
                                                        {TAX_METHODS.map((method) => (
                                                             <option key={method} value={method}>{method}</option>
                                                        ))}
@@ -508,7 +510,7 @@ export default function BonusesPage() {
                                              </div>
                                              <div className="col-md-6">
                                                   <label className="form-label fw-medium">Status</label>
-                                                  <select name="status" className="form-select" value={formData.status} onChange={handleChange}>
+                                                  <select aria-label="Status" name="status" className="form-select" value={formData.status} onChange={handleChange}>
                                                        {STATUS_OPTIONS.map((status) => (
                                                             <option key={status} value={status}>{status}</option>
                                                        ))}
@@ -522,33 +524,33 @@ export default function BonusesPage() {
                                              </div>
                                              {/* START DATE */}
                                              <div className="col-md-6">
-                                                  <label className="form-label fw-medium">Start Date</label>
-                                                  <input type="date" name="start_date" className="form-control" value={formData.start_date} onChange={handleChange} required />
+                                                  <label className="form-label fw-medium">Start Date <span className="text-danger" aria-hidden="true">*</span></label>
+                                                  <input aria-label="Start Date" type="date" name="start_date" className="form-control" value={formData.start_date} onChange={handleChange} required />
                                              </div>
                                              {/* END DATE */}
                                              <div className="col-md-6">
-                                                  <label className="form-label fw-medium">End Date</label>
-                                                  <input type="date" name="end_date" className="form-control" value={formData.end_date} onChange={handleChange} required />
+                                                  <label className="form-label fw-medium">End Date <span className="text-danger" aria-hidden="true">*</span></label>
+                                                  <input aria-label="End Date" type="date" name="end_date" className="form-control" value={formData.end_date} onChange={handleChange} required />
                                              </div>
                                              <div className="col-md-6">
                                                   <label className="form-label fw-medium">Performance Rating</label>
-                                                  <input type="number" min="1" max="5" name="performance_rating" className="form-control" value={formData.performance_rating} onChange={handleChange} placeholder="1 - 5" />
+                                                  <input aria-label="Performance Rating" type="number" min="1" max="5" name="performance_rating" className="form-control" value={formData.performance_rating} onChange={handleChange} placeholder="1 - 5" />
                                              </div>
                                              {requiresApprovalFields && (
                                                   <div className="col-md-6">
                                                        <label className="form-label fw-medium">Approved Date</label>
-                                                       <input type="date" name="approved_date" className="form-control" value={formData.approved_date} onChange={handleChange} required={requiresApprovalFields} />
+                                                       <input aria-label="Approved Date" type="date" name="approved_date" className="form-control" value={formData.approved_date} onChange={handleChange} required={requiresApprovalFields} />
                                                   </div>
                                              )}
                                              {formData.status === 'paid' && (
                                                   <div className="col-md-6">
                                                        <label className="form-label fw-medium">Payment Date</label>
-                                                       <input type="date" name="payment_date" className="form-control" value={formData.payment_date} onChange={handleChange} />
+                                                       <input aria-label="Payment Date" type="date" name="payment_date" className="form-control" value={formData.payment_date} onChange={handleChange} />
                                                   </div>
                                              )}
                                              <div className="col-12">
                                                   <label className="form-label fw-medium">Reason</label>
-                                                  <textarea name="reason" className="form-control" rows={3} value={formData.reason} onChange={handleChange} placeholder="Reason for the bonus" />
+                                                  <textarea aria-label="Reason" name="reason" className="form-control" rows={3} value={formData.reason} onChange={handleChange} placeholder="Reason for the bonus" />
                                              </div>
                                         </div>
 
@@ -568,7 +570,7 @@ export default function BonusesPage() {
                                                   )}
                                              </button>
                                         </div>
-                                   </form>
+                                   </fieldset></form>
                               </div>
                          </div>
                     </div>

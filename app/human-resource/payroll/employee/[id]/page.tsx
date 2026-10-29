@@ -1,4 +1,5 @@
 'use client';
+import screens from '../../PayrollScreens.module.css';
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
@@ -143,7 +144,8 @@ const PayslipTemplate: React.FC<{ payslip: EmployeePayslip }> = ({ payslip }) =>
                                    style={{ width: '120px' }}
                               />
                               <div style={{ textAlign: 'center', flex: 1 }}>
-                                   <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 'bold' }}>
+                                   <span className={screens.eyebrow}>Payroll / Employee reports</span>
+<h1 style={{ margin: 0, fontSize: '20px', fontWeight: 'bold' }}>
                                         CONTROLLER AND ACCOUNTANT GENERALS DEPARTMENT
                                    </h1>
                               </div>
@@ -416,14 +418,14 @@ export default function EmployeePayslipPage() {
 
      if (error) {
           return (
-               <div className="container-fluid p-4">
+               <div className={screens.page}>
                     <div className="d-flex align-items-center justify-content-between mb-4">
                          <Button variant="outline-secondary" onClick={handleBack}>
                               <RiArrowLeftLine size={16} className="me-2" />
                               Back to History
                          </Button>
                     </div>
-                    <div className="alert alert-danger">
+                    <div role="alert" className="alert alert-danger">
                          <h5>Error Loading Payslip</h5>
                          <p>{error}</p>
                     </div>
@@ -433,7 +435,7 @@ export default function EmployeePayslipPage() {
 
      if (!payslip) {
           return (
-               <div className="container-fluid p-4">
+               <div className={screens.page}>
                     <div className="d-flex align-items-center justify-content-between mb-4">
                          <Button variant="outline-secondary" onClick={handleBack}>
                               <RiArrowLeftLine size={16} className="me-2" />
@@ -449,7 +451,7 @@ export default function EmployeePayslipPage() {
      }
 
      return (
-          <div className="container-fluid p-4">
+          <div className={screens.page}>
                <div className="d-flex align-items-center justify-content-between mb-4">
                     <Button variant="outline-secondary" onClick={handleBack}>
                          <RiArrowLeftLine size={16} className="me-2" />

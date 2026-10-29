@@ -1,0 +1,19 @@
+/* Payroll inherits the application's selected font and theme. No page height restrictions. */
+.workspace { min-width: 0; font-family: inherit; color: var(--bs-body-color); line-height: 1.5; }
+.workspace :global(.container-fluid) { min-width: 0; max-width: 100%; }
+.workspace :global(h1), .workspace :global(h2), .workspace :global(h3), .workspace :global(h4), .workspace :global(h5), .workspace :global(.fw-bold) { font-weight: 600 !important; }
+.workspace :global(.btn), .workspace :global(input), .workspace :global(select), .workspace :global(textarea), .workspace :global(table) { font-family: inherit; }
+.workspace :global(.btn) { min-height: 36px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
+.workspace :global(.form-label) { font-weight: 500; }
+.workspace :global(.table-responsive) { max-width: 100%; overscroll-behavior-x: contain; }
+.workspace :global(table) { font-variant-numeric: tabular-nums; }
+.workspace :global(th) { font-weight: 600; vertical-align: middle; }
+.workspace :global(td) { vertical-align: middle; }
+.workspace :global(.alert) { overflow-wrap: anywhere; }
+.workspace :global(a:focus-visible), .workspace :global(button:focus-visible), .workspace :global(input:focus-visible), .workspace :global(select:focus-visible), .workspace :global(textarea:focus-visible) { outline: 3px solid var(--bs-primary); outline-offset: 3px; }
+@media (max-width: 767px) {
+ .workspace :global(.container-fluid.px-4) { padding-left: 12px !important; padding-right: 12px !important; }
+ .workspace :global(.d-flex.justify-content-between), .workspace :global(.d-flex.gap-2), .workspace :global(.d-flex.gap-3) { flex-wrap: wrap; }
+ .workspace :global(.table-responsive) { width: 100%; }
+ .workspace :global(h1) { font-size: 1.35rem; }
+}

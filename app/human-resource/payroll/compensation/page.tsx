@@ -1,7 +1,9 @@
 'use client';
+import { usePayrollFeedback } from '../../../../components/HR/Payroll/usePayrollFeedback';
 
 import { RiMoneyDollarCircleLine, RiDownloadLine, RiAddLine, RiSearchLine, RiEyeLine, RiEditLine, RiDeleteBinLine } from "@remixicon/react";
 import Link from "next/link";
+import ui from '../PayrollDashboard.module.css';
 import { useState, useEffect } from "react";
 import Loader from "../../../../components/accessories/Loader";
 import { customPost, currencyFormatter, customFetch } from "../../../../components/Auth/customFetch";
@@ -63,9 +65,10 @@ interface Compensation {
      notes?: string;
 }
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_ACCENT = 'var(--bs-primary)';
 
 export default function CompensationListPage() {
+     const { notify, feedback } = usePayrollFeedback();
      const [compensations, setCompensations] = useState<Compensation[]>([]);
      const [filteredCompensations, setFilteredCompensations] = useState<Compensation[]>([]);
      const [employees, setEmployees] = useState<Employee[]>([]);
@@ -73,6 +76,7 @@ export default function CompensationListPage() {
      const [salaryGrades, setSalaryGrades] = useState<SalaryGrade[]>([]);
      const [salaryGradeMap, setSalaryGradeMap] = useState<Map<number, SalaryGrade>>(new Map());
      const [loading, setLoading] = useState(true);
+     const [loadError, setLoadError] = useState<string | null>(null);
      const [searchTerm, setSearchTerm] = useState('');
      const [statusFilter, setStatusFilter] = useState<string>('all');
      const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -148,6 +152,7 @@ export default function CompensationListPage() {
 
      const fetchCompensations = async () => {
           setLoading(true);
+          setLoadError(null);
           try {
                // Fetch employees and salary grades first
                const [empMap, gradeMap] = await Promise.all([
@@ -168,7 +173,11 @@ export default function CompensationListPage() {
                     }));
 
                     setCompensations(compsWithDetails);
+               } else {
+                    setLoadError(response?.message || 'Unable to load compensation records.');
                }
+          } catch {
+               setLoadError('Unable to load compensation records. Check your connection and retry.');
           } finally {
                setLoading(false);
           }
@@ -192,7 +201,7 @@ export default function CompensationListPage() {
           // Status filter
           if (statusFilter !== 'all') {
                const isActiveFilter = statusFilter === 'active';
-               filtered = filtered.filter(comp => comp.is_active === isActiveFilter);
+               filtered = filtered.filter(comp => Boolean(comp.is_active) === isActiveFilter);
           }
 
           // Type filter
@@ -228,30 +237,40 @@ export default function CompensationListPage() {
           try {
                const response = await customPost(`payroll/compensation/${id}`, 'DELETE', {});
                if (response?.status === 'success') {
-                    alert('Compensation deleted successfully');
+                    notify('Compensation deleted successfully', 'success');
                     fetchCompensations();
+               } else {
+                    notify(response?.message || 'Unable to delete compensation.');
                }
           } catch (err) {
-               alert('Error deleting compensation');
+               notify('Error deleting compensation');
           }
      };
 
      const getCompensationValue = (comp: Compensation): string => {
-          if (comp.compensation_type === 'salary') {
-               return `${comp.currency} ${currencyFormatter.format(comp.basic_salary || 0)}`;
-          } else if (comp.compensation_type === 'hourly') {
-               return `${comp.currency} ${currencyFormatter.format(comp.hourly_rate || 0)}/hr`;
-          } else if (comp.compensation_type === 'commission') {
-               return `${(Number(comp.commission_percentage) || 0).toFixed(1)}%`;
-          } else if (comp.compensation_type === 'hybrid') {
-               return `${comp.currency} ${currencyFormatter.format(comp.basic_salary || 0)} + ${(Number(comp.commission_percentage) || 0).toFixed(1)}%`;
-          }
+          const amount = (value: number) => {
+               try { return new Intl.NumberFormat('en-GH', { style: 'currency', currency: comp.currency || 'GHS' }).format(Number(value) || 0); }
+               catch { return `${comp.currency || ''} ${(Number(value) || 0).toFixed(2)}`; }
+          };
+          if (comp.compensation_type === 'salary') return amount(comp.basic_salary || 0);
+          if (comp.compensation_type === 'hourly') return `${amount(comp.hourly_rate || 0)}/hr`;
+          if (comp.compensation_type === 'commission') return `${(Number(comp.commission_percentage) || 0).toFixed(1)}%`;
+          if (comp.compensation_type === 'hybrid') return `${amount(comp.basic_salary || 0)} + ${(Number(comp.commission_percentage) || 0).toFixed(1)}%`;
           return 'N/A';
      };
 
      const handleExport = () => {
-          // Placeholder for CSV export functionality
-          alert('Export functionality will be implemented');
+          const cell = (value: unknown) => {
+               const text = String(value ?? '');
+               const safe = /^[\s]*[=+@-]/.test(text) ? "'" + text : text;
+               return '"' + safe.replace(/"/g, '""') + '"';
+          };
+          const rows = [['Employee ID', 'Employee', 'Type', 'Salary level', 'Currency', 'Basic salary', 'Hourly rate', 'Commission %', 'Frequency', 'Status', 'Effective from', 'Effective to'],
+               ...filteredCompensations.map(comp => [comp.employeeid, comp.employee_name, comp.compensation_type, comp.salary_grade, comp.currency, comp.basic_salary, comp.hourly_rate, comp.commission_percentage, comp.payment_frequency, comp.is_active ? 'Active' : 'Inactive', comp.effective_from, comp.effective_to])];
+          const url = URL.createObjectURL(new Blob(['\uFEFF' + rows.map(row => row.map(cell).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8;' }));
+          const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'payroll-compensation.csv'; anchor.click();
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+          notify(`Exported ${filteredCompensations.length} filtered compensation records.`, 'success');
      };
 
      const totalPages = Math.max(1, Math.ceil(filteredCompensations.length / itemsPerPage));
@@ -262,24 +281,26 @@ export default function CompensationListPage() {
      if (loading) return <Loader />;
 
      return (
-          <div className="container-fluid px-4 py-3">
+          <div className={ui.page}>
+               {feedback}
+               {loadError && <div role="alert" className="alert alert-danger d-flex justify-content-between gap-3"><span>{loadError}</span><button type="button" className="btn btn-outline-danger" onClick={fetchCompensations}>Retry records</button></div>}
                {/* Header */}
-               <div className="d-flex justify-content-between align-items-center mb-4">
+               <div className={ui.header}>
                     <div className="d-flex align-items-center">
-                         <RiMoneyDollarCircleLine size={28} style={{ color: COLOR_ACCENT }} className="me-2" />
+                         
                          <div>
-                              <h1 className="h4 mb-0 fw-bold">Compensation Management</h1>
+                              <span className={ui.eyebrow}>People & payroll</span><h1>Compensation Management</h1>
                               <p className="text-muted mb-0 small">
                                    {filteredCompensations.length} of {compensations.length} records
                               </p>
                          </div>
                     </div>
                     <div className="d-flex gap-2">
-                         <button className="btn btn-outline-secondary btn-sm" onClick={handleExport}>
+                         <button className={ui.button} disabled={!!loadError || filteredCompensations.length === 0} onClick={handleExport}>
                               <RiDownloadLine size={18} className="me-1" />
                               Export
                          </button>
-                         <Link href="/human-resource/payroll/compensation/create" className="btn btn-primary btn-sm" style={{ backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT }}>
+                         <Link href="/human-resource/payroll/compensation/create" className={ui.primary}>
                               <RiAddLine size={18} className="me-1" />
                               Add Compensation
                          </Link>
@@ -287,8 +308,8 @@ export default function CompensationListPage() {
                </div>
 
                {/* Filters */}
-               <div className="border rounded p-3 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                    <div className="row g-3">
+               <div className={ui.panel}>
+                    <div className="row g-3 p-3">
                          <div className="col-md-4">
                               <div className="input-group input-group-sm">
                                    <span className="input-group-text bg-transparent">
@@ -297,7 +318,7 @@ export default function CompensationListPage() {
                                    <input
                                         type="text"
                                         className="form-control"
-                                        placeholder="Search by employee, salary grade, bank, account..."
+                                        aria-label="Search compensation records" placeholder="Search by employee, salary grade, bank, account..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                    />
@@ -306,7 +327,7 @@ export default function CompensationListPage() {
                          <div className="col-md-2">
                               <select
                                    className="form-select form-select-sm"
-                                   value={statusFilter}
+                                   aria-label="Compensation status" value={statusFilter}
                                    onChange={(e) => setStatusFilter(e.target.value)}
                               >
                                    <option value="all">All Status</option>
@@ -317,7 +338,7 @@ export default function CompensationListPage() {
                          <div className="col-md-2">
                               <select
                                    className="form-select form-select-sm"
-                                   value={typeFilter}
+                                   aria-label="Compensation type" value={typeFilter}
                                    onChange={(e) => setTypeFilter(e.target.value)}
                               >
                                    <option value="all">All Types</option>
@@ -330,7 +351,7 @@ export default function CompensationListPage() {
                          <div className="col-md-2">
                               <select
                                    className="form-select form-select-sm"
-                                   value={sortBy}
+                                   aria-label="Sort compensation records" value={sortBy}
                                    onChange={(e) => setSortBy(e.target.value as any)}
                               >
                                    <option value="date">Sort by Date</option>
@@ -366,92 +387,20 @@ export default function CompensationListPage() {
                     </div>
                ) : (
                     <>
-                    <div className="table-responsive">
-                         <table className="table table-hover align-middle">
-                              <thead className="table-light">
-                                   <tr>
-                                        <th>Employee ID</th>
-                                        <th>Employee Name</th>
-                                        <th>Type</th>
-                                        <th>Salary Grade</th>
-                                        <th>Value</th>
-                                        <th>Frequency</th>
-                                        <th>Payment Method</th>
-                                        <th>Bank Details</th>
-                                        <th>Status</th>
-                                        <th>Effective From</th>
-                                        <th className="text-end">Actions</th>
-                                   </tr>
-                              </thead>
-                              <tbody>
-                                   {paginatedCompensations.map((comp) => (
-                                        <tr key={comp.id}>
-                                             <td className="fw-medium">{comp.employeeid}</td>
-                                             <td>{comp.employee_name || 'N/A'}</td>
-                                             <td>
-                                                  <CompensationTypeBadge type={comp.compensation_type} />
-                                             </td>
-                                             <td>
-                                                  {comp.salary_grade ? (
-                                                       <span className="badge bg-info-subtle text-info">
-                                                            {comp.salary_grade}
-                                                       </span>
-                                                  ) : (
-                                                       <span className="text-muted">—</span>
-                                                  )}
-                                             </td>
-                                             <td className="fw-bold">{getCompensationValue(comp)}</td>
-                                             <td>{getPaymentFrequencyLabel(comp.payment_frequency)}</td>
-                                             <td>{getPaymentMethodLabel(comp.payment_method)}</td>
-                                             <td>
-                                                  {comp.payment_method === 'bank_transfer' ? (
-                                                       <div className="small">
-                                                            <div className="fw-medium">{comp.bank_name || 'N/A'}</div>
-                                                            <div className="text-muted">{comp.bank_account_number || 'N/A'}</div>
-                                                       </div>
-                                                  ) : comp.payment_method === 'mobile_money' ? (
-                                                       <div className="small">
-                                                            <div className="fw-medium">{comp.mobile_money_network || 'N/A'}</div>
-                                                            <div className="text-muted">{comp.mobile_money_number || 'N/A'}</div>
-                                                       </div>
-                                                  ) : (
-                                                       <span className="text-muted">—</span>
-                                                  )}
-                                             </td>
-                                             <td>
-                                                  <CompensationStatusBadge isActive={comp.is_active} />
-                                             </td>
-                                             <td>{formatDate(comp.effective_from)}</td>
-                                             <td>
-                                                  <div className="d-flex gap-1 justify-content-end">
-                                                       <Link
-                                                            href={`/human-resource/payroll/compensation/${comp.id}`}
-                                                            className="btn btn-sm btn-outline-primary"
-                                                            title="View Details"
-                                                       >
-                                                            <RiEyeLine size={16} />
-                                                       </Link>
-                                                       <Link
-                                                            href={`/human-resource/payroll/compensation/${comp.id}/edit`}
-                                                            className="btn btn-sm btn-outline-secondary"
-                                                            title="Edit"
-                                                       >
-                                                            <RiEditLine size={16} />
-                                                       </Link>
-                                                       <button
-                                                            className="btn btn-sm btn-outline-danger"
-                                                            onClick={() => handleDelete(comp.id)}
-                                                            title="Delete"
-                                                       >
-                                                            <RiDeleteBinLine size={16} />
-                                                       </button>
-                                                  </div>
-                                             </td>
-                                        </tr>
-                                   ))}
-                              </tbody>
+                    <div className={ui.panel}><div className={ui.tableWrap}>
+                         <table className={ui.table}>
+                              <thead><tr><th>Employee</th><th>Pay structure</th><th className={ui.number}>Compensation</th><th>Payment method</th><th>Effective dates</th><th>Status</th><th className={ui.number}>Actions</th></tr></thead>
+                              <tbody>{paginatedCompensations.map(comp=><tr key={comp.id}>
+                                   <td><strong>{comp.employee_name || 'Employee'}</strong><small>Employee #{comp.employeeid}</small></td>
+                                   <td><CompensationTypeBadge type={comp.compensation_type}/><small>{comp.salary_grade || 'No salary level'}</small></td>
+                                   <td className={ui.number}><strong>{getCompensationValue(comp)}</strong><small>{getPaymentFrequencyLabel(comp.payment_frequency)}</small></td>
+                                   <td>{getPaymentMethodLabel(comp.payment_method)}<small>{comp.payment_method==='bank_transfer' ? `${comp.bank_name || 'Bank'}${comp.bank_account_number ? ' · ending '+comp.bank_account_number.slice(-4) : ''}` : comp.payment_method==='mobile_money' ? `${comp.mobile_money_network || 'Mobile money'}${comp.mobile_money_number ? ' · ending '+comp.mobile_money_number.slice(-4) : ''}` : 'Paid directly'}</small></td>
+                                   <td>{formatDate(comp.effective_from)}<small>{comp.effective_to ? `Until ${formatDate(comp.effective_to)}` : 'No end date'}</small></td>
+                                   <td><span className={ui.status} data-status={comp.is_active?'approved':'inactive'}>{comp.is_active?'Active':'Inactive'}</span></td>
+                                   <td><div className={ui.rowActions}><Link className={ui.button} href={`/human-resource/payroll/compensation/${comp.id}`} aria-label={`View compensation for ${comp.employee_name}`}>View</Link><Link className={ui.button} href={`/human-resource/payroll/compensation/${comp.id}/edit`} aria-label={`Edit compensation for ${comp.employee_name}`}>Edit</Link><button type="button" className="btn btn-sm btn-outline-danger" aria-label={`Delete compensation for ${comp.employee_name}`} onClick={()=>handleDelete(comp.id)}><RiDeleteBinLine size={16}/></button></div></td>
+                              </tr>)}</tbody>
                          </table>
-                    </div>
+                    </div></div>
                     <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mt-3">
                          <div className="text-muted small">
                               Showing {Math.min(startIndex + 1, filteredCompensations.length)}-

@@ -1,4 +1,6 @@
 'use client';
+import screens from '../../PayrollScreens.module.css';
+import { usePayrollFeedback } from '../../../../../components/HR/Payroll/usePayrollFeedback';
 
 import {
      RiMoneyDollarCircleLine,
@@ -61,9 +63,10 @@ interface SalaryGrade {
      is_active: boolean;
 }
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_ACCENT = 'var(--pls-primary, #2e7d32)';
 
 export default function CompensationDetailPage() {
+     const { notify, feedback } = usePayrollFeedback();
      const params = useParams();
      const router = useRouter();
      const compensationId = params?.id as string;
@@ -112,11 +115,11 @@ export default function CompensationDetailPage() {
           try {
                const response = await customPost(`payroll/compensation/${compensationId}`, 'DELETE', {});
                if (response?.status === 'success') {
-                    alert('Compensation deleted successfully');
+                    notify('Compensation deleted successfully', 'success');
                     router.push('/human-resource/payroll/compensation');
                }
           } catch (err) {
-               alert('Error deleting compensation');
+               notify('Error deleting compensation');
           } finally {
                setDeleting(false);
           }
@@ -140,7 +143,8 @@ export default function CompensationDetailPage() {
      if (loading) return <Loader />;
      if (!compensation) {
           return (
-               <div className="container-fluid px-4 py-3">
+               <div className={screens.page}>
+               {feedback}
                     <div className="text-center py-5">
                          <h5 className="fw-medium mb-2">Compensation Not Found</h5>
                          <Link href="/human-resource/payroll/compensation" className="btn btn-primary">
@@ -152,9 +156,10 @@ export default function CompensationDetailPage() {
      }
 
      return (
-          <div className="container-fluid px-4 py-3">
+          <div className={screens.page}>
+               {feedback}
                {/* Header */}
-               <div className="d-flex justify-content-between align-items-start mb-4">
+               <div className={screens.header}>
                     <div className="d-flex align-items-center">
                          <Link href="/human-resource/payroll/compensation" className="btn btn-outline-secondary btn-sm me-3">
                               <RiArrowLeftLine size={18} />
@@ -162,7 +167,8 @@ export default function CompensationDetailPage() {
                          <div>
                               <div className="d-flex align-items-center mb-1">
                                    <RiMoneyDollarCircleLine size={28} style={{ color: COLOR_ACCENT }} className="me-2" />
-                                   <h1 className="h4 mb-0 fw-bold">Compensation Details</h1>
+                                   <span className={screens.eyebrow}>Payroll / Employee compensation</span>
+<h1 className={screens.title}>Compensation Details</h1>
                               </div>
                               <p className="text-muted mb-0 small">Compensation ID: {compensation.id}</p>
                          </div>
@@ -189,7 +195,7 @@ export default function CompensationDetailPage() {
                <div className="row">
                     <div className="col-lg-8">
                          {/* Employee Information */}
-                         <div className="border rounded p-4 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex align-items-center mb-3">
                                    <RiUserLine size={20} className="me-2 text-primary" />
                                    <h5 className="mb-0 fw-semibold">Employee Information</h5>
@@ -207,7 +213,7 @@ export default function CompensationDetailPage() {
                          </div>
 
                          {/* Compensation Details */}
-                         <div className="border rounded p-4 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex align-items-center mb-3">
                                    <RiMoneyDollarCircleLine size={20} className="me-2 text-success" />
                                    <h5 className="mb-0 fw-semibold">Compensation Details</h5>
@@ -296,7 +302,7 @@ export default function CompensationDetailPage() {
                          </div>
 
                          {/* Payment Details */}
-                         <div className="border rounded p-4 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex align-items-center mb-3">
                                    {compensation.payment_method === 'bank_transfer' ? (
                                         <RiBankLine size={20} className="me-2 text-info" />
@@ -347,7 +353,7 @@ export default function CompensationDetailPage() {
 
                          {/* Notes */}
                          {compensation.notes && (
-                              <div className="border rounded p-4 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                    <div className="d-flex align-items-center mb-3">
                                         <RiFileTextLine size={20} className="me-2 text-secondary" />
                                         <h5 className="mb-0 fw-semibold">Notes</h5>
@@ -360,7 +366,7 @@ export default function CompensationDetailPage() {
                     {/* Sidebar */}
                     <div className="col-lg-4">
                          {/* Effective Dates */}
-                         <div className="border rounded p-4 mb-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+                         <div className={screens.panel} style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
                               <div className="d-flex align-items-center mb-3">
                                    <RiCalendarLine size={20} className="me-2 text-warning" />
                                    <h5 className="mb-0 fw-semibold">Effective Period</h5>
@@ -378,7 +384,7 @@ export default function CompensationDetailPage() {
                          </div>
 
                          {/* Audit Information */}
-                         <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+                         <div className={screens.panel} style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
                               <h5 className="mb-3 fw-semibold">Audit Information</h5>
                               <div className="mb-3">
                                    <div className="small text-muted mb-1">Created</div>

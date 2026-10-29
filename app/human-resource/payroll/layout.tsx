@@ -1,5 +1,6 @@
 'use client';
 import React, { Suspense } from 'react';
+import styles from './PayrollWorkspace.module.css';
 import PrimeLayout from '../../../components/Layout/PrimeLayout';
 import { PayrollLinks } from '../../../components/Layout/links/categories/PayrollLinks';
 import { ApplicationProvider } from '../../../components/Auth/useApplicationContext';
@@ -11,7 +12,7 @@ export default function PayrollLayout({ children }: { children: React.ReactNode 
                <ApplicationProvider>
                     <MAIN_LAYOUT>
                          <PrimeLayout links={PayrollLinks}>
-                              {children}
+                              <div className={styles.workspace}>{children}</div>
                          </PrimeLayout>
                     </MAIN_LAYOUT>
                </ApplicationProvider>

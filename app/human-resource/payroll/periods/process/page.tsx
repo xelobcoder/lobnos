@@ -1,4 +1,5 @@
 'use client';
+import screens from '../../PayrollScreens.module.css';
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -35,12 +36,13 @@ interface PayrollPeriod {
      status: string;
 }
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_ACCENT = 'var(--pls-primary, #2e7d32)';
 
 export default function ProcessPayrollPage() {
      const router = useRouter();
      const searchParams = useSearchParams();
      const periodId = searchParams?.get('periodId');
+     const [selectedPeriodId, setSelectedPeriodId] = useState<string | null>(periodId || null);
      const { applicationsettings } = useApplicationSettings();
      const { user } = applicationsettings || {};
 
@@ -53,21 +55,24 @@ export default function ProcessPayrollPage() {
      const [processing, setProcessing] = useState(false);
      const [error, setError] = useState<string | null>(null);
      const [searchTerm, setSearchTerm] = useState('');
+     const [processingErrors, setProcessingErrors] = useState<Array<{ employeeid: number; error: string }>>([]);
 
      useEffect(() => {
+          setSelectedPeriodId(periodId || null);
           fetchAvailablePeriods();
           if (periodId) {
                fetchPeriodDetails();
           }
-          fetchEmployees();
      }, [periodId]);
+
+     useEffect(() => { fetchEmployees(); }, [selectedPeriodId]);
 
      const fetchAvailablePeriods = async () => {
           setLoadingPeriods(true);
           try {
-               const response = await customFetch('payroll/periods?status=open');
+               const response = await customFetch('payroll/periods');
                if (response?.status === 'success' && response?.statusCode === 200) {
-                    setAvailablePeriods(response.result || []);
+                    setAvailablePeriods((response.result || []).filter((item: PayrollPeriod) => ['draft', 'calculated'].includes(item.status)));
                }
           } catch (err) {
                console.error('Error fetching periods:', err);
@@ -91,6 +96,7 @@ export default function ProcessPayrollPage() {
      };
 
      const fetchEmployees = async () => {
+          if (!selectedPeriodId) { setEmployees([]); setLoading(false); return; }
           setLoading(true);
           try {
                // Fetch all employees
@@ -99,7 +105,7 @@ export default function ProcessPayrollPage() {
                     const allEmployees = employeesResponse.result || [];
 
                     // Fetch active compensations to filter employees with compensation
-                    const compResponse = await customFetch('payroll/compensation?status=active');
+                    const compResponse = await customFetch(`payroll/compensation?payrollPeriodId=${encodeURIComponent(selectedPeriodId)}`);
                     if (compResponse?.status === 'success' && compResponse?.statusCode === 200) {
                          const compensations = compResponse.result || [];
                          const employeeIdsWithCompensation = new Set(compensations.map((comp: any) => comp.employeeid));
@@ -123,11 +129,11 @@ export default function ProcessPayrollPage() {
      };
 
      const handleSelectAll = () => {
-          if (selectedEmployees.length === filteredEmployees.length) {
-               setSelectedEmployees([]);
-          } else {
-               setSelectedEmployees(filteredEmployees.map(emp => emp.employeeid));
-          }
+          const visibleIds = filteredEmployees.map(emp => emp.employeeid);
+          const allVisibleSelected = visibleIds.length > 0 && visibleIds.every(id => selectedEmployees.includes(id));
+          setSelectedEmployees(previous => allVisibleSelected
+               ? previous.filter(id => !visibleIds.includes(id))
+               : Array.from(new Set([...previous, ...visibleIds])));
      };
 
      const handleSelectEmployee = (employeeId: number) => {
@@ -140,26 +146,27 @@ export default function ProcessPayrollPage() {
 
      const handleProcessPayroll = async () => {
           if (selectedEmployees.length === 0) {
-               alert('Please select at least one employee');
+               setError('Select at least one employee to process.');
                return;
           }
 
-          if (!periodId) {
-               alert('Period ID is required');
+          if (!selectedPeriodId) {
+               setError('Choose a payroll period before processing.');
                return;
           }
 
           if (!user?.employeeid) {
-               alert('User information not available');
+               setError('Your user information is unavailable. Reload before processing.');
                return;
           }
 
+          setProcessingErrors([]);
           setProcessing(true);
           setError(null);
 
           try {
                const response = await customPost(
-                    `payroll/periods/${periodId}/process`,
+                    `payroll/periods/${selectedPeriodId}/process`,
                     'POST',
                     {
                          employeeIds: selectedEmployees,
@@ -167,15 +174,18 @@ export default function ProcessPayrollPage() {
                     }
                );
 
-               if (response?.status === 'success' && (!response?.result?.errors || response?.result?.errors.length === 0)) {
-                    alert(`Payroll processed successfully for ${response.result.processed_count} employees`);
-                    router.push(`/human-resource/payroll/periods/${periodId}`);
-               } else if (response?.result?.errors && response.result.errors.length > 0) {
-                    const errors = response.result.errors.map((err: any) => { return JSON.parse(err.error) })
-                    const result = errors.map((err: any) => { return Array.isArray(err) ? err[0]?.message : null });
-                    setError(result.join(","));
+               const failures = Array.isArray(response?.result?.errors) ? response.result.errors : [];
+               if (failures.length > 0) {
+                    setProcessingErrors(failures.map((item: any) => ({
+                         employeeid: Number(item.employeeid),
+                         error: typeof item.error === 'string' ? item.error : 'Unable to calculate this employee. Review their compensation.'
+                    })));
+                    setError(`${response.result.total_employees_processed || 0} employees processed; ${failures.length} need correction. The period remains draft.`);
+                    setSelectedEmployees(failures.map((item: any) => Number(item.employeeid)));
+               } else if (response?.status === 'success' && response?.result?.total_employees_processed > 0) {
+                    router.push(`/human-resource/payroll/periods/${selectedPeriodId}`);
                } else {
-                    setError(response?.message || 'Failed to process payroll');
+                    setError(response?.message || 'No employees were processed. Review compensation before retrying.');
                }
           } catch (err: any) {
                setError(err?.message || 'Error processing payroll');
@@ -186,6 +196,9 @@ export default function ProcessPayrollPage() {
 
      const handleSelectPeriod = (selectedPeriod: PayrollPeriod) => {
           setPeriod(selectedPeriod);
+          setSelectedPeriodId(String(selectedPeriod.id));
+          setError(null);
+          setProcessingErrors([]);
           // Update URL with selected period
           const newUrl = new URL(window.location.href);
           newUrl.searchParams.set('periodId', selectedPeriod.id.toString());
@@ -208,15 +221,16 @@ export default function ProcessPayrollPage() {
      }
 
      return (
-          <div className="container-fluid px-4 py-3">
+          <div className={screens.page}>
                {/* Header */}
-               <div className="d-flex align-items-center justify-content-between mb-4">
+               <div className={screens.header}>
                     <div className="d-flex align-items-center">
                          <Link href="/human-resource/payroll/periods" className="btn btn-outline-secondary btn-sm me-3">
                               <RiArrowLeftLine size={18} />
                          </Link>
                          <div>
-                              <h1 className="h4 mb-0 fw-bold">Process Payroll</h1>
+                              <span className={screens.eyebrow}>Payroll / Payroll operations</span>
+<h1 className={screens.title}>Process Payroll</h1>
                               {period && (
                                    <p className="text-muted mb-0 small">
                                         {period.period_name} ({new Date(period.period_start_date).toLocaleDateString()} to {new Date(period.period_end_date).toLocaleDateString()})
@@ -257,13 +271,20 @@ export default function ProcessPayrollPage() {
                     <div className="alert alert-danger alert-dismissible fade show" role="alert">
                          <RiAlertLine size={20} className="me-2" />
                          {error}
-                         <button type="button" className="btn-close" onClick={() => setError(null)}></button>
+                         {processingErrors.length > 0 && <ul className="mt-2 mb-2">
+                              {processingErrors.map((item) => <li key={item.employeeid}>
+                                   <strong>{employees.find(emp => emp.employeeid === item.employeeid)?.username || `Employee ${item.employeeid}`}: </strong>{item.error}
+                              </li>)}
+                         </ul>}
+                         {processingErrors.length > 0 && <Link className="alert-link" href="/human-resource/payroll/compensation">Review employee compensation and effective dates</Link>}
+                         <button type="button" aria-label="Dismiss error" className="btn-close" onClick={() => setError(null)}></button>
                     </div>
                )}
 
+               <div className="alert alert-info" role="note">Compensation must cover the complete selected payroll period. An active salary starting after the period begins is not eligible for a full-period calculation. <Link className="alert-link" href="/human-resource/payroll/compensation">Review compensation dates</Link>.</div>
                {/* Period Selection */}
                {!period && (
-                    <div className="border rounded p-4 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                    <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                          <h5 className="mb-3 fw-semibold d-flex align-items-center">
                               <RiCalendarLine size={20} className="me-2" />
                               Select Payroll Period
@@ -314,45 +335,21 @@ export default function ProcessPayrollPage() {
                {/* Only show employee selection if period is selected */}
                {period && (
                     <>
-                         <div className="row g-3 mb-4">
-                              <div className="col-md-4">
-                                   <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                        <div className="d-flex align-items-center mb-2">
-                                             <RiUserLine size={20} className="me-2 text-info" />
-                                             <span className="fw-medium text-muted small">Total Employees</span>
-                                        </div>
-                                        <div className="fs-4 fw-bold">{employees.length}</div>
-                                   </div>
-                              </div>
-                              <div className="col-md-4">
-                                   <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                        <div className="d-flex align-items-center mb-2">
-                                             <RiCheckboxCircleLine size={20} className="me-2 text-success" />
-                                             <span className="fw-medium text-muted small">Selected</span>
-                                        </div>
-                                        <div className="fs-4 fw-bold">{selectedEmployees.length}</div>
-                                   </div>
-                              </div>
-                              <div className="col-md-4">
-                                   <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                        <div className="d-flex align-items-center mb-2">
-                                             <RiMoneyDollarCircleLine size={20} className="me-2 text-warning" />
-                                             <span className="fw-medium text-muted small">Est. Processing</span>
-                                        </div>
-                                        <div className="fs-6 fw-bold">{selectedEmployees.length} calculations</div>
-                                   </div>
-                              </div>
-                         </div>
+                         <section className={screens.selectionSummary} aria-label="Payroll processing selection">
+                              <div><span>Payroll period</span><strong>{period.period_name}</strong><small>Calculation only · approval and payment follow review</small></div>
+                              <div><span>Available employees</span><strong>{employees.length}</strong><small>Compensation overlaps this period</small></div>
+                              <div><span>Selected to calculate</span><strong>{selectedEmployees.length}</strong><small>{filteredEmployees.length} visible with the current search</small></div>
+                         </section>
 
                          {/* Employee Selection */}
-                         <div className="border rounded p-4 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                              <div className="d-flex justify-content-between align-items-center mb-3">
+                         <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <div className={screens.toolbar}>
                                    <h5 className="mb-0 fw-semibold">Select Employees</h5>
                                    <div className="d-flex gap-2">
                                         <input
                                              type="text"
                                              className="form-control form-control-sm"
-                                             placeholder="Search employees..."
+                                             aria-label="Search employees" placeholder="Search employees..."
                                              value={searchTerm}
                                              onChange={(e) => setSearchTerm(e.target.value)}
                                              style={{ width: '250px' }}
@@ -361,33 +358,33 @@ export default function ProcessPayrollPage() {
                                              className="btn btn-sm btn-outline-primary"
                                              onClick={handleSelectAll}
                                         >
-                                             {selectedEmployees.length === filteredEmployees.length ? 'Deselect All' : 'Select All'}
+                                             {filteredEmployees.length > 0 && filteredEmployees.every(emp => selectedEmployees.includes(emp.employeeid)) ? 'Deselect All' : 'Select All'}
                                         </button>
                                    </div>
                               </div>
 
                               {filteredEmployees.length === 0 ? (
                                    <div className="text-center py-5">
-                                        <p className="text-muted">No employees with active compensation found</p>
+                                        <p className="text-muted">No employees with compensation in this period</p>
                                         <Link href="/human-resource/payroll/compensation/create" className="btn btn-primary mt-2">
                                              Set Up Compensation
                                         </Link>
                                    </div>
                               ) : (
-                                   <div className="table-responsive">
-                                        <table className="table table-hover table-sm">
+                                   <div className={screens.tableWrap}>
+                                        <table className={screens.table}>
                                              <thead className="table-light">
                                                   <tr>
                                                        <th style={{ width: '50px' }}>
                                                             <input
                                                                  type="checkbox"
+                                                                 aria-label="Select all visible employees"
                                                                  className="form-check-input"
-                                                                 checked={selectedEmployees.length === filteredEmployees.length}
+                                                                 checked={filteredEmployees.length > 0 && filteredEmployees.every(emp => selectedEmployees.includes(emp.employeeid))}
                                                                  onChange={handleSelectAll}
                                                             />
                                                        </th>
-                                                       <th>Employee ID</th>
-                                                       <th>Name</th>
+                                                       <th>Employee</th>
                                                        <th>Email</th>
                                                        <th>Role</th>
                                                        <th>Branch</th>
@@ -395,17 +392,16 @@ export default function ProcessPayrollPage() {
                                              </thead>
                                              <tbody>
                                                   {filteredEmployees.map((employee) => (
-                                                       <tr key={employee.employeeid}>
+                                                       <tr key={employee.employeeid} className={selectedEmployees.includes(employee.employeeid) ? screens.selectedRow : undefined}>
                                                             <td>
                                                                  <input
                                                                       type="checkbox"
                                                                       className="form-check-input"
-                                                                      checked={selectedEmployees.includes(employee.employeeid)}
+                                                                      aria-label={`Select ${employee.username}`} checked={selectedEmployees.includes(employee.employeeid)}
                                                                       onChange={() => handleSelectEmployee(employee.employeeid)}
                                                                  />
                                                             </td>
-                                                            <td>{employee.employeeid}</td>
-                                                            <td className="fw-medium">{employee.username}</td>
+                                                            <td><strong>{employee.username}</strong><small className="d-block text-muted">Employee #{employee.employeeid}</small></td>
                                                             <td>{employee.email || 'N/A'}</td>
                                                             <td>{employee.role || 'N/A'}</td>
                                                             <td>{employee.branchname || 'N/A'}</td>
@@ -418,9 +414,9 @@ export default function ProcessPayrollPage() {
                          </div>
 
                          {/* Action Buttons */}
-                         <div className="d-flex justify-content-between align-items-center">
+                         <div className={screens.processFooter}>
                               <Link
-                                   href={periodId ? `/human-resource/payroll/periods/${periodId}` : '/human-resource/payroll/periods'}
+                                   href={selectedPeriodId ? `/human-resource/payroll/periods/${selectedPeriodId}` : '/human-resource/payroll/periods'}
                                    className="btn btn-outline-secondary"
                               >
                                    Cancel
@@ -428,7 +424,7 @@ export default function ProcessPayrollPage() {
                               <button
                                    className="btn btn-primary d-flex align-items-center"
                                    onClick={handleProcessPayroll}
-                                   disabled={processing || selectedEmployees.length === 0}
+                                   disabled={processing || selectedEmployees.length === 0 || !selectedPeriodId || !period || !['draft', 'calculated'].includes(period.status)}
                                    style={{ backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT }}
                               >
                                    {processing ? (

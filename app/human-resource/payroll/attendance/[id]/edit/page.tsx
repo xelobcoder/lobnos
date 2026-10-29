@@ -1,4 +1,9 @@
 'use client';
+import EmployeeSearchSelect from '../../../../../../components/HR/Payroll/EmployeeSearchSelect';
+import PayrollFormFrame from '../../../PayrollFormFrame';
+import { attendancePayload, attendanceHours } from '../../../../../../components/HR/Payroll/attendanceForm';
+import screens from '../../../PayrollScreens.module.css';
+import { usePayrollFeedback } from '../../../../../../components/HR/Payroll/usePayrollFeedback';
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -16,7 +21,7 @@ interface AttendanceRecord {
      clock_out?: string;
      shift_type: string;
      work_location: string;
-     status: 'present' | 'absent' | 'late' | 'half_day' | 'leave';
+     status: 'present' | 'absent' | 'late' | 'half_day' | 'early_departure';
      late_minutes: number;
      overtime_hours: number;
      overtime_approved: boolean;
@@ -37,9 +42,10 @@ interface Employee {
      activation: number;
 }
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_ACCENT = 'var(--pls-primary, #2e7d32)';
 
 export default function EditAttendancePage() {
+     const { notify, feedback } = usePayrollFeedback();
      const params = useParams();
      const router = useRouter();
      const { applicationsettings } = useApplicationSettings();
@@ -139,43 +145,30 @@ export default function EditAttendancePage() {
           e.preventDefault();
 
           if (!user?.employeeid) {
-               alert('User information not available');
+               notify('User information not available');
                return;
           }
 
           if (formData.overtime_approved && !formData.overtime_approved_by) {
-               alert('Please select an overtime approver when overtime is approved');
+               notify('Please select an overtime approver when overtime is approved');
                return;
           }
 
           setSaving(true);
 
           try {
-               const payload = {
-                    employeeid: parseInt(formData.employeeid),
-                    attendance_date: formData.attendance_date,
-                    clock_in: formData.clock_in || null,
-                    clock_out: formData.clock_out || null,
-                    shift_type: formData.shift_type,
-                    work_location: formData.work_location,
-                    status: formData.status,
-                    late_minutes: formData.late_minutes ? parseInt(formData.late_minutes) : null,
-                    overtime_hours: formData.overtime_hours ? parseFloat(formData.overtime_hours) : null,
-                    overtime_approved: formData.overtime_approved,
-                    overtime_approved_by: formData.overtime_approved_by ? parseInt(formData.overtime_approved_by) : null,
-                    remarks: formData.remarks || null
-               };
+               const payload = attendancePayload(formData);
 
                const response = await customPost(`payroll/attendance/${attendanceId}`, 'PUT', payload);
 
                if (response?.status === 'success') {
-                    alert('Attendance record updated successfully');
+                    notify('Attendance record updated successfully', 'success');
                     router.push(`/human-resource/payroll/attendance/${attendanceId}`);
                } else {
-                    alert(response?.message || 'Failed to update attendance record');
+                    notify(response?.message || 'Failed to update attendance record');
                }
           } catch (err: any) {
-               alert(err?.message || 'Error updating attendance record');
+               notify(err?.message || 'Error updating attendance record');
           } finally {
                setSaving(false);
           }
@@ -183,7 +176,8 @@ export default function EditAttendancePage() {
 
      if (loading) {
           return (
-               <div className="container-fluid px-4 py-3">
+               <div className={screens.page}>
+               {feedback}
                     <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '400px' }}>
                          <RiLoader4Line size={48} className="animate-spin me-3" style={{ color: COLOR_ACCENT }} />
                          <span>Loading attendance record...</span>
@@ -194,15 +188,17 @@ export default function EditAttendancePage() {
 
      if (error || !attendanceRecord) {
           return (
-               <div className="container-fluid px-4 py-3">
-                    <div className="d-flex align-items-center mb-4">
+               <div className={screens.page}>
+               {feedback}
+                    <div className={screens.header}>
                          <Link href="/human-resource/payroll/attendance" className="btn btn-outline-secondary btn-sm me-3">
                               <RiArrowLeftLine size={18} />
                          </Link>
                          <div className="d-flex align-items-center">
-                              <RiCalendarEventLine size={28} style={{ color: COLOR_ACCENT }} className="me-2" />
+                              
                               <div>
-                                   <h1 className="h4 mb-0 fw-bold">Edit Attendance</h1>
+                                   <span className={screens.eyebrow}>Payroll / Attendance</span>
+<h1 className={screens.title}>Edit Attendance</h1>
                                    <p className="text-muted mb-0 small">Update attendance record</p>
                               </div>
                          </div>
@@ -221,16 +217,18 @@ export default function EditAttendancePage() {
      }
 
      return (
-          <div className="container-fluid px-4 py-3">
+          <PayrollFormFrame busy={loading || saving} className={screens.page}>
+               {feedback}
                {/* Header */}
-               <div className="d-flex align-items-center mb-4">
+               <div className={screens.header}>
                     <Link href={`/human-resource/payroll/attendance/${attendanceId}`} className="btn btn-outline-secondary btn-sm me-3">
                          <RiArrowLeftLine size={18} />
                     </Link>
                     <div className="d-flex align-items-center">
-                         <RiCalendarEventLine size={28} style={{ color: COLOR_ACCENT }} className="me-2" />
+                         
                          <div>
-                              <h1 className="h4 mb-0 fw-bold">Edit Attendance</h1>
+                              <span className={screens.eyebrow}>Payroll / Attendance</span>
+<h1 className={screens.title}>Edit Attendance</h1>
                               <p className="text-muted mb-0 small">Update attendance record</p>
                          </div>
                     </div>
@@ -238,10 +236,11 @@ export default function EditAttendancePage() {
 
                {/* Form */}
                <form onSubmit={handleSubmit}>
-                    <div className="row">
-                         <div className="col-lg-8">
+<fieldset disabled={loading || saving} className={screens.formFields}><p className={screens.formHint}>Fields marked * are required. Review the details before saving.</p>
+                    <div className={screens.editorGrid}>
+                         <div className={screens.editorMain}>
                               {/* Employee Information */}
-                              <div className="border rounded p-4 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <div className={screens.formSection} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                    <h5 className="fw-semibold mb-3 d-flex align-items-center">
                                         <RiUserLine size={20} className="me-2" />
                                         Employee Information
@@ -249,29 +248,20 @@ export default function EditAttendancePage() {
                                    <div className="row g-3">
                                         <div className="col-md-12">
                                              <label className="form-label">Employee <span className="text-danger">*</span></label>
-                                             <select
+                                             <EmployeeSearchSelect employees={employees} aria-label="Employee"
                                                   className="form-select"
                                                   name="employeeid"
                                                   value={formData.employeeid}
                                                   onChange={handleChange}
                                                   required
                                                   disabled={employeesLoading || !!formData.employeeid}
-                                             >
-                                                  <option value="">
-                                                       {employeesLoading ? 'Loading employees...' : 'Select an employee'}
-                                                  </option>
-                                                  {employees.map((employee) => (
-                                                       <option key={employee.employeeid} value={employee.employeeid}>
-                                                            {employee.username} (ID: {employee.employeeid}) - {employee.role} - {employee.branchname}
-                                                       </option>
-                                                  ))}
-                                             </select>
+                                             />
                                         </div>
                                    </div>
                               </div>
 
                               {/* Attendance Details */}
-                              <div className="border rounded p-4 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <div className={screens.formSection} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                    <h5 className="fw-semibold mb-3 d-flex align-items-center">
                                         <RiTimeLine size={20} className="me-2" />
                                         Attendance Details
@@ -279,7 +269,7 @@ export default function EditAttendancePage() {
                                    <div className="row g-3">
                                         <div className="col-md-6">
                                              <label className="form-label">Attendance Date <span className="text-danger">*</span></label>
-                                             <input
+                                             <input aria-label="Attendance Date"
                                                   type="date"
                                                   className="form-control"
                                                   name="attendance_date"
@@ -291,7 +281,7 @@ export default function EditAttendancePage() {
                                         </div>
                                         <div className="col-md-6">
                                              <label className="form-label">Status <span className="text-danger">*</span></label>
-                                             <select
+                                             <select aria-label="Status"
                                                   className="form-select"
                                                   name="status"
                                                   value={formData.status}
@@ -302,46 +292,46 @@ export default function EditAttendancePage() {
                                                   <option value="absent">Absent</option>
                                                   <option value="late">Late</option>
                                                   <option value="half_day">Half Day</option>
-                                                  <option value="leave">Leave</option>
+                                                  <option value="early_departure">Early departure</option>
                                              </select>
                                         </div>
                                         <div className="col-md-6">
                                              <label className="form-label">Clock In</label>
-                                             <input
+                                             <input aria-label="Clock In"
                                                   type="time"
                                                   className="form-control"
-                                                  name="clock_in"
+                                                  name="clock_in" disabled={formData.status === 'absent'}
                                                   value={formData.clock_in}
                                                   onChange={handleChange}
                                              />
                                         </div>
                                         <div className="col-md-6">
                                              <label className="form-label">Clock Out</label>
-                                             <input
+                                             <input aria-label="Clock Out"
                                                   type="time"
                                                   className="form-control"
-                                                  name="clock_out"
+                                                  name="clock_out" disabled={formData.status === 'absent'}
                                                   value={formData.clock_out}
                                                   onChange={handleChange}
                                              />
                                         </div>
                                         <div className="col-md-6">
                                              <label className="form-label">Shift Type</label>
-                                             <select
+                                             <select aria-label="Shift Type"
                                                   className="form-select"
                                                   name="shift_type"
                                                   value={formData.shift_type}
                                                   onChange={handleChange}
                                              >
                                                   <option value="regular">Regular</option>
-                                                  <option value="night">Night Shift</option>
+                                                  <option value="night">Night shift (can finish next day)</option>
                                                   <option value="weekend">Weekend</option>
                                                   <option value="holiday">Holiday</option>
                                              </select>
                                         </div>
                                         <div className="col-md-6">
                                              <label className="form-label">Work Location</label>
-                                             <select
+                                             <select aria-label="Work Location"
                                                   className="form-select"
                                                   name="work_location"
                                                   value={formData.work_location}
@@ -356,7 +346,7 @@ export default function EditAttendancePage() {
                                         {(formData.status === 'late' || formData.status === 'present') && (
                                              <div className="col-md-6">
                                                   <label className="form-label">Late Minutes</label>
-                                                  <input
+                                                  <input aria-label="Late Minutes"
                                                        type="number"
                                                        className="form-control"
                                                        name="late_minutes"
@@ -369,11 +359,11 @@ export default function EditAttendancePage() {
                                         )}
                                         <div className="col-md-6">
                                              <label className="form-label">Overtime Hours</label>
-                                             <input
+                                             <input aria-label="Overtime Hours"
                                                   type="number"
                                                   step="0.5"
                                                   className="form-control"
-                                                  name="overtime_hours"
+                                                  name="overtime_hours" disabled={formData.status === 'absent'}
                                                   value={formData.overtime_hours}
                                                   onChange={handleChange}
                                                   min="0"
@@ -385,7 +375,7 @@ export default function EditAttendancePage() {
                                                   <input
                                                        className="form-check-input"
                                                        type="checkbox"
-                                                       name="overtime_approved"
+                                                       name="overtime_approved" disabled={formData.status === 'absent'}
                                                        checked={formData.overtime_approved}
                                                        onChange={handleChange}
                                                        id="overtime_approved"
@@ -395,10 +385,10 @@ export default function EditAttendancePage() {
                                                   </label>
                                              </div>
                                         </div>
-                                        {formData.overtime_approved && (
+                                        {formData.overtime_approved && formData.status !== 'absent' && (
                                              <div className="col-md-6">
                                                   <label className="form-label">Overtime Approved By <span className="text-danger">*</span></label>
-                                                  <select
+                                                  <select aria-label="Overtime Approved By"
                                                        className="form-select"
                                                        name="overtime_approved_by"
                                                        value={formData.overtime_approved_by}
@@ -418,14 +408,14 @@ export default function EditAttendancePage() {
                               </div>
 
                               {/* Remarks */}
-                              <div className="border rounded p-4 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <div className={screens.formSection} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                    <h5 className="fw-semibold mb-3 d-flex align-items-center">
                                         <RiFileTextLine size={20} className="me-2" />
                                         Additional Information
                                    </h5>
                                    <div>
                                         <label className="form-label">Remarks</label>
-                                        <textarea
+                                        <textarea aria-label="Remarks"
                                              className="form-control"
                                              name="remarks"
                                              rows={3}
@@ -438,16 +428,16 @@ export default function EditAttendancePage() {
                          </div>
 
                          {/* Summary Sidebar */}
-                         <div className="col-lg-4">
-                              <div className="border rounded p-4 sticky-top" style={{ backgroundColor: 'var(--bs-tertiary-bg)', top: '20px' }}>
-                                   <h5 className="fw-semibold mb-3">Summary</h5>
+                         <div className={screens.formAside}>
+                              <div className={screens.reviewPanel} style={{ backgroundColor: 'var(--bs-tertiary-bg)', top: '20px' }}>
+                                   <h5 className="fw-semibold mb-3">Review before saving</h5>
                                    <div className="mb-3">
                                         <div className="small text-muted mb-1">Employee</div>
                                         <div className="fw-medium">
                                              {employees.find(emp => emp.employeeid.toString() === formData.employeeid)?.username || 'Not selected'}
                                         </div>
                                         <div className="small text-muted mt-1">
-                                             ID: {formData.employeeid || 'N/A'} • {employees.find(emp => emp.employeeid.toString() === formData.employeeid)?.role || 'N/A'}
+                                             ID: {formData.employeeid || 'N/A'} â€¢ {employees.find(emp => emp.employeeid.toString() === formData.employeeid)?.role || 'N/A'}
                                         </div>
                                    </div>
                                    <div className="mb-3">
@@ -479,9 +469,14 @@ export default function EditAttendancePage() {
                                              )}
                                         </div>
                                    )}
-                                   <hr />
-                                   <div className="d-grid gap-2">
-                                        <button
+                                   <div className="mb-3"><div className="small text-muted mb-1">Clocked hours</div><div className="fw-medium">{(() => { try { const hours = formData.status === 'absent' ? 0 : attendanceHours(formData.clock_in, formData.clock_out, formData.shift_type === 'night'); return hours == null ? 'Enter clock-out time' : `${hours.toFixed(2)} hours`; } catch { return 'Check clock times'; } })()}</div><small>Overtime is included in these hours, not added again.</small></div><hr />
+                                   
+                              <button type="submit" className={`btn btn-primary ${screens.reviewSave}`} aria-label="Save attendance from review">Save attendance</button>
+</div>
+                         </div>
+                    </div><footer className={screens.saveBar}><span className="small text-muted">Review the selected employee and values before saving.</span><div className="d-flex gap-2"><Link href={`/human-resource/payroll/attendance/${attendanceId}`} className="btn btn-outline-secondary">
+                                             Cancel
+                                        </Link><button
                                              type="submit"
                                              className="btn btn-primary"
                                              disabled={saving}
@@ -498,15 +493,9 @@ export default function EditAttendancePage() {
                                                        Update Attendance
                                                   </>
                                              )}
-                                        </button>
-                                        <Link href={`/human-resource/payroll/attendance/${attendanceId}`} className="btn btn-outline-secondary">
-                                             Cancel
-                                        </Link>
-                                   </div>
-                              </div>
-                         </div>
-                    </div>
-               </form>
+                                        </button></div></footer>
+               </fieldset>
+</form>
 
                <style jsx global>{`
                 .animate-spin {
@@ -517,6 +506,6 @@ export default function EditAttendancePage() {
                     to { transform: rotate(360deg); }
                 }
             `}</style>
-          </div>
+          </PayrollFormFrame>
      );
 }

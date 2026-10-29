@@ -1,6 +1,11 @@
 'use client';
+import EmployeeSearchSelect from '../../../../../components/HR/Payroll/EmployeeSearchSelect';
+import PayrollFormFrame from '../../PayrollFormFrame';
+import { attendancePayload, attendanceHours } from '../../../../../components/HR/Payroll/attendanceForm';
+import screens from '../../PayrollScreens.module.css';
+import { usePayrollFeedback } from '../../../../../components/HR/Payroll/usePayrollFeedback';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -38,7 +43,7 @@ interface AttendanceRecord {
      clock_out: string;
      shift_type: string;
      work_location: string;
-     status: 'present' | 'absent' | 'late' | 'half_day' | 'leave';
+     status: 'present' | 'absent' | 'late' | 'half_day' | 'early_departure';
      late_minutes: number;
      overtime_hours: number;
      overtime_approved: boolean;
@@ -46,14 +51,17 @@ interface AttendanceRecord {
      remarks: string;
 }
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_ACCENT = 'var(--pls-primary, #2e7d32)';
 
 export default function CreateAttendancePage() {
+     const { notify, feedback } = usePayrollFeedback();
      const router = useRouter();
      const { applicationsettings } = useApplicationSettings();
      const { user } = applicationsettings || {};
 
      const [loading, setLoading] = useState(false);
+     const submitting = useRef(false);
+     const [employeeError, setEmployeeError] = useState(false);
      const [employees, setEmployees] = useState<Employee[]>([]);
      const [employeesLoading, setEmployeesLoading] = useState(true);
      const [mode, setMode] = useState<'single' | 'bulk'>('single');
@@ -121,13 +129,16 @@ export default function CreateAttendancePage() {
 
      const fetchEmployees = async () => {
           setEmployeesLoading(true);
+          setEmployeeError(false);
           try {
                const response = await customFetch('logins');
                if (response?.status === 'success' && response?.statusCode === 200) {
                     setEmployees(response.result || []);
+               } else {
+                    setEmployeeError(true);
                }
           } catch (error) {
-               console.error('Error fetching employees:', error);
+               setEmployeeError(true);
                setEmployees([]);
           } finally {
                setEmployeesLoading(false);
@@ -136,55 +147,41 @@ export default function CreateAttendancePage() {
 
      const handleSingleSubmit = async (e: React.FormEvent) => {
           e.preventDefault();
+          if (submitting.current || employeesLoading || employeeError) return;
 
           if (!user?.employeeid) {
-               alert('User information not available');
+               notify('User information not available');
                return;
           }
 
-          if (formData.overtime_approved && !formData.overtime_approved_by) {
-               alert('Please select an overtime approver when overtime is approved');
-               return;
-          }
-
+          submitting.current = true;
           setLoading(true);
 
           try {
-               const payload = {
-                    employeeid: parseInt(formData.employeeid),
-                    attendance_date: formData.attendance_date,
-                    clock_in: formData.clock_in || null,
-                    clock_out: formData.clock_out || null,
-                    shift_type: formData.shift_type,
-                    work_location: formData.work_location,
-                    status: formData.status,
-                    late_minutes: formData.late_minutes ? parseInt(formData.late_minutes) : null,
-                    overtime_hours: formData.overtime_hours ? parseFloat(formData.overtime_hours) : null,
-                    overtime_approved: formData.overtime_approved,
-                    overtime_approved_by: formData.overtime_approved_by ? parseInt(formData.overtime_approved_by) : null,
-                    remarks: formData.remarks || null
-               };
+               const payload = attendancePayload(formData);
 
                const response = await customPost('payroll/attendance', 'POST', payload);
 
                if (response?.status === 'success') {
-                    alert('Attendance recorded successfully');
+                    notify('Attendance recorded successfully', 'success');
                     router.push('/human-resource/payroll/attendance');
                } else {
-                    alert(response?.message || 'Failed to record attendance');
+                    notify(response?.message || 'Failed to record attendance');
                }
           } catch (err: any) {
-               alert(err?.message || 'Error recording attendance');
+               notify(err?.message || 'Error recording attendance');
           } finally {
+               submitting.current = false;
                setLoading(false);
           }
      };
 
      const handleBulkSubmit = async (e: React.FormEvent) => {
           e.preventDefault();
+          if (submitting.current || employeesLoading || employeeError) return;
 
           if (bulkRecords.length === 0) {
-               alert('Please add at least one attendance record');
+               notify('Please add at least one attendance record');
                return;
           }
 
@@ -192,37 +189,38 @@ export default function CreateAttendancePage() {
           for (let i = 0; i < bulkRecords.length; i++) {
                const record = bulkRecords[i];
                if (!record.employeeid) {
-                    alert(`Record ${i + 1}: Please select an employee`);
+                    notify(`Record ${i + 1}: Please select an employee`);
                     return;
                }
-               if (record.overtime_approved && !record.overtime_approved_by) {
-                    alert(`Record ${i + 1}: Please select an overtime approver when overtime is approved`);
+               if (record.status !== 'absent' && record.overtime_approved && !record.overtime_approved_by) {
+                    notify(`Record ${i + 1}: Please select an overtime approver when overtime is approved`);
                     return;
                }
           }
 
+          submitting.current = true;
           setLoading(true);
 
           try {
                const payload = {
-                    attendance_records: bulkRecords.map(record => ({
-                         ...record,
-                         late_minutes: record.late_minutes || 0,
-                         overtime_hours: record.overtime_hours || 0
-                    }))
+                    attendance_records: bulkRecords.map((record, index) => {
+                         try { return attendancePayload(record); }
+                         catch (error) { throw new Error(`Record ${index + 1}: ${error instanceof Error ? error.message : 'Review the attendance details.'}`); }
+                    })
                };
 
                const response = await customPost('payroll/attendance/bulk', 'POST', payload);
 
                if (response?.status === 'success') {
-                    alert(`Bulk attendance recorded successfully. Processed: ${response.result.processed}`);
+                    notify(`Bulk attendance recorded successfully. Processed: ${response.result.processed}`);
                     router.push('/human-resource/payroll/attendance');
                } else {
-                    alert(response?.message || 'Failed to record bulk attendance');
+                    notify(response?.message || 'Failed to record bulk attendance');
                }
           } catch (err: any) {
-               alert(err?.message || 'Error recording bulk attendance');
+               notify(err?.message || 'Error recording bulk attendance');
           } finally {
+               submitting.current = false;
                setLoading(false);
           }
      };
@@ -234,51 +232,33 @@ export default function CreateAttendancePage() {
      const selectedEmployee = getSelectedEmployee();
 
      return (
-          <div className="container-fluid px-4 py-3">
+          <PayrollFormFrame busy={loading} className={screens.page}>
+               {feedback}
+               {employeeError && <div className="alert alert-danger" role="alert">Unable to load employees. Your entries have been kept. <button type="button" className="btn btn-sm btn-outline-danger ms-2" onClick={fetchEmployees}>Retry loading employees</button></div>}
                {/* Header */}
-               <div className="d-flex align-items-center mb-4">
+               <div className={screens.header}>
                     <Link href="/human-resource/payroll/attendance" className="btn btn-outline-secondary btn-sm me-3">
                          <RiArrowLeftLine size={18} />
                     </Link>
                     <div className="d-flex align-items-center">
-                         <RiCalendarEventLine size={28} style={{ color: COLOR_ACCENT }} className="me-2" />
+                         
                          <div>
-                              <h1 className="h4 mb-0 fw-bold">Record Attendance</h1>
+                              <span className={screens.eyebrow}>Payroll / Attendance</span>
+<h1 className={screens.title}>Record Attendance</h1>
                               <p className="text-muted mb-0 small">Record employee attendance</p>
                          </div>
                     </div>
                </div>
 
-               {/* Mode Toggle */}
-               <div className="border rounded p-3 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                    <div className="d-flex align-items-center gap-3">
-                         <label className="form-label mb-0 fw-semibold">Recording Mode:</label>
-                         <div className="btn-group btn-group-sm" role="group">
-                              <button
-                                   type="button"
-                                   className={`btn ${mode === 'single' ? 'btn-primary' : 'btn-outline-primary'}`}
-                                   onClick={() => setMode('single')}
-                              >
-                                   Single Employee
-                              </button>
-                              <button
-                                   type="button"
-                                   className={`btn ${mode === 'bulk' ? 'btn-primary' : 'btn-outline-primary'}`}
-                                   onClick={() => setMode('bulk')}
-                              >
-                                   Bulk Recording
-                              </button>
-                         </div>
-                    </div>
-               </div>
-
+               <section className={screens.modeChoices} aria-label="Attendance recording mode"><div><h2>How are you recording attendance?</h2><p>Record one employee or enter several employees together.</p></div><div className={screens.modeButtons}><button type="button" aria-label="Single Employee" aria-pressed={mode==='single'} disabled={loading} onClick={()=>setMode('single')}><strong>Single employee</strong><small>One employee, with a detailed review</small></button><button type="button" aria-label="Bulk Recording" aria-pressed={mode==='bulk'} disabled={loading} onClick={()=>setMode('bulk')}><strong>Multiple employees</strong><small>Enter several attendance records at once</small></button></div></section>
                {mode === 'single' ? (
                     /* Single Employee Form */
                     <form onSubmit={handleSingleSubmit}>
-                         <div className="row">
-                              <div className="col-lg-8">
+<fieldset disabled={loading} className={screens.formFields}><p className={screens.formHint}>Fields marked * are required. Review the details before saving.</p>
+                         <div className={screens.editorGrid}>
+                              <div className={screens.editorMain}>
                                    {/* Employee Information */}
-                                   <div className="border rounded p-4 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <div className={screens.formSection} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                         <h5 className="fw-semibold mb-3 d-flex align-items-center">
                                              <RiUserLine size={20} className="me-2" />
                                              Employee Information
@@ -286,27 +266,18 @@ export default function CreateAttendancePage() {
                                         <div className="row g-3">
                                              <div className="col-md-6">
                                                   <label className="form-label">Employee <span className="text-danger">*</span></label>
-                                                  <select
+                                                  <EmployeeSearchSelect employees={employees} aria-label="Employee"
                                                        className="form-select"
                                                        name="employeeid"
                                                        value={formData.employeeid}
                                                        onChange={handleChange}
                                                        required
                                                        disabled={employeesLoading}
-                                                  >
-                                                       <option value="">
-                                                            {employeesLoading ? 'Loading employees...' : 'Select an employee'}
-                                                       </option>
-                                                       {employees.map((employee) => (
-                                                            <option key={employee.employeeid} value={employee.employeeid}>
-                                                                 {employee.username} (ID: {employee.employeeid}) - {employee.role}
-                                                            </option>
-                                                       ))}
-                                                  </select>
+                                                  />
                                              </div>
                                              <div className="col-md-6">
                                                   <label className="form-label">Attendance Date <span className="text-danger">*</span></label>
-                                                  <input
+                                                  <input aria-label="Attendance Date"
                                                        type="date"
                                                        className="form-control"
                                                        name="attendance_date"
@@ -319,7 +290,7 @@ export default function CreateAttendancePage() {
                                    </div>
 
                                    {/* Attendance Details */}
-                                   <div className="border rounded p-4 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <div className={screens.formSection} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                         <h5 className="fw-semibold mb-3 d-flex align-items-center">
                                              <RiTimeLine size={20} className="me-2" />
                                              Attendance Details
@@ -327,41 +298,41 @@ export default function CreateAttendancePage() {
                                         <div className="row g-3">
                                              <div className="col-md-6">
                                                   <label className="form-label">Clock In</label>
-                                                  <input
+                                                  <input aria-label="Clock In"
                                                        type="time"
                                                        className="form-control"
-                                                       name="clock_in"
+                                                       name="clock_in" disabled={formData.status === 'absent'}
                                                        value={formData.clock_in}
                                                        onChange={handleChange}
                                                   />
                                              </div>
                                              <div className="col-md-6">
                                                   <label className="form-label">Clock Out</label>
-                                                  <input
+                                                  <input aria-label="Clock Out"
                                                        type="time"
                                                        className="form-control"
-                                                       name="clock_out"
+                                                       name="clock_out" disabled={formData.status === 'absent'}
                                                        value={formData.clock_out}
                                                        onChange={handleChange}
                                                   />
                                              </div>
                                              <div className="col-md-6">
                                                   <label className="form-label">Shift Type</label>
-                                                  <select
+                                                  <select aria-label="Shift Type"
                                                        className="form-select"
                                                        name="shift_type"
                                                        value={formData.shift_type}
                                                        onChange={handleChange}
                                                   >
                                                        <option value="regular">Regular</option>
-                                                       <option value="night">Night Shift</option>
+                                                       <option value="night">Night shift (can finish next day)</option>
                                                        <option value="weekend">Weekend</option>
                                                        <option value="holiday">Holiday</option>
                                                   </select>
                                              </div>
                                              <div className="col-md-6">
                                                   <label className="form-label">Work Location</label>
-                                                  <select
+                                                  <select aria-label="Work Location"
                                                        className="form-select"
                                                        name="work_location"
                                                        value={formData.work_location}
@@ -375,7 +346,7 @@ export default function CreateAttendancePage() {
                                              </div>
                                              <div className="col-md-6">
                                                   <label className="form-label">Status <span className="text-danger">*</span></label>
-                                                  <select
+                                                  <select aria-label="Status"
                                                        className="form-select"
                                                        name="status"
                                                        value={formData.status}
@@ -386,13 +357,13 @@ export default function CreateAttendancePage() {
                                                        <option value="absent">Absent</option>
                                                        <option value="late">Late</option>
                                                        <option value="half_day">Half Day</option>
-                                                       <option value="leave">Leave</option>
+                                                       <option value="early_departure">Early departure</option>
                                                   </select>
                                              </div>
                                              {(formData.status === 'late' || formData.status === 'present') && (
                                                   <div className="col-md-6">
                                                        <label className="form-label">Late Minutes</label>
-                                                       <input
+                                                       <input aria-label="Late Minutes"
                                                             type="number"
                                                             className="form-control"
                                                             name="late_minutes"
@@ -405,11 +376,11 @@ export default function CreateAttendancePage() {
                                              )}
                                              <div className="col-md-6">
                                                   <label className="form-label">Overtime Hours</label>
-                                                  <input
+                                                  <input aria-label="Overtime Hours"
                                                        type="number"
                                                        step="0.5"
                                                        className="form-control"
-                                                       name="overtime_hours"
+                                                       name="overtime_hours" disabled={formData.status === 'absent'}
                                                        value={formData.overtime_hours}
                                                        onChange={handleChange}
                                                        min="0"
@@ -421,7 +392,7 @@ export default function CreateAttendancePage() {
                                                        <input
                                                             className="form-check-input"
                                                             type="checkbox"
-                                                            name="overtime_approved"
+                                                            name="overtime_approved" disabled={formData.status === 'absent'}
                                                             checked={formData.overtime_approved}
                                                             onChange={handleChange}
                                                             id="overtime_approved"
@@ -431,10 +402,10 @@ export default function CreateAttendancePage() {
                                                        </label>
                                                   </div>
                                              </div>
-                                             {formData.overtime_approved && (
+                                             {formData.overtime_approved && formData.status !== 'absent' && (
                                                   <div className="col-md-6">
                                                        <label className="form-label">Overtime Approved By <span className="text-danger">*</span></label>
-                                                       <select
+                                                       <select aria-label="Overtime Approved By"
                                                             className="form-select"
                                                             name="overtime_approved_by"
                                                             value={formData.overtime_approved_by}
@@ -457,14 +428,14 @@ export default function CreateAttendancePage() {
                                    </div>
 
                                    {/* Remarks */}
-                                   <div className="border rounded p-4 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <div className={screens.formSection} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                         <h5 className="fw-semibold mb-3 d-flex align-items-center">
                                              <RiFileTextLine size={20} className="me-2" />
                                              Additional Information
                                         </h5>
                                         <div>
                                              <label className="form-label">Remarks</label>
-                                             <textarea
+                                             <textarea aria-label="Remarks"
                                                   className="form-control"
                                                   name="remarks"
                                                   rows={3}
@@ -477,9 +448,9 @@ export default function CreateAttendancePage() {
                               </div>
 
                               {/* Summary Sidebar */}
-                              <div className="col-lg-4">
-                                   <div className="border rounded p-4 sticky-top" style={{ backgroundColor: 'var(--bs-tertiary-bg)', top: '20px' }}>
-                                        <h5 className="fw-semibold mb-3">Summary</h5>
+                              <div className={screens.formAside}>
+                                   <div className={screens.reviewPanel} style={{ backgroundColor: 'var(--bs-tertiary-bg)', top: '20px' }}>
+                                        <h5 className="fw-semibold mb-3">Review before saving</h5>
                                         <div className="mb-3">
                                              <div className="small text-muted mb-1">Employee</div>
                                              <div className="fw-medium">
@@ -507,9 +478,14 @@ export default function CreateAttendancePage() {
                                              <div className="small text-muted mb-1">Location</div>
                                              <div className="fw-medium text-capitalize">{formData.work_location.replace('-', ' ')}</div>
                                         </div>
-                                        <hr />
-                                        <div className="d-grid gap-2">
-                                             <button
+                                        <div className="mb-3"><div className="small text-muted mb-1">Clocked hours</div><div className="fw-medium">{(() => { try { const hours = formData.status === 'absent' ? 0 : attendanceHours(formData.clock_in, formData.clock_out, formData.shift_type === 'night'); return hours == null ? 'Enter clock-out time' : `${hours.toFixed(2)} hours`; } catch { return 'Check clock times'; } })()}</div><small>Overtime is included in these hours, not added again.</small></div><hr />
+                                        
+                                   <button type="submit" className={`btn btn-primary ${screens.reviewSave}`} aria-label="Save attendance from review">Save attendance</button>
+</div>
+                              </div>
+                         </div><footer className={screens.saveBar}><span className="small text-muted">Review the selected employee and values before saving.</span><div className="d-flex gap-2"><Link href="/human-resource/payroll/attendance" className="btn btn-outline-secondary">
+                                                  Cancel
+                                             </Link><button
                                                   type="submit"
                                                   className="btn btn-primary"
                                                   disabled={loading}
@@ -526,19 +502,14 @@ export default function CreateAttendancePage() {
                                                             Record Attendance
                                                        </>
                                                   )}
-                                             </button>
-                                             <Link href="/human-resource/payroll/attendance" className="btn btn-outline-secondary">
-                                                  Cancel
-                                             </Link>
-                                        </div>
-                                   </div>
-                              </div>
-                         </div>
-                    </form>
+                                             </button></div></footer>
+                    </fieldset>
+</form>
                ) : (
                     /* Bulk Recording Form */
                     <form onSubmit={handleBulkSubmit}>
-                         <div className="border rounded p-4 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+<fieldset disabled={loading} className={screens.formFields}><p className={screens.formHint}>Fields marked * are required. Review the details before saving.</p>
+                         <div className={screens.formSection} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex justify-content-between align-items-center mb-3">
                                    <h5 className="fw-semibold mb-0">Bulk Attendance Records</h5>
                                    <button
@@ -565,8 +536,8 @@ export default function CreateAttendancePage() {
                                         </button>
                                    </div>
                               ) : (
-                                   <div className="table-responsive">
-                                        <table className="table table-bordered">
+                                   <div className={screens.tableWrap}>
+                                        <table className={screens.table}>
                                              <thead className="table-light">
                                                   <tr>
                                                        <th>Employee</th>
@@ -584,10 +555,11 @@ export default function CreateAttendancePage() {
                                              </thead>
                                              <tbody>
                                                   {bulkRecords.map((record, index) => (
-                                                       <tr key={index}>
+                                                       <tr key={index} aria-label={`Attendance record ${index + 1}`}>
                                                             <td>
                                                                  <select
                                                                       className="form-select form-select-sm"
+                                                                      aria-label={`Record ${index + 1}: employee`}
                                                                       value={record.employeeid}
                                                                       onChange={(e) => updateBulkRecord(index, 'employeeid', parseInt(e.target.value))}
                                                                       required
@@ -602,7 +574,8 @@ export default function CreateAttendancePage() {
                                                             </td>
                                                             <td>
                                                                  <input
-                                                                      type="date"
+                                                                      aria-label={`Record ${index + 1}: attendance date`}
+type="date"
                                                                       className="form-control form-control-sm"
                                                                       value={record.attendance_date}
                                                                       onChange={(e) => updateBulkRecord(index, 'attendance_date', e.target.value)}
@@ -611,7 +584,8 @@ export default function CreateAttendancePage() {
                                                             </td>
                                                             <td>
                                                                  <input
-                                                                      type="time"
+                                                                      aria-label={`Record ${index + 1}: clock in`}
+type="time"
                                                                       className="form-control form-control-sm"
                                                                       value={record.clock_in}
                                                                       onChange={(e) => updateBulkRecord(index, 'clock_in', e.target.value)}
@@ -619,7 +593,8 @@ export default function CreateAttendancePage() {
                                                             </td>
                                                             <td>
                                                                  <input
-                                                                      type="time"
+                                                                      aria-label={`Record ${index + 1}: clock out`}
+type="time"
                                                                       className="form-control form-control-sm"
                                                                       value={record.clock_out}
                                                                       onChange={(e) => updateBulkRecord(index, 'clock_out', e.target.value)}
@@ -627,7 +602,8 @@ export default function CreateAttendancePage() {
                                                             </td>
                                                             <td>
                                                                  <select
-                                                                      className="form-select form-select-sm"
+                                                                      aria-label={`Record ${index + 1}: status`}
+className="form-select form-select-sm"
                                                                       value={record.status}
                                                                       onChange={(e) => updateBulkRecord(index, 'status', e.target.value)}
                                                                  >
@@ -635,12 +611,13 @@ export default function CreateAttendancePage() {
                                                                       <option value="absent">Absent</option>
                                                                       <option value="late">Late</option>
                                                                       <option value="half_day">Half Day</option>
-                                                                      <option value="leave">Leave</option>
+                                                                      <option value="early_departure">Early departure</option>
                                                                  </select>
                                                             </td>
                                                             <td>
                                                                  <input
-                                                                      type="number"
+                                                                      aria-label={`Record ${index + 1}: late minutes`}
+type="number"
                                                                       className="form-control form-control-sm"
                                                                       value={record.late_minutes}
                                                                       onChange={(e) => updateBulkRecord(index, 'late_minutes', parseInt(e.target.value) || 0)}
@@ -649,7 +626,8 @@ export default function CreateAttendancePage() {
                                                             </td>
                                                             <td>
                                                                  <input
-                                                                      type="number"
+                                                                      aria-label={`Record ${index + 1}: overtime hours`}
+type="number"
                                                                       step="0.5"
                                                                       className="form-control form-control-sm"
                                                                       value={record.overtime_hours}
@@ -659,7 +637,8 @@ export default function CreateAttendancePage() {
                                                             </td>
                                                             <td>
                                                                  <input
-                                                                      type="checkbox"
+                                                                      aria-label={`Record ${index + 1}: overtime approved`}
+type="checkbox"
                                                                       className="form-check-input"
                                                                       checked={record.overtime_approved}
                                                                       onChange={(e) => updateBulkRecord(index, 'overtime_approved', e.target.checked)}
@@ -668,7 +647,8 @@ export default function CreateAttendancePage() {
                                                             <td>
                                                                  {record.overtime_approved ? (
                                                                       <select
-                                                                           className="form-select form-select-sm"
+                                                                           aria-label={`Record ${index + 1}: overtime approved by`}
+className="form-select form-select-sm"
                                                                            value={record.overtime_approved_by || ''}
                                                                            onChange={(e) => updateBulkRecord(index, 'overtime_approved_by', e.target.value ? parseInt(e.target.value) : undefined)}
                                                                            required={record.overtime_approved}
@@ -686,7 +666,8 @@ export default function CreateAttendancePage() {
                                                             </td>
                                                             <td>
                                                                  <input
-                                                                      type="text"
+                                                                      aria-label={`Record ${index + 1}: remarks`}
+type="text"
                                                                       className="form-control form-control-sm"
                                                                       value={record.remarks}
                                                                       onChange={(e) => updateBulkRecord(index, 'remarks', e.target.value)}
@@ -697,6 +678,7 @@ export default function CreateAttendancePage() {
                                                                  <button
                                                                       type="button"
                                                                       className="btn btn-outline-danger btn-sm"
+                                                                      aria-label={`Remove attendance record ${index + 1}`}
                                                                       onClick={() => removeBulkRecord(index)}
                                                                  >
                                                                       <RiDeleteBinLine size={14} />
@@ -732,7 +714,8 @@ export default function CreateAttendancePage() {
                                    </div>
                               )}
                          </div>
-                    </form>
+                    </fieldset>
+</form>
                )}
 
                <style jsx global>{`
@@ -744,6 +727,6 @@ export default function CreateAttendancePage() {
                     to { transform: rotate(360deg); }
                 }
             `}</style>
-          </div>
+          </PayrollFormFrame>
      );
 }

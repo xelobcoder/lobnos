@@ -1,5 +1,10 @@
 'use client';
+import EmployeeSearchSelect from '../../../../../components/HR/Payroll/EmployeeSearchSelect';
+import PayrollFormFrame from '../../PayrollFormFrame';
+import screens from '../../PayrollScreens.module.css';
+import { usePayrollFeedback } from '../../../../../components/HR/Payroll/usePayrollFeedback';
 
+import SalaryTemplatePicker from '../../../../../components/HR/SalaryTemplatePicker';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -26,6 +31,7 @@ interface Employee {
 
 export interface ICompensation {
      id?: number;
+     salary_template_id?:number;salary_template_version?:number;
      employeeid: number;
      compensation_type: 'salary' | 'hourly' | 'commission' | 'hybrid';
      basic_salary?: number;
@@ -61,6 +67,9 @@ interface SalaryGrade {
 
 // Zod validation schema
 const compensationSchema = z.object({
+     salary_template_id:z.number().int().positive().optional(),
+     salary_template_version:z.number().int().positive().optional(),
+     salary_grade_id:z.number().int().positive().optional(),
      employeeid: z.number().positive('Employee ID must be a positive number'),
      compensation_type: z.enum(['salary', 'hourly', 'commission', 'hybrid']),
      basic_salary: z.number().positive().optional(),
@@ -134,9 +143,10 @@ const compensationSchema = z.object({
      path: ['effective_to']
 });
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_ACCENT = 'var(--pls-primary, #2e7d32)';
 
 export default function CreateCompensationPage() {
+     const { notify, feedback } = usePayrollFeedback();
      const router = useRouter();
      const { applicationsettings } = useApplicationSettings();
      const { user } = applicationsettings || {};
@@ -147,6 +157,7 @@ export default function CreateCompensationPage() {
      const [salaryGrades, setSalaryGrades] = useState<SalaryGrade[]>([]);
      const [salaryGradesLoading, setSalaryGradesLoading] = useState(true);
      const [formData, setFormData] = useState({
+          salary_template_id:'',salary_template_version:'',
           employeeid: '',
           compensation_type: 'salary',
           basic_salary: '',
@@ -180,6 +191,7 @@ export default function CreateCompensationPage() {
           const { name, value } = e.target;
           setFormData(prev => ({
                ...prev,
+               ...(name==='employeeid'&&prev.employeeid&&prev.employeeid!==value?{bank_account_number:'',bank_name:'',bank_branch:'',mobile_money_number:'',mobile_money_network:''}:{}),
                [name]: value
           }));
      };
@@ -225,6 +237,9 @@ export default function CreateCompensationPage() {
           // Prepare data for validation
           const validationData = {
                ...formData,
+               salary_template_id:formData.salary_template_id?Number(formData.salary_template_id):undefined,
+               salary_template_version:formData.salary_template_version?Number(formData.salary_template_version):undefined,
+               effective_to:formData.effective_to||undefined,
                employeeid: parseInt(formData.employeeid),
                basic_salary: formData.basic_salary ? parseFloat(formData.basic_salary) : undefined,
                hourly_rate: formData.hourly_rate ? parseFloat(formData.hourly_rate) : undefined,
@@ -241,16 +256,16 @@ export default function CreateCompensationPage() {
                validatedData = compensationSchema.parse(validationData);
           } catch (error) {
                if (error instanceof z.ZodError) {
-                    const firstError = error.errors[0];
-                    alert(`${firstError.path.join('.')}: ${firstError.message}`);
+                    const firstError = error.issues[0];
+                    notify(`${firstError.path.join('.')}: ${firstError.message}`);
                     return;
                }
-               alert('Validation failed');
+               notify('Validation failed');
                return;
           }
 
           if (!user?.employeeid) {
-               alert('User information not available');
+               notify('User information not available');
                return;
           }
 
@@ -265,73 +280,68 @@ export default function CreateCompensationPage() {
                const response = await customPost('payroll/compensation', 'POST', payload);
 
                if (response?.status === 'success') {
-                    alert('Compensation created successfully');
+                    notify('Compensation created successfully', 'success');
                     router.push('/human-resource/payroll/compensation');
                } else {
-                    alert(response?.message || 'Failed to create compensation');
+                    notify(response?.message || 'Failed to create compensation');
                }
           } catch (err: any) {
-               alert(err?.message || 'Error creating compensation');
+               notify(err?.message || 'Error creating compensation');
           } finally {
                setLoading(false);
           }
      };
 
      return (
-          <div className="container-fluid px-4 py-3">
+          <PayrollFormFrame busy={loading} className={screens.page}>
+               {feedback}
                {/* Header */}
-               <div className="d-flex align-items-center mb-4">
+               <div className={screens.header}>
                     <Link href="/human-resource/payroll/compensation" className="btn btn-outline-secondary btn-sm me-3">
                          <RiArrowLeftLine size={18} />
                     </Link>
                     <div className="d-flex align-items-center">
-                         <RiMoneyDollarCircleLine size={28} style={{ color: COLOR_ACCENT }} className="me-2" />
+                         
                          <div>
-                              <h1 className="h4 mb-0 fw-bold">Create Compensation</h1>
+                              <span className={screens.eyebrow}>Payroll / Employee compensation</span>
+<h1 className={screens.title}>Create Compensation</h1>
                               <p className="text-muted mb-0 small">Set up employee compensation</p>
                          </div>
                     </div>
                </div>
 
                {/* Form */}
+               <SalaryTemplatePicker disabled={loading} onApply={template=>{setFormData(old=>{const next={...old,salary_template_id:template?String(template.id):'',salary_template_version:template?String(template.version):''};if(template){for(const key of ['compensation_type','basic_salary','currency','hourly_rate','overtime_rate_multiplier','commission_percentage','commission_target','payment_frequency','salary_grade_id']){(next as any)[key]=template.terms[key]==null?'':String(template.terms[key]);}}return next;});}}/>
                <form onSubmit={handleSubmit}>
-                    <div className="row">
-                         <div className="col-lg-8">
+<fieldset disabled={loading} className={screens.formFields}><p className={screens.formHint}>Fields marked * are required. Review the details before saving.</p>
+                    <div className={screens.editorGrid}>
+                         <div className={screens.editorMain}>
                               {/* Employee Information */}
-                              <div className="border rounded p-4 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <div className={screens.formSection} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                    <h5 className="fw-semibold mb-3">Employee Information</h5>
                                    <div className="row g-3">
-                                        <div className="col-md-6">
+                                        <div className="col-12">
                                              <label className="form-label">Employee <span className="text-danger">*</span></label>
-                                             <select
+                                             <EmployeeSearchSelect employees={employees} aria-label="Employee"
                                                   className="form-select"
                                                   name="employeeid"
                                                   value={formData.employeeid}
                                                   onChange={handleChange}
                                                   required
                                                   disabled={employeesLoading}
-                                             >
-                                                  <option value="">
-                                                       {employeesLoading ? 'Loading employees...' : 'Select an employee'}
-                                                  </option>
-                                                  {employees.map((employee) => (
-                                                       <option key={employee.employeeid} value={employee.employeeid}>
-                                                            {employee.username} (ID: {employee.employeeid}) - {employee.role}
-                                                       </option>
-                                                  ))}
-                                             </select>
+                                             />
                                              <small className="text-muted">Select the employee for this compensation</small>
                                         </div>
                                    </div>
                               </div>
 
                               {/* Compensation Details */}
-                              <div className="border rounded p-4 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <div className={screens.formSection} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                    <h5 className="fw-semibold mb-3">Compensation Details</h5>
                                    <div className="row g-3">
                                         <div className="col-md-6">
                                              <label className="form-label">Compensation Type <span className="text-danger">*</span></label>
-                                             <select
+                                             <select aria-label="Compensation Type"
                                                   className="form-select"
                                                   name="compensation_type"
                                                   value={formData.compensation_type}
@@ -346,7 +356,7 @@ export default function CreateCompensationPage() {
                                         </div>
                                         <div className="col-md-6">
                                              <label className="form-label">Payment Frequency <span className="text-danger">*</span></label>
-                                             <select
+                                             <select aria-label="Payment Frequency"
                                                   className="form-select"
                                                   name="payment_frequency"
                                                   value={formData.payment_frequency}
@@ -363,8 +373,8 @@ export default function CreateCompensationPage() {
                                         {(formData.compensation_type === 'salary' || formData.compensation_type === 'hybrid') && (
                                              <>
                                                   <div className="col-md-6">
-                                                       <label className="form-label">Salary Amount (GHS) <span className="text-danger">*</span></label>
-                                                       <input
+                                                       <label className="form-label">Salary amount ({formData.currency || 'GHS'}) <span className="text-danger">*</span></label>
+                                                       <input aria-label="Salary amount ( )"
                                                             type="number"
                                                             step="0.01"
                                                             className="form-control"
@@ -376,7 +386,7 @@ export default function CreateCompensationPage() {
                                                   </div>
                                                   <div className="col-md-6">
                                                        <label className="form-label">Salary Grade</label>
-                                                       <select
+                                                       <select aria-label="Salary Grade"
                                                             className="form-select"
                                                             name="salary_grade_id"
                                                             value={formData.salary_grade_id}
@@ -402,7 +412,7 @@ export default function CreateCompensationPage() {
                                         {formData.compensation_type === 'hourly' && (
                                              <div className="col-md-6">
                                                   <label className="form-label">Hourly Rate (GHS) <span className="text-danger">*</span></label>
-                                                  <input
+                                                  <input aria-label="Hourly Rate (GHS)"
                                                        type="number"
                                                        step="0.01"
                                                        className="form-control"
@@ -418,7 +428,7 @@ export default function CreateCompensationPage() {
                                              <>
                                                   <div className="col-md-6">
                                                        <label className="form-label">Commission Percentage (%) <span className="text-danger">*</span></label>
-                                                       <input
+                                                       <input aria-label="Commission Percentage (%)"
                                                             type="number"
                                                             step="0.1"
                                                             className="form-control"
@@ -430,7 +440,7 @@ export default function CreateCompensationPage() {
                                                   </div>
                                                   <div className="col-md-6">
                                                        <label className="form-label">Commission Target ({formData.currency})</label>
-                                                       <input
+                                                       <input aria-label="Commission Target ( )"
                                                             type="number"
                                                             step="0.01"
                                                             className="form-control"
@@ -446,12 +456,12 @@ export default function CreateCompensationPage() {
                               </div>
 
                               {/* Payment Details */}
-                              <div className="border rounded p-4 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <div className={screens.formSection} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                    <h5 className="fw-semibold mb-3">Payment Details</h5>
                                    <div className="row g-3">
                                         <div className="col-12">
                                              <label className="form-label">Payment Method <span className="text-danger">*</span></label>
-                                             <select
+                                             <select aria-label="Payment Method"
                                                   className="form-select"
                                                   name="payment_method"
                                                   value={formData.payment_method}
@@ -470,7 +480,7 @@ export default function CreateCompensationPage() {
                                              <>
                                                   <div className="col-md-6">
                                                        <label className="form-label">Bank Name <span className="text-danger">*</span></label>
-                                                       <input
+                                                       <input aria-label="Bank Name"
                                                             type="text"
                                                             className="form-control"
                                                             name="bank_name"
@@ -481,7 +491,7 @@ export default function CreateCompensationPage() {
                                                   </div>
                                                   <div className="col-md-6">
                                                        <label className="form-label">Account Number <span className="text-danger">*</span></label>
-                                                       <input
+                                                       <input aria-label="Account Number"
                                                             type="text"
                                                             className="form-control"
                                                             name="bank_account_number"
@@ -492,7 +502,7 @@ export default function CreateCompensationPage() {
                                                   </div>
                                                   <div className="col-md-6">
                                                        <label className="form-label">Bank Branch</label>
-                                                       <input
+                                                       <input aria-label="Bank Branch"
                                                             type="text"
                                                             className="form-control"
                                                             name="bank_branch"
@@ -509,7 +519,7 @@ export default function CreateCompensationPage() {
                                              <>
                                                   <div className="col-md-6">
                                                        <label className="form-label">Mobile Money Number <span className="text-danger">*</span></label>
-                                                       <input
+                                                       <input aria-label="Mobile Money Number"
                                                             type="tel"
                                                             className="form-control"
                                                             name="mobile_money_number"
@@ -521,7 +531,7 @@ export default function CreateCompensationPage() {
                                                   </div>
                                                   <div className="col-md-6">
                                                        <label className="form-label">Mobile Money Network</label>
-                                                       <select
+                                                       <select aria-label="Mobile Money Network"
                                                             className="form-select"
                                                             name="mobile_money_network"
                                                             value={formData.mobile_money_network}
@@ -539,12 +549,12 @@ export default function CreateCompensationPage() {
                               </div>
 
                               {/* Effective Dates */}
-                              <div className="border rounded p-4 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <div className={screens.formSection} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                    <h5 className="fw-semibold mb-3">Effective Dates</h5>
                                    <div className="row g-3">
                                         <div className="col-md-6">
                                              <label className="form-label">Effective From <span className="text-danger">*</span></label>
-                                             <input
+                                             <input aria-label="Effective From"
                                                   type="date"
                                                   className="form-control"
                                                   name="effective_from"
@@ -555,7 +565,7 @@ export default function CreateCompensationPage() {
                                         </div>
                                         <div className="col-md-6">
                                              <label className="form-label">Effective To</label>
-                                             <input
+                                             <input aria-label="Effective To"
                                                   type="date"
                                                   className="form-control"
                                                   name="effective_to"
@@ -569,14 +579,14 @@ export default function CreateCompensationPage() {
                               </div>
 
                               {/* Notes */}
-                              <div className="border rounded p-4 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <div className={screens.formSection} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                    <h5 className="fw-semibold mb-3">Additional Information</h5>
                                    <div>
                                         <label className="form-label">Notes (Optional)</label>
-                                        <textarea
+                                        <textarea aria-label="Notes (Optional)"
                                              className="form-control"
                                              name="notes"
-                                             rows={4}
+                                             rows={3}
                                              value={formData.notes}
                                              onChange={handleChange}
                                              placeholder="Any additional notes or comments..."
@@ -586,9 +596,9 @@ export default function CreateCompensationPage() {
                          </div>
 
                          {/* Summary Sidebar */}
-                         <div className="col-lg-4">
-                              <div className="border rounded p-4 sticky-top" style={{ backgroundColor: 'var(--bs-tertiary-bg)', top: '20px' }}>
-                                   <h5 className="fw-semibold mb-3">Summary</h5>
+                         <div className={screens.formAside}>
+                              <div className={screens.reviewPanel} style={{ backgroundColor: 'var(--bs-tertiary-bg)', top: '20px' }}>
+                                   <h5 className="fw-semibold mb-3">Review before saving</h5>
                                    <div className="mb-3">
                                         <div className="small text-muted mb-1">Employee</div>
                                         <div className="fw-medium">
@@ -634,9 +644,14 @@ export default function CreateCompensationPage() {
                                              <div className="fw-medium">{formData.commission_percentage}% {formData.commission_target ? `(Target: ${formData.currency} ${parseFloat(formData.commission_target).toLocaleString()})` : ''}</div>
                                         </div>
                                    )}
-                                   <hr />
-                                   <div className="d-grid gap-2">
-                                        <button
+                                   <dl className={screens.reviewValues}><div><dt>Effective from</dt><dd>{formData.effective_from || 'Not set yet'}</dd></div><div><dt>Effective to</dt><dd>{formData.effective_to || 'No end date'}</dd></div></dl><hr />
+                                   
+                              <button type="submit" className={`btn btn-primary ${screens.reviewSave}`} aria-label="Save compensation from review">Save compensation</button>
+</div>
+                         </div>
+                    </div><footer className={screens.saveBar}><span className="small text-muted">Review the selected employee and values before saving.</span><div className="d-flex gap-2"><Link href="/human-resource/payroll/compensation" className="btn btn-outline-secondary">
+                                             Cancel
+                                        </Link><button
                                              type="submit"
                                              className="btn btn-primary"
                                              disabled={loading}
@@ -653,15 +668,9 @@ export default function CreateCompensationPage() {
                                                        Create Compensation
                                                   </>
                                              )}
-                                        </button>
-                                        <Link href="/human-resource/payroll/compensation" className="btn btn-outline-secondary">
-                                             Cancel
-                                        </Link>
-                                   </div>
-                              </div>
-                         </div>
-                    </div>
-               </form>
+                                        </button></div></footer>
+               </fieldset>
+</form>
 
                <style jsx global>{`
                 .animate-spin {
@@ -672,6 +681,6 @@ export default function CreateCompensationPage() {
                     to { transform: rotate(360deg); }
                 }
             `}</style>
-          </div>
+          </PayrollFormFrame>
      );
 }

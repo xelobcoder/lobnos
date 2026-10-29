@@ -1,4 +1,5 @@
 'use client';
+import screens from '../PayrollScreens.module.css';
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -51,7 +52,7 @@ type AllowanceFormState = {
      is_active: boolean;
 };
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_ACCENT = 'var(--pls-primary, #2e7d32)';
 
 const toNumber = (value: number | string | null | undefined): number => {
      const parsed = Number(value ?? 0);
@@ -281,31 +282,32 @@ export default function PayrollAllowancesPage() {
      };
 
      return (
-          <div className="container-fluid px-4 py-3">
-               <div className="d-flex align-items-center mb-4">
+          <div className={screens.page}>
+               <div className={screens.header}>
                     <button type="button" onClick={() => router.push('/human-resource/payroll')} className="btn btn-outline-secondary btn-sm me-3">
                          <RiArrowLeftLine size={18} />
                     </button>
                     <div className="d-flex align-items-center">
                          <RiBankCardLine size={28} style={{ color: COLOR_ACCENT }} className="me-2" />
                          <div>
-                              <h1 className="h4 mb-0 fw-bold">Allowances</h1>
+                              <span className={screens.eyebrow}>Payroll / Pay additions & deductions</span>
+<h1 className={screens.title}>Allowances</h1>
                               <p className="text-muted mb-0 small">Create, update and deactivate employee allowances</p>
                          </div>
                     </div>
                </div>
 
-               {error && <div className="alert alert-danger">{error}</div>}
+               {error && <div role="alert" className="alert alert-danger">{error}</div>}
 
                <div className="row g-4">
                     <div className="col-xl-5">
-                         <div className="border rounded p-4 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <h5 className="fw-semibold mb-3">{editingAllowanceId ? 'Update Allowance' : 'Create Allowance'}</h5>
 
-                              <form onSubmit={handleSubmit}>
+                              <form onSubmit={handleSubmit}><fieldset disabled={submitting} className={screens.formFields}>
                                    <div className="mb-3">
-                                        <label className="form-label fw-medium">Employee</label>
-                                        <select className="form-select" value={selectedEmployeeId} onChange={(event) => setSelectedEmployeeId(event.target.value)} disabled={employeesLoading} required>
+                                        <label className="form-label fw-medium">Employee <span className="text-danger" aria-hidden="true">*</span></label>
+                                        <select aria-label="Employee" className="form-select" value={selectedEmployeeId} onChange={(event) => setSelectedEmployeeId(event.target.value)} disabled={employeesLoading} required>
                                              <option value="">Select employee</option>
                                              {employees.map((employee) => (
                                                   <option key={employee.employeeid} value={employee.employeeid}>
@@ -317,31 +319,31 @@ export default function PayrollAllowancesPage() {
 
                                    <div className="row g-3 mb-3">
                                         <div className="col-md-6">
-                                             <label className="form-label fw-medium">Allowance Type</label>
-                                             <select name="allowance_type" className="form-select" value={formData.allowance_type} onChange={handleChange} required>
+                                             <label className="form-label fw-medium">Allowance Type <span className="text-danger" aria-hidden="true">*</span></label>
+                                             <select aria-label="Allowance Type" name="allowance_type" className="form-select" value={formData.allowance_type} onChange={handleChange} required>
                                                   {allowanceTypes.map((type) => (
                                                        <option key={type} value={type}>{type.replace(/_/g, ' ')}</option>
                                                   ))}
                                              </select>
                                         </div>
                                         <div className="col-md-6">
-                                             <label className="form-label fw-medium">Amount</label>
-                                             <input name="amount" type="number" min="0" step="0.01" className="form-control" value={formData.amount} onChange={handleChange} required />
+                                             <label className="form-label fw-medium">Amount <span className="text-danger" aria-hidden="true">*</span></label>
+                                             <input aria-label="Amount" name="amount" type="number" min="0" step="0.01" className="form-control" value={formData.amount} onChange={handleChange} required />
                                         </div>
                                    </div>
 
                                    <div className="row g-3 mb-3">
                                         <div className="col-md-6">
                                              <label className="form-label fw-medium">Calculation Method</label>
-                                             <select name="calculation_method" className="form-select" value={formData.calculation_method} onChange={handleChange}>
-                                                  <option value="fixed">fixed</option>
-                                                  <option value="percentage_of_basic">percentage_of_basic</option>
-                                                  <option value="variable">variable</option>
+                                             <select aria-label="Calculation Method" name="calculation_method" className="form-select" value={formData.calculation_method} onChange={handleChange}>
+                                                  <option value="fixed">Fixed amount</option>
+                                                  <option value="percentage_of_basic">Percentage of basic salary</option>
+                                                  <option value="variable">Variable amount</option>
                                              </select>
                                         </div>
                                         <div className="col-md-6">
                                              <label className="form-label fw-medium">Frequency</label>
-                                             <select name="frequency" className="form-select" value={formData.frequency} onChange={handleChange}>
+                                             <select aria-label="Frequency" name="frequency" className="form-select" value={formData.frequency} onChange={handleChange}>
                                                   <option value="monthly">monthly</option>
                                                   <option value="quarterly">quarterly</option>
                                                   <option value="annually">annually</option>
@@ -352,19 +354,19 @@ export default function PayrollAllowancesPage() {
 
                                    {formData.calculation_method === 'percentage_of_basic' && (
                                         <div className="mb-3">
-                                             <label className="form-label fw-medium">Percentage</label>
-                                             <input name="percentage" type="number" min="0" step="0.01" className="form-control" value={formData.percentage} onChange={handleChange} required />
+                                             <label className="form-label fw-medium">Percentage <span className="text-danger" aria-hidden="true">*</span></label>
+                                             <input aria-label="Percentage" name="percentage" type="number" min="0" step="0.01" className="form-control" value={formData.percentage} onChange={handleChange} required />
                                         </div>
                                    )}
 
                                    <div className="row g-3 mb-3">
                                         <div className="col-md-6">
-                                             <label className="form-label fw-medium">Effective From</label>
-                                             <input name="effective_from" type="date" className="form-control" value={formData.effective_from} onChange={handleChange} required />
+                                             <label className="form-label fw-medium">Effective From <span className="text-danger" aria-hidden="true">*</span></label>
+                                             <input aria-label="Effective From" name="effective_from" type="date" className="form-control" value={formData.effective_from} onChange={handleChange} required />
                                         </div>
                                         <div className="col-md-6">
                                              <label className="form-label fw-medium">Effective To</label>
-                                             <input name="effective_to" type="date" className="form-control" value={formData.effective_to} onChange={handleChange} min={formData.effective_from} />
+                                             <input aria-label="Effective To" name="effective_to" type="date" className="form-control" value={formData.effective_to} onChange={handleChange} min={formData.effective_from} />
                                         </div>
                                    </div>
 
@@ -403,12 +405,12 @@ export default function PayrollAllowancesPage() {
                                              </button>
                                         )}
                                    </div>
-                              </form>
+                              </fieldset></form>
                          </div>
                     </div>
 
                     <div className="col-xl-7">
-                         <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
                                    <h5 className="fw-semibold mb-0">Employee Allowances</h5>
                                    <div className="small text-muted d-flex align-items-center">
@@ -417,8 +419,8 @@ export default function PayrollAllowancesPage() {
                                    </div>
                               </div>
 
-                              <div className="table-responsive">
-                                   <table className="table table-sm table-hover text-start mb-0">
+                              <div className={screens.tableWrap}>
+                                   <table className={screens.table}>
                                         <thead className="table-light">
                                              <tr>
                                                   <th className="text-start">Type</th>

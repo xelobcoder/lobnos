@@ -1,4 +1,5 @@
 'use client';
+import screens from '../../PayrollScreens.module.css';
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -45,6 +46,7 @@ interface TaxBand {
 }
 
 interface TaxConfiguration {
+     managed_by?:string;rule_version?:string;effective_from?:string;effective_to?:string;
      id: number;
      tax_year: string;
      country: string;
@@ -56,7 +58,7 @@ interface TaxConfiguration {
      created_by_name?: string;
 }
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_ACCENT = 'var(--pls-primary, #2e7d32)';
 const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
 const COLOR_BORDER = 'var(--bs-border-color)';
 
@@ -292,7 +294,7 @@ export default function TaxConfigurationDetailPage() {
 
      if (error || !config) {
           return (
-               <div className="container-fluid px-4 py-3">
+               <div className={screens.page}>
                     <div className="d-flex flex-column justify-content-center align-items-center text-center" style={{ minHeight: '400px' }}>
                          <RiErrorWarningLine size={48} className="mb-3 text-danger" />
                          <h5 className="fw-medium mb-1">Error Loading Data</h5>
@@ -306,15 +308,16 @@ export default function TaxConfigurationDetailPage() {
      }
 
      return (
-          <div className="container-fluid px-4 py-3">
+          <div className={screens.page}>
                {/* Header */}
-               <div className="d-flex align-items-center justify-content-between mb-4">
+               <div className={screens.header}>
                     <div className="d-flex align-items-center">
                          <Link href="/human-resource/payroll/tax-configurations" className="btn btn-outline-secondary btn-sm me-3">
                               <RiArrowLeftLine size={18} />
                          </Link>
                          <div>
-                              <h1 className="h4 mb-0 fw-bold d-flex align-items-center">
+                              <span className={screens.eyebrow}>Payroll / Statutory configuration</span>
+<h1 className={screens.title}>
                                    <RiMoneyDollarCircleLine size={24} style={{ color: COLOR_ACCENT }} className="me-2" />
                                    Tax Configuration {config.tax_year}
                               </h1>
@@ -328,7 +331,7 @@ export default function TaxConfigurationDetailPage() {
                          </span>
                          <button
                               onClick={toggleStatus}
-                              disabled={togglingStatus}
+                              disabled={togglingStatus||config.managed_by==='ghana_setup'}
                               className={`btn btn-sm d-flex align-items-center ${config.is_active ? 'btn-outline-warning' : 'btn-outline-success'}`}
                               title={config.is_active ? 'Deactivate Configuration' : 'Activate Configuration'}
                          >
@@ -342,11 +345,11 @@ export default function TaxConfigurationDetailPage() {
                               {config.is_active ? 'Deactivate' : 'Activate'}
                          </button>
                          <Link
-                              href={`/human-resource/payroll/tax-configurations/${config.id}/edit`}
+                              href={config.managed_by==='ghana_setup'?'/human-resource/payroll/ghana-setup':`/human-resource/payroll/tax-configurations/${config.id}/edit`}
                               className="btn btn-primary btn-sm d-flex align-items-center"
                          >
                               <RiEditLine size={16} className="me-1" />
-                              Edit
+                              {config.managed_by==='ghana_setup'?'Ghana setup':'Edit'}
                          </Link>
                          <Link
                               href={`/human-resource/payroll/tax-configurations/${config.id}/audit`}
@@ -357,7 +360,7 @@ export default function TaxConfigurationDetailPage() {
                          </Link>
                          <button
                               onClick={deleteConfiguration}
-                              disabled={deleting || config.is_active}
+                              disabled={deleting || config.is_active||config.managed_by==='ghana_setup'}
                               className="btn btn-outline-danger btn-sm d-flex align-items-center"
                               title={config.is_active ? 'Cannot delete active configuration' : 'Delete Configuration'}
                          >
@@ -371,10 +374,11 @@ export default function TaxConfigurationDetailPage() {
                     </div>
                </div>
 
+               {config.managed_by==='ghana_setup'&&<div className="alert alert-info"><strong>GRA PAYE preset · {config.rule_version}</strong><p className="mb-0">Effective {config.effective_from} to {config.effective_to}. Ghana payroll reads these progressive bands. Employee exemptions and approved reliefs are managed in Ghana payroll setup. This published preset is versioned to preserve historical calculations.</p></div>}
                <div className="row g-4">
                     {/* Basic Information */}
                     <div className="col-lg-6">
-                         <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <h5 className="mb-4 d-flex align-items-center">
                                    <RiFileTextLine size={20} className="me-2" />
                                    Basic Information
@@ -382,19 +386,19 @@ export default function TaxConfigurationDetailPage() {
 
                               <div className="row g-3">
                                    <div className="col-sm-6">
-                                        <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+                                        <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
                                              <div className="text-muted small mb-1">Tax Year</div>
                                              <div className="fw-bold">{config.tax_year}</div>
                                         </div>
                                    </div>
                                    <div className="col-sm-6">
-                                        <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+                                        <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
                                              <div className="text-muted small mb-1">Country</div>
                                              <div className="fw-bold">{config.country}</div>
                                         </div>
                                    </div>
                                    <div className="col-sm-6">
-                                        <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+                                        <div className={screens.panel} style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
                                              <div className="text-muted small mb-1">Status</div>
                                              <div className="d-flex align-items-center">
                                                   {config.is_active ? (
@@ -409,7 +413,7 @@ export default function TaxConfigurationDetailPage() {
                                         </div>
                                    </div>
                                    <div className="col-sm-6">
-                                        <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+                                        <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
                                              <div className="text-muted small mb-1">Tax Bands</div>
                                              <div className="fw-bold">{config.tax_bands.length} bands</div>
                                         </div>
@@ -419,30 +423,30 @@ export default function TaxConfigurationDetailPage() {
                     </div>
 
                     <div className="col-lg-6">
-                         <div className="border rounded p-4 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <h5 className="mb-4">Configuration Metadata</h5>
 
                               <div className="row g-3">
                                    <div className="col-sm-6">
-                                        <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+                                        <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
                                              <div className="text-muted small mb-1">Created By</div>
                                              <div className="fw-bold">{config.created_by_name || `User ID: ${config.created_by}`}</div>
                                         </div>
                                    </div>
                                    <div className="col-sm-6">
-                                        <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+                                        <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
                                              <div className="text-muted small mb-1">Created At</div>
                                              <div className="fw-bold">{formatDate(config.created_at)}</div>
                                         </div>
                                    </div>
                                    <div className="col-sm-6">
-                                        <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+                                        <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
                                              <div className="text-muted small mb-1">Last Updated</div>
                                              <div className="fw-bold">{formatDate(config.updated_at)}</div>
                                         </div>
                                    </div>
                                    <div className="col-sm-6">
-                                        <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+                                        <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
                                              <div className="text-muted small mb-1">Tax Bands</div>
                                              <div className="fw-bold">{config.tax_bands.length} bands</div>
                                         </div>
@@ -453,7 +457,7 @@ export default function TaxConfigurationDetailPage() {
 
                     {/* Audit Information */}
                     <div className="col-lg-6">
-                         <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <h5 className="mb-4 d-flex align-items-center">
                                    <RiCalendarLine size={20} className="me-2" />
                                    Audit Information
@@ -461,14 +465,14 @@ export default function TaxConfigurationDetailPage() {
 
                               <div className="row g-3">
                                    <div className="col-12">
-                                        <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+                                        <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
                                              <div className="text-muted small mb-1">Created</div>
                                              <div className="fw-bold">{formatDate(config.created_at)}</div>
                                              <div className="text-muted small">by {config.created_by_name || `User ID: ${config.created_by}`}</div>
                                         </div>
                                    </div>
                                    <div className="col-12">
-                                        <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+                                        <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
                                              <div className="text-muted small mb-1">Last Updated</div>
                                              <div className="fw-bold">{formatDate(config.updated_at)}</div>
                                         </div>
@@ -479,11 +483,11 @@ export default function TaxConfigurationDetailPage() {
 
                     {/* Tax Bands Table */}
                     <div className="col-12">
-                         <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <h5 className="mb-4">Tax Bands</h5>
 
-                              <div className="table-responsive">
-                                   <table className="table table-hover table-sm">
+                              <div className={screens.tableWrap}>
+                                   <table className={screens.table}>
                                         <thead className="table-light">
                                              <tr>
                                                   <th className="text-start">Min Amount</th>
@@ -509,7 +513,7 @@ export default function TaxConfigurationDetailPage() {
 
                     {/* Tax Reliefs */}
                     <div className="col-12">
-                         <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4">
                                    <h5 className="mb-0 d-flex align-items-center">
                                         <RiShieldCheckLine size={20} className="me-2" />
@@ -525,7 +529,7 @@ export default function TaxConfigurationDetailPage() {
                                         <button
                                              type="button"
                                              className="btn btn-primary btn-sm d-flex align-items-center"
-                                             onClick={openCreateReliefModal}
+                                             disabled={config.managed_by==='ghana_setup'} onClick={openCreateReliefModal}
                                              style={{ backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT }}
                                         >
                                              <RiAddLine size={16} className="me-1" /> Quick Add
@@ -537,10 +541,10 @@ export default function TaxConfigurationDetailPage() {
                                    When active relief rows exist for this configuration, they take precedence over the default tax calculation settings for this year.
                               </p>
 
-                              {reliefError && <div className="alert alert-danger">{reliefError}</div>}
+                              {reliefError && <div role="alert" className="alert alert-danger">{reliefError}</div>}
 
-                              <div className="table-responsive">
-                                   <table className="table table-hover table-sm">
+                              <div className={screens.tableWrap}>
+                                   <table className={screens.table}>
                                         <thead className="table-light">
                                              <tr>
                                                   <th>Code</th>
@@ -589,7 +593,7 @@ export default function TaxConfigurationDetailPage() {
                                              {!reliefsLoading && reliefs.length === 0 && (
                                                   <tr>
                                                        <td colSpan={7} className="text-center text-muted py-4">
-                                                            No dynamic tax reliefs configured for this tax year. The fixed exemption fields above will be used.
+                                                            {config.managed_by==='ghana_setup'?'Employee-approved reliefs are managed in Ghana payroll setup.':'No dynamic tax reliefs configured for this tax year. The fixed exemption fields above will be used.'}
                                                        </td>
                                                   </tr>
                                              )}
@@ -618,18 +622,18 @@ export default function TaxConfigurationDetailPage() {
                                    <form onSubmit={handleReliefSubmit} className="p-4">
                                         <div className="mb-3">
                                              <label className="form-label fw-medium">Relief Code</label>
-                                             <input type="text" name="relief_code" className="form-control" value={reliefFormData.relief_code} onChange={handleReliefChange} placeholder="DEPENDENT_RELIEF (optional)" />
+                                             <input aria-label="Relief Code" type="text" name="relief_code" className="form-control" value={reliefFormData.relief_code} onChange={handleReliefChange} placeholder="DEPENDENT_RELIEF (optional)" />
                                         </div>
 
                                         <div className="mb-3">
-                                             <label className="form-label fw-medium">Relief Name</label>
-                                             <input type="text" name="relief_name" className="form-control" value={reliefFormData.relief_name} onChange={handleReliefChange} placeholder="Dependent Relief" required />
+                                             <label className="form-label fw-medium">Relief Name <span className="text-danger" aria-hidden="true">*</span></label>
+                                             <input aria-label="Relief Name" type="text" name="relief_name" className="form-control" value={reliefFormData.relief_name} onChange={handleReliefChange} placeholder="Dependent Relief" required />
                                         </div>
 
                                         <div className="row g-3 mb-3">
                                              <div className="col-md-6">
-                                                  <label className="form-label fw-medium">Calculation Method</label>
-                                                  <select name="calculation_method" className="form-select" value={reliefFormData.calculation_method} onChange={handleReliefChange} required>
+                                                  <label className="form-label fw-medium">Calculation Method <span className="text-danger" aria-hidden="true">*</span></label>
+                                                  <select aria-label="Calculation Method" name="calculation_method" className="form-select" value={reliefFormData.calculation_method} onChange={handleReliefChange} required>
                                                        {RELIEF_CALCULATION_METHODS.map((method) => (
                                                             <option key={method} value={method}>
                                                                  {method.replace(/_/g, ' ')}
@@ -638,8 +642,8 @@ export default function TaxConfigurationDetailPage() {
                                                   </select>
                                              </div>
                                              <div className="col-md-6">
-                                                  <label className="form-label fw-medium">Amount</label>
-                                                  <input type="number" min="0" step="0.01" name="amount" className="form-control" value={reliefFormData.amount} onChange={handleReliefChange} required />
+                                                  <label className="form-label fw-medium">Amount <span className="text-danger" aria-hidden="true">*</span></label>
+                                                  <input aria-label="Amount" type="number" min="0" step="0.01" name="amount" className="form-control" value={reliefFormData.amount} onChange={handleReliefChange} required />
                                              </div>
                                         </div>
 

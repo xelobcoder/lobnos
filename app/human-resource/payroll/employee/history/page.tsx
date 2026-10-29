@@ -1,9 +1,12 @@
 'use client';
+import PayrollHistoryDetails from '../../PayrollHistoryDetails';
+import screens from '../../PayrollScreens.module.css';
 
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { customFetch } from '../../../../../components/Auth/customFetch';
 import { useApplication } from '../../../../../components/Auth/useApplicationContext';
+import { roleAllowed } from '../../../../../components/Auth/roles';
 
 
 interface PayrollTransaction {
@@ -44,7 +47,11 @@ interface PayrollTransaction {
 
 export default function EmployeeHistoryPage() {
      const searchParams = useSearchParams();
-     const employeeId = useApplication()?.user?.employeeid;
+     const user = useApplication()?.user;
+     const employeeId = user?.employeeid;
+     const historySubject = roleAllowed(user?.role, ['admin', 'accountant']) ? 'all' : employeeId;
+     const [historySearch, setHistorySearch] = useState('');
+     const [showCustomCount, setShowCustomCount] = useState(false);
      const [transactions, setTransactions] = useState<PayrollTransaction[]>([]);
      const [selectedTransaction, setSelectedTransaction] = useState<PayrollTransaction | null>(null);
      const [showModal, setShowModal] = useState(false);
@@ -53,10 +60,11 @@ export default function EmployeeHistoryPage() {
      const [customPageSize, setCustomPageSize] = useState('');
      const [totalRecords, setTotalRecords] = useState(0);
      const [loading, setLoading] = useState(false);
+     const [loadError, setLoadError] = useState<string | null>(null);
 
      useEffect(() => {
-          fetchEmployeeHistory();
-     }, [currentPage, pageSize]);
+          if (historySubject) fetchEmployeeHistory();
+     }, [currentPage, pageSize, historySubject]);
 
      useEffect(() => {
           // Sync customPageSize with pageSize when it changes
@@ -69,15 +77,19 @@ export default function EmployeeHistoryPage() {
 
      const fetchEmployeeHistory = async () => {
           setLoading(true);
+          setLoadError(null);
           try {
                const response = await customFetch(
-                    `payroll/employee/all/history?page=${currentPage}&count=${pageSize}`
+                    `payroll/employee/${historySubject}/history?page=${currentPage}&count=${pageSize}`
                );
                if (response?.status === 'success' && response?.statusCode === 200) {
                     setTransactions(response.result || []);
-                    setTotalRecords(response.result?.length || 0);
+                    setTotalRecords(Number(response.pagination?.total ?? response.result?.length ?? 0));
+               } else {
+                    setLoadError(response?.message || 'Unable to load payroll history.');
                }
           } catch (err) {
+               setLoadError('Unable to load payroll history. Check your connection and retry.');
                setTransactions([]);
                setTotalRecords(0);
           } finally {
@@ -92,10 +104,10 @@ export default function EmployeeHistoryPage() {
 
      const closeModal = () => {
           setShowModal(false);
-          setSelectedTransaction(null);
+
      };
 
-     const currencyFormatter = new Intl.NumberFormat('en-US', {
+     const currencyFormatter = new Intl.NumberFormat('en-GH', {
           style: 'currency',
           currency: 'GHS',
           minimumFractionDigits: 2,
@@ -134,253 +146,25 @@ export default function EmployeeHistoryPage() {
           }
      }
 
+     const visibleTransactions = transactions.filter(transaction => [transaction.employeename, transaction.employeeid, transaction.payroll_period_id, transaction.status].join(" ").toLowerCase().includes(historySearch.trim().toLowerCase()));
+     if (loadError) return <div className={screens.page}><div role="alert" className="alert alert-danger"><p>{loadError}</p><button type="button" className="btn btn-outline-danger" onClick={fetchEmployeeHistory}>Retry loading</button></div></div>;
      return (
-          <div className="container-fluid p-4">
+          <div className={screens.page}>
                {/* Header */}
-               <div className="d-flex justify-content-between align-items-center mb-4">
+               <div className={screens.header}>
                     <div>
-                         <h2 className="mb-1">
-                              Employee Payroll History
-                         </h2>
+                         <span className={screens.eyebrow}>Payroll / Employee reports</span><h1 className={screens.title}>Employee Payroll History</h1>
                          <p className="text-muted mb-0">View and manage employee payroll transactions</p>
                     </div>
                </div>
 
                {/* Card Table Section */}
-               <div className="border rounded p-3 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                    <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
-                         <div className="d-flex align-items-center gap-2">
-                              <label className="form-label mb-0">Show:</label>
-                              <select
-                                   className="form-select form-select-sm"
-                                   value={[5, 10, 25, 50, 100, 250, 500, 1000].includes(pageSize) ? pageSize : ''}
-                                   onChange={(e) => {
-                                        const value = Number(e.target.value);
-                                        handlePageSizeChange(value);
-                                        setCustomPageSize(''); // Clear custom input when selecting from dropdown
-                                   }}
-                                   style={{ width: 'auto' }}
-                              >
-                                   <option value={5}>5</option>
-                                   <option value={10}>10</option>
-                                   <option value={25}>25</option>
-                                   <option value={50}>50</option>
-                                   <option value={100}>100</option>
-                                   <option value={250}>250</option>
-                                   <option value={500}>500</option>
-                                   <option value={1000}>1000</option>
-                              </select>
-                              <span>entries</span>
-                              <span className="text-muted mx-2">or</span>
-                              <input
-                                   type="number"
-                                   className="form-control form-control-sm"
-                                   placeholder="Custom"
-                                   min="1"
-                                   max="1000"
-                                   value={customPageSize}
-                                   onChange={(e) => {
-                                        const value = e.target.value;
-                                        setCustomPageSize(value);
-                                        const numValue = Number(value);
-                                        if (numValue >= 1 && numValue <= 1000) {
-                                             handlePageSizeChange(numValue);
-                                        }
-                                   }}
-                                   onBlur={() => {
-                                        // Clear custom input if it's not a valid number or out of range
-                                        const numValue = Number(customPageSize);
-                                        if (isNaN(numValue) || numValue < 1 || numValue > 1000) {
-                                             setCustomPageSize('');
-                                        }
-                                   }}
-                                   style={{ width: '80px' }}
-                              />
-                         </div>
-                    </div>
-                    <div className="table-responsive">
-                         <table className="table table-striped">
-                              <thead>
-                                   <tr>
-                                        <th className="text-start">Employee Name</th>
-                                        <th className="text-start">Payment Period</th>
-                                        <th className="text-start">Payment Date</th>
-                                        <th className="text-start">Gross Salary</th>
-                                        <th className="text-start">Total Deductions</th>
-                                        <th className="text-start">Net Salary</th>
-                                        <th className="text-start">Days Worked</th>
-                                        <th className="text-start">Hours Worked</th>
-                                        <th className="text-start">Status</th>
-                                        <th className="text-start">Payment Method</th>
-                                        <th className="text-start">Actions</th>
-                                   </tr>
-                              </thead>
-                              <tbody>
-                                   {loading ? (
-                                        <tr>
-                                             <td colSpan={11} className="text-center py-4">
-                                                  <div className="spinner-border spinner-border-sm" role="status">
-                                                       <span className="visually-hidden">Loading...</span>
-                                                  </div>
-                                                  <span className="ms-2">Loading...</span>
-                                             </td>
-                                        </tr>
-                                   ) : transactions.length === 0 ? (
-                                        <tr>
-                                             <td colSpan={11} className="text-start py-4">
-                                                  No payroll records found.
-                                             </td>
-                                        </tr>
-                                   ) : (
-                                        Array.isArray(transactions) && transactions.map((transaction) => (
-                                             <tr key={transaction.id}>
-                                                  <td className="text-start">{transaction.employeename}</td>
-                                                  <td className="text-start">Period {transaction.payroll_period_id}</td>
-                                                  <td className="text-start">{new Date(transaction.payment_date).toLocaleDateString()}</td>
-                                                  <td className="text-start fw-bold">{currencyFormatter.format(transaction.gross_salary)}</td>
-                                                  <td className="text-start text-danger">{currencyFormatter.format(transaction.total_deductions)}</td>
-                                                  <td className="text-start fw-bold text-success">{currencyFormatter.format(transaction.net_salary)}</td>
-                                                  <td className="text-start">{transaction.days_worked}</td>
-                                                  <td className="text-start">{transaction.hours_worked}</td>
-                                                  <td className="text-start">
-                                                       <span className={`badge ${transaction.status === 'paid' ? 'bg-success' : 'bg-warning'}`}>
-                                                            {transaction.status}
-                                                       </span>
-                                                  </td>
-                                                  <td className="text-start">
-                                                       {transaction.payment_method}
-                                                  </td>
-                                                  <td className="text-start">
-                                                       <button
-                                                            className="btn btn-sm btn-primary me-2"
-                                                            onClick={() => openBreakdownModal(transaction)}
-                                                       >
-                                                            View Breakdown
-                                                       </button>
-                                                       <button
-                                                            className="btn btn-sm btn-secondary"
-                                                            onClick={() => window.open(`/human-resource/payroll/employee/history/${transaction.employeeid}`, '_blank')}
-                                                       >
-                                                            View History
-                                                       </button>
-                                                  </td>
-                                             </tr>
-                                        ))
-                                   )}
-                              </tbody>
-                         </table>
-                    </div>
-                    {/* Pagination */}
-                    <div className="d-flex justify-content-between align-items-center mt-3">
-                         <div>
-                              Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalRecords)} of {totalRecords} entries
-                         </div>
-                         <nav>
-                              <ul className="pagination pagination-sm mb-0">
-                                   <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-                                        <button
-                                             className="page-link"
-                                             onClick={() => handlePageChange(currentPage - 1)}
-                                             disabled={currentPage === 1}
-                                        >
-                                             Previous
-                                        </button>
-                                   </li>
-                                   {Array.from({ length: Math.ceil(totalRecords / pageSize) }, (_, i) => i + 1)
-                                        .filter(page => {
-                                             const totalPages = Math.ceil(totalRecords / pageSize);
-                                             if (totalPages <= 7) return true;
-                                             if (page === 1 || page === totalPages) return true;
-                                             if (Math.abs(page - currentPage) <= 1) return true;
-                                             return false;
-                                        })
-                                        .map((page, index, array) => (
-                                             <React.Fragment key={page}>
-                                                  {index > 0 && array[index - 1] !== page - 1 && (
-                                                       <li className="page-item disabled">
-                                                            <span className="page-link">...</span>
-                                                       </li>
-                                                  )}
-                                                  <li className={`page-item ${page === currentPage ? 'active' : ''}`}>
-                                                       <button
-                                                            className="page-link"
-                                                            onClick={() => handlePageChange(page)}
-                                                       >
-                                                            {page}
-                                                       </button>
-                                                  </li>
-                                             </React.Fragment>
-                                        ))}
-                                   <li className={`page-item ${currentPage === Math.ceil(totalRecords / pageSize) ? 'disabled' : ''}`}>
-                                        <button
-                                             className="page-link"
-                                             onClick={() => handlePageChange(currentPage + 1)}
-                                             disabled={currentPage === Math.ceil(totalRecords / pageSize)}
-                                        >
-                                             Next
-                                        </button>
-                                   </li>
-                              </ul>
-                         </nav>
-                    </div>
-               </div>
-               {showModal && selectedTransaction && (
-                    <div className="modal fade show d-block" tabIndex={-1} style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                         <div className="modal-dialog modal-lg">
-                              <div className="modal-content">
-                                   <div className="modal-header">
-                                        <h5 className="modal-title">Payroll Breakdown - {selectedTransaction.employeename}</h5>
-                                        <button type="button" className="btn-close" onClick={closeModal}></button>
-                                   </div>
-                                   <div className="modal-body">
-                                        <div className="row">
-                                             <div className="col-md-6">
-                                                  <h6 className="text-primary">Earnings</h6>
-                                                  <div className="mb-2 text-start"><strong>Basic Salary:</strong> {currencyFormatter.format(selectedTransaction.basic_salary)}</div>
-                                                  <div className="mb-2 text-start"><strong>Hourly Earnings:</strong> {currencyFormatter.format(selectedTransaction.hourly_earnings)}</div>
-                                                  <div className="mb-2 text-start"><strong>Overtime Earnings:</strong> {currencyFormatter.format(selectedTransaction.overtime_earnings)}</div>
-                                                  <div className="mb-2 text-start"><strong>Commission:</strong> {currencyFormatter.format(selectedTransaction.commission_earnings)}</div>
-                                                  <div className="mb-2 text-start"><strong>Total Allowances:</strong> {currencyFormatter.format(selectedTransaction.total_allowances)}</div>
-                                                  <div className="mb-2 text-start"><strong>Total Bonuses:</strong> {currencyFormatter.format(selectedTransaction.total_bonuses)}</div>
-                                                  <div className="mb-2 fw-bold text-start"><strong>Gross Salary:</strong> {currencyFormatter.format(selectedTransaction.gross_salary)}</div>
-                                             </div>
-                                             <div className="col-md-6">
-                                                  <h6 className="text-danger">Deductions</h6>
-                                                  <div className="mb-2 text-start"><strong>Income Tax:</strong> {currencyFormatter.format(selectedTransaction.income_tax)}</div>
-                                                  <div className="mb-2 text-start"><strong>Employee SSNIT:</strong> {currencyFormatter.format(selectedTransaction.employee_ssnit)}</div>
-                                                  <div className="mb-2 text-start"><strong>Employee Tier 3:</strong> {currencyFormatter.format(selectedTransaction.employee_tier3)}</div>
-                                                  <div className="mb-2 text-start"><strong>NHIS:</strong> {currencyFormatter.format(selectedTransaction.nhis)}</div>
-                                                  <div className="mb-2 text-start"><strong>Other Deductions:</strong> {currencyFormatter.format(selectedTransaction.total_other_deductions)}</div>
-                                                  <div className="mb-2 fw-bold text-start"><strong>Total Deductions:</strong> {currencyFormatter.format(selectedTransaction.total_deductions)}</div>
-                                                  <div className="mb-2 fw-bold text-success text-start"><strong>Net Salary:</strong> {currencyFormatter.format(selectedTransaction.net_salary)}</div>
-                                             </div>
-                                        </div>
-                                        <hr />
-                                        <div className="row">
-                                             <div className="col-md-6">
-                                                  <h6 className="text-info">Work Details</h6>
-                                                  <div className="mb-2 text-start"><strong>Days Worked:</strong> {selectedTransaction.days_worked}</div>
-                                                  <div className="mb-2 text-start"><strong>Hours Worked:</strong> {selectedTransaction.hours_worked}</div>
-                                                  <div className="mb-2 text-start"><strong>Overtime Hours:</strong> {selectedTransaction.overtime_hours}</div>
-                                                  <div className="mb-2 text-start"><strong>Days Absent:</strong> {selectedTransaction.days_absent}</div>
-                                                  <div className="mb-2 text-start"><strong>Days Leave:</strong> {selectedTransaction.days_leave}</div>
-                                             </div>
-                                             <div className="col-md-6">
-                                                  <h6 className="text-secondary">Payment Details</h6>
-                                                  <div className="mb-2 text-start"><strong>Payroll Period:</strong> Period {selectedTransaction.payroll_period_id}</div>
-                                                  <div className="mb-2 text-start"><strong>Payment Date:</strong> {new Date(selectedTransaction.payment_date).toLocaleDateString()}</div>
-                                                  <div className="mb-2 text-start"><strong>Payment Method:</strong> {selectedTransaction.payment_method}</div>
-                                                  <div className="mb-2 text-start"><strong>Status:</strong> <span className={`badge ${selectedTransaction.status === 'paid' ? 'bg-success' : 'bg-warning'}`}>{selectedTransaction.status}</span></div>
-                                             </div>
-                                        </div>
-                                   </div>
-                                   <div className="modal-footer">
-                                        <button type="button" className="btn btn-outline-secondary btn-sm" onClick={closeModal}>Close</button>
-                                   </div>
-                              </div>
-                         </div>
-                    </div>
-               )}
+               <section className={screens.historyPanel} aria-label="Payroll transactions" aria-busy={loading}><div className={screens.toolbar}><div><h2 className="h6 mb-1">Payroll transactions</h2><p className="small text-muted mb-0">{totalRecords} records</p></div><input className="form-control" type="search" aria-label="Filter loaded payroll records" placeholder="Filter this page by employee, period or status" value={historySearch} onChange={e=>setHistorySearch(e.target.value)} style={{width:320,maxWidth:'100%'}}/></div>
+ <div className={screens.tableWrap}><table className={screens.table}><thead><tr><th>Employee</th><th>Period / payment date</th><th className="text-end">Gross salary</th><th className="text-end">Deductions</th><th className="text-end">Net salary</th><th>Status / method</th><th className="text-end">Actions</th></tr></thead><tbody>
+ {loading?<tr><td colSpan={7} className="text-center py-4" role="status">Loading payroll history…</td></tr>:visibleTransactions.length===0?<tr><td colSpan={7} className="text-center py-4">{historySearch?'No loaded records match this filter.':'No payroll records found.'}</td></tr>:visibleTransactions.map(transaction=><tr key={transaction.id}><td><strong>{transaction.employeename || 'Employee'}</strong><small className="d-block text-muted">Employee #{transaction.employeeid}</small></td><td><strong>Period #{transaction.payroll_period_id}</strong><small className="d-block text-muted">{transaction.payment_date ? new Date(transaction.payment_date).toLocaleDateString('en-GB') : 'Not paid'}</small></td><td className="text-end text-nowrap">{currencyFormatter.format(Number(transaction.gross_salary)||0)}</td><td className="text-end text-nowrap">{currencyFormatter.format(Number(transaction.total_deductions)||0)}</td><td className="text-end text-nowrap"><strong>{currencyFormatter.format(Number(transaction.net_salary)||0)}</strong></td><td><span className={screens.paymentStatus} data-status={transaction.status}>{transaction.status}</span><small className="d-block text-muted mt-1">{transaction.payment_method?.replaceAll('_',' ') || 'Not recorded'}</small></td><td><div className="d-flex gap-2 justify-content-end"><button type="button" className="btn btn-sm btn-outline-primary" onClick={()=>openBreakdownModal(transaction)}>Breakdown</button><a className="btn btn-sm btn-outline-secondary" href={`/human-resource/payroll/employee/history/${transaction.employeeid}`} target="_blank" rel="noopener noreferrer">History</a></div></td></tr>)}
+ </tbody></table></div>
+ <footer className={screens.historyFooter}><span>{historySearch?`${visibleTransactions.length} matching rows on this page`:`Showing ${totalRecords===0?0:(currentPage-1)*pageSize+1}–${Math.min(currentPage*pageSize,totalRecords)} of ${totalRecords}`}</span><div className="d-flex align-items-center gap-2 flex-wrap"><label className="small">Rows <select aria-label="Payroll history rows per page" disabled={loading} className="form-select form-select-sm d-inline-block w-auto ms-2" value={showCustomCount?'custom':pageSize} onChange={e=>{if(e.target.value==='custom'){setShowCustomCount(true);setCustomPageSize(String(pageSize));}else{setShowCustomCount(false);handlePageSizeChange(Number(e.target.value));}}}>{[5,10,25,50,100,250,500,1000].map(size=><option key={size} value={size}>{size}</option>)}<option value="custom">Custom</option></select></label>{showCustomCount&&<><input aria-label="Custom payroll history row count" className="form-control form-control-sm" type="number" min={1} max={1000} value={customPageSize} onChange={e=>setCustomPageSize(e.target.value)} style={{width:85}}/><button className="btn btn-sm btn-outline-primary" type="button" disabled={!Number.isInteger(Number(customPageSize))||Number(customPageSize)<1||Number(customPageSize)>1000} onClick={()=>handlePageSizeChange(Number(customPageSize))}>Apply</button></>}<button className="btn btn-sm btn-outline-secondary" type="button" disabled={loading||currentPage<=1} onClick={()=>handlePageChange(currentPage-1)}>Previous</button><span className="small">Page {currentPage}</span><button className="btn btn-sm btn-outline-secondary" type="button" disabled={loading||currentPage*pageSize>=totalRecords} onClick={()=>handlePageChange(currentPage+1)}>Next</button></div></footer></section>
+               <PayrollHistoryDetails show={showModal} transaction={selectedTransaction} onHide={closeModal}/>
           </div>
      );
 }

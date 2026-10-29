@@ -1,4 +1,5 @@
 'use client';
+import screens from '../../PayrollScreens.module.css';
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
@@ -59,7 +60,7 @@ interface DeductionDefinition {
      is_active: boolean;
 }
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_ACCENT = 'var(--pls-primary, #2e7d32)';
 const DEDUCTION_TYPES = ['loan', 'advance', 'garnishment', 'union_dues', 'insurance', 'cooperative', 'welfare', 'savings', 'disciplinary', 'other'];
 const FREQUENCIES = ['monthly', 'bi-weekly', 'weekly', 'one-time'];
 
@@ -543,8 +544,8 @@ export default function OtherDeductionsPage() {
      };
 
      return (
-          <div className="container-fluid px-4 py-3">
-               <div className="d-flex align-items-center justify-content-between mb-4">
+          <div className={screens.page}>
+               <div className={screens.header}>
                     <div className="d-flex align-items-center">
                          <button type="button" onClick={() => router.push('/human-resource/payroll')} className="btn btn-outline-secondary btn-sm me-3">
                               <RiArrowLeftLine size={18} />
@@ -552,7 +553,8 @@ export default function OtherDeductionsPage() {
                          <div className="d-flex align-items-center">
                               <RiBankCardLine size={28} style={{ color: COLOR_ACCENT }} className="me-2" />
                               <div>
-                                   <h1 className="h4 mb-0 fw-bold">Other Deductions</h1>
+                                   <span className={screens.eyebrow}>Payroll / Pay additions & deductions</span>
+<h1 className={screens.title}>Other Deductions</h1>
                                    <p className="text-muted mb-0 small">Manage loans, advances, and other employee deductions</p>
                               </div>
                          </div>
@@ -569,7 +571,7 @@ export default function OtherDeductionsPage() {
 
                <div className="row g-3 mb-4">
                     <div className="col-md-3">
-                         <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex align-items-center mb-2">
                                    <RiUserLine size={18} className="me-2 text-primary" />
                                    <span className="small text-muted fw-medium">Selected Employee</span>
@@ -579,7 +581,7 @@ export default function OtherDeductionsPage() {
                          </div>
                     </div>
                     <div className="col-md-3">
-                         <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex align-items-center mb-2">
                                    <RiCheckboxCircleLine size={18} className="me-2 text-success" />
                                    <span className="small text-muted fw-medium">Employee Deductions</span>
@@ -589,7 +591,7 @@ export default function OtherDeductionsPage() {
                          </div>
                     </div>
                     <div className="col-md-3">
-                         <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex align-items-center mb-2">
                                    <RiShieldCheckLine size={18} className="me-2 text-warning" />
                                    <span className="small text-muted fw-medium">Recurring Monthly Total</span>
@@ -599,7 +601,7 @@ export default function OtherDeductionsPage() {
                          </div>
                     </div>
                     <div className="col-md-3">
-                         <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex align-items-center mb-2">
                                    <RiCheckboxCircleLine size={18} className="me-2 text-info" />
                                    <span className="small text-muted fw-medium">Pending Approvals</span>
@@ -611,7 +613,7 @@ export default function OtherDeductionsPage() {
                </div>
 
                {error && (
-                    <div className="alert alert-danger d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+                    <div role="alert" className="alert alert-danger d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
                          <span>{error}</span>
                          {loanAdjustmentSuggestion && (
                               <button
@@ -627,7 +629,7 @@ export default function OtherDeductionsPage() {
 
                <div className="row g-4">
                     <div className="col-12">
-                         <div className="border rounded p-4 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <h5 className="fw-semibold mb-3">Employee Deduction Breakdown</h5>
                               <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
                                    <div>
@@ -639,8 +641,8 @@ export default function OtherDeductionsPage() {
                                    </Link>
                               </div>
 
-                              <div className="table-responsive">
-                                   <table className="table table-sm table-hover text-start mb-0">
+                              <div className={screens.tableWrap}>
+                                   <table className={screens.table}>
                                         <thead>
                                              <tr>
                                                   <th className="text-start">Name</th>
@@ -703,10 +705,10 @@ export default function OtherDeductionsPage() {
 
                          <div className="row g-4">
                               <div className="col-lg-6">
-                                   <div className="border rounded p-4 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                         <h5 className="fw-semibold mb-3">Pending Approvals</h5>
-                                        <div className="table-responsive">
-                                             <table className="table table-sm table-hover text-start mb-0">
+                                        <div className={screens.tableWrap}>
+                                             <table className={screens.table}>
                                                   <thead>
                                                        <tr>
                                                             <th className="text-start">Employee</th>
@@ -739,10 +741,10 @@ export default function OtherDeductionsPage() {
                               </div>
 
                               <div className="col-lg-6">
-                                   <div className="border rounded p-4 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                                   <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                         <h5 className="fw-semibold mb-3">Active Deductions</h5>
-                                        <div className="table-responsive">
-                                             <table className="table table-sm table-hover text-start mb-0">
+                                        <div className={screens.tableWrap}>
+                                             <table className={screens.table}>
                                                   <thead>
                                                        <tr>
                                                             <th className="text-start">Employee</th>
@@ -783,13 +785,13 @@ export default function OtherDeductionsPage() {
                               <div className="modal-content">
                                    <div className="modal-header">
                                         <h5 className="modal-title fw-bold">{editingDeductionId ? 'Update Other Deduction' : 'Create Other Deduction'}</h5>
-                                        <button type="button" className="btn-close" onClick={() => setShowDeductionFormModal(false)} disabled={submitting}></button>
+                                        <button type="button" className="btn-close" aria-label="Dismiss message" onClick={() => setShowDeductionFormModal(false)} disabled={submitting}></button>
                                    </div>
-                                   <form onSubmit={handleSubmit}>
+                                   <form onSubmit={handleSubmit}><fieldset disabled={submitting} className={screens.formFields}>
                                         <div className="modal-body">
                                              <div className="mb-3">
-                                                  <label className="form-label fw-medium">Employee</label>
-                                                  <select className="form-select" value={selectedEmployeeId} onChange={(event) => setSelectedEmployeeId(event.target.value)} disabled={employeesLoading} required>
+                                                  <label className="form-label fw-medium">Employee <span className="text-danger" aria-hidden="true">*</span></label>
+                                                  <select aria-label="Employee" className="form-select" value={selectedEmployeeId} onChange={(event) => setSelectedEmployeeId(event.target.value)} disabled={employeesLoading} required>
                                                        <option value="">Select employee</option>
                                                        {employees.map((employee) => (
                                                             <option key={employee.employeeid} value={employee.employeeid}>
@@ -801,7 +803,7 @@ export default function OtherDeductionsPage() {
 
                                              <div className="mb-3">
                                                   <label className="form-label fw-medium">Deduction Definition</label>
-                                                  <select name="deduction_definition_id" className="form-select" value={formData.deduction_definition_id} onChange={handleDefinitionSelect}>
+                                                  <select aria-label="Deduction Definition" name="deduction_definition_id" className="form-select" value={formData.deduction_definition_id} onChange={handleDefinitionSelect}>
                                                        <option value="">Use a custom deduction instead</option>
                                                        {definitions.map((definition) => (
                                                             <option key={definition.id} value={definition.id}>
@@ -817,8 +819,8 @@ export default function OtherDeductionsPage() {
                                              {!formData.deduction_definition_id && (
                                                   <div className="row g-3 mb-3">
                                                        <div className="col-md-6">
-                                                            <label className="form-label fw-medium">Deduction Type</label>
-                                                            <select name="deduction_type" className="form-select" value={formData.deduction_type} onChange={handleChange} required>
+                                                            <label className="form-label fw-medium">Deduction Type <span className="text-danger" aria-hidden="true">*</span></label>
+                                                            <select aria-label="Deduction Type" name="deduction_type" className="form-select" value={formData.deduction_type} onChange={handleChange} required>
                                                                  {DEDUCTION_TYPES.map((type) => (
                                                                       <option key={type} value={type}>
                                                                            {type.replace('_', ' ')}
@@ -827,31 +829,31 @@ export default function OtherDeductionsPage() {
                                                             </select>
                                                        </div>
                                                        <div className="col-md-6">
-                                                            <label className="form-label fw-medium">Deduction Name</label>
-                                                            <input name="deduction_name" type="text" className="form-control" value={formData.deduction_name} onChange={handleChange} placeholder="Staff Loan" required />
+                                                            <label className="form-label fw-medium">Deduction Name <span className="text-danger" aria-hidden="true">*</span></label>
+                                                            <input aria-label="Deduction Name" name="deduction_name" type="text" className="form-control" value={formData.deduction_name} onChange={handleChange} placeholder="Staff Loan" required />
                                                        </div>
                                                   </div>
                                              )}
 
                                              <div className="row g-3 mb-3">
                                                   <div className="col-md-4">
-                                                       <label className="form-label fw-medium">Amount</label>
-                                                       <input name="amount" type="number" step="0.01" min="0" className="form-control" value={formData.amount} onChange={handleChange} required />
+                                                       <label className="form-label fw-medium">Amount <span className="text-danger" aria-hidden="true">*</span></label>
+                                                       <input aria-label="Amount" name="amount" type="number" step="0.01" min="0" className="form-control" value={formData.amount} onChange={handleChange} required />
                                                   </div>
                                                   <div className="col-md-4">
-                                                       <label className="form-label fw-medium">Priority</label>
-                                                       <input name="deduction_priority" type="number" step="1" min="1" className="form-control" value={formData.deduction_priority} onChange={handleChange} required />
+                                                       <label className="form-label fw-medium">Priority <span className="text-danger" aria-hidden="true">*</span></label>
+                                                       <input aria-label="Priority" name="deduction_priority" type="number" step="1" min="1" className="form-control" value={formData.deduction_priority} onChange={handleChange} required />
                                                   </div>
                                                   <div className="col-md-4">
-                                                       <label className="form-label fw-medium">Start Date</label>
-                                                       <input name="start_date" type="date" className="form-control" value={formData.start_date} onChange={handleChange} required />
+                                                       <label className="form-label fw-medium">Start Date <span className="text-danger" aria-hidden="true">*</span></label>
+                                                       <input aria-label="Start Date" name="start_date" type="date" className="form-control" value={formData.start_date} onChange={handleChange} required />
                                                   </div>
                                              </div>
 
                                              <div className="row g-3 mb-3">
                                                   <div className="col-md-6">
                                                        <label className="form-label fw-medium">Frequency</label>
-                                                       <select name="frequency" className="form-select" value={formData.frequency} onChange={handleChange}>
+                                                       <select aria-label="Frequency" name="frequency" className="form-select" value={formData.frequency} onChange={handleChange}>
                                                             {FREQUENCIES.map((frequency) => (
                                                                  <option key={frequency} value={frequency}>
                                                                       {frequency}
@@ -870,17 +872,17 @@ export default function OtherDeductionsPage() {
                                              <div className="row g-3 mb-3">
                                                   <div className="col-md-6">
                                                        <label className="form-label fw-medium">Total Amount</label>
-                                                       <input name="total_amount" type="number" step="0.01" min="0" className="form-control" value={formData.total_amount} onChange={handleChange} placeholder="Required for one-time deductions" />
+                                                       <input aria-label="Total Amount" name="total_amount" type="number" step="0.01" min="0" className="form-control" value={formData.total_amount} onChange={handleChange} placeholder="Required for one-time deductions" />
                                                   </div>
                                                   <div className="col-md-6">
                                                        <label className="form-label fw-medium">Remaining Balance</label>
-                                                       <input name="remaining_balance" type="number" step="0.01" min="0" className="form-control" value={formData.remaining_balance} onChange={handleChange} placeholder="Optional; defaults to total amount" />
+                                                       <input aria-label="Remaining Balance" name="remaining_balance" type="number" step="0.01" min="0" className="form-control" value={formData.remaining_balance} onChange={handleChange} placeholder="Optional; defaults to total amount" />
                                                   </div>
                                              </div>
 
                                              <div className="mb-3">
                                                   <label className="form-label fw-medium">End Date</label>
-                                                  <input name="end_date" type="date" className="form-control" value={formData.end_date} onChange={handleChange} min={formData.start_date} />
+                                                  <input aria-label="End Date" name="end_date" type="date" className="form-control" value={formData.end_date} onChange={handleChange} min={formData.start_date} />
                                              </div>
 
                                              <div className="mb-3 form-check">
@@ -892,12 +894,12 @@ export default function OtherDeductionsPage() {
 
                                              <div className="mb-3">
                                                   <label className="form-label fw-medium">Remarks</label>
-                                                  <textarea name="remarks" className="form-control" rows={3} value={formData.remarks} onChange={handleChange} placeholder="Optional notes for payroll" />
+                                                  <textarea aria-label="Remarks" name="remarks" className="form-control" rows={3} value={formData.remarks} onChange={handleChange} placeholder="Optional notes for payroll" />
                                              </div>
 
                                              <div className="mb-1">
                                                   <label className="form-label fw-medium">Attachments</label>
-                                                  <input name="attachments" type="text" className="form-control" value={formData.attachments} onChange={handleChange} placeholder="Optional file path or upload reference" />
+                                                  <input aria-label="Attachments" name="attachments" type="text" className="form-control" value={formData.attachments} onChange={handleChange} placeholder="Optional file path or upload reference" />
                                              </div>
                                         </div>
                                         <div className="modal-footer">
@@ -928,7 +930,7 @@ export default function OtherDeductionsPage() {
                                                   )}
                                              </button>
                                         </div>
-                                   </form>
+                                   </fieldset></form>
                               </div>
                          </div>
                     </div>
@@ -940,17 +942,17 @@ export default function OtherDeductionsPage() {
                               <div className="modal-content">
                                    <div className="modal-header">
                                         <h5 className="modal-title fw-bold">Create Loan Adjustment</h5>
-                                        <button type="button" className="btn-close" onClick={() => setShowLoanAdjustmentModal(false)} disabled={loanAdjustmentSubmitting}></button>
+                                        <button type="button" className="btn-close" aria-label="Dismiss message" onClick={() => setShowLoanAdjustmentModal(false)} disabled={loanAdjustmentSubmitting}></button>
                                    </div>
-                                   <form onSubmit={handleLoanAdjustmentSubmit}>
+                                   <form onSubmit={handleLoanAdjustmentSubmit}><fieldset disabled={loanAdjustmentSubmitting} className={screens.formFields}>
                                         <div className="modal-body">
                                              <div className="small text-muted mb-3">
                                                   {loanAdjustmentSuggestion.deductionName}
                                              </div>
 
                                              <div className="mb-3">
-                                                  <label className="form-label fw-medium">Adjustment Action</label>
-                                                  <select
+                                                  <label className="form-label fw-medium">Adjustment Action <span className="text-danger" aria-hidden="true">*</span></label>
+                                                  <select aria-label="Adjustment Action"
                                                        className="form-select"
                                                        name="adjustment_action"
                                                        value={loanAdjustmentForm.adjustment_action}
@@ -963,8 +965,8 @@ export default function OtherDeductionsPage() {
                                              </div>
 
                                              <div className="mb-3">
-                                                  <label className="form-label fw-medium">Adjustment Amount</label>
-                                                  <input
+                                                  <label className="form-label fw-medium">Adjustment Amount <span className="text-danger" aria-hidden="true">*</span></label>
+                                                  <input aria-label="Adjustment Amount"
                                                        type="number"
                                                        step="0.01"
                                                        min="0.01"
@@ -977,8 +979,8 @@ export default function OtherDeductionsPage() {
                                              </div>
 
                                              <div>
-                                                  <label className="form-label fw-medium">Reason</label>
-                                                  <textarea
+                                                  <label className="form-label fw-medium">Reason <span className="text-danger" aria-hidden="true">*</span></label>
+                                                  <textarea aria-label="Reason"
                                                        className="form-control"
                                                        rows={3}
                                                        name="reason"
@@ -997,7 +999,7 @@ export default function OtherDeductionsPage() {
                                                   {loanAdjustmentSubmitting ? 'Submitting...' : 'Submit Adjustment'}
                                              </button>
                                         </div>
-                                   </form>
+                                   </fieldset></form>
                               </div>
                          </div>
                     </div>

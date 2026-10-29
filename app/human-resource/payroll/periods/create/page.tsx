@@ -1,4 +1,7 @@
 'use client';
+import PayrollFormFrame from '../../PayrollFormFrame';
+import screens from '../../PayrollScreens.module.css';
+import PayrollFormSummary from '../../PayrollFormSummary';
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -12,7 +15,7 @@ import {
 } from '@remixicon/react';
 import Link from 'next/link';
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_ACCENT = 'var(--pls-primary, #2e7d32)';
 
 export default function CreatePayrollPeriodPage() {
      const router = useRouter();
@@ -76,10 +79,10 @@ export default function CreatePayrollPeriodPage() {
      };
 
      return (
-          <div className="container-fluid px-4 py-3">
-               <div className="d-flex align-items-center mb-4">
+          <PayrollFormFrame busy={loading} className={screens.page}>
+               <div className={screens.header}>
                     <button
-                         onClick={handleGoBack}
+                         data-payroll-back aria-label="Back to payroll periods" onClick={handleGoBack}
                          className="btn btn-outline-secondary btn-sm me-3 d-flex align-items-center"
                          type="button"
                     >
@@ -88,23 +91,25 @@ export default function CreatePayrollPeriodPage() {
                     <div className="d-flex align-items-center">
                          <RiCalendarLine size={28} style={{ color: COLOR_ACCENT }} className="me-2" />
                          <div>
-                              <h1 className="h4 mb-0 fw-bold">Create Payroll Period</h1>
+                              <span className={screens.eyebrow}>Payroll / Payroll operations</span>
+<h1 className={screens.title}>Create Payroll Period</h1>
                               <p className="text-muted mb-0 small">Define a new payroll cycle</p>
                          </div>
                     </div>
                </div>
 
-               <div className="row">
-                    <div className="col-lg-8 col-xl-6">
-                         <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+               <div className={screens.editorGrid}>
+                    <div className={screens.editorMain}>
+                         <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               {error && (
                                    <div className="alert alert-danger alert-dismissible fade show" role="alert">
                                         {error}
-                                        <button type="button" className="btn-close" onClick={() => setError(null)}></button>
+                                        <button type="button" className="btn-close" aria-label="Dismiss message" onClick={() => setError(null)}></button>
                                    </div>
                               )}
 
                               <form onSubmit={handleSubmit}>
+<fieldset disabled={loading} className={screens.formFields}><p className={screens.formHint}>Fields marked * are required. Review the details before saving.</p>
                                    <div className="mb-3">
                                         <label htmlFor="period_name" className="form-label fw-medium">
                                              Period Name <span className="text-danger">*</span>
@@ -193,22 +198,18 @@ export default function CreatePayrollPeriodPage() {
                                              Cancel
                                         </Link>
                                    </div>
-                              </form>
+                              </fieldset>
+</form>
                          </div>
                     </div>
 
-                    <div className="col-lg-4 col-xl-6 mt-4 mt-lg-0">
-                         <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
-                              <h6 className="fw-bold mb-3">Payroll Period Guidelines</h6>
-                              <ul className="small mb-0">
-                                   <li className="mb-2">Periods typically span one month</li>
-                                   <li className="mb-2">Use clear naming conventions (e.g., &quot;January 2025&quot;)</li>
-                                   <li className="mb-2">Ensure dates don&apos;t overlap with existing periods</li>
-                                   <li className="mb-2">Periods start in &quot;draft&quot; status</li>
-                                   <li className="mb-2">Process payroll after creating the period</li>
-                              </ul>
-                         </div>
-                    </div>
+                    <PayrollFormSummary title="Review payroll period" items={[
+                         {label:'Period name',value:formData.period_name},
+                         {label:'Start date',value:formData.start_date},
+                         {label:'End date',value:formData.end_date},
+                         {label:'Initial status',value:'Draft'}
+                    ]} help="Creating a period does not calculate or pay salaries. Prepare employee compensation for the full date range, then calculate and review payroll."/>
+
                </div>
 
                <style jsx global>{`
@@ -220,6 +221,6 @@ export default function CreatePayrollPeriodPage() {
                     to { transform: rotate(360deg); }
                 }
             `}</style>
-          </div>
+          </PayrollFormFrame>
      );
 }

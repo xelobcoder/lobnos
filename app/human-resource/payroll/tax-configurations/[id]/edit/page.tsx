@@ -1,4 +1,7 @@
 'use client';
+import PayrollFormSummary from '../../../PayrollFormSummary';
+import PayrollFormFrame from '../../../PayrollFormFrame';
+import screens from '../../../PayrollScreens.module.css';
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -50,7 +53,7 @@ interface TaxConfiguration {
      updated_at: string;
 }
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_ACCENT = 'var(--pls-primary, #2e7d32)';
 
 export default function EditTaxConfigurationPage() {
      const params = useParams();
@@ -222,7 +225,7 @@ export default function EditTaxConfigurationPage() {
 
      if (error && !taxConfiguration) {
           return (
-               <div className="container-fluid px-4 py-3">
+               <div className={screens.page}>
                     <div className="d-flex flex-column justify-content-center align-items-center text-center" style={{ minHeight: '400px' }}>
                          <RiErrorWarningLine size={48} className="mb-3 text-danger" />
                          <h5 className="fw-medium mb-1">Error Loading Data</h5>
@@ -236,13 +239,14 @@ export default function EditTaxConfigurationPage() {
      }
 
      return (
-          <div className="container-fluid px-4 py-3">
-               <div className="d-flex align-items-center mb-4">
+          <PayrollFormFrame busy={loading} className={screens.page}>
+               <div className={screens.header}>
                     <Link href={`/human-resource/payroll/tax-configurations/${configId}`} className="btn btn-outline-secondary btn-sm me-3">
                          <RiArrowLeftLine size={18} />
                     </Link>
                     <div className="flex-grow-1">
-                         <h1 className="h4 mb-0 fw-bold d-flex align-items-center">
+                         <span className={screens.eyebrow}>Payroll / Statutory configuration</span>
+<h1 className={screens.title}>
                               <RiMoneyDollarCircleLine size={24} style={{ color: COLOR_ACCENT }} className="me-2" />
                               Edit Tax Configuration
                          </h1>
@@ -251,16 +255,17 @@ export default function EditTaxConfigurationPage() {
                </div>
 
                {error && (
-                    <div className="alert alert-danger d-flex align-items-center mb-4">
+                    <div role="alert" className="alert alert-danger d-flex align-items-center mb-4">
                          <RiErrorWarningLine size={18} className="me-2" />
                          {error}
                     </div>
                )}
 
                <form onSubmit={handleSubmit}>
-                    <div className="row g-4">
-                         <div className="col-lg-8">
-                              <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+<fieldset disabled={loading} className={screens.formFields}><p className={screens.formHint}>Fields marked * are required. Review the details before saving.</p>
+                    <div className={screens.editorGrid}><div className={screens.editorMain}>
+                         <div>
+                              <div className={screens.formSection} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                    <h5 className="mb-4 d-flex align-items-center">
                                         <RiFileTextLine size={20} className="me-2" />
                                         Basic Information
@@ -269,7 +274,7 @@ export default function EditTaxConfigurationPage() {
                                    <div className="row g-3">
                                         <div className="col-md-6">
                                              <label className="form-label fw-medium">Tax Year *</label>
-                                             <input
+                                             <input aria-label="Tax Year"
                                                   type="number"
                                                   className={`form-control ${validationErrors.tax_year ? 'is-invalid' : ''}`}
                                                   name="tax_year"
@@ -282,7 +287,7 @@ export default function EditTaxConfigurationPage() {
 
                                         <div className="col-md-6">
                                              <label className="form-label fw-medium">Country *</label>
-                                             <select
+                                             <select aria-label="Country"
                                                   className={`form-select ${validationErrors.country ? 'is-invalid' : ''}`}
                                                   name="country"
                                                   value={formData.country}
@@ -299,7 +304,7 @@ export default function EditTaxConfigurationPage() {
                          </div>
 
                          <div className="col-12">
-                              <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <div className={screens.formSection} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                    <div className="d-flex justify-content-between align-items-center mb-4">
                                         <h5 className="mb-0 d-flex align-items-center">
                                              <RiMoneyDollarCircleLine size={20} className="me-2" />
@@ -311,12 +316,12 @@ export default function EditTaxConfigurationPage() {
                                         </button>
                                    </div>
 
-                                   <div className="table-responsive">
-                                        <table className="table table-sm text-start">
+                                   <div className={screens.tableWrap}>
+                                        <table className={`${screens.table} ${screens.taxBandTable}`}>
                                              <thead className="table-light">
                                                   <tr>
-                                                       <th className="text-start">Min</th>
-                                                       <th className="text-start">Max</th>
+                                                       <th className="text-start">Lower bound</th>
+                                                       <th className="text-start">Upper bound</th>
                                                        <th className="text-start">Rate (%)</th>
                                                        <th className="text-start">Actions</th>
                                                   </tr>
@@ -324,22 +329,22 @@ export default function EditTaxConfigurationPage() {
                                              <tbody>
                                                   {taxBands.map((band, index) => (
                                                        <tr key={index}>
-                                                            <td>
+                                                            <td data-label="Lower bound">
                                                                  <input
                                                                       type="number"
                                                                       className={`form-control form-control-sm ${validationErrors[`band_${index}_min`] ? 'is-invalid' : ''}`}
-                                                                      value={band.min}
+                                                                      aria-label={`Band ${index + 1} lower bound`} value={band.min}
                                                                       onChange={(event) => handleBandChange(index, 'min', event.target.value)}
                                                                       min="0"
                                                                       step="0.01"
                                                                  />
                                                                  {validationErrors[`band_${index}_min`] && <div className="invalid-feedback">{validationErrors[`band_${index}_min`]}</div>}
                                                             </td>
-                                                            <td>
+                                                            <td data-label="Upper bound">
                                                                  <input
                                                                       type="number"
                                                                       className={`form-control form-control-sm ${validationErrors[`band_${index}_max`] ? 'is-invalid' : ''}`}
-                                                                      value={band.max}
+                                                                      aria-label={`Band ${index + 1} upper bound (optional)`} value={band.max}
                                                                       onChange={(event) => handleBandChange(index, 'max', event.target.value)}
                                                                       min="0"
                                                                       step="0.01"
@@ -347,11 +352,11 @@ export default function EditTaxConfigurationPage() {
                                                                  />
                                                                  {validationErrors[`band_${index}_max`] && <div className="invalid-feedback">{validationErrors[`band_${index}_max`]}</div>}
                                                             </td>
-                                                            <td>
+                                                            <td data-label="Rate (%)">
                                                                  <input
                                                                       type="number"
                                                                       className={`form-control form-control-sm ${validationErrors[`band_${index}_rate`] ? 'is-invalid' : ''}`}
-                                                                      value={band.rate}
+                                                                      aria-label={`Band ${index + 1} tax rate percent`} value={band.rate}
                                                                       onChange={(event) => handleBandChange(index, 'rate', event.target.value)}
                                                                       min="0"
                                                                       max="100"
@@ -359,8 +364,8 @@ export default function EditTaxConfigurationPage() {
                                                                  />
                                                                  {validationErrors[`band_${index}_rate`] && <div className="invalid-feedback">{validationErrors[`band_${index}_rate`]}</div>}
                                                             </td>
-                                                            <td>
-                                                                 <button type="button" className="btn btn-outline-danger btn-sm" onClick={() => removeTaxBand(index)} disabled={taxBands.length === 1}>
+                                                            <td data-label="Actions">
+                                                                 <button type="button" className="btn btn-outline-danger btn-sm" aria-label={`Remove tax band ${index + 1}`} onClick={() => removeTaxBand(index)} disabled={taxBands.length === 1}>
                                                                       <RiDeleteBinLine size={14} />
                                                                  </button>
                                                             </td>
@@ -372,8 +377,8 @@ export default function EditTaxConfigurationPage() {
                               </div>
                          </div>
 
-                         <div className="col-lg-6">
-                              <div className="border rounded p-4 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div>
+                              <div className={screens.formSection} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                    <h5 className="mb-4 d-flex align-items-center">
                                         <RiCheckboxCircleLine size={20} className="me-2" />
                                         Status
@@ -394,8 +399,8 @@ export default function EditTaxConfigurationPage() {
                               </div>
                          </div>
 
-                         <div className="col-lg-6">
-                              <div className="border rounded p-4 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div>
+                              <div className={screens.formSection} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                    <h5 className="mb-4 d-flex align-items-center">
                                         <RiUserLine size={20} className="me-2" />
                                         Audit Info
@@ -416,9 +421,14 @@ export default function EditTaxConfigurationPage() {
                                    </div>
                               </div>
                          </div>
-                    </div>
+                    </div><PayrollFormSummary title="Review tax configuration" items={[
+                         {label:'Country',value:formData.country},
+                         {label:'Tax year',value:String(formData.tax_year)},
+                         {label:'Progressive bands',value:String(taxBands.length)},
+                         {label:'Highest band rate',value:`${Math.max(0,...taxBands.map(band=>Number(band.rate)||0))}%`}
+                    ]} help="Review cumulative lower and upper bounds. Leave only the final upper bound empty for an unlimited band. Published Ghana presets are managed through Ghana payroll setup." /></div>
 
-                    <div className="d-flex justify-content-end gap-2 mt-4">
+                    <div className={screens.saveBar}>
                          <Link href={`/human-resource/payroll/tax-configurations/${configId}`} className="btn btn-outline-secondary">
                               Cancel
                          </Link>
@@ -436,7 +446,8 @@ export default function EditTaxConfigurationPage() {
                               )}
                          </button>
                     </div>
-               </form>
-          </div>
+               </fieldset>
+</form>
+          </PayrollFormFrame>
      );
 }

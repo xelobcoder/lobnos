@@ -1,4 +1,5 @@
 'use client';
+import screens from '../PayrollScreens.module.css';
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -41,7 +42,7 @@ type DefinitionFormState = {
      application_scope: 'all_employees' | 'specific_employees' | 'specific_roles';
 };
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_ACCENT = 'var(--pls-primary, #2e7d32)';
 const CALCULATION_METHODS: DefinitionFormState['default_calculation_method'][] = ['fixed_amount', 'percentage_of_gross'];
 
 const defaultFormState = (): DefinitionFormState => ({
@@ -195,15 +196,16 @@ export default function DeductionDefinitionsPage() {
      };
 
      return (
-          <div className="container-fluid px-4 py-3">
-               <div className="d-flex align-items-center mb-4">
+          <div className={screens.page}>
+               <div className={screens.header}>
                     <button type="button" onClick={() => router.push('/human-resource/payroll')} className="btn btn-outline-secondary btn-sm me-3">
                          <RiArrowLeftLine size={18} />
                     </button>
                     <div className="d-flex align-items-center">
                          <RiStackLine size={28} style={{ color: COLOR_ACCENT }} className="me-2" />
                          <div>
-                              <h1 className="h4 mb-0 fw-bold">Deduction Definitions</h1>
+                              <span className={screens.eyebrow}>Payroll / Pay additions & deductions</span>
+<h1 className={screens.title}>Deduction Definitions</h1>
                               <p className="text-muted mb-0 small">Reusable master records used by employee other deductions</p>
                          </div>
                     </div>
@@ -211,7 +213,7 @@ export default function DeductionDefinitionsPage() {
 
                <div className="row g-3 mb-4">
                     <div className="col-md-4">
-                         <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex align-items-center mb-2">
                                    <RiStackLine size={18} className="me-2 text-primary" />
                                    <span className="small text-muted fw-medium">Total Definitions</span>
@@ -220,7 +222,7 @@ export default function DeductionDefinitionsPage() {
                          </div>
                     </div>
                     <div className="col-md-4">
-                         <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex align-items-center mb-2">
                                    <RiCheckboxCircleLine size={18} className="me-2 text-success" />
                                    <span className="small text-muted fw-medium">Active</span>
@@ -229,7 +231,7 @@ export default function DeductionDefinitionsPage() {
                          </div>
                     </div>
                     <div className="col-md-4">
-                         <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex align-items-center mb-2">
                                    <RiShieldCheckLine size={18} className="me-2 text-warning" />
                                    <span className="small text-muted fw-medium">Statutory</span>
@@ -239,9 +241,9 @@ export default function DeductionDefinitionsPage() {
                     </div>
                </div>
 
-               {error && <div className="alert alert-danger">{error}</div>}
+               {error && <div role="alert" className="alert alert-danger">{error}</div>}
 
-               <div className="border rounded p-3 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+               <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                     <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
                          <div className="d-flex align-items-center gap-2">
                               <div className="form-check form-switch mb-0">
@@ -269,8 +271,8 @@ export default function DeductionDefinitionsPage() {
                          </button>
                     </div>
 
-                    <div className="table-responsive">
-                         <table className="table table-sm table-hover align-middle">
+                    <div className={screens.tableWrap}>
+                         <table className={screens.table}>
                               <thead>
                                    <tr>
                                         <th>Code</th>
@@ -354,10 +356,10 @@ export default function DeductionDefinitionsPage() {
                                         </button>
                                    </div>
 
-                                   <form onSubmit={handleSubmit} className="p-4">
+                                   <form onSubmit={handleSubmit} className="p-4"><fieldset disabled={submitting} className={screens.formFields}>
                                         <div className="mb-3">
-                                             <label className="form-label fw-medium">Deduction Code</label>
-                                             <input
+                                             <label className="form-label fw-medium">Deduction Code <span className="text-danger" aria-hidden="true">*</span></label>
+                                             <input aria-label="Deduction Code"
                                                   type="text"
                                                   name="deduction_code"
                                                   className="form-control"
@@ -371,8 +373,8 @@ export default function DeductionDefinitionsPage() {
                                         </div>
 
                                         <div className="mb-3">
-                                             <label className="form-label fw-medium">Deduction Name</label>
-                                             <input
+                                             <label className="form-label fw-medium">Deduction Name <span className="text-danger" aria-hidden="true">*</span></label>
+                                             <input aria-label="Deduction Name"
                                                   type="text"
                                                   name="deduction_name"
                                                   className="form-control"
@@ -384,8 +386,8 @@ export default function DeductionDefinitionsPage() {
                                         </div>
 
                                         <div className='mb-3'>
-                                             <label className="form-label fw-medium">Application Scope</label>
-                                             <select name="application_scope" className="form-select" value={formData.application_scope} onChange={handleChange} required>
+                                             <label className="form-label fw-medium">Application Scope <span className="text-danger" aria-hidden="true">*</span></label>
+                                             <select aria-label="Application Scope" name="application_scope" className="form-select" value={formData.application_scope} onChange={handleChange} required>
                                                   <option value="all_employees">All Employees</option>
                                                   <option value="specific_employees">Specific Employees</option>
                                                   <option value="specific_roles">Specific Roles</option>
@@ -393,8 +395,8 @@ export default function DeductionDefinitionsPage() {
                                         </div>
                                         <div className="row g-3 mb-3">
                                              <div className="col-md-6">
-                                                  <label className="form-label fw-medium">Calculation Method</label>
-                                                  <select name="default_calculation_method" className="form-select" value={formData.default_calculation_method} onChange={handleChange} required>
+                                                  <label className="form-label fw-medium">Calculation Method <span className="text-danger" aria-hidden="true">*</span></label>
+                                                  <select aria-label="Calculation Method" name="default_calculation_method" className="form-select" value={formData.default_calculation_method} onChange={handleChange} required>
                                                        {CALCULATION_METHODS.map((method) => (
                                                             <option key={method} value={method}>
                                                                  {method.replace(/_/g, ' ')}
@@ -404,7 +406,7 @@ export default function DeductionDefinitionsPage() {
                                              </div>
                                              <div className="col-md-6">
                                                   <label className="form-label fw-medium">Default Amount</label>
-                                                  <input type="number" min="0" step="0.01" name="default_amount" className="form-control" value={formData.default_amount} onChange={handleChange} placeholder="Optional" />
+                                                  <input aria-label="Default Amount" type="number" min="0" step="0.01" name="default_amount" className="form-control" value={formData.default_amount} onChange={handleChange} placeholder="Optional" />
                                              </div>
                                         </div>
 
@@ -441,7 +443,7 @@ export default function DeductionDefinitionsPage() {
                                                   )}
                                              </button>
                                         </div>
-                                   </form>
+                                   </fieldset></form>
                               </div>
                          </div>
                     </div>

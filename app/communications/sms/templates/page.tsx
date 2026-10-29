@@ -1,297 +1,39 @@
-'use client';
-import React, { useEffect, useState } from 'react';
-import Card from 'react-bootstrap/Card';
-import Button from 'react-bootstrap/Button';
+"use client";
+import React,{useEffect,useRef,useState} from 'react';
 import Modal from 'react-bootstrap/Modal';
-import { RiAddCircleLine, RiEditLine, RiDeleteBinLine } from '@remixicon/react';
+import {RiAddLine,RiEditLine,RiDeleteBinLine,RiEyeLine,RiFileTextLine,RiRefreshLine,RiSearchLine} from '@remixicon/react';
 import TemplateFormModal from './TemplateFormModal';
-import { toast } from 'react-toastify';
-import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
-import Loader from '../../../../components/accessories/Loader';
-import { customPost, customFetch } from '../../../../components/Auth/customFetch';
-import { handleServerProcessingSmsTemplates } from '../../../../components/serverActions/ActionFiltering';
-
-
-import { useApplication } from '../../../../components/Auth/useApplicationContext';
-import { smsCapabilities } from '../../../../lib/sms';
-
-type TemplateCategory = 'patient' | 'clinician' | 'organization';
-
-interface SMSTemplate {
-     id: string;
-     name: string;
-     body: string;
-     category: TemplateCategory;
-     createdBy: string;
-     createdAt: string;
+import {customFetch,customPost} from '../../../../components/Auth/customFetch';
+import {useApplication} from '../../../../components/Auth/useApplicationContext';
+import {smsCapabilities,smsError} from '../../../../lib/sms';
+import ui from '../../../../components/Billing/billing-strategy/StrategyWorkspace.module.css';
+import styles from './templates.module.css';
+type Template={id:string;name:string;body:string;category:string;createdBy:string;createdAt:string};
+const categories:Record<string,string>={patient:'Patients',clinician:'Practitioners',organization:'Organizations'};
+const normalize=(row:any):Template=>({id:String(row.templateid??row.id),name:row.name||'Untitled template',body:row.body||'',category:row.category,createdBy:row.createdbyname||(row.createdby?`Staff #${row.createdby}`:'—'),createdAt:row.createdat||''});
+const date=(value:string)=>value&&!Number.isNaN(Date.parse(value))?new Date(value).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'}):'—';
+export default function SmsTemplatesPage(){
+ const caps=smsCapabilities(useApplication()?.user?.role);
+ const [templates,setTemplates]=useState<Template[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState('');
+ const [search,setSearch]=useState(''),[category,setCategory]=useState(''),[page,setPage]=useState(1),[busy,setBusy]=useState('');
+ const [editing,setEditing]=useState<Template|null>(null),[editorOpen,setEditorOpen]=useState(false),[viewing,setViewing]=useState<Template|null>(null),[deleting,setDeleting]=useState<Template|null>(null),[deleteError,setDeleteError]=useState('');
+ const active=useRef(false);
+ async function load(){setLoading(true);setError('');try{const result=await customFetch('prime/sms-templates');if(!Array.isArray(result))throw new Error(smsError(result,'Unable to load templates'));setTemplates(result.map(normalize));}catch(e){setError(smsError(e,'Unable to load templates'));}finally{setLoading(false);}}
+ useEffect(()=>{if(caps.read)void load();},[caps.read]);
+ const filtered=templates.filter(row=>(!category||row.category===category)&&(!search.trim()||`${row.name} ${row.body}`.toLowerCase().includes(search.trim().toLowerCase())));
+ const pages=Math.max(1,Math.ceil(filtered.length/10)),currentPage=Math.min(page,pages),visible=filtered.slice((currentPage-1)*10,currentPage*10);
+ async function edit(row:Template){if(active.current||!caps.manage)return;active.current=true;setBusy(`edit-${row.id}`);setError('');try{const result=await customFetch(`prime/sms-templates/${row.id}`);if(!result||result.error||!(result.templateid??result.id))throw new Error(smsError(result,'Unable to load this template'));setEditing(normalize(result));setEditorOpen(true);}catch(e){setError(smsError(e,'Unable to load this template'));}finally{active.current=false;setBusy('');}}
+ async function remove(){if(active.current||!deleting||!caps.manage)return;active.current=true;setBusy('delete');setDeleteError('');try{const result=await customPost(`prime/sms-templates/${deleting.id}`,'DELETE',{});if(Number(result?.deleted)<1||!result?.deleted)throw new Error(smsError(result,'Unable to delete this template. Please retry.'));setTemplates(old=>old.filter(row=>row.id!==deleting.id));setNotice(`“${deleting.name}” deleted.`);setDeleting(null);}catch(e){setDeleteError(smsError(e,'Unable to delete this template. Please retry.'));}finally{active.current=false;setBusy('');}}
+ if(!caps.read)return <div role="alert" className="alert alert-info">You do not have access to SMS templates.</div>;
+ return <div className={`${ui.workspace} ${styles.workspace}`}>
+ <header className={ui.header}><div className={`${ui.heading} ${styles.heading}`}><span className={ui.icon}><RiFileTextLine size={24}/></span><div><span className={ui.eyebrow}>SMS library</span><h1>SMS templates</h1><p>Reusable messages for patients, practitioners and organizations.</p></div></div><div className={ui.actions}><button className={ui.secondary} disabled={loading||!!busy} onClick={()=>void load()}><RiRefreshLine size={17}/>Refresh</button>{caps.manage&&<button className={ui.primary} disabled={!!busy} onClick={()=>{setEditing(null);setEditorOpen(true);}}><RiAddLine size={18}/>Create template</button>}</div></header>
+ <div className={styles.summary}><div><strong>{templates.length}</strong><span>Templates in your library</span></div>{Object.entries(categories).map(([value,label])=><div key={value}><strong>{templates.filter(row=>row.category===value).length}</strong><span>{label}</span></div>)}</div>
+ {error&&<div role="alert" className={ui.error}><span>{error}</span><button className={ui.secondary} disabled={loading} onClick={()=>void load()}>Retry</button></div>}{notice&&<div role="status" className={ui.success}>{notice}</div>}
+ <section className={`${ui.panel} ${styles.library}`} aria-label="Template library"><div className={styles.toolbar}><label className={ui.field}><span><RiSearchLine size={16}/>Search templates</span><input type="search" placeholder="Search name or message text" value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}}/></label><label className={ui.field}>Recipient category<select value={category} onChange={e=>{setCategory(e.target.value);setPage(1);}}><option value="">All categories</option>{Object.entries(categories).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>{(search||category)&&<button className={ui.textButton} onClick={()=>{setSearch('');setCategory('');setPage(1);}}>Clear filters</button>}</div>
+ {loading?<div className={ui.empty} role="status">Loading templates…</div>:error&&!templates.length?null:!filtered.length?<div className={ui.empty}><RiFileTextLine size={34}/><h2>{templates.length?'No matching templates':'No SMS Templates Yet'}</h2><p>{templates.length?'Try another search or clear the recipient category.':'Create reusable messages, then personalize them with recipient placeholders.'}</p>{!templates.length&&caps.manage&&<button className={ui.primary} onClick={()=>{setEditing(null);setEditorOpen(true);}}>Create First Template</button>}</div>:<><div className={ui.tableWrap} role="region" aria-label="SMS templates" tabIndex={0}><table className={`${ui.table} ${styles.table}`}><thead><tr><th>Template &amp; message</th><th>Recipients</th><th>Created</th><th>Actions</th></tr></thead><tbody>{visible.map(row=><tr key={row.id}><td><button className={styles.name} onClick={()=>setViewing(row)}>{row.name}</button><p className={styles.excerpt}>{row.body}</p></td><td><span className={ui.badge}>{categories[row.category]||row.category}</span></td><td><span>{date(row.createdAt)}</span><p>{row.createdBy}</p></td><td><div className={styles.rowActions}><button className={ui.secondary} onClick={()=>setViewing(row)} aria-label={`View ${row.name}`}><RiEyeLine size={16}/><span>View</span></button>{caps.manage&&<><button className={ui.secondary} disabled={!!busy} onClick={()=>void edit(row)} aria-label={`Edit ${row.name}`}><RiEditLine size={16}/><span>{busy===`edit-${row.id}`?'Opening…':'Edit'}</span></button><button className={styles.deleteButton} disabled={!!busy} onClick={()=>{setDeleteError('');setDeleting(row);}} aria-label={`Delete ${row.name}`} title="Delete template"><RiDeleteBinLine size={17}/></button></>}</div></td></tr>)}</tbody></table></div><footer className={ui.footer}><span className={ui.help}>Showing {(currentPage-1)*10+1}–{Math.min(currentPage*10,filtered.length)} of {filtered.length} templates</span><div className={ui.pager}><button className={ui.secondary} disabled={currentPage<=1} onClick={()=>setPage(currentPage-1)}>Previous templates</button><span>Page {currentPage} of {pages}</span><button className={ui.secondary} disabled={currentPage>=pages} onClick={()=>setPage(currentPage+1)}>Next templates</button></div></footer></>}
+ </section><p className={ui.help}>Templates prepare message content. Sending and scheduling happen separately in the SMS composer.</p>
+ {caps.manage&&<TemplateFormModal visible={editorOpen} onCancel={()=>setEditorOpen(false)} onSubmit={async success=>{if(success){setEditorOpen(false);setEditing(null);setNotice('Template saved.');await load();}}} initialValues={editing||undefined} loading={false}/>}
+ <Modal show={!!viewing} onHide={()=>setViewing(null)} centered contentClassName={`${ui.workspace} ${styles.dialog}`}><Modal.Header closeButton><Modal.Title>Template preview</Modal.Title></Modal.Header><Modal.Body><span className={ui.badge}>{categories[viewing?.category||'']||'Template'}</span><h2 className={styles.previewTitle}>{viewing?.name}</h2><div className={styles.message}>{viewing?.body}</div><p className={ui.help}>Placeholders are replaced with recipient information when the message is prepared.</p></Modal.Body><Modal.Footer><button className={ui.secondary} onClick={()=>setViewing(null)}>Close preview</button>{caps.manage&&viewing&&<button className={ui.primary} disabled={!!busy} onClick={()=>{const row=viewing;setViewing(null);void edit(row);}}>Edit template</button>}</Modal.Footer></Modal>
+ <Modal show={!!deleting} onHide={()=>{if(!busy)setDeleting(null);}} backdrop="static" centered contentClassName={`${ui.workspace} ${styles.dialog}`}><Modal.Header closeButton={!busy}><Modal.Title>Delete template?</Modal.Title></Modal.Header><Modal.Body>{deleteError&&<div role="alert" className={ui.error}>{deleteError}</div>}<p>Delete <strong>{deleting?.name}</strong> from the template library?</p><p className={ui.help}>This cannot be undone. Existing campaign history stays available.</p></Modal.Body><Modal.Footer><button className={ui.secondary} disabled={!!busy} onClick={()=>setDeleting(null)}>Keep template</button><button className={ui.danger} disabled={!!busy} onClick={()=>void remove()}>{busy==='delete'?'Deleting…':'Delete template'}</button></Modal.Footer></Modal>
+ </div>;
 }
-
-const categoryOptions = [
-     { label: 'Patient', value: 'patient' },
-     { label: 'Clinician', value: 'clinician' },
-     { label: 'Organization', value: 'organization' },
-];
-
-const fetchTemplates = async () => {
-     const data = await customFetch('prime/sms-templates-paginated');
-     if (!data || !Array.isArray(data.templates)) throw new Error('Failed to fetch templates');
-     // Normalize response to SMSTemplate[]
-     return data.templates.map((item) => ({
-          id: String(item.templateid),
-          name: item.name,
-          body: item.body,
-          category: item.category,
-          createdBy: item.createdbyname || String(item.createdby),
-          createdAt: item.createdat,
-     }));
-};
-
-const fetchTemplate = async (id: string) => {
-     const data = await customFetch(`prime/sms-templates/${id}`);
-     if (!data) throw new Error('Failed to fetch template');
-     return { ...data, id: String(data.templateid ?? data.id) };
-};
-
-const createTemplate = async (data: Partial<SMSTemplate>) => {
-     const result = await customPost('prime/sms-templates', 'POST', data);
-     if (!result) throw new Error('Failed to create template');
-     return result;
-};
-
-const updateTemplate = async (id: string, data: Partial<SMSTemplate>) => {
-     const result = await customPost(`prime/sms-templates/${id}`, 'PUT', data);
-     if (!result) throw new Error('Failed to update template');
-     return result;
-};
-
-const deleteTemplate = async (id: string) => {
-     const result = await customPost(`prime/sms-templates/${id}`, 'DELETE', {});
-     if (!result || Number(result.deleted) < 1) throw new Error('Failed to delete template');
-};
-
-const SmsTemplatesPage: React.FC = () => {
-     const canManage = smsCapabilities(useApplication().user?.role).manage;
-     const [templates, setTemplates] = useState<SMSTemplate[]>([]);
-     const [loading, setLoading] = useState(false);
-     const [formLoading, setFormLoading] = useState(false);
-     const [error, setError] = useState<string | null>(null);
-     const [modalVisible, setModalVisible] = useState(false);
-     const [editingTemplate, setEditingTemplate] = useState<SMSTemplate | null>(null);
-     const [confirmDelete, setConfirmDelete] = useState<{ show: boolean; templateId: string | null; templateName: string }>({
-          show: false,
-          templateId: null,
-          templateName: ''
-     });
-
-     const loadTemplates = async () => {
-          setLoading(true);
-          setError(null);
-          try {
-               const data = await fetchTemplates();
-               setTemplates(data);
-          } catch (e: any) {
-               setError(e.message || 'Error loading templates');
-          } finally {
-               setLoading(false);
-          }
-     };
-
-     useEffect(() => {
-          loadTemplates();
-     }, []);
-
-     const handleCreate = () => {
-          setEditingTemplate(null);
-          setModalVisible(true);
-     };
-
-     const handleEdit = async (id: string) => {
-          setFormLoading(true);
-          try {
-               const data = await fetchTemplate(id);
-               setEditingTemplate(data);
-               setModalVisible(true);
-          } catch (e: any) {
-               toast.error(e.message || 'Failed to load template');
-          } finally {
-               setFormLoading(false);
-          }
-     };
-
-     const handleDelete = async (id: string) => {
-          setLoading(true);
-          try {
-               await deleteTemplate(id);
-               toast.success('Template deleted successfully');
-               loadTemplates();
-          } catch (e: any) {
-               toast.error(e.message || 'Failed to delete template');
-          } finally {
-               setLoading(false);
-               setConfirmDelete({ show: false, templateId: null, templateName: '' });
-          }
-     };
-
-     const showDeleteConfirmation = (id: string, name: string) => {
-          setConfirmDelete({ show: true, templateId: id, templateName: name });
-     };
-
-     const handleConfirmDelete = () => {
-          if (confirmDelete.templateId) {
-               handleDelete(confirmDelete.templateId);
-          }
-     };
-
-     const handleCancelDelete = () => {
-          setConfirmDelete({ show: false, templateId: null, templateName: '' });
-     };
-
-     const handleFormSubmit = async (status: boolean) => {
-          if (!status) return;
-          try {
-               setFormLoading(true);
-               await loadTemplates();
-          } catch (e: any) {
-               toast.error(e.message || 'Failed to submit form');
-          } finally {
-               setFormLoading(false);
-               setModalVisible(false);
-               setEditingTemplate(null);
-          }
-     }
-
-
-
-     const columns = [
-          { Header: 'Template Name', accessor: 'name' },
-          { Header: 'Message', accessor: 'body', Cell: ({ value }: any) => <span title={value} style={{ maxWidth: 420, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', whiteSpace: 'normal', overflowWrap: 'anywhere' }}>{value}</span> },
-          { Header: 'Category', accessor: 'category', Cell: ({ value }: { value: TemplateCategory }) => categoryOptions.find((c) => c.value === value)?.label || value },
-          { Header: 'Created By', accessor: 'createdBy' },
-          { Header: 'Created At', accessor: 'createdAt', Cell: ({ value }: { value: string }) => new Date(value).toLocaleString() },
-          {
-               Header: 'Actions',
-               accessor: 'actions',
-               Cell: ({ row }: any) => (
-                    <div className="d-flex gap-2">
-                         <button
-                              className="btn btn-sm btn-outline-primary"
-                              onClick={() => handleEdit(row.original.id)}
-                              title="Edit template"
-                         >
-                              <RiEditLine size={16} className="me-1" style={{ verticalAlign: 'middle' }} />Edit
-                         </button>
-                         <button
-                              className="btn btn-sm btn-outline-danger"
-                              onClick={() => showDeleteConfirmation(row.original.id, row.original.name)}
-                              title="Delete template"
-                         >
-                              <RiDeleteBinLine size={16} className="me-1" style={{ verticalAlign: 'middle' }} />Delete
-                         </button>
-                    </div>
-               ),
-               disableSortBy: true,
-          },
-     ];
-
-     if (loading && templates.length === 0) return <Loader />
-
-     // if (templates.length === 0 && !loading) {
-     //      return (
-     //           <div>
-     //                <Card >
-     //                     <Card.Header>
-     //                          <h5 className="mb-0">SMS Templates</h5>
-     //                     </Card.Header>
-     //                     <Card.Body className="text-center">
-     //                          <h3 className="mb-3">No SMS Templates Found</h3>
-     //                          <Button variant="primary" onClick={handleCreate}>Create template</Button>
-     //                     </Card.Body>
-     //                </Card>
-     //           </div>
-     //      );
-     // }
-
-     return (
-          <div className="container-fluid p-0">
-               <div className="row mb-4">
-                    <div className="col-12">
-                         <div className="d-flex flex-wrap gap-3 justify-content-between align-items-center">
-                              <div>
-                                   <h2 className="mb-1 fw-bold">SMS templates</h2>
-                                   <p className="text-muted mb-0">Create and manage SMS templates for patient, clinician, and organization communications</p>
-                              </div>
-                              {canManage && <button className="btn btn-primary btn-lg" onClick={handleCreate}>
-                                   <RiAddCircleLine size={20} className="me-2" style={{ display: 'inline-block', verticalAlign: 'middle' }} />
-                                   Create template
-                              </button>}
-                         </div>
-                    </div>
-               </div>
-
-               {error && <div role="alert" className="alert alert-danger d-flex justify-content-between align-items-center"><span>{error}</span><Button variant="outline-danger" size="sm" onClick={loadTemplates} disabled={loading}>Retry</Button></div>}
-               <div className="row g-3">
-                    <div className="col-12">
-                         <div className="bg-body p-3" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                              {templates.length === 0 && !loading && !error ? (
-                                   <div className="text-center py-5">
-                                        <div style={{ fontSize: '48px', marginBottom: '16px', color: 'var(--bs-tertiary-color)' }}>
-                                             📋
-                                        </div>
-                                        <h5 className="fw-semibold mb-2">No SMS Templates Yet</h5>
-                                        <p className="text-muted mb-4">Start by creating your first SMS template to send messages to patients, clinicians, or organizations</p>
-                                        {canManage && <button className="btn btn-primary" onClick={handleCreate}>
-                                             Create First Template
-                                        </button>}
-                                   </div>
-                              ) : (
-                                   <>
-                                        <div className="mb-3">
-                                             <p className="text-muted small mb-0">
-                                                  Showing <strong>{templates.length}</strong> template{templates.length !== 1 ? 's' : ''}
-                                             </p>
-                                        </div>
-                                        <PrimeTable
-                                             data={templates}
-                                             column={canManage ? columns : columns.filter(column => column.accessor !== 'actions')}
-                                             serverSideFiltering={true}
-                                             handleSeverSideProcessing={handleServerProcessingSmsTemplates}
-                                        />
-                                   </>
-                              )}
-                         </div>
-                    </div>
-               </div>
-
-               <TemplateFormModal
-                    visible={modalVisible}
-                    onCancel={() => setModalVisible(false)}
-                    onSubmit={handleFormSubmit}
-                    initialValues={editingTemplate || undefined}
-                    loading={formLoading}
-               />
-
-               {/* Delete Confirmation Modal */}
-               <Modal show={confirmDelete.show} onHide={handleCancelDelete} centered size="sm">
-                    <Modal.Header closeButton>
-                         <Modal.Title>Confirm Delete</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-                         <p className="mb-0">
-                              Are you sure you want to delete the template <strong>{confirmDelete.templateName}</strong>?
-                         </p>
-                         <p className="text-muted small mt-2 mb-0">This action cannot be undone.</p>
-                    </Modal.Body>
-                    <Modal.Footer>
-                         <Button variant="secondary" onClick={handleCancelDelete}>
-                              Cancel
-                         </Button>
-                         <Button variant="danger" onClick={handleConfirmDelete}>
-                              Delete
-                         </Button>
-                    </Modal.Footer>
-               </Modal>
-          </div>
-     );
-};
-
-export default SmsTemplatesPage;

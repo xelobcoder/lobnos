@@ -1,4 +1,5 @@
 'use client';
+import screens from '../../../PayrollScreens.module.css';
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
@@ -30,7 +31,7 @@ interface AuditRecord {
      operation_user_name: string | null;
 }
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_ACCENT = 'var(--pls-primary, #2e7d32)';
 
 export default function TaxConfigurationAuditPage() {
      const params = useParams();
@@ -228,8 +229,8 @@ export default function TaxConfigurationAuditPage() {
           return <Alert variant="danger">{error}</Alert>;
      }
      return (
-          <div>
-               <div className="row mb-3 align-items-center">
+          <div className={screens.page}>
+               <div className={screens.header}>
                     <div className="col-auto">
                          <Link href={`/human-resource/payroll/tax-configurations/${configId}`} className="btn btn-outline-secondary btn-sm me-3">
                               <RiArrowLeftLine size={18} />
@@ -363,7 +364,7 @@ export default function TaxConfigurationAuditPage() {
                                         />
 
                                         {/* Record Card */}
-                                        <div className="bg-white border rounded p-3">
+                                        <div className={screens.panel}>
                                              <div className="d-flex justify-content-between align-items-start mb-2">
                                                   <div>
                                                        <h6 className="mb-1 fw-bold d-flex align-items-center">
@@ -399,8 +400,8 @@ export default function TaxConfigurationAuditPage() {
                                              <Collapse in={isExpanded}>
                                                   <div id={`collapse-${group.timestamp}`}>
                                                        {group.changes.length > 0 ? (
-                                                            <div className="table-responsive">
-                                                                 <table className="table table-bordered mb-0" style={{ fontSize: '0.85rem' }}>
+                                                            <div className={screens.tableWrap}>
+                                                                 <table className={screens.table} style={{ fontSize: '0.85rem' }}>
                                                                       <thead className="table-light">
                                                                            <tr>
                                                                                 <th style={{ width: '33%' }}>Attribute</th>
@@ -424,8 +425,8 @@ export default function TaxConfigurationAuditPage() {
                                                                  </table>
                                                             </div>
                                                        ) : (
-                                                            <div className="table-responsive">
-                                                                 <table className="table table-bordered mb-0" style={{ fontSize: '0.85rem' }}>
+                                                            <div className={screens.tableWrap}>
+                                                                 <table className={screens.table} style={{ fontSize: '0.85rem' }}>
                                                                       <thead className="table-light">
                                                                            <tr>
                                                                                 <th>Attribute</th>

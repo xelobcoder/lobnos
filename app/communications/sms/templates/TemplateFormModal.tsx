@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
-import Badge from 'react-bootstrap/Badge';
+import ui from '../../../../components/Billing/billing-strategy/StrategyWorkspace.module.css';
+import styles from './templates.module.css';
 import { RiMailSendLine, RiLoader4Line } from '@remixicon/react';
 import { toast } from 'react-toastify';
 import { customPost, customFetch } from '../../../../components/Auth/customFetch';
@@ -145,7 +146,7 @@ const TemplateFormModal: React.FC<TemplateFormProps> = ({ visible, onCancel, onS
 
 	return (
 		<>
-			<Modal show={visible} onHide={() => { if (!saving) onCancel(); }} size="lg" backdrop="static" keyboard={false} centered>
+			<Modal show={visible} onHide={() => { if (!saving) onCancel(); }} contentClassName={`${ui.workspace} ${styles.editor}`} size="lg" backdrop="static" keyboard={false} centered>
 				<Form onSubmit={handleSubmit}>
 					<Modal.Header closeButton={!saving} className="border-bottom">
 						<Modal.Title className="fw-semibold">
@@ -182,9 +183,9 @@ const TemplateFormModal: React.FC<TemplateFormProps> = ({ visible, onCancel, onS
 										className="form-select-sm"
 									>
 										<option value="">Select a category</option>
-										<option value="patient">👥 Patient</option>
-										<option value="clinician">👨‍⚕️ Clinician</option>
-										<option value="organization">🏢 Organization</option>
+										<option value="patient">Patient</option>
+										<option value="clinician">Practitioner</option>
+										<option value="organization">Organization</option>
 									</Form.Select>
 									<small className="text-muted">Select who will receive this message</small>
 								</Form.Group>
@@ -198,13 +199,13 @@ const TemplateFormModal: React.FC<TemplateFormProps> = ({ visible, onCancel, onS
 										onChange={handleChange}
 										rows={6}
 										required
-										disabled={!canEditBody || loading}
+										disabled={!canEditBody || loading || saving}
 										placeholder={canEditBody ? 'Enter your message here. Click placeholders on the right to add them.' : 'Select a category first'}
 										className="form-control-sm"
 										style={{ fontSize: '0.9rem', minHeight: '120px' }}
 									/>
 									<small className="text-muted">
-										{!canEditBody ? 'Select a category to enable message editing' : `${form.body.length} / 160 characters`}
+										{!canEditBody ? 'Select a category to enable message editing' : `${form.body.length} characters before personalization. SMS segments depend on the final text and encoding.`}
 									</small>
 								</Form.Group>
 							</div>
@@ -215,7 +216,7 @@ const TemplateFormModal: React.FC<TemplateFormProps> = ({ visible, onCancel, onS
 									<Form.Select
 										value={selectedPlaceholder}
 										onChange={handlePlaceholderSelect}
-										disabled={loading || !canEditBody}
+										disabled={loading || saving || !canEditBody}
 										className="form-select-sm"
 									>
 										<option value="">{!form.category ? 'Select category first' : 'Choose placeholder'}</option>
@@ -234,16 +235,16 @@ const TemplateFormModal: React.FC<TemplateFormProps> = ({ visible, onCancel, onS
 										) : currentPlaceholders.length > 0 ? (
 											<div className="d-flex flex-wrap gap-2">
 												{currentPlaceholders.map((ph) => (
-													<Badge
+													<button type="button" disabled={loading || saving || !canEditBody}
 														key={ph}
-														bg="primary"
-														className="cursor-pointer user-select-none"
+
+														className={styles.placeholder}
 														style={{ cursor: 'pointer', fontSize: '0.8rem' }}
 														onClick={() => handlePlaceholderClick(ph)}
 														title={`Click to add ${ph} to your message`}
 													>
 														{ph}
-													</Badge>
+													</button>
 												))}
 											</div>
 										) : (
@@ -253,8 +254,8 @@ const TemplateFormModal: React.FC<TemplateFormProps> = ({ visible, onCancel, onS
 								</Form.Group>
 
 								<div className="mb-3">
-									<Form.Label className="fw-semibold">Message Preview</Form.Label>
-									<div className="border rounded p-3 bg-light" style={{ minHeight: '80px', fontSize: '0.9rem', lineHeight: '1.5', color: '#333' }}>
+									<Form.Label className="fw-semibold">Message Preview</Form.Label><p className="small text-muted">Sample values for preview only.</p>
+									<div className="border rounded p-3 bg-light" style={{ minHeight: '80px', fontSize: '0.9rem', lineHeight: '1.5', color: 'var(--bs-body-color)'  }}>
 										{form.body ? preview : <span className="text-muted">Your message preview will appear here</span>}
 									</div>
 								</div>
@@ -264,16 +265,16 @@ const TemplateFormModal: React.FC<TemplateFormProps> = ({ visible, onCancel, onS
 										<Form.Label className="fw-semibold">Used Placeholders</Form.Label>
 										<div>
 											{usedPlaceholders.map((ph) => (
-												<Badge
-													bg="info"
+												<button type="button" disabled={loading || saving || !canEditBody}
+
 													key={ph}
-													className="me-1 mb-1 cursor-pointer user-select-none"
+													className={styles.placeholder}
 													style={{ cursor: 'pointer', fontSize: '0.8rem' }}
 													onClick={() => handleRemovePlaceholder(ph)}
 													title={`Click to remove ${ph}`}
 												>
 													{ph} ×
-												</Badge>
+												</button>
 											))}
 										</div>
 									</div>

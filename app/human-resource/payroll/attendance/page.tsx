@@ -1,4 +1,7 @@
 'use client';
+import screens from '../PayrollScreens.module.css';
+import PayrollSummaryStrip from '../PayrollSummaryStrip';
+import { attendanceHours } from '../../../../components/HR/Payroll/attendanceForm';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -25,11 +28,12 @@ interface AttendanceRecord {
      id: number;
      employeeid: number;
      attendance_date: string; // Full date string like "Mon Dec 15 2025 00:00:00 GMT+0000 (Coordinated Universal Time)"
+     total_hours?: number;
      clock_in?: string; // Time string like "08:30:00" - optional field
      clock_out?: string; // Time string like "17:30:00" - optional field
      shift_type: string;
      work_location: string;
-     status: 'present' | 'absent' | 'late' | 'half_day' | 'leave';
+     status: 'present' | 'absent' | 'late' | 'half_day' | 'early_departure' | 'leave';
      late_minutes: number;
      overtime_hours: number; // Now a number instead of string
      overtime_approved: boolean; // Now boolean instead of number
@@ -61,14 +65,13 @@ interface Employee {
      activation: number;
 }
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_ACCENT = 'var(--pls-primary, #2e7d32)';
 
 export default function AttendancePage() {
      const { applicationsettings } = useApplicationSettings();
      const { user } = applicationsettings || {};
 
      const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
-     const [summary, setSummary] = useState<AttendanceSummary | null>(null);
      const [employees, setEmployees] = useState<Employee[]>([]);
      const [employeesLoading, setEmployeesLoading] = useState(true);
      const [loading, setLoading] = useState(true);
@@ -87,7 +90,8 @@ export default function AttendancePage() {
                absent: { color: 'danger', icon: RiCloseCircleLine, label: 'Absent' },
                late: { color: 'warning', icon: RiClockwiseLine, label: 'Late' },
                half_day: { color: 'info', icon: RiTimeLine, label: 'Half Day' },
-               leave: { color: 'secondary', icon: RiCalendarEventLine, label: 'Leave' }
+               leave: { color: 'secondary', icon: RiCalendarEventLine, label: 'Leave' },
+               early_departure: { color: 'warning', icon: RiTimeLine, label: 'Early departure' }
           };
 
           const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.present;
@@ -102,6 +106,7 @@ export default function AttendancePage() {
      };
 
      const fetchAttendanceRecords = async () => {
+          if (!startDate || !endDate || startDate > endDate) { setError('Choose a valid start and end date.'); return; }
           setLoading(true);
           setError(null);
 
@@ -132,40 +137,6 @@ export default function AttendancePage() {
           }
      };
 
-     const fetchAttendanceSummary = async () => {
-          try {
-               const startDateObj = new Date(startDate);
-               const month = startDateObj.getMonth() + 1;
-               const year = startDateObj.getFullYear();
-               const response = await customFetch(`payroll/attendance/summary?startDate=${startDate}&endDate=${endDate}&month=${month}&year=${year}`);
-
-               if (response?.status === 'success' && response?.statusCode === 200) {
-                    setSummary(response.result);
-               }
-          } catch (err) {
-               console.error('Error fetching attendance summary:', err);
-          }
-     };
-
-
-
-     const fetchEmployeeAttendanceSummary = async () => {
-          try {
-               const startDateObj = new Date(startDate);
-               const month = startDateObj.getMonth() + 1;
-               const year = startDateObj.getFullYear();
-               const response = await customFetch(`payroll/attendance/employee/${employeeFilter}/summary?startDate=${startDate}&endDate=${endDate}&month=${month}&year=${year}`);
-
-               if (response?.status === 'success' && response?.statusCode === 200) {
-                    setSummary(response.result);
-               }
-          } catch (err) {
-               console.error('Error fetching attendance summary:', err);
-          }
-     };
-
-
-
      const fetchEmployees = async () => {
           setEmployeesLoading(true);
           try {
@@ -183,22 +154,15 @@ export default function AttendancePage() {
 
      useEffect(() => {
           fetchAttendanceRecords();
-          // fetchAttendanceSummary();
           fetchEmployees();
      }, []);
 
-     const handleLoadData = () => {
-          fetchAttendanceRecords();
-          if (employeeFilter) {
-               fetchEmployeeAttendanceSummary();
-          } else {
-               fetchAttendanceSummary();
-          }
-     };
+     const handleLoadData = () => { void fetchAttendanceRecords(); };
 
      const filteredRecords = attendanceRecords.filter(record => {
           const matchesSearch = !searchTerm ||
                record.employeeid.toString().includes(searchTerm.toLowerCase()) ||
+               (employees.find(employee => employee.employeeid === record.employeeid)?.username || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                record.shift_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
                record.work_location.toLowerCase().includes(searchTerm.toLowerCase()) ||
                (record.remarks && record.remarks.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -209,7 +173,7 @@ export default function AttendancePage() {
      });
 
      const formatTime = (time?: string) => {
-          if (!time || time === '00:00:00') return '-';
+          if (!time) return '—';
           try {
                // Handle HH:MM:SS format
                return new Date(`1970-01-01T${time}`).toLocaleTimeString('en-GB', {
@@ -226,39 +190,23 @@ export default function AttendancePage() {
           return `${hours.toFixed(1)}h`;
      };
 
-     const calculateTotalHours = (clockIn?: string, clockOut?: string, overtimeHours?: number) => {
-          if (!clockIn || !clockOut) return null;
-
-          try {
-               const [inHours, inMinutes, inSeconds] = clockIn.split(':').map(Number);
-               const [outHours, outMinutes, outSeconds] = clockOut.split(':').map(Number);
-
-               const inTotalMinutes = inHours * 60 + inMinutes + inSeconds / 60;
-               const outTotalMinutes = outHours * 60 + outMinutes + outSeconds / 60;
-
-               const diffMinutes = outTotalMinutes - inTotalMinutes;
-               let totalHours = diffMinutes / 60;
-
-               // Add overtime hours if they exist
-               if (overtimeHours && overtimeHours > 0) {
-                    totalHours += overtimeHours;
-               }
-
-               return totalHours > 0 ? totalHours : 0;
-          } catch (error) {
-               console.error('Error calculating hours:', error);
-               return null;
-          }
+     const recordHours = (record: AttendanceRecord) => {
+          if (record.total_hours != null && Number.isFinite(Number(record.total_hours))) return Number(record.total_hours);
+          try { return attendanceHours(record.clock_in, record.clock_out, record.shift_type === 'night') ?? null; } catch { return null; }
      };
+     const summary = { total_days: filteredRecords.length, present_days: filteredRecords.filter(row=>row.status==='present').length,
+          absent_days: filteredRecords.filter(row=>row.status==='absent').length,
+          overtime_hours: filteredRecords.reduce((sum,row)=>sum+(row.overtime_approved ? Number(row.overtime_hours)||0 : 0),0) };
 
      return (
-          <div className="container-fluid px-4 py-3">
+          <div className={screens.page}>
                {/* Header */}
-               <div className="d-flex align-items-center justify-content-between mb-4">
+               <div className={screens.header}>
                     <div className="d-flex align-items-center">
                          <RiCalendarEventLine size={28} style={{ color: COLOR_ACCENT }} className="me-2" />
                          <div>
-                              <h1 className="h4 mb-0 fw-bold">Attendance Management</h1>
+                              <span className={screens.eyebrow}>Payroll / Attendance</span>
+<h1 className={screens.title}>Attendance Management</h1>
                               <p className="text-muted mb-0 small">Track and manage employee attendance records</p>
                          </div>
                     </div>
@@ -268,153 +216,18 @@ export default function AttendancePage() {
                     </Link>
                </div>
 
-               {/* Summary Cards */}
-               {summary && (
-                    <div className="row g-3 mb-4">
-                         <div className="col-md-3">
-                              <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                   <div className="d-flex align-items-center">
-                                        <RiCalendarEventLine size={24} style={{ color: COLOR_ACCENT }} className="me-3" />
-                                        <div>
-                                             <div className="fw-semibold">{summary.total_days}</div>
-                                             <div className="small text-muted">Total Days</div>
-                                        </div>
-                                   </div>
-                              </div>
-                         </div>
-                         <div className="col-md-3">
-                              <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                   <div className="d-flex align-items-center">
-                                        <RiCheckboxCircleLine size={24} className="text-success me-3" />
-                                        <div>
-                                             <div className="fw-semibold">{summary.present_days}</div>
-                                             <div className="small text-muted">Present Days</div>
-                                        </div>
-                                   </div>
-                              </div>
-                         </div>
-                         <div className="col-md-3">
-                              <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                   <div className="d-flex align-items-center">
-                                        <RiCloseCircleLine size={24} className="text-danger me-3" />
-                                        <div>
-                                             <div className="fw-semibold">{summary.absent_days}</div>
-                                             <div className="small text-muted">Absent Days</div>
-                                        </div>
-                                   </div>
-                              </div>
-                         </div>
-                         <div className="col-md-3">
-                              <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                   <div className="d-flex align-items-center">
-                                        <RiTimeLine size={24} className="text-info me-3" />
-                                        <div>
-                                             <div className="fw-semibold">{summary.overtime_hours.toFixed(1)}h</div>
-                                             <div className="small text-muted">Overtime Hours</div>
-                                        </div>
-                                   </div>
-                              </div>
-                         </div>
-                    </div>
-               )}
+               <PayrollSummaryStrip label="Attendance in the visible records" items={[{label:'Attendance records',value:summary.total_days},{label:'Present',value:summary.present_days,tone:'success'},{label:'Absent',value:summary.absent_days,tone:'danger'},{label:'Approved overtime',value:`${summary.overtime_hours.toFixed(1)}h`}]}/>
 
-               {/* Filters */}
-               <div className="border rounded p-3 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                    <div className="row g-3">
-                         <div className="col-md-3">
-                              <label className="form-label">Search</label>
-                              <div className="input-group">
-                                   <span className="input-group-text">
-                                        <RiSearchLine size={16} />
-                                   </span>
-                                   <input
-                                        type="text"
-                                        className="form-control"
-                                        placeholder="Search by employee ID, shift type, location, or remarks..."
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                   />
-                              </div>
-                         </div>
-                         <div className="col-md-2">
-                              <label className="form-label">Status</label>
-                              <select
-                                   className="form-select"
-                                   value={statusFilter}
-                                   onChange={(e) => setStatusFilter(e.target.value)}
-                              >
-                                   <option value="">All Status</option>
-                                   <option value="present">Present</option>
-                                   <option value="absent">Absent</option>
-                                   <option value="late">Late</option>
-                                   <option value="half_day">Half Day</option>
-                                   <option value="leave">Leave</option>
-                              </select>
-                         </div>
-                         <div className="col-md-2">
-                              <label className="form-label">Start Date</label>
-                              <input
-                                   type="date"
-                                   className="form-control"
-                                   value={startDate}
-                                   onChange={(e) => setStartDate(e.target.value)}
-                              />
-                         </div>
-                         <div className="col-md-2">
-                              <label className="form-label">End Date</label>
-                              <input
-                                   type="date"
-                                   className="form-control"
-                                   value={endDate}
-                                   onChange={(e) => setEndDate(e.target.value)}
-                                   min={startDate}
-                              />
-                         </div>
-                         <div className="col-md-3">
-                              <label className="form-label">Employee</label>
-                              <div className="d-flex gap-2">
-                                   <select
-                                        className="form-select"
-                                        value={employeeFilter}
-                                        onChange={(e) => setEmployeeFilter(e.target.value)}
-                                        disabled={employeesLoading}
-                                   >
-                                        <option value="">
-                                             {employeesLoading ? 'Loading employees...' : 'All Employees'}
-                                        </option>
-                                        {employees.map((employee) => (
-                                             <option key={employee.employeeid} value={employee.employeeid}>
-                                                  {employee.username} (ID: {employee.employeeid}) - {employee.role}
-                                             </option>
-                                        ))}
-                                   </select>
-                                   <button
-                                        type="button"
-                                        className="btn btn-primary"
-                                        onClick={handleLoadData}
-                                        disabled={loading}
-                                   >
-                                        <RiLoader4Line size={16} />
-                                   </button>
-                                   <button
-                                        type="button"
-                                        className="btn btn-outline-secondary"
-                                        onClick={() => {
-                                             const today = new Date().toISOString().split('T')[0];
-                                             setStartDate(today);
-                                             setEndDate(today);
-                                             setEmployeeFilter('');
-                                             setStatusFilter('');
-                                             setSearchTerm('');
-                                        }}
-                                        title="Reset filters"
-                                   >
-                                        <RiFilterLine size={16} />
-                                   </button>
-                              </div>
-                         </div>
+               <section className={screens.panel} aria-label="Attendance filters">
+                    <div className={screens.attendanceFilters}>
+                         <label className="form-label">Search<input type="search" className="form-control mt-2" aria-label="Search attendance" placeholder="Employee name, ID or notes" value={searchTerm} onChange={event=>setSearchTerm(event.target.value)}/></label>
+                         <label className="form-label">Employee<select className="form-select mt-2" aria-label="Attendance employee" value={employeeFilter} onChange={event=>setEmployeeFilter(event.target.value)} disabled={employeesLoading}><option value="">All employees</option>{employees.map(employee=><option key={employee.employeeid} value={employee.employeeid}>{employee.username} · #{employee.employeeid}</option>)}</select></label>
+                         <label className="form-label">Status<select className="form-select mt-2" aria-label="Attendance status" value={statusFilter} onChange={event=>setStatusFilter(event.target.value)}><option value="">All statuses</option><option value="present">Present</option><option value="absent">Absent</option><option value="late">Late</option><option value="half_day">Half day</option><option value="early_departure">Early departure</option><option value="leave">Leave (legacy records)</option></select></label>
+                         <label className="form-label">From<input type="date" className="form-control mt-2" aria-label="Attendance start date" value={startDate} max={endDate} onChange={event=>setStartDate(event.target.value)}/></label>
+                         <label className="form-label">To<input type="date" className="form-control mt-2" aria-label="Attendance end date" value={endDate} min={startDate} onChange={event=>setEndDate(event.target.value)}/></label>
                     </div>
-               </div>
+                    <div className={screens.filterActions}><span className="small text-muted">Apply the date and employee selection to load records. Search and status filter the loaded records.</span><div className="d-flex gap-2"><button type="button" className="btn btn-outline-secondary" disabled={loading} onClick={()=>{const today=new Date().toISOString().split('T')[0];setStartDate(today);setEndDate(today);setEmployeeFilter('');setStatusFilter('');setSearchTerm('');}}>Reset filters</button><button type="button" className="btn btn-primary" onClick={handleLoadData} disabled={loading}>{loading ? 'Loading…' : 'Apply filters'}</button></div></div>
+               </section>
 
                {/* Attendance Records Table */}
                <div className="border rounded" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
@@ -441,8 +254,8 @@ export default function AttendancePage() {
                               <p className="text-muted mb-0">No attendance records found for the selected filters.</p>
                          </div>
                     ) : (
-                         <div className="table-responsive">
-                              <table className="table table-hover table-striped mb-0">
+                         <div className={screens.tableWrap}>
+                              <table className={screens.table}>
                                    <thead className="table-light">
                                         <tr>
                                              <th className="border-0">Employee</th>
@@ -461,7 +274,7 @@ export default function AttendancePage() {
                                              <tr key={record.id}>
                                                   <td>
                                                        <div>
-                                                            <div className="fw-semibold">Employee {record.employeeid}</div>
+                                                            <div className="fw-semibold">{employees.find(employee => Number(employee.employeeid) === Number(record.employeeid))?.username || `Employee ${record.employeeid}`}</div>
                                                             <small className="text-muted">
                                                                  ID: {record.employeeid}
                                                             </small>
@@ -471,13 +284,13 @@ export default function AttendancePage() {
                                                   <td>{formatDate(record.attendance_date)}</td>
                                                   <td>{formatTime(record.clock_in)}</td>
                                                   <td>{formatTime(record.clock_out)}</td>
-                                                  <td>{formatHours(calculateTotalHours(record.clock_in, record.clock_out, record.overtime_hours))}</td>
+                                                  <td>{formatHours(recordHours(record))}</td>
                                                   <td>{getStatusBadge(record.status)}</td>
                                                   <td>{record.late_minutes || '-'}</td>
                                                   <td>
                                                        {record.overtime_hours > 0 ? (
                                                             <span className={record.overtime_approved ? 'text-success' : 'text-warning'}>
-                                                                 {record.overtime_hours.toFixed(1)}h
+                                                                 {(Number(record.overtime_hours)||0).toFixed(1)}h
                                                                  {!record.overtime_approved && ' (Pending)'}
                                                             </span>
                                                        ) : '-'}

@@ -1,4 +1,5 @@
 'use client';
+import screens from '../../PayrollScreens.module.css';
 
 import React, { useState, useEffect } from 'react';
 import { useApplication } from '../../../../../components/Auth/useApplicationContext';
@@ -39,12 +40,13 @@ interface Compensation {
      effective_to?: string;
 }
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_ACCENT = 'var(--pls-primary, #2e7d32)';
 
 export default function ActiveCompensationPage() {
      const [compensations, setCompensations] = useState<Compensation[]>([]);
      const [filteredCompensations, setFilteredCompensations] = useState<Compensation[]>([]);
      const [loading, setLoading] = useState(true);
+     const [loadError, setLoadError] = useState<string | null>(null);
      const [searchTerm, setSearchTerm] = useState('');
      const [typeFilter, setTypeFilter] = useState<string>('all');
      const [sortBy, setSortBy] = useState<'employee' | 'salary' | 'date'>('employee');
@@ -60,11 +62,16 @@ export default function ActiveCompensationPage() {
 
      const fetchActiveCompensations = async () => {
           setLoading(true);
+          setLoadError(null);
           try {
                const response = await customFetch(`payroll/compensation/payroll/active`);
                if (response?.status === 'success' && response?.statusCode === 200 && Array.isArray(response.result)) {
                     setCompensations(response.result || []);
+               } else {
+                    setLoadError(response?.message || 'Unable to load active compensation.');
                }
+          } catch {
+               setLoadError('Unable to load active compensation. Check your connection and retry.');
           } finally {
                setLoading(false);
           }
@@ -125,15 +132,18 @@ export default function ActiveCompensationPage() {
           .reduce((sum, c) => sum + (parseFloat(c.basic_salary) || 0), 0);
 
      if (loading) return <Loader />;
+     if (loadError) return <div className={screens.page}><div role="alert" className="alert alert-danger"><p>{loadError}</p><button type="button" className="btn btn-outline-danger" onClick={fetchActiveCompensations}>Retry loading</button></div></div>;
+
 
      return (
-          <div className="container-fluid px-4 py-3">
+          <div className={screens.page}>
                {/* Header */}
-               <div className="d-flex justify-content-between align-items-center mb-4">
+               <div className={screens.header}>
                     <div className="d-flex align-items-center">
                          <RiCheckboxCircleLine size={28} style={{ color: COLOR_ACCENT }} className="me-2" />
                          <div>
-                              <h1 className="h4 mb-0 fw-bold">Active Compensations</h1>
+                              <span className={screens.eyebrow}>Payroll / Employee compensation</span>
+<h1 className={screens.title}>Active Compensations</h1>
                               <p className="text-muted mb-0 small">
                                    {filteredCompensations.length} of {totalActive} active compensation records
                               </p>
@@ -148,7 +158,7 @@ export default function ActiveCompensationPage() {
                {/* Statistics Cards */}
                <div className="row g-3 mb-4">
                     <div className="col-md-4">
-                         <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className={screens.metric} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex align-items-center mb-2">
                                    <RiCheckboxCircleLine size={20} className="me-2 text-success" />
                                    <span className="fw-medium text-muted small">Total Active</span>
@@ -157,7 +167,7 @@ export default function ActiveCompensationPage() {
                          </div>
                     </div>
                     <div className="col-md-4">
-                         <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className={screens.metric} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex align-items-center mb-2">
                                    <RiCheckboxCircleLine size={20} className="me-2 text-info" />
                                    <span className="fw-medium text-muted small">Salary-Based</span>
@@ -166,7 +176,7 @@ export default function ActiveCompensationPage() {
                          </div>
                     </div>
                     <div className="col-md-4">
-                         <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex align-items-center mb-2">
                                    <RiCheckboxCircleLine size={20} className="me-2 text-warning" />
                                    <span className="fw-medium text-muted small">Monthly Payroll Cost</span>
@@ -177,7 +187,7 @@ export default function ActiveCompensationPage() {
                </div>
 
                {/* Filters */}
-               <div className="border rounded p-3 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+               <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                     <div className="row g-3">
                          <div className="col-md-5">
                               <div className="input-group input-group-sm">
@@ -236,8 +246,8 @@ export default function ActiveCompensationPage() {
                          </Link>
                     </div>
                ) : (
-                    <div className="table-responsive">
-                         <table className="table table-hover align-middle">
+                    <div className={screens.tableWrap}>
+                         <table className={screens.table}>
                               <thead className="table-light">
                                    <tr>
                                         <th>Employee ID</th>

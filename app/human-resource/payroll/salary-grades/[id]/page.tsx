@@ -1,4 +1,5 @@
 'use client';
+import screens from '../../PayrollScreens.module.css';
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -32,7 +33,7 @@ interface SalaryGrade {
      updated_by: number | null;
 }
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_ACCENT = 'var(--pls-primary, #2e7d32)';
 
 export default function SalaryGradeDetailPage() {
      const params = useParams();
@@ -103,7 +104,7 @@ export default function SalaryGradeDetailPage() {
 
      if (loading) {
           return (
-               <div className="container-fluid px-4 py-3">
+               <div className={screens.page}>
                     <div className="d-flex flex-column justify-content-center align-items-center" style={{ minHeight: '400px' }}>
                          <RiLoader4Line size={48} className="animate-spin mb-3" style={{ color: COLOR_ACCENT }} />
                          <p className="text-muted">Loading salary grade...</p>
@@ -114,7 +115,7 @@ export default function SalaryGradeDetailPage() {
 
      if (error || !grade) {
           return (
-               <div className="container-fluid px-4 py-3">
+               <div className={screens.page}>
                     <div className="d-flex flex-column justify-content-center align-items-center text-center" style={{ minHeight: '400px' }}>
                          <RiErrorWarningLine size={48} className="mb-3 text-danger" />
                          <h5 className="fw-medium mb-1">Error Loading Salary Grade</h5>
@@ -133,9 +134,9 @@ export default function SalaryGradeDetailPage() {
      }
 
      return (
-          <div className="container-fluid px-4 py-3">
+          <div className={screens.page}>
                {/* Header */}
-               <div className="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center mb-4">
+               <div className={screens.header}>
                     <div className="d-flex align-items-center mb-3 mb-lg-0">
                          <Link
                               href="/human-resource/payroll/salary-grades"
@@ -144,7 +145,8 @@ export default function SalaryGradeDetailPage() {
                               <RiArrowLeftLine size={18} />
                          </Link>
                          <div>
-                              <h1 className="h3 mb-1">{grade.grade_name}</h1>
+                              <span className={screens.eyebrow}>Payroll / Salary levels</span>
+<h1 className={screens.title}>{grade.grade_name}</h1>
                               <p className="text-muted mb-0">Grade Level: {grade.grade_level}</p>
                          </div>
                     </div>
@@ -179,7 +181,7 @@ export default function SalaryGradeDetailPage() {
                               <div className="card-body">
                                    <div className="row g-3">
                                         <div className="col-md-6">
-                                             <div className="border rounded p-3">
+                                             <div className={screens.panel}>
                                                   <div className="d-flex align-items-center mb-2">
                                                        <RiFileTextLine size={18} className="text-primary me-2" />
                                                        <span className="fw-medium text-muted">Grade Name</span>
@@ -188,7 +190,7 @@ export default function SalaryGradeDetailPage() {
                                              </div>
                                         </div>
                                         <div className="col-md-6">
-                                             <div className="border rounded p-3">
+                                             <div className={screens.panel}>
                                                   <div className="d-flex align-items-center mb-2">
                                                        <RiMoneyDollarCircleLine size={18} className="text-success me-2" />
                                                        <span className="fw-medium text-muted">Grade Level</span>
@@ -197,7 +199,7 @@ export default function SalaryGradeDetailPage() {
                                              </div>
                                         </div>
                                         <div className="col-md-6">
-                                             <div className="border rounded p-3">
+                                             <div className={screens.panel}>
                                                   <div className="d-flex align-items-center mb-2">
                                                        <RiUserLine size={18} className="text-primary me-2" />
                                                        <span className="fw-medium text-muted">Mapped Role</span>
@@ -206,7 +208,7 @@ export default function SalaryGradeDetailPage() {
                                              </div>
                                         </div>
                                         <div className="col-md-6">
-                                             <div className="border rounded p-3">
+                                             <div className={screens.panel}>
                                                   <div className="d-flex align-items-center mb-2">
                                                        <RiMoneyDollarCircleLine size={18} className="text-info me-2" />
                                                        <span className="fw-medium text-muted">Minimum Salary</span>
@@ -215,7 +217,7 @@ export default function SalaryGradeDetailPage() {
                                              </div>
                                         </div>
                                         <div className="col-md-6">
-                                             <div className="border rounded p-3">
+                                             <div className={screens.panel}>
                                                   <div className="d-flex align-items-center mb-2">
                                                        <RiMoneyDollarCircleLine size={18} className="text-warning me-2" />
                                                        <span className="fw-medium text-muted">Maximum Salary</span>
@@ -224,7 +226,7 @@ export default function SalaryGradeDetailPage() {
                                              </div>
                                         </div>
                                         <div className="col-md-6">
-                                             <div className="border rounded p-3">
+                                             <div className={screens.panel}>
                                                   <div className="d-flex align-items-center mb-2">
                                                        <RiMoneyDollarCircleLine size={18} className="text-secondary me-2" />
                                                        <span className="fw-medium text-muted">Currency</span>
@@ -233,7 +235,7 @@ export default function SalaryGradeDetailPage() {
                                              </div>
                                         </div>
                                         <div className="col-md-6">
-                                             <div className="border rounded p-3">
+                                             <div className={screens.panel}>
                                                   <div className="d-flex align-items-center mb-2">
                                                        <span className="fw-medium text-muted">Status</span>
                                                   </div>
@@ -249,7 +251,7 @@ export default function SalaryGradeDetailPage() {
                                                   <RiFileTextLine size={18} className="me-2" />
                                                   Description
                                              </h6>
-                                             <div className="border rounded p-3 bg-light">
+                                             <div className={screens.detailItem}>
                                                   <p className="mb-0">{grade.description}</p>
                                              </div>
                                         </div>

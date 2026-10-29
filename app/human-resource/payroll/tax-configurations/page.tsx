@@ -1,8 +1,11 @@
 'use client';
+import screens from '../PayrollScreens.module.css';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { customFetch } from '../../../../components/Auth/customFetch';
+import {roleWorkspace} from '../../../../lib/roleNavigationPolicy';
+import {useApplication} from '../../../../components/Auth/useApplicationContext';
 import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
 import {
      RiMoneyDollarCircleLine,
@@ -26,6 +29,7 @@ interface TaxBand {
 
 interface TaxConfiguration {
      id: number;
+     managed_by?:string;rule_version?:string;effective_from?:string;effective_to?:string;
      tax_year: string;
      country: string;
      tax_bands: TaxBand[];
@@ -43,11 +47,12 @@ interface TaxConfigurationSummary {
      countries_count: number;
 }
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_ACCENT = 'var(--pls-primary, #2e7d32)';
 const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
 const COLOR_BORDER = 'var(--bs-border-color)';
 
 export default function TaxConfigurationsPage() {
+     const canSetupGhana=['admin','superadmin','accountant'].includes(roleWorkspace(useApplication()?.user?.role));
      const [configs, setConfigs] = useState<TaxConfiguration[]>([]);
      const [filteredConfigs, setFilteredConfigs] = useState<TaxConfiguration[]>([]);
      const [summary, setSummary] = useState<TaxConfigurationSummary | null>(null);
@@ -142,7 +147,7 @@ export default function TaxConfigurationsPage() {
 
      if (error) {
           return (
-               <div className="container-fluid px-4 py-3">
+               <div className={screens.page}>
                     <div className="d-flex flex-column justify-content-center align-items-center text-center" style={{ minHeight: '400px' }}>
                          <RiErrorWarningLine size={48} className="mb-3 text-danger" />
                          <h5 className="fw-medium mb-1">Error Loading Data</h5>
@@ -156,16 +161,18 @@ export default function TaxConfigurationsPage() {
      }
 
      return (
-          <div className="container-fluid px-4 py-3">
+          <div className={screens.page}>
                {/* Header */}
-               <div className="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center mb-4">
+               <div className={screens.header}>
                     <div className="mb-3 mb-lg-0">
-                         <h1 className="h3 fw-bold mb-1 d-flex align-items-center">
+                         <span className={screens.eyebrow}>Payroll / Statutory configuration</span>
+<h1 className={screens.title}>
                               <RiMoneyDollarCircleLine size={28} style={{ color: COLOR_ACCENT }} className="me-2" />
                               Tax Configurations
                          </h1>
                          <p className="text-muted mb-0">Manage tax rates, brackets, and statutory deductions</p>
                     </div>
+                    {canSetupGhana&&<Link href="/human-resource/payroll/ghana-setup" className="btn btn-outline-primary">Ghana payroll setup</Link>}
                     <Link href="/human-resource/payroll/tax-configurations/create" className="btn btn-primary d-flex align-items-center">
                          <RiAddLine size={18} className="me-1" />
                          Add Tax Configuration
@@ -176,7 +183,7 @@ export default function TaxConfigurationsPage() {
                {summary && (
                     <div className="row g-3 mb-4">
                          <div className="col-md-3">
-                              <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <div className={screens.metric} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                    <div className="d-flex align-items-center mb-2">
                                         <RiMoneyDollarCircleLine size={20} className="me-2 text-primary" />
                                         <span className="fw-medium text-muted small">Total Configurations</span>
@@ -185,7 +192,7 @@ export default function TaxConfigurationsPage() {
                               </div>
                          </div>
                          <div className="col-md-3">
-                              <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <div className={screens.metric} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                    <div className="d-flex align-items-center mb-2">
                                         <RiCheckboxCircleLine size={20} className="me-2 text-success" />
                                         <span className="fw-medium text-muted small">Active</span>
@@ -194,7 +201,7 @@ export default function TaxConfigurationsPage() {
                               </div>
                          </div>
                          <div className="col-md-3">
-                              <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <div className={screens.metric} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                    <div className="d-flex align-items-center mb-2">
                                         <RiCloseCircleLine size={20} className="me-2 text-danger" />
                                         <span className="fw-medium text-muted small">Inactive</span>
@@ -203,7 +210,7 @@ export default function TaxConfigurationsPage() {
                               </div>
                          </div>
                          <div className="col-md-3">
-                              <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                              <div className={screens.metric} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                                    <div className="d-flex align-items-center mb-2">
                                         <RiEyeLine size={20} className="me-2 text-info" />
                                         <span className="fw-medium text-muted small">Countries</span>
@@ -215,7 +222,7 @@ export default function TaxConfigurationsPage() {
                )}
 
                {/* Filters */}
-               <div className="border rounded p-3 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+               <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                     <div className="row g-3">
                          <div className="col-md-4">
                               <div className="input-group">
@@ -259,8 +266,8 @@ export default function TaxConfigurationsPage() {
 
                {/* Table */}
                <div className="border rounded" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                    <div className="table-responsive">
-                         <table className="table table-hover table-sm mb-0">
+                    <div className={screens.tableWrap}>
+                         <table className={screens.table}>
                               <thead className="table-light">
                                    <tr>
                                         <th className="text-start">Tax Year</th>
@@ -297,8 +304,8 @@ export default function TaxConfigurationsPage() {
                                    ) : (
                                         filteredConfigs.map((config) => (
                                              <tr key={config.id}>
-                                                  <td className="fw-medium">{config.tax_year}</td>
-                                                  <td>{config.country}</td>
+                                                  <td className="fw-medium">{config.tax_year}{config.effective_from&&<small className="d-block text-muted">{config.effective_from} – {config.effective_to}</small>}</td>
+                                                  <td>{config.country}{config.managed_by==='ghana_setup'&&<small className="d-block text-success">GRA preset · Ghana payroll</small>}</td>
                                                   <td>{config.tax_bands.length} bands</td>
                                                   <td className="text-center">
                                                        <span className={`badge ${config.is_active ? 'bg-success' : 'bg-secondary'}`}>
@@ -316,9 +323,9 @@ export default function TaxConfigurationsPage() {
                                                                  <RiEyeLine size={16} />
                                                             </Link>
                                                             <Link
-                                                                 href={`/human-resource/payroll/tax-configurations/${config.id}/edit`}
+                                                                 href={config.managed_by==='ghana_setup'?'/human-resource/payroll/ghana-setup':`/human-resource/payroll/tax-configurations/${config.id}/edit`}
                                                                  className="btn btn-outline-secondary"
-                                                                 title="Edit"
+                                                                 title={config.managed_by==='ghana_setup'?'Manage Ghana payroll setup':'Edit'}
                                                             >
                                                                  <RiEditLine size={16} />
                                                             </Link>

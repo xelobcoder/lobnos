@@ -1064,6 +1064,11 @@ const PayrollLinks: Link[] = [
                     icon: <RiFileListLine size={18} />
                },
                {
+                    title: "Salary Templates",
+                    link: "/human-resource/payroll/salary-templates",
+                    icon: <RiBankCardLine size={18} />
+               },
+               {
                     title: "Create Compensation",
                     link: "/human-resource/payroll/compensation/create",
                     icon: <RiBankCardLine size={18} />
@@ -1125,6 +1130,11 @@ const PayrollLinks: Link[] = [
                     icon: <RiFileListLine size={18} />
                },
                {
+                    title: "Ghana Payroll Setup",
+                    link: "/human-resource/payroll/ghana-setup",
+                    icon: <RiSettings3Line size={18} />
+               },
+               {
                     title: "Create Configuration",
                     link: "/human-resource/payroll/tax-configurations/create",
                     icon: <RiSettings3Line size={18} />
@@ -1133,7 +1143,7 @@ const PayrollLinks: Link[] = [
      },
      {
           title: "Employee Payroll",
-          link: "/human-resource/payroll/employee",
+          link: "/human-resource/payroll/employee/history",
           icon: <RiUserLine size={20} />,
           children: [
                {
@@ -1147,11 +1157,6 @@ const PayrollLinks: Link[] = [
                     icon: <RiFileListLine size={18} />
                }
           ]
-     },
-     {
-          title: "Settings",
-          link: "/human-resource/payroll/settings",
-          icon: <RiSettings3Line size={20} />
      }
 ];
 

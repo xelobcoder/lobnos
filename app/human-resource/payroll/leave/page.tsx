@@ -1,4 +1,6 @@
 'use client';
+import screens from '../PayrollScreens.module.css';
+import PayrollSummaryStrip from '../PayrollSummaryStrip';
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -79,7 +81,7 @@ type LeaveFormState = {
      attachments: string;
 };
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_ACCENT = 'var(--pls-primary, #2e7d32)';
 const LEAVE_TYPES = ['annual', 'sick', 'maternity', 'paternity', 'unpaid', 'study', 'compassionate'];
 const YEAR_OPTIONS = ['all', ...Array.from({ length: 6 }, (_, index) => String(new Date().getFullYear() - index))];
 
@@ -533,64 +535,24 @@ export default function PayrollLeavePage() {
      };
 
      return (
-          <div className="container-fluid px-4 py-3">
-               <div className="d-flex align-items-center mb-4">
+          <div className={screens.page}>
+               <div className={screens.header}>
                     <button type="button" onClick={() => router.push('/human-resource/payroll')} className="btn btn-outline-secondary btn-sm me-3">
                          <RiArrowLeftLine size={18} />
                     </button>
                     <div className="d-flex align-items-center">
                          <RiCalendarEventLine size={28} style={{ color: COLOR_ACCENT }} className="me-2" />
                          <div>
-                              <h1 className="h4 mb-0 fw-bold">Leave Management</h1>
+                              <span className={screens.eyebrow}>Payroll / Leave management</span>
+<h1 className={screens.title}>Leave Management</h1>
                               <p className="text-muted mb-0 small">View all leave requests, filter by employee, and create new requests</p>
                          </div>
                     </div>
                </div>
 
-               <div className="row g-3 mb-4">
-                    <div className="col-md-3">
-                         <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                              <div className="d-flex align-items-center mb-2">
-                                   <RiHistoryLine size={18} className="me-2 text-primary" />
-                                   <span className="small text-muted fw-medium">Total Requests</span>
-                              </div>
-                              <div className="fw-bold">{summaryCounts.total}</div>
-                              <div className="small text-muted">Current filter set</div>
-                         </div>
-                    </div>
-                    <div className="col-md-3">
-                         <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                              <div className="d-flex align-items-center mb-2">
-                                   <RiCheckboxCircleLine size={18} className="me-2 text-warning" />
-                                   <span className="small text-muted fw-medium">Pending</span>
-                              </div>
-                              <div className="fw-bold">{summaryCounts.pending}</div>
-                              <div className="small text-muted">Awaiting review</div>
-                         </div>
-                    </div>
-                    <div className="col-md-3">
-                         <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                              <div className="d-flex align-items-center mb-2">
-                                   <RiCheckboxCircleLine size={18} className="me-2 text-success" />
-                                   <span className="small text-muted fw-medium">Approved</span>
-                              </div>
-                              <div className="fw-bold">{summaryCounts.approved}</div>
-                              <div className="small text-muted">Visible in the list</div>
-                         </div>
-                    </div>
-                    <div className="col-md-3">
-                         <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                              <div className="d-flex align-items-center mb-2">
-                                   <RiCheckboxCircleLine size={18} className="me-2 text-danger" />
-                                   <span className="small text-muted fw-medium">Rejected</span>
-                              </div>
-                              <div className="fw-bold">{summaryCounts.rejected}</div>
-                              <div className="small text-muted">Visible in the list</div>
-                         </div>
-                    </div>
-               </div>
+               <PayrollSummaryStrip label="Leave requests in the current filters" items={[{label:'Total requests',value:summaryCounts.total},{label:'Pending review',value:summaryCounts.pending,tone:'warning'},{label:'Approved',value:summaryCounts.approved,tone:'success'},{label:'Rejected',value:summaryCounts.rejected,tone:'danger'}]}/>
 
-               <div key={tableVersion} className="border rounded p-3 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+               <div key={tableVersion} className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                     <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
                          <div className="d-flex flex-column flex-md-row align-items-md-center gap-2 flex-wrap">
                               <div className="d-flex align-items-center gap-2">
@@ -655,9 +617,9 @@ export default function PayrollLeavePage() {
                     </div>
                </div>
 
-               {error && <div className="alert alert-danger">{error}</div>}
+               {error && <div role="alert" className="alert alert-danger">{error}</div>}
 
-               <div className="border rounded p-3 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+               <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                     <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
                          <div>
                               <h5 className="fw-semibold mb-1">Leave Requests</h5>
@@ -677,7 +639,7 @@ export default function PayrollLeavePage() {
 
                <div className="row g-4 mb-4">
                     <div className="col-lg-6">
-                         <div className="border rounded p-4 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
                                    <div>
                                         <h5 className="fw-semibold mb-1">Leave Balance Snapshot</h5>
@@ -685,26 +647,26 @@ export default function PayrollLeavePage() {
                                    </div>
                                    <div className="d-flex align-items-center gap-2">
                                         <label className="form-label mb-0 small fw-medium">Balance year</label>
-                                        <input type="number" className="form-control form-control-sm" value={balanceYear} onChange={(event) => setBalanceYear(event.target.value)} style={{ width: '110px' }} />
+                                        <input aria-label="Balance year" type="number" className="form-control form-control-sm" value={balanceYear} onChange={(event) => setBalanceYear(event.target.value)} style={{ width: '110px' }} />
                                    </div>
                               </div>
 
                               {selectedEmployeeId ? (
                                    <div className="row g-3">
                                         <div className="col-6 col-md-4">
-                                             <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+                                             <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
                                                   <div className="small text-muted mb-1">Annual Balance</div>
                                                   <div className="fw-bold">{balanceLoading ? '...' : leaveBalance?.annual_leave_balance ?? 'N/A'}</div>
                                              </div>
                                         </div>
                                         <div className="col-6 col-md-4">
-                                             <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+                                             <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
                                                   <div className="small text-muted mb-1">Sick Balance</div>
                                                   <div className="fw-bold">{balanceLoading ? '...' : leaveBalance?.sick_leave_balance ?? 'N/A'}</div>
                                              </div>
                                         </div>
                                         <div className="col-12 col-md-4">
-                                             <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+                                             <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
                                                   <div className="small text-muted mb-1">Selected Employee</div>
                                                   <div className="fw-bold">{selectedEmployee?.username || selectedEmployeeId}</div>
                                              </div>
@@ -717,31 +679,31 @@ export default function PayrollLeavePage() {
                     </div>
 
                     <div className="col-lg-6">
-                         <div className="border rounded p-4 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <h5 className="fw-semibold mb-3">Leave Summary</h5>
                               {selectedEmployeeId ? (
                                    leaveSummary ? (
                                         <div className="row g-3">
                                              <div className="col-6 col-md-3">
-                                                  <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+                                                  <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
                                                        <div className="small text-muted mb-1">Annual</div>
                                                        <div className="fw-bold">{leaveSummary.total_annual_taken}</div>
                                                   </div>
                                              </div>
                                              <div className="col-6 col-md-3">
-                                                  <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+                                                  <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
                                                        <div className="small text-muted mb-1">Sick</div>
                                                        <div className="fw-bold">{leaveSummary.total_sick_taken}</div>
                                                   </div>
                                              </div>
                                              <div className="col-6 col-md-3">
-                                                  <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+                                                  <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
                                                        <div className="small text-muted mb-1">Unpaid</div>
                                                        <div className="fw-bold">{leaveSummary.total_unpaid_taken}</div>
                                                   </div>
                                              </div>
                                              <div className="col-6 col-md-3">
-                                                  <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+                                                  <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
                                                        <div className="small text-muted mb-1">Other</div>
                                                        <div className="fw-bold">{leaveSummary.total_other_taken}</div>
                                                   </div>
@@ -772,11 +734,11 @@ export default function PayrollLeavePage() {
                                         </button>
                                    </div>
 
-                                   <form onSubmit={handleSubmit} className="p-4">
+                                   <form onSubmit={handleSubmit} className="p-4"><fieldset disabled={submitting} className={screens.formFields}>
                                         <div className="row g-3 mb-3">
                                              <div className="col-md-6">
-                                                  <label className="form-label fw-medium">Employee</label>
-                                                  <select className="form-select" name="employeeid" value={formData.employeeid} onChange={handleChange} disabled={employeesLoading} required>
+                                                  <label className="form-label fw-medium">Employee <span className="text-danger" aria-hidden="true">*</span></label>
+                                                  <select aria-label="Employee" className="form-select" name="employeeid" value={formData.employeeid} onChange={handleChange} disabled={employeesLoading} required>
                                                        <option value="">Select employee</option>
                                                        {employees.map((employee) => (
                                                             <option key={employee.employeeid} value={employee.employeeid}>
@@ -786,8 +748,8 @@ export default function PayrollLeavePage() {
                                                   </select>
                                              </div>
                                              <div className="col-md-6">
-                                                  <label className="form-label fw-medium">Leave Type</label>
-                                                  <select name="leave_type" className="form-select" value={formData.leave_type} onChange={handleChange} required>
+                                                  <label className="form-label fw-medium">Leave Type <span className="text-danger" aria-hidden="true">*</span></label>
+                                                  <select aria-label="Leave Type" name="leave_type" className="form-select" value={formData.leave_type} onChange={handleChange} required>
                                                        {LEAVE_TYPES.map((type) => (
                                                             <option key={type} value={type}>
                                                                  {type.replace('_', ' ')}
@@ -799,23 +761,23 @@ export default function PayrollLeavePage() {
 
                                         <div className="row g-3 mb-3">
                                              <div className="col-md-4">
-                                                  <label className="form-label fw-medium">Start Date</label>
-                                                  <input type="date" name="start_date" className="form-control" value={formData.start_date} onChange={handleChange} required />
+                                                  <label className="form-label fw-medium">Start Date <span className="text-danger" aria-hidden="true">*</span></label>
+                                                  <input aria-label="Start Date" type="date" name="start_date" className="form-control" value={formData.start_date} onChange={handleChange} required />
                                              </div>
                                              <div className="col-md-4">
-                                                  <label className="form-label fw-medium">End Date</label>
-                                                  <input type="date" name="end_date" className="form-control" value={formData.end_date} onChange={handleChange} min={formData.start_date} required />
+                                                  <label className="form-label fw-medium">End Date <span className="text-danger" aria-hidden="true">*</span></label>
+                                                  <input aria-label="End Date" type="date" name="end_date" className="form-control" value={formData.end_date} onChange={handleChange} min={formData.start_date} required />
                                              </div>
                                              <div className="col-md-4">
-                                                  <label className="form-label fw-medium">Total Days</label>
-                                                  <input type="number" min="1" step="1" name="total_days" className="form-control" value={formData.total_days} onChange={handleChange} required />
+                                                  <label className="form-label fw-medium">Total Days <span className="text-danger" aria-hidden="true">*</span></label>
+                                                  <input aria-label="Total Days" type="number" min="1" step="1" name="total_days" className="form-control" value={formData.total_days} onChange={handleChange} required />
                                              </div>
                                         </div>
 
                                         <div className="row g-3 mb-3">
                                              <div className="col-md-6">
-                                                  <label className="form-label fw-medium">Applied Date</label>
-                                                  <input type="date" name="applied_date" className="form-control" value={formData.applied_date} onChange={handleChange} required />
+                                                  <label className="form-label fw-medium">Applied Date <span className="text-danger" aria-hidden="true">*</span></label>
+                                                  <input aria-label="Applied Date" type="date" name="applied_date" className="form-control" value={formData.applied_date} onChange={handleChange} required />
                                              </div>
                                              <div className="col-md-6 d-flex align-items-end">
                                                   <div className="form-check mb-0">
@@ -829,12 +791,12 @@ export default function PayrollLeavePage() {
 
                                         <div className="mb-3">
                                              <label className="form-label fw-medium">Reason</label>
-                                             <textarea name="reason" className="form-control" rows={3} value={formData.reason} onChange={handleChange} placeholder="Optional explanation for the request" />
+                                             <textarea aria-label="Reason" name="reason" className="form-control" rows={3} value={formData.reason} onChange={handleChange} placeholder="Optional explanation for the request" />
                                         </div>
 
                                         <div className="mb-4">
                                              <label className="form-label fw-medium">Attachments</label>
-                                             <input type="text" name="attachments" className="form-control" value={formData.attachments} onChange={handleChange} placeholder="Optional file path or upload reference" />
+                                             <input aria-label="Attachments" type="text" name="attachments" className="form-control" value={formData.attachments} onChange={handleChange} placeholder="Optional file path or upload reference" />
                                         </div>
 
                                         <div className="d-flex justify-content-end gap-2">
@@ -855,7 +817,7 @@ export default function PayrollLeavePage() {
                                                   )}
                                              </button>
                                         </div>
-                                   </form>
+                                   </fieldset></form>
                               </div>
                          </div>
                     </div>

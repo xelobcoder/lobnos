@@ -1,4 +1,9 @@
 'use client';
+import PayrollSummaryStrip from '../../PayrollSummaryStrip';
+import screens from '../../PayrollScreens.module.css';
+import PayrollEmployeeFinder from '../../../../../components/HR/Payroll/PayrollEmployeeFinder';
+import { useApplication } from '../../../../../components/Auth/useApplicationContext';
+import { roleAllowed } from '../../../../../components/Auth/roles';
 
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -33,16 +38,18 @@ interface YTDReport {
      }>;
 }
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_ACCENT = 'var(--pls-primary, #2e7d32)';
 
 export default function EmployeeYTDPage() {
      const searchParams = useSearchParams();
      const router = useRouter();
-     const employeeId = searchParams?.get('employeeId');
+     const user = useApplication()?.user;
+     const employeeId = searchParams?.get('employeeId') || (user?.employeeid && !roleAllowed(user.role, ['admin', 'accountant']) ? String(user.employeeid) : null);
      const yearParam = searchParams?.get('year');
 
      const [ytdData, setYtdData] = useState<YTDReport | null>(null);
      const [loading, setLoading] = useState(true);
+     const [loadError, setLoadError] = useState<string | null>(null);
      const [selectedYear, setSelectedYear] = useState(yearParam || new Date().getFullYear().toString());
 
      useEffect(() => {
@@ -55,11 +62,18 @@ export default function EmployeeYTDPage() {
 
      const fetchYTDReport = async () => {
           setLoading(true);
+          setLoadError(null);
           try {
                const response = await customFetch(`payroll/employee/${employeeId}/ytd?year=${selectedYear}`);
                if (response?.status === 'success' && response?.statusCode === 200) {
                     setYtdData(response.result);
+               } else {
+                    setYtdData(null);
+                    setLoadError(response?.message || 'Unable to load year-to-date payroll.');
                }
+          } catch {
+               setYtdData(null);
+               setLoadError('Unable to load year-to-date payroll. Check your connection and retry.');
           } finally {
                setLoading(false);
           }
@@ -75,38 +89,19 @@ export default function EmployeeYTDPage() {
      const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
      if (!employeeId) {
-          return (
-               <div className="container-fluid px-4 py-3">
-                    <div className="text-center py-5">
-                         <RiUserLine size={48} className="text-muted mb-3" />
-                         <h5 className="fw-medium mb-2">No Employee Selected</h5>
-                         <p className="text-muted">Please provide an employee ID to view YTD report</p>
-                         <div className="mt-3">
-                              <input
-                                   type="number"
-                                   className="form-control d-inline-block"
-                                   placeholder="Enter Employee ID"
-                                   style={{ width: '200px' }}
-                                   onKeyPress={(e) => {
-                                        if (e.key === 'Enter') {
-                                             const value = (e.target as HTMLInputElement).value;
-                                             if (value) {
-                                                  router.push(`/human-resource/payroll/employee/ytd?employeeId=${value}`);
-                                             }
-                                        }
-                                   }}
-                              />
-                         </div>
-                    </div>
-               </div>
-          );
+          return <main className={screens.page}>
+               <header className={screens.header}><div><span className={screens.eyebrow}>Payroll / Employee reports</span><h1 className={screens.title}>Year-to-date payroll</h1><p>Find an employee to review their paid earnings, deductions and pension contributions.</p></div></header>
+               <section className={screens.panel} aria-label="Select employee for payroll report"><h2 className="h6 mb-3">Choose an employee</h2><PayrollEmployeeFinder onSelect={id => router.push(`/human-resource/payroll/employee/ytd?employeeId=${id}&year=${selectedYear}`)}/></section>
+          </main>;
      }
 
      if (loading) return <Loader />;
+     if (loadError) return <div className={screens.page}><div role="alert" className="alert alert-danger"><p>{loadError}</p><button type="button" className="btn btn-outline-danger" onClick={fetchYTDReport}>Retry loading</button></div></div>;
+
 
      if (!ytdData) {
           return (
-               <div className="container-fluid px-4 py-3">
+               <div className={screens.page}>
                     <div className="text-center py-5">
                          <RiLineChartLine size={48} className="text-muted mb-3" />
                          <h5 className="fw-medium mb-2">No YTD Data Available</h5>
@@ -122,9 +117,9 @@ export default function EmployeeYTDPage() {
      const averageMonthly = ytdData.number_of_periods > 0 ? ytdData.total_net_salary / ytdData.number_of_periods : 0;
 
      return (
-          <div className="container-fluid px-4 py-3">
+          <div className={screens.page}>
                {/* Header */}
-               <div className="d-flex justify-content-between align-items-start mb-4">
+               <div className={screens.header}>
                     <div className="d-flex align-items-center">
                          <Link href={`/human-resource/payroll/employee/history?employeeId=${employeeId}`} className="btn btn-outline-secondary btn-sm me-3">
                               <RiArrowLeftLine size={18} />
@@ -132,7 +127,8 @@ export default function EmployeeYTDPage() {
                          <div>
                               <div className="d-flex align-items-center mb-1">
                                    <RiLineChartLine size={28} style={{ color: COLOR_ACCENT }} className="me-2" />
-                                   <h1 className="h4 mb-0 fw-bold">Year-to-Date Report</h1>
+                                   <span className={screens.eyebrow}>Payroll / Employee reports</span>
+<h1 className={screens.title}>Year-to-Date Report</h1>
                               </div>
                               <p className="text-muted mb-0 small">
                                    Employee ID: {employeeId} | Year: {selectedYear}
@@ -157,56 +153,17 @@ export default function EmployeeYTDPage() {
                     </div>
                </div>
 
-               {/* Summary Cards */}
-               <div className="row g-3 mb-4">
-                    <div className="col-md-3">
-                         <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                              <div className="d-flex align-items-center mb-2">
-                                   <RiCalendarLine size={20} className="me-2 text-info" />
-                                   <span className="fw-medium text-muted small">Pay Periods</span>
-                              </div>
-                              <div className="fs-3 fw-bold">{ytdData.number_of_periods}</div>
-                              <div className="small text-muted mt-1">in {selectedYear}</div>
-                         </div>
-                    </div>
-                    <div className="col-md-3">
-                         <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                              <div className="d-flex align-items-center mb-2">
-                                   <RiLineChartLine size={20} className="me-2 text-success" />
-                                   <span className="fw-medium text-muted small">Total Gross</span>
-                              </div>
-                              <div className="fs-4 fw-bold text-success">{currencyFormatter.format(ytdData.total_gross_salary)}</div>
-                              <div className="small text-muted mt-1">Before deductions</div>
-                         </div>
-                    </div>
-                    <div className="col-md-3">
-                         <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                              <div className="d-flex align-items-center mb-2">
-                                   <RiLineChartLine size={20} className="me-2" style={{ color: COLOR_ACCENT }} />
-                                   <span className="fw-medium text-muted small">Total Net</span>
-                              </div>
-                              <div className="fs-4 fw-bold" style={{ color: COLOR_ACCENT }}>
-                                   {currencyFormatter.format(ytdData.total_net_salary)}
-                              </div>
-                              <div className="small text-muted mt-1">After deductions</div>
-                         </div>
-                    </div>
-                    <div className="col-md-3">
-                         <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                              <div className="d-flex align-items-center mb-2">
-                                   <RiLineChartLine size={20} className="me-2 text-warning" />
-                                   <span className="fw-medium text-muted small">Avg Monthly Net</span>
-                              </div>
-                              <div className="fs-4 fw-bold text-warning">{currencyFormatter.format(averageMonthly)}</div>
-                              <div className="small text-muted mt-1">Average per period</div>
-                         </div>
-                    </div>
-               </div>
+               <PayrollSummaryStrip label="Year-to-date payroll summary" items={[
+                    {label:`Pay periods in ${selectedYear}`,value:ytdData.number_of_periods},
+                    {label:'Gross earnings',value:currencyFormatter.format(ytdData.total_gross_salary)},
+                    {label:'Net earnings',value:currencyFormatter.format(ytdData.total_net_salary),tone:'success'},
+                    {label:'Average net per period',value:currencyFormatter.format(averageMonthly)}
+               ]}/>
 
                <div className="row">
                     {/* Deductions Breakdown */}
                     <div className="col-lg-6 mb-4">
-                         <div className="border rounded p-4 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <h5 className="fw-semibold mb-4">Total Deductions Breakdown</h5>
                               <div className="mb-4">
                                    <div className="d-flex justify-content-between mb-2">
@@ -216,11 +173,11 @@ export default function EmployeeYTDPage() {
                                    <div className="progress" style={{ height: '8px' }}>
                                         <div
                                              className="progress-bar bg-danger"
-                                             style={{ width: `${(ytdData.total_tax / ytdData.total_gross_salary * 100)}%` }}
+                                             style={{ width: `${(ytdData.total_tax / Math.max(ytdData.total_gross_salary, 0.01) * 100)}%` }}
                                         ></div>
                                    </div>
                                    <div className="small text-muted mt-1">
-                                        {((ytdData.total_tax / ytdData.total_gross_salary) * 100).toFixed(1)}% of gross
+                                        {((ytdData.total_tax / Math.max(ytdData.total_gross_salary, 0.01)) * 100).toFixed(1)}% of gross
                                    </div>
                               </div>
 
@@ -232,11 +189,11 @@ export default function EmployeeYTDPage() {
                                    <div className="progress" style={{ height: '8px' }}>
                                         <div
                                              className="progress-bar bg-warning"
-                                             style={{ width: `${(ytdData.total_ssnit_employee / ytdData.total_gross_salary * 100)}%` }}
+                                             style={{ width: `${(ytdData.total_ssnit_employee / Math.max(ytdData.total_gross_salary, 0.01) * 100)}%` }}
                                         ></div>
                                    </div>
                                    <div className="small text-muted mt-1">
-                                        {((ytdData.total_ssnit_employee / ytdData.total_gross_salary) * 100).toFixed(1)}% of gross
+                                        {((ytdData.total_ssnit_employee / Math.max(ytdData.total_gross_salary, 0.01)) * 100).toFixed(1)}% of gross
                                    </div>
                               </div>
 
@@ -248,11 +205,11 @@ export default function EmployeeYTDPage() {
                                    <div className="progress" style={{ height: '8px' }}>
                                         <div
                                              className="progress-bar bg-info"
-                                             style={{ width: `${(ytdData.total_ssnit_employer / ytdData.total_gross_salary * 100)}%` }}
+                                             style={{ width: `${(ytdData.total_ssnit_employer / Math.max(ytdData.total_gross_salary, 0.01) * 100)}%` }}
                                         ></div>
                                    </div>
                                    <div className="small text-muted mt-1">
-                                        {((ytdData.total_ssnit_employer / ytdData.total_gross_salary) * 100).toFixed(1)}% of gross
+                                        {((ytdData.total_ssnit_employer / Math.max(ytdData.total_gross_salary, 0.01)) * 100).toFixed(1)}% of gross
                                    </div>
                               </div>
 
@@ -264,11 +221,11 @@ export default function EmployeeYTDPage() {
                                    <div className="progress" style={{ height: '8px' }}>
                                         <div
                                              className="progress-bar bg-secondary"
-                                             style={{ width: `${(ytdData.total_other_deductions / ytdData.total_gross_salary * 100)}%` }}
+                                             style={{ width: `${(ytdData.total_other_deductions / Math.max(ytdData.total_gross_salary, 0.01) * 100)}%` }}
                                         ></div>
                                    </div>
                                    <div className="small text-muted mt-1">
-                                        {((ytdData.total_other_deductions / ytdData.total_gross_salary) * 100).toFixed(1)}% of gross
+                                        {((ytdData.total_other_deductions / Math.max(ytdData.total_gross_salary, 0.01)) * 100).toFixed(1)}% of gross
                                    </div>
                               </div>
 
@@ -280,7 +237,6 @@ export default function EmployeeYTDPage() {
                                         {currencyFormatter.format(
                                              ytdData.total_tax +
                                              ytdData.total_ssnit_employee +
-                                             ytdData.total_ssnit_employer +
                                              ytdData.total_other_deductions
                                         )}
                                    </span>
@@ -290,10 +246,10 @@ export default function EmployeeYTDPage() {
 
                     {/* Period-by-Period Breakdown */}
                     <div className="col-lg-6 mb-4">
-                         <div className="border rounded p-4 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <h5 className="fw-semibold mb-3">Period-by-Period Breakdown</h5>
-                              <div className="table-responsive" style={{ maxHeight: '500px', overflowY: 'auto' }}>
-                                   <table className="table table-sm table-hover">
+                              <div className={screens.tableWrap} style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                                   <table className={screens.table}>
                                         <thead className="sticky-top bg-light">
                                              <tr>
                                                   <th>Period</th>
@@ -337,7 +293,7 @@ export default function EmployeeYTDPage() {
                </div>
 
                {/* Summary Stats */}
-               <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
+               <div className={screens.panel} style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
                     <h5 className="fw-semibold mb-3">Summary</h5>
                     <div className="row g-3">
                          <div className="col-md-6">

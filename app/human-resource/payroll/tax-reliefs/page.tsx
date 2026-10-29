@@ -1,4 +1,5 @@
 'use client';
+import screens from '../PayrollScreens.module.css';
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -22,7 +23,7 @@ interface TaxConfiguration {
      is_active: boolean;
 }
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_ACCENT = 'var(--pls-primary, #2e7d32)';
 
 export default function TaxReliefsPage() {
      const [configs, setConfigs] = useState<TaxConfiguration[]>([]);
@@ -53,7 +54,7 @@ export default function TaxReliefsPage() {
 
      if (loading) {
           return (
-               <div className="container-fluid px-4 py-3">
+               <div className={screens.page}>
                     <div className="d-flex flex-column justify-content-center align-items-center" style={{ minHeight: '400px' }}>
                          <RiLoader4Line size={48} className="animate-spin mb-3" style={{ color: COLOR_ACCENT }} />
                          <p className="text-muted">Loading tax reliefs...</p>
@@ -64,7 +65,7 @@ export default function TaxReliefsPage() {
 
      if (error) {
           return (
-               <div className="container-fluid px-4 py-3">
+               <div className={screens.page}>
                     <div className="d-flex flex-column justify-content-center align-items-center text-center" style={{ minHeight: '400px' }}>
                          <RiErrorWarningLine size={48} className="mb-3 text-danger" />
                          <h5 className="fw-medium mb-1">Error Loading Tax Reliefs</h5>
@@ -78,10 +79,11 @@ export default function TaxReliefsPage() {
      }
 
      return (
-          <div className="container-fluid px-4 py-3">
-               <div className="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center mb-4 gap-3">
+          <div className={screens.page}>
+               <div className={screens.header}>
                     <div>
-                         <h1 className="h3 fw-bold mb-1 d-flex align-items-center">
+                         <span className={screens.eyebrow}>Payroll / Statutory configuration</span>
+<h1 className={screens.title}>
                               <RiShieldCheckLine size={28} style={{ color: COLOR_ACCENT }} className="me-2" />
                               Tax Reliefs
                          </h1>
@@ -95,7 +97,7 @@ export default function TaxReliefsPage() {
 
                <div className="row g-3 mb-4">
                     <div className="col-md-4">
-                         <div className="border rounded p-3 h-100">
+                         <div className={screens.metric}>
                               <div className="d-flex align-items-center mb-2">
                                    <RiShieldCheckLine size={20} className="me-2 text-primary" />
                                    <span className="fw-medium text-muted small">Configurations Available</span>
@@ -104,7 +106,7 @@ export default function TaxReliefsPage() {
                          </div>
                     </div>
                     <div className="col-md-4">
-                         <div className="border rounded p-3 h-100">
+                         <div className={screens.metric}>
                               <div className="d-flex align-items-center mb-2">
                                    <RiCheckboxCircleLine size={20} className="me-2 text-success" />
                                    <span className="fw-medium text-muted small">Active Configs</span>
@@ -113,7 +115,7 @@ export default function TaxReliefsPage() {
                          </div>
                     </div>
                     <div className="col-md-4">
-                         <div className="border rounded p-3 h-100">
+                         <div className={screens.metric}>
                               <div className="d-flex align-items-center mb-2">
                                    <RiCloseCircleLine size={20} className="me-2 text-danger" />
                                    <span className="fw-medium text-muted small">Inactive Configs</span>
@@ -123,7 +125,7 @@ export default function TaxReliefsPage() {
                     </div>
                </div>
 
-               <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+               <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                     <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
                          <div>
                               <h5 className="mb-1">Select a Tax Configuration</h5>
@@ -135,8 +137,8 @@ export default function TaxReliefsPage() {
                          </Link>
                     </div>
 
-                    <div className="table-responsive">
-                         <table className="table table-hover text-start mb-0">
+                    <div className={screens.tableWrap}>
+                         <table className={screens.table}>
                               <thead>
                                    <tr>
                                         <th className="text-start">Tax Year</th>

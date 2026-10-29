@@ -1,4 +1,6 @@
 'use client';
+import PayrollFormFrame from '../../../../PayrollFormFrame';
+import screens from '../../../../PayrollScreens.module.css';
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -31,7 +33,7 @@ type ReliefFormState = {
 };
 
 const RELIEF_CALCULATION_METHODS: ReliefFormState['calculation_method'][] = ['fixed', 'per_dependent', 'percentage_of_gross'];
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_ACCENT = 'var(--pls-primary, #2e7d32)';
 
 const defaultFormState = (): ReliefFormState => ({
      relief_code: '',
@@ -131,7 +133,7 @@ export default function CreateTaxReliefPage() {
 
      if (pageLoading) {
           return (
-               <div className="container-fluid px-4 py-3">
+               <div className={screens.page}>
                     <div className="d-flex flex-column justify-content-center align-items-center" style={{ minHeight: '400px' }}>
                          <RiLoader4Line size={48} className="animate-spin mb-3" style={{ color: COLOR_ACCENT }} />
                          <p className="text-muted">Loading tax relief form...</p>
@@ -142,7 +144,7 @@ export default function CreateTaxReliefPage() {
 
      if (error && !config) {
           return (
-               <div className="container-fluid px-4 py-3">
+               <div className={screens.page}>
                     <div className="d-flex flex-column justify-content-center align-items-center text-center" style={{ minHeight: '400px' }}>
                          <RiErrorWarningLine size={48} className="mb-3 text-danger" />
                          <h5 className="fw-medium mb-1">Unable to load tax relief page</h5>
@@ -161,14 +163,15 @@ export default function CreateTaxReliefPage() {
      }
 
      return (
-          <div className="container-fluid px-4 py-3">
-               <div className="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+          <PayrollFormFrame busy={loading} className={screens.page}>
+               <div className={screens.header}>
                     <div className="d-flex align-items-center">
                          <Link href={`/human-resource/payroll/tax-configurations/${configId}`} className="btn btn-outline-secondary me-3 d-flex align-items-center">
                               <RiArrowLeftLine size={18} />
                          </Link>
                          <div>
-                              <h1 className="h3 mb-1">Add Tax Relief</h1>
+                              <span className={screens.eyebrow}>Payroll / Statutory configuration</span>
+<h1 className={screens.title}>Add Tax Relief</h1>
                               <p className="text-muted mb-0">
                                    {config ? `${config.country} ${config.tax_year}` : 'Create a relief for this tax configuration'}
                               </p>
@@ -180,16 +183,17 @@ export default function CreateTaxReliefPage() {
                     </div>
                </div>
 
-               {error && <div className="alert alert-danger">{error}</div>}
+               {error && <div role="alert" className="alert alert-danger">{error}</div>}
 
                <div className="row justify-content-center">
                     <div className="col-lg-8">
-                         <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
+                         <div className={screens.panel} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                               <form onSubmit={handleSubmit}>
+<fieldset disabled={loading} className={screens.formFields}><p className={screens.formHint}>Fields marked * are required. Review the details before saving.</p>
                                    <div className="row g-3">
                                         <div className="col-md-6">
                                              <label className="form-label fw-medium">Relief Code</label>
-                                             <input
+                                             <input aria-label="Relief Code"
                                                   type="text"
                                                   name="relief_code"
                                                   className="form-control"
@@ -200,7 +204,7 @@ export default function CreateTaxReliefPage() {
                                         </div>
                                         <div className="col-md-6">
                                              <label className="form-label fw-medium">Relief Name <span className="text-danger">*</span></label>
-                                             <input
+                                             <input aria-label="Relief Name"
                                                   type="text"
                                                   name="relief_name"
                                                   className="form-control"
@@ -212,7 +216,7 @@ export default function CreateTaxReliefPage() {
                                         </div>
                                         <div className="col-md-6">
                                              <label className="form-label fw-medium">Calculation Method</label>
-                                             <select name="calculation_method" className="form-select" value={formData.calculation_method} onChange={handleChange}>
+                                             <select aria-label="Calculation Method" name="calculation_method" className="form-select" value={formData.calculation_method} onChange={handleChange}>
                                                   {RELIEF_CALCULATION_METHODS.map((method) => (
                                                        <option key={method} value={method}>
                                                             {method.replace('_', ' ')}
@@ -222,7 +226,7 @@ export default function CreateTaxReliefPage() {
                                         </div>
                                         <div className="col-md-6">
                                              <label className="form-label fw-medium">Amount <span className="text-danger">*</span></label>
-                                             <input
+                                             <input aria-label="Amount"
                                                   type="number"
                                                   name="amount"
                                                   className="form-control"
@@ -252,7 +256,7 @@ export default function CreateTaxReliefPage() {
                                         </div>
                                    </div>
 
-                                   <div className="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
+                                   <div className={screens.saveBar}>
                                         <Link href={`/human-resource/payroll/tax-configurations/${configId}`} className="btn btn-outline-secondary">
                                              Cancel
                                         </Link>
@@ -270,10 +274,11 @@ export default function CreateTaxReliefPage() {
                                              )}
                                         </button>
                                    </div>
-                              </form>
+                              </fieldset>
+</form>
                          </div>
                     </div>
                </div>
-          </div>
+          </PayrollFormFrame>
      );
 }

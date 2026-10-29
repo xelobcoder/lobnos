@@ -1,4 +1,5 @@
 'use client';
+import screens from '../PayrollScreens.module.css';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -162,9 +163,9 @@ export default function SalaryGradesPage() {
 
      if (loading) {
           return (
-               <div className="container-fluid px-4 py-3">
+               <div className={screens.page}>
                     <div className="d-flex flex-column justify-content-center align-items-center" style={{ minHeight: '400px' }}>
-                         <RiLoader4Line size={48} className="animate-spin mb-3" style={{ color: 'var(--bs-primary)' }} />
+                         <RiLoader4Line size={48} className="animate-spin mb-3" style={{ color: 'var(--pls-primary, #2e7d32)' }} />
                          <p className="text-muted">Loading salary grades...</p>
                     </div>
                </div>
@@ -173,7 +174,7 @@ export default function SalaryGradesPage() {
 
      if (error) {
           return (
-               <div className="container-fluid px-4 py-3">
+               <div className={screens.page}>
                     <div className="d-flex flex-column justify-content-center align-items-center text-center" style={{ minHeight: '400px' }}>
                          <RiErrorWarningLine size={48} className="mb-3 text-danger" />
                          <h5 className="fw-medium mb-1">Error Loading Data</h5>
@@ -187,11 +188,12 @@ export default function SalaryGradesPage() {
      }
 
      return (
-          <div className="container-fluid px-4 py-3">
+          <div className={screens.page}>
                {/* Header */}
-               <div className="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center mb-4">
+               <div className={screens.header}>
                     <div>
-                         <h1 className="h3 mb-1">Salary Grades</h1>
+                         <span className={screens.eyebrow}>Payroll / Salary levels</span>
+<h1 className={screens.title}>Salary Grades</h1>
                          <p className="text-muted mb-0">Manage organizational salary grade structure</p>
                     </div>
                     <Link href="/human-resource/payroll/salary-grades/create" className="btn btn-primary d-flex align-items-center">
@@ -319,8 +321,8 @@ export default function SalaryGradesPage() {
                                    )}
                               </div>
                          ) : (
-                              <div className="table-responsive">
-                                   <table className="table table-hover mb-0">
+                              <div className={screens.tableWrap}>
+                                   <table className={screens.table}>
                                         <thead className="table-light">
                                              <tr>
                                                   <th className="border-0 fw-medium">Grade Name</th>

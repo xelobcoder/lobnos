@@ -1,4 +1,7 @@
 'use client';
+import PayrollFormFrame from '../../../PayrollFormFrame';
+import PayrollFormSummary from '../../../PayrollFormSummary';
+import screens from '../../../PayrollScreens.module.css';
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -30,7 +33,7 @@ interface SalaryGrade {
      updated_by: number | null;
 }
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_ACCENT = 'var(--pls-primary, #2e7d32)';
 
 export default function EditSalaryGradePage() {
      const params = useParams();
@@ -213,7 +216,7 @@ export default function EditSalaryGradePage() {
 
      if (fetchLoading) {
           return (
-               <div className="container-fluid px-4 py-3">
+               <div className={screens.page}>
                     <div className="d-flex flex-column justify-content-center align-items-center" style={{ minHeight: '400px' }}>
                          <RiLoader4Line size={48} className="animate-spin mb-3" style={{ color: COLOR_ACCENT }} />
                          <p className="text-muted">Loading salary grade...</p>
@@ -224,7 +227,7 @@ export default function EditSalaryGradePage() {
 
      if (error && !formData.grade_name) {
           return (
-               <div className="container-fluid px-4 py-3">
+               <div className={screens.page}>
                     <div className="d-flex flex-column justify-content-center align-items-center text-center" style={{ minHeight: '400px' }}>
                          <RiErrorWarningLine size={48} className="mb-3 text-danger" />
                          <h5 className="fw-medium mb-1">Error Loading Salary Grade</h5>
@@ -243,9 +246,9 @@ export default function EditSalaryGradePage() {
      }
 
      return (
-          <div className="container-fluid px-4 py-3">
+          <PayrollFormFrame busy={loading} className={screens.page}>
                {/* Header */}
-               <div className="d-flex align-items-center mb-4">
+               <div className={screens.header}>
                     <Link
                          href={`/human-resource/payroll/salary-grades/${gradeId}`}
                          className="btn btn-outline-secondary me-3 d-flex align-items-center"
@@ -253,14 +256,15 @@ export default function EditSalaryGradePage() {
                          <RiArrowLeftLine size={18} />
                     </Link>
                     <div>
-                         <h1 className="h3 mb-1">Edit Salary Grade</h1>
+                         <span className={screens.eyebrow}>Payroll / Salary levels</span>
+<h1 className={screens.title}>Edit Salary Grade</h1>
                          <p className="text-muted mb-0">Update salary grade information</p>
                     </div>
                </div>
 
                {/* Error Message */}
                {error && (
-                    <div className="alert alert-danger d-flex align-items-center mb-4">
+                    <div role="alert" className="alert alert-danger d-flex align-items-center mb-4">
                          <RiErrorWarningLine size={20} className="me-2" />
                          {error}
                     </div>
@@ -278,6 +282,7 @@ export default function EditSalaryGradePage() {
                               </div>
                               <div className="card-body">
                                    <form onSubmit={handleSubmit}>
+<fieldset disabled={loading} className={screens.formFields}><p className={screens.formHint}>Fields marked * are required. Review the details before saving.</p>
                                         <div className="row g-3">
                                              {/* Grade Name */}
                                              <div className="col-md-6">
@@ -291,7 +296,7 @@ export default function EditSalaryGradePage() {
                                                        className={`form-control ${validationErrors.grade_name ? 'is-invalid' : ''}`}
                                                        value={formData.grade_name}
                                                        onChange={handleChange}
-                                                       placeholder="e.g., Senior Software Engineer"
+                                                       placeholder="e.g., Laboratory scientist"
                                                        required
                                                   />
                                                   {validationErrors.grade_name && (
@@ -462,7 +467,7 @@ export default function EditSalaryGradePage() {
                                         </div>
 
                                         {/* Form Actions */}
-                                        <div className="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
+                                        <div className={screens.saveBar}>
                                              <Link
                                                   href={`/human-resource/payroll/salary-grades/${gradeId}`}
                                                   className="btn btn-outline-secondary"
@@ -488,11 +493,19 @@ export default function EditSalaryGradePage() {
                                                   )}
                                              </button>
                                         </div>
-                                   </form>
+                                   </fieldset>
+</form>
                               </div>
                          </div>
                     </div>
+                    <PayrollFormSummary title="Review salary level" items={[
+                         {label:'Grade name',value:formData.grade_name},
+                         {label:'Salary level',value:formData.grade_level},
+                         {label:'Mapped role',value:formData.role_name || 'Not role-specific'},
+                         {label:'Salary range',value:`${formData.currency} ${formData.min_salary || '—'} – ${formData.max_salary || 'No maximum'}`},
+                         {label:'Status',value:formData.is_active ? 'Active' : 'Inactive'}
+                    ]} help="This defines a reusable salary level. Employee compensation and payment details are configured separately."/>
                </div>
-          </div>
+          </PayrollFormFrame>
      );
 }

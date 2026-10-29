@@ -1,6 +1,9 @@
 'use client';
+import { usePayrollFeedback } from '../../../../components/HR/Payroll/usePayrollFeedback';
 
 import React, { useState, useEffect } from 'react';
+import Modal from 'react-bootstrap/Modal';
+import ui from '../PayrollDashboard.module.css';
 import Link from 'next/link';
 import { customFetch, customPost } from '../../../../components/Auth/customFetch';
 import Loader from '../../../../components/isLoading';
@@ -31,7 +34,7 @@ interface PayrollPeriod {
      employee_count: number;
 }
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_ACCENT = 'var(--bs-primary)';
 const COLOR_BORDER = 'var(--bs-border-color)';
 
 const getStatusBadge = (status: string) => {
@@ -53,12 +56,15 @@ const currencyFormatter = new Intl.NumberFormat('en-GH', {
 });
 
 export default function PayrollPeriodsPage() {
+     const { notify, feedback } = usePayrollFeedback();
      const [periods, setPeriods] = useState<PayrollPeriod[]>([]);
      const [loading, setLoading] = useState(true);
      const [error, setError] = useState<string | null>(null);
      const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; period: PayrollPeriod | null }>({ show: false, period: null });
      const [deleting, setDeleting] = useState(false);
      const [creatingNext, setCreatingNext] = useState(false);
+     const [search, setSearch] = useState('');
+     const [statusFilter, setStatusFilter] = useState('all');
 
      useEffect(() => {
           fetchPeriods();
@@ -91,12 +97,12 @@ export default function PayrollPeriodsPage() {
                const response = await customPost('payroll/periods/create-next', 'POST', {});
                if (response?.status === 'success' && response?.statusCode === 201 && response?.result?.id) {
                     await fetchPeriods();
-                    alert(response?.message || 'Next payroll period created successfully');
+                    notify(response?.message || 'Next payroll period created successfully', 'success');
                } else {
-                    alert(response?.message || 'Failed to create next payroll period');
+                    notify(response?.message || 'Failed to create next payroll period');
                }
           } catch (err: any) {
-               alert(err?.message || 'Error creating next payroll period');
+               notify(err?.message || 'Error creating next payroll period');
           } finally {
                setCreatingNext(false);
           }
@@ -110,12 +116,12 @@ export default function PayrollPeriodsPage() {
                const response = await customPost(`payroll/periods/${deleteConfirm.period.id}`, 'DELETE', {});
                if (response?.status === 'success' && response?.statusCode === 200) {
                     setPeriods(periods.filter(p => p.id !== deleteConfirm.period!.id));
-                    setDeleteConfirm({ show: false, period: null });
+                    setDeleteConfirm(previous=>({...previous,show:false}));
                } else {
-                    alert('Failed to delete payroll period');
+                    notify('Failed to delete payroll period');
                }
           } catch (err: any) {
-               alert(err?.message || 'Error deleting payroll period');
+               notify(err?.message || 'Error deleting payroll period');
           } finally {
                setDeleting(false);
           }
@@ -133,6 +139,7 @@ export default function PayrollPeriodsPage() {
      if (error) {
           return (
                <div className="container-fluid px-4 py-3">
+               {feedback}
                     <div className="d-flex flex-column justify-content-center align-items-center text-center" style={{ minHeight: '400px' }}>
                          <RiErrorWarningLine size={48} className="mb-3 text-danger" />
                          <h5 className="fw-medium mb-1">Error Loading Data</h5>
@@ -145,180 +152,27 @@ export default function PayrollPeriodsPage() {
           );
      }
 
-     return (
-          <div className="container-fluid px-4 py-3">
-               {/* Page Header */}
-               <div className="d-flex justify-content-between align-items-center mb-4">
-                    <div className="d-flex align-items-center">
-                         <RiCalendarLine size={28} style={{ color: COLOR_ACCENT }} className="me-2" />
-                         <div>
-                              <h1 className="h4 mb-0 fw-bold">Payroll Periods</h1>
-                              <p className="text-muted mb-0 small">Manage monthly payroll cycles</p>
-                         </div>
-                    </div>
-                    <div className="d-flex gap-2">
-                         <button
-                              type="button"
-                              onClick={handleCreateNextPeriod}
-                              className="btn btn-outline-primary d-flex align-items-center"
-                              disabled={creatingNext}
-                         >
-                              {creatingNext ? (
-                                   <>
-                                        <RiLoader4Line size={16} className="animate-spin me-1" />
-                                        Creating...
-                                   </>
-                              ) : (
-                                   <>
-                                        <RiAddLine size={18} className="me-1" />
-                                        Create Next Period
-                                   </>
-                              )}
-                         </button>
-                         <Link href="/human-resource/payroll/periods/create" className="btn btn-primary d-flex align-items-center">
-                              <RiAddLine size={18} className="me-1" />
-                              Create Period
-                         </Link>
-                    </div>
-               </div>
-
-               {/* Periods List */}
-               {periods.length === 0 ? (
-                    <div className="d-flex flex-column justify-content-center align-items-center text-center" style={{ minHeight: '400px' }}>
-                         <RiInbox2Line size={48} className="mb-3 text-muted" />
-                         <h5 className="fw-medium mb-1">No Payroll Periods</h5>
-                         <p className="text-muted px-3">Create your first payroll period to get started</p>
-                         <Link href="/human-resource/payroll/periods/create" className="btn btn-primary mt-3">
-                              <RiAddLine size={18} className="me-1" />
-                              Create Period
-                         </Link>
-                    </div>
-               ) : (
-                    <div className="row g-3">
-                         {periods.map((period) => (
-                              <div key={period.id} className="col-12">
-                                   <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                        <div className="row align-items-center">
-                                             <div className="col-md-3">
-                                                  <div className="d-flex align-items-center mb-2">
-                                                       <RiCalendarLine size={20} style={{ color: COLOR_ACCENT }} className="me-2" />
-                                                       <h6 className="mb-0 fw-bold">{period.period_name}</h6>
-                                                  </div>
-                                                  <div className="small text-muted">
-                                                       {new Date(period.period_start_date).toLocaleDateString()} - {new Date(period.period_end_date).toLocaleDateString()}
-                                                  </div>
-                                                  <div className="mt-2">{getStatusBadge(period.status)}</div>
-                                             </div>
-
-                                             <div className="col-md-2 text-center">
-                                                  <div className="small text-muted">Employees</div>
-                                                  <div className="fs-5 fw-bold">{period.employee_count}</div>
-                                             </div>
-
-                                             <div className="col-md-2 text-center">
-                                                  <div className="small text-muted">Gross Salary</div>
-                                                  <div className="fs-6 fw-bold">{currencyFormatter.format(period.total_gross_salary)}</div>
-                                             </div>
-
-                                             <div className="col-md-2 text-center">
-                                                  <div className="small text-muted">Deductions</div>
-                                                  <div className="fs-6 fw-bold text-danger">{currencyFormatter.format(period.total_deductions)}</div>
-                                             </div>
-
-                                             <div className="col-md-2 text-center">
-                                                  <div className="small text-muted">Net Salary</div>
-                                                  <div className="fs-6 fw-bold text-success">{currencyFormatter.format(period.total_net_salary)}</div>
-                                             </div>
-
-                                             <div className="col-md-1 text-end">
-                                                  <div className="d-flex gap-2 justify-content-end">
-                                                       <Link
-                                                            href={`/human-resource/payroll/periods/${period.id}`}
-                                                            className="btn btn-sm btn-outline-primary"
-                                                            title="View Details"
-                                                       >
-                                                            <RiEyeLine size={16} />
-                                                       </Link>
-                                                       {period.status === 'draft' && (
-                                                            <button
-                                                                 onClick={() => handleDeleteClick(period)}
-                                                                 className="btn btn-sm btn-outline-danger"
-                                                                 title="Delete Draft Payroll"
-                                                                 disabled={deleting}
-                                                            >
-                                                                 <RiDeleteBinLine size={16} />
-                                                            </button>
-                                                       )}
-                                                  </div>
-                                             </div>
-                                        </div>
-                                   </div>
-                              </div>
-                         ))}
-                    </div>
-               )}
-
-               {/* Delete Confirmation Modal */}
-               {deleteConfirm.show && deleteConfirm.period && (
-                    <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                         <div className="modal-dialog modal-dialog-centered">
-                              <div className="modal-content">
-                                   <div className="modal-header">
-                                        <h5 className="modal-title fw-bold">Delete Payroll Period</h5>
-                                        <button
-                                             type="button"
-                                             className="btn-close"
-                                             onClick={() => setDeleteConfirm({ show: false, period: null })}
-                                             disabled={deleting}
-                                        ></button>
-                                   </div>
-                                   <div className="modal-body">
-                                        <p className="mb-2">
-                                             Are you sure you want to delete <strong>{deleteConfirm.period.period_name}</strong>?
-                                        </p>
-                                        <p className="text-muted small mb-0">
-                                             This action cannot be undone. Only draft payroll periods can be deleted.
-                                        </p>
-                                   </div>
-                                   <div className="modal-footer">
-                                        <button
-                                             type="button"
-                                             className="btn btn-secondary"
-                                             onClick={() => setDeleteConfirm({ show: false, period: null })}
-                                             disabled={deleting}
-                                        >
-                                             Cancel
-                                        </button>
-                                        <button
-                                             type="button"
-                                             className="btn btn-danger"
-                                             onClick={handleConfirmDelete}
-                                             disabled={deleting}
-                                        >
-                                             {deleting ? (
-                                                  <>
-                                                       <RiLoader4Line size={16} className="animate-spin me-1" style={{ display: 'inline' }} />
-                                                       Deleting...
-                                                  </>
-                                             ) : (
-                                                  'Delete'
-                                             )}
-                                        </button>
-                                   </div>
-                              </div>
-                         </div>
-                    </div>
-               )}
-
-               <style jsx global>{`
-                .animate-spin {
-                    animation: spin 1s linear infinite;
-                }
-                @keyframes spin {
-                    from { transform: rotate(0deg); }
-                    to { transform: rotate(360deg); }
-                }
-            `}</style>
-          </div>
-     );
+     const visible = periods.filter(period => (statusFilter === 'all' || period.status === statusFilter) && `${period.period_name} ${period.id}`.toLowerCase().includes(search.toLowerCase()));
+     const counts = [
+          { title: 'Open periods', count: periods.filter(p => ['draft','calculated'].includes(p.status)).length, detail: 'Preparation and review' },
+          { title: 'Awaiting approval', count: periods.filter(p => p.status === 'calculated').length, detail: 'Calculated payrolls' },
+          { title: 'Ready for payment', count: periods.filter(p => p.status === 'locked').length, detail: 'Approved and locked' },
+          { title: 'Paid periods', count: periods.filter(p => p.status === 'paid').length, detail: 'Completed payrolls' }
+     ];
+     return <main className={ui.page}>
+          {feedback}
+          <header className={ui.header}><div><span className={ui.eyebrow}>People & payroll</span><h1>Payroll Periods</h1><p>Follow each payroll from preparation to payment.</p></div><div className={ui.actions}>
+               <button type="button" className={ui.button} onClick={handleCreateNextPeriod} disabled={creatingNext}><RiAddLine size={16}/>{creatingNext ? 'Creating…' : 'Create next period'}</button>
+               <Link className={ui.primary} href="/human-resource/payroll/periods/create"><RiAddLine size={16}/>Create period</Link>
+          </div></header>
+          <section className={ui.stats} aria-label="Payroll period summary">{counts.map(item => <div className={ui.metric} key={item.title}><span>{item.title}</span><strong>{item.count}</strong><small>{item.detail}</small></div>)}</section>
+          <section className={ui.panel} aria-label="Payroll periods">
+               <div className={ui.toolbar}><input className={ui.search} type="search" aria-label="Search payroll periods" placeholder="Search period name or ID" value={search} onChange={e=>setSearch(e.target.value)}/><label className={ui.field}>Status<select className="form-select form-select-sm" aria-label="Filter payroll periods by status" value={statusFilter} onChange={e=>setStatusFilter(e.target.value)}><option value="all">All statuses</option>{['draft','calculated','approved','locked','paid'].map(status=><option key={status} value={status}>{status.charAt(0).toUpperCase()+status.slice(1)}</option>)}</select></label></div>
+               {visible.length===0 ? <div className={ui.empty}><RiInbox2Line size={30}/><strong>{periods.length ? 'No periods match your filters' : 'Create your first payroll period'}</strong><p>{periods.length ? 'Try another name, ID or status.' : 'Set the date range, then prepare and calculate employee pay.'}</p>{periods.length ? <button className={ui.button} onClick={()=>{setSearch('');setStatusFilter('all')}}>Clear filters</button> : <Link className={ui.primary} href="/human-resource/payroll/periods/create">Create period</Link>}</div> : <div className={ui.tableWrap}><table className={ui.table}><thead><tr><th>Payroll period</th><th>Status</th><th className={ui.number}>Employees</th><th className={ui.number}>Gross salary</th><th className={ui.number}>Deductions</th><th className={ui.number}>Net salary</th><th className={ui.number}>Actions</th></tr></thead><tbody>{visible.map(period=><tr key={period.id}><td><strong>{period.period_name}</strong><small>{new Date(period.period_start_date).toLocaleDateString('en-GB')} – {new Date(period.period_end_date).toLocaleDateString('en-GB')}</small></td><td><span className={ui.status} data-status={period.status}>{period.status}</span></td><td className={ui.number}>{Number(period.employee_count)||0}</td><td className={ui.number}>{currencyFormatter.format(Number(period.total_gross_salary)||0)}</td><td className={ui.number}>{currencyFormatter.format(Number(period.total_deductions)||0)}</td><td className={ui.number}><strong>{currencyFormatter.format(Number(period.total_net_salary)||0)}</strong></td><td><div className={ui.rowActions}><Link className={ui.button} href={`/human-resource/payroll/periods/${period.id}`} aria-label={`Review ${period.period_name}`}>Review</Link>{period.status==='draft'&&<button type="button" className="btn btn-sm btn-outline-danger" aria-label={`Delete draft ${period.period_name}`} title="Delete draft" onClick={()=>handleDeleteClick(period)} disabled={deleting}><RiDeleteBinLine size={16}/></button>}</div></td></tr>)}</tbody></table></div>}
+               <footer className={ui.footer}>{visible.length} of {periods.length} payroll periods · Amounts in GHS</footer>
+          </section>
+          <Modal show={deleteConfirm.show} onHide={()=>!deleting&&setDeleteConfirm(previous=>({...previous,show:false}))} backdrop="static" keyboard={!deleting} centered aria-labelledby="delete-payroll-title">
+               <Modal.Header><Modal.Title id="delete-payroll-title" className="h5">Delete draft payroll?</Modal.Title></Modal.Header><Modal.Body>{feedback}<p>Delete <strong>{deleteConfirm.period?.period_name}</strong>?</p><p className="text-muted small mb-0">Only draft periods can be deleted. This action cannot be undone.</p></Modal.Body><Modal.Footer><button type="button" className="btn btn-outline-secondary" disabled={deleting} onClick={()=>setDeleteConfirm(previous=>({...previous,show:false}))}>Cancel</button><button type="button" className="btn btn-danger" onClick={handleConfirmDelete} disabled={deleting}>{deleting?'Deleting…':'Delete draft'}</button></Modal.Footer>
+          </Modal>
+     </main>;
 }
