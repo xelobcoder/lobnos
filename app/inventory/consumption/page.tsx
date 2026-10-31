@@ -70,6 +70,7 @@ interface ConsumptionRecord {
      item_id: string;
      item_name: string;
      item_sku: string;
+     department?: string;
      consumption_type: 'manual' | 'test' | 'wastage' | 'phlebotomy';
      patientid?: number;
      ascensionid?: number;
@@ -124,7 +125,7 @@ interface AvailableStockDetail {
 
 const CONSUMPTION_TYPES = {
      phlebotomy: { label: 'Phlebotomy', color: 'info' },
-     test: { label: 'Laboratory / Test', color: 'success' },
+     test: { label: 'Test usage', color: 'success' },
      manual: { label: 'Manual Consumption', color: 'primary' },
      wastage: { label: 'Wastage', color: 'warning' }
 };
@@ -491,6 +492,11 @@ export default function StockConsumptionPage() {
                )
           },
           {
+               Header: 'Department',
+               accessor: 'department',
+               Cell: ({value}) => value || 'Not recorded'
+          },
+          {
                Header: 'Reason',
                accessor: 'reason',
                Cell: ({ value }) => value || 'N/A'
@@ -582,7 +588,7 @@ export default function StockConsumptionPage() {
                                         <span className="fw-medium text-muted small">Test Consumptions</span>
                                    </div>
                                    <div className="fs-4 fw-bold text-success">{consumptionSummary.test_consumptions.toLocaleString()}</div>
-                                   <div className="small text-muted">Laboratory and test usage</div>
+                                   <div className="small text-muted">Test-related usage</div>
                               </div>
                          </div>
                          <div className="col-md-3">

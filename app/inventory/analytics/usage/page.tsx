@@ -215,7 +215,7 @@ export default function UsageAnalyticsPage() {
 
      if (loading) {
           return (
-               <div className="container-fluid py-4" style={{ backgroundColor: '#f5f6fa', minHeight: '100vh' }}>
+               <div className="container-fluid py-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', minHeight: '100vh' }}>
                     <div className="mx-auto" style={{ maxWidth: '1400px' }}>
                          <div className="d-flex justify-content-center align-items-center" style={{ height: '400px' }}>
                               <div className="spinner-border text-primary" role="status">
@@ -229,7 +229,7 @@ export default function UsageAnalyticsPage() {
 
      return (
           <>
-               <div className="container-fluid py-4" style={{ backgroundColor: '#f5f6fa', minHeight: '100vh' }} data-pdf-root>
+               <div className="container-fluid py-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', minHeight: '100vh' }} data-pdf-root>
                     <div className="mx-auto" style={{ maxWidth: '1400px' }}>
                          {/* Header */}
                          <div className="d-flex justify-content-between align-items-center mb-4">
@@ -937,7 +937,7 @@ export default function UsageAnalyticsPage() {
                                                                                 <YAxis stroke="#6c757d" fontSize={12} />
                                                                                 <Tooltip
                                                                                      contentStyle={{
-                                                                                          backgroundColor: '#ffffff',
+                                                                                          backgroundColor: 'var(--theme-card-bg, var(--bs-body-bg))',
                                                                                           border: '1px solid #dee2e6',
                                                                                           borderRadius: '8px',
                                                                                           boxShadow: '0 0.125rem 0.25rem rgba(0, 0, 0, 0.075)'

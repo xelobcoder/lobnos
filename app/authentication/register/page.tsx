@@ -594,7 +594,7 @@ export default function AuthenticationIndexPage() {
                                              <option value="accountant">Accountant</option>
                                              <option value="doctor">Doctor / Facility Practitioner</option><option value="medical_officer">Medical Officer</option><option value="consultant">Consultant</option><option value="nurse">Nurse / Triage</option><option value="pharmacy_doctor">Pharmacy Doctor</option><option value="pharmacy_nurse">Pharmacy Nurse</option>
                                              <option value="phlebotomist">Phlebotomist</option>
-                                             <option value="sonographer">Sonographer</option>
+                                             <option value="sonographer">Sonographer</option><option value="head_of_laboratory">Head of Laboratory</option><option value="head_of_imaging">Head of Imaging</option>
                                              <option value="storekeeper">Storekeeper</option>
                                              <option value="pharmacy_manager">Pharmacy Manager</option>
                                              <option value="pharmacy_cashier">Pharmacy Cashier</option>

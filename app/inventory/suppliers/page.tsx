@@ -128,7 +128,7 @@ export default function SuppliersPage() {
                Header: 'Address',
                accessor: 'address',
                Cell: ({ value }) => (
-                    <div style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={value}>
+                    <div style={{ maxWidth: '320px', whiteSpace: 'normal', overflowWrap: 'anywhere' }} title={value}>
                          {value || '-'}
                     </div>
                )
@@ -166,7 +166,7 @@ export default function SuppliersPage() {
 
      const handleAddSupplier = async () => {
           if (!supplierForm.name || !supplierForm.email) {
-               alert('Please fill in name and email');
+               toast.error('Please fill in name and email');
                return;
           }
 
@@ -195,7 +195,7 @@ export default function SuppliersPage() {
                }
           } catch (error) {
                console.error('Error adding supplier:', error);
-               alert('Error adding supplier');
+               toast.error('Error adding supplier');
           } finally {
                setLoading(false);
           }
@@ -215,7 +215,7 @@ export default function SuppliersPage() {
 
      const handleUpdateSupplier = async () => {
           if (!supplierForm.name || !supplierForm.email || !selectedSupplier) {
-               alert('Please fill in all required fields');
+               toast.error('Please fill in all required fields');
                return;
           }
 
@@ -244,7 +244,7 @@ export default function SuppliersPage() {
                }
           } catch (error) {
                console.error('Error updating supplier:', error);
-               alert('Error updating supplier');
+               toast.error('Error updating supplier');
           } finally {
                setLoading(false);
           }
@@ -265,7 +265,7 @@ export default function SuppliersPage() {
                }
           } catch (error) {
                console.error('Error deleting supplier:', error);
-               alert('Error deleting supplier');
+               toast.error('Error deleting supplier');
           } finally {
                setLoading(false);
           }

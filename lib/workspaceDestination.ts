@@ -6,6 +6,8 @@ export function workspaceDestination(role:string,configuration?:any){
  if(key==='pharmacystorekeeper')return '/pharmacy/inventory';
  if(key==='pharmacycashier')return '/pharmacy/sell';
  if(key.startsWith('pharmacy')||key==='pharmacist')return '/pharmacy';
+ if(key==='headoflaboratory')return '/operations/laboratory/requisitions';
+ if(key==='headofimaging')return '/operations/imaging/ultrasound/requisitions';
  if(key==='scientist'||key==='phelobotomist'||key==='phlebotomist')return '/operations/laboratory';
  if(key==='sonographer')return '/operations/imaging';
  if(key==='patient')return '/patientportal';

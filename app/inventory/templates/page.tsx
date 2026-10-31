@@ -36,6 +36,8 @@ interface InventoryItem {
 }
 
 export default function TemplatesPage() {
+     const [templatesLoading, setTemplatesLoading] = useState(false);
+     const [templatesError, setTemplatesError] = useState('');
      const [testTemplates, setTestTemplates] = useState<TestTemplate[]>([]);
      const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
      const [tests, setTests] = useState<any[]>([]);
@@ -121,6 +123,7 @@ export default function TemplatesPage() {
      };
 
      const loadTemplates = async () => {
+          setTemplatesLoading(true);setTemplatesError('');
           try {
                const response = await customFetch(`inventory/templates?branchid=${branchid}&employeeid=${employeeid}`);
                const data = Array.isArray(response) ? response : (response?.data || response?.result || []);
@@ -136,7 +139,9 @@ export default function TemplatesPage() {
                }));
                setTestTemplates(mappedTemplates);
           } catch (error) {
-               console.error('Error loading templates:', error);
+               setTemplatesError('Unable to load inventory templates.');
+          } finally {
+               setTemplatesLoading(false);
           }
      };
 
@@ -203,7 +208,7 @@ export default function TemplatesPage() {
 
      const handleAddTemplate = async () => {
           if (!templateForm.name || !templateForm.testId) {
-               return alert('Please select a test');
+               return toast.error('Please select a test');
           }
           try {
                const templateData = {
@@ -230,7 +235,7 @@ export default function TemplatesPage() {
                }
           } catch (error) {
                console.error('Error creating template:', error);
-               alert('Error creating template');
+               toast.error('Error creating template');
           }
      };
 
@@ -268,7 +273,7 @@ export default function TemplatesPage() {
 
      const handleUpdateTemplate = async () => {
           if (!selectedTemplate || !templateForm.name || !templateForm.testId) {
-               alert('Please select a test');
+               toast.error('Please select a test');
                return;
           }
           try {
@@ -297,7 +302,7 @@ export default function TemplatesPage() {
                }
           } catch (error) {
                console.error('Error updating template:', error);
-               alert('Error updating template');
+               toast.error('Error updating template');
           }
      };
 
@@ -315,7 +320,7 @@ export default function TemplatesPage() {
                }
           } catch (error) {
                console.error('Error deleting template:', error);
-               alert('Error deleting template');
+               toast.error('Error deleting template');
           }
      };
 
@@ -328,27 +333,23 @@ export default function TemplatesPage() {
           });
      };
 
-     const applyTemplate = (template: TestTemplate) => {
-          // This would typically navigate to a transaction page or open a modal
-          alert(`Applying template: ${template.name}\nThis would open the transaction recording page with pre-filled items.`);
-     };
-
      return (
-          <div className="container-fluid p-2 p-md-4" style={{ backgroundColor: isMobile ? '#f2f2f7' : 'transparent', minHeight: isMobile ? '100vh' : 'auto' }}>
+          <div className="container-fluid p-2 p-md-4" style={{ backgroundColor: isMobile ? 'var(--bs-tertiary-bg)' : 'transparent', minHeight: isMobile ? '100vh' : 'auto' }}>
 
+               <header className="mb-4"><h1 className="mb-1">Inventory templates</h1><p className="text-muted mb-0">Manage reusable test consumption templates and their inventory items.</p></header>
                {/* Search and Filter */}
                <div className="row g-2 mb-3">
                     <div className="col-12 col-md-8">
                          <input
                               type="text"
                               className="form-control form-control-sm"
-                              placeholder="🔍 Search templates..."
+                              aria-label="Search inventory templates" placeholder="Search templates…"
                               value={searchTerm}
                               onChange={(e) => setSearchTerm(e.target.value)}
                               style={isMobile ? {
                                    borderRadius: '8px',
                                    border: 'none',
-                                   backgroundColor: '#ffffff',
+                                   backgroundColor: 'var(--theme-card-bg, var(--bs-body-bg))',
                                    padding: '8px 12px',
                                    fontSize: '14px',
                                    boxShadow: '0 1px 3px rgba(0,0,0,0.08)'
@@ -357,7 +358,7 @@ export default function TemplatesPage() {
                     </div>
                     <div className="col-12 col-md-4 d-flex justify-content-end">
                          <button
-                              className="btn btn-outline-primary btn-sm w-100 w-md-auto"
+                              className="btn btn-primary btn-sm w-100 w-md-auto"
                               onClick={() => setShowAddModal(true)}
                               style={isMobile ? {
                                    borderRadius: '8px',
@@ -365,8 +366,8 @@ export default function TemplatesPage() {
                                    padding: '8px 14px',
                                    fontSize: '14px',
                                    fontWeight: '600',
-                                   backgroundColor: '#007AFF',
-                                   boxShadow: '0 2px 8px rgba(0, 122, 255, 0.25)'
+                                   backgroundColor: 'var(--pls-primary, #2e7d32)',
+                                   boxShadow: 'none'
                               } : {}}
                          >
                               <RiAddLine size={16} className="me-1" />
@@ -376,13 +377,16 @@ export default function TemplatesPage() {
                </div>
 
                {/* Templates Display */}
+               {templatesLoading && <p role="status" className="text-muted">Loading templates…</p>}
+               {templatesError && <div className="alert alert-danger" role="alert">{templatesError} <button type="button" className="btn btn-outline-danger btn-sm" onClick={loadTemplates}>Retry loading</button></div>}
+               {!templatesLoading && !templatesError && filteredTemplates.length===0 && <div className="card p-4 text-center"><h2 className="h5">{searchTerm ? 'No matching templates' : 'No templates yet'}</h2><p className="text-muted mb-0">{searchTerm ? 'Try another template name or description.' : 'Create a template to define the inventory items used for a test.'}</p></div>}
                {isMobile ? (
                     <div className="d-flex flex-column" style={{ gap: '12px' }}>
                          {filteredTemplates.map(template => (
                               <div
                                    key={template.id}
                                    style={{
-                                        backgroundColor: '#ffffff',
+                                        backgroundColor: 'var(--theme-card-bg, var(--bs-body-bg))',
                                         borderRadius: '10px',
                                         overflow: 'hidden',
                                         boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
@@ -394,13 +398,13 @@ export default function TemplatesPage() {
                                              <h6 className="mb-0" style={{
                                                   fontSize: '15px',
                                                   fontWeight: '600',
-                                                  color: '#000000',
+                                                  color: 'var(--bs-body-color)',
                                                   letterSpacing: '-0.3px'
                                              }}>
                                                   {template.name}
                                              </h6>
                                              <span style={{
-                                                  backgroundColor: '#007AFF',
+                                                  backgroundColor: 'var(--pls-primary, #2e7d32)',
                                                   color: '#ffffff',
                                                   padding: '2px 8px',
                                                   borderRadius: '10px',
@@ -415,7 +419,7 @@ export default function TemplatesPage() {
                                         {template.description && (
                                              <p className="mb-0" style={{
                                                   fontSize: '13px',
-                                                  color: '#8e8e93',
+                                                  color: 'var(--bs-secondary-color)',
                                                   lineHeight: '1.3',
                                                   marginTop: '4px',
                                                   marginBottom: '8px'
@@ -424,12 +428,12 @@ export default function TemplatesPage() {
                                              </p>
                                         )}
                                         <div className="d-flex" style={{ gap: '12px', marginTop: '8px', marginBottom: '10px' }}>
-                                             <div style={{ fontSize: '11px', color: '#8e8e93' }}>
-                                                  <div style={{ color: '#000000', fontWeight: '500', marginBottom: '1px' }}>Created</div>
+                                             <div style={{ fontSize: '11px', color: 'var(--bs-secondary-color)' }}>
+                                                  <div style={{ color: 'var(--bs-body-color)', fontWeight: '500', marginBottom: '1px' }}>Created</div>
                                                   {new Date(template.createdDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                              </div>
-                                             <div style={{ fontSize: '11px', color: '#8e8e93' }}>
-                                                  <div style={{ color: '#000000', fontWeight: '500', marginBottom: '1px' }}>Modified</div>
+                                             <div style={{ fontSize: '11px', color: 'var(--bs-secondary-color)' }}>
+                                                  <div style={{ color: 'var(--bs-body-color)', fontWeight: '500', marginBottom: '1px' }}>Modified</div>
                                                   {new Date(template.lastModified).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                              </div>
                                         </div>
@@ -438,7 +442,7 @@ export default function TemplatesPage() {
                                                   onClick={() => handleEditTemplate(template)}
                                                   style={{
                                                        flex: 1,
-                                                       backgroundColor: '#007AFF',
+                                                       backgroundColor: 'var(--pls-primary, #2e7d32)',
                                                        color: '#ffffff',
                                                        border: 'none',
                                                        borderRadius: '8px',
@@ -519,7 +523,7 @@ export default function TemplatesPage() {
                                         <h5 className="modal-title" style={isMobile ? {
                                              fontSize: '16px',
                                              fontWeight: '600',
-                                             color: '#000000',
+                                             color: 'var(--bs-body-color)',
                                              letterSpacing: '-0.3px'
                                         } : {}}>
                                              {selectedTemplate ? 'Edit Template' : 'Create Test Template'}
@@ -540,17 +544,17 @@ export default function TemplatesPage() {
                                    </div>
                                    <div className="modal-body" style={isMobile ? {
                                         padding: '16px',
-                                        backgroundColor: '#ffffff'
+                                        backgroundColor: 'var(--theme-card-bg, var(--bs-body-bg))'
                                    } : {}}>
                                         {modalLoadingData ? (
-                                             <div style={{ textAlign: 'center', padding: '30px', color: '#8e8e93', fontSize: '13px' }}>Loading...</div>
+                                             <div style={{ textAlign: 'center', padding: '30px', color: 'var(--bs-secondary-color)', fontSize: '13px' }}>Loading...</div>
                                         ) : (<div>
 
                                              <div className="mb-3">
                                                   <label className="form-label" style={isMobile ? {
                                                        fontSize: '12px',
                                                        fontWeight: '500',
-                                                       color: '#000000',
+                                                       color: 'var(--bs-body-color)',
                                                        marginBottom: '6px'
                                                   } : {}}>Test *</label>
                                                   <select
@@ -585,7 +589,7 @@ export default function TemplatesPage() {
                                                   <label className="form-label" style={isMobile ? {
                                                        fontSize: '12px',
                                                        fontWeight: '500',
-                                                       color: '#000000',
+                                                       color: 'var(--bs-body-color)',
                                                        marginBottom: '6px'
                                                   } : {}}>Description</label>
                                                   <textarea
@@ -696,7 +700,7 @@ export default function TemplatesPage() {
                                                   fontSize: '14px',
                                                   fontWeight: '600',
                                                   backgroundColor: '#e5e5ea',
-                                                  color: '#000000',
+                                                  color: 'var(--bs-body-color)',
                                                   border: 'none'
                                              } : {}}
                                         >
@@ -712,7 +716,7 @@ export default function TemplatesPage() {
                                                   padding: '8px',
                                                   fontSize: '14px',
                                                   fontWeight: '600',
-                                                  backgroundColor: '#007AFF',
+                                                  backgroundColor: 'var(--pls-primary, #2e7d32)',
                                                   border: 'none'
                                              } : {}}
                                         >

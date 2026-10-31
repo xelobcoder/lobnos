@@ -1,4 +1,5 @@
 'use client';
+import inventoryStyles from '../InventoryWorkspace.module.css';
 import SupplierPaymentSourceFields from '../../../components/inventory/SupplierPaymentSourceFields';
 
 import { useState, useEffect } from 'react';
@@ -68,6 +69,7 @@ export default function PaymentsPage() {
      const [selectedPaymentForCancel, setSelectedPaymentForCancel] = useState<Payment | null>(null);
      const [cancelReason, setCancelReason] = useState('');
      const [showDetailsModal, setShowDetailsModal] = useState(false);
+     const [fundingReady,setFundingReady]=useState(false);
      const [selectedPaymentDetails, setSelectedPaymentDetails] = useState<any>(null);
      const [loadingDetails, setLoadingDetails] = useState(false);
 
@@ -107,7 +109,7 @@ export default function PaymentsPage() {
      };
 
      const handleApprovePayment = (payment: Payment) => {
-          setApprovalPayment(payment);
+          setFundingReady(false);setApprovalPayment(payment);
           setApprovalSource(Number(payment.payment_account_id || 0));
           setApprovalMethod(payment.payment_method);
      };
@@ -408,14 +410,14 @@ export default function PaymentsPage() {
 
      return (
           <div className="container-fluid p-4">
-               <Offcanvas show={!!approvalPayment} onHide={() => { if (!approving) setApprovalPayment(null); }} placement="end">
+               <Offcanvas className={inventoryStyles.workspace} show={!!approvalPayment} onHide={() => { if (!approving) setApprovalPayment(null); }} placement="end">
                     <Offcanvas.Header closeButton={!approving}><Offcanvas.Title>Confirm supplier payment</Offcanvas.Title></Offcanvas.Header>
                     <Offcanvas.Body>
                          {approvalPayment && <>
                               <p><strong>{approvalPayment.supplier_name}</strong><br />{approvalPayment.payment_id}<br />{currencyFormatter.format(approvalPayment.payment_amount)}</p>
-                              <SupplierPaymentSourceFields key={approvalPayment.id} accountId={approvalSource} method={approvalMethod} disabled={approving}
+                              <SupplierPaymentSourceFields key={approvalPayment.id} amount={Number(approvalPayment.payment_amount)} onReady={setFundingReady} accountId={approvalSource} method={approvalMethod} disabled={approving}
                                    onChange={(accountId, method) => { setApprovalSource(accountId); setApprovalMethod(method); }} />
-                              <button type="button" className="btn btn-primary w-100" disabled={approving || !approvalSource || !approvalMethod} onClick={confirmSupplierPayment}>
+                              <button type="button" className="btn btn-primary w-100" disabled={approving || !approvalSource || !approvalMethod || !fundingReady} onClick={confirmSupplierPayment}>
                                    {approving ? 'Recording payment...' : 'Confirm payment'}
                               </button>
                          </>}

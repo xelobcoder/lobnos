@@ -6,6 +6,7 @@ import FrontPageFrontdeskView from "../components/FrontPageView/frontdeskView";
 import FrontPageLabScientistView from "../components/FrontPageView/labScientistView";
 import FrontPagePhelobotomyView from "../components/FrontPageView/phelobotomyView";
 import FrontPageSonographerView from "../components/FrontPageView/sonographerView";
+import DepartmentHeadView from '../components/FrontPageView/departmentHeadView';
 import styles from "./index.module.css";
 
 export default function Index() {
@@ -17,6 +18,7 @@ export default function Index() {
      manager: FrontPageAdminView,
      scientist: FrontPageLabScientistView,
      sonographer: FrontPageSonographerView,
+    head_of_laboratory:DepartmentHeadView,head_of_imaging:DepartmentHeadView,
      phelobotomist: FrontPagePhelobotomyView,
   };
 

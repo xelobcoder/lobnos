@@ -1,5 +1,7 @@
 "use client";
 
+import InventoryDialogAccessibility from './InventoryDialogAccessibility';
+import styles from './InventoryWorkspace.module.css';
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { ApplicationProvider } from "../../components/Auth/useApplicationContext";
@@ -16,7 +18,7 @@ function InventoryPrimeLayout({ children }: { children: React.ReactNode }) {
           <ApplicationProvider>
                <MAIN_LAYOUT>
                     <PrimeLayout links={links}>
-                         {children}
+                         <div className={styles.workspace}><InventoryDialogAccessibility>{children}</InventoryDialogAccessibility></div>
                     </PrimeLayout>
                </MAIN_LAYOUT>
           </ApplicationProvider>

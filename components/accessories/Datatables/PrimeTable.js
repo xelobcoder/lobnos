@@ -52,11 +52,13 @@ export default function PrimeTable({
 	urlparams = {},
 	theme = null,
 	rowStyling = null,
+	totalRecords = /** @type {number|null} */ (null),
+	initialPageSize = /** @type {number|null} */ (null),
 }) {
 	const [filteredData, setFilteredData] = useState(data);
 	const [isLoading, setIsLoading] = useState(false);
 	const [queryParams, setQueryParams] = useState({
-		count: data.length || 10,
+		count: initialPageSize || data.length || 10,
 		page: 1,
 	});
 	const [globalTheme, setGlobalTheme] = useState("PrimeLaboratoryTableStyling");
@@ -312,7 +314,8 @@ export default function PrimeTable({
 	const getPaginationItems = () => {
 		const current = queryParams.page || 1;
 		const start = Math.max(1, current - 1);
-		return [start, start + 1, start + 2].filter((item, index, arr) => item > 0 && arr.indexOf(item) === index);
+		const last = totalRecords === null ? null : Math.max(1, Math.ceil(Number(totalRecords) / queryParams.count));
+		return [start, start + 1, start + 2].filter((item, index, arr) => item > 0 && arr.indexOf(item) === index && (last === null || item <= last));
 	};
 
 	const NoDataAvailable = () => (
@@ -548,7 +551,7 @@ export default function PrimeTable({
 							type="button"
 							onClick={() => handlePagination("Next")}
 							className={`${style.paginationBtn} ${style.paginationBtnNav}`}
-							disabled={isLoading || filteredData.length === 0}
+							disabled={isLoading || filteredData.length === 0 || (totalRecords !== null && queryParams.page * queryParams.count >= Number(totalRecords))}
 						>
 							Next
 						</button>

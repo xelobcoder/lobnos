@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
+import {getBackendAuthorization} from './lib/serverBackendAccess';
 import {canAccessRolePage,isMasterPlatformPath,roleWorkspace} from './lib/roleNavigationPolicy';
 
 export interface UserPayload {
     user: {
         role: string;
-        employeeid: number
+        employeeid: number; branch?:number;
     };
     email: string;
     settings: any;
@@ -80,6 +81,21 @@ async function routeRequest(request: NextRequest) {
             if(['admin','superadmin'].includes(activeRole)){
                 if(currentPath.startsWith('/patientportal'))return NextResponse.redirect(new URL('/patient-portal-admin',request.url));
                 return NextResponse.next();
+            }
+            if(['/operations/laboratory/requisitions','/operations/imaging/ultrasound/requisitions'].includes(currentPath)){
+                // Require live, session-bound branch/department permission, even for head roles.
+                const tenantToken=request.cookies.get('pls-prime-tenant-session')?.value;
+                const tenantId=Number(payload.tenantId);
+                if(!tenantToken||!Number.isSafeInteger(tenantId)||tenantId<=0)return NextResponse.redirect(new URL('/unauthorized',request.url));
+                try{
+                    const base=process.env.NODE_ENV==='development'?process.env.DEVELOPMENT_BASEURL:process.env.PRODUCTION_BASEURL;
+                    if(!base)throw Error('Backend unavailable');
+                    const url=new URL('inventory/department-stock/my-access',base);url.searchParams.set('tenantId',String(tenantId));
+                    const response=await fetch(url,{headers:{...(getBackendAuthorization()?{Authorization:getBackendAuthorization()!}:{}),'pls-prime-tenant-session':tenantToken,'pls-session':sessionToken!},cache:'no-store',signal:AbortSignal.timeout(5000)});
+                    const access=await response.json();const department=currentPath.includes('/imaging/')?'imaging':'laboratory';
+                    if(response.ok&&access?.success&&Number(access.employeeid)===Number(user.employeeid)&&Number(access.tenantId)===tenantId&&Number(access.branchid)>0&&(user.branch==null||Number(access.branchid)===Number(user.branch))&&Array.isArray(access.data)&&access.data.some((grant:any)=>grant.department===department&&(grant.can_request===true||grant.can_receive===true||grant.can_consume===true)))return NextResponse.next();
+                }catch{}
+                return NextResponse.redirect(new URL('/unauthorized',request.url));
             }
             if(!canAccessRolePage(role,currentPath,settings||{}))return NextResponse.redirect(new URL('/unauthorized',request.url));
             if(['crm','cashier','marketer'].includes(activeRole))return NextResponse.next();

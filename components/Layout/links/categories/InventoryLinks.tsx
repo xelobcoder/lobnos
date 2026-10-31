@@ -21,6 +21,7 @@ import {
 } from '@remixicon/react';
 
 export const InventoryLinks: Link[] = [
+     {title:"Department stock",link:"/inventory/department-stock",icon:<RiBox3Line/>},
      {
           title: "Analytics Dashboard",
           link: "/inventory/analytics",

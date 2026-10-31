@@ -45,8 +45,13 @@ interface PrimeLayoutProps {
 }
 
 const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links: suppliedLinks }) => {
-    const { company, user, daysToExpiration, settings } = useApplicationSettings().applicationsettings;
-    const links = roleSidebarSource(user?.role,suppliedLinks);
+    const { company, user, branchid, daysToExpiration, settings } = useApplicationSettings().applicationsettings;
+    const [stockAccess,setStockAccess]=useState<string[]>([]);
+    useEffect(()=>{let active=true;setStockAccess([]);if(!user?.employeeid)return;customFetch('inventory/department-stock/my-access').then(r=>{if(active&&r?.success)setStockAccess((r.data||[]).filter((a:any)=>a.can_request||a.can_receive||a.can_consume).map((a:any)=>a.department));}).catch(()=>{});return()=>{active=false;};},[user?.employeeid,user?.role,user?.branch,branchid]);
+    const navigationSettings={...settings,departmentStock:stockAccess};
+    const baseLinks=roleSidebarSource(user?.role,suppliedLinks);
+    const hasStockLink=(items:LinkType[],path:string):boolean=>items.some(item=>item.link===path||!!item.children&&hasStockLink(item.children,path));
+    const links=[...baseLinks,...stockAccess.map(department=>({title:department==='laboratory'?'Laboratory supplies':'Imaging supplies',link:department==='laboratory'?'/operations/laboratory/requisitions':'/operations/imaging/ultrasound/requisitions'})).filter(link=>!hasStockLink(baseLinks,link.link))];
     const { theme, toggleTheme } = useTheme();
     const router = useRouter();
     const modulePath = usePathname();
@@ -90,9 +95,9 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links: suppliedLink
     const isSuperAdmin = normalizedRole.replace(/[\s-]/g, '') === 'superadmin';
     const workspaceRole=roleWorkspace(user?.role);
     const useRoleShortcuts=!['admin','superadmin','manager'].includes(workspaceRole);
-    const roleLinks = (useRoleShortcuts ? roleSidebarQuickLinks(user?.role,suppliedLinks,settings||{}) : isSuperAdmin ? SuperAdminRoleLinks : (roleViews[workspaceRole] || [])).filter(item =>
-        canAccessRolePage(user?.role,item.href||'',settings||{}) && (isSuperAdmin||canAccessFacilityModule(item.href||'',settings?.moduleConfiguration,{smsActivated:settings?.smsActivated})));
-    const visibleLinks = useMemo(() => filterRoleSidebar(links||[],user?.role,settings||{}),[links,user?.role,settings]);
+    const roleLinks = (useRoleShortcuts ? roleSidebarQuickLinks(user?.role,suppliedLinks,navigationSettings) : isSuperAdmin ? SuperAdminRoleLinks : (roleViews[workspaceRole] || [])).filter(item =>
+        canAccessRolePage(user?.role,item.href||'',navigationSettings) && (isSuperAdmin||canAccessFacilityModule(item.href||'',settings?.moduleConfiguration,{smsActivated:settings?.smsActivated})));
+    const visibleLinks = useMemo(() => filterRoleSidebar(links||[],user?.role,navigationSettings),[links,user?.role,settings,stockAccess]);
     const canViewNotifications = roleAllowed(user?.role, ['admin', 'manager']);
     const activeNavigationPath = useMemo(() => findActiveNavigationPath(visibleLinks, modulePath || ''), [visibleLinks, modulePath]);
     const employeeid = user?.employeeid || 0;
@@ -583,7 +588,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links: suppliedLink
                                 </li>)}
                             </ol>
                         </nav>}
-                        {canAccessRolePage(user?.role,modulePath||"",settings||{}) && (isSuperAdmin || canAccessFacilityModule(modulePath || "", settings?.moduleConfiguration,
+                        {canAccessRolePage(user?.role,modulePath||"",navigationSettings) && (isSuperAdmin || canAccessFacilityModule(modulePath || "", settings?.moduleConfiguration,
                             { smsActivated: settings?.smsActivated }))
                             ? children : <div className="alert alert-warning" role="alert">This page is not available for your active role or facility. Use Switch role to choose an assigned workspace.</div>}
                     </div>

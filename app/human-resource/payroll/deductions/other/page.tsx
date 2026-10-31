@@ -1,4 +1,5 @@
 'use client';
+import PayrollSummaryStrip from '../../PayrollSummaryStrip';
 import screens from '../../PayrollScreens.module.css';
 
 import React, { useEffect, useMemo, useState } from 'react';
@@ -569,48 +570,16 @@ export default function OtherDeductionsPage() {
                     </button>
                </div>
 
-               <div className="row g-3 mb-4">
-                    <div className="col-md-3">
-                         <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                              <div className="d-flex align-items-center mb-2">
-                                   <RiUserLine size={18} className="me-2 text-primary" />
-                                   <span className="small text-muted fw-medium">Selected Employee</span>
-                              </div>
-                              <div className="fw-bold">{selectedEmployee?.username || 'No employee selected'}</div>
-                              <div className="small text-muted">{selectedEmployee?.role || 'Choose an employee'}</div>
-                         </div>
-                    </div>
-                    <div className="col-md-3">
-                         <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                              <div className="d-flex align-items-center mb-2">
-                                   <RiCheckboxCircleLine size={18} className="me-2 text-success" />
-                                   <span className="small text-muted fw-medium">Employee Deductions</span>
-                              </div>
-                              <div className="fw-bold">{loading ? '...' : employeeDeductions.length}</div>
-                              <div className="small text-muted">Loaded for the selected employee</div>
-                         </div>
-                    </div>
-                    <div className="col-md-3">
-                         <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                              <div className="d-flex align-items-center mb-2">
-                                   <RiShieldCheckLine size={18} className="me-2 text-warning" />
-                                   <span className="small text-muted fw-medium">Recurring Monthly Total</span>
-                              </div>
-                              <div className="fw-bold">{currencyFormatter.format(monthlyRecurringTotal)}</div>
-                              <div className="small text-muted">Recurring deductions only</div>
-                         </div>
-                    </div>
-                    <div className="col-md-3">
-                         <div className={screens.detailItem} style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                              <div className="d-flex align-items-center mb-2">
-                                   <RiCheckboxCircleLine size={18} className="me-2 text-info" />
-                                   <span className="small text-muted fw-medium">Pending Approvals</span>
-                              </div>
-                              <div className="fw-bold">{pendingApprovals.length}</div>
-                              <div className="small text-muted">Awaiting review</div>
-                         </div>
-                    </div>
-               </div>
+               <section className={screens.panel} aria-label="Selected employee">
+                    <span className={screens.eyebrow}>Selected employee</span>
+                    <h2 className="h6 mb-1">{selectedEmployee?.username || 'Choose an employee'}</h2>
+                    <p className="small text-muted mb-0">{selectedEmployee ? 'Review deductions for this employee below.' : 'Select an employee to review or create deductions.'}</p>
+               </section>
+               <PayrollSummaryStrip label="Deduction summary" items={[
+                    {label:'Employee deductions',value:loading ? 'Loading…' : selectedEmployee ? employeeDeductions.length : '—'},
+                    {label:'Recurring monthly total',value:loading ? 'Loading…' : selectedEmployee ? currencyFormatter.format(monthlyRecurringTotal) : '—'},
+                    {label:'Pending approvals',value:loading ? 'Loading…' : pendingApprovals.length,tone:pendingApprovals.length ? 'warning' : undefined}
+               ]}/>
 
                {error && (
                     <div role="alert" className="alert alert-danger d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">

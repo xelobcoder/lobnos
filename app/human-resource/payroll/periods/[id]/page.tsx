@@ -1,4 +1,5 @@
 'use client';
+import SupplierPaymentSourceFields from '../../../../../components/inventory/SupplierPaymentSourceFields';
 import screens from '../../PayrollScreens.module.css';
 import PayrollWorkflowRibbon from '../../PayrollWorkflowRibbon';
 import { usePayrollFeedback } from '../../../../../components/HR/Payroll/usePayrollFeedback';
@@ -168,6 +169,8 @@ export default function PayrollPeriodDetailPage() {
      const [showPaymentModal, setShowPaymentModal] = useState(false);
      const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
      const [paymentMethod, setPaymentMethod] = useState('');
+     const [paymentAccountId,setPaymentAccountId]=useState(0);
+     const [fundingReady,setFundingReady]=useState(false);
      const [currentPage, setCurrentPage] = useState(1);
      const [pageSize, setPageSize] = useState(10);
      const [totalCount, setTotalCount] = useState(0);
@@ -279,6 +282,7 @@ export default function PayrollPeriodDetailPage() {
                          paid_by: user.employeeid,
                          payment_date: paymentDate,
                          payment_method: paymentMethod,
+                         payment_account_id: paymentAccountId,
                          branchid: applicationsettings?.branchid,
                          employeeid: user.employeeid
                     }
@@ -350,7 +354,7 @@ export default function PayrollPeriodDetailPage() {
      };
 
      const confirmMarkPaid = async () => {
-          if (!paymentDate || !paymentMethod) {
+          if (!paymentDate || !paymentMethod || !paymentAccountId) {
                notify('Please fill in all payment details');
                return;
           }
@@ -1007,23 +1011,7 @@ export default function PayrollPeriodDetailPage() {
                                                   required
                                              />
                                         </div>
-                                        <div className="mb-3">
-                                             <label htmlFor="paymentMethod" className="form-label fw-medium">Payment Method <span className="text-danger" aria-hidden="true">*</span></label>
-                                             <select
-                                                  className="form-select"
-                                                  id="paymentMethod"
-                                                  value={paymentMethod}
-                                                  onChange={(e) => setPaymentMethod(e.target.value)}
-                                                  required
-                                             >
-                                                  <option value="">Select payment method</option>
-                                                  <option value="Bank Transfer">Bank Transfer</option>
-                                                  <option value="Cash">Cash</option>
-                                                  <option value="Cheque">Cheque</option>
-                                                  <option value="Direct Deposit">Direct Deposit</option>
-                                                  <option value="MoMo">MoMo(Mobile Money)</option>
-                                             </select>
-                                        </div>
+                                        <SupplierPaymentSourceFields purpose="payroll" onReady={setFundingReady} accountId={paymentAccountId} method={paymentMethod} amount={Number(period?.total_net_salary||0)} disabled={actionLoading} onChange={(id,method)=>{setPaymentAccountId(id);setPaymentMethod(method);}}/>
                                    </div>
                                    <div className="modal-footer">
                                         <button type="button" className="btn btn-secondary" disabled={actionLoading} onClick={() => setShowPaymentModal(false)}>
@@ -1033,7 +1021,7 @@ export default function PayrollPeriodDetailPage() {
                                              type="button"
                                              className="btn btn-primary"
                                              onClick={confirmMarkPaid}
-                                             disabled={actionLoading}
+                                             disabled={actionLoading||!fundingReady}
                                         >
                                              {actionLoading ? (
                                                   <>

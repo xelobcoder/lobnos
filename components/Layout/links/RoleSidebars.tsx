@@ -27,6 +27,8 @@ export function roleSidebarSource(role:unknown,supplied:Link[]):Link[]{
  case 'crm':return CrmStaffLinks;case 'cashier':return CashierLinks;case 'marketer':return MarketingStaffLinks;
  case 'doctor':case 'medicalofficer':case 'consultant':case 'pharmacydoctor':case 'pharmacynurse':return [item('Practitioner workspace','/doctor'),item('Consultations','/doctor/consultation'),item('My clinical access','/doctor/permissions')];
  case 'nurse':case 'nursing':return [item('Patients & triage','/doctor/consultation'),item('Vital signs','/operations/laboratory/vitals/record-vital-sign')];
+ case 'headoflaboratory':return [item('Laboratory requisitions','/operations/laboratory/requisitions')];
+ case 'headofimaging':return [item('Imaging requisitions','/operations/imaging/ultrasound/requisitions')];
  case 'scientist':return LaboratoryOperationsLinks;case 'phlebotomist':return PhlebotomyLinks;case 'sonographer':return ImagingLinks;
  case 'storekeeper':return InventoryLinks;case 'accountant':return [...AccountingLinks,{title:'Collections',link:'',children:CashierLinks},{title:'Expenses',link:'',children:ExpensesLinks},{title:'Payroll',link:'',children:PayrollLinks}];
  case 'pharmacymanager':case 'pharmacycashier':case 'pharmacystorekeeper':case 'pharmacyaccountant':case 'pharmacydispensaryofficer':case 'pharmacist':return PharmacyLinks;

@@ -201,6 +201,7 @@ export default function PrimeLabLoginPage() {
 				admin: '/analytics',
 				manager: '/',
 				sonographer: '/operations/imaging/ultrasound',
+                head_of_laboratory:'/operations/laboratory/requisitions',head_of_imaging:'/operations/imaging/ultrasound/requisitions',
 				scientist: '/operations/laboratory',
 				storekeeper: '/inventory',
 				accountant: '/accounting',

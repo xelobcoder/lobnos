@@ -22,6 +22,7 @@ export default function InventoryCategoriesPage() {
      const [showAddModal, setShowAddModal] = useState(false);
      const [selectedCategory, setSelectedCategory] = useState<InventoryCategory | null>(null);
      const [loading, setLoading] = useState(false);
+     const [loadError, setLoadError] = useState('');
 
      // Form states
      const [categoryForm, setCategoryForm] = useState({
@@ -39,6 +40,7 @@ export default function InventoryCategoriesPage() {
      const loadCategories = async () => {
           try {
                setLoading(true);
+               setLoadError('');
                const response = await customFetch(`inventory/categories?branchid=${branchid}&employeeid=${employeeid}`);
                const data = Array.isArray(response) ? response : (response?.data || response?.result || []);
                const mappedCategories = (data || []).map((cat: any) => ({
@@ -49,7 +51,7 @@ export default function InventoryCategoriesPage() {
                }));
                setCategories(mappedCategories);
           } catch (error) {
-               console.error('Error loading categories:', error);
+               setLoadError('Unable to load categories. Please retry.');
           } finally {
                setLoading(false);
           }
@@ -96,7 +98,7 @@ export default function InventoryCategoriesPage() {
                Header: 'Description',
                accessor: 'description',
                Cell: ({ value }) => (
-                    <div style={{ maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <div style={{ maxWidth: '360px', whiteSpace: 'normal', overflowWrap: 'anywhere' }}>
                          {value}
                     </div>
                )
@@ -258,6 +260,7 @@ export default function InventoryCategoriesPage() {
                     </div>
                </div>
 
+               {loadError && <div className="alert alert-danger d-flex align-items-center justify-content-between gap-2" role="alert"><span>{loadError}</span><button type="button" className="btn btn-outline-danger btn-sm" disabled={loading} onClick={loadCategories}>Retry loading</button></div>}
                {/* Categories Table */}
                <PrimeTable
                     pdfExport

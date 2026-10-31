@@ -17,6 +17,7 @@ import {
 } from '@remixicon/react';
 
 export const LaboratoryOperationsLinks: Link[] = [
+    {title:"Stock requisitions",link:"/operations/laboratory/requisitions",icon:<RiFileListLine/>},
     {
         title: "Laboratory Operations Lifecycle",
         link: "",

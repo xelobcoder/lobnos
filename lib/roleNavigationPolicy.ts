@@ -1,5 +1,5 @@
 import {normalizeRole,isSuperAdminRole} from '../components/Auth/roles';
-export type NavigationSettings={allowScientistToRegisterClient?:number|boolean|null};
+export type NavigationSettings={departmentStock?:string[];allowScientistToRegisterClient?:number|boolean|null};
 export function roleWorkspace(role:unknown){const key=normalizeRole(role);if(['crm','receptionist','frontdesk','frontdeskofficer','customerrepresentative','customerservicerepresentative'].includes(key))return 'crm';if(['cashier','billing','billingofficer'].includes(key))return 'cashier';if(['phlebotomist','phelobotomist'].includes(key))return 'phlebotomist';return key;}
 export function navigationPath(value:string){try{const raw=value.split(/[?#]/)[0];if(!raw)return '';return decodeURIComponent(raw).replace(/\/+/g,'/').replace(/\/$/,'').toLowerCase()||'/';}catch{return '';}}
 const within=(path:string,root:string)=>path===root||path.startsWith(root+'/');
@@ -9,6 +9,7 @@ export function canAccessRolePage(role:unknown,value:string,settings:NavigationS
  const p=navigationPath(value),key=roleWorkspace(role);if(!p||!p.startsWith('/'))return false;
  if(isMasterPlatformPath(p))return isSuperAdminRole(role);
  if(key==='admin'||isSuperAdminRole(role))return true;
+ if(p==='/operations/laboratory/requisitions'||p==='/operations/imaging/ultrasound/requisitions'){const department=p.includes('/imaging/')?'imaging':'laboratory';return (department==='laboratory'&&key==='headoflaboratory')||(department==='imaging'&&key==='headofimaging')||(!['patient','clinician',''].includes(key)&&!!settings.departmentStock?.includes(department));}
  if(within(p,'/communications/sms/contact-groups'))return key==='manager';
  if(within(p,'/communications/sms/provider'))return false;
  if(p==='/billing/packages'&&['crm','cashier','accountant','manager','scientist','phlebotomist','sonographer'].includes(key))return true;
@@ -26,6 +27,8 @@ export function canAccessRolePage(role:unknown,value:string,settings:NavigationS
  if(key==='crm'&&(p==='/communications/sms'||['/communications/sms/dashboard','/communications/sms/jobs','/communications/sms/templates'].some(root=>within(p,root))))return true;
  if(key==='crm')return ['/crm/overview','/crm/customers','/crm/registration','/crm/leads','/crm/birthdays','/crm/validated','/crm/pricelist','/crm/referral-codes','/appointments','/operations/queue','/operations/laboratory/undelivered','/billing/patientid','/billing/entity-orders','/billing/suspended-transactions'].some(root=>within(p,root))||['/billing/packages','/clinicians','/clinicians/add-new','/organization'].includes(p);
  if(key==='cashier')return ['/billing/cash-collection','/billing/receipts','/billing/organization-invoices','/billing/billing-sessions/sales-session'].some(root=>within(p,root))||p==='/crm/pricelist';
+ if(key==='headoflaboratory')return within(p,'/operations/laboratory/requisitions');
+ if(key==='headofimaging')return within(p,'/operations/imaging/ultrasound/requisitions');
  if(key==='scientist')return ['/operations/laboratory','/operations/phelobotomy','/operations/phlebotomy','/phelobotomy','/phlebotomy'].some(root=>within(p,root))||p==='/operations/queue'||(within(p,'/crm/registration')&&Number(settings.allowScientistToRegisterClient)===1);
  if(key==='phlebotomist')return ['/operations/phelobotomy','/operations/phlebotomy','/phelobotomy','/phlebotomy','/operations/laboratory/sample','/operations/laboratory/vitals'].some(root=>within(p,root))||p==='/operations/queue';
  if(key==='sonographer')return within(p,'/operations/imaging');
