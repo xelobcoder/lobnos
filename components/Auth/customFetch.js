@@ -92,11 +92,12 @@ export async function customFetch(endpoint, isLogin = false) {
 		}
 
 		const { status, message, statusCode } = source;
+		const normalizedMessage = typeof message === "string" ? message.toLowerCase() : "";
 		if (
 			(status == 401 || statusCode == 401 || statusCode == 500) &&
-			(message.toLowerCase() == "Unauthorized".toLowerCase() ||
-				message.toLowerCase() == "Token not Provided".toLowerCase() ||
-				message.toLowerCase() == "Token Expired".toLowerCase())
+			(normalizedMessage === "unauthorized" ||
+				normalizedMessage === "token not provided" ||
+				normalizedMessage === "token expired")
 		) {
 			handleLogout();
 		} else {
@@ -135,43 +136,35 @@ export async function customFetchMutation(endpoint, method, body) {
 	return response.json();
 }
 
-let isLoggingOutInFlight = false;
+let logoutPromise = null;
 
 export async function handleLogout(setIsLoggingOut, destination = "/authentications/login") {
-	// Guard against multiple concurrent invocations (e.g. several parallel
-	// requests all receiving 401 at once) triggering repeated logout/redirect storms.
-	if (isLoggingOutInFlight) return;
-	isLoggingOutInFlight = true;
-
-	const redirectToLogin = () => {
-		setTimeout(() => {
-			window.location.href = destination;
-		}, 1000);
-	};
-
-	try {
-		const response = await fetch("/api/auth/logout", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-		});
-
-		if (!response.ok) {
-			console.error("Logout failed");
-		}
-	} catch (error) {
-		// ignore, still redirect below
-	} finally {
-		// Clear cached auth state so stale data doesn't make the app think it's still logged in.
-		if (typeof window !== "undefined") {
-			localStorage.removeItem("applicationsettings");
-		}
-		if (typeof setIsLoggingOut === "function") {
-			setIsLoggingOut(false);
-		}
-		redirectToLogin();
+	// Share completion as well as the request, including callers remounted by React.
+	if (!logoutPromise) {
+		logoutPromise = (async () => {
+			try {
+				const response = await fetch("/api/auth/logout", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+				});
+				if (!response.ok) throw new Error("The browser session could not be cleared. Please retry signing out.");
+				if (typeof window !== "undefined") {
+					try { localStorage.removeItem("applicationsettings"); }
+					catch (error) { console.warn("Unable to clear the local settings cache:", error); }
+				}
+				window.location.replace(destination);
+				return true;
+			} catch (error) {
+				console.error("Logout failed:", error);
+				toast.error("Unable to sign out. Please retry.");
+				return false;
+			}
+		})();
 	}
+	const completed = await logoutPromise;
+	if (!completed) logoutPromise = null;
+	if (typeof setIsLoggingOut === "function") setIsLoggingOut(false);
+	return completed;
 }
 
 export async function InventoryFetch(endpoint) {

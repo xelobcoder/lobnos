@@ -9,6 +9,10 @@ const source = readFileSync(path.join(__dirname, "..", "app", "authentications",
 const compiled = ts.transpileModule(source, {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
 }).outputText;
+const destinations = {};
+vm.runInNewContext(ts.transpileModule(readFileSync(path.join(__dirname, '..', 'lib', 'workspaceDestination.ts'), 'utf8'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
+}).outputText, { exports: destinations });
 const nodes = (tree, predicate) => !tree || typeof tree !== "object" ? [] : Array.isArray(tree)
     ? tree.flatMap(child => nodes(child, predicate))
     : [...(predicate(tree) ? [tree] : []), ...nodes(tree.props?.children, predicate)];
@@ -40,6 +44,7 @@ function harness({ context, role = "admin", blockedStorage = false, search = "" 
         },
         require(name) {
             if (name === "react") return {
+                useEffect() {},
                 useState(initial) {
                     const index = cursor++;
                     if (!(index in states)) states[index] = initial;
@@ -51,6 +56,7 @@ function harness({ context, role = "admin", blockedStorage = false, search = "" 
             if (name === "next/navigation") return { useRouter: () => ({ push: url => redirects.push(url) }) };
             if (name === "next/link") return "Link";
             if (name.includes("customFetch")) return { customPost: async () => ({ status: true, accessToken: "test-token", tenantId: 397773 }) };
+            if (name.endsWith("workspaceDestination")) return destinations;
             if (name.endsWith(".css")) return {};
             if (name === "@remixicon/react") return new Proxy({}, { get: () => "Icon" });
             throw new Error(`Unexpected dependency: ${name}`);

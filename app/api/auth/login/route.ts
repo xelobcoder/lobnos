@@ -14,6 +14,14 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Invalid authentication data' }, { status: 400 });
         }
 
+        const effectiveSessionExpiryTime = sessionExpiryTime == null
+            ? Date.now() + (12 * 60 * 60 * 1000)
+            : typeof sessionExpiryTime === 'number' ? sessionExpiryTime
+                : typeof sessionExpiryTime === 'string' ? Date.parse(sessionExpiryTime) : NaN;
+        if (!Number.isFinite(effectiveSessionExpiryTime) || effectiveSessionExpiryTime <= Date.now()) {
+            return NextResponse.json({ error: 'The login session expiry is invalid or has already passed' }, { status: 400 });
+        }
+
         const backendBaseUrl = process.env.NODE_ENV === 'development'
             ? process.env.DEVELOPMENT_BASEURL
             : process.env.PRODUCTION_BASEURL;
@@ -70,7 +78,6 @@ export async function POST(request: NextRequest) {
         if (new TextEncoder().encode(`PLS-SESSION=${signedToken}`).length > 3800) {
             throw new Error('The authentication session exceeds the supported cookie size');
         }
-        const effectiveSessionExpiryTime = sessionExpiryTime || Date.now() + (12 * 60 * 60 * 1000);
         const maxAge = Math.max(1, Math.floor((effectiveSessionExpiryTime - Date.now()) / 1000));
         // Set cookies
         (await cookies()).set('PLS-SESSION', signedToken, {

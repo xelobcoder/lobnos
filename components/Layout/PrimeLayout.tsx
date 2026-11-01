@@ -45,13 +45,18 @@ interface PrimeLayoutProps {
 }
 
 const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links: suppliedLinks }) => {
-    const { company, user, branchid, daysToExpiration, settings } = useApplicationSettings().applicationsettings;
+    const { company, user, branchid, tenantId, daysToExpiration, settings } = useApplicationSettings().applicationsettings;
     const [stockAccess,setStockAccess]=useState<string[]>([]);
-    useEffect(()=>{let active=true;setStockAccess([]);if(!user?.employeeid)return;customFetch('inventory/department-stock/my-access').then(r=>{if(active&&r?.success)setStockAccess((r.data||[]).filter((a:any)=>a.can_request||a.can_receive||a.can_consume).map((a:any)=>a.department));}).catch(()=>{});return()=>{active=false;};},[user?.employeeid,user?.role,user?.branch,branchid]);
-    const navigationSettings={...settings,departmentStock:stockAccess};
+    const [panelAccess,setPanelAccess]=useState(false);
+    useEffect(()=>{let active=true;setStockAccess([]);setPanelAccess(false);if(!user?.employeeid)return;
+        customFetch('inventory/department-stock/my-access').then(r=>{if(active&&r?.success)setStockAccess((r.data||[]).filter((a:any)=>a.can_request||a.can_receive||a.can_consume).map((a:any)=>a.department));}).catch(error=>console.error('Unable to load department navigation:',error));
+        if(['admin','superadmin','manager','scientist','headoflaboratory'].includes(roleWorkspace(user.role)))customFetch('testpanel/my-access').then(r=>{if(active&&r?.success)setPanelAccess(r.can_manage===true);}).catch(error=>console.error('Unable to load test-panel navigation:',error));
+        return()=>{active=false;};},[user?.employeeid,user?.role,user?.branch,branchid,tenantId]);
+    const navigationSettings={...settings,departmentStock:stockAccess,testPanelsManagement:panelAccess};
     const baseLinks=roleSidebarSource(user?.role,suppliedLinks);
     const hasStockLink=(items:LinkType[],path:string):boolean=>items.some(item=>item.link===path||!!item.children&&hasStockLink(item.children,path));
-    const links=[...baseLinks,...stockAccess.map(department=>({title:department==='laboratory'?'Laboratory supplies':'Imaging supplies',link:department==='laboratory'?'/operations/laboratory/requisitions':'/operations/imaging/ultrasound/requisitions'})).filter(link=>!hasStockLink(baseLinks,link.link))];
+    const panelPath='/operations/laboratory/test-panels/testlist';
+    const links=[...baseLinks,...stockAccess.map(department=>({title:department==='laboratory'?'Laboratory supplies':'Imaging supplies',link:department==='laboratory'?'/operations/laboratory/requisitions':'/operations/imaging/ultrasound/requisitions'})).filter(link=>!hasStockLink(baseLinks,link.link)),...(panelAccess&&!hasStockLink(baseLinks,panelPath)?[{title:'Manage test panels',link:panelPath}]:[])];
     const { theme, toggleTheme } = useTheme();
     const router = useRouter();
     const modulePath = usePathname();
@@ -97,7 +102,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links: suppliedLink
     const useRoleShortcuts=!['admin','superadmin','manager'].includes(workspaceRole);
     const roleLinks = (useRoleShortcuts ? roleSidebarQuickLinks(user?.role,suppliedLinks,navigationSettings) : isSuperAdmin ? SuperAdminRoleLinks : (roleViews[workspaceRole] || [])).filter(item =>
         canAccessRolePage(user?.role,item.href||'',navigationSettings) && (isSuperAdmin||canAccessFacilityModule(item.href||'',settings?.moduleConfiguration,{smsActivated:settings?.smsActivated})));
-    const visibleLinks = useMemo(() => filterRoleSidebar(links||[],user?.role,navigationSettings),[links,user?.role,settings,stockAccess]);
+    const visibleLinks = useMemo(() => filterRoleSidebar(links||[],user?.role,navigationSettings),[links,user?.role,settings,stockAccess,panelAccess]);
     const canViewNotifications = roleAllowed(user?.role, ['admin', 'manager']);
     const activeNavigationPath = useMemo(() => findActiveNavigationPath(visibleLinks, modulePath || ''), [visibleLinks, modulePath]);
     const employeeid = user?.employeeid || 0;

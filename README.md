@@ -1,6 +1,62 @@
 ### PRIME LABORATORY SOFTWARE(PLS) INTEGRADED LABORATORY SOFTWARE FOR SMALL TO MEDIUM CLINICAL LABORATORIES ###
  *This is a software for small to large facillity that helps to manage laboratories bith on premises and online *
 
+## Device replacement and sign-out
+
+Staff browser sign-in replaces the previous browser session; restricted Device
+Manager sessions retain their existing coexistence rules. The old browser must
+end at the login page without repeatedly entering and leaving the workspace.
+The login proxy confirms the backend session before redirecting a still-valid
+frontend JWT. Backend outages leave login accessible without erasing credentials.
+
+`/authentication/logout` does not mount the session-required workspace layout.
+It clears browser cookies once and uses a replacement navigation only after the
+logout response succeeds. Cookie-clearing failures show a retry instead of
+redirecting with stale credentials. Server-provided ISO expiry timestamps and
+epoch milliseconds are both validated before setting cookie lifetimes.
+
+Focused regressions:
+
+```powershell
+node --test tests\device-session-redirect.test.cjs tests\auth-login.test.cjs tests\auth-context.test.cjs tests\login-redirect.test.cjs tests\proxy-cache.test.cjs
+```
+
+## Role navigation and delegated test panels
+
+Page guards, sidebars and workspace shortcuts use the same role policy. Imaging
+analytics, incident reporting and package viewing remain available to sonographers;
+laboratory staff retain home collection and their laboratory workflows.
+Stale dashboard and clinician commission links now point to their current pages.
+Accountants have commission navigation; actual financial actions still require
+the existing server-side delegations. Personal profile edits cannot change roles
+or locations. Use **Staff & role access** for assigned-role changes.
+
+Clinical requisitions are separated by the **active role**: scientists and
+laboratory heads use Laboratory requisitions; sonographers and imaging heads use
+Imaging requisitions. A grant for the other department does not override this
+boundary. Scientists/sonographers still need the appropriate branch-specific
+request/receive/consume grant. Administrators retain oversight and storekeepers
+issue supplies from Inventory, not from a clinical requisition workspace.
+
+An administrator can open **Users → Permissions** and enable **Test Panels →
+Manage laboratory test panels, parameters and report settings** for a scientist,
+laboratory head or manager. The laboratory sidebar then exposes **Manage test
+panels**, under `/operations/laboratory/test-panels/testlist`. The existing list,
+new-test form and editor are reused, including fields/reference ranges,
+calculations, procedures, literature, QC requirements and per-test report settings.
+Navigation stays in Laboratory Operations. The grant does not expose general
+application settings, staff administration, bulk pricing, outsourcing administration
+or critical-value policies. General settings/administration flags are not a
+substitute for this explicit permission.
+
+Page access and writes check current server permissions; revocation blocks the
+next page request or write even if an old browser still displays a link. Rebuild
+and deploy both frontend and backend together.
+
+```powershell
+node --test tests\role-link-consistency.test.cjs tests\department-head-access.test.cjs tests\department-stock-proxy.test.cjs tests\sms-access.test.cjs
+```
+
 ## Layout preference
 
 The product name is **Prime Laboratory Software (PLS)**. Legacy repository names

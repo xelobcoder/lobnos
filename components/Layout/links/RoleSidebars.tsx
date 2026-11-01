@@ -10,6 +10,7 @@ import {InventoryLinks} from './categories/InventoryLinks';
 import {AccountingLinks} from './categories/AccountingLinks';
 import {ExpensesLinks} from './categories/ExpensesLinks';
 import {PayrollLinks} from './categories/PayrollLinks';
+import {CommissionLinks} from './categories/CommissionLinks';
 import {PharmacyLinks} from './categories/PharmacyLinks';
 const item=(title:string,link:string,icon=<RiFileListLine/>):Link=>({title,link,icon});
 export const CrmStaffLinks:Link[]=[
@@ -27,10 +28,10 @@ export function roleSidebarSource(role:unknown,supplied:Link[]):Link[]{
  case 'crm':return CrmStaffLinks;case 'cashier':return CashierLinks;case 'marketer':return MarketingStaffLinks;
  case 'doctor':case 'medicalofficer':case 'consultant':case 'pharmacydoctor':case 'pharmacynurse':return [item('Practitioner workspace','/doctor'),item('Consultations','/doctor/consultation'),item('My clinical access','/doctor/permissions')];
  case 'nurse':case 'nursing':return [item('Patients & triage','/doctor/consultation'),item('Vital signs','/operations/laboratory/vitals/record-vital-sign')];
- case 'headoflaboratory':return [item('Laboratory requisitions','/operations/laboratory/requisitions')];
+ case 'headoflaboratory':return [item('Laboratory requisitions','/operations/laboratory/requisitions'),item('Manage test panels','/operations/laboratory/test-panels/testlist')];
  case 'headofimaging':return [item('Imaging requisitions','/operations/imaging/ultrasound/requisitions')];
  case 'scientist':return LaboratoryOperationsLinks;case 'phlebotomist':return PhlebotomyLinks;case 'sonographer':return ImagingLinks;
- case 'storekeeper':return InventoryLinks;case 'accountant':return [...AccountingLinks,{title:'Collections',link:'',children:CashierLinks},{title:'Expenses',link:'',children:ExpensesLinks},{title:'Payroll',link:'',children:PayrollLinks}];
+ case 'storekeeper':return InventoryLinks;case 'accountant':return [...AccountingLinks,{title:'Collections',link:'',children:CashierLinks},{title:'Expenses',link:'',children:ExpensesLinks},{title:'Payroll',link:'',children:PayrollLinks},{title:'Commissions',link:'',children:CommissionLinks}];
  case 'pharmacymanager':case 'pharmacycashier':case 'pharmacystorekeeper':case 'pharmacyaccountant':case 'pharmacydispensaryofficer':case 'pharmacist':return PharmacyLinks;
  default:return supplied;
  }
@@ -50,7 +51,7 @@ export function filterRoleSidebar(items:Link[],role:unknown,settings:NavigationS
 export function roleSidebarQuickLinks(role:unknown,supplied:Link[],settings:NavigationSettings&{moduleConfiguration?:unknown;smsActivated?:number|boolean|null}={}){
  const hubs:Record<string,[string,string][]>={
  accountant:[['Accounting','/accounting'],['Collections','/billing/cash-collection'],['Expenses','/billing/expenses'],['Payroll','/human-resource/payroll'],['Inventory valuation','/accounting/inventory/valuation']],
- scientist:[['Laboratory workspace','/operations/laboratory'],['Workbench','/operations/laboratory/workbench'],['Quality control','/operations/laboratory/quality-control'],['Patient registration','/crm/registration'],['Incident reporting','/compliance/incident-reporting']],
+ scientist:[['Laboratory workspace','/operations/laboratory'],['Workbench','/operations/laboratory/workbench'],['Manage test panels','/operations/laboratory/test-panels/testlist'],['Quality control','/operations/laboratory/quality-control'],['Patient registration','/crm/registration'],['Incident reporting','/compliance/incident-reporting']],
  phlebotomist:[['Phlebotomy','/operations/phelobotomy'],['Pending samples','/operations/phelobotomy/pending-samples-collection'],['Sample validation','/operations/laboratory/sample/validation'],['Incident reporting','/compliance/incident-reporting']],
  storekeeper:[['Inventory','/inventory'],['Inventory analytics','/inventory/analytics']],
  pharmacymanager:[['Pharmacy','/pharmacy'],['Point of sale','/pharmacy/sell'],['Inventory','/pharmacy/inventory'],['Finances','/pharmacy/finance'],['Settings','/pharmacy/settings'],['Staff access','/account/staff']],

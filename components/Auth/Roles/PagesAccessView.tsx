@@ -13,6 +13,10 @@ interface PagesAccessViewProps {
 export default function PagesAccessView({ data, changeEvent, target, handler, pageAcesshandler, role }: PagesAccessViewProps) {
 	// Group permissions by resource with CRUD operations
 	const permissionGroups = {
+		"Test Panels": {
+			group: 'testPanels',
+			permissions: [{ key: 'manage', label: 'Manage laboratory test panels, parameters and report settings' }]
+		},
 		"Patients": {
 			group: 'patients',
 			permissions: [

@@ -1,6 +1,9 @@
 "use client"
 import { useEffect, useMemo, useState, use } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { testPanelBasePath } from "../../../../../../lib/testPanelNavigation";
+import { roleAllowed } from "../../../../../../components/Auth/roles";
+import { useApplicationSettings } from "../../../../../../components/Auth/useApplicationContext";
 import { CriticalPolicySettings } from '../../../../../../components/operations/TestOperationalSettings';
 import TestForm from "../../../../../../components/settingsComponents/test/testForm";
 import FieldsTab from "../../../../../../components/settingsComponents/test/tabs/FieldsTab";
@@ -27,10 +30,13 @@ const TABS: { key: TestEditorTab; label: string }[] = [
 export default function SingleTestEdit(props: { params: Promise<{ id: number }> }) {
     const params = use(props.params);
     const router = useRouter();
+    const basePath = testPanelBasePath(usePathname());
+    const isOwner = roleAllowed(useApplicationSettings().applicationsettings.user?.role, ['admin']);
+    const tabs = TABS.filter(tab => isOwner || !['outsourcing', 'criticalActions'].includes(tab.key));
     const searchParams = useSearchParams();
     const testid = params.id;
     const initialTab = (searchParams?.get('tab') as TestEditorTab) || 'details';
-    const [activeTab, setActiveTab] = useState<TestEditorTab>(TABS.some((t) => t.key === initialTab) ? initialTab : 'details');
+    const [activeTab, setActiveTab] = useState<TestEditorTab>(tabs.some((t) => t.key === initialTab) ? initialTab : 'details');
     const [testname, setTestname] = useState<string>('');
 
     useEffect(() => {
@@ -45,7 +51,7 @@ export default function SingleTestEdit(props: { params: Promise<{ id: number }> 
         <section>
             <div className="mb-3 mx-2 d-flex justify-content-between align-items-center">
                 <ul className="nav nav-tabs">
-                    {TABS.map((tab) => (
+                    {tabs.map((tab) => (
                         <li className="nav-item" key={tab.key} role="presentation">
                             <button
                                 className={`nav-link ${activeTab === tab.key ? 'active' : ''}`}
@@ -62,14 +68,14 @@ export default function SingleTestEdit(props: { params: Promise<{ id: number }> 
                 <button
                     className="btn btn-outline-secondary btn-sm"
                     type="button"
-                    onClick={() => router.push('/settings/applicationsettings/testpanels/testlist')}
+                    onClick={() => router.push(`${basePath}/testlist`)}
                 >
                     Back to Test List
                 </button>
             </div>
             <div className="tab-content">
                 {activeTab === 'details' && (
-                    <TestForm method="PUT" router={router} testid={testid} customtest={0} onNavigateTab={handleNavigateTab} />
+                    <TestForm method="PUT" router={router} testid={testid} customtest={0} onNavigateTab={handleNavigateTab} canManageOutsourcing={isOwner} />
                 )}
                 {activeTab === 'fields' && (
                     <div className="mx-2"><FieldsTab testid={testid} testname={testname} /></div>
@@ -83,10 +89,10 @@ export default function SingleTestEdit(props: { params: Promise<{ id: number }> 
                 {activeTab === 'literature' && (
                     <div className="mx-2"><LiteratureTab testid={testid} /></div>
                 )}
-                {activeTab === 'outsourcing' && (
+                {isOwner && activeTab === 'outsourcing' && (
                     <div className="mx-2"><OutsourcingTab testid={testid} testname={testname} /></div>
                 )}
-                {activeTab === 'criticalActions' && <CriticalPolicySettings testid={testid} />}
+                {isOwner && activeTab === 'criticalActions' && <CriticalPolicySettings testid={testid} />}
                 {activeTab === 'reportSettings' && (
                     <div className="mx-2"><ReportSettingsTab testid={testid} testname={testname} /></div>
                 )}

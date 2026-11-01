@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import { testPanelBasePath } from "../../../../../lib/testPanelNavigation";
 import PrimeTable from "../../../../../components/accessories/Datatables/PrimeTable";
 import Loader from "../../../../../components/accessories/Loader";
 import { customFetch, customPost } from "../../../../../components/Auth/customFetch";
@@ -32,6 +33,7 @@ export default function TestListDisplay() {
     const [bulkDeleteConfirmText, setBulkDeleteConfirmText] = useState<string>('');
     const [isBulkDeleting, setIsBulkDeleting] = useState<boolean>(false);
     const router = useRouter();
+    const basePath = testPanelBasePath(usePathname());
     const BULK_DELETE_PHRASE = 'DELETE USER TESTS';
 
     useEffect(() => {
@@ -206,7 +208,7 @@ export default function TestListDisplay() {
                             </button>
                         </div>
                         <button
-                            onClick={() => router.push("/settings/applicationsettings/testpanels/testlist/createcustomtest")}
+                            onClick={() => router.push(`${basePath}/testlist/createcustomtest`)}
                             className="btn btn-dark btn-sm text-capitalize"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">

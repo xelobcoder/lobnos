@@ -111,3 +111,28 @@ test("does not report success or set cookies if the signed session is too large"
     assert.equal(result.status, 500);
     assert.equal(handler.savedCookies.length, 0);
 });
+
+for (const format of ['iso', 'milliseconds']) {
+    test(`server ${format} expiry produces a finite positive lifetime for every cookie`, async () => {
+        const handler = createHandler('admin');
+        const expiry = Date.now() + 8 * 60 * 60 * 1000;
+        const result = await handler.POST({ json: async () => ({
+            ...await request.json(),
+            sessionExpiryTime: format === 'iso' ? new Date(expiry).toISOString() : expiry,
+        }) });
+        assert.equal(result.status, 200);
+        for (const [, , options] of handler.savedCookies) {
+            assert.ok(Number.isSafeInteger(options.maxAge));
+            assert.ok(options.maxAge > 28790 && options.maxAge <= 28800);
+        }
+    });
+}
+
+for (const expiry of ['not-a-date', '', 0, Date.now() - 1000, {}]) {
+    test(`invalid or expired session lifetime is rejected before writing cookies (${JSON.stringify(expiry)})`, async () => {
+        const handler = createHandler('admin');
+        const result = await handler.POST({ json: async () => ({ ...await request.json(), sessionExpiryTime: expiry }) });
+        assert.equal(result.status, 400);
+        assert.equal(handler.savedCookies.length, 0);
+    });
+}

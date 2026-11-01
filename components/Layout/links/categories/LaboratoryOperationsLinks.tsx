@@ -17,6 +17,7 @@ import {
 } from '@remixicon/react';
 
 export const LaboratoryOperationsLinks: Link[] = [
+    {title:"Manage test panels",link:"/operations/laboratory/test-panels/testlist",icon:<RiTestTubeLine/>},
     {title:"Stock requisitions",link:"/operations/laboratory/requisitions",icon:<RiFileListLine/>},
     {
         title: "Laboratory Operations Lifecycle",
@@ -73,6 +74,5 @@ export const LaboratoryOperationsLinks: Link[] = [
         ]
     },
 ];
-
 
 

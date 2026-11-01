@@ -1,5 +1,6 @@
 "use client";
 import {useMemo,useState} from 'react';
+import {RiCheckDoubleLine,RiDeleteBin6Line,RiErrorWarningLine,RiArrowGoBackLine} from '@remixicon/react';
 import {ResponsiveContainer,BarChart,Bar,LineChart,Line,XAxis,YAxis,CartesianGrid,Tooltip,Legend} from 'recharts';
 import {ChartCard,ChartEmpty} from './InventoryAnalyticsCharts';
 import styles from './InventoryAnalyticsCharts.module.css';
@@ -13,7 +14,12 @@ export default function DepartmentStockAnalytics({data,department,branchid}:{dat
  const used=trend.reduce((n,r)=>n+r.consumed,0),days=Math.max(1,Math.round((new Date(range.end).getTime()-new Date(range.start).getTime())/86400000)+1),rate=used/days,cover=rate>0?Math.floor(Number(selected?.remaining||0)/rate):null;
  const supply=selected?[{name:'Requested',value:Number(selected.requested||0)},{name:'Approved',value:Number(selected.approved||0)},{name:'Issued',value:Number(selected.issued||0)},{name:'Received',value:Number(selected.received||0)}]:[];
  const custody=selected?[{name:'Available',value:Number(selected.remaining||0)},{name:'Unreceived',value:Number(selected.in_transit||0)}]:[];
- const allMovements=selected?[['Consumed',selected.consumed],['Wastage',selected.wastage],['Loss / theft',selected.loss],['Returned',selected.returned]]:[];
+ const allMovements=selected?[
+  {name:'Consumed',value:selected.consumed,description:'Recorded usage',tone:styles.movementConsumed,Icon:RiCheckDoubleLine},
+  {name:'Wastage',value:selected.wastage,description:'Recorded wastage',tone:styles.movementWastage,Icon:RiDeleteBin6Line},
+  {name:'Loss / theft',value:selected.loss,description:'Includes transit losses',tone:styles.movementLoss,Icon:RiErrorWarningLine},
+  {name:'Returned',value:selected.returned,description:'Returned to stores',tone:styles.movementReturned,Icon:RiArrowGoBackLine},
+ ]:[];
  const difference=selected?Number(selected.issued||0)-['consumed','wastage','loss','returned','in_transit','remaining'].reduce((n,key)=>n+Number(selected[key]||0),0):0;
  const quantity=(v:any)=>[`${Number(v).toLocaleString()} ${selected?.unit||''}`,'Quantity'];
  return <><section className={report.panel}><h2 className="h5">{department==='laboratory'?'Laboratory':'Imaging'} stock analytics</h2><p className="text-muted">Branch / site #{branchid}. Current stock and lifetime supply totals are separate from the dated usage trend. Quantities are compared only within the selected item and unit.</p>{!analytics.length?<p>No departmental stock movements yet.</p>:<div className="row g-3"><div className="col-md-6"><label htmlFor="department-chart-item" className="form-label">Chart item</label><select id="department-chart-item" className="form-select" aria-label="Analytics item" value={selected?`${selected.item_id}:${selected.unit}`:''} onChange={e=>setItem(e.target.value)}>{analytics.map((a:any)=><option key={`${a.item_id}:${a.unit}`} value={`${a.item_id}:${a.unit}`}>{a.item_name} ({a.unit})</option>)}</select></div><div className="col-md-6"><label className="form-label" htmlFor="department-chart-period">Usage period</label><DateFilterReusable id="department-chart-period" className="w-100" value={preset} onChange={setPreset} label="Usage period" onDateRangeChange={(start,end)=>setRange({start,end})}/><small className="text-muted">{range.start} to {range.end}</small></div></div>}</section>
@@ -21,7 +27,18 @@ export default function DepartmentStockAnalytics({data,department,branchid}:{dat
  <div className={styles.grid}><ChartCard title="Request to receipt" caption="Lifetime quantities for this item. Approval can be above or below the original request."><div className={styles.plot} role="img" aria-label={`${selected.item_name} stock movement chart`}><ResponsiveContainer width="100%" height="100%"><BarChart data={supply} margin={{left:0,right:12,top:12,bottom:12}} accessibilityLayer><CartesianGrid strokeDasharray="3 3" vertical={false}/><XAxis dataKey="name" tick={{fontSize:12}} interval={0}/><YAxis allowDecimals={false} tick={{fontSize:12}}/><Tooltip formatter={quantity}/><Bar isAnimationActive={false} dataKey="value" name="Quantity" fill="#2c7b60" maxBarSize={55}/></BarChart></ResponsiveContainer></div></ChartCard>
  <ChartCard title="Current department custody" caption={`Available received stock and outstanding deliveries, in ${selected.unit}.`}><div className={styles.plot} role="img" aria-label="Current departmental custody chart"><ResponsiveContainer width="100%" height="100%"><BarChart data={custody} margin={{left:0,right:12,top:12,bottom:12}} accessibilityLayer><CartesianGrid strokeDasharray="3 3" vertical={false}/><XAxis dataKey="name" tick={{fontSize:12}}/><YAxis allowDecimals={false} tick={{fontSize:12}}/><Tooltip formatter={quantity}/><Bar isAnimationActive={false} dataKey="value" name="Quantity" fill="#4984a0" maxBarSize={65}/></BarChart></ResponsiveContainer></div></ChartCard>
  <ChartCard wide title="Daily consumption, wastage and losses" caption={`${range.start} to ${range.end}. Recorded movement dates for ${selected.item_name}, in ${selected.unit}.`}>{range.start>range.end?<p role="alert" className="alert alert-warning">Choose a start date on or before the end date.</p>:trend.length?<div className={styles.plot} role="img" aria-label="Departmental usage trend"><ResponsiveContainer width="100%" height="100%"><LineChart data={trend} margin={{left:0,right:20,top:12,bottom:12}} accessibilityLayer><CartesianGrid strokeDasharray="3 3" vertical={false}/><XAxis dataKey="day" tick={{fontSize:12}} minTickGap={25}/><YAxis allowDecimals={false} tick={{fontSize:12}}/><Tooltip formatter={quantity}/><Legend wrapperStyle={{fontSize:13}}/><Line isAnimationActive={false} name="Consumed" dataKey="consumed" stroke="#2c7b60" strokeWidth={2.5} dot={{r:3}}/><Line isAnimationActive={false} name="Wastage" dataKey="wastage" stroke="#bc8a24" strokeWidth={2.5} dot={{r:3}}/><Line isAnimationActive={false} name="Loss / theft" dataKey="loss" stroke="#c14b42" strokeWidth={2.5} dot={{r:3}}/></LineChart></ResponsiveContainer></div>:<ChartEmpty>No recorded usage for this item in the selected period.</ChartEmpty>}</ChartCard></div>
- <section className={report.panel}><h2 className="h5">Lifetime movements for {selected.item_name}</h2><div className="d-flex flex-wrap gap-4">{allMovements.map(([name,value])=><div key={String(name)}><span className="text-muted d-block">{name}</span><strong>{Number(value||0).toLocaleString()} {selected.unit}</strong></div>)}</div></section>
+ <section className={`${report.panel} ${styles.movements}`} aria-label={`Lifetime movements for ${selected.item_name}`}>
+  <header className={styles.movementsHeader}>
+   <div><h2 className="h5">Lifetime movements for {selected.item_name}</h2><p>All recorded movements for this item, regardless of the selected usage period.</p></div>
+   <span className={styles.movementsPeriod}>All time</span>
+  </header>
+  <dl className={styles.movementsGrid}>
+   {allMovements.map(({name,value,description,tone,Icon})=><div key={name} className={`${styles.movementMetric} ${tone}`}>
+    <dt><span className={styles.movementIcon}><Icon size={20} aria-hidden="true"/></span>{name}</dt>
+    <dd><div className={styles.movementQuantity}><strong>{Number(value||0).toLocaleString()}</strong><span className={styles.movementUnit}>{selected.unit}</span></div><p className={styles.movementDescription}>{description}</p></dd>
+   </div>)}
+  </dl>
+ </section>
  <section className={report.panel}><h2 className="h5">All departmental items</h2><div className="table-responsive"><table className={styles.table}><thead><tr>{['Item / unit','Issued','Received','Consumed','Wastage','Loss / theft','Returned','Unreceived','Available'].map(x=><th key={x}>{x}</th>)}</tr></thead><tbody>{analytics.map((a:any)=><tr key={`${a.item_id}:${a.unit}`}><td><button type="button" className="btn btn-link p-0 text-start" onClick={()=>setItem(`${a.item_id}:${a.unit}`)}>{a.item_name}</button><small className="d-block text-muted">{a.unit}</small></td>{['issued','received','consumed','wastage','loss','returned','in_transit','remaining'].map(key=><td key={key}>{Number(a[key]||0).toLocaleString()}</td>)}</tr>)}</tbody></table></div></section></>}
  </>;
 }

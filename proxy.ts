@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 import {getBackendAuthorization} from './lib/serverBackendAccess';
-import {canAccessRolePage,isMasterPlatformPath,roleWorkspace} from './lib/roleNavigationPolicy';
+import {canAccessRolePage,canAccessDepartmentRequisitions,isMasterPlatformPath,roleWorkspace} from './lib/roleNavigationPolicy';
 
 export interface UserPayload {
     user: {
@@ -56,6 +56,33 @@ async function routeRequest(request: NextRequest) {
         }
 
         if (isValid && isLoginPage && payload) {
+            const clearSession = () => {
+                const response = NextResponse.next();
+                for (const name of ['PLS-SESSION', 'pls-prime-tenant-session', 'loginsessionId']) response.cookies.delete(name);
+                return response;
+            };
+            const tenantToken = request.cookies.get('pls-prime-tenant-session')?.value;
+            const tenantId = Number(payload.tenantId);
+            if (!tenantToken || !Number.isSafeInteger(tenantId) || tenantId <= 0) return clearSession();
+            try {
+                const base = process.env.NODE_ENV === 'development' ? process.env.DEVELOPMENT_BASEURL : process.env.PRODUCTION_BASEURL;
+                if (!base) throw new Error('Backend URL is not configured');
+                const url = new URL('prime/validate-token', base);
+                url.searchParams.set('tenantId', String(tenantId));
+                const authorization = getBackendAuthorization();
+                const validation = await fetch(url, {
+                    headers: { ...(authorization ? { Authorization: authorization } : {}), 'pls-prime-tenant-session': tenantToken, 'pls-session': sessionToken },
+                    cache: 'no-store',
+                    signal: AbortSignal.timeout(5000),
+                });
+                const session = await validation.json();
+                if (validation.status === 401 || validation.status === 403 || session.isExpired === true) return clearSession();
+                // A changed role is recovered by the workspace, but an outage must not cause a redirect loop.
+                if (!(validation.ok && session.status === true) && session.code !== 'SESSION_ROLE_CHANGED') return NextResponse.next();
+            } catch (error) {
+                console.error('Unable to confirm the session before leaving login:', error);
+                return NextResponse.next();
+            }
             const role = payload.user?.role?.toLowerCase?.() || '';
             const returnTo = new URL(request.url).searchParams.get('returnTo');
             if (['admin', 'manager','super-admin'].includes(role) && returnTo && /^\/patient-portal-admin(?:\/(?:access|settings))?$/.test(returnTo)) {
@@ -75,7 +102,6 @@ async function routeRequest(request: NextRequest) {
             const role = user.role || "";
             const currentPath = request.nextUrl.pathname;
             const normalizedRole = role.toString().toLowerCase().trim();
-            if(currentPath==='/account/roles'||currentPath==='/account/staff'){if(['patient','clinician'].includes(normalizedRole))return NextResponse.redirect(new URL('/unauthorized',request.url));return NextResponse.next();}
             const activeRole=roleWorkspace(role);
             if(isMasterPlatformPath(currentPath)&&activeRole!=='superadmin')return NextResponse.redirect(new URL('/unauthorized',request.url));
             if(['admin','superadmin'].includes(activeRole)){
@@ -83,6 +109,8 @@ async function routeRequest(request: NextRequest) {
                 return NextResponse.next();
             }
             if(['/operations/laboratory/requisitions','/operations/imaging/ultrasound/requisitions'].includes(currentPath)){
+                const department=currentPath.includes('/imaging/')?'imaging':'laboratory';
+                if(!canAccessDepartmentRequisitions(role,department))return NextResponse.redirect(new URL('/unauthorized',request.url));
                 // Require live, session-bound branch/department permission, even for head roles.
                 const tenantToken=request.cookies.get('pls-prime-tenant-session')?.value;
                 const tenantId=Number(payload.tenantId);
@@ -92,141 +120,27 @@ async function routeRequest(request: NextRequest) {
                     if(!base)throw Error('Backend unavailable');
                     const url=new URL('inventory/department-stock/my-access',base);url.searchParams.set('tenantId',String(tenantId));
                     const response=await fetch(url,{headers:{...(getBackendAuthorization()?{Authorization:getBackendAuthorization()!}:{}),'pls-prime-tenant-session':tenantToken,'pls-session':sessionToken!},cache:'no-store',signal:AbortSignal.timeout(5000)});
-                    const access=await response.json();const department=currentPath.includes('/imaging/')?'imaging':'laboratory';
+                    const access=await response.json();
                     if(response.ok&&access?.success&&Number(access.employeeid)===Number(user.employeeid)&&Number(access.tenantId)===tenantId&&Number(access.branchid)>0&&(user.branch==null||Number(access.branchid)===Number(user.branch))&&Array.isArray(access.data)&&access.data.some((grant:any)=>grant.department===department&&(grant.can_request===true||grant.can_receive===true||grant.can_consume===true)))return NextResponse.next();
-                }catch{}
+                }catch(error){console.error('Unable to verify department access:',error);}
+                return NextResponse.redirect(new URL('/unauthorized',request.url));
+            }
+            if(currentPath==='/operations/laboratory/test-panels'||currentPath.startsWith('/operations/laboratory/test-panels/')||currentPath==='/settings/applicationsettings/testpanels'||currentPath.startsWith('/settings/applicationsettings/testpanels/')){
+                const tenantToken=request.cookies.get('pls-prime-tenant-session')?.value;
+                const tenantId=Number(payload.tenantId);
+                if(!tenantToken||!Number.isSafeInteger(tenantId)||tenantId<=0)return NextResponse.redirect(new URL('/unauthorized',request.url));
+                try{
+                    const base=process.env.NODE_ENV==='development'?process.env.DEVELOPMENT_BASEURL:process.env.PRODUCTION_BASEURL;
+                    if(!base)throw Error('Backend unavailable');
+                    const url=new URL('testpanel/my-access',base);url.searchParams.set('tenantId',String(tenantId));
+                    const authorization=getBackendAuthorization();
+                    const response=await fetch(url,{headers:{...(authorization?{Authorization:authorization}:{}),'pls-prime-tenant-session':tenantToken,'pls-session':sessionToken},cache:'no-store',signal:AbortSignal.timeout(5000)});
+                    const access=await response.json();
+                    if(response.ok&&access?.success&&access.can_manage===true&&Number(access.employeeid)===Number(user.employeeid)&&Number(access.tenantId)===tenantId&&Number(access.branchid)>0&&(user.branch==null||Number(access.branchid)===Number(user.branch))&&canAccessRolePage(role,currentPath,{...settings,testPanelsManagement:true}))return NextResponse.next();
+                }catch(error){console.error('Unable to verify test-panel access:',error);}
                 return NextResponse.redirect(new URL('/unauthorized',request.url));
             }
             if(!canAccessRolePage(role,currentPath,settings||{}))return NextResponse.redirect(new URL('/unauthorized',request.url));
-            if(['crm','cashier','marketer'].includes(activeRole))return NextResponse.next();
-            // Pharmacy staff enter their own workspace; API authorization enforces the same boundary.
-            const roleKey=normalizedRole.replace(/[\s_-]/g,'');
-            if(['pharmacydoctor','pharmacynurse'].includes(roleKey)&&currentPath.startsWith('/doctor'))return NextResponse.next();
-            if(roleKey.startsWith('pharmacy')||roleKey==='pharmacist') {
-                if(!currentPath.startsWith('/pharmacy')&&!['/authentication/logout','/unauthorized'].includes(currentPath))return NextResponse.redirect(new URL('/pharmacy',request.url));
-                return NextResponse.next();
-            }
-            if(currentPath.startsWith('/pharmacy')&&!['admin','superadmin'].includes(roleKey))return NextResponse.redirect(new URL('/unauthorized',request.url));
-            if ((currentPath === '/patient-portal-admin' || currentPath.startsWith('/patient-portal-admin/') || currentPath === '/crm/patient-portal') && !['admin', 'manager'].includes(normalizedRole)) {
-                return NextResponse.redirect(new URL('/unauthorized', request.url));
-            }
-
-            if (currentPath.startsWith('/patientportal') && ['admin', 'manager'].includes(normalizedRole)) {
-                return NextResponse.redirect(new URL('/patient-portal-admin', request.url));
-            }
-            // Patient pages only serve patients; administrators have their own portal workspace.
-            if (currentPath.startsWith('/patientportal') && normalizedRole !== 'patient') {
-                return NextResponse.redirect(new URL('/unauthorized', request.url));
-            }
-
-            if (normalizedRole.replace(/[\s_-]/g, '') === 'superadmin') {
-                const response = NextResponse.next();
-                response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate, private');
-                response.headers.set('Pragma', 'no-cache');
-                response.headers.set('Expires', '0');
-                return response;
-            }
-
-            if (currentPath === '/settings/facilities' || currentPath.startsWith('/settings/facilities/')) {
-                if (normalizedRole.replace(/[\s_-]/g, '') !== 'superadmin') {
-                    return NextResponse.redirect(new URL('/unauthorized', request.url));
-                }
-                const response = NextResponse.next();
-                response.headers.set('Cache-Control', 'no-store, private');
-                return response;
-            }
-
-            if (currentPath.startsWith('/doctor') && !['clinician','admin','manager','superadmin','doctor','medicalofficer','consultant','nurse','nursing','pharmacydoctor','pharmacynurse'].includes(roleKey)) {
-                return NextResponse.redirect(new URL('/unauthorized', request.url));
-            }
-
-            if (normalizedRole === "clinician") {
-                if (!currentPath.startsWith('/doctor')) {
-                    return NextResponse.redirect(new URL('/doctor', request.url));
-                }
-                return NextResponse.next();
-            }
-
-            if (normalizedRole === "patient") {
-                if (!currentPath.startsWith('/patientportal')) {
-                    return NextResponse.redirect(new URL('/patientportal', request.url));
-                }
-                return NextResponse.next();
-            }
-
-            if (normalizedRole === 'marketer') {
-                const allowed = currentPath === '/crm' || currentPath === '/crm/acquisition' || currentPath.startsWith('/crm/leads');
-                if (!allowed) return NextResponse.redirect(new URL('/crm/acquisition', request.url));
-                return NextResponse.next();
-            }
-            // Check CRM access first
-            if (currentPath.startsWith("/crm")) {
-                if (!["admin", "manager", "customer service representative", 'scientist', 'sonographer'].includes(role.toString().toLowerCase().trim())) {
-                    if (role == "storekeeper") {
-                        return NextResponse.redirect(new URL('/inventory', request.url));
-                    } else {
-                        return NextResponse.next();
-                    }
-
-                } else {
-                    return NextResponse.next();
-                }
-            }
-
-            if (role === "sonographer") {
-                if (!currentPath.startsWith('/operations/imaging')) {
-                    return NextResponse.redirect(new URL('/unauthorized', request.url));
-                }
-                return NextResponse.next();
-            }
-
-            // Handle lab scientist access
-            if (role === "scientist") {
-                if (!currentPath.startsWith('/operations/laboratory') && !currentPath.startsWith('/operations/phelobotomy') &&
-                    !currentPath.startsWith('/phelobotomy') && !currentPath.startsWith('/operations/phlebotomy')
-                    && (currentPath.startsWith('/billing') && settings?.allowScientistToRegisterClient == 0) && !currentPath.startsWith('/phlebotomy')) {
-                    return NextResponse.redirect(new URL('/unauthorized', request.url));
-                }
-                return NextResponse.next();
-            }
-
-            // Handle storekeeper access
-            if (!["admin", "manager", "accountant"].includes(role.toString().toLowerCase().trim())) {
-
-                const restrictedPaths = [
-                    '/settings',
-                    '/billing/billing-sessions',
-                    '/billing/settings/night-adjustments',
-                    '/billing/billing-strategy/strategies',
-                    '/day-transaction-break-down',
-                    '/commission-payments',
-                    '/inventory/analytics',
-                    '/billing/expenses/invoices',
-                    '/billing/expenses/reversed-payments',
-                    '/billing/settings/night-adjustments',
-                    '/operations/laboratory/auditlogs',
-                    '/operations/laboratory/turnaroundtime',
-                    '/expenses/reversed-payments',
-                    '/clinicians/commision-information',
-                    '/clinicians/commissions-payments-made',
-                    '/operations/laboratory/auditlogs',
-                    '/communications'
-                ];
-
-                if (restrictedPaths.some(path => currentPath.startsWith(path))) {
-                    return NextResponse.redirect(new URL('/unauthorized', request.url));
-                }
-            }
-
-            // Only admin, manager, and storekeeper can access inventory
-            if (currentPath.startsWith('/inventory') && !["manager", "admin", "storekeeper", 'accountant'].includes(role)) {
-                return NextResponse.redirect(new URL('/unauthorized', request.url));
-            }
-
-            // Analytics access restricted to admin and super admin only
-            if (currentPath.startsWith('/analytics') && !["admin", "super admin"].includes(role.toString().toLowerCase().trim())) {
-                return NextResponse.redirect(new URL('/unauthorized', request.url));
-            }
 
             // Redirect /billing/expenses to /billing/expenses/expenselist for admin
             if (['admin', 'manager', 'accountant'].includes(role.toString().toLowerCase().trim()) &&
@@ -278,8 +192,9 @@ export const config = {
         '/inventory/:path*',
         '/day-transaction-break-down',
         '/commission-payments/:path*',
+        '/commissions/:path*',
         '/clinicians/commision-information',
         '/clinicians/commissions-payments-made',
-        '/communications'
+        '/communications/:path*'
     ]
 };

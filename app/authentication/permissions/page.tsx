@@ -14,6 +14,7 @@ export default function PermissionsOfUsers() {
 	const [clientPermissions, setClientPermissions] = useState<LabPermissions | null>(null);
 	const [previous, setPrevious] = useState(false);
 	const [isloading, setLoading] = useState(true);
+	const [loadError, setLoadError] = useState<string | null>(null);
 
 
 	const updateUserInfo = useCallback(() => {
@@ -21,7 +22,7 @@ export default function PermissionsOfUsers() {
 			setClientPermissions(phelobotomy)
 		} else if (role == 'customer service representative') {
 			setClientPermissions(customerRepresentative)
-		} else if (role == 'labscientist') {
+		} else if (role == 'scientist' || role == 'labscientist' || role == 'head_of_laboratory') {
 			setClientPermissions(scientistPermission)
 		} else if (role == 'sonographer') {
 			setClientPermissions(sonographerPermission)
@@ -35,9 +36,11 @@ export default function PermissionsOfUsers() {
 	// get user permission data
 	const getUserPermissions = useCallback(async function () {
 		try {
+			setLoadError(null);
 			if (userid) {
 				setLoading(true);
 				const response = await customFetch(`user/permissions?permissions=${userid}`);
+				if (!response?.permissions || typeof response.permissions !== 'object') throw new Error(response?.message || 'Unable to load permissions');
 				const { permissions } = response;
 				const keysPresent = Object.keys(permissions);
 				if (keysPresent.length === 0) {
@@ -47,9 +50,11 @@ export default function PermissionsOfUsers() {
 				}
 				setPrevious(true);
 				setLoading(false);
-			}
+			} else { setLoadError('Select a staff account to manage permissions'); setLoading(false); }
 		} catch (err) {
-			updateUserInfo();
+			console.error('Unable to load staff permissions:', err);
+			setClientPermissions(null);
+			setLoadError('Unable to load permissions. Retry before making changes.');
 			setLoading(false);
 		}
 	}, [userid, updateUserInfo])
@@ -94,7 +99,7 @@ export default function PermissionsOfUsers() {
 				const response = await customPost(`user/permissions?id=${parseInt(userid)}`, 'PUT', target);
 				if (response.statusCode === 200) {
 					toast.success(response.message)
-				}
+				} else toast.error(response?.message || 'Permissions were not saved');
 			}
 		} catch (err) {
 			alert(err.message)
@@ -105,6 +110,7 @@ export default function PermissionsOfUsers() {
 
 	if (isloading) return <Loader />
 
+	if (loadError) return <div className="alert alert-danger" role="alert">{loadError} <button type="button" className="btn btn-sm btn-outline-danger" onClick={getUserPermissions}>Retry</button></div>
 	if (!clientPermissions) return <div>No permissions data available</div>
 
 

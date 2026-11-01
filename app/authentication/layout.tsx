@@ -1,4 +1,7 @@
+'use client';
+
 import { Suspense } from "react";
+import { usePathname } from "next/navigation";
 import "../../node_modules/bootstrap/dist/css/bootstrap.min.css";
 import "../../styles/globals.css";
 import '../../node_modules/react-toastify/dist/ReactToastify.css';
@@ -17,6 +20,9 @@ export default function SMSLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // A revoked session must be able to reach cookie clearing without restoring a workspace.
+  const pathname = usePathname();
+  if (pathname === '/authentication/logout') return children;
 
   return (
     <Suspense>

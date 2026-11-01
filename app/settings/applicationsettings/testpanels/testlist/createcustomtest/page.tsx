@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState, ChangeEvent, MouseEvent } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { testPanelBasePath } from "../../../../../../lib/testPanelNavigation";
 import { toast } from "react-toastify";
 import { customPost, handleChangeWithState } from "../../../../../../components/Auth/customFetch";
 import styles from '../../../../../../styles/SmsTemplateList.module.css'
@@ -17,6 +18,8 @@ interface ApiResponse {
 
 export default function CreateCustomTestList() {
     const searchQuery = useSearchParams();
+    const router = useRouter();
+    const basePath = testPanelBasePath(usePathname());
     const testid = searchQuery?.get("testid");
     const testname = searchQuery?.get("testname");
     const [tests, setTests] = useState<TestItem[]>([{ name: '', iscustom: 1 }]);
@@ -118,6 +121,7 @@ export default function CreateCustomTestList() {
         <form className="mx-2 border border-secondary-subtle p-2 bg-white">
             <div className="border-bottom d-flex justify-content-between align-items-center">
                 <h5>Create custom tests</h5>
+                <button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => router.push(`${basePath}/testlist`)}>Back to Test List</button>
                 <button
                     type="button"
                     onClick={addNewRow}

@@ -24,6 +24,7 @@ interface TestFormProps {
 	testid?: number;
 	router: AppRouterInstance;
 	onNavigateTab?: (tab: 'fields' | 'outsourcing') => void;
+	canManageOutsourcing?: boolean;
 }
 
 interface TestData {
@@ -67,7 +68,7 @@ interface TestData {
 	requires_qc: number | boolean;
 }
 
-const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router, onNavigateTab }) => {
+const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router, onNavigateTab, canManageOutsourcing = true }) => {
 	const { employeeid } = useApplicationSettings().applicationsettings.user;
 	const [sampleType, setSample] = useState<any[]>([]);
 	const [category, setCategory] = useState<any[]>([]);
@@ -216,7 +217,7 @@ const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router, onNav
 				<div className="mx-2 d-flex justify-content-between">
 					<h5 className="text-capitalize pls-label bg-secondary-subtle p-3 pls-color br-5">{data?.name}</h5>
 					<div>
-						<button
+						{canManageOutsourcing && <button
 							onClick={(ev) => {
 								onNavigateTab
 									? onNavigateTab('outsourcing')
@@ -225,7 +226,7 @@ const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router, onNav
 							className="btn btn-primary mb-1 btn-sm"
 						>
 							<RiAddLine /> Add outsourcing Organizations
-						</button>
+						</button>}
 						<button
 							onClick={(ev) => {
 								onNavigateTab
