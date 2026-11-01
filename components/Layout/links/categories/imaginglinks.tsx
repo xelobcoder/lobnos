@@ -10,6 +10,7 @@ import {
 } from '@remixicon/react';
 
 export const ImagingLinks: Link[] = [
+    {title:'Imaging Operations',link:'/operations/imaging',icon:<RiUserFollowLine/>},
     {title:"Stock requisitions",link:"/operations/imaging/ultrasound/requisitions",icon:<RiFileListLine/>},
     { title: 'Waiting List', link: '/operations/imaging/ultrasound', icon: <RiUserFollowLine /> },
     { title: 'Processed List', link: '/operations/imaging/ultrasound/processedlist', icon: <RiListCheck2 /> },

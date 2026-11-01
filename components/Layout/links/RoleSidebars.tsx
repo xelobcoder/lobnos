@@ -1,6 +1,6 @@
 import {RiUserLine,RiMoneyDollarCircleLine,RiFileListLine,RiTimeLine,RiUserAddLine,RiCustomerService2Line,RiCalendarLine,RiShieldCheckLine} from '@remixicon/react';
 import type {Link} from './types';
-import {roleWorkspace,canAccessRolePage,NavigationSettings} from '../../../lib/roleNavigationPolicy';
+import {roleWorkspace,canAccessRolePage,canShowClinicalWorkspaceLink,NavigationSettings} from '../../../lib/roleNavigationPolicy';
 import {roleAllowed,isSuperAdminRole} from '../../Auth/roles';
 import {canAccessFacilityModule} from '../../../lib/facilityModuleAccess';
 import {LaboratoryOperationsLinks} from './categories/LaboratoryOperationsLinks';
@@ -29,23 +29,32 @@ export function roleSidebarSource(role:unknown,supplied:Link[]):Link[]{
  case 'doctor':case 'medicalofficer':case 'consultant':case 'pharmacydoctor':case 'pharmacynurse':return [item('Practitioner workspace','/doctor'),item('Consultations','/doctor/consultation'),item('My clinical access','/doctor/permissions')];
  case 'nurse':case 'nursing':return [item('Patients & triage','/doctor/consultation'),item('Vital signs','/operations/laboratory/vitals/record-vital-sign')];
  case 'headoflaboratory':return [item('Laboratory requisitions','/operations/laboratory/requisitions'),item('Manage test panels','/operations/laboratory/test-panels/testlist')];
- case 'headofimaging':return [item('Imaging requisitions','/operations/imaging/ultrasound/requisitions')];
+ case 'headofimaging':return [item('Imaging Operations','/operations/imaging'),item('Imaging requisitions','/operations/imaging/ultrasound/requisitions')];
  case 'scientist':return LaboratoryOperationsLinks;case 'phlebotomist':return PhlebotomyLinks;case 'sonographer':return ImagingLinks;
  case 'storekeeper':return InventoryLinks;case 'accountant':return [...AccountingLinks,{title:'Collections',link:'',children:CashierLinks},{title:'Expenses',link:'',children:ExpensesLinks},{title:'Payroll',link:'',children:PayrollLinks},{title:'Commissions',link:'',children:CommissionLinks}];
  case 'pharmacymanager':case 'pharmacycashier':case 'pharmacystorekeeper':case 'pharmacyaccountant':case 'pharmacydispensaryofficer':case 'pharmacist':return PharmacyLinks;
  default:return supplied;
  }
 }
-export function filterRoleSidebar(items:Link[],role:unknown,settings:NavigationSettings&{moduleConfiguration?:unknown;smsActivated?:number|boolean|null}={}):Link[]{
+export function filterRoleSidebar(items:Link[],role:unknown,settings:NavigationSettings&{moduleConfiguration?:unknown;smsActivated?:number|boolean|null}={},workspacePath=''):Link[]{
  const admin=roleWorkspace(role)==='admin',superAdmin=isSuperAdminRole(role);
  return items.filter(item=>{
   if(item.roles?.length&&item.roles.every(isSuperAdminRole)&&!superAdmin)return false;
   return superAdmin||admin||!item.roles||roleAllowed(role,item.roles);
- }).map(item=>({...item,children:item.children?filterRoleSidebar(item.children,role,settings):undefined})).filter(item=>{
-  if(item.link&&(!canAccessRolePage(role,item.link,settings)||(!superAdmin&&!canAccessFacilityModule(item.link,settings.moduleConfiguration,{smsActivated:settings.smsActivated}))))return false;
+ }).map(item=>({...item,children:item.children?filterRoleSidebar(item.children,role,settings,workspacePath):undefined})).filter(item=>{
+  if(item.link&&(!canShowClinicalWorkspaceLink(workspacePath,item.link)||!canAccessRolePage(role,item.link,settings)||(!superAdmin&&!canAccessFacilityModule(item.link,settings.moduleConfiguration,{smsActivated:settings.smsActivated}))))return false;
   if(item.children?.length)return true;
   return !!item.link;
  });
+}
+
+export function roleWorkspaceSidebar(role:unknown,supplied:Link[],settings:NavigationSettings&{moduleConfiguration?:unknown;smsActivated?:number|boolean|null}={},workspacePath=''):Link[]{
+ const base=roleSidebarSource(role,supplied);
+ const contains=(items:Link[],path:string):boolean=>items.some(link=>link.link===path||!!link.children&&contains(link.children,path));
+ const extra=(settings.departmentStock||[]).filter(department=>['laboratory','imaging'].includes(department)).map(department=>item(department==='laboratory'?'Laboratory supplies':'Imaging supplies',department==='laboratory'?'/operations/laboratory/requisitions':'/operations/imaging/ultrasound/requisitions'));
+ const panelPath='/operations/laboratory/test-panels/testlist';
+ if(settings.testPanelsManagement===true)extra.push(item('Manage test panels',panelPath));
+ return filterRoleSidebar([...base,...extra.filter(link=>!contains(base,link.link))],role,settings,workspacePath);
 }
 
 export function roleSidebarQuickLinks(role:unknown,supplied:Link[],settings:NavigationSettings&{moduleConfiguration?:unknown;smsActivated?:number|boolean|null}={}){

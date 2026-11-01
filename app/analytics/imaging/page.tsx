@@ -28,35 +28,16 @@ import { customFetch } from '../../../components/Auth/customFetch';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 import Loader from '../../../components/isLoading';
 import DateFilterReusable from '../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable';
+import AnalyticSummaryCard from '../../../components/Billing/AnalyticSummaryCard';
+import ui from '../../../components/Billing/billing-strategy/StrategyWorkspace.module.css';
+import styles from '../../../components/operations/ImagingReports.module.css';
 
-type SummaryCardProps = {
-    title: string;
-    value: number;
-    subtitle: string;
-    variant: string;
-    Icon: React.ElementType;
-};
-
-const SummaryCard = ({ title, value, subtitle, variant, Icon }: SummaryCardProps) => (
-    <div className={`card border-0 shadow-sm bg-${variant} bg-gradient text-white rounded-3 h-100`}>
-        <div className="card-body p-3">
-            <div className="d-flex justify-content-between align-items-center mb-1">
-                <span className="text-xs text-uppercase fw-semibold opacity-75">{title}</span>
-                <Icon size={22} className="opacity-75" aria-hidden="true" />
-            </div>
-            <h3 className="fw-bold mb-0">{value.toLocaleString()}</h3>
-            <span className="text-xs opacity-75">{subtitle}</span>
-        </div>
-    </div>
-);
-
-// UI Constants to match existing analytics (Commissions/Compliance)
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLORS = ['var(--bs-primary)', 'var(--bs-success)', 'var(--bs-warning)', 'var(--bs-danger)', 'var(--bs-info)', 'var(--bs-secondary)'];
+const COLOR_ACCENT = 'var(--pls-primary, var(--bs-success))';
 const SHADCN_BORDER = "var(--bs-border-color)";
 const SHADCN_MUTED_FG = "var(--bs-secondary-color)";
 const TOOLTIP_STYLE = {
-    borderRadius: '8px',
+    borderRadius: '6px',
     border: `1px solid ${SHADCN_BORDER}`,
     backgroundColor: 'var(--bs-body-bg)',
     color: 'var(--bs-body-color)'
@@ -90,10 +71,11 @@ export default function ImagingAnalyticsPage() {
                 throw new Error(response?.error || response?.message || 'Unable to load imaging analytics');
             }
             setData(response);
-        } catch (err: any) {
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Unable to load imaging analytics';
             setData(null);
-            setError(err.message);
-            toast.error(err.message || 'Error connecting to server', { position: 'top-right', autoClose: 2000 });
+            setError(message);
+            toast.error(message, { position: 'top-right', autoClose: 2000 });
         } finally {
             setIsLoading(false);
         }
@@ -123,41 +105,47 @@ export default function ImagingAnalyticsPage() {
         {
             Header: 'Role',
             accessor: 'role',
-            Cell: ({ row }) => <span className="text-capitalize">{row.original.role || '-'}</span>,
+            Cell: ({ row }: { row: { original: ImagingAnalytics['casesByUser'][number] } }) => <span className="text-capitalize">{row.original.role || '-'}</span>,
         },
         { Header: 'Cases', accessor: 'casesWorked' },
         { Header: 'Ultrasound', accessor: 'ultrasoundCases' },
     ];
 
     return (
-        <div className="container-fluid px-4 py-3">
-            <div className="mb-3">
-                <h2 className="fs-5 fw-semibold mb-1 d-flex align-items-center">
-                    <RiImageLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" aria-hidden="true" />
-                    Imaging Analytics
-                </h2>
-                <p className="text-muted small mb-0">
-                    Cases with results entered, ultrasound volume and work per user for {dayjs(startDate).format('DD MMM YYYY')} to {dayjs(endDate).format('DD MMM YYYY')}.
-                </p>
-            </div>
+        <div className={ui.workspace}>
+            <header className={ui.header}>
+                <div className={ui.heading}>
+                    <RiImageLine size={24} style={{ color: COLOR_ACCENT }} aria-hidden="true" />
+                    <div>
+                        <span className={ui.eyebrow}>Imaging performance</span>
+                        <h1>Imaging Analytics</h1>
+                        <p>Cases with results entered, ultrasound volume and work per user for {dayjs(startDate).format('DD MMM YYYY')} to {dayjs(endDate).format('DD MMM YYYY')}.</p>
+                    </div>
+                </div>
+                <div className={ui.actions}>
+                    <button type="button" className={ui.secondary} disabled={isLoading} onClick={fetchAnalytics}>
+                        <RiRefreshLine size={18} aria-hidden="true" /> Refresh
+                    </button>
+                </div>
+            </header>
 
-            {error && <div className="alert alert-danger mb-3" role="alert">{error}</div>}
+            {error && <div className={ui.error} role="alert">{error}<button type="button" className={ui.secondary} disabled={isLoading} onClick={fetchAnalytics}>Retry loading</button></div>}
 
             {data && !isLoading && (
-                <div className="row g-3 mb-3">
+                <div className="row g-3">
                     <div className="col-12 col-md-4">
-                        <SummaryCard title="Cases with Results" value={data.totalCasesWithResults} subtitle="All imaging modalities" variant="primary" Icon={RiImageLine} />
+                        <AnalyticSummaryCard title="Cases with Results" value={data.totalCasesWithResults.toLocaleString()} detail="All imaging modalities" variant="primary" icon={<RiImageLine size={22} />} />
                     </div>
                     <div className="col-12 col-md-4">
-                        <SummaryCard title="Ultrasound Cases" value={data.totalUltrasoundCases} subtitle="Subset of the total" variant="success" Icon={RiStethoscopeLine} />
+                        <AnalyticSummaryCard title="Ultrasound Cases" value={data.totalUltrasoundCases.toLocaleString()} detail="Subset of the total" variant="success" icon={<RiStethoscopeLine size={22} />} />
                     </div>
                     <div className="col-12 col-md-4">
-                        <SummaryCard title="Staff Involved" value={casesByUser.length} subtitle="Distinct result-entry users" variant="info" Icon={RiTeamLine} />
+                        <AnalyticSummaryCard title="Staff Involved" value={casesByUser.length.toLocaleString()} detail="Distinct result-entry users" variant="info" icon={<RiTeamLine size={22} />} />
                     </div>
                 </div>
             )}
 
-            <div className="d-flex flex-column flex-lg-row align-items-lg-center gap-2 mb-3">
+            <section className={styles.analyticsFilters} aria-label="Imaging analytics filters">
                 <DateFilterReusable
                     value={dateFilter}
                     onChange={setDateFilter}
@@ -176,27 +164,27 @@ export default function ImagingAnalyticsPage() {
                     <input className="form-check-input" type="checkbox" id="bd-day" checked={showDay} onChange={(e) => setShowDay(e.target.checked)} />
                     <label className="form-check-label small" htmlFor="bd-day">By day</label>
                 </div>
-                <button type="button" className="btn btn-sm btn-primary d-flex align-items-center" onClick={fetchAnalytics}>
-                    <RiRefreshLine size={16} className="me-1" /> Load Data
+                <button type="button" className={ui.primary} disabled={isLoading} onClick={fetchAnalytics}>
+                    <RiRefreshLine size={16} aria-hidden="true" /> {isLoading ? 'Loading…' : 'Load data'}
                 </button>
-                <button type="button" className="btn btn-sm btn-outline-secondary d-flex align-items-center" onClick={handleResetFilters}>
-                    <RiRefreshLine size={16} className="me-1" /> Reset
+                <button type="button" className={ui.secondary} onClick={handleResetFilters}>
+                    <RiRefreshLine size={16} aria-hidden="true" /> Reset
                 </button>
-            </div>
+            </section>
 
             {isLoading ? <Loader /> : data && (
                 <>
 
                     <div className="row g-3 mb-3">
                         <div className={showModality && casesByModality.length > 0 ? 'col-12 col-lg-8' : 'col-12'}>
-                            <div className="card h-100" style={{ borderRadius: '0.75rem', borderColor: SHADCN_BORDER }}>
-                                <div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: SHADCN_BORDER }}>
+                            <div className={`${ui.panel} ${styles.chart}`}>
+                                <div className={styles.chartHeader}>
                                     <h3 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
                                         <RiBarChartLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" aria-hidden="true" />
                                         Cases Worked per User
                                     </h3>
                                 </div>
-                                <div className="card-body p-3 p-md-4">
+                                <div className={styles.chartBody}>
                                 {casesByUser.length === 0 ? (
                                     <p className="text-muted text-center my-5">No cases in this period</p>
                                 ) : (
@@ -206,10 +194,10 @@ export default function ImagingAnalyticsPage() {
                                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={SHADCN_BORDER} />
                                                 <XAxis dataKey="userLabel" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: SHADCN_MUTED_FG }} />
                                                 <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: SHADCN_MUTED_FG }} />
-                                                <Tooltip cursor={{ fill: 'var(--bs-light)' }} contentStyle={TOOLTIP_STYLE} />
+                                                <Tooltip cursor={{ fill: 'var(--bs-tertiary-bg)' }} contentStyle={TOOLTIP_STYLE} />
                                                 <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
                                                 <Bar dataKey="casesWorked" name="Cases" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} />
-                                                <Bar dataKey="ultrasoundCases" name="Ultrasound" fill="var(--bs-secondary-bg)" radius={[4, 4, 0, 0]} />
+                                                <Bar dataKey="ultrasoundCases" name="Ultrasound" fill="var(--bs-primary)" radius={[4, 4, 0, 0]} />
                                             </BarChart>
                                         </ResponsiveContainer>
                                     </div>
@@ -220,14 +208,14 @@ export default function ImagingAnalyticsPage() {
 
                         {showModality && casesByModality.length > 0 && (
                             <div className="col-12 col-lg-4">
-                                <div className="card h-100" style={{ borderRadius: '0.75rem', borderColor: SHADCN_BORDER }}>
-                                    <div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: SHADCN_BORDER }}>
+                                <div className={`${ui.panel} ${styles.chart}`}>
+                                    <div className={styles.chartHeader}>
                                         <h3 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
                                             <RiPieChartLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" aria-hidden="true" />
                                             Cases per Modality
                                         </h3>
                                     </div>
-                                    <div className="card-body p-3 p-md-4">
+                                    <div className={styles.chartBody}>
                                     <div style={{ height: '250px' }}>
                                         <ResponsiveContainer width="100%" height="100%">
                                             <PieChart>
@@ -259,24 +247,24 @@ export default function ImagingAnalyticsPage() {
                     </div>
 
                     {showDay && casesByDay.length > 0 && (
-                        <div className="card mb-3" style={{ borderRadius: '0.75rem', borderColor: SHADCN_BORDER }}>
-                            <div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: SHADCN_BORDER }}>
+                        <div className={`${ui.panel} ${styles.chart}`}>
+                            <div className={styles.chartHeader}>
                                 <h3 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
                                     <RiBarChartLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" aria-hidden="true" />
                                     Cases per Day
                                 </h3>
                             </div>
-                            <div className="card-body p-3 p-md-4">
+                            <div className={styles.chartBody}>
                             <div style={{ height: '300px' }}>
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={casesByDay} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={SHADCN_BORDER} />
                                         <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: SHADCN_MUTED_FG }} />
                                         <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: SHADCN_MUTED_FG }} />
-                                        <Tooltip cursor={{ fill: 'var(--bs-light)' }} contentStyle={TOOLTIP_STYLE} />
+                                        <Tooltip cursor={{ fill: 'var(--bs-tertiary-bg)' }} contentStyle={TOOLTIP_STYLE} />
                                         <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
                                         <Bar dataKey="cases" name="Cases" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} />
-                                        <Bar dataKey="ultrasoundCases" name="Ultrasound" fill="var(--bs-secondary-bg)" radius={[4, 4, 0, 0]} />
+                                        <Bar dataKey="ultrasoundCases" name="Ultrasound" fill="var(--bs-primary)" radius={[4, 4, 0, 0]} />
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
@@ -284,10 +272,11 @@ export default function ImagingAnalyticsPage() {
                         </div>
                     )}
 
-                    <h3 className="fs-6 fw-semibold d-flex align-items-center mb-2">
+                    <section className={styles.table} aria-label="Work per User">
+                    <h2 className={ui.sectionTitle}>
                         <RiTeamLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" aria-hidden="true" />
                         Work per User
-                    </h3>
+                    </h2>
                     <PrimeTable
                         column={userColumns}
                         data={casesByUser}
@@ -295,6 +284,7 @@ export default function ImagingAnalyticsPage() {
                         serverSideFiltering={false}
                         handleSeverSideProcessing={null}
                     />
+                    </section>
                 </>
             )}
         </div>

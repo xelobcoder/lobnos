@@ -1,0 +1,277 @@
+.dashboard {
+    padding: 16px 0;
+    gap: 16px;
+}
+
+.dashboard .dashboardHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+}
+
+.dashboard .dashboardHeader h1 {
+    font-size: 1.65em;
+    color: var(--accent);
+}
+
+.dashboard .dashboardHeader > :first-child {
+    margin-bottom: 0;
+}
+
+.workflowGroups {
+    display: grid;
+    gap: 24px;
+}
+
+.groupHeader {
+    margin-bottom: 12px;
+}
+
+.dashboard .groupHeader h2 {
+    margin-bottom: 4px;
+    font-size: 1.05em;
+}
+
+.dashboard .groupHeader p {
+    font-size: .9em;
+}
+
+.dashboard .dashboardHeader p {
+    margin: 0;
+    font-size: .9em;
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.cards .card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 16px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    color: inherit;
+    text-decoration: none;
+}
+
+.card:hover {
+    border-color: var(--bs-primary);
+    background: var(--soft);
+    color: inherit;
+}
+
+.cards .card h3 {
+    margin: 0;
+    font-size: 1em;
+}
+
+.cardHeading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 28px;
+}
+
+.cards .card p {
+    font-size: .9em;
+    line-height: 1.4;
+}
+
+.cardIcon {
+    display: inline-flex;
+    color: var(--accent);
+    flex-shrink: 0;
+}
+
+.cardIcon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.stockNotice {
+    padding: 14px 16px;
+    border-left: 3px solid var(--bs-warning);
+    background: var(--bs-warning-bg-subtle);
+    color: var(--bs-warning-text-emphasis);
+}
+
+.dashboard .stockNotice h2 {
+    margin: 0 0 6px;
+    font-size: 1em;
+}
+
+.dashboard .stockNotice p {
+    font-size: .9em;
+    line-height: 1.5;
+}
+
+.dashboard .stockNotice .permissionPath {
+    margin-top: 6px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.content {
+    min-width: 0;
+}
+
+.stock > section {
+    margin-bottom: 0;
+    border-radius: 10px;
+}
+
+.stock.stock {
+    font-size: max(14px, .9375em);
+}
+
+.stock.stock h1 {
+    font-size: 1.65em;
+    font-weight: 700;
+}
+
+.stock.stock :global(.btn) {
+    min-height: 40px;
+    padding: 9px 14px;
+    font: inherit;
+    font-weight: 600;
+    border-radius: 7px;
+}
+
+.stock :global(.table) {
+    font-size: inherit;
+}
+
+.stock :global(.table) :is(th, td) {
+    padding: 14px 16px;
+}
+
+.stock :global(.table) th {
+    font-size: .9em;
+}
+
+/* Keep the reused panel editors on the same tokens as billing strategies. */
+.content :global(.card),
+.content :global(.modal-content),
+.content > form {
+    background: var(--paper) !important;
+    color: inherit;
+    border: 1px solid var(--line) !important;
+    border-radius: 10px;
+    box-shadow: none;
+}
+
+.content > form {
+    margin: 0 !important;
+    padding: 20px !important;
+}
+
+.content :global(.bg-white),
+.content :global(.card-header) {
+    background: var(--paper) !important;
+    color: inherit;
+}
+
+.content :global(.btn) {
+    min-height: 40px;
+    padding: 9px 14px;
+    border-radius: 7px;
+    font: inherit;
+    font-weight: 600;
+}
+
+.content :global(.btn-primary),
+.content :global(.btn-dark) {
+    --bs-btn-bg: var(--deep);
+    --bs-btn-border-color: var(--deep);
+    --bs-btn-hover-bg: var(--accent);
+    --bs-btn-hover-border-color: var(--accent);
+}
+
+.content :global(.nav-tabs) {
+    gap: 8px;
+    border: 0;
+    flex-wrap: wrap;
+}
+
+.content :global(.nav-link) {
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    color: inherit;
+    background: var(--paper);
+    padding: 9px 14px;
+}
+
+.content :global(.nav-link.active) {
+    color: var(--deep);
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 9%, var(--paper));
+}
+
+.content table {
+    width: 100%;
+    border-collapse: collapse;
+    color: inherit;
+    font: inherit;
+}
+
+.content :is(th, td) {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--line);
+}
+
+.content th {
+    background: var(--soft);
+    color: var(--muted);
+    font-size: .9em;
+    font-weight: 650;
+}
+
+.content > form > table {
+    display: block;
+    overflow-x: auto;
+}
+
+.content > form > table input {
+    min-width: 180px !important;
+}
+
+.content :global(.d-flex) {
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+@media (max-width: 1199px) {
+    .cards {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 991px) {
+    .cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    .stock.stock h1 {
+        font-size: 1.4em;
+    }
+
+    .content > form {
+        padding: 16px !important;
+    }
+}
+
+@media (max-width: 575px) {
+    .cards {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px;
+    }
+}

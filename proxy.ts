@@ -122,6 +122,7 @@ async function routeRequest(request: NextRequest) {
                     const response=await fetch(url,{headers:{...(getBackendAuthorization()?{Authorization:getBackendAuthorization()!}:{}),'pls-prime-tenant-session':tenantToken,'pls-session':sessionToken!},cache:'no-store',signal:AbortSignal.timeout(5000)});
                     const access=await response.json();
                     if(response.ok&&access?.success&&Number(access.employeeid)===Number(user.employeeid)&&Number(access.tenantId)===tenantId&&Number(access.branchid)>0&&(user.branch==null||Number(access.branchid)===Number(user.branch))&&Array.isArray(access.data)&&access.data.some((grant:any)=>grant.department===department&&(grant.can_request===true||grant.can_receive===true||grant.can_consume===true)))return NextResponse.next();
+                    if(department==='imaging'&&response.ok&&access?.success&&Number(access.employeeid)===Number(user.employeeid)&&Number(access.tenantId)===tenantId&&Number(access.branchid)>0&&(user.branch==null||Number(access.branchid)===Number(user.branch))&&Array.isArray(access.data))return NextResponse.redirect(new URL('/operations/imaging?stockAccess=required',request.url));
                 }catch(error){console.error('Unable to verify department access:',error);}
                 return NextResponse.redirect(new URL('/unauthorized',request.url));
             }

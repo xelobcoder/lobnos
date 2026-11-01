@@ -8,3 +8,15 @@ test('foreign departmental grants cannot bypass active clinical role checks',asy
 test('own-role analytics, incident reporting and package links are not denied by duplicate proxy checks',async()=>{for(const pathname of ['/analytics/imaging','/compliance/incident-reporting','/billing/packages'])assert.equal((await fixture({},true,'sonographer',pathname).run()).type,'next');for(const [role,pathname] of [['scientist','/operations/home-collection'],['storekeeper','/inventory/analytics'],['cashier','/billing/billing-sessions/sales-session'],['pharmacy_manager','/account/staff'],['pharmacy_cashier','/account/roles']])assert.equal((await fixture({},true,role,pathname).run()).type,'next');});
 test('staff administration is not generally available through the role-switcher shortcut',async()=>assert.equal((await fixture({},true,'scientist','/account/staff').run()).type,'redirect'));
 test('panel pages verify live authority and reject revoked or mismatched context',async()=>{const pathname='/operations/laboratory/test-panels/testlist/12';const allowed={success:true,employeeid:7,tenantId:2,branchid:1,can_manage:true};const f=fixture(allowed,true,'scientist',pathname);assert.equal((await f.run()).type,'next');assert.match(f.calls[0].url,/testpanel\/my-access/);for(const delta of [{can_manage:false},{employeeid:9},{tenantId:9},{branchid:9}])assert.equal((await fixture({...allowed,...delta},true,'scientist',pathname).run()).type,'redirect');assert.equal((await fixture(allowed,true,'sonographer',pathname).run()).type,'redirect');assert.equal((await fixture(allowed,true,'scientist','/settings/applicationsettings/testpanels/testlist').run()).type,'redirect');});
+test('imaging stock without a grant leads to an explanation, not a missing or generic unauthorized page',async()=>{
+ const access={success:true,employeeid:7,tenantId:2,branchid:1,data:[]};
+ for(const role of ['sonographer','head_of_imaging']){
+  const result=await fixture(access,true,role,'/operations/imaging/ultrasound/requisitions').run();
+  assert.equal(result.type,'redirect');
+  assert.ok(result.url.endsWith('/operations/imaging?stockAccess=required'));
+  assert.equal((await fixture(access,true,role,'/operations/imaging').run()).type,'next');
+ }
+ for(const delta of [{employeeid:9},{tenantId:9},{branchid:9}])assert.ok((await fixture({...access,...delta},true,'sonographer','/operations/imaging/ultrasound/requisitions').run()).url.endsWith('/unauthorized'));
+ const grant={...access,data:[{department:'imaging',can_request:true}]};
+ assert.equal((await fixture(grant,true,'sonographer','/operations/imaging/ultrasound/requisitions').run()).type,'next');
+});

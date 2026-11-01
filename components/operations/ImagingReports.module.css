@@ -1,0 +1,68 @@
+.filters {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+    align-items: end;
+}
+
+.analyticsFilters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+.chart {
+    padding: 0;
+    height: 100%;
+}
+
+.chartHeader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--line);
+    background: var(--soft);
+    border-radius: 6px 6px 0 0;
+}
+
+.chartBody {
+    padding: 20px;
+    min-width: 0;
+}
+
+.table {
+    min-width: 0;
+    text-align: left;
+}
+
+.table table {
+    font: inherit;
+    text-align: left;
+}
+
+.table :is(th, td) {
+    text-align: left;
+}
+
+@media (max-width: 1050px) {
+    .filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    .filters {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .analyticsFilters > :first-child {
+        width: 100%;
+    }
+
+    .chartHeader,
+    .chartBody {
+        padding: 16px;
+    }
+}

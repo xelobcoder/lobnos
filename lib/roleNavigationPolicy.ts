@@ -8,13 +8,20 @@ export function canAccessDepartmentRequisitions(role:unknown,department:string){
 }
 export function navigationPath(value:string){try{const raw=value.split(/[?#]/)[0];if(!raw)return '';return decodeURIComponent(raw).replace(/\/+/g,'/').replace(/\/$/,'').toLowerCase()||'/';}catch{return '';}}
 const within=(path:string,root:string)=>path===root||path.startsWith(root+'/');
+export function canShowClinicalWorkspaceLink(workspace:string,value:string){
+ const current=navigationPath(workspace),target=navigationPath(value);
+ if(within(current,'/operations/imaging'))return !within(target,'/operations/laboratory')&&!within(target,'/settings/applicationsettings/testpanels');
+ if(within(current,'/operations/laboratory'))return !within(target,'/operations/imaging');
+ return true;
+}
 export function isMasterPlatformPath(value:string){const p=navigationPath(value);return ['/settings/facilities','/master','/master-platform','/platform','/settings/super-admin'].some(root=>within(p,root));}
 /** Page/navigation policy only. API action, patient scope and approval checks remain authoritative. */
 export function canAccessRolePage(role:unknown,value:string,settings:NavigationSettings={}){
  const p=navigationPath(value),key=roleWorkspace(role);if(!p||!p.startsWith('/'))return false;
  if(isMasterPlatformPath(p))return isSuperAdminRole(role);
  if(key==='admin'||isSuperAdminRole(role))return true;
- if(within(p,'/operations/laboratory/requisitions')||within(p,'/operations/imaging/ultrasound/requisitions')){const department=p.includes('/imaging/')?'imaging':'laboratory';return canAccessDepartmentRequisitions(role,department)&&(['headoflaboratory','headofimaging'].includes(key)||!!settings.departmentStock?.includes(department));}
+ if(p==='/operations/imaging'&&key==='headofimaging')return true;
+ if(within(p,'/operations/laboratory/requisitions')||within(p,'/operations/imaging/ultrasound/requisitions')){const department=p.includes('/imaging/')?'imaging':'laboratory';return canAccessDepartmentRequisitions(role,department)&&(department==='imaging'||['headoflaboratory','headofimaging'].includes(key)||!!settings.departmentStock?.includes(department));}
  if(within(p,'/operations/laboratory/test-panels'))return ['scientist','headoflaboratory','manager'].includes(key)&&settings.testPanelsManagement===true;
  if(within(p,'/settings/applicationsettings/testpanels'))return key==='manager'&&settings.testPanelsManagement===true;
  if(within(p,'/communications/sms/contact-groups'))return key==='manager';

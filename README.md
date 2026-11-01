@@ -37,6 +37,28 @@ Imaging requisitions. A grant for the other department does not override this
 boundary. Scientists/sonographers still need the appropriate branch-specific
 request/receive/consume grant. Administrators retain oversight and storekeepers
 issue supplies from Inventory, not from a clinical requisition workspace.
+`/operations/imaging` is the imaging workspace, with visible **Stock requisitions**
+and workflow cards. Cards are grouped into **Daily workflows** and
+**Reports & oversight**, using the laboratory icon palette and the billing
+strategy heading hierarchy. The imaging stock entry is not hidden while grants
+load or when no grant exists. Opening it without a current imaging grant returns to this
+workspace with instructions to request branch-specific access from an administrator;
+stock reads and writes remain permission-protected.
+
+The imaging landing page, clinical stock workspaces and delegated laboratory
+panel screens reuse the billing strategy workspace styling: theme-aware compact
+typography, icon headers, bordered panels, consistent controls and responsive
+layouts. The laboratory panel layout wraps the existing editor rather than
+duplicating its workflows or changing permissions.
+Imaging audit and imaging analytics use the same billing strategy typography,
+headers and controls, with labeled responsive filters and shared gradient
+summary metrics. Audit actions remain plain text; audit access stays
+administrator-only and pagination remains server-backed. Analytics retains
+its date presets, optional modality/day breakdowns and work-per-user table.
+Clinical sidebars also stay within the current department: even administrators
+with both stock grants do not see laboratory supplies or test-panel management
+inside Imaging, or imaging requisitions inside Laboratory. The applications
+launcher still allows authorized staff to switch workspaces.
 
 An administrator can open **Users → Permissions** and enable **Test Panels →
 Manage laboratory test panels, parameters and report settings** for a scientist,
@@ -54,7 +76,7 @@ next page request or write even if an old browser still displays a link. Rebuild
 and deploy both frontend and backend together.
 
 ```powershell
-node --test tests\role-link-consistency.test.cjs tests\department-head-access.test.cjs tests\department-stock-proxy.test.cjs tests\sms-access.test.cjs
+node --test tests\role-link-consistency.test.cjs tests\delegated-panel-workspace.test.cjs tests\department-head-access.test.cjs tests\department-stock-proxy.test.cjs tests\sms-access.test.cjs
 ```
 
 ## Layout preference

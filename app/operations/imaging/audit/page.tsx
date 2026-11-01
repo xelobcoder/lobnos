@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { Row, Col, Form, Button, Badge } from 'react-bootstrap';
-import { RiHistoryLine, RiFileListLine, RiRefreshLine, RiArrowLeftRightLine } from '@remixicon/react';
+import { RiHistoryLine, RiFileListLine, RiRefreshLine } from '@remixicon/react';
 import dayjs from 'dayjs';
 import { toast } from 'react-toastify';
 import { customFetch } from '../../../../components/Auth/customFetch';
@@ -11,6 +10,9 @@ import Loader from '../../../../components/isLoading';
 import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
 import { roleAllowed } from '../../../../components/Auth/roles';
 import Authorization from '../../../../components/accessories/authorization';
+import AnalyticSummaryCard from '../../../../components/Billing/AnalyticSummaryCard';
+import ui from '../../../../components/Billing/billing-strategy/StrategyWorkspace.module.css';
+import styles from '../../../../components/operations/ImagingReports.module.css';
 
 interface AuditRow {
     id: number;
@@ -24,6 +26,8 @@ interface AuditRow {
     employeeName: string | null;
     createdAt: string;
 }
+
+type AuditCell = { row: { original: AuditRow } };
 
 const PAGE_SIZE = 25;
 
@@ -74,11 +78,12 @@ export default function ImagingAuditPage() {
             }
             setRows(response.rows);
             setTotal(Number(response.total));
-        } catch (err: any) {
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Unable to load audit trail';
             setRows([]);
             setTotal(0);
-            setError(err.message);
-            toast.error(err.message || 'Error connecting to server', { position: 'top-right', autoClose: 2000 });
+            setError(message);
+            toast.error(message, { position: 'top-right', autoClose: 2000 });
         } finally {
             setIsLoading(false);
         }
@@ -92,7 +97,7 @@ export default function ImagingAuditPage() {
     if (!isAdmin) return <Authorization />;
 
     const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-    const onFilter = (setter: (v: string) => void) => (e: React.ChangeEvent<any>) => {
+    const onFilter = (setter: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setter(e.target.value);
         setPage(1);
     };
@@ -107,72 +112,76 @@ export default function ImagingAuditPage() {
     };
 
     const columns = [
-        { Header: 'When', accessor: 'createdAt', Cell: ({ row }) => <span className="text-nowrap">{dayjs(row.original.createdAt).format('DD MMM YYYY HH:mm')}</span> },
+        { Header: 'When', accessor: 'createdAt', Cell: ({ row }: AuditCell) => <span className="text-nowrap">{dayjs(row.original.createdAt).format('DD MMM YYYY HH:mm')}</span> },
         { Header: 'Case', accessor: 'ascensionid' },
-        { Header: 'User', accessor: 'employeeName', Cell: ({ row }) => row.original.employeeName || row.original.employeeid || '-' },
-        { Header: 'Action', accessor: 'action', Cell: ({ row }) => <Badge bg={ACTION_VARIANTS[row.original.action] || 'secondary'}>{row.original.action}</Badge> },
-        { Header: 'Change', accessor: 'fieldName', Cell: ({ row }) => <span style={{ whiteSpace: 'pre-wrap' }}>{describeChange(row.original)}</span> },
+        { Header: 'User', accessor: 'employeeName', Cell: ({ row }: AuditCell) => row.original.employeeName || row.original.employeeid || '-' },
+        { Header: 'Action', accessor: 'action', Cell: ({ row }: AuditCell) => <span className={`fw-semibold text-${ACTION_VARIANTS[row.original.action] || 'secondary'}`}>{row.original.action}</span> },
+        { Header: 'Change', accessor: 'fieldName', Cell: ({ row }: AuditCell) => <span style={{ whiteSpace: 'pre-wrap' }}>{describeChange(row.original)}</span> },
     ];
 
     return (
-        <div className="container-fluid p-4 min-vh-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-            <div className="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h2 className="mb-1">
-                        <RiHistoryLine className="me-2" />
-                        Imaging Result Audit Trail
-                    </h2>
-                    <p className="text-muted mb-0">Review who changed imaging results and when</p>
+        <div className={ui.workspace}>
+            <header className={ui.header}>
+                <div className={ui.heading}>
+                    <RiHistoryLine size={24} className="text-success" aria-hidden="true" />
+                    <div>
+                        <span className={ui.eyebrow}>Imaging oversight</span>
+                        <h1>Imaging Result Audit Trail</h1>
+                        <p>Review who changed imaging results and when.</p>
+                    </div>
                 </div>
-                <div className="d-flex gap-2 align-items-center">
-                    <Form.Control type="text" size="sm" inputMode="numeric" placeholder="Case ID" className="border-0 bg-light w-auto" value={ascensionid} onChange={onFilter(setAscensionid)} />
-                    <Form.Control type="text" size="sm" inputMode="numeric" placeholder="Employee ID" className="border-0 bg-light w-auto" value={userId} onChange={onFilter(setUserId)} />
-                    <Form.Select size="sm" className="w-auto border-0 bg-light" value={action} onChange={onFilter(setAction)}>
+                <div className={ui.actions}>
+                    <button type="button" className={ui.secondary} disabled={isLoading} onClick={fetchAudit}>
+                        <RiRefreshLine size={18} aria-hidden="true" /> Refresh
+                    </button>
+                    <button type="button" className={ui.secondary} onClick={handleResetFilters}>Clear filters</button>
+                </div>
+            </header>
+
+            {error && <div className={ui.error} role="alert">{error}<button type="button" className={ui.secondary} disabled={isLoading} onClick={fetchAudit}>Retry loading</button></div>}
+
+            {!isLoading && !error && (
+                <div className="row g-3">
+                    <div className="col-12 col-sm-6">
+                        <AnalyticSummaryCard title="Total entries" value={total.toLocaleString()} detail="Matching the selected filters" variant="primary" icon={<RiFileListLine size={22} />} />
+                    </div>
+                    <div className="col-12 col-sm-6">
+                        <AnalyticSummaryCard title="Page" value={`${page} / ${pages}`} detail={`${PAGE_SIZE} entries per page`} variant="success" icon={<RiHistoryLine size={22} />} />
+                    </div>
+                </div>
+            )}
+
+            <section className={styles.filters} aria-label="Audit filters">
+                <div className={ui.field}>
+                    <label htmlFor="imaging-audit-case">Case ID</label>
+                    <input id="imaging-audit-case" type="text" inputMode="numeric" placeholder="All cases" value={ascensionid} onChange={onFilter(setAscensionid)} />
+                </div>
+                <div className={ui.field}>
+                    <label htmlFor="imaging-audit-employee">Employee ID</label>
+                    <input id="imaging-audit-employee" type="text" inputMode="numeric" placeholder="All employees" value={userId} onChange={onFilter(setUserId)} />
+                </div>
+                <div className={ui.field}>
+                    <label htmlFor="imaging-audit-action">Action</label>
+                    <select id="imaging-audit-action" value={action} onChange={onFilter(setAction)}>
                         <option value="">All Actions</option>
                         <option value="CREATE">Create</option>
                         <option value="UPDATE">Update</option>
                         <option value="DELETE">Delete</option>
                         <option value="FINALIZE">Finalize</option>
-                    </Form.Select>
-                    <Form.Control type="date" size="sm" className="border-0 bg-light" value={startDate} max={endDate} onChange={onFilter(setStartDate)} />
-                    <RiArrowLeftRightLine size={16} className="text-muted mx-1" />
-                    <Form.Control type="date" size="sm" className="border-0 bg-light" value={endDate} min={startDate} onChange={onFilter(setEndDate)} />
-                    <Button variant="outline-secondary" size="sm" className="ms-2 border-0" onClick={fetchAudit}>
-                        <RiRefreshLine size={18} />
-                    </Button>
-                    <Button variant="outline-secondary" size="sm" className="ms-2 border-0" onClick={handleResetFilters}>
-                        <RiRefreshLine size={16} className="me-1" /> Clear Filters
-                    </Button>
+                    </select>
                 </div>
-            </div>
+                <div className={ui.field}>
+                    <label htmlFor="imaging-audit-start">Start date</label>
+                    <input id="imaging-audit-start" type="date" value={startDate} max={endDate} onChange={onFilter(setStartDate)} />
+                </div>
+                <div className={ui.field}>
+                    <label htmlFor="imaging-audit-end">End date</label>
+                    <input id="imaging-audit-end" type="date" value={endDate} min={startDate} onChange={onFilter(setEndDate)} />
+                </div>
+            </section>
 
-            {error && <div className="alert alert-danger mb-4">{error}</div>}
-
-            <Row className="g-3 mb-4">
-                <Col md={4}>
-                    <div className="border rounded p-3 h-100 shadow-none">
-                        <div className="d-flex align-items-center mb-2">
-                            <RiFileListLine size={20} className="me-2 text-primary" />
-                            <span className="fw-medium text-muted small">Total Entries</span>
-                        </div>
-                        <div className="fs-4 fw-bold text-primary">{total.toLocaleString()}</div>
-                        <div className="small text-muted">Matching the selected filters</div>
-                    </div>
-                </Col>
-                <Col md={4}>
-                    <div className="border rounded p-3 h-100 shadow-none">
-                        <div className="d-flex align-items-center mb-2">
-                            <RiHistoryLine size={20} className="me-2 text-success" />
-                            <span className="fw-medium text-muted small">Page</span>
-                        </div>
-                        <div className="fs-4 fw-bold text-success">{page} / {pages}</div>
-                        <div className="small text-muted">{PAGE_SIZE} entries per page</div>
-                    </div>
-                </Col>
-            </Row>
-
-            <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                {isLoading ? <Loader /> : (
+            <section className={styles.table} aria-label="Imaging audit records" aria-busy={isLoading}>
+                {isLoading ? <Loader /> : !error && (
                     <>
                         <PrimeTable
                             column={columns}
@@ -181,17 +190,17 @@ export default function ImagingAuditPage() {
                             serverSideFiltering={false}
                             handleSeverSideProcessing={null}
                         />
-                        <div className="d-flex justify-content-between align-items-center mt-3">
-                            <span className="small text-muted">{total.toLocaleString()} total entries</span>
-                            <div className="d-flex gap-2 align-items-center">
-                                <Button variant="outline-secondary" size="sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>Previous</Button>
+                        <div className={ui.footer}>
+                            <span className={ui.muted}>{total.toLocaleString()} total entries</span>
+                            <div className={ui.pager}>
+                                <button type="button" className={ui.secondary} disabled={page <= 1} onClick={() => setPage(page - 1)}>Previous</button>
                                 <span className="small">Page {page} of {pages}</span>
-                                <Button variant="outline-secondary" size="sm" disabled={page >= pages} onClick={() => setPage(page + 1)}>Next</Button>
+                                <button type="button" className={ui.secondary} disabled={page >= pages} onClick={() => setPage(page + 1)}>Next</button>
                             </div>
                         </div>
                     </>
                 )}
-            </div>
+            </section>
         </div>
     );
 }
