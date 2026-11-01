@@ -49,6 +49,22 @@ test('laboratory layout wraps all existing editor pages without replacing their 
     }
 });
 
+test('laboratory editor actions stay compact on desktop and touch-friendly on mobile', () => {
+    const css = read('components/operations/ClinicalWorkspace.module.css');
+    assert.match(css, /\.content :global\(\.btn\)\s*\{[^}]*min-height: 32px;[^}]*padding: 5px 10px;[^}]*font-size: \.875rem/);
+    assert.match(css, /\.content :global\(\.nav-link\)\s*\{[^}]*padding: 5px 10px/);
+    assert.match(css, /@media \(max-width: 600px\)\s*\{[^}]*\.content :global\(\.btn\),\s*\.content :global\(\.nav-link\)\s*\{\s*min-height: 44px/);
+    assert.match(css, /\.stock\.stock :global\(\.btn\)\s*\{\s*min-height: 40px/);
+});
+
+test('test field action buttons remain on one flex row in both modes', () => {
+    const source = read('components/settingsComponents/FieldsCreation/createfieldsComponent.tsx');
+    assert.equal((source.match(/className="d-flex flex-nowrap gap-1"/g) || []).length, 2);
+    for (const label of ['Save field', 'Cancel field editing', 'Edit field', 'Remove field']) {
+        assert.ok(source.includes(`aria-label="${label}"`));
+    }
+});
+
 test('clinical styling is responsive and inherits theme tokens instead of hardcoding a new palette', () => {
     const css = read('components/operations/ClinicalWorkspace.module.css');
     assert.match(css, /grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);

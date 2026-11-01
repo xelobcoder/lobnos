@@ -50,6 +50,8 @@ panel screens reuse the billing strategy workspace styling: theme-aware compact
 typography, icon headers, bordered panels, consistent controls and responsive
 layouts. The laboratory panel layout wraps the existing editor rather than
 duplicating its workflows or changing permissions.
+Laboratory test-panel editor actions and tabs use compact desktop sizing while
+retaining 44px minimum touch targets on small screens.
 Imaging audit and imaging analytics use the same billing strategy typography,
 headers and controls, with labeled responsive filters and shared gradient
 summary metrics. Audit actions remain plain text; audit access stays
@@ -59,6 +61,49 @@ Clinical sidebars also stay within the current department: even administrators
 with both stock grants do not see laboratory supplies or test-panel management
 inside Imaging, or imaging requisitions inside Laboratory. The applications
 launcher still allows authorized staff to switch workspaces.
+
+Department stock analytics includes current request-line pipeline and pending-age
+charts, selected-item consumption comparisons against an equal-length prior period,
+wastage/loss rates, fulfilment stage timing, staff movement audit summaries and a
+per-item replenishment watch. Dated movement metrics use inclusive UTC dates;
+current custody, pipeline and age remain current snapshots. Quantities are never
+summed across different items or units. Cover uses recorded consumption only,
+excludes outstanding deliveries and flags up to seven days as a planning signal,
+not an automatic reorder rule. Missing baselines are shown as unavailable.
+Fulfilment timing uses the first receipt event, not full delivery; staff activity
+is not a productivity ranking. All views reuse branch/department-scoped data
+already authorized by the department stock endpoint.
+All-time daily rates start at the first departmental record rather than the
+date selector's synthetic historical boundary.
+
+```powershell
+node --test tests\department-stock-analytics.test.cjs tests\department-stock-analytics-ui.test.cjs tests\department-stock-proxy.test.cjs
+```
+
+### Critical departmental stats and table navigation
+
+The stats overview now surfaces unavailable supplies, short cover, reconciliation
+differences, invalid stock data and pending lines older than seven elapsed days.
+The searchable exception register prioritizes data integrity before supply risk.
+Turnaround includes average, median and 90th percentile, and excludes zero-quantity
+receipts from completion timing. Movement comparisons and depletion-based cover
+complement consumption-only estimates. Daily charts include zero-use days;
+periods over 366 days use monthly totals without dropping movements.
+
+All eight stock tables (requests, draft basket, history, staff permissions,
+exceptions, staff activity, replenishment and lifetime items) have independent
+10/25/50-row pagination. Search/filter, item/date and department/branch changes
+reset relevant pages; shrinking datasets clamp to a valid page. Pagination is
+client-side over the full authorized response, so charts, totals and basket
+submission still use all records, not just the visible page. No quantities are
+combined across item/unit boundaries. Failed refreshes do not display stale
+analytics as current. Large installations still load the complete authorized
+history; server-side table paging with separate aggregate endpoints remains a
+future scalability improvement.
+
+```powershell
+node --test tests\stock-table-pagination.test.cjs tests\department-stock-analytics.test.cjs tests\department-stock-analytics-ui.test.cjs tests\department-stock-proxy.test.cjs
+```
 
 An administrator can open **Users → Permissions** and enable **Test Panels →
 Manage laboratory test panels, parameters and report settings** for a scientist,

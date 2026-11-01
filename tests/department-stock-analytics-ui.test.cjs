@@ -12,7 +12,7 @@ const cssPath = path.join(__dirname, '..', 'components', 'inventory', 'Inventory
 const styles = new Proxy({}, {get: (_, key) => String(key)});
 const gloves = {item_id: 1, item_name: 'GLOVES', unit: 'BOX', consumed: 10, wastage: 10, loss: 0, returned: 0, issued: 20};
 
-function render(analytics, selectedItem = '') {
+function render(analytics, selectedItem = '', options = {}) {
   let stateIndex = 0;
   const exports = {};
   vm.runInNewContext(ts.transpileModule(fs.readFileSync(componentPath, 'utf8'), {
@@ -22,21 +22,38 @@ function render(analytics, selectedItem = '') {
     require(name) {
       if (name === 'react') return {
         ...React,
-        useState: initial => [stateIndex++ === 0 ? selectedItem : typeof initial === 'function' ? initial() : initial, () => {}],
+        useState: initial => {
+          const index = stateIndex++;
+          return [index === 0 ? selectedItem : index === 1 && options.preset ? options.preset : index === 2 && options.range ? options.range : typeof initial === 'function' ? initial() : initial, () => {}];
+        },
         useMemo: callback => callback(),
       };
       if (name.endsWith('.module.css')) return {__esModule: true, default: styles};
       if (name === 'recharts') return new Proxy({}, {get: () => () => null});
       if (name === './InventoryAnalyticsCharts') return {
-        ChartCard: ({children}) => React.createElement('div', null, children),
+        ChartCard: ({children, title, caption}) => React.createElement('section', null, React.createElement('h2', null, title), React.createElement('p', null, caption), children),
         ChartEmpty: ({children}) => React.createElement('p', null, children),
       };
       if (name.includes('DateFilterReusable')) return {__esModule: true, default: () => null};
+      if (name === './StockTablePagination') {
+        const pagination = {};
+        vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '..', 'components', 'inventory', 'StockTablePagination.tsx'), 'utf8'), {
+          compilerOptions: {module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true},
+        }).outputText, {exports: pagination, require: dependency => dependency.endsWith('.module.css') ? {__esModule:true,default:styles} : dependency==='react'?{...React,useState:initial=>[initial,()=>{}]}:require(dependency)});
+        return pagination;
+      }
+      if (name.endsWith('/departmentStockAnalytics')) {
+        const helper = {exports: {}};
+        vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '..', 'lib', 'departmentStockAnalytics.ts'), 'utf8'), {
+          compilerOptions: {module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020},
+        }).outputText, {exports: helper.exports, Date: class extends Date {static now(){return Date.parse('2026-11-10T00:00:00Z');}}});
+        return helper.exports;
+      }
       return require(name);
     },
   });
   return renderToStaticMarkup(React.createElement(exports.default, {
-    data: {analytics, requests: [], events: []}, department: 'laboratory', branchid: 1,
+    data: {analytics, requests: options.requests || [], events: options.events || []}, department: options.department || 'laboratory', branchid: 1,
   }));
 }
 
@@ -86,4 +103,52 @@ test('movement layout has four desktop columns and collapses at tablet and mobil
   for (const [, name] of source.matchAll(/styles\.(\w+)/g)) {
     assert.ok(css.includes(`.${name}{`), `Missing CSS module class: ${name}`);
   }
+});
+
+test('expanded analytics explicitly label quantities, date scope and staff activity', () => {
+  const html = render([gloves]);
+  for (const label of ['Period efficiency and comparison', 'Fulfilment turnaround', 'Staff movement activity', 'Replenishment watch', 'Department request pipeline', 'Pending request age chart']) {
+    assert.ok(html.includes(label), label);
+  }
+  assert.match(html, /equal-length previous period/);
+  assert.match(html, /Returns are not depletion/);
+  assert.match(html, /not a staff productivity ranking/);
+  assert.match(html, /not a configured reorder level/);
+});
+
+test('all-time consumption uses the first record instead of a synthetic century-long daily average', () => {
+  const html = render([gloves], '', {
+    preset: 'All', range: {start: '1926-11-02', end: '2026-11-02'},
+    requests: [{id: 'g', ...gloves, status: 'received', created_at: '2026-11-01T00:00:00Z'}],
+    events: [{request_id: 'g', action: 'consume', quantity: 10, created_at: '2026-11-02T00:00:00Z'}],
+  });
+  assert.match(html, /2026-11-01 to 2026-11-02 \(from first departmental record\)/);
+  assert.match(html, /5 BOX \/ day/);
+});
+
+test('imaging analytics retains its department label and invalid periods show an explicit error', () => {
+  const html = render([gloves], '', {department: 'imaging', range: {start: '2026-11-02', end: '2026-11-01'}});
+  assert.match(html, /Imaging stock analytics/);
+  assert.match(html, /Period metrics are unavailable/);
+  assert.doesNotMatch(html, /aria-label="Staff movement activity"/);
+});
+
+test('critical stats and analytics tables render bounded pages without restricting full-dataset counts',()=>{
+  const analytics=Array.from({length:26},(_,index)=>({...gloves,item_id:index+1,item_name:`ITEM ${index}`,remaining:0}));
+  const html=render(analytics);
+  assert.match(html,/Critical department status/);assert.match(html,/Critical stock exceptions/);
+  assert.match(html,/<strong>26<\/strong><span>Tracked item \/ units/);
+  for(const label of ['Stock exceptions','Replenishment items','Departmental items','Staff movements']){
+    assert.ok(html.includes(`aria-label="${label} pagination"`),label);
+  }
+  const body=html.match(/aria-label="All departmental item results"[^>]*><table[^>]*>[\s\S]*?<tbody>([\s\S]*?)<\/tbody>/)?.[1];
+  assert.ok(body);assert.equal((body.match(/<tr/g)||[]).length,10);
+  assert.ok(html.includes('1-10 of 26 / Page 1 of 3'));
+});
+
+test('invalid stock records are reported without NaN chart values or cover estimates',()=>{
+  const html=render([{...gloves,remaining:'invalid'}]);
+  assert.match(html,/Invalid stock totals were detected/);
+  assert.doesNotMatch(html,/NaN|Infinity/);
+  assert.doesNotMatch(html,/aria-label="Departmental usage trend"/);
 });

@@ -1,5 +1,15 @@
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;margin:22px 0}.card{min-width:0;padding:22px;background:var(--theme-card-bg,var(--bs-body-bg,#fff));border-bottom:1px solid var(--bs-border-color,#dde5e0)}.card h2{font-size:1.08rem!important;font-weight:600;margin:0 0 7px}.caption{color:var(--bs-secondary-color,#65716a);font-size:.87rem;margin-bottom:20px}.plot{width:100%;height:300px;min-width:0;color:var(--bs-body-color)}.wide{grid-column:1/-1}.empty{padding:70px 16px;text-align:center;color:var(--bs-secondary-color)}.table{width:100%;font-size:.85rem;font-variant-numeric:tabular-nums}.table th,.table td{padding:10px 12px;border-bottom:1px solid var(--bs-border-color);text-align:right;white-space:nowrap}.table th:first-child,.table td:first-child{text-align:left}.links{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.links a{display:flex;flex-direction:column;gap:5px;padding:17px;color:inherit;text-decoration:none;border-bottom:2px solid var(--bs-border-color)}.links a:hover{background:var(--bs-tertiary-bg);border-color:var(--bs-primary)}.links strong{font-weight:500}.links small{color:var(--bs-secondary-color)}@media(max-width:850px){.grid{grid-template-columns:1fr}.wide{grid-column:auto}.links{grid-template-columns:repeat(2,minmax(0,1fr))}.card{padding:16px}.plot{height:280px}}@media(max-width:450px){.links{grid-template-columns:1fr}.plot{height:260px}}
 .movements{color:var(--bs-body-color,#24332b)}
+.dashboard{min-width:0}
+.dashboard .grid{margin:0;gap:20px}
+.dashboard .card{border:1px solid var(--bs-border-color,#dce4df);border-radius:10px;padding:20px}
+.dashboard .card h2{font-size:1.15em!important;font-weight:650}
+.dashboard .plot{height:280px}
+.dashboard .caption{font-size:1em;line-height:1.55}
+@media(max-width:600px){.dashboard .card{padding:16px}.dashboard .plot{height:260px}}
+.criticalGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:1050px){.dashboard .criticalGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.dashboard .criticalGrid{grid-template-columns:minmax(0,1fr)}}
 .movementsHeader{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px}
 .movementsHeader>div{min-width:0;flex:1 1 240px}
 .movementsHeader h2{margin:0 0 6px;overflow-wrap:anywhere}

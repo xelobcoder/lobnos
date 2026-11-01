@@ -675,20 +675,20 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 													</td>
 													<td>
 														{editingIndex === index ? (
-															<div className="d-flex gap-1">
-																<Button size="sm" variant="success" onClick={saveField}>
+															<div className="d-flex flex-nowrap gap-1">
+																<Button size="sm" variant="success" aria-label="Save field" onClick={saveField}>
 																	<RiSaveLine size={14} />
 																</Button>
-																<Button size="sm" variant="outline-secondary" onClick={cancelEditing}>
+																<Button size="sm" variant="outline-secondary" aria-label="Cancel field editing" onClick={cancelEditing}>
 																	<RiCloseLine size={14} />
 																</Button>
 															</div>
 														) : (
-															<div className="d-flex gap-1">
-																<Button size="sm" variant="outline-primary" onClick={() => startEditing(index)}>
+															<div className="d-flex flex-nowrap gap-1">
+																<Button size="sm" variant="outline-primary" aria-label="Edit field" onClick={() => startEditing(index)}>
 																	<RiEditLine size={14} />
 																</Button>
-																<Button size="sm" variant="outline-danger" onClick={() => removeField(field)}>
+																<Button size="sm" variant="outline-danger" aria-label="Remove field" onClick={() => removeField(field)}>
 																	<RiCloseLine size={14} />
 																</Button>
 															</div>
