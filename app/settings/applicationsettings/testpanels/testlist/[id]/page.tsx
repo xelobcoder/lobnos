@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useMemo, useState, use } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef, use } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { testPanelBasePath } from "../../../../../../lib/testPanelNavigation";
 import { roleAllowed } from "../../../../../../components/Auth/roles";
@@ -13,6 +13,8 @@ import OutsourcingTab from "../../../../../../components/settingsComponents/test
 import ReportSettingsTab from "../../../../../../components/settingsComponents/test/tabs/ReportSettingsTab";
 import CalculationTab from "../../../../../../components/settingsComponents/test/tabs/CalculationTab";
 import { customFetch } from "../../../../../../components/Auth/customFetch";
+import {testEditorDetail} from '../../../../../../lib/testEditorData';
+import ui from '../../../../../../components/Billing/billing-strategy/StrategyWorkspace.module.css';
 
 type TestEditorTab = 'details' | 'fields' | 'calculations' | 'procedure' | 'literature' | 'outsourcing' | 'reportSettings' | 'criticalActions';
 
@@ -38,17 +40,30 @@ export default function SingleTestEdit(props: { params: Promise<{ id: number }> 
     const initialTab = (searchParams?.get('tab') as TestEditorTab) || 'details';
     const [activeTab, setActiveTab] = useState<TestEditorTab>(tabs.some((t) => t.key === initialTab) ? initialTab : 'details');
     const [testname, setTestname] = useState<string>('');
+    const [nameError, setNameError] = useState('');
+    const version = useRef(0);
+    const loadName = useCallback(async () => {
+        const ticket = ++version.current;
+        setNameError('');
+        try {
+            const detail = testEditorDetail(await customFetch(`gettestpanel/edit?id=${testid}`));
+            if (ticket === version.current) setTestname(detail.name);
+        } catch (error) {
+            if (ticket === version.current) setNameError(error instanceof Error ? error.message : 'Unable to load the test name.');
+        }
+    }, [testid]);
 
     useEffect(() => {
-        customFetch(`gettestpanel/edit?id=${testid}`)
-            .then((data: any) => setTestname(data?.name || ''))
-            .catch(() => { });
-    }, [testid]);
+        setTestname('');
+        void loadName();
+        return () => { version.current++; };
+    }, [loadName]);
 
     const handleNavigateTab = useMemo(() => (tab: 'fields' | 'outsourcing') => setActiveTab(tab), []);
 
     return (
         <section>
+            {nameError && <div className={ui.error} role="alert"><span>{nameError}</span><button type="button" className={ui.secondary} onClick={() => void loadName()}>Retry test name</button></div>}
             <div className="mb-3 mx-2 d-flex justify-content-between align-items-center">
                 <ul className="nav nav-tabs">
                     {tabs.map((tab) => (
@@ -75,10 +90,10 @@ export default function SingleTestEdit(props: { params: Promise<{ id: number }> 
             </div>
             <div className="tab-content">
                 {activeTab === 'details' && (
-                    <TestForm method="PUT" router={router} testid={testid} customtest={0} onNavigateTab={handleNavigateTab} canManageOutsourcing={isOwner} />
+                    <TestForm key={testid} method="PUT" router={router} testid={testid} customtest={0} onNavigateTab={handleNavigateTab} canManageOutsourcing={isOwner} />
                 )}
                 {activeTab === 'fields' && (
-                    <div className="mx-2"><FieldsTab testid={testid} testname={testname} /></div>
+                    <div className="mx-2"><FieldsTab key={testid} testid={testid} testname={testname} /></div>
                 )}
                 {activeTab === 'calculations' && (
                     <CalculationTab testid={Number(testid)} testname={testname} />

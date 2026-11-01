@@ -120,6 +120,23 @@ Page access and writes check current server permissions; revocation blocks the
 next page request or write even if an old browser still displays a link. Rebuild
 and deploy both frontend and backend together.
 
+The shared test editor uses responsive skeletons while loading test details,
+sample configuration and parameter rules. Failed loads expose a retry instead
+of an editable empty/default form; stale requests cannot overwrite a newer test.
+In **Test Fields**, the compact **Arrange parameters** modal uses a 640px maximum
+width, aligned Order/Parameter/Move columns and larger move controls on mobile.
+Position inputs retain their compact width independently of workspace form styles.
+Enter a one-based position
+and press Enter or leave the input to move a parameter and shift the others;
+invalid or blank positions block applying until corrected (Escape cancels typing).
+Drag handles, use move buttons,
+or press **Alt + Arrow Up/Down** on a focused handle. Cancel leaves the editor
+unchanged. **Apply order** updates only the local draft; **Save All Changes**
+persists zero-based numeric positions together with other field edits. Finish
+or cancel an active field edit before arranging or saving. Refresh requires
+confirmation because reloading discards unsaved edits. A rejected save retains
+the draft and displays an error without reporting success.
+
 ```powershell
 node --test tests\role-link-consistency.test.cjs tests\delegated-panel-workspace.test.cjs tests\department-head-access.test.cjs tests\department-stock-proxy.test.cjs tests\sms-access.test.cjs
 ```

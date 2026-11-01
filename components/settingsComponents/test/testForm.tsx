@@ -1,14 +1,13 @@
-import { useEffect, useState, useCallback, ChangeEvent, FormEvent, ReactNode, FC } from "react";
+import { useEffect, useState, useCallback, useRef, ChangeEvent, FormEvent, ReactNode, FC } from "react";
 import { ToastContainer, toast } from 'react-toastify';
-import Loader from "../../accessories/Loader";
+import TestEditorLoading from "./TestEditorLoading";
+import {testEditorArray, testEditorDetail} from '../../../lib/testEditorData';
+import ui from '../../Billing/billing-strategy/StrategyWorkspace.module.css';
 import {
-	getDepartment,
-	getSampleTypeList,
 	defaultTestEditValues,
 	handleChangeWithState,
 	customPost,
-	getSingleEditTest,
-	getSampleContainerList,
+	customFetch,
 	customFetchMutation
 } from "../../Auth/customFetch";
 import { RiAddLine } from '@remixicon/react';
@@ -83,22 +82,36 @@ const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router, onNav
 	});
 	const [FieldDisabledDueNone, setFieldDisabledDueNone] = useState<boolean>(false);
 	const [isLoading, setLoading] = useState<boolean>(true);
-
+	const [loadError, setLoadError] = useState('');
+	const loadVersion = useRef(0);
 	const getTestParams = useCallback(async () => {
-		getSingleEditTest(testid!, setTestData, setLoading, false);
-	}, [testid]);
-
-	useEffect(() => {
-		if (testid) {
-			getTestParams();
+		const ticket = ++loadVersion.current;
+		setLoading(true);
+		setLoadError('');
+		try {
+			if ((method === 'PUT' || testid != null) && (!Number.isSafeInteger(Number(testid)) || Number(testid) <= 0)) throw new Error('A valid test identifier is required.');
+			const [detail, departments, samples, containers] = await Promise.all([
+				testid ? customFetch(`gettestpanel/edit?id=${testid}&&withoutdepartment=false`) : Promise.resolve(null),
+				customFetch('departments'), customFetch('sampletype'), customFetch('sample/containers'),
+			]);
+			if (ticket !== loadVersion.current) return;
+			const categories = testEditorArray(departments, 'test departments');
+			const sampleTypes = testEditorArray(samples, 'sample types');
+			const sampleContainerTypes = testEditorArray(containers, 'sample containers');
+			if (testid) setTestData({...defaultTestEditValues, ...testEditorDetail(detail)});
+			setCategory(categories);
+			setSample(sampleTypes);
+			setSampleContainers(sampleContainerTypes);
+		} catch (error) {
+			if (ticket === loadVersion.current) setLoadError(error instanceof Error ? error.message : 'Unable to load test configuration.');
+		} finally {
+			if (ticket === loadVersion.current) setLoading(false);
 		}
-	}, [getTestParams, testid]);
-
+	}, [testid, method]);
 	useEffect(() => {
-		getDepartment(setCategory);
-		getSampleTypeList(setSample);
-		getSampleContainerList(setSampleContainers);
-	}, []);
+		void getTestParams();
+		return () => { loadVersion.current++; };
+	}, [getTestParams]);
 
 	const handleSwitch = (event: ChangeEvent<HTMLInputElement>, target: string): void => {
 		if (!target) return;
@@ -209,7 +222,8 @@ const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router, onNav
 		}
 	}, [sampleContainers, data?.sample_container]);
 
-	if (isLoading) return <Loader />;
+	if (isLoading) return <TestEditorLoading label="Loading test details and sample configuration" />;
+	if (loadError) return <div className={ui.error} role="alert"><span>{loadError}</span><button type="button" className={ui.secondary} onClick={() => void getTestParams()}>Retry loading test</button></div>;
 
 	return (
 		<div>

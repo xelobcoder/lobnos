@@ -11,7 +11,21 @@ export interface CreationRule {
     plan: string;
     plain: string;
     fieldConstraints: Array<any>;
-    ordering: string;
+    ordering: string | number;
     isValueTracked: number;
     textReference: string;
+    categoryid?: string | number;
+    isRequired?: boolean | number;
+    lowerlimit?: string | number | null;
+    upperlimit?: string | number | null;
+    lowerLimit?: string | number | null;
+    upperLimit?: string | number | null;
+    lowerLimitFemale?: string | number | null;
+    upperLimitFemale?: string | number | null;
+    lowerLimitMale?: string | number | null;
+    upperLimitMale?: string | number | null;
+    lowerLimitChildren?: string | number | null;
+    upperLimitChildren?: string | number | null;
+    lowerLimitNeonates?: string | number | null;
+    upperLimitNeonates?: string | number | null;
 }

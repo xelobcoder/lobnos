@@ -2,7 +2,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const root=path.resolve(__dirname,'..');
 function fixture(pathname,role='scientist',tab='details'){
  const navigations=[];
- const react={createElement:(type,props,...children)=>({type,props:{...props,children}}),use:()=>({id:12}),useState:initial=>[initial===true?false:initial,()=>{}],useEffect:()=>{},useMemo:fn=>fn()};
+ const react={createElement:(type,props,...children)=>({type,props:{...props,children}}),use:()=>({id:12}),useState:initial=>[initial===true?false:initial,()=>{}],useRef:value=>({current:value}),useCallback:fn=>fn,useEffect:()=>{},useMemo:fn=>fn()};
  function load(relative){
   const file=path.join(root,relative),exports={};
   vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,jsx:ts.JsxEmit.React}}).outputText,{

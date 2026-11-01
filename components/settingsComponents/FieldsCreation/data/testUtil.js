@@ -9,34 +9,20 @@ export const handleCreationMasterRUle = function (ev, field) {
   return { ...field, plan: value };
 };
 
-export const updateFieldsRules = async (data, toast, testid) => {
-  if (data.length === 0) return;
-  for (let i = 0; i < data.length; i++) {
-    if (isNaN(data[i]["ordering"])) {
-      data[i]["ordering"] = i;
-    }
-  }
-  let orderedData = data.sort((a, b) => a.ordering - b.ordering);
-
-  // Ensure plan is never stripped out before sending to backend
-  const dataWithPlan = orderedData.map((item) => ({
+export const updateFieldsRules = async (data, testid) => {
+  if (data.length === 0) throw new Error("Add at least one parameter before saving.");
+  const dataWithPlan = data.map((item, index) => ({
     ...item,
-    plan: item.plan || item.type || "", // Ensure plan is included
+    ordering: index,
+    plan: item.plan || item.type || "",
   }));
-
-  console.log("Sending fields to backend:", dataWithPlan); // Debug log
 
   const response = await customPost("testpanel/list/customtestrule", "PUT", {
     testid,
     data: dataWithPlan,
   });
-  if (response.status === true) {
-    toast.success("Test fields updated successfully", { autoClose: 500 });
-  } else {
-    toast.error(response?.message || "Test fields creation failed", {
-      autoClose: 2000,
-    });
-  }
+  if (response?.status !== true) throw new Error(response?.message || "Test fields could not be saved.");
+  return response;
 };
 
 export const defaultConstraintsFields = {

@@ -6,14 +6,18 @@ import { useRouter } from "next/navigation";
 import { defaultCreationRule, parseTextToObject, updateFieldsRules } from "./data/testUtil";
 import TestFieldsHeader from './TestFieldsHeader';
 import { RiAddLine, RiSaveLine, RiCloseLine, RiEditLine, RiArrowLeftLine, RiRefreshLine } from '@remixicon/react';
+import ParameterOrderModal from './ParameterOrderModal';
+import {applyTestParameterOrder, orderedTestParameters} from '../../../lib/testParameterOrder';
+import type {CreationRule} from './data/types';
 
 export default function CreateTestFields({ testid, testname, testRules, fieldConstraintsCategorization, testdata, onRefresh }) {
 	const router = useRouter();
-	const [data, setData] = useState(testRules);
-	const [reorder, setReorder] = useState(true);
+	const [data, setData] = useState<CreationRule[]>(() => orderedTestParameters(testRules));
+	const [showReorder, setShowReorder] = useState(false);
+	const [orderChanged, setOrderChanged] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [editingIndex, setEditingIndex] = useState<number | null>(null);
-	const [newField, setNewField] = useState(defaultCreationRule);
+	const [newField, setNewField] = useState<CreationRule>(defaultCreationRule);
 	const [showCustomUnit, setShowCustomUnit] = useState(false);
 	const STANDARD_UNITS = Array.from(new Set([
 		"mg/dL", "g/dL", "µg/dL", "ng/dL",
@@ -364,7 +368,8 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 	};
 
 	useEffect(() => {
-		setData(testRules);
+		setData(orderedTestParameters(testRules));
+		setOrderChanged(false);
 	}, [testRules]);
 
 	const handleUpdateFields = async () => {
@@ -374,24 +379,18 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 		}
 		setIsLoading(true);
 		try {
-			await updateFieldsRules(data, toast, testid);
+			await updateFieldsRules(data, testid);
 			toast.success("Fields updated successfully!");
+			setOrderChanged(false);
 		} catch (error) {
-			toast.error("Failed to update fields. Please try again.");
+			toast.error(error instanceof Error ? error.message : "Failed to update fields. Please try again.");
 		} finally {
 			setIsLoading(false);
 		}
 	};
 
 	const removeField = (itemToRemove) => {
-		setData(prevData => prevData.filter(item => item.name !== itemToRemove.name));
-	};
-
-	const changeOrdering = (item, ev) => {
-		const { value } = ev.target;
-		const { name } = item;
-		const updatedData = data.map(d => (d.name === name ? { ...d, ordering: value } : d));
-		setData(updatedData);
+		setData(prevData => applyTestParameterOrder(prevData.filter(item => item.name !== itemToRemove.name)));
 	};
 
 	const startEditing = (index: number) => {
@@ -399,6 +398,7 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 		const field = data[index];
 		// Normalize property names - convert lowerLimit/upperLimit to lowerlimit/upperlimit
 		const normalizedField = {
+			...defaultCreationRule,
 			...field,
 			lowerlimit: field.lowerlimit || field.lowerLimit || '',
 			upperlimit: field.upperlimit || field.upperLimit || '',
@@ -413,7 +413,7 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 		};
 		setNewField(normalizedField);
 		// If the existing unit is not in standard list, show custom input
-		setShowCustomUnit(field.units && !STANDARD_UNITS.includes(field.units));
+		setShowCustomUnit(!!field.units && !STANDARD_UNITS.includes(field.units));
 	};
 
 	const cancelEditing = () => {
@@ -471,7 +471,7 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 			toast.success("Field updated successfully!");
 		} else {
 			// Add new field
-			setData([...data, fieldToSave]);
+			setData(applyTestParameterOrder([...data, fieldToSave]));
 		}
 
 		setEditingIndex(null);
@@ -492,7 +492,7 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 	};
 
 	return (
-		<div className="container-fluid p-3">
+		<fieldset className="container-fluid p-3 border-0" disabled={isLoading}>
 			<div className="d-flex align-items-center gap-2 mb-3">
 				<div className="d-flex align-items-center gap-2">
 					<Button variant="outline-secondary" size="sm" onClick={() => router.back()}>
@@ -500,7 +500,9 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 						Back to Test Panels
 					</Button>
 					{onRefresh && (
-						<Button variant="outline-secondary" size="sm" onClick={onRefresh}>
+						<Button variant="outline-secondary" size="sm" disabled={isLoading || showReorder} onClick={() => {
+							if (window.confirm('Reload saved fields? Any unsaved field edits or ordering changes will be discarded.')) onRefresh();
+						}}>
 							<RiRefreshLine size={16} className="me-1" />
 							Refresh Data
 						</Button>
@@ -516,11 +518,16 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 						<div className="card-body d-flex flex-column">
 							<div className="d-flex justify-content-between align-items-center mb-3">
 								<h2 className="card-title fs-5 fw-bold text-dark">Field Configuration ({data.length})</h2>
-								<Button variant="primary" size="sm" onClick={addNewRow}>
-									<RiAddLine size={16} className="me-1" />
-									Add Field
-								</Button>
+								<div className="d-flex gap-2">
+									<Button variant="outline-primary" size="sm" disabled={isLoading || data.length < 2 || editingIndex !== null || !!newField.name?.trim()} onClick={() => setShowReorder(true)}>Arrange parameters</Button>
+									<Button variant="primary" size="sm" disabled={isLoading} onClick={addNewRow}>
+										<RiAddLine size={16} className="me-1" />
+										Add Field
+									</Button>
+								</div>
 							</div>
+							{orderChanged && <p className="alert alert-info" role="status">Parameter order has changed in the draft. Save All Changes to persist it.</p>}
+							{(editingIndex !== null || !!newField.name?.trim()) && <p className="text-muted small">Finish or cancel the current field edit before arranging parameters.</p>}
 
 							<div className="flex-grow-1" style={{ minHeight: '50vh' }}>
 								{/* Inline Field Creation Table */}
@@ -664,14 +671,7 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 														)}
 													</td>
 													<td>
-														<input
-															type="number"
-															className="form-control form-control-sm"
-															value={field.ordering || ''}
-															onChange={(e) => changeOrdering(field, e)}
-															placeholder="0"
-															style={{ width: '60px' }}
-														/>
+														<span aria-label={`Parameter position ${index + 1}`}>{index + 1}</span>
 													</td>
 													<td>
 														{editingIndex === index ? (
@@ -785,14 +785,7 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 														/>
 													</td>
 													<td>
-														<input
-															type="number"
-															className="form-control form-control-sm"
-															value={newField.ordering || ''}
-															onChange={(e) => setNewField({ ...newField, ordering: e.target.value })}
-															placeholder="0"
-															style={{ width: '60px' }}
-														/>
+														<span>{data.length + 1}</span>
 													</td>
 													<td>
 														<Button size="sm" variant="success" onClick={saveField} disabled={!newField.name?.trim() || !newField.plan}>
@@ -814,7 +807,7 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 										variant="success"
 										size="sm"
 										onClick={handleUpdateFields}
-										disabled={isLoading}
+										disabled={isLoading || showReorder || editingIndex !== null || !!newField.name?.trim()}
 									>
 										{isLoading ? (
 											<>
@@ -828,9 +821,14 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 								</div>
 							)}
 						</div>
+						{showReorder && <ParameterOrderModal fields={data} onHide={() => setShowReorder(false)} onApply={ordered => {
+							setData(ordered);
+							setOrderChanged(true);
+							setShowReorder(false);
+						}} />}
 					</div>
 				</div>
 			</div>
-		</div>
+		</fieldset>
 	);
 }
