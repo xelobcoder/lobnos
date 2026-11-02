@@ -1,0 +1,11 @@
+.requestTable { min-width: 760px; }
+.requestTable th:nth-child(2) { min-width: 180px; }
+.requestTable th:nth-child(4) { min-width: 180px; }
+.requestTable button { white-space: nowrap; }
+.quoteTable { min-width: 480px; }
+.review h2 { font-size: 1.125rem; font-weight: 600; }
+.review h3 { font-size: 1rem; font-weight: 600; }
+.review h4 { font-size: .875rem; line-height: 1.5; }
+.review form { max-width: 880px; }
+.scrollHint { display: none; font-size: .8rem; color: var(--bs-secondary-color); }
+@media(max-width: 767px) { .scrollHint { display: block; } }

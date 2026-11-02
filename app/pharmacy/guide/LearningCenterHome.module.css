@@ -1,0 +1,139 @@
+.workspace {
+  --accent: var(--pls-primary, #2e7d32);
+  --deep: var(--pls-primary-dark, #1b5e20);
+  --paper: var(--theme-card-bg, var(--bs-body-bg, #fff));
+  --line: var(--bs-border-color, #dce4df);
+  --soft: var(--bs-tertiary-bg, #f5f8f6);
+  --muted: var(--bs-secondary-color, #59645d);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+  color: var(--bs-body-color, #23352a);
+  font-size: max(14px, .9375em);
+}
+.workspace * { box-sizing: border-box; }
+.workspace :is(h1, h2, h3, p) { margin: 0; }
+.workspace p { line-height: 1.55; }
+.workspace :is(a, button, input, select):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 70%, transparent);
+  outline-offset: 3px;
+}
+.header, .heading, .actions, .sectionHeader, .resultBar, .pathHeader, .pathTitle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.header, .sectionHeader, .resultBar, .pathHeader { justify-content: space-between; flex-wrap: wrap; }
+.heading, .pathTitle { min-width: 0; }
+.header h1 { font-size: 1.65em; font-weight: 700; letter-spacing: -.025em; overflow-wrap: anywhere; }
+.header p, .sectionHeader p, .learningPath > p, .directoryHeader p { color: var(--muted); margin-top: 5px; }
+.eyebrow { display: block; margin-bottom: 5px; color: var(--accent); font-size: .86em; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; }
+.headerIcon, .statIcon, .groupIcon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--paper));
+}
+.headerIcon, .statIcon { width: 45px; height: 45px; border-radius: 12px; }
+.groupIcon { width: 40px; height: 40px; border-radius: 10px; }
+.actions { flex-wrap: wrap; }
+.workspace :is(.primary, .secondary, .textButton) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 9px 14px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  font: inherit;
+  font-weight: 600;
+  line-height: 1.25;
+  text-decoration: none;
+  cursor: pointer;
+}
+.workspace .primary { color: #fff; background: var(--deep); border-color: var(--deep); }
+.workspace .primary:hover { color: #fff; background: color-mix(in srgb, var(--deep) 85%, #000); }
+.workspace .secondary { color: inherit; background: var(--paper); }
+.workspace .secondary:hover { color: var(--accent); background: var(--soft); }
+.workspace .textButton { min-height: 36px; padding: 5px 7px; color: var(--accent); background: transparent; border: 0; }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.stat, .catalogue, .glossary { min-width: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); }
+.stat { display: flex; align-items: center; gap: 14px; padding: 16px 20px; }
+.stat strong { display: block; font-size: 1.7em; font-weight: 650; line-height: 1.1; }
+.stat span:not(.statIcon) { display: block; color: var(--muted); }
+.notice { padding: 14px 16px; border: 1px solid var(--line); border-radius: 7px; background: var(--soft); }
+.catalogue { scroll-margin-top: 20px; }
+.sectionHeader { padding: 20px 20px 4px; }
+.sectionHeader h2 { font-size: 1.15em; font-weight: 650; }
+.toolbar { display: grid; grid-template-columns: minmax(200px, 2fr) repeat(2, minmax(150px, 1fr)); gap: 12px; padding: 16px 20px; }
+.field { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.field label { display: flex; align-items: center; gap: 5px; font-weight: 600; }
+.field :is(input, select) { width: 100%; min-width: 0; min-height: 42px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); color: inherit; font: inherit; }
+.resultBar { gap: 8px; padding: 11px 20px; border-block: 1px solid var(--line); background: var(--soft); }
+.resultBar p { color: var(--muted); font-size: .93em; }
+.catalogueBody { padding: 20px; }
+.learningPath { margin-bottom: 24px; padding: 18px; border: 1px solid var(--line); border-radius: 9px; background: color-mix(in srgb, var(--accent) 4%, var(--paper)); }
+.pathTitle h3, .directoryHeader h3 { font-size: 1.05em; font-weight: 650; }
+.roleBadge, .readBadge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 5px; background: var(--paper); color: var(--muted); font-size: .86em; font-weight: 600; }
+.recommendations { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; list-style: none; padding: 0; margin: 15px 0 0; }
+.recommendations li { min-width: 0; }
+.workspace .recommendations a { display: flex; align-items: flex-start; gap: 10px; height: 100%; min-height: 84px; padding: 13px; border: 1px solid var(--line); border-radius: 7px; background: var(--paper); color: inherit; text-decoration: none; }
+.workspace .recommendations a:hover, .workspace .guideList a:hover { border-color: var(--accent); background: var(--soft); }
+.stepNumber { color: var(--accent); font-size: .88em; font-weight: 700; }
+.recommendationText { flex: 1; min-width: 0; }
+.recommendationText strong, .recommendationText small { display: block; overflow-wrap: anywhere; }
+.recommendationText small { margin-top: 5px; color: var(--muted); }
+.directoryHeader { margin-bottom: 12px; }
+.directory { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 12px; }
+.guideGroup, .glossary { min-width: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); }
+.guideGroup + .directory { margin-top: 12px; }
+.guideGroup summary, .glossary summary { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 12px 14px; list-style: none; cursor: pointer; }
+.guideGroup summary::-webkit-details-marker, .glossary summary::-webkit-details-marker { display: none; }
+.groupHeading { flex: 1; min-width: 0; }
+.groupHeading strong, .groupHeading small { display: block; overflow-wrap: anywhere; }
+.groupHeading small { margin-top: 3px; color: var(--muted); }
+.chevron { flex-shrink: 0; color: var(--muted); transition: transform .15s ease; }
+.guideGroup[open] .chevron, .glossary[open] .chevron { transform: rotate(180deg); }
+.guideList { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--line); }
+.workspace .guideList a { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 10px 14px; border-bottom: 1px solid var(--line); color: inherit; text-decoration: none; }
+.guideList li:last-child a { border-bottom: 0; }
+.guideList a > span:first-child { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.guideArrow { flex-shrink: 0; color: var(--muted); }
+.readBadge { flex-shrink: 0; }
+.empty { display: grid; justify-items: center; gap: 10px; padding: 36px 16px; text-align: center; }
+.empty > svg, .empty p { color: var(--muted); }
+.empty h3 { font-size: 1.05em; font-weight: 650; }
+.empty p { max-width: 430px; }
+.glossary dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 24px; margin: 0; padding: 18px 20px; border-top: 1px solid var(--line); }
+.glossary dt { font-weight: 650; }
+.glossary dd { margin: 4px 0 0; color: var(--muted); line-height: 1.55; }
+@media (max-width: 850px) {
+  .toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .field:first-child { grid-column: 1 / -1; }
+}
+@media (max-width: 600px) {
+  .workspace { gap: 14px; }
+  .header { align-items: flex-start; }
+  .header h1 { font-size: 1.4em; }
+  .header .actions { width: 100%; }
+  .stats { gap: 8px; }
+  .stat { display: block; padding: 12px; }
+  .statIcon { display: none; }
+  .stat strong { font-size: 1.4em; }
+  .stat span:not(.statIcon) { font-size: .86em; }
+  .sectionHeader { padding: 16px 16px 4px; }
+  .toolbar { grid-template-columns: minmax(0, 1fr); padding: 14px 16px; }
+  .field:first-child { grid-column: auto; }
+  .resultBar { padding-inline: 16px; }
+  .catalogueBody { padding: 16px; }
+  .learningPath { padding: 14px; }
+  .recommendations, .directory, .glossary dl { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) { .chevron { transition: none; } }
+@media print {
+  .actions, .toolbar, .resultBar, .recommendations { display: none; }
+  .catalogue, .glossary, .stat, .guideGroup { break-inside: avoid; }
+}

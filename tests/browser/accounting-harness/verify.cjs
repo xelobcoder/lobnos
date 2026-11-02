@@ -37,6 +37,14 @@ async function load(section, query = '') {
   }
   throw Error(`Destination did not settle: ${section}; ${await evaluate('document.body.innerText')}`);
 }
+async function loadPharmacy(path) {
+  await send('Page.navigate', {url:base+path});
+  for(let i=0;i<100;i++){
+    await wait(75);
+    if(await evaluate(`!!document.querySelector('h1')&&!/Loading (purchase requests|medicines|financial-day)|Verifying accounting/.test(document.body.innerText)&&!document.querySelector('[aria-busy="true"]')`))return;
+  }
+  throw Error('Pharmacy page did not settle: '+path);
+}
 const inspect = `(() => {
  const visible=e=>!e.closest('[aria-hidden="true"]')&&!!(e.offsetWidth||e.offsetHeight||e.getClientRects().length)&&getComputedStyle(e).visibility!=='hidden';
  const clipped=e=>{let p=e.parentElement;while(p&&p!==document.body){if(/auto|scroll|hidden|clip/.test(getComputedStyle(p).overflowX)&&p.scrollWidth>p.clientWidth)return true;p=p.parentElement;}return false;};
@@ -103,6 +111,7 @@ const inspect = `(() => {
       if (section==='statements') {
         const summary=await evaluate(`(() => {const groups=[...document.querySelectorAll('section[aria-label$=" summary"]')];const cards=groups.flatMap(e=>[...e.querySelectorAll('dl > div')]);const expense=cards.find(e=>e.querySelector('dt')?.textContent==='Operating expenses');return {groups:groups.length,cards:cards.length,expense:expense?.querySelector('dd')?.textContent,bordered:groups.every(e=>parseFloat(getComputedStyle(e.querySelector('dl')).borderTopWidth)>0),amountsFit:cards.every(e=>{const value=e.querySelector('dd'),range=document.createRange();range.selectNodeContents(value);return value.scrollWidth<=value.clientWidth&&range.getClientRects().length===1}),expensesLink:document.querySelector('a[href="/pharmacy/accounting/expenses"]')?.textContent};})()`);
         assert.equal(summary.groups,3);assert.equal(summary.cards,14);assert.ok(summary.bordered);assert.ok(summary.amountsFit,'Large monetary values must fit without breaking across lines');assert.match(summary.expense,/200[.]00/);assert.equal(summary.expensesLink,'Review expenses');
+        assert.equal(await evaluate(`document.querySelector('section[aria-label="Expenses"]').querySelectorAll('h3').length`),1,'Expense section heading is rendered once');
       }
       if (section==='journals') {
         await evaluate(`document.activeElement?.blur()`);
@@ -132,6 +141,25 @@ const inspect = `(() => {
         diagnostics[`screenshot:${width}:${theme}`] = { bytes: screenshot.length, width: screenshot.readUInt32BE(16), height: screenshot.readUInt32BE(20) };
       }
     }
+    for(const pharmacyPath of ['/pharmacy/guide','/pharmacy/guide/supplier-payment','/pharmacy/finance','/pharmacy/inventory/purchase-requests','/pharmacy/inventory?tab=orders']){
+        await loadPharmacy(pharmacyPath);
+        await evaluate(`document.documentElement.dataset.bsTheme=${JSON.stringify(theme)};document.documentElement.dataset.theme=${JSON.stringify(theme)};document.documentElement.classList.toggle('dark',${theme === 'dark'})`);
+        if(pharmacyPath.includes('purchase-requests')){
+          await evaluate(`[...document.querySelectorAll('button')].find(e=>e.textContent==='Review request').click();document.querySelectorAll('details').forEach(e=>e.open=true)`);
+          await wait(75);
+          await evaluate(`document.querySelectorAll('details').forEach(e=>e.open=true)`);
+          assert.equal(await evaluate(`[...document.querySelectorAll('tbody button')].every(e=>e.getBoundingClientRect().width>=95&&getComputedStyle(e).whiteSpace==='nowrap')`),true,'Purchase review actions must not squeeze into vertical text');
+          assert.equal(await evaluate(`document.querySelector('[aria-label="Purchase requests table"]').tabIndex`),0);
+          assert.equal(await evaluate(`parseFloat(getComputedStyle(document.querySelector('[aria-label="Purchase request review"] h2')).fontSize)<=parseFloat(getComputedStyle(document.querySelector('h1')).fontSize)`),true,'Review headings must remain smaller than the page title');
+        }
+        const report={section:pharmacyPath,width,theme,...await evaluate(inspect)};
+        reports.push(report);
+        assert.equal(report.title,pharmacyPath.includes('purchase-requests')?'Purchase requests':pharmacyPath.includes('/guide/')?'Workflow: pay a supplier and check the remaining balance':pharmacyPath.includes('/guide')?'Pharmacy Learning Center':pharmacyPath.includes('/finance')?'Cash & day closing':'Inventory & purchasing');
+        if(screenshots){
+          const shot=await send('Page.captureScreenshot',{format:'png'});
+          fs.writeFileSync(path.join(screenshots,`${pharmacyPath.includes('purchase-requests')?'purchase-requests':pharmacyPath.includes('/guide/')?'guide-article':pharmacyPath.includes('guide')?'guide':pharmacyPath.includes('/finance')?'finance':'purchasing'}-${width}-${theme}.png`),Buffer.from(shot.data,'base64'));
+      }
+    }
   }
   // Keyboard reachability and real supplier combobox filtering/selection.
   await load('suppliers');
@@ -158,7 +186,7 @@ const inspect = `(() => {
   assert.ok(diagnostics.noAutomaticHistoryScan, 'Settings must not scan full history automatically');
   // Use real DOM events and real hook/form handlers, with only transport replaced.
   await load('journals');
-  await evaluate(`document.querySelector('details').open=true`);
+  await evaluate(`document.querySelector('summary.btn-primary').closest('details').open=true`);
   const setField = async (selector, value) => {
     await evaluate(`(() => {const e=document.querySelector(${JSON.stringify(selector)});if(!e)throw Error('Missing field '+${JSON.stringify(selector)});Object.getOwnPropertyDescriptor(e.tagName==='SELECT'?HTMLSelectElement.prototype:e.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype,'value').set.call(e,${JSON.stringify(value)});e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));})()`);
     await wait(40);
@@ -179,7 +207,7 @@ const inspect = `(() => {
   assert.equal(diagnostics.journalRequest.body.lines[1].credit,'12.50');
   assert.ok(diagnostics.journalRequest.body.idempotencyKey);
   await load('expenses');
-  await evaluate(`document.querySelector('details').open=true`);
+  await evaluate(`document.querySelector('summary.btn-primary').closest('details').open=true`);
   await setField('input[name=description]', 'Synthetic expense');
   await setField('input[name=amount]', '25.00');
   await setField('input[name=financialDate]', '2099-01-03');
@@ -192,6 +220,140 @@ const inspect = `(() => {
   assert.equal(diagnostics.expenseRequest?.endpoint,'pharmacy/accounting/expenses');
   assert.equal(Number(diagnostics.expenseRequest.body.amount),25);
   assert.equal(diagnostics.expenseRequest.body.supplierId,'supplier-exact-1');
+  await load('statements');
+  await setField('select:has(option[value="balance_sheet"])','balance_sheet');
+  await wait(100);
+  diagnostics.statementHeadings=await evaluate(`({liabilities:document.querySelector('section[aria-label="Liabilities"]').querySelectorAll('h3').length,redundantSection:[...document.querySelectorAll('th')].some(e=>e.textContent==='Section')})`);
+  assert.deepEqual(diagnostics.statementHeadings,{liabilities:1,redundantSection:false});
+  await loadPharmacy('/pharmacy/guide#purchasing');
+  diagnostics.guideDeepLink=await evaluate(`({open:document.querySelector('#purchasing')?.open,scrolled:window.scrollY>0})`);
+  assert.deepEqual(diagnostics.guideDeepLink,{open:true,scrolled:true},'Purchasing guide links reveal the linked topic');
+  await loadPharmacy('/pharmacy/guide');
+  await setField('#learning-topic','purchasing');
+  diagnostics.guideTopic=await evaluate(`({purchasing:!!document.querySelector('#purchasing[open]'),workflows:!!document.querySelector('#workflows[open]'),other:!!document.querySelector('#accounting'),count:document.querySelectorAll('#purchasing a,#workflows a').length})`);
+  assert.deepEqual(diagnostics.guideTopic,{purchasing:true,workflows:true,other:false,count:4});
+  await setField('#learning-format','workflow');
+  diagnostics.guideFormat=await evaluate(`({links:[...document.querySelectorAll('#workflows a')].map(e=>e.getAttribute('href')),pages:!!document.querySelector('#purchasing')})`);
+  assert.deepEqual(diagnostics.guideFormat,{links:['/pharmacy/guide/create-purchase-request','/pharmacy/guide/receive-delivery'],pages:false});
+  await setField('#learning-search','no-such-task');
+  assert.equal(await evaluate(`document.body.innerText.includes('No matching guide')`),true);
+  await evaluate(`[...document.querySelectorAll('button')].find(e=>e.textContent.trim()==='Clear filters').click()`);
+  diagnostics.guideReset=await evaluate(`({query:document.querySelector('#learning-search').value,topic:document.querySelector('#learning-topic').value,format:document.querySelector('#learning-format').value,focus:document.activeElement.id})`);
+  assert.deepEqual(diagnostics.guideReset,{query:'',topic:'all',format:'all',focus:'learning-search'});
+  await setField('input[type=search]','purchase request');
+  diagnostics.guideSearch=await evaluate(`({purchasing:!!document.querySelector('#purchasing'),cash:!!document.querySelector('#cash')})`);
+  assert.deepEqual(diagnostics.guideSearch,{purchasing:true,cash:false});
+  await loadPharmacy('/pharmacy/guide');
+  const articlePaths=await evaluate(`[...new Set([...document.querySelectorAll('a[href^="/pharmacy/guide/"]')].map(e=>e.getAttribute('href')))]`);
+  assert.equal(articlePaths.length,50,'42 actual operational pages and eight end-to-end workflows');
+  for(const articlePath of articlePaths){
+    await loadPharmacy(articlePath);
+    assert.equal(await evaluate(`['open','purpose','interface','steps','after','verify','recovery','next'].every(id=>!!document.getElementById(id))&&document.querySelectorAll('h1').length===1`),true,articlePath);
+    assert.equal(await evaluate(`!!document.querySelector('#open a[href^="/pharmacy"][class*="btn"]')`),true,articlePath+' has a task destination');
+  }
+  diagnostics.focusedArticles=articlePaths.length;
+  await loadPharmacy('/pharmacy/guide/supplier-payment');
+  await evaluate(`document.querySelector('button[aria-pressed]').click()`);
+  await loadPharmacy('/pharmacy/guide/supplier-payment');
+  assert.equal(await evaluate(`document.querySelector('button[aria-pressed]').getAttribute('aria-pressed')`),'true','Read marker persists on this device');
+  await loadPharmacy('/pharmacy/guide');
+  assert.equal(await evaluate(`document.querySelector('[aria-label="Learning center overview"] > div:nth-child(2) strong').textContent`),'1','The overview reflects the saved reading marker');
+  assert.equal(await evaluate(`[...document.querySelectorAll('a[href="/pharmacy/guide/pay-supplier"]')].some(a=>a.textContent.includes('Read'))`),true,'The matching guide is marked read');
+  await loadPharmacy('/pharmacy/guide/not-a-guide');
+  assert.equal(await evaluate(`document.querySelector('h1').textContent`),'Article unavailable');
+
+  // Walkthroughs highlight mounted controls; only deliberate test/user clicks open forms.
+  for(const [section,steps] of [['expenses',4],['receivables',2],['statements',3]]){
+    await load(section);
+    await evaluate(`[...document.querySelectorAll('button')].find(e=>e.textContent.startsWith('Show me how:')).click()`);
+    if(section==='expenses')await evaluate(`[...document.querySelectorAll('summary')].find(e=>e.textContent==='New expense draft').closest('details').open=true`);
+    for(let i=1;i<steps;i++){
+      await wait(50);
+      await evaluate(`[...document.querySelectorAll('section[aria-label$="walkthrough"] button')].find(e=>/^(Next step|Skip step)$/.test(e.textContent)).click()`);
+    }
+    await wait(75);
+    assert.equal(await evaluate(`document.querySelectorAll('[class*="highlight"]').length`),1,section+' highlights its real final control');
+    assert.equal(await evaluate(`window.__mutations?.length||0`),0,section+' walkthrough must not submit');
+    await evaluate(`[...document.querySelectorAll('button')].find(e=>e.textContent==='Restart').click()`);
+    await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+    await wait(50);
+    assert.equal(await evaluate(`!!document.querySelector('section[aria-label$="walkthrough"]')`),false);
+  }
+  await loadPharmacy('/pharmacy/inventory');
+  await evaluate(`[...document.querySelectorAll('button')].find(e=>e.textContent==='Show me how: Workflow: request new stock').click()`);
+  assert.equal(await evaluate(`window.__mutations?.length||0`),0);
+  await evaluate(`[...document.querySelectorAll('button')].find(e=>e.textContent==='1. Submit purchase request').click()`);
+  await wait(100);
+  assert.equal(await evaluate(`!!document.querySelector('[role=dialog] section[aria-label$="walkthrough"]')`),true,'Guidance follows the user into the actual modal');
+  for(let i=0;i<3;i++){await evaluate(`[...document.querySelectorAll('section[aria-label$="walkthrough"] button')].find(e=>/^(Next step|Skip step)$/.test(e.textContent)).click()`);await wait(50);}
+  assert.equal(await evaluate(`window.__mutations?.length||0`),0,'Opening and traversing guidance never submits a request');
+  assert.equal(await evaluate(`document.querySelector('select[name=supplier]').value`),'','Guidance does not populate forms');
+  await evaluate(`[...document.querySelectorAll('button')].find(e=>e.textContent==='Dismiss walkthrough').click()`);
+  assert.equal(await evaluate(`document.querySelector('[role=dialog]').contains(document.activeElement)`),true,'Dismiss returns focus to the still-open actual form');
+  diagnostics.safeWalkthroughs=4;
+
+  await loadPharmacy('/pharmacy/inventory?tab=orders');
+  await evaluate(`[...document.querySelectorAll('button')].find(e=>e.textContent==='Show me how: Workflow: purchase and receive medicines').click()`);
+  await evaluate(`[...document.querySelectorAll('#purchase-order-approved-order-exact button')].find(e=>e.textContent==='Receive against order').click()`);
+  await wait(100);
+  for(let i=0;i<3;i++){await evaluate(`[...document.querySelectorAll('section[aria-label$="walkthrough"] button')].find(e=>/^(Next step|Skip step)$/.test(e.textContent)).click()`);await wait(50);}
+  assert.equal(await evaluate(`document.querySelector('[role=dialog] input[name=quantity]').value`),'');
+  assert.equal(await evaluate(`window.__mutations?.length||0`),0,'Receiving guidance never receives real stock');
+  diagnostics.safeWalkthroughs++;
+
+  await loadPharmacy('/pharmacy/finance');
+  assert.equal(await evaluate(`document.body.innerText.includes('What do you need to do?')&&![...document.querySelectorAll('button')].some(e=>e.textContent==='Close financial day')`),true);
+  await evaluate(`[...document.querySelectorAll('button')].find(e=>e.textContent==='Review before closing').click()`);
+  await wait(75);
+  assert.equal(await evaluate(`[...document.querySelectorAll('button')].find(e=>e.textContent==='Close financial day').disabled`),true,'Unreviewed handover blocks closing');
+  await evaluate(`[...document.querySelectorAll('button')].find(e=>e.textContent==='Review handover').click()`);
+  await wait(100);
+  assert.equal(await evaluate(`!!document.querySelector('textarea[name=note]')`),true,'Actual handover review form opens');
+  assert.equal(await evaluate(`window.__mutations?.length||0`),0,'Review navigation never closes the day');
+  await loadPharmacy('/pharmacy/finance?failure=1');
+  assert.equal(await evaluate(`document.body.innerText.includes('Synthetic service unavailable')&&!document.querySelector('table,form')`),true,'Finance errors hide stale records/actions');
+  await loadPharmacy('/pharmacy/finance?legacy=1');
+  assert.equal(await evaluate(`document.body.innerText.includes('Legacy payments & expenses')`),true);
+  await loadPharmacy('/pharmacy/finance?configurationFailure=1');
+  assert.equal(await evaluate(`![...document.querySelectorAll('button')].some(e=>e.textContent.includes('Legacy payments'))&&document.body.innerText.includes('configuration')`),true,'Unverified configuration never enables immediate legacy posting');
+  diagnostics.financeReviewBeforeClose=true;
+  await loadPharmacy('/pharmacy/inventory/purchase-requests');
+  await evaluate(`document.querySelector('tbody tr:nth-child(2) button').click()`);
+  await wait(75);
+  assert.equal(await evaluate(`!!document.querySelector('form[aria-label="Purchase approval decision"]')`),false,'Own requests cannot be approved');
+  await evaluate(`document.querySelector('tbody tr:nth-child(1) button').click()`);
+  await wait(75);
+  await setField('select[name=decision]','approve');
+  await setField('select[name=quoteIndex]','0');
+  await setField('textarea[name=reason]','Reviewed synthetic supplier quotation');
+  await evaluate(`document.querySelector('form[aria-label="Purchase approval decision"]').requestSubmit()`);
+  await wait(150);
+  diagnostics.purchaseApproval=await evaluate(`window.__mutations?.find(e=>e.endpoint.endsWith('/purchase-request-exact/decision'))`);
+  assert.equal(diagnostics.purchaseApproval.body.expectedVersion,7);
+  assert.equal(diagnostics.purchaseApproval.body.quoteIndex,0);
+  assert.ok(diagnostics.purchaseApproval.body.idempotencyKey);
+  const orderLink=await evaluate(`document.querySelector('a[href*="order=approved-order-exact"]')?.getAttribute('href')`);
+  assert.equal(orderLink,'/pharmacy/inventory?tab=orders&order=approved-order-exact');
+  await loadPharmacy(orderLink);
+  assert.equal(await evaluate(`!!document.querySelector('#purchase-order-approved-order-exact.border-primary')`),true);
+  await evaluate(`[...document.querySelectorAll('#purchase-order-approved-order-exact button')].find(e=>e.textContent==='Receive against order').click()`);
+  await wait(75);
+  assert.equal(await evaluate(`document.querySelector('[role=dialog] input[name=quantity]').max`),'20');
+  await evaluate(`document.querySelector('[aria-label="Close dialog"]').click()`);
+  await evaluate(`[...document.querySelectorAll('button')].find(e=>e.textContent==='Submit purchase request').click()`);
+  await wait(100);
+  await setField('[role=dialog] select[name=supplier]','supplier-exact-1');
+  await evaluate(`document.querySelector('[role=dialog] .list-group-item').click()`);
+  await setField('[role=dialog] input[name=notes]','Replenish synthetic stock');
+  await evaluate(`document.querySelector('[role=dialog] form').requestSubmit()`);
+  await wait(150);
+  diagnostics.purchaseRequest=await evaluate(`window.__mutations?.find(e=>e.endpoint==='pharmacy/orders')`);
+  assert.equal(diagnostics.purchaseRequest.body.supplierId,'supplier-exact-1');
+  assert.equal(diagnostics.purchaseRequest.body.lines[0].itemId,'medicine-1');
+  assert.ok(diagnostics.purchaseRequest.body.idempotencyKey);
+  assert.equal(await evaluate(`document.body.innerText.includes('Purchase request submitted.')&&!document.querySelector('[role=dialog]')`),true);
+  await loadPharmacy('/pharmacy/inventory/purchase-requests?failure=1');
+  assert.equal(await evaluate(`document.body.innerText.includes('Synthetic service unavailable')&&!document.querySelector('table,form')`),true,'Failed purchase retrieval must not expose stale actions');
   await load('payables');
   await evaluate(`[...document.querySelectorAll('nav[aria-label="Payables views"] button')].find(e=>e.textContent==='Existing payments & credits').click()`);
   await wait(80);
@@ -249,6 +411,42 @@ const inspect = `(() => {
     diagnostics[`print:${section}`] = { ...print, pdfBytes: bytes.length, pdfHeader: bytes.subarray(0, 5).toString() };
     assert.ok(print.tables > 0 && print.headings.length > 0 && print.visibleButtons === 0 && bytes.length > 2000, `Printable structured ${section} with business heading`);
     await send('Emulation.setEmulatedMedia', { media: '' });
+  }
+  if(process.env.ACCOUNTING_HELP_ASSETS==='1'){
+    const assets=path.resolve(__dirname,'../../../public/pharmacy-help');
+    fs.mkdirSync(assets,{recursive:true});
+    await send('Emulation.setDeviceMetricsOverride',{width:1440,height:1200,deviceScaleFactor:1,mobile:false});
+    const captures=[
+      {name:'purchase-request',route:'/pharmacy/inventory/purchase-requests',prepare:`[...document.querySelectorAll('button')].find(e=>e.textContent==='Review request').click()`,targets:[['button','Refresh requests'],['button','Review request'],['select[name=decision]'],['textarea[name=reason]']]},
+      {name:'expense-draft',section:'expenses',prepare:`[...document.querySelectorAll('summary')].find(e=>e.textContent==='New expense draft').closest('details').open=true`,targets:[['input[name=description]'],['input[name=amount]'],['select[name=supplierId]'],['button','Save expense draft']]},
+      {name:'supplier-settlement',section:'payables',prepare:`[...document.querySelectorAll('nav[aria-label$=" views"] button')].find(e=>e.textContent==='Settlements').click()`,open:'New allocated supplier settlement',targets:[['nav[aria-label$=" views"] button','Settlements'],['input[name=date]'],['input[name=description]'],['button','Save draft allocated settlement']]},
+      {name:'profit-report',section:'statements',targets:[['select:has(option[value=profit_loss])'],['form[aria-label="Report filters"]'],['section[aria-label="Ledger & expenses summary"]']]},
+      {name:'cash-day',route:'/pharmacy/finance',targets:[['h1'],['button','Today & next steps'],['button','Review before closing']]},
+    ];
+    for(const capture of captures){
+      capture.route?await loadPharmacy(capture.route):await load(capture.section);
+      if(capture.prepare){await evaluate(capture.prepare);await wait(150);}
+      if(capture.open){await evaluate(`[...document.querySelectorAll('summary')].find(e=>e.textContent===${JSON.stringify(capture.open)}).closest('details').open=true`);await wait(75);}
+      await evaluate(`(() => {
+        document.documentElement.dataset.bsTheme='light';document.documentElement.dataset.theme='light';document.documentElement.classList.remove('dark');
+        const banner=document.createElement('div');banner.textContent='ISOLATED DEMONSTRATION - synthetic records - not live Pharmacy data';
+        banner.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#18344d;color:white;padding:7px 16px;font:14px sans-serif;text-align:center';document.body.append(banner);
+        const targets=${JSON.stringify(capture.targets)};
+        targets.forEach(([selector,text],index)=>{
+          const target=[...document.querySelectorAll(selector)].find(e=>(!text||e.textContent.trim()===text)&&e.getClientRects().length);
+          if(!target)throw Error('Missing screenshot target '+selector+' '+text);
+          target.style.outline='3px solid #c33b13';target.style.outlineOffset='3px';
+          const r=target.getBoundingClientRect(),badge=document.createElement('span');badge.textContent=String(index+1);
+          badge.style.cssText='position:absolute;z-index:99998;background:#c33b13;color:white;border:2px solid white;border-radius:50%;width:28px;height:28px;text-align:center;font:bold 16px/24px sans-serif;pointer-events:none';
+          badge.style.left=Math.max(0,r.left+scrollX-13)+'px';badge.style.top=Math.max(30,r.top+scrollY-13)+'px';document.body.append(badge);
+        });
+      })()`);
+      const height=await evaluate(`Math.min(2600,document.documentElement.scrollHeight)`);
+      const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true,clip:{x:0,y:0,width:1440,height,scale:1}});
+      fs.writeFileSync(path.join(assets,capture.name+'.png'),Buffer.from(shot.data,'base64'));
+      assert.equal(await evaluate(`window.__mutations?.length||0`),0,'Documentation capture never submits '+capture.name);
+    }
+    diagnostics.annotatedDemonstrations=captures.length;
   }
   await load('general-ledger', '?failure=1');
   diagnostics.failure = await evaluate(`({error:document.body.innerText.includes('Synthetic service unavailable'),tables:document.querySelectorAll('table').length})`);

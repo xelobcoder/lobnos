@@ -21,12 +21,14 @@ function compile(file, imports = {}, globals = {}) {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX },
   }).outputText;
   vm.runInNewContext(code, { exports, URLSearchParams, crypto: require('node:crypto'), ...globals, require: name => {
+    if(name.endsWith('.module.css')&&!(name in imports))return {__esModule:true,default:{}};
     if (!(name in imports)) throw Error(`Unexpected dependency ${name}`);
     return imports[name];
   } }, { filename: file });
   return exports;
 }
 const lib = compile('lib/pharmacyAccounting.ts');
+const learningLib = compile('lib/pharmacyLearning.ts', { './pharmacyManual': compile('lib/pharmacyManual.ts') });
 const taxLib = compile('lib/pharmacyTax.ts', { './pharmacyAccounting': lib });
 const configurationLib = compile('lib/pharmacyAccountingConfiguration.ts');
 const plain = value => JSON.parse(JSON.stringify(value));
@@ -231,11 +233,18 @@ test('financial statement renders real section tables, totals and classification
       './exports': {},
     });
   }
-  const data = { rows: [{ id: 1, section: 'Revenue', account: 'sales', amount: '123.45' }], columns: [{ key: 'account', label: 'Account' }, { key: 'amount', label: 'Amount' }], total: 1, totals: { netProfit: '123.45' }, classificationIssues: [{ journalId: 'j1', description: 'Unclassified entry', amount: '1.00' }] };
+  const data = { rows: [{ id: 1, section: 'Revenue', account: 'sales', amount: '123.45' },{id:2,section:'Expenses',account:'cost_of_sales',amount:'53.00'},{id:3,section:'Liabilities',account:'payable',amount:'20.00'}], columns: [{key:'section',label:'Section'}, { key: 'account', label: 'Account' }, { key: 'amount', label: 'Amount' }], total: 3, totals: { netProfit: '123.45' }, classificationIssues: [{ journalId: 'j1', description: 'Unclassified entry', amount: '1.00' }] };
   let registers = workspace({ data, loading: false, error: '' });
   const html = renderToStaticMarkup(registers.Register({ endpoint: 'reports', report: 'profit_loss' }));
   assert.match(html, /<table/); assert.match(html, /Revenue/); assert.match(html, /123.45/);
   assert.match(html, /Net Profit/); assert.match(html, /classification is incomplete/);
+  const document=new (require('jsdom').JSDOM)(html).window.document;
+  for(const name of ['Expenses','Liabilities']){
+    const section=document.querySelector(`section[aria-label="${name}"]`);
+    assert.equal(section.querySelectorAll('h3').length,1,'each statement group needs exactly one heading');
+    assert.equal(section.querySelector('h3').textContent,name);
+    assert.equal([...section.querySelectorAll('th')].some(e=>e.textContent==='Section'),false,'group names should not be repeated in every row');
+  }
   registers = workspace({ data: null, loading: false, error: 'Financial period unavailable' });
   const errorHtml = renderToStaticMarkup(registers.Register({ endpoint: 'reports', report: 'profit_loss' }));
   assert.match(errorHtml, /role="alert"/); assert.match(errorHtml, /Financial period unavailable/);
@@ -652,7 +661,7 @@ test('enabled/unverified legacy finance forms are disabled before filling and li
     await submit(form,{amount:'10.00',description:'Must not post legacy'});
     assert.equal(calls.length,0,'programmatic/stale submission cannot reach legacy mutations');
     const html=renderToStaticMarkup(element);
-    for(const href of ['/pharmacy/accounting/journals','/pharmacy/accounting/expenses','/pharmacy/accounting/payables'])assert.ok(html.includes(`href="${href}"`));
+    assert.ok(html.includes('href="/pharmacy/accounting"'));
     assert.match(html,/Financial-day and shift controls remain available/);
     const journals=legacyFinancePage({mode,tab:'journals'}).default();
     assert.equal(findElement(journals,el=>el.type==='button'&&el.props.children==='New journal').props.disabled,true);
@@ -1060,6 +1069,8 @@ function accountingUiFixture({failure=''}={}) {
     const imports={
       'react/jsx-runtime':jsx,react:{...React,...hooks,useEffect(){}},'next/link':nextLink,
       '../../../../lib/pharmacyAccounting':lib,'../../../../lib/pharmacyAccountingConfiguration':configurationLib,'../../../../lib/pharmacyTax':taxLib,
+      '../../../../lib/pharmacyLearning':learningLib,
+      '../../components/PharmacyTaskHelp':{__esModule:true,default:()=>null},
       './common':common,'./api':{useResource:resource,useMutation:()=>({pending:false,error:'',mutate:async()=>true})},
       './exports':{downloadAccountingExport:async()=>{},fullFilteredExport:async()=>({rows:[],metadata:{}})},
       './evidenceDownload':{},'../../components/PharmacyWorkspace':{usePharmacyAccess:()=>({finance:true,manager:true,app:{user:{role:'pharmacy_manager',employeeid:9}}}),MedicinePicker:()=>null},
@@ -1120,10 +1131,14 @@ test('accounting overview follows the Payroll dashboard pattern without duplicat
   assert.equal(overview.querySelector('h1').textContent,'Accounting overview');
   assert.ok(overview.querySelector('nav[aria-label="Breadcrumb"]'));
   assert.equal(overview.querySelector('.bg-gradient,.text-white'),null);
-  assert.ok([...overview.querySelectorAll('header a')].some(a=>a.textContent==='Review journals'));
+  assert.ok([...overview.querySelectorAll('header a')].some(a=>a.textContent==='Record an expense'));
+  assert.ok(overview.querySelector('nav[aria-label="Everyday pharmacy money tasks"]'));
+  assert.ok(overview.querySelector('a[href="/pharmacy/guide/pharmacy-finances"]'));
+  assert.ok(tools.closest('details'),'advanced checks should not compete with everyday tasks');
   const ledger=new JSDOM(renderToStaticMarkup(fixture.workspace.default({section:'general-ledger'}))).window.document;
   assert.equal(ledger.querySelectorAll('h1').length,1);
-  assert.equal(ledger.querySelector('h1').textContent,'General ledger');
+  assert.equal(ledger.querySelector('h1').textContent,'All pharmacy accounting transactions');
+  assert.ok(ledger.querySelector('header').textContent.includes('General ledger'));
   const exportControl=[...ledger.querySelectorAll('summary')].find(e=>e.textContent==='Export all filtered records');
   assert.ok(exportControl);assert.equal(exportControl.closest('form'),null);
   const filterForm=[...ledger.forms].find(form=>form.textContent.includes('Apply filters'));

@@ -1,8 +1,9 @@
 'use client';
 import Link from 'next/link';
 import { useState } from 'react';
-import { accountingDestinations, type Section, type Settings } from '../../../../lib/pharmacyAccounting';
-import { accountingHelp } from '../../../../lib/pharmacyGuide';
+import { accountingDestinations, accountingFriendlyTitles, type Section, type Settings } from '../../../../lib/pharmacyAccounting';
+import { accountingArticle, articleHref } from '../../../../lib/pharmacyLearning';
+import PharmacyTaskHelp from '../../components/PharmacyTaskHelp';
 import { usePharmacyAccess } from '../../components/PharmacyWorkspace';
 import { canAccessRolePage } from '../../../../lib/roleNavigationPolicy';
 import { ChartOfAccounts, AccountingSettings } from './Configuration';
@@ -27,8 +28,8 @@ function PostingStatus() {
   const resource = useResource<Settings>('settings');
   if (resource.error) return <p role="alert" className="alert alert-warning">Posting configuration could not be verified: {resource.error}</p>;
   if (resource.loading) return <p role="status">Verifying accounting configuration…</p>;
-  if (!resource.data?.enabled) return <p role="status" className="alert alert-warning">Shared-ledger posting is not enabled. These registers show pharmacy-local evidence; they do not prove consolidation into shared books. <Link href="/pharmacy/accounting/settings">Review configuration</Link>.</p>;
-  return <div className={`${printStyles.postingContext} d-print-none`}><span>Shared posting enabled</span><span>Cutover: <DateText value={resource.data.effective_date}/></span><Link href="/pharmacy/accounting/settings">Review posting & reconciliation</Link></div>;
+  if (!resource.data?.enabled) return <p role="status" className="alert alert-warning">Facility accounting link is not enabled. These registers show pharmacy records, not proof they are included in facility reports. <Link href={articleHref('shared-records')}>What does this mean?</Link> <Link href="/pharmacy/accounting/settings">Review configuration</Link>.</p>;
+  return <div className={`${printStyles.postingContext} d-print-none`}><span>Facility accounting link enabled</span><span>Linked from: <DateText value={resource.data.effective_date}/></span><Link href={articleHref('shared-records')}>What does this mean?</Link><Link href="/pharmacy/accounting/settings">Review posting & reconciliation</Link></div>;
 }
 const descriptions: Record<Section, string> = {
   '': 'Review balances, outstanding work and the next accounting task.',
@@ -77,11 +78,17 @@ function Content({ section, id }: { section: Section; id?: string }) {
 export default function AccountingWorkspace({ section = '', id }: { section?: Section; id?: string }) {
   const { app, finance } = usePharmacyAccess();
   const role = app?.user?.role;
-  const title = accountingDestinations.find(([key]) => key === section)?.[1] || 'Accounting';
+  const formalTitle = accountingDestinations.find(([key]) => key === section)?.[1] || 'Accounting';
+  const title = accountingFriendlyTitles[section] || formalTitle;
+  const guideSlug = id ? section === 'expenses' ? 'expense-detail' : section === 'journals' ? 'journal-detail' : 'posted-journal' : accountingArticle[section];
   const permitted = finance && canAccessRolePage(role, `/pharmacy/accounting${section ? `/${section}` : ''}`);
   return <section aria-labelledby="pharmacy-accounting-title" className={`${styles.page} ${reportLayout.page} ${printStyles.workspace}`}>
     <nav className={`${reportLayout.breadcrumb} d-print-none`} aria-label="Breadcrumb"><Link href="/pharmacy">Pharmacy</Link><span aria-hidden="true"> / </span>{section ? <><Link href="/pharmacy/accounting">Accounting</Link><span aria-hidden="true"> / </span><span aria-current="page">{title}</span></> : <span aria-current="page">Accounting</span>}</nav>
-    <header className={`${reportLayout.header} d-print-none`}><div><h1 id="pharmacy-accounting-title" className={reportLayout.title}>{section ? title : 'Accounting overview'}</h1><p className={reportLayout.subtitle}>{descriptions[section]}</p></div>{permitted && <div className={reportLayout.actions}>{!section && <><Link className="btn btn-sm btn-primary" href="/pharmacy/accounting/expenses">Record an expense</Link><Link className="btn btn-sm btn-outline-secondary" href="/pharmacy/accounting/payables">Pay a supplier</Link></>}<Link className="btn btn-sm btn-outline-secondary" href="/pharmacy/guide#accounting">How to use pharmacy accounting</Link></div>}</header>
-    {!permitted ? <p role="status" className="alert alert-warning">A pharmacy manager or pharmacy accountant role is required. If your session is loading, please wait.</p> : <><details className={`${printStyles.pageHelp} d-print-none`}><summary>What do I do on this page?</summary><p>{accountingHelp[section].purpose}</p><ol>{accountingHelp[section].steps.map(step => <li key={step}>{step}</li>)}</ol>{id && <p>Review the selected record, its evidence and history. Only actions allowed by its current status and your role are available.</p>}</details><PostingStatus/><div className={reportLayout.report}><Content section={section} id={id}/></div></>}
+    <header className={`${reportLayout.header} d-print-none`}><div><h1 id="pharmacy-accounting-title" className={reportLayout.title}>{section ? title : 'Accounting overview'}</h1>    <p className={reportLayout.subtitle}>{title !== formalTitle && <><strong>{formalTitle}</strong> - </>}{descriptions[section]}</p></div>{permitted && <div className={reportLayout.actions}>{!section && <><Link className="btn btn-sm btn-primary" href="/pharmacy/accounting/expenses">Record an expense</Link><Link className="btn btn-sm btn-outline-secondary" href="/pharmacy/accounting/payables">Pay a supplier</Link></>}    <Link className="btn btn-sm btn-outline-secondary" href={articleHref(guideSlug)}>Read this page's guide</Link></div>}</header>
+    {!permitted ? <p role="status" className="alert alert-warning">A pharmacy manager or pharmacy accountant role is required. If your session is loading, please wait.</p> : <>
+      <PharmacyTaskHelp slug={guideSlug} walkthrough={!id && ['expenses','receivables','statements'].includes(section)}/>
+      {id && <p>Review the selected record, evidence and history. Only actions allowed by its status and your role are available.</p>}
+      <PostingStatus/><div className={reportLayout.report}><Content section={section} id={id}/></div>
+    </>}
   </section>;
 }

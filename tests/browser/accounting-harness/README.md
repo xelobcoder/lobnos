@@ -21,8 +21,8 @@ From the frontend root:
    harness and deletes its exact generated bundle directory. The verifier closes
    its own Chrome instance and removes its temporary browser profile.
 
-Checks include 19 destinations and seven additional AR/AP views × desktop/mobile
-× light/dark (104 cases), keyboard focus,
+Checks include 19 accounting destinations, seven additional AR/AP views and three
+pharmacy guide/purchasing pages × desktop/mobile × light/dark (116 cases), keyboard focus,
 rendered overflow, accessible control names, decorative form ancestors, real
 supplier keyboard selection, exact references and drill-down IDs, actual draft
 and AP-application handler payloads, signed allocation evidence, retrieval errors,
@@ -35,6 +35,17 @@ label/value/description summaries for all 14 sales, stock and ledger metrics;
 checks include large monetary values fitting without line breaks and a separate
 operating-expenses metric. Screenshot/PDF bytes remain in memory
 unless screenshot output is explicitly enabled; no production data is used.
+
+Guide checks cover task search, topic and guide-type filters, clearing filters,
+linked topic expansion, and device-local reading markers. Purchasing checks exercise request submission,
+own-request approval denial, an independent approval's exact version/quotation/
+idempotency payload and its link to the original order's delivery form.
+The isolated transport confirms these particular purchasing actions in memory,
+returning fresh response objects like JSON transport; it never changes a real
+database. Other accounting mutations remain recorded failures for payload checks.
+Request/quotation tables must remain readable and keyboard-scrollable on mobile.
+Financial statements must render Expenses and Liabilities headings only once,
+without repeating the group name as a column on every row.
 
 Accounting pages must not duplicate the feature sidebar's 19 destinations.
 Pages reuse Lab Accounting's ReportShell styles for breadcrumbs, headings and

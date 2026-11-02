@@ -11,6 +11,7 @@ const alias = Object.fromEntries([
   [path.join(root, 'components/Auth/useApplicationContext'), path.join(__dirname, 'context.tsx')],
   [path.join(root, 'components/serverActions/requestHeaders'), path.join(__dirname, 'context.tsx')],
   ['next/link', path.join(__dirname, 'context.tsx')],
+  ['next/navigation', path.join(__dirname, 'context.tsx')],
 ]);
 const compiler = compiled.webpack({
   mode: 'development', devtool: false, context: root, target: 'web',
@@ -37,6 +38,7 @@ compiler.run((error, stats) => {
     const url = new URL(request.url, 'http://localhost');
     let file;
     if (url.pathname.startsWith('/bundle/')) file = path.join(output, path.basename(url.pathname));
+    else if (/^\/pharmacy-help\/[a-z-]+\.png$/.test(url.pathname)) file = path.join(root,'public','pharmacy-help',path.basename(url.pathname));
     else if (url.pathname.startsWith('/assets/')) {
       const asset=url.pathname.slice('/assets/'.length);
       if (!(asset.startsWith('styles/')&&asset.endsWith('.css')) && asset!=='node_modules/bootstrap/dist/css/bootstrap.min.css') { response.writeHead(403).end(); return; }
@@ -45,7 +47,7 @@ compiler.run((error, stats) => {
     if (file) {
       if (!file.startsWith(root+path.sep) && !file.startsWith(output+path.sep)) { response.writeHead(403).end(); return; }
       if (!fs.existsSync(file)) { response.writeHead(404).end(); return; }
-      response.setHeader('Content-Type', file.endsWith('.css') ? 'text/css' : file.endsWith('.js') ? 'text/javascript' : 'application/octet-stream');
+      response.setHeader('Content-Type', file.endsWith('.css') ? 'text/css' : file.endsWith('.js') ? 'text/javascript' : file.endsWith('.png') ? 'image/png' : 'application/octet-stream');
       fs.createReadStream(file).pipe(response); return;
     }
     response.setHeader('Content-Type', 'text/html');

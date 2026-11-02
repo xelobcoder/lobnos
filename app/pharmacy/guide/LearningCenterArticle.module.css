@@ -1,0 +1,48 @@
+.topbar {
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 9px;
+  background: var(--theme-card-bg, var(--bs-body-bg));
+}
+.topbar > a { color: var(--pls-primary, var(--bs-primary)); text-decoration: none; }
+.topbar > a:hover { text-decoration: underline; }
+.header { margin-bottom: 20px; }
+.header p { margin: 0 0 6px; color: var(--pls-primary, var(--bs-primary)); font-size: .85rem; font-weight: 650; }
+.header h1 { margin: 0; font-size: clamp(1.45rem, 2.5vw, 1.9rem); font-weight: 700; letter-spacing: -.025em; overflow-wrap: anywhere; }
+.layout { gap: 20px; }
+.sidebar, .content, .contents {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 10px;
+  background: var(--theme-card-bg, var(--bs-body-bg));
+}
+.sidebar { position: sticky; top: 20px; max-height: calc(100vh - 40px); overflow-y: auto; }
+.sidebar h2 { margin: 0 0 16px; font-size: 1.05rem; font-weight: 650; }
+.sidebar input { min-height: 42px; }
+.sidebar summary { padding: 3px 0; }
+.sidebar a { color: var(--bs-body-color); text-decoration: none; }
+.sidebar a:hover, .sidebar [aria-current=page] { color: var(--pls-primary, var(--bs-primary)); text-decoration: underline; }
+.clearSearch { padding: 0; border: 0; background: none; color: var(--pls-primary, var(--bs-primary)); text-decoration: underline; cursor: pointer; }
+.content { width: 100%; max-width: 900px; padding: clamp(18px, 2.5vw, 30px); }
+.content code { overflow-wrap: anywhere; }
+.progress { gap: 12px; }
+.progress button { min-height: 40px; }
+.contents { top: 20px; }
+.contents ol { margin-bottom: 0; }
+.contents a { color: var(--bs-body-color); text-decoration: none; }
+.contents a:hover { color: var(--pls-primary, var(--bs-primary)); text-decoration: underline; }
+@media (max-width: 1199px) {
+  .contents { position: static; }
+}
+@media (max-width: 767px) {
+  .layout { gap: 14px; }
+  .layout .sidebar { position: static; order: 3; max-height: none; overflow: visible; }
+  .layout .contents { order: 1; }
+  .layout .content { order: 2; }
+}
+@media print {
+  .content { padding: 0; border: 0; background: transparent; }
+}

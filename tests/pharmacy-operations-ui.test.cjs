@@ -48,22 +48,59 @@ test('inventory, stock and catalogue pages share the same task-based workspace',
  assert.doesNotMatch(source,/<details/);assert.match(source,/Received deliveries/);assert.match(source,/Purchase orders/);assert.match(source,/Search medicine name or SKU/);
 });
 
-function financeHandover({shifts,previous=true,manager=true,administrator=false,employeeid=1,busy=false}){
+function financeHandover({shifts,previous=true,manager=true,administrator=false,employeeid=1,busy=false,tab='days',mode='legacy',reportError='',setupError='',metrics=[]}){
  let index=0;
- const localHooks={...hooks,useState:initial=>[index++===0?'days':index===4?busy:initial,()=>{}]};
+ const localHooks={...hooks,useState:initial=>[index++===0?tab:index===4?busy:initial,()=>{}]};
  const days=previous?[{id:'day',financial_date:'2026-10-26',status:'open',opened_at:'2026-10-26T08:00:00Z'}]:[];
- const data={days,shifts};
- const resource=endpoint=>({data:endpoint.endsWith('reports')?data:endpoint.endsWith('suppliers')?[]:{financialDate:'2026-10-27',day:{status:'open'}},loading:false,error:'',refresh:async()=>{}});
+ const data={days,shifts,balances:[],documents:[],events:[],revenue:100,costOfSales:20,expenses:5,profit:75};
+ const resource=endpoint=>({data:endpoint.endsWith('reports')?data:endpoint.endsWith('suppliers')?[]:{financialDate:'2026-10-27',day:{status:'open'}},loading:false,error:endpoint.endsWith('reports')?reportError:endpoint.endsWith('checkout-setup')?setupError:'',refresh:async()=>{}});
  const module=compile('app/pharmacy/finance/page.tsx',{
   react:localHooks,
   '../components/ShiftHandoverForm':{__esModule:true,default:()=>null},
   '../components/PharmacyPaymentFields':{usePharmacyDocument:()=>({pending:null})},
-  '../components/LinkedAccountingCompatibility':{useLinkedAccounting:()=>({mode:'legacy',refresh(){}}),LinkedAccountingNotice:()=>null,isLegacyAccountingPost:()=>false},
-  '../accounting/components/common':{...shared,styles,FormSection:()=>null,ResourceState:()=>null,SummaryMetrics:()=>null},
-  '../components/PharmacyWorkspace':{...shared,styles,usePharmacyAccess:()=>({finance:true,manager,administrator,app:{user:{employeeid}}}),usePharmacyResource:resource,FinancialDayPanel:()=>null,Message:()=>null,Tabs:()=>null}
+  '../components/LinkedAccountingCompatibility':{useLinkedAccounting:()=>({mode,refresh(){}}),LinkedAccountingNotice:()=>null,isLegacyAccountingPost:()=>false},
+  '../accounting/components/common':{...shared,styles,FormSection:()=>null,ResourceState:({error})=>error?React.createElement('p',{role:'alert'},error):null,SummaryMetrics:({metrics:values})=>{metrics.push(values);return null;}},
+  '../components/PharmacyWorkspace':{...shared,styles,usePharmacyAccess:()=>({finance:true,manager,administrator,app:{user:{employeeid}}}),usePharmacyResource:resource,FinancialDayPanel:()=>null,Message:shared.Message,Tabs:({tabs})=>React.createElement('nav',{},tabs.map(tab=>React.createElement('button',{key:tab.id},tab.label)))}
  });
  return renderToStaticMarkup(React.createElement(module.default));
 }
+ test('finance starts with daily work, shared count summaries and optional all-time totals, not a misleading trial balance',()=>{
+  const metrics=[];
+  const html=financeHandover({tab:'overview',mode:'enabled',metrics,shifts:[closedHandovers[1],{id:'active',cashier_id:4,financial_date:'2026-10-26',opening_float:50}]});
+  assert.match(html,/<h1>Cash &amp; day closing<\/h1>/);
+  assert.match(html,/What do you need to do\?/);
+  assert.match(html,/Today &amp; next steps/);
+  assert.match(html,/<details[^>]*><summary>All-time financial totals &amp; account movements/);
+  assert.doesNotMatch(html,/<h2>Trial balance<\/h2>|Legacy journals|Legacy payments/);
+  assert.match(html,/href="\/pharmacy\/accounting\/trial-balance"/);
+  assert.deepEqual(Array.from(metrics[0],m=>[m.title,m.value,m.count]),[['Open shifts',1,true],['Awaiting review',1,true],['Open days',1,true],['Cash differences',1,true]]);
+  assert.equal(metrics[1].find(m=>m.title==='Net profit').value,75,'reported profit must not be recalculated');
+ });
+ test('finance error states hide stale records and tasks while preserving retry and configuration safeguards',()=>{
+  const failed=financeHandover({tab:'days',shifts:closedHandovers,reportError:'Finance records unavailable',mode:'unavailable'});
+  assert.match(failed,/role="alert"/);assert.match(failed,/Finance records unavailable/);
+  assert.doesNotMatch(failed,/<table|Review handover<\/button>|Close previous financial day|Legacy journals/);
+  const setupFailed=financeHandover({tab:'reconciliation',shifts:[],setupError:'Day setup unavailable'});
+  assert.match(setupFailed,/Day setup unavailable|Retry financial-day setup/);
+  assert.doesNotMatch(setupFailed,/<form|<table/);
+  const legacy=financeHandover({tab:'overview',shifts:[]});
+  assert.match(legacy,/Legacy payments &amp; expenses/);assert.match(legacy,/Legacy journals/);
+ });
+ test('financial-day overview sends closing to handover review before any mutation; actual close explains blockers',()=>{
+  let reviewed=0;
+  const props={setup:{financialDate:'2026-10-27',day:{status:'open'}},canManage:true,onChange:async()=>{},closeBlockedReason:'2 cashier shifts need review.'};
+  const find=(element,label)=>{
+   if(!React.isValidElement(element))return undefined;
+   if(element.type==='button'&&element.props.children===label)return element;
+   return React.Children.toArray(element.props.children).map(child=>find(child,label)).find(Boolean);
+  };
+  const overview=shared.FinancialDayPanel({...props,onReviewBeforeClose:()=>reviewed++});
+  const review=find(overview,'Review before closing');
+  assert.equal(review.props.disabled,false);review.props.onClick();assert.equal(reviewed,1);
+  const closing=shared.FinancialDayPanel(props);
+  assert.equal(find(closing,'Close financial day').props.disabled,true);
+  assert.match(renderToStaticMarkup(closing),/2 cashier shifts need review/);
+ });
 const closedHandovers=[
  {id:'one',cashier_id:1,financial_date:'2026-10-24',closed_at:'2026-10-24T18:00:00Z',counted_cash:3000,variance:0,opening_float:0},
  {id:'two',cashier_id:1,financial_date:'2026-10-24',closed_at:'2026-10-24T19:00:00Z',counted_cash:15,variance:-1395,opening_float:0},
