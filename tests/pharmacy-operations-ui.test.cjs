@@ -46,6 +46,14 @@ test('inventory, stock and catalogue pages share the same task-based workspace',
  }
  const source=fs.readFileSync(path.join(__dirname,'..','app','pharmacy','components','PharmacyInventoryWorkspace.tsx'),'utf8');
  assert.doesNotMatch(source,/<details/);assert.match(source,/Received deliveries/);assert.match(source,/Purchase orders/);assert.match(source,/Search medicine name or SKU/);
+ assert.doesNotMatch(source,/Buying medicines\?|PharmacyTaskHelp|Manage pharmacy medicines, receive deliveries/);
+ assert.match(source,/>New purchase request<\/button>/);
+ assert.match(source,/<Modal title="Request medicines" size="wide"/);
+});
+test('only an explicitly wide pharmacy modal expands beyond the standard dialog',()=>{
+ const wide=renderToStaticMarkup(React.createElement(shared.Modal,{title:'Purchase',size:'wide',onClose(){}},'Form'));
+ const regular=renderToStaticMarkup(React.createElement(shared.Modal,{title:'Receive',onClose(){}},'Form'));
+ assert.match(wide,/dialogWide/);assert.doesNotMatch(regular,/dialogWide/);
 });
 
 function financeHandover({shifts,previous=true,manager=true,administrator=false,employeeid=1,busy=false,tab='days',mode='legacy',reportError='',setupError='',metrics=[]}){

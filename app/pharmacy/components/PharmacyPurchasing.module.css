@@ -1,0 +1,112 @@
+/* PLS purchasing theme: maps Bootstrap primary colours to the PLS brand within inventory and purchase request screens. */
+.theme {
+  --accent: var(--pls-primary, #2e7d32);
+  --deep: var(--pls-primary-dark, #1b5e20);
+  --ink: var(--pls-primary-dark, #1b5e20);
+  --paper: var(--theme-card-bg, var(--bs-body-bg, #fff));
+  --soft: color-mix(in srgb, var(--accent) 7%, var(--paper));
+  --line: var(--bs-border-color, #dce4df);
+  --bs-primary-bg-subtle: color-mix(in srgb, var(--accent) 11%, var(--paper));
+  --bs-primary-text-emphasis: var(--ink);
+  --bs-primary-border-subtle: color-mix(in srgb, var(--accent) 38%, var(--paper));
+  --bs-focus-ring-color: color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+:global(html[data-bs-theme="dark"]) .theme { --ink: var(--pls-primary-lighter, #81c784); --deep: var(--pls-primary-dark, #2e7d32); }
+
+.theme :global(.btn-primary) {
+  --bs-btn-bg: var(--deep); --bs-btn-border-color: var(--deep); --bs-btn-color: #fff;
+  --bs-btn-hover-bg: var(--accent); --bs-btn-hover-border-color: var(--accent); --bs-btn-hover-color: #fff;
+  --bs-btn-active-bg: var(--deep); --bs-btn-active-border-color: var(--deep); --bs-btn-active-color: #fff;
+  --bs-btn-disabled-bg: var(--deep); --bs-btn-disabled-border-color: var(--deep); --bs-btn-disabled-color: #fff;
+  --bs-btn-focus-shadow-rgb: 46, 125, 50;
+  font-weight: 600;
+}
+
+.theme :global(.btn-outline-primary) {
+  --bs-btn-color: var(--ink); --bs-btn-border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  --bs-btn-hover-bg: var(--soft); --bs-btn-hover-border-color: var(--accent); --bs-btn-hover-color: var(--ink);
+  --bs-btn-active-bg: var(--bs-primary-bg-subtle); --bs-btn-active-border-color: var(--accent); --bs-btn-active-color: var(--ink);
+  --bs-btn-disabled-color: var(--ink); --bs-btn-disabled-border-color: var(--line);
+  --bs-btn-focus-shadow-rgb: 46, 125, 50;
+  background: var(--paper);
+}
+
+.theme :global(.btn-outline-secondary) {
+  --bs-btn-hover-bg: var(--bs-tertiary-bg); --bs-btn-hover-color: var(--ink); --bs-btn-hover-border-color: var(--line);
+  --bs-btn-border-color: var(--line); --bs-btn-color: var(--bs-body-color);
+  background: var(--paper);
+}
+
+.theme a:not(:global(.btn)) { color: var(--ink); text-underline-offset: 3px; }
+.theme a:not(:global(.btn)):hover { color: var(--accent); }
+
+.theme :is(:global(.form-control), :global(.form-select)):focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 .2rem color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.theme :is(button, a, input, select, textarea):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 50%, transparent);
+  outline-offset: 2px;
+}
+
+.theme :global(.border-primary) { border-color: var(--accent) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent); }
+
+/* Orders panel */
+.panelHead { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; padding-bottom: 18px; margin-bottom: 18px; border-bottom: 1px solid var(--line); }
+.heading { display: flex; gap: 14px; align-items: flex-start; min-width: 0; flex: 1 1 360px; }
+.heading > div { min-width: 0; }
+.heading h2 { margin: 0 0 4px; }
+.heading p { margin: 0; color: var(--bs-secondary-color); font-size: 13px; line-height: 1.6; max-width: 640px; }
+.icon { display: grid; place-items: center; flex: 0 0 42px; width: 42px; height: 42px; border-radius: 11px; background: var(--bs-primary-bg-subtle); color: var(--ink); }
+.eyebrow { display: block; color: var(--ink); font-size: 11px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; margin-bottom: 4px; }
+.headActions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+.orders { display: grid; gap: 14px; }
+.order { border: 1px solid var(--line); border-radius: 10px; background: var(--paper); overflow: hidden; scroll-margin-top: 24px; }
+.orderHead { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px 18px; align-items: center; padding: 14px 18px; background: var(--bs-tertiary-bg); border-bottom: 1px solid var(--line); }
+.orderHead strong { overflow-wrap: anywhere; }
+.orderMeta { display: block; color: var(--bs-secondary-color); font-size: 12px; margin-top: 2px; }
+.orderTotal { font-size: 17px; font-weight: 650; font-variant-numeric: tabular-nums; text-align: right; }
+.orderTotal small { display: block; color: var(--bs-secondary-color); font-size: 11px; font-weight: 400; }
+.orderBody { padding: 4px 18px 16px; }
+.orderFoot { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 18px; border-top: 1px solid var(--line); }
+
+.status { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--paper); font-size: 12px; font-weight: 600; text-transform: capitalize; white-space: nowrap; }
+.status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.status[data-status="ordered"], .status[data-status="requested"] { color: var(--bs-warning-text-emphasis); background: var(--bs-warning-bg-subtle); border-color: var(--bs-warning-border-subtle); }
+.status[data-status="partially_received"] { color: var(--bs-info-text-emphasis); background: var(--bs-info-bg-subtle); border-color: var(--bs-info-border-subtle); }
+.status[data-status="received"], .status[data-status="approved"] { color: var(--ink); background: var(--bs-primary-bg-subtle); border-color: var(--bs-primary-border-subtle); }
+.status[data-status="cancelled"], .status[data-status="rejected"] { color: var(--bs-danger-text-emphasis); background: var(--bs-danger-bg-subtle); border-color: var(--bs-danger-border-subtle); }
+
+.progress { display: grid; gap: 6px; min-width: min(260px, 100%); flex: 1 1 260px; }
+.progress span { color: var(--bs-secondary-color); font-size: 12px; }
+.bar { height: 6px; border-radius: 999px; background: var(--bs-tertiary-bg); overflow: hidden; }
+.bar > i { display: block; height: 100%; border-radius: inherit; background: var(--accent); }
+
+.lineProgress { display: inline-flex; flex-direction: column; gap: 4px; min-width: 110px; font-variant-numeric: tabular-nums; }
+
+/* Purchase request form */
+.form { display: grid; gap: 16px; }
+.form fieldset { display: grid; gap: 16px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.step { border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; background: var(--paper); min-width: 0; }
+.stepHead { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.stepHead h3 { margin: 0; font-size: 15px; font-weight: 650; }
+.stepHead p { margin: 2px 0 0; color: var(--bs-secondary-color); font-size: 12.5px; }
+.stepNumber { display: grid; place-items: center; flex: 0 0 28px; width: 28px; height: 28px; border-radius: 50%; background: var(--bs-primary-bg-subtle); color: var(--ink); border: 1px solid var(--bs-primary-border-subtle); font-size: 13px; font-weight: 700; }
+.stepCount { margin-left: auto; padding: 3px 10px; border-radius: 999px; background: var(--bs-tertiary-bg); color: var(--bs-secondary-color); font-size: 12px; font-weight: 600; white-space: nowrap; }
+.emptyBasket { padding: 22px 16px; text-align: center; color: var(--bs-secondary-color); font-size: 13px; border: 1px dashed var(--line); border-radius: 8px; margin: 0; }
+.lineTotal { display: flex; flex-direction: column; gap: 4px; font-size: .82rem; color: var(--bs-secondary-color); }
+.lineTotal strong { color: var(--bs-body-color); font-size: 14px; font-variant-numeric: tabular-nums; min-height: 40px; display: flex; align-items: center; }
+.totalBar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin: 14px 0 0; padding: 12px 16px; border-radius: 8px; background: var(--soft); border: 1px solid var(--bs-primary-border-subtle); color: var(--ink); }
+.totalBar strong { font-size: 16px; font-variant-numeric: tabular-nums; }
+.totalBar span { color: var(--bs-secondary-color); font-size: 12.5px; }
+
+@media (max-width: 767px) {
+  .orderHead { grid-template-columns: minmax(0, 1fr) auto; }
+  .orderTotal { grid-column: 1 / -1; text-align: left; }
+  .step { padding: 14px; }
+  .headActions { width: 100%; }
+  .headActions > * { flex: 1 1 auto; }
+}

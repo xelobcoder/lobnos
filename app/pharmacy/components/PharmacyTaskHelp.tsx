@@ -8,7 +8,7 @@ import help from './PharmacyTaskHelp.module.css';
 type WalkStep = { selector: string; text?: string; title: string; explanation: string };
 const tours: Record<string, WalkStep[]> = {
   'create-purchase-request': [
-    { selector: 'button', text: '1. Submit purchase request', title: 'Start a purchase request', explanation: 'This opens the request form. You may open it yourself; this guide will not click or submit anything.' },
+    { selector: 'button', text: 'New purchase request', title: 'Start a purchase request', explanation: 'This opens the request form. You may open it yourself; this guide will not click or submit anything.' },
     { selector: 'select[name="supplier"]', title: 'Choose the supplier', explanation: 'After you open the form, choose the supplier quotation to request. Add medicines using the picker. Nothing has been ordered yet.' },
     { selector: 'input[name="notes"]', title: 'Check quantities and explain why', explanation: 'Enter quantities and quoted costs in base units. Give a clear reason. Two boxes of 20 tablets means 40 tablets.' },
     { selector: 'form button', text: 'Submit purchase request', title: 'Review before submitting', explanation: 'Stop and check the supplier, units and costs. Only your own deliberate submission sends the request for independent approval. You can dismiss this guide without saving.' },

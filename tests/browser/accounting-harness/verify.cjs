@@ -280,26 +280,18 @@ const inspect = `(() => {
     assert.equal(await evaluate(`!!document.querySelector('section[aria-label$="walkthrough"]')`),false);
   }
   await loadPharmacy('/pharmacy/inventory');
-  await evaluate(`[...document.querySelectorAll('button')].find(e=>e.textContent==='Show me how: Workflow: request new stock').click()`);
-  assert.equal(await evaluate(`window.__mutations?.length||0`),0);
-  await evaluate(`[...document.querySelectorAll('button')].find(e=>e.textContent==='1. Submit purchase request').click()`);
+  assert.equal(await evaluate(`!document.body.innerText.includes('Buying medicines?')&&![...document.querySelectorAll('button')].some(e=>e.textContent.startsWith('Show me how:'))`),true,'Inventory has direct actions rather than inline instructional blocks');
+  await evaluate(`[...document.querySelectorAll('button')].find(e=>e.textContent==='New purchase request').click()`);
   await wait(100);
-  assert.equal(await evaluate(`!!document.querySelector('[role=dialog] section[aria-label$="walkthrough"]')`),true,'Guidance follows the user into the actual modal');
-  for(let i=0;i<3;i++){await evaluate(`[...document.querySelectorAll('section[aria-label$="walkthrough"] button')].find(e=>/^(Next step|Skip step)$/.test(e.textContent)).click()`);await wait(50);}
-  assert.equal(await evaluate(`window.__mutations?.length||0`),0,'Opening and traversing guidance never submits a request');
-  assert.equal(await evaluate(`document.querySelector('select[name=supplier]').value`),'','Guidance does not populate forms');
-  await evaluate(`[...document.querySelectorAll('button')].find(e=>e.textContent==='Dismiss walkthrough').click()`);
-  assert.equal(await evaluate(`document.querySelector('[role=dialog]').contains(document.activeElement)`),true,'Dismiss returns focus to the still-open actual form');
-  diagnostics.safeWalkthroughs=4;
+  assert.equal(await evaluate(`!!document.querySelector('[role=dialog] [aria-label="Medicine"]')`),true);
+  assert.equal(await evaluate(`window.__mutations?.length||0`),0,'Opening a purchase form never submits a request');
+  diagnostics.safeWalkthroughs=3;
 
   await loadPharmacy('/pharmacy/inventory?tab=orders');
-  await evaluate(`[...document.querySelectorAll('button')].find(e=>e.textContent==='Show me how: Workflow: purchase and receive medicines').click()`);
   await evaluate(`[...document.querySelectorAll('#purchase-order-approved-order-exact button')].find(e=>e.textContent==='Receive against order').click()`);
   await wait(100);
-  for(let i=0;i<3;i++){await evaluate(`[...document.querySelectorAll('section[aria-label$="walkthrough"] button')].find(e=>/^(Next step|Skip step)$/.test(e.textContent)).click()`);await wait(50);}
   assert.equal(await evaluate(`document.querySelector('[role=dialog] input[name=quantity]').value`),'');
-  assert.equal(await evaluate(`window.__mutations?.length||0`),0,'Receiving guidance never receives real stock');
-  diagnostics.safeWalkthroughs++;
+  assert.equal(await evaluate(`window.__mutations?.length||0`),0,'Opening a receiving form never receives stock');
 
   await loadPharmacy('/pharmacy/finance');
   assert.equal(await evaluate(`document.body.innerText.includes('What do you need to do?')&&![...document.querySelectorAll('button')].some(e=>e.textContent==='Close financial day')`),true);
@@ -321,6 +313,21 @@ const inspect = `(() => {
   await evaluate(`document.querySelector('tbody tr:nth-child(2) button').click()`);
   await wait(75);
   assert.equal(await evaluate(`!!document.querySelector('form[aria-label="Purchase approval decision"]')`),false,'Own requests cannot be approved');
+  await loadPharmacy('/pharmacy/inventory/purchase-requests?asAdmin=1');
+  await evaluate(`document.querySelector('tbody tr:nth-child(2) button').click()`);
+  await wait(75);
+  await setField('select[name=decision]','approve');
+  await setField('select[name=quoteIndex]','0');
+  await setField('textarea[name=reason]','Only administrator available; verified supplier quotation');
+  await evaluate(`document.querySelector('form[aria-label="Purchase approval decision"]').requestSubmit()`);
+  assert.equal(await evaluate(`window.__mutations?.length||0`),0,'Admin self-review requires explicit acknowledgement');
+  await evaluate(`document.querySelector('input[name=adminSelfReview]').click();document.querySelector('form[aria-label="Purchase approval decision"]').requestSubmit()`);
+  await wait(150);
+  diagnostics.adminPurchaseSelfReview=await evaluate(`window.__mutations?.find(e=>e.endpoint.endsWith('/own-purchase-request/decision'))`);
+  assert.equal(diagnostics.adminPurchaseSelfReview.body.adminSelfReview,true);
+  assert.equal(diagnostics.adminPurchaseSelfReview.body.expectedVersion,1);
+  assert.equal(await evaluate(`document.body.innerText.includes('Administrator self-review recorded.')`),true);
+  await loadPharmacy('/pharmacy/inventory/purchase-requests');
   await evaluate(`document.querySelector('tbody tr:nth-child(1) button').click()`);
   await wait(75);
   await setField('select[name=decision]','approve');
@@ -343,13 +350,21 @@ const inspect = `(() => {
   await evaluate(`[...document.querySelectorAll('button')].find(e=>e.textContent==='Submit purchase request').click()`);
   await wait(100);
   await setField('[role=dialog] select[name=supplier]','supplier-exact-1');
-  await evaluate(`document.querySelector('[role=dialog] .list-group-item').click()`);
+  await evaluate(`window.__purchaseInput=document.querySelector('[role=dialog] input[aria-label="Medicine"]');window.__purchaseInput.focus()`);
+  await send('Input.dispatchKeyEvent',{type:'keyDown',key:'ArrowDown',code:'ArrowDown',windowsVirtualKeyCode:40});
+  await wait(75);
+  await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
+  await setField('[role=dialog] section[aria-label="Add medicine to request"] input[type=number]','40');
+  await evaluate(`[...document.querySelectorAll('[role=dialog] button')].find(e=>e.textContent==='Add item').click()`);
+  await wait(75);
+  assert.equal(await evaluate(`document.activeElement===window.__purchaseInput&&document.querySelector('[role=dialog] input[aria-label="Medicine"]')===window.__purchaseInput`),true,'Adding an item keeps the same medicine input mounted and focused');
   await setField('[role=dialog] input[name=notes]','Replenish synthetic stock');
   await evaluate(`document.querySelector('[role=dialog] form').requestSubmit()`);
   await wait(150);
   diagnostics.purchaseRequest=await evaluate(`window.__mutations?.find(e=>e.endpoint==='pharmacy/orders')`);
   assert.equal(diagnostics.purchaseRequest.body.supplierId,'supplier-exact-1');
   assert.equal(diagnostics.purchaseRequest.body.lines[0].itemId,'medicine-1');
+  assert.equal(diagnostics.purchaseRequest.body.lines[0].quantity,40);
   assert.ok(diagnostics.purchaseRequest.body.idempotencyKey);
   assert.equal(await evaluate(`document.body.innerText.includes('Purchase request submitted.')&&!document.querySelector('[role=dialog]')`),true);
   await loadPharmacy('/pharmacy/inventory/purchase-requests?failure=1');

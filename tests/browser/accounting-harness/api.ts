@@ -71,6 +71,15 @@ export async function customFetch(endpoint: string) {
   else if (url.pathname === '/pharmacy/stock') data = {items:[{inventoryItemId:'medicine-1',name:'Synthetic medicine',sku:'SYN-1',unit:'tablet',availableStock:20,dispensableStock:20,salePrice:8,wholesalePrice:7}],total:1,totalPages:1,summary:{totalItems:1,inStock:1,lowStock:0,outOfStock:0}};
   else if (url.pathname === '/pharmacy/orders') data = [{id:'approved-order-exact',supplier_id:'supplier-exact-1',status:'ordered',created_at:'2099-01-03',total_amount:100,lines:[{id:'order-line-exact',item_id:'medicine-1',name:'Synthetic medicine',quantity_ordered:20,quantity_received:0,unit_cost:5}]}];
   else if (url.pathname === '/pharmacy/receipts') data = {items:[]};
+  else if (url.pathname === '/pharmacy/analytics') {
+    const meds = ['Amoxicillin 500mg capsules','Paracetamol 500mg','Artemether/Lumefantrine','Metformin 500mg','Nonsteroidal gel 30g','Omeprazole 20mg','Ciprofloxacin 500mg','Vitamin C 1000mg'];
+    const days = Array.from({length:14},(_,i)=>`2099-01-${String(i+1).padStart(2,'0')}`);
+    const report = url.searchParams.get('report');
+    const rows = report === 'movements' ? meds.flatMap((medicine,i)=>[{date:days[i],medicine,movement:'receipt',quantity:40+i*12},{date:days[i+1],medicine,movement:'sale',quantity:-(10+i*5)}])
+      : report === 'overview' ? days.map((date,i)=>({date,sales:1200+Math.round(600*Math.sin(i/2))+i*40,refunds:i%4===0?120:20,netSales:1100+Math.round(600*Math.sin(i/2))+i*40}))
+      : meds.map((medicine,i)=>({medicine,name:medicine,netSales:900+i*130,grossProfit:300+i*45,stockValue:500+i*90,retailValue:800+i*120,ordered:50+i*5,received:40+i*4,outstanding:10+i}));
+    data = {summary:{netSales:2016020,bookRevenue:2016020,costOfSales:53819.79,profit:1962000.21,refunds:200,operatingExpenses:200,stockValue:2131180.43,reorderItems:3,outOfStock:1,medicines:8},rows,columns:Object.keys(rows[0]).map(key=>({key,label:key})),total:rows.length,totalPages:1};
+  }
   else if (url.pathname === '/pharmacy/checkout-setup') data = {financialDate:'2099-01-03',day:{status:'open'},accounts:[{id:7,name:'Synthetic pharmacy bank',account_type:'bank'}]};
   else if (url.pathname === '/pharmacy/management/reports') data = {revenue:2016020,costOfSales:53819.79,expenses:200,profit:1962000.21,balances:[{account_code:'sales',debit:0,credit:2016020}],documents:[],days:[{id:'current-day',financial_date:'2099-01-03',status:'open',opened_at:'2099-01-03T08:00:00Z'},{id:'closed-day',financial_date:'2099-01-02',status:'closed',opened_at:'2099-01-02T08:00:00Z',closed_at:'2099-01-02T18:00:00Z'}],shifts:[{id:'handover',cashier_id:8,cashier_name:'Synthetic cashier',financial_date:'2099-01-03',opening_float:100,counted_cash:2000100,variance:-20,closed_at:'2099-01-03T18:00:00Z'}],events:[]};
   else if (url.pathname === '/pharmacy/management/shifts/handover/handover') data = {cashierId:8,financialDate:'2099-01-03',openingFloat:100,cashSales:2000020,cashRefunds:0,cashOut:0,expectedCash:2000120,countedCash:2000100,variance:-20,closed:true,reviewed:false};
@@ -84,9 +93,14 @@ export async function customFetchMutation(endpoint: string, method: string, body
   window.__mutations ||= [];
   window.__mutations.push({ endpoint, method, body });
   if (endpoint==='pharmacy/orders') return {success:true,data:{id:'new-purchase-request',status:'requested',requiresApproval:true,version:1}};
-  if (endpoint==='pharmacy/enterprise/purchase-requests/purchase-request-exact/decision') {
-    const payload=record(body),row=purchaseRequests[0];
+  const row=purchaseRequests.find(row=>endpoint===`pharmacy/enterprise/purchase-requests/${row.id}/decision`);
+  if (row) {
+    const payload=record(body);
     if(payload.expectedVersion!==row.version||typeof payload.reason!=='string'||payload.reason.trim().length<3) return {success:false,error:{message:'Synthetic purchase version or reason is invalid.'}};
+    if(row.created_by===9){
+      if(!new URLSearchParams(location.search).has('asAdmin')||payload.adminSelfReview!==true||payload.reason.trim().length<10)return {success:false,error:{message:'Synthetic administrator acknowledgement and detailed reason are required.'}};
+      Object.assign(row.details,{adminSelfReview:true,decisionReason:payload.reason,adminSelfReviewBy:9});
+    }
     if(payload.decision==='approve'&&payload.quoteIndex===0){row.status='approved';row.details.orderId='approved-order-exact';row.version++;return {success:true,data:{id:row.id,status:row.status,version:row.version}};}
     if(payload.decision==='reject'){row.status='rejected';row.version++;return {success:true,data:{id:row.id,status:row.status,version:row.version}};}
     return {success:false,error:{message:'Synthetic purchase decision is invalid.'}};

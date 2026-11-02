@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { accountingReference, record, rowsOf, text, type Accounts, type RecordData } from '../../../../lib/pharmacyAccounting';
 import { usePharmacyAccess } from '../../components/PharmacyWorkspace';
@@ -95,12 +96,12 @@ export function BillRegistration({ refresh }: { refresh: () => void }) {
 interface Allocation { billId: string; amount: string }
 export function SettlementForm({ bills, refresh }: { bills: RecordData[]; refresh: () => void }) {
   const mutation = useMutation(), [lines,setLines] = useState<Allocation[]>([{billId:'',amount:''}]), [validation,setValidation] = useState(''), [version,setVersion] = useState(0);
-  const eligible = bills.filter(b=>b.source_kind==='receipt' && Number(b.outstanding_amount)>0);
+  const eligible = bills.filter(b=>['receipt','supplier_invoice'].includes(String(b.source_kind)) && Number(b.outstanding_amount)>0);
   const supplier = eligible.find(b=>String(b.id)===lines.find(l=>l.billId)?.billId)?.supplier_id;
   const patch = (i:number,value:Partial<Allocation>)=>setLines(lines.map((line,n)=>n===i?{...line,...value}:line));
-  return <section className={styles.card}><h2>Create allocated supplier settlement</h2><p>Allocate explicit amounts to receipt-backed bills from one supplier. Expense bills are paid through Expenses. The server rechecks open balances on approval and payment.</p><Feedback error={validation||mutation.error} notice={mutation.notice}/><form key={version} onSubmit={async e=>{
+  return <section className={styles.card}><h2>Create allocated supplier settlement</h2><p>Allocate explicit amounts to supplier invoice or older receipt-backed bills from one supplier. Expense bills are paid through Expenses. The server rechecks open balances on approval and payment.</p><Feedback error={validation||mutation.error} notice={mutation.notice}/><form key={version} onSubmit={async e=>{
     e.preventDefault();setValidation('');const f=new FormData(e.currentTarget);
-    if(lines.length>100||lines.some(l=>!eligible.some(b=>String(b.id)===l.billId)||!l.amount||!Number.isFinite(Number(l.amount))||Number(l.amount)<=0)||new Set(lines.map(l=>l.billId)).size!==lines.length){setValidation('Select 1–100 distinct open receipt bills and positive explicit allocation amounts.');return;}
+    if(lines.length>100||lines.some(l=>!eligible.some(b=>String(b.id)===l.billId)||!l.amount||!Number.isFinite(Number(l.amount))||Number(l.amount)<=0)||new Set(lines.map(l=>l.billId)).size!==lines.length){setValidation('Select 1–100 distinct open supplier bills and positive explicit allocation amounts.');return;}
     if(await mutation.mutate('payables/settlements',{date:f.get('date'),description:f.get('description'),allocations:lines})){setLines([{billId:'',amount:''}]);setVersion(v=>v+1);refresh();}
   }}><fieldset disabled={mutation.pending}><Field label="Settlement financial date"><input required type="date" name="date" defaultValue={today()} className="form-control"/></Field><Field label="Settlement description"><input required name="description" className="form-control"/></Field>{lines.map((line,i)=><div className={styles.grid} key={i}><Field label={`Allocation ${i+1} bill`}><select required className="form-select" value={line.billId} onChange={e=>patch(i,{billId:e.target.value})}><option value="">Select receipt bill</option>{eligible.filter(b=>supplier==null||String(b.supplier_id)===String(supplier)).map(b=><option key={text(b.id)} value={text(b.id)} title={text(b.reference)} disabled={lines.some((l,n)=>n!==i&&l.billId===String(b.id))}>{accountingReference(b.reference,'source_document','receipt')} · {text(b.supplier_name||`Supplier #${b.supplier_id}`)} · open {money(b.outstanding_amount)}</option>)}</select></Field><Field label={`Allocation ${i+1} amount`}><input required type="number" min="0.01" step="0.01" className="form-control" value={line.amount} onChange={e=>patch(i,{amount:e.target.value})}/></Field>{lines.length>1&&<button type="button" className="btn btn-outline-danger" onClick={()=>setLines(lines.filter((_,n)=>n!==i))}>Remove allocation {i+1}</button>}</div>)}<div className={styles.actions}><button type="button" className="btn btn-outline-secondary" onClick={()=>setLines([...lines,{billId:'',amount:''}])}>Add bill allocation</button><button className="btn btn-primary">Save draft allocated settlement</button></div></fieldset></form></section>;
 }
@@ -127,9 +128,10 @@ export function Receivables() {
 }
 export function Payables() {
   const [version,setVersion]=useState(0), bills=useResource<RecordData>(`payables/bills?asOf=${today()}&refresh=${version}`);
+  const linkedId = useSearchParams()?.get('billId'), linkedBill = rowsOf(bills.data).find(bill => String(bill.id) === linkedId);
   const refresh=()=>{setVersion(v=>v+1);bills.refresh();};
   return <WorkflowViews label="Payables views" views={[
-    {id:'bills',title:'Supplier bills',content:<><div className={`${styles.actions} mb-3 d-print-none`}><Link href="/pharmacy/accounting/suppliers">Supplier statements</Link></div>
+    {id:'bills',title:'Supplier bills',content:<>{linkedId && <section aria-label="Linked supplier bill"><h2>Linked supplier bill</h2><ResourceState {...bills} retry={bills.refresh}/>{!bills.loading && !bills.error && (linkedBill ? <DataTable rows={[linkedBill]} columns={['id','supplier_name','source_kind','document_date','due_date','amount','outstanding_amount']} caption="Linked supplier bill"/> : <p role="alert">This bill is unavailable in this branch as of today. Check its invoice date and refresh.</p>)}<p>Select Settlements to allocate a payment to this bill.</p></section>}<div className={`${styles.actions} mb-3 d-print-none`}><Link href="/pharmacy/accounting/suppliers">Supplier statements</Link></div>
       <details className="mb-3 d-print-none"><summary className="btn btn-outline-primary">Register posted receipt bill</summary><div className="mt-3"><BillRegistration refresh={refresh}/></div></details><Register endpoint="payables" key={`register-${version}`}/></>},
     {id:'settlements',title:'Settlements',content:<><ResourceState {...bills} retry={bills.refresh}/>
       {bills.data&&<details className="mb-3 d-print-none"><summary className="btn btn-primary">New allocated supplier settlement</summary><div className="mt-3"><SettlementForm bills={rowsOf(bills.data)} refresh={refresh}/></div></details>}

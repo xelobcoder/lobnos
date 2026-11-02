@@ -33,7 +33,7 @@ export function ChartOfAccounts() {
 }
 export function SettingsEditor({ initial, accounts, refresh, collectionAccounts = [] }: { initial: Settings; accounts: Accounts; refresh: () => void; collectionAccounts?: RecordData[] }) {
   const [enabled, setEnabled] = useState(initial.enabled), [effective, setEffective] = useState(initial.effective_date?.slice(0, 10) || '');
-  const [mappings, setMappings] = useState<Record<string, string>>({ ...Object.fromEntries(requiredMappingCategories.map(key => [key, ''])), ...initial.mappings });
+  const [mappings, setMappings] = useState<Record<string, string>>({ ...Object.fromEntries([...requiredMappingCategories, 'liability:grni', 'asset:input_tax'].map(key => [key, ''])), ...initial.mappings });
   const [newCode, setNewCode] = useState(''), [validation, setValidation] = useState(''); const mutation = useMutation();
   return <form onSubmit={async e => {
     e.preventDefault(); setValidation('');
@@ -46,6 +46,7 @@ export function SettingsEditor({ initial, accounts, refresh, collectionAccounts 
     <fieldset disabled={mutation.pending}><label className="d-block mb-3"><input type="checkbox" checked={enabled} onChange={e => setEnabled(e.target.checked)}/> Enable shared-ledger posting for configured transactions</label>
       <Field label="Effective date"><input type="date" required={enabled} className="form-control" value={effective} onChange={e => setEffective(e.target.value)}/></Field>
       <p className={styles.muted}>No live backfill. Transactions before this date stay as local evidence. Missing mappings must be resolved, never guessed.</p>
+      <p className={styles.muted}>Before accepting new pharmacy deliveries with shared posting enabled, map liability:grni to a separate goods-received-not-invoiced liability account, not supplier payables. Map asset:input_tax only when recoverable purchase tax applies.</p>
       <p className="alert alert-info">Enabled shared reporting currently requires canonical AR/AP, inventory/COGS and cash controls. Requirements below are validation constraints, not account allocations. Select every mapping explicitly. Disabled drafts may be incomplete; custom core controls require a reviewed report-classification migration.</p>
       <div className="table-responsive"><table className={styles.table}><thead><tr><th>Local code / posting category</th><th>Shared GL account</th><th>Required canonical control when enabled</th></tr></thead><tbody>{Object.entries(mappings).map(([key, value]) => <tr key={key}><th scope="row">{key}</th><td><AccountSelect label={`Shared GL account for ${key}`} accounts={accounts.sharedAccounts} required={false} value={value} onChange={code => setMappings({ ...mappings, [key]: code })}/></td><td>{canonicalControl(key,collectionAccounts)||'Explicit active account of the required type'}</td></tr>)}</tbody></table></div>
       <div className={`${styles.actions} mt-3`}><Field label="Additional local code"><input className="form-control" value={newCode} onChange={e => setNewCode(e.target.value)}/></Field><button type="button" className="btn btn-outline-secondary" disabled={!newCode.trim() || newCode in mappings} onClick={() => { setMappings({ ...mappings, [newCode.trim()]: '' }); setNewCode(''); }}>Add mapping</button></div>

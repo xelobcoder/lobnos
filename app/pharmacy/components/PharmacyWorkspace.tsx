@@ -29,10 +29,10 @@ export function Message({ error, notice }: { error?: string; notice?: string }) 
      return <>{error && <div className="alert alert-danger" role="alert">{error}</div>}{notice && <div className="alert alert-success" role="status">{notice}</div>}</>;
 }
 export function Empty({ children }: { children: React.ReactNode }) { return <div className={styles.empty}>{children}</div>; }
-export function Tabs({ tabs, active, onChange }: { tabs: { id: string; label: string }[]; active: string; onChange: (id: string) => void }) {
-     return <nav className={styles.tabs} aria-label="Pharmacy tasks">{tabs.map(tab => <button type="button" key={tab.id} aria-current={active === tab.id ? 'page' : undefined} className={`${styles.tab} ${active === tab.id ? styles.activeTab : ''}`} onClick={() => onChange(tab.id)}>{tab.label}</button>)}</nav>;
+export function Tabs({ tabs, active, onChange }: { tabs: { id: string; label: string; icon?: React.ReactNode }[]; active: string; onChange: (id: string) => void }) {
+     return <nav className={styles.tabs} aria-label="Pharmacy tasks">{tabs.map(tab => <button type="button" key={tab.id} aria-current={active === tab.id ? 'page' : undefined} className={`${styles.tab} ${active === tab.id ? styles.activeTab : ''}`} onClick={() => onChange(tab.id)}>{tab.icon && <span className={styles.tabIcon} aria-hidden="true">{tab.icon}</span>}{tab.label}</button>)}</nav>;
 }
-export function Modal({ title, onClose, children, busy = false }: { title: string; onClose: () => void; children: React.ReactNode; busy?: boolean }) {
+export function Modal({ title, onClose, children, busy = false, size = 'default' }: { title: string; onClose: () => void; children: React.ReactNode; busy?: boolean; size?: 'default' | 'wide' }) {
      const dialog = useRef<HTMLDivElement>(null), titleId = useId();
      useEffect(() => {
           const previous = document.activeElement as HTMLElement | null, overflow = document.body.style.overflow;
@@ -48,7 +48,7 @@ export function Modal({ title, onClose, children, busy = false }: { title: strin
                if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
                else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
           }
-     }}><div ref={dialog} className={styles.dialog} role="dialog" aria-modal="true" aria-labelledby={titleId}><div className={styles.dialogHeader}><h2 id={titleId}>{title}</h2><button type="button" className="btn-close" disabled={busy} aria-label="Close dialog" onClick={onClose} /></div>{children}</div></div>;
+     }}><div ref={dialog} className={`${styles.dialog} ${size === 'wide' ? styles.dialogWide : ''}`} role="dialog" aria-modal="true" aria-labelledby={titleId}><div className={styles.dialogHeader}><h2 id={titleId}>{title}</h2><button type="button" className="btn-close" disabled={busy} aria-label="Close dialog" onClick={onClose} /></div>{children}</div></div>;
 }
 export function MedicinePicker({ onSelect }: { onSelect: (medicine: any) => void }) {
      const [query, setQuery] = useState(''), [search, setSearch] = useState('');

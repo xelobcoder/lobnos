@@ -9,7 +9,7 @@ function compile(file, imports = {}, globals = {}) {
   if(file.startsWith('app/pharmacy/accounting/components/'))imports={
     './AccountingWorkspace.module.css':{__esModule:true,default:{summaryStrip:'accounting-summary',summaryDetail:'summary-detail'}},...imports,
   };
-  if(file.endsWith('/Subledgers.tsx'))imports={'./SupplierAllocations':{__esModule:true,default:()=>null},...imports};
+  if(file.endsWith('/Subledgers.tsx'))imports={'next/navigation':{useSearchParams:()=>new URLSearchParams()},'./SupplierAllocations':{__esModule:true,default:()=>null},...imports};
   if(file.endsWith('/Registers.tsx'))imports={
     './AccountingWorkspace.module.css':{__esModule:true,default:{}},
     '../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable':{__esModule:true,default:()=>null},
@@ -433,17 +433,24 @@ test('tax uses server date filters and exports every filtered snapshot, not only
   taxComponents({ requests, states: [{ from: '2026-11-02', to: '2026-11-03' }] }).default();
   assert.equal(requests[0], 'tax?from=2026-11-02&to=2026-11-03');
 });
-function subledgersForTest({ states = [], calls = [], actor = 9 } = {}) {
+function subledgersForTest({ states = [], calls = [], actor = 9, bills = [], linkedId = '' } = {}) {
   let index=0;
   return compile('app/pharmacy/accounting/components/Subledgers.tsx',{
     'react/jsx-runtime':jsx,'next/link':nextLink,
+    'next/navigation':{useSearchParams:()=>new URLSearchParams(linkedId ? {billId:linkedId} : {})},
     react:{useState:initial=>[states[index++]??(typeof initial==='function'?initial():initial),()=>{}]},
     '../../../../lib/pharmacyAccounting':lib,
     '../../components/PharmacyWorkspace':{usePharmacyAccess:()=>({app:{user:{employeeid:actor}},finance:true})},
-    './api':{useResource:()=>({data:null,loading:false,error:'',refresh(){}}),useMutation:()=>({pending:false,mutate:async(...args)=>{calls.push(args);return true;}})},
+    './api':{useResource:()=>({data:{items:bills},loading:false,error:'',refresh(){}}),useMutation:()=>({pending:false,mutate:async(...args)=>{calls.push(args);return true;}})},
     './Configuration':{LocalAccountSelect:()=>null},'./common':common,'./Registers':{Register:()=>null},'./exports':{},
   },{FormData:FormDataFixture});
 }
+test('supplier invoice deep links show only the exact authorized bill and expose missing evidence',()=>{
+  const bills=[{id:'invoice-bill',source_kind:'supplier_invoice',supplier_name:'Example supplier',amount:35,outstanding_amount:15},{id:'other-bill',source_kind:'receipt',supplier_name:'Other supplier',amount:90}];
+  const html=renderToStaticMarkup(subledgersForTest({bills,linkedId:'invoice-bill'}).Payables());
+  assert.match(html,/Linked supplier bill/);assert.match(html,/Example supplier/);assert.doesNotMatch(html,/Other supplier/);
+  assert.match(renderToStaticMarkup(subledgersForTest({bills,linkedId:'missing-bill'}).Payables()),/unavailable in this branch/);
+});
 test('AP bill registration and due date forms preserve source evidence and cannot rewrite known terms',async()=>{
   const calls=[],ui=subledgersForTest({calls});
   await submit(ui.BillRegistration({refresh(){}}),{receiptId:'posted-receipt-1',reference:'SUP-001',dueDate:'2099-02-01'});
@@ -460,6 +467,9 @@ test('AP settlement form sends explicit bill allocations and controlled actions 
   let ui=subledgersForTest({calls,states:[[{billId:'bill-1',amount:'20.00'}],'',0]});
   await submit(ui.SettlementForm({bills,refresh(){}}),{date:'2099-01-01',description:'Partial approved bill payment'});
   assert.deepEqual(plain(calls[0]),['payables/settlements',{date:'2099-01-01',description:'Partial approved bill payment',allocations:[{billId:'bill-1',amount:'20.00'}]}]);
+  ui=subledgersForTest({calls,states:[[{billId:'invoice-bill',amount:'15.00'}],'',0]});
+  await submit(ui.SettlementForm({bills:[{id:'invoice-bill',supplier_id:'supplier-1',source_kind:'supplier_invoice',outstanding_amount:'35.00',reference:'INV-001'}],refresh(){}}),{date:'2099-01-01',description:'Pay accepted goods invoice'});
+  assert.deepEqual(plain(calls.at(-1)),['payables/settlements',{date:'2099-01-01',description:'Pay accepted goods invoice',allocations:[{billId:'invoice-bill',amount:'15.00'}]}]);
   for(const [action,status] of [['submit','draft'],['approve','submitted'],['pay','approved'],['void','draft']]){
     ui=subledgersForTest({calls,states:[action]});
     await submit(ui.ControlledActions({row:{id:'settlement-1',version:4,status,created_by:7},kind:'settlement',refresh(){}}),{method:'card',reference:'BANK-001',reason:'Reviewed payment evidence',date:'2099-03-01',amount:'999'});

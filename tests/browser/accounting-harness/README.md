@@ -37,9 +37,15 @@ operating-expenses metric. Screenshot/PDF bytes remain in memory
 unless screenshot output is explicitly enabled; no production data is used.
 
 Guide checks cover task search, topic and guide-type filters, clearing filters,
-linked topic expansion, and device-local reading markers. Purchasing checks exercise request submission,
-own-request approval denial, an independent approval's exact version/quotation/
-idempotency payload and its link to the original order's delivery form.
+linked topic expansion, and device-local reading markers. Inventory keeps only
+direct task actions and the optional page-help link, not inline walkthrough blocks.
+Purchasing checks exercise the wide request modal, inline medicine/quantity/cost
+entry and preservation of the same focused medicine input after Add item.
+They verify request submission, ordinary-manager self-approval denial,
+administrator self-review acknowledgement and detailed reason, and an independent
+approval's exact version/quotation/idempotency payload and order-delivery link.
+The synthetic `asAdmin=1` query parameter selects an administrator fixture only
+inside this isolated harness; production authority still comes from the authenticated user.
 The isolated transport confirms these particular purchasing actions in memory,
 returning fresh response objects like JSON transport; it never changes a real
 database. Other accounting mutations remain recorded failures for payload checks.

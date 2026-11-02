@@ -159,7 +159,8 @@ test('every actual Pharmacy route including dynamic details has exact-page pract
 });
 test('critical multi-action pages cover distinct controls with a result and verification per task',()=>{
   const actions={
-    'inventory-purchasing':['Add medicine','Create medicine','Save changes','Save supplier','Submit purchase request','Receive against order','Cancel order','Update selling prices with this receipt','Record write-off'],
+    'inventory-purchasing':['Add medicine','Create medicine','Save changes','Save supplier','Submit purchase request','Receive against order','Cancel order','Record write-off'],
+    'deliveries-invoices':['Record delivery','Accept selected goods','Preview','Return selected held goods','Record supplier invoice'],
     'stock-controls':['Submit count for review','Approve adjustments','Cancel count','Release','Dispose','Dispatch goods','Receive goods','Record actual contact','Record credit note','Supplier invoice number','Record completed inspection / quarantine','Edit profile'],
     'supplier-balances':['Register existing liability bill','Save draft allocated settlement','Confirm submit','Confirm approve','Confirm pay','Save application draft','Request exact allocation release','Save reversal for review','Excel aging'],
     'record-expense':['New expense draft','Save expense draft','Review payments, attachments & refunds','Payment amount','Confirm pay'],
@@ -198,15 +199,15 @@ const requested={
     quotes:[{supplierId:'supplier-1',reference:'Original estimate',total:100,lines:[{itemId:'medicine-exact',name:'Example medicine',quantity:20,unitCost:5}]},
       {supplierId:'supplier-2',reference:'Alternative estimate',total:80,lines:[{itemId:'medicine-exact',name:'Example medicine',quantity:20,unitCost:4}]}]},
 };
-function purchasing({actor=9,manager=true,selected=true,decision='approve',pending=null,failure='',rows=[requested],suppliersFailure=''}={}){
-  let cursor=0;const state=[selected?requested.id:'',decision,false,'',''],calls=[];
+function purchasing({actor=9,manager=true,administrator=false,selected=true,decision='approve',pending=null,failure='',rows=[requested],suppliersFailure='',search='',status='all'}={}){
+  let cursor=0;const state=[selected?requested.id:'',decision,false,'','',search,status],calls=[];
   class FormDataFixture{constructor(values){this.values=values;}get(key){return this.values[key]??null;}}
   const component=compile('app/pharmacy/inventory/purchase-requests/page.tsx',{
     '../../components/PharmacyTaskHelp':{__esModule:true,default:()=>null},
-    react:{useMemo:fn=>fn(),useState:initial=>{const index=cursor++;if(!(index in state))state[index]=initial;return [state[index],value=>{state[index]=typeof value==='function'?value(state[index]):value;}];}},
+    react:{useEffect(){},useRef:()=>({current:null}),useMemo:fn=>fn(),useState:initial=>{const index=cursor++;if(!(index in state))state[index]=initial;return [state[index],value=>{state[index]=typeof value==='function'?value(state[index]):value;}];}},
     '../../../../lib/pharmacyAccounting':lib,'../../components/PharmacyPaymentFields':{usePharmacyDocument:()=>({pending,execute:async(endpoint,payload)=>{calls.push({endpoint,payload});return {success:true};}})},
     '../../components/PharmacyWorkspace':{styles:css.default,money:value=>formatter.format(value),dateLabel:value=>value,
-      Message:message,usePharmacyAccess:()=>({stock:true,manager,app:{user:{employeeid:actor}}}),
+      Message:message,usePharmacyAccess:()=>({stock:true,manager,administrator,app:{user:{employeeid:actor}}}),
       usePharmacyResource:endpoint=>endpoint.includes('suppliers')
         ?{data:[{id:'supplier-1',name:'Supplier One'},{id:'supplier-2',name:'Supplier Two'}],loading:false,error:suppliersFailure,refresh:async()=>{}}
         :{data:rows,loading:false,error:failure,refresh:async()=>{}},
@@ -224,10 +225,52 @@ test('purchase review names suppliers and explains the next step without allowin
   for(const configuration of [{actor:3},{actor:9,manager:false}]){
     const ui=purchasing(configuration),document=new JSDOM(renderToStaticMarkup(ui.render())).window.document;
     assert.equal(document.querySelector('form[aria-label="Purchase approval decision"]'),null);
-    assert.match(document.body.textContent,/different pharmacy manager/);
+    assert.match(document.body.textContent,/different pharmacy manager or administrator/);
     assert.match(document.body.textContent,/Supplier One/);
     assert.match(document.body.textContent,/Supplier Two/);
   }
+});
+test('purchase requests have neutral summaries, searchable status filters and labeled mobile rows',()=>{
+  const rows=[requested,{...requested,id:'approved-2',status:'approved'},{...requested,id:'rejected-3',status:'rejected'}];
+  const html=renderToStaticMarkup(purchasing({rows,selected:false,status:'approved'}).render());
+  const document=new JSDOM(html).window.document;
+  assert.equal(document.querySelectorAll('dl[aria-label="Purchase request summary"] dt').length,3);
+  assert.equal(document.querySelectorAll('tbody tr').length,1);
+  assert.match(document.querySelector('tbody').textContent,/Approved/);
+  assert.ok(document.querySelector('td[data-label="Estimated cost"]'));
+  assert.match(html,/summary counts cover this list/);
+  assert.match(renderToStaticMarkup(purchasing({selected:false,search:'Supplier Two'}).render()),/Review request/);
+  const noMatch=renderToStaticMarkup(purchasing({selected:false,search:'no matching medicine'}).render());
+  assert.match(noMatch,/No requests match these filters/);assert.doesNotMatch(noMatch,/<table/);
+});
+test('purchase review explicitly supports an independent administrator without claiming storekeepers can decide',()=>{
+  const admin=purchasing({actor:9,manager:true});
+  assert.ok(find(admin.render(),node=>node.type==='form'&&node.props['aria-label']==='Purchase approval decision'));
+  const tree=admin.render(),decisionForm=find(tree,node=>node.type==='form'&&node.props['aria-label']==='Purchase approval decision');
+  const quotation=find(tree,node=>node.type==='details'&&String(node.key).includes('quotation-'));
+  assert.notEqual(decisionForm.key,quotation.key,'Sibling decision and quotation sections need distinct keys when switching requests');
+  const own=renderToStaticMarkup(purchasing({actor:3}).render());
+  assert.match(own,/only pharmacy manager, ask a different administrator/);
+  const storekeeper=renderToStaticMarkup(purchasing({actor:9,manager:false}).render());
+  assert.match(storekeeper,/Storekeepers can submit requests and add quotations, but cannot approve/);
+  assert.match(storekeeper,/Administrators may also review their own requests/);
+});
+test('administrator self-review requires acknowledgement and a detailed reason and sends the explicit audit flag',async()=>{
+  const ui=purchasing({actor:3,administrator:true});
+  let form=find(ui.render(),node=>node.type==='form'&&node.props['aria-label']==='Purchase approval decision');
+  assert.ok(form);
+  const html=renderToStaticMarkup(ui.render());
+  assert.match(html,/Administrator self-review/);
+  assert.match(html,/minLength="10"|minlength="10"/);
+  await form.props.onSubmit({preventDefault(){},currentTarget:{quoteIndex:'0',reason:'Only admin available for review'}});
+  assert.equal(ui.calls.length,0);
+  form=find(ui.render(),node=>node.type==='form'&&node.props['aria-label']==='Purchase approval decision');
+  await form.props.onSubmit({preventDefault(){},currentTarget:{quoteIndex:'0',reason:'short',adminSelfReview:'on'}});
+  assert.equal(ui.calls.length,0);
+  await form.props.onSubmit({preventDefault(){},currentTarget:{quoteIndex:'0',reason:'Only admin available; verified supplier quotation',adminSelfReview:'on'}});
+  assert.deepEqual(JSON.parse(JSON.stringify(ui.calls)),[{endpoint:'pharmacy/enterprise/purchase-requests/request-exact-1/decision',payload:{
+    expectedVersion:7,decision:'approve',quoteIndex:0,reason:'Only admin available; verified supplier quotation',adminSelfReview:true,
+  }}]);
 });
 test('independent approval sends the exact request, selected quotation, expected version and reason',async()=>{
   const ui=purchasing(),tree=ui.render();

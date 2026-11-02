@@ -1,8 +1,25 @@
 "use client";
 
 import PharmacyReportCharts from "./PharmacyReportCharts";
+import accountingStyles from "../accounting/components/AccountingWorkspace.module.css";
+import purchasing from "./PharmacyPurchasing.module.css";
 import { useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
+import {
+     RiArrowLeftRightLine,
+     RiBankLine,
+     RiBarChartBoxLine,
+     RiCalendarCloseLine,
+     RiDashboardLine,
+     RiExchangeDollarLine,
+     RiFileList3Line,
+     RiLineChartLine,
+     RiMedicineBottleLine,
+     RiPieChart2Line,
+     RiScales3Line,
+     RiShoppingCart2Line,
+     RiTruckLine,
+} from "@remixicon/react";
 import { customFetch } from "../../../components/Auth/customFetch";
 import {
      styles,
@@ -15,22 +32,23 @@ import {
      Tabs,
 } from "./PharmacyWorkspace";
 
+const icon = (Icon: typeof RiDashboardLine) => <Icon size={16} />;
 const operationalReports = [
-     { id: "overview", label: "Overview" },
-     { id: "sales", label: "Sales & margins" },
-     { id: "inventory", label: "Stock & replenishment" },
-     { id: "expiry", label: "Batch expiry" },
-     { id: "procurement", label: "Purchase orders" },
-     { id: "suppliers", label: "Supplier performance" },
-     { id: "movements", label: "Stock movements" },
+     { id: "overview", label: "Overview", icon: icon(RiDashboardLine) },
+     { id: "sales", label: "Sales & margins", icon: icon(RiLineChartLine) },
+     { id: "inventory", label: "Stock & replenishment", icon: icon(RiMedicineBottleLine) },
+     { id: "expiry", label: "Batch expiry", icon: icon(RiCalendarCloseLine) },
+     { id: "procurement", label: "Purchase orders", icon: icon(RiShoppingCart2Line) },
+     { id: "suppliers", label: "Supplier performance", icon: icon(RiTruckLine) },
+     { id: "movements", label: "Stock movements", icon: icon(RiArrowLeftRightLine) },
 ];
 const accountingReports = [
-     { id: "finance", label: "Account activity" },
-     { id: "profit_loss", label: "Profit & loss" },
-     { id: "balance_sheet", label: "Balance sheet" },
-     { id: "cash_flow", label: "Cash flow" },
-     { id: "trial_balance", label: "Trial balance" },
-     { id: "transactions", label: "Journal transactions" },
+     { id: "finance", label: "Account activity", icon: icon(RiBarChartBoxLine) },
+     { id: "profit_loss", label: "Profit & loss", icon: icon(RiPieChart2Line) },
+     { id: "balance_sheet", label: "Balance sheet", icon: icon(RiScales3Line) },
+     { id: "cash_flow", label: "Cash flow", icon: icon(RiExchangeDollarLine) },
+     { id: "trial_balance", label: "Trial balance", icon: icon(RiBankLine) },
+     { id: "transactions", label: "Journal transactions", icon: icon(RiFileList3Line) },
 ];
 const stockReports = new Set(["inventory", "expiry", "procurement", "movements"]);
 const number = new Intl.NumberFormat("en-GH", { maximumFractionDigits: 3 });
@@ -212,7 +230,7 @@ export default function PharmacyReportsWorkspace({ accounting = false }: { accou
      }
 
      return (
-          <main className={styles.page}>
+          <main className={`${styles.page} ${accountingStyles.page} ${purchasing.theme}`}>
                <header className={styles.header}>
                     <div>
                          <h1>{accounting ? "Pharmacy Accounting" : "Pharmacy analytics"}</h1>
@@ -298,18 +316,18 @@ export default function PharmacyReportsWorkspace({ accounting = false }: { accou
                     </p>
                </form>
                {metrics.length > 0 && (
-                    <div className={styles.stats}>
+                    <dl className={`${accountingStyles.summaryStrip} ${accountingStyles.compactStrip}`} aria-label="Report summary">
                          {metrics.map((metric) => (
-                              <div className={styles.stat} key={metric.label}>
-                                   <span>{metric.label}</span>
-                                   <strong>
+                              <div key={metric.label}>
+                                   <dt>{metric.label}</dt>
+                                   <dd>
                                         {metric.currency
                                              ? money(Number(metric.value))
                                              : number.format(Number(metric.value))}
-                                   </strong>
+                                   </dd>
                               </div>
                          ))}
-                    </div>
+                    </dl>
                )}
                <Tabs
                     active={report}
@@ -327,14 +345,14 @@ export default function PharmacyReportsWorkspace({ accounting = false }: { accou
                               {data.totals && (
                                    <section className={styles.card}>
                                         <h2>{accounting ? "Statement totals" : "Report totals"}</h2>
-                                        <div className={styles.stats}>
+                                        <dl className={`${accountingStyles.summaryStrip} ${accountingStyles.compactStrip} mb-2`} aria-label="Report totals">
                                              {Object.entries(data.totals).map(([key, value]) => (
-                                                  <div className={styles.stat} key={key}>
-                                                       <span>{key.replace(/([A-Z])/g, " $1")}</span>
-                                                       <strong>{money(value)}</strong>
+                                                  <div key={key}>
+                                                       <dt className="text-capitalize">{key.replace(/([A-Z])/g, " $1")}</dt>
+                                                       <dd>{money(value)}</dd>
                                                   </div>
                                              ))}
-                                        </div>
+                                        </dl>
                                         {accounting && (
                                              <p className={styles.muted}>
                                                   {["balance_sheet", "trial_balance"].includes(report)

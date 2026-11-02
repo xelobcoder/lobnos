@@ -1,0 +1,7 @@
+.toolbar{display:flex;gap:.75rem;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:1rem}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
+.wide{grid-column:1/-1}
+.reference{overflow-wrap:anywhere;max-width:250px}
+.quantity{max-width:140px;min-width:100px}
+.policy{border-top:1px solid var(--bs-border-color);padding-top:1rem;margin-top:1rem}
+@media(max-width:700px){.grid{grid-template-columns:1fr}.wide{grid-column:auto}}

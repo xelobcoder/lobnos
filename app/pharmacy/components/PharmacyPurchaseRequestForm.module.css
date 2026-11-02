@@ -1,0 +1,15 @@
+.entry { min-width: 0; }
+.entryRow, .requestLine { display: grid; grid-template-columns: minmax(0,1fr) 140px 180px 110px; gap: 14px; align-items: end; }
+.entryRow > *, .requestLine > * { min-width: 0; }
+.entryRow label, .requestLine label { margin-bottom: 0; font-size: .82rem; }
+.entryRow button, .requestLine button { min-height: 40px; white-space: nowrap; }
+.entry > p { margin: 10px 0 0; font-size: .8rem; }
+.medicine { overflow-wrap: anywhere; }
+.basket { max-height: min(42vh,420px); overflow: auto; }
+.requestLine { grid-template-columns: minmax(0,1fr) 140px 180px 120px 90px; padding: 12px 0; border-bottom: 1px solid var(--bs-border-color); }
+.requestLine:last-child { border-bottom: 0; }
+.requestLine .medicine { align-self: center; }
+@media(max-width: 767px) {
+  .entryRow, .requestLine { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+  .medicine, .entryRow button, .requestLine button { grid-column: 1 / -1; }
+}

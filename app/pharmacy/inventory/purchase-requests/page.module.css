@@ -1,4 +1,4 @@
-.requestTable { min-width: 760px; }
+.requestTable { min-width: 660px; }
 .requestTable th:nth-child(2) { min-width: 180px; }
 .requestTable th:nth-child(4) { min-width: 180px; }
 .requestTable button { white-space: nowrap; }
@@ -8,4 +8,27 @@
 .review h4 { font-size: .875rem; line-height: 1.5; }
 .review form { max-width: 880px; }
 .scrollHint { display: none; font-size: .8rem; color: var(--bs-secondary-color); }
-@media(max-width: 767px) { .scrollHint { display: block; } }
+.approvalHelp { margin-bottom: 20px; max-width: 900px; color: var(--bs-secondary-color); font-size: .86rem; }
+.approvalHelp p { margin-bottom: 10px; line-height: 1.6; }
+.ownRequest { display: block; color: var(--bs-secondary-color); font-size: .75rem; margin-top: 4px; }
+.status { display: inline-block; padding: 4px 8px; border: 1px solid var(--bs-border-color); border-radius: 4px; font-size: .77rem; white-space: nowrap; background: var(--bs-tertiary-bg); }
+.status[data-status="requested"] { color: var(--bs-warning-text-emphasis); background: var(--bs-warning-bg-subtle); border-color: var(--bs-warning-border-subtle); }
+.status[data-status="approved"] { color: var(--bs-success-text-emphasis); background: var(--bs-success-bg-subtle); border-color: var(--bs-success-border-subtle); }
+.review { scroll-margin-top: 24px; }
+.review h2:focus { outline: 2px solid var(--bs-primary); outline-offset: 4px; }
+.decision { padding: 18px; border: 1px solid var(--bs-border-color); border-radius: 5px; background: var(--bs-tertiary-bg); }
+.quantityReview { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-bottom: 12px; }
+.order { padding: 18px; margin: 20px 0; border: 1px solid var(--bs-primary); border-radius: 5px; }
+.order summary { font-weight: 600; cursor: pointer; }
+.requestTable tbody tr[aria-selected="true"] { background: var(--bs-tertiary-bg); }
+@media(max-width: 767px) {
+  .quantityReview { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .scrollHint { display: block; }
+  .requestTable { min-width: 0; width: 100%; }
+  .requestTable thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .requestTable tbody { display: grid; gap: 12px; }
+  .requestTable tbody tr { display: grid; border: 1px solid var(--bs-border-color); border-radius: 5px; padding: 12px; }
+  .requestTable tbody td { display: block; padding: 6px 0; border: 0; overflow-wrap: anywhere; }
+  .requestTable tbody td::before { content: attr(data-label); display: block; color: var(--bs-secondary-color); font-size: .73rem; font-weight: 500; margin-bottom: 3px; }
+  .requestTable button { width: 100%; }
+}
