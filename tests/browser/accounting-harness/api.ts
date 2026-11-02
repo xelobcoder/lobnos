@@ -1,7 +1,6 @@
 // This module replaces the authenticated transport ONLY in the isolated browser bundle.
 // No request, session token, or real tenant data can leave this harness.
-export const currencyFormatter = new Intl.NumberFormat('en-GH', { style: 'currency', currency: 'GHS' });
-export const reactSelectCustomStyles = {};
+export { currencyFormatter, reactSelectCustomStyles } from '../../../components/Auth/customFetch.js';
 declare global {
   interface Window {
     __requests?: string[];
@@ -31,7 +30,7 @@ export async function customFetch(endpoint: string) {
   window.__requests ||= [];
   window.__requests.push(endpoint);
   if (new URLSearchParams(location.search).has('failure')) return { success: false, error: { message: 'Synthetic service unavailable' } };
-  let data: unknown = { items: [], total: 0 };
+  let data: unknown;
   if (path === 'accounts') data = accounts;
   else if (path === 'settings') data = { branchid: 4, tenant_id: 1, enabled: true, effective_date: '2099-01-01', mappings: { sales: 'SALES', 'expense:operating': 'EXP', 'liability:output-tax': 'TAX' } };
   else if (path === 'overview') data = { receivables: 120, payables: 80, documents: [{ kind: 'expense', status: 'draft', count: 1, amount: 25 }], reconciliations: [] };
@@ -47,19 +46,24 @@ export async function customFetch(endpoint: string) {
   else if (path === 'payables/allocation-reversals') data = {items:[{id:'release-exact',kind:'supplier_unallocate',status:'voided',version:3,reversal_of:application.id,financial_date:'2099-01-03',amount:'20.00',description:'Voided synthetic release'}],limit:25,offset:0};
   else if (path === 'payables/allocation-reversals/release-exact') data = {id:'release-exact',kind:'supplier_unallocate',status:'voided',version:3,reversal_of:application.id,financial_date:'2099-01-03',amount:'20.00',details:{sourceId:'registered-source-exact'},sourceUses:[],reversals:[],audit:[]};
   else if (path === 'payables/settlement-reversals') data = {items:[{id:'voided-reversal-exact',kind:'ap_reversal',status:'voided',version:5,reversal_of:'settlement-original-exact',financial_date:'2099-01-03',amount:'20.00',description:'Voided synthetic reversal'}],limit:25,offset:0};
-  else if (path === 'reports') data = { rows: [{ account: 'sales', account_name: 'Medicine sales', debit: 0, credit: 120, amount: 120 }], columns: ['account', 'account_name', 'debit', 'credit', 'amount'], totals: { netSales: 120, costOfSales: 40, grossProfit: 80, operatingExpenses: 25, netProfit: 55 } };
+  else if (path === 'payables/settlement-reversals/voided-reversal-exact') data = {id:'voided-reversal-exact',kind:'ap_reversal',status:'voided',version:5,reversal_of:'settlement-original-exact',financial_date:'2099-01-03',amount:'20.00',description:'Voided synthetic reversal',details:{originalDocumentId:'settlement-original-exact'},audit:[],reversals:[]};
+  else if (path === 'reports') data = { summary: {grossSales:2016220,refunds:200,netSales:2016020,taxCollected:0,receipts:20,refundCount:1,stockValue:2131180.43,medicines:2,reorderItems:0,outOfStock:0,bookRevenue:2016020,costOfSales:53819.79,operatingExpenses:200,profit:1962000.21}, rows: [{ account: 'sales', account_name: 'Medicine sales', debit: 0, credit: 2016020, amount: 2016020 }], columns: ['account', 'account_name', 'debit', 'credit', 'amount'], totals: { netSales: 2016020, costOfSales: 53819.79, grossProfit: 1962200.21, operatingExpenses: 200, netProfit: 1962000.21 } };
   else if (path === 'inventory/reconciliation') data = { asOf: '2099-01-03T12:00:00.000Z', branchid: 4, rows: [{ itemId: 'medicine-1', name: 'Synthetic medicine', sku: 'SYN-1', quantity: 3, unitCost: 30, value: 90 }], stockValue: 90, inventoryControl: 80, difference: 10, balanced: false, controls: [{ account: 'inventory', balance: 80 }], policy: 'Current weighted-average snapshot.', correctionPolicy: 'Investigate original source evidence.' };
   else if (path === 'tax') data = { rules: [{ id: 'rule-1', item_id: 'medicine-1', rate: '10', local_account: 'liability:output-tax', effective_date: '2099-01-01', reason: 'Synthetic approved policy', is_active: 1 }], transactions: [{ id: 'tax-1', sale_id: sale, sale_line_id: 'line-1', gross_amount: '110', net_amount: '100', tax_amount: '10', rate: '10', local_account: 'liability:output-tax', event_type: 'sale', financial_date: '2099-01-03' }], total: 1, policy: 'Tax-inclusive selling prices; only explicitly assigned medicines are taxed.' };
   else if (path === 'tax-credits') data = { items: [], totals: { count: 0, gross: 0, net: 0, tax: 0 }, limit: 25, offset: 0, policy: 'Original frozen snapshots only.' };
   else if (path === 'periods') data = { items: [{ period_code: '2099-01', period_start: '2099-01-01', period_end: '2099-01-31', status: 'open' }], pharmacyCanChangeStatus: false };
   else if (path === 'reconciliation') data = { accounts: [{ id: 7, name: 'Pharmacy Bank', currency: 'GHS' }], items: [] };
-  else if (path.includes('/aging')) data = { items: [], buckets: { current: 120 }, total: 120, reconciliation: { reconciled: true, difference: 0, parties: [] } };
+  else if (['receivables/aging', 'payables/aging'].includes(path)) data = { items: [], buckets: { current: 120 }, total: 120, reconciliation: { reconciled: true, difference: 0, parties: [] } };
   else if (path === 'consolidation') data = { from: url.searchParams.get('from') || '', to: url.searchParams.get('to') || '', linked: 1, unlinked: 0, reviewLimit: 100, truncated: false, items: [], note: 'Synthetic sources only.' };
-  else if (path.startsWith('consolidation/')) data = { from: url.searchParams.get('from') || '', to: url.searchParams.get('to') || '', rows: [], journalCount: 0, unlinked: 0, fullyChecked: true, linkedMismatchCount: 0, rowsTruncated: false, reviewLimit: 100, unlinkedShared: 0, orphanSharedEntries: [], orphanSharedEntriesTruncated: false, balanced: true };
+  else if (path === 'consolidation/reconciliation') data = { from: url.searchParams.get('from') || '', to: url.searchParams.get('to') || '', rows: [], journalCount: 0, unlinked: 0, fullyChecked: true, linkedMismatchCount: 0, rowsTruncated: false, reviewLimit: 100, unlinkedShared: 0, orphanSharedEntries: [], orphanSharedEntriesTruncated: false, balanced: true };
   else if (path === 'suppliers' || url.pathname === '/pharmacy/suppliers') data = [{ id: 'supplier-exact-1', name: 'Akwa Synthetic Medical Supplies' }];
-  else if (path.includes('/statement')) data = { party: { name: 'Akwa Synthetic Medical Supplies' }, items: [{ date: '2099-01-03', reference: 'BILL-001', description: 'Synthetic bill', debit: 0, credit: 80, balance: 80 }], openingBalance: 0, closingBalance: 80 };
+  else if (path === 'suppliers/supplier-exact-1/statement') data = { party: { name: 'Akwa Synthetic Medical Supplies' }, items: [{ date: '2099-01-03', reference: 'BILL-001', description: 'Synthetic bill', debit: 0, credit: 80, balance: 80 }], openingBalance: 0, closingBalance: 80 };
   else if (url.pathname === '/pharmacy/items') data = [{ id: 'medicine-1', name: 'Synthetic medicine' }];
+  else if (url.pathname === '/pharmacy/catalogue') data = { items: [{ id: 'medicine-1', name: 'Synthetic medicine', sku: 'SYN-1', is_active: true }], total: 1, page: 1, count: 20 };
+  else if (url.pathname === '/pharmacy/collection-accounts') data = [{ id: 7, name: 'Pharmacy Bank', account_type: 'bank', currency: 'GHS', is_active: true }];
   else if (path === 'revenue' || path === 'inventory') data = { items: [ledgerRow], total: 1 };
+  else if (['audit', 'receivables', 'receivables/adjustments', 'receivables/adjustment-reversals', 'payables/settlements'].includes(path)) data = { items: [], total: 0 };
+  else throw new Error(`Missing isolated browser fixture for ${endpoint}`);
   return { success: true, data };
 }
 export async function customFetchMutation(endpoint: string, method: string, body: unknown) {

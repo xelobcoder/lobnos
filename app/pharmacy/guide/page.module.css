@@ -1,0 +1,17 @@
+.page { font-family: var(--theme-font-family,var(--bs-body-font-family,'Segoe UI',sans-serif)); }
+.search { display: grid; gap: 8px; max-width: 640px; margin: 24px 0; font-weight: 500; }
+.topics { display: flex; flex-wrap: wrap; gap: 10px 24px; padding: 18px 0; border-block: 1px solid var(--bs-border-color); }
+.topics a,.pages a { color: var(--theme-accent,var(--bs-primary)); }
+.topic { padding: 28px 0; border-bottom: 1px solid var(--bs-border-color); scroll-margin-top: 24px; }
+.topic h2 { font-size: 1.25rem; font-weight: 600; }
+.topic h3 { font-size: 1rem; margin-top: 24px; }
+.topic > p,.steps { max-width: 880px; line-height: 1.7; }
+.steps { padding-left: 24px; }
+.steps li { padding: 5px 0 5px 6px; }
+.pages { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit,minmax(min(280px,100%),1fr)); gap: 0 28px; }
+.pages li { min-width: 0; padding: 14px 0; border-bottom: 1px solid var(--bs-border-color); }
+.pages a { font-weight: 600; }
+.pages p { margin: 6px 0 0; color: var(--bs-secondary-color); line-height: 1.6; }
+.glossary { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(280px,100%),1fr)); gap: 20px 28px; margin-top: 20px; }
+.glossary dd { margin: 5px 0 0; line-height: 1.6; color: var(--bs-secondary-color); }
+@media print { .topics,.search { display: none; } .topic { break-inside: auto; } .pages li,.glossary > div { break-inside: avoid; } }

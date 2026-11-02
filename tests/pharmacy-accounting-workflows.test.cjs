@@ -6,10 +6,15 @@ const vm = require('node:vm');
 const ts = require('typescript');
 const root = path.resolve(__dirname, '..');
 function compile(file, imports = {}, globals = {}) {
+  if(file.startsWith('app/pharmacy/accounting/components/'))imports={
+    './AccountingWorkspace.module.css':{__esModule:true,default:{summaryStrip:'accounting-summary',summaryDetail:'summary-detail'}},...imports,
+  };
   if(file.endsWith('/Subledgers.tsx'))imports={'./SupplierAllocations':{__esModule:true,default:()=>null},...imports};
   if(file.endsWith('/Registers.tsx'))imports={
+    './AccountingWorkspace.module.css':{__esModule:true,default:{}},
     '../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable':{__esModule:true,default:()=>null},
-    './SupplierPicker':{__esModule:true,default:()=>null},...imports,
+    './SupplierPicker':{__esModule:true,default:()=>null},
+    '@remixicon/react':new Proxy({},{get:(_,name)=>name==='__esModule'?undefined:props=>require('react').createElement('svg',props)}),...imports,
   };
   const exports = {};
   const code = ts.transpileModule(fs.readFileSync(path.join(root, file), 'utf8'), {
@@ -129,11 +134,12 @@ const commonImports = {
   'next/link': nextLink,
   '../../../../lib/pharmacyAccounting': lib,
   '../../components/PharmacyWorkspace.module.css': styleModule,
-  './AccountingWorkspace.module.css':{__esModule:true,default:{section:'accounting-section',actions:'accounting-actions',grid:'accounting-grid',dataTable:'accounting-table',number:'text-start',table:'table'}},
+  './AccountingWorkspace.module.css':{__esModule:true,default:{section:'accounting-section',actions:'accounting-actions',grid:'accounting-grid',dataTable:'accounting-table',number:'text-start',table:'table',summaryStrip:'accounting-summary',summaryDetail:'summary-detail'}},
+  '../../../../components/accounting/AccountingTable.module.css':{__esModule:true,default:{tableView:'lab-accounting-table'}},
+  '../../../../components/accounting/ReportShell.module.css':{__esModule:true,default:{header:'report-header'}},
   '../../../../components/accessories/Datatables/PrimeTable':{__esModule:true,default:PrimeTableFixture},
   '../../../../components/accessories/Loader':{__esModule:true,default:()=>React.createElement('span',null,'Loading')},
   '../../../../components/Auth/customFetch':{currencyFormatter},
-  '@remixicon/react':{RiScalesLine:props=>React.createElement('svg',props)},
 };
 const common = compile('app/pharmacy/accounting/components/common.tsx', commonImports);
 const hooks = { useState: initial => [typeof initial === 'function' ? initial() : initial, () => {}] };
@@ -229,7 +235,7 @@ test('financial statement renders real section tables, totals and classification
   let registers = workspace({ data, loading: false, error: '' });
   const html = renderToStaticMarkup(registers.Register({ endpoint: 'reports', report: 'profit_loss' }));
   assert.match(html, /<table/); assert.match(html, /Revenue/); assert.match(html, /123.45/);
-  assert.match(html, /net Profit/); assert.match(html, /classification is incomplete/);
+  assert.match(html, /Net Profit/); assert.match(html, /classification is incomplete/);
   registers = workspace({ data: null, loading: false, error: 'Financial period unavailable' });
   const errorHtml = renderToStaticMarkup(registers.Register({ endpoint: 'reports', report: 'profit_loss' }));
   assert.match(errorHtml, /role="alert"/); assert.match(errorHtml, /Financial period unavailable/);
@@ -895,7 +901,7 @@ test('ledger uses professional explicit columns and short visible references whi
   });
   const element=registers.Register({endpoint:'ledger',ledger:true}),html=renderToStaticMarkup(element);
   const headers=[...html.matchAll(/<th scope="col"[^>]*>(.*?)<\/th>/g)].map(match=>match[1]);
-  assert.deepEqual(headers,['Date','Journal ref','Account code / name','Description','Source document','Business unit','Debit','Credit','Running balance','Actions']);
+  assert.deepEqual(headers,['Date','Journal ref','Account code / name','Description','Source document','Debit','Credit','Running balance','Actions']);
   const visible=html.replace(/<[^>]*>/g,'');
   assert.ok(visible.includes('JRN-266A7E7D'));assert.ok(visible.includes('PHM-F262EB76'));assert.ok(visible.includes('Cash on hand'));assert.ok(visible.includes('1,234.50'));
   assert.ok(!visible.includes(journal));assert.ok(!visible.includes(sale));assert.ok(!visible.includes('T00:00:00'));assert.ok(!visible.includes('internal-ledger-row-id'));assert.ok(!visible.includes('signed running balance'));
@@ -909,7 +915,7 @@ test('ledger uses professional explicit columns and short visible references whi
   assert.equal(JSON.stringify(row),before);
   assert.ok(lib.csv([row],['journal_id','source_document','description']).includes(sale));
 });
-test('summary metrics use the owner CustomerSummaryCard structure and shared currency, never loading zeros or controls',()=>{
+test('summary metrics follow Payroll neutral summary strips and shared currency, never loading zeros or controls',()=>{
   const {JSDOM}=require('jsdom');
   const html=renderToStaticMarkup(React.createElement(common.SummaryMetrics,{metrics:[
     {title:'Receivables',value:'1234.50',subtitle:'Source-book obligation',variant:'primary'},
@@ -918,15 +924,43 @@ test('summary metrics use the owner CustomerSummaryCard structure and shared cur
     {title:'Inventory',value:500,subtitle:'Current snapshot',variant:'success'},
   ]}));
   const document=new JSDOM(html).window.document;
-  assert.equal(document.querySelectorAll('.row.g-3.mb-3 > .col-12.col-sm-6.col-xl-3').length,4);
-  for(const card of document.querySelectorAll('.card')){
-    assert.ok(card.matches('.border-0.shadow-sm.bg-gradient.text-white.rounded-3.h-100'));
-    assert.ok(card.querySelector('.card-body.p-3 > .d-flex > .text-xs.text-uppercase.fw-semibold.opacity-75'));
-    assert.ok(card.querySelector('h3.fw-bold.mb-0'));assert.ok(card.querySelector('svg[aria-hidden="true"]'));
+  assert.equal(document.querySelectorAll('dl.accounting-summary > div').length,4);
+  assert.equal(document.querySelector('.bg-gradient,.text-white,.summary-card'),null);
+  for(const card of document.querySelectorAll('dl.accounting-summary > div')){
+    assert.ok(card.querySelector('dt'));
+    assert.ok(card.querySelector('dd'));
     assert.equal(card.querySelector('form,input,button,select'),null);
   }
   assert.ok(html.includes(currencyFormatter.format(1234.5)));assert.match(html,/Not available/);
   assert.equal(common.money(undefined),'—');assert.equal(common.money(null),'—');
+});
+test('statement summaries reuse the overview layout and format expenses, refunds and zero tax as money',()=>{
+  const {JSDOM}=require('jsdom');
+  const ui=compile('app/pharmacy/accounting/components/Registers.tsx',{
+    'react/jsx-runtime':jsx,'next/link':nextLink,react:hooks,'../../../../lib/pharmacyAccounting':lib,
+    './common':common,'./api':{},'./exports':{},
+  });
+  const summary={grossSales:2016220,refunds:200,netSales:2016020,taxCollected:0,receipts:20,refundCount:1,
+    stockValue:2131180.43,medicines:2,reorderItems:0,outOfStock:0,bookRevenue:2016020,costOfSales:53819.79,operatingExpenses:200,profit:1962000.21};
+  const document=new JSDOM(renderToStaticMarkup(React.createElement(ui.ReportSummary,{data:summary}))).window.document;
+  assert.equal(document.querySelectorAll('section[aria-label$=" summary"]').length,3);
+  assert.equal(document.querySelectorAll('dl > div').length,14);
+  assert.equal(document.querySelectorAll('dl.accounting-summary').length,3,'use the same summary style as Receivables and Payables');
+  for(const [title,value]of [['Refunds',200],['Tax collected',0],['Operating expenses',200],['Profit',1962000.21]]){
+    const card=[...document.querySelectorAll('dl > div')].find(e=>e.querySelector('dt').textContent===title);
+    assert.equal(card.querySelector('dd').textContent,currencyFormatter.format(value));
+  }
+  const receipts=[...document.querySelectorAll('dl > div')].find(e=>e.querySelector('dt').textContent==='Receipts');
+  assert.equal(receipts.querySelector('dd').textContent,'20');
+  const expenses=[...document.querySelectorAll('dl > div')].find(e=>e.querySelector('dt').textContent==='Operating expenses');
+  assert.equal(expenses.querySelector('dd.summary-detail').textContent,'Posted pharmacy operating expenses');
+  assert.equal(document.querySelector('a').getAttribute('href'),'/pharmacy/accounting/expenses');
+  assert.equal(document.querySelector('form,input,button,.bg-gradient'),null);
+  assert.match(document.body.textContent,/inventory adjustments/);
+  const partial=new JSDOM(renderToStaticMarkup(React.createElement(ui.ReportSummary,{data:{refunds:null,taxCollected:0}}))).window.document;
+  assert.equal(partial.querySelectorAll('dl > div').length,2,'missing metrics must not become invented zeros');
+  assert.equal(partial.querySelector('dd').textContent,'Not available');
+  assert.equal(partial.querySelectorAll('dl > div')[1].querySelector('dd').textContent,currencyFormatter.format(0));
 });
 test('table workflow forms render outside PrimeTable decorative ancestors, with selected exact document preserved',()=>{
   const {JSDOM}=require('jsdom'),row={id:'exact-document-uuid',description:'Original approved evidence',amount:'25.00',version:3};
@@ -979,7 +1013,7 @@ test('compound date and supplier controls have explicit labels without enclosing
     './api':{useResource:()=>({data:[],loading:false,error:'',refresh(){}})},
   });
   const document=new JSDOM(renderToStaticMarkup(ui.Register({endpoint:'suppliers',supplier:true}))).window.document;
-  for(const [id,title]of [['accounting-date-preset','Date preset'],['accounting-supplier','Supplier']]){
+  for(const [id,title]of [['accounting-suppliers-date-preset','Date preset'],['accounting-supplier','Supplier']]){
     const control=document.getElementById(id),label=document.querySelector(`label[for="${id}"]`);
     assert.ok(control);assert.ok(label);assert.equal(label.textContent,title);
     assert.equal(control.labels[0],label);
@@ -1031,6 +1065,7 @@ function accountingUiFixture({failure=''}={}) {
       './evidenceDownload':{},'../../components/PharmacyWorkspace':{usePharmacyAccess:()=>({finance:true,manager:true,app:{user:{role:'pharmacy_manager',employeeid:9}}}),MedicinePicker:()=>null},
       '../../../../lib/roleNavigationPolicy':{canAccessRolePage:()=>true},
       '../../../../components/Auth/customFetch':{currencyFormatter,reactSelectCustomStyles:{}},
+      '../../../../components/accounting/ReportShell.module.css':{__esModule:true,default:{}},
       '../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable':{__esModule:true,default:()=>null},
       'react-select':{__esModule:true,default:()=>null},
       './AccountingWorkspace.module.css':{__esModule:true,default:{workspace:'workspace',navigation:'navigation'}},
@@ -1050,13 +1085,14 @@ test('all 19 accounting destinations render actual workflow sections without for
   for(const [section]of lib.accountingDestinations){
     const element=fixture.workspace.default({section}),html=renderToStaticMarkup(element);
     const document=new JSDOM(html).window.document;
-    assert.equal(document.querySelectorAll('nav[aria-label="Pharmacy accounting"] a').length,19,section);
+    assert.equal(document.querySelectorAll('nav[aria-label="Pharmacy accounting"]').length,0,`${section}: must reuse the feature sidebar, not duplicate 19 links`);
+    assert.equal(document.querySelectorAll('h1').length,1,section);
     assert.equal(document.querySelector('.badge,[class*="rounded-pill"]'),null,section);
     for(const form of document.querySelectorAll('form')){
       forms++;assert.equal(form.closest('.card,.prime-table-decorative'),null,`${section}: form is boxed`);
     }
-    for(const card of document.querySelectorAll('.card')){
-      assert.ok(card.querySelector('.card-body > h3'),`${section}: non-summary card`);
+    for(const card of document.querySelectorAll('.summary-card')){
+      assert.ok(card.querySelector('dd.summary-value'),`${section}: non-summary card`);
       assert.equal(card.querySelector('form,input,select,button'),null,section);
     }
   }
@@ -1071,6 +1107,56 @@ test('failed overview and legacy immediate forms do not show invented metrics or
   const document=new JSDOM(renderToStaticMarkup(legacy)).window.document;
   for(const form of document.querySelectorAll('form'))assert.equal(form.closest('.card'),null);
   assert.ok(document.querySelector('fieldset[disabled]'));
+});
+test('accounting overview follows the Payroll dashboard pattern without duplicating the sidebar, and register exports stay outside the filter form',()=>{
+  const {JSDOM}=require('jsdom'),fixture=accountingUiFixture();
+  const overview=new JSDOM(renderToStaticMarkup(fixture.workspace.default({section:''}))).window.document;
+  assert.equal(overview.querySelector('[aria-labelledby="accounting-tasks"]'),null,'the full destination directory belongs to the sidebar');
+  const tools=overview.querySelector('nav[aria-label="Accounting tools"]');
+  assert.ok(tools);
+  assert.equal(tools.querySelectorAll('a').length,6);
+  assert.ok(tools.querySelectorAll('a').length<lib.accountingDestinations.length);
+  assert.ok(overview.querySelector('[aria-labelledby="accounting-cycle"] ol'));
+  assert.equal(overview.querySelector('h1').textContent,'Accounting overview');
+  assert.ok(overview.querySelector('nav[aria-label="Breadcrumb"]'));
+  assert.equal(overview.querySelector('.bg-gradient,.text-white'),null);
+  assert.ok([...overview.querySelectorAll('header a')].some(a=>a.textContent==='Review journals'));
+  const ledger=new JSDOM(renderToStaticMarkup(fixture.workspace.default({section:'general-ledger'}))).window.document;
+  assert.equal(ledger.querySelectorAll('h1').length,1);
+  assert.equal(ledger.querySelector('h1').textContent,'General ledger');
+  const exportControl=[...ledger.querySelectorAll('summary')].find(e=>e.textContent==='Export all filtered records');
+  assert.ok(exportControl);assert.equal(exportControl.closest('form'),null);
+  const filterForm=[...ledger.forms].find(form=>form.textContent.includes('Apply filters'));
+  assert.ok(filterForm);assert.equal(filterForm.querySelector('details'),null);
+  assert.equal(filterForm.getAttribute('aria-label'),'Report filters');
+  const payables=new JSDOM(renderToStaticMarkup(fixture.workspace.default({section:'payables'}))).window.document;
+  assert.equal(payables.querySelectorAll('nav[aria-label="Payables views"] button').length,5);
+  assert.equal(payables.querySelector('nav[aria-label="Payables views"] button[aria-pressed="true"]').textContent,'Supplier bills');
+  assert.equal(payables.querySelectorAll('form[aria-label="Report filters"]').length,0,'do not show an Apply button when there are no supported filters');
+  assert.equal(payables.querySelectorAll('[data-accounting-export]').length,1,'do not stack every workflow register on first load');
+  const table=new JSDOM(renderToStaticMarkup(React.createElement(common.DataTable,{rows:[{account:'cash',debit:'10.00'}]}))).window.document;
+  assert.ok(table.querySelector('[data-accounting-table="true"].lab-accounting-table'));
+});
+test('workflow views mount on first visit, preserve visited forms, and show only the selected workflow',()=>{
+  const {JSDOM}=require('jsdom'),state=[];let cursor=0;
+  const ui=compile('app/pharmacy/accounting/components/common.tsx',{...commonImports,react:{...React,useState:initial=>{
+    const index=cursor++;if(!(index in state))state[index]=initial;
+    return [state[index],next=>{state[index]=typeof next==='function'?next(state[index]):next;}];
+  }}});
+  const props={label:'Review workflows',views:[
+    {id:'bills',title:'Bills',content:React.createElement('p',null,'Bill register')},
+    {id:'settlements',title:'Settlements',content:React.createElement('form',null,React.createElement('input',{name:'reason',defaultValue:'Unsaved review'}))},
+  ]};
+  const render=()=>{cursor=0;return ui.WorkflowViews(props);};
+  let tree=render(),document=new JSDOM(renderToStaticMarkup(tree)).window.document;
+  assert.equal(document.querySelector('form'),null,'unvisited workflows are not mounted');
+  findElement(tree,element=>element.type==='button'&&element.props.children==='Settlements').props.onClick();
+  tree=render();document=new JSDOM(renderToStaticMarkup(tree)).window.document;
+  assert.ok(document.querySelector('section[aria-label="Bills"][hidden]'));
+  assert.ok(document.querySelector('section[aria-label="Settlements"]:not([hidden]) form'));
+  findElement(tree,element=>element.type==='button'&&element.props.children==='Bills').props.onClick();
+  tree=render();document=new JSDOM(renderToStaticMarkup(tree)).window.document;
+  assert.ok(document.querySelector('section[aria-label="Settlements"][hidden] form'),'visited drafts stay mounted when changing workflow');
 });
 test('all 19 failed accounting retrievals remain errors rather than success-shaped empty financial registers',()=>{
   const fixture=accountingUiFixture({failure:'Synthetic branch service unavailable'});

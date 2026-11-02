@@ -50,6 +50,7 @@ export function canAccessRolePage(role:unknown,value:string,settings:NavigationS
  if(key==='storekeeper')return within(p,'/inventory');
  if(key==='accountant')return ['/human-resource/payroll','/accounting','/billing/expenses','/billing/insurance','/billing/cash-collection','/billing/receipts','/billing/organization-invoices','/billing/sales','/billing/billing-sessions','/inventory/analytics','/commission-payments','/sales'].some(root=>within(p,root))||['/organization','/clinicians','/crm/pricelist'].includes(p);
  if(key==='manager')return ['/communications/sms','/crm','/billing','/operations','/inventory','/appointments','/organization','/clinicians','/doctor','/compliance','/settings/applicationsettings/testpanels','/settings/applicationsettings/patient-portal','/settings/outsource'].some(root=>within(p,root));
+ if(p==='/pharmacy/guide')return ['pharmacymanager','pharmacystorekeeper','pharmacyaccountant','pharmacist','pharmacycashier','pharmacydispensaryofficer'].includes(key);
  if(key==='pharmacymanager')return within(p,'/pharmacy');
  if(key==='pharmacystorekeeper')return ['/pharmacy/inventory','/pharmacy/stock','/pharmacy/stock-control','/pharmacy/catalogue','/pharmacy/analytics'].some(root=>within(p,root))||p==='/pharmacy';
  if(key==='pharmacyaccountant')return ['/pharmacy/counter','/pharmacy/collections','/pharmacy/cashier','/pharmacy/finance','/pharmacy/accounting','/pharmacy/accounts','/pharmacy/analytics','/pharmacy/nhis','/pharmacy/sales-history','/pharmacy/stock','/pharmacy/catalogue'].some(root=>within(p,root))||p==='/pharmacy';

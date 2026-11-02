@@ -5,7 +5,7 @@ import { accountingReference, record, rowsOf, text, type Accounts, type RecordDa
 import { usePharmacyAccess } from '../../components/PharmacyWorkspace';
 import { useMutation, useResource } from './api';
 import { LocalAccountSelect } from './Configuration';
-import { DataTable, Facts, Feedback, Field, money, Money, ReferenceText, ResourceState, styles, WorkflowLinks } from './common';
+import { DataTable, Facts, Feedback, Field, money, Money, ReferenceText, ResourceState, styles, WorkflowLinks, WorkflowViews } from './common';
 import { Register } from './Registers';
 import { downloadAccountingExport } from './exports';
 import SupplierAllocations from './SupplierAllocations';
@@ -116,26 +116,26 @@ export function AdjustmentForm({ invoices, accounts, refresh }: { invoices: Reco
 export function Receivables() {
   const [version,setVersion]=useState(0), invoices=useResource<RecordData>(`receivables/aging?asOf=${today()}&refresh=${version}`), accounts=useResource<Accounts>('accounts');
   const refresh=()=>{setVersion(v=>v+1);invoices.refresh();};
-  return <><section className={styles.section}><h2>Customer collections</h2><WorkflowLinks/><p className="mt-3">Cash collections remain in the existing invoice payment workflow. Credits and write-offs use separately approved adjustments below.</p></section>
-    <Register endpoint="receivables" key={`register-${version}`}/>
-    <ResourceState {...invoices} retry={invoices.refresh}/><ResourceState {...accounts} retry={accounts.refresh}/>
-    {invoices.data&&accounts.data&&<details className="mb-3 d-print-none"><summary className="btn btn-primary">New invoice credit / write-off</summary><div className="mt-3"><AdjustmentForm invoices={rowsOf(invoices.data)} accounts={accounts.data} refresh={refresh}/></div></details>}
-    <h2 className="h5">Invoice adjustments</h2><Register endpoint="receivables/adjustments" key={`adjustments-${version}`} actions={(row,reload)=><><ControlledActions row={row} kind="adjustment" refresh={()=>{reload();refresh();}}/><ReversalRequest row={row} kind="adjustment" refresh={()=>{reload();refresh();}}/></>}/>
-    <h2 className="h5">Reviewed invoice-adjustment reversals</h2><p>Restore the exact original gross, tax and account evidence. Actual customer cash paid is unchanged.</p>
-    <Register endpoint="receivables/adjustment-reversals" key={`reversals-${version}`} actions={(row,reload)=><ReversalActions row={row} kind="adjustment" refresh={()=>{reload();refresh();}}/>}/><Aging kind="receivables" version={version}/>
-  </>;
+  return <WorkflowViews label="Receivables views" views={[
+    {id:'invoices',title:'Customer invoices',content:<><Register endpoint="receivables" key={`register-${version}`}/><section className={styles.section}><h2>Customer collections</h2><p>Collect invoice payments in the existing customer account workflow.</p><WorkflowLinks/></section></>},
+    {id:'adjustments',title:'Credits & write-offs',content:<><ResourceState {...invoices} retry={invoices.refresh}/><ResourceState {...accounts} retry={accounts.refresh}/>
+      {invoices.data&&accounts.data&&<details className="mb-3 d-print-none"><summary className="btn btn-primary">New invoice credit / write-off</summary><div className="mt-3"><AdjustmentForm invoices={rowsOf(invoices.data)} accounts={accounts.data} refresh={refresh}/></div></details>}
+      <Register endpoint="receivables/adjustments" key={`adjustments-${version}`} actions={(row,reload)=><><ControlledActions row={row} kind="adjustment" refresh={()=>{reload();refresh();}}/><ReversalRequest row={row} kind="adjustment" refresh={()=>{reload();refresh();}}/></>}/></>},
+    {id:'reversals',title:'Reversals',content:<><p className={styles.muted}>Restore original invoice allocations after independent approval. Customer cash paid is unchanged.</p><Register endpoint="receivables/adjustment-reversals" key={`reversals-${version}`} actions={(row,reload)=><ReversalActions row={row} kind="adjustment" refresh={()=>{reload();refresh();}}/>}/></>},
+    {id:'aging',title:'Aging',content:<Aging kind="receivables" version={version}/>},
+  ]}/>;
 }
 export function Payables() {
   const [version,setVersion]=useState(0), bills=useResource<RecordData>(`payables/bills?asOf=${today()}&refresh=${version}`);
   const refresh=()=>{setVersion(v=>v+1);bills.refresh();};
-  return <><p>Supplier balances remain in <Link href="/pharmacy/accounting/suppliers">Supplier statements</Link>. Register posted receipt bills, then approve and pay explicit allocations.</p>
-    <Register endpoint="payables" key={`register-${version}`}/>
-    <details className="mb-3 d-print-none"><summary>Register an existing posted receipt as a supplier bill</summary><div className="mt-3"><BillRegistration refresh={refresh}/></div></details>
-    <ResourceState {...bills} retry={bills.refresh}/>
-    {bills.data&&<details className="mb-3 d-print-none"><summary className="btn btn-primary">New allocated supplier settlement</summary><div className="mt-3"><SettlementForm bills={rowsOf(bills.data)} refresh={refresh}/></div></details>}
-    <h2 className="h5">Supplier settlements</h2><Register endpoint="payables/settlements" key={`settlements-${version}`} actions={(row,reload)=><><ControlledActions row={row} kind="settlement" refresh={()=>{reload();refresh();}}/><ReversalRequest row={row} kind="settlement" refresh={()=>{reload();refresh();}}/></>}/>
-    <h2 className="h5">Reviewed supplier-settlement reversals</h2><p>Exact negative allocations reopen original bills only after approval and confirmation that funds were returned or cancelled.</p>
-    <Register endpoint="payables/settlement-reversals" key={`reversals-${version}`} actions={(row,reload)=><ReversalActions row={row} kind="settlement" refresh={()=>{reload();refresh();}}/>}/><Aging kind="payables" version={version}/>
-    <SupplierAllocations refresh={refresh} actions={(row,kind,reload)=><ControlledActions row={row} kind={kind} refresh={reload}/>}/>
-  </>;
+  return <WorkflowViews label="Payables views" views={[
+    {id:'bills',title:'Supplier bills',content:<><div className={`${styles.actions} mb-3 d-print-none`}><Link href="/pharmacy/accounting/suppliers">Supplier statements</Link></div>
+      <details className="mb-3 d-print-none"><summary className="btn btn-outline-primary">Register posted receipt bill</summary><div className="mt-3"><BillRegistration refresh={refresh}/></div></details><Register endpoint="payables" key={`register-${version}`}/></>},
+    {id:'settlements',title:'Settlements',content:<><ResourceState {...bills} retry={bills.refresh}/>
+      {bills.data&&<details className="mb-3 d-print-none"><summary className="btn btn-primary">New allocated supplier settlement</summary><div className="mt-3"><SettlementForm bills={rowsOf(bills.data)} refresh={refresh}/></div></details>}
+      <Register endpoint="payables/settlements" key={`settlements-${version}`} actions={(row,reload)=><><ControlledActions row={row} kind="settlement" refresh={()=>{reload();refresh();}}/><ReversalRequest row={row} kind="settlement" refresh={()=>{reload();refresh();}}/></>}/></>},
+    {id:'applications',title:'Existing payments & credits',content:<SupplierAllocations refresh={refresh} actions={(row,kind,reload)=><ControlledActions row={row} kind={kind} refresh={reload}/>}/>},
+    {id:'reversals',title:'Reversals',content:<><p className={styles.muted}>Reopen original bills only after approval and confirmation that funds were returned or cancelled.</p><Register endpoint="payables/settlement-reversals" key={`reversals-${version}`} actions={(row,reload)=><ReversalActions row={row} kind="settlement" refresh={()=>{reload();refresh();}}/>}/></>},
+    {id:'aging',title:'Aging',content:<Aging kind="payables" version={version}/>},
+  ]}/>;
 }

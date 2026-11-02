@@ -7,7 +7,7 @@ const compiled = require('next/dist/compiled/webpack/webpack');
 const root = path.resolve(__dirname, '../../..');
 const output = fs.mkdtempSync(path.join(os.tmpdir(), 'pls-accounting-browser-'));
 const alias = Object.fromEntries([
-  [path.join(root, 'components/Auth/customFetch'), path.join(__dirname, 'api.ts')],
+  [path.join(root, 'components/Auth/customFetch') + '$', path.join(__dirname, 'api.ts')],
   [path.join(root, 'components/Auth/useApplicationContext'), path.join(__dirname, 'context.tsx')],
   [path.join(root, 'components/serverActions/requestHeaders'), path.join(__dirname, 'context.tsx')],
   ['next/link', path.join(__dirname, 'context.tsx')],
@@ -49,6 +49,6 @@ compiler.run((error, stats) => {
       fs.createReadStream(file).pipe(response); return;
     }
     response.setHeader('Content-Type', 'text/html');
-    response.end(`<!doctype html><html lang="en" data-bs-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Isolated Pharmacy Accounting verification</title><link rel="stylesheet" href="/assets/node_modules/bootstrap/dist/css/bootstrap.min.css"><link rel="stylesheet" href="/assets/styles/globals.css"></head><body><div id="root"></div><script src="/bundle/harness.js"></script></body></html>`);
+    response.end(`<!doctype html><html lang="en" data-bs-theme="light" style="--font-segoe:'Segoe UI',Tahoma,sans-serif;--theme-font-family:var(--font-segoe)"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Isolated Pharmacy Accounting verification</title><link rel="stylesheet" href="/assets/node_modules/bootstrap/dist/css/bootstrap.min.css"><link rel="stylesheet" href="/assets/styles/globals.css"></head><body><div id="root"></div><script src="/bundle/harness.js"></script></body></html>`);
   }).listen(0, '127.0.0.1', () => console.log(JSON.stringify({ url: `http://127.0.0.1:${server.address().port}`, output, pid: process.pid })));
 });

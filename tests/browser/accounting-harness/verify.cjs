@@ -13,6 +13,8 @@ const destinations = ['', 'chart-of-accounts', 'general-ledger', 'journals', 're
 let ws, session, sequence = 0;
 const pending = new Map(), errors = [], reports = [];
 const diagnostics = { blockedExternal: [] };
+const screenshots = process.env.ACCOUNTING_SCREENSHOTS;
+if (screenshots) fs.mkdirSync(screenshots, {recursive:true});
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 function send(method, params = {}, sessionId = session) {
   const id = ++sequence;
@@ -41,7 +43,10 @@ const inspect = `(() => {
  const name=e=>e.getAttribute('aria-label')||e.getAttribute('title')||(e.labels&&[...e.labels].map(l=>l.textContent.trim()).join(' '))||(e.getAttribute('aria-labelledby')||'').split(' ').map(id=>document.getElementById(id)?.textContent||'').join(' ').trim()||(e.tagName==='BUTTON'?e.textContent.trim():'');
  const fields=[...document.querySelectorAll('input,select,textarea,button')].filter(e=>visible(e)&&e.type!=='hidden'&&!e.disabled);
  const badForms=[...document.forms].flatMap(f=>{let p=f.parentElement;const bad=[];while(p&&p!==document.body){const s=getComputedStyle(p);if((p.className||'').toString().match(/(?:^|\\s)(?:card|panel)(?:\\s|$)/)||parseFloat(s.borderRadius)>2&&(parseFloat(s.borderTopWidth)>0||s.boxShadow!=='none'))bad.push(p.className);p=p.parentElement;}return bad;});
+ const tables=[...document.querySelectorAll('[data-accounting-table=true]')].filter(visible);
  return {title:document.querySelector('h1')?.textContent,nav:document.querySelectorAll('nav[aria-label="Pharmacy accounting"] a').length,
+ tableFrames:tables.map(e=>{const s=getComputedStyle(e.firstElementChild);return {border:parseFloat(s.borderTopWidth),radius:parseFloat(s.borderRadius)};}),
+ squeezed:[...document.querySelectorAll('form table input:not([type=checkbox]),form table select')].filter(visible).filter(e=>e.getBoundingClientRect().width<(e.tagName==='SELECT'?160:90)).map(e=>name(e)),
  bodyWidth:document.documentElement.clientWidth,scrollWidth:document.documentElement.scrollWidth,
  overflow:[...document.querySelectorAll('input,select,textarea,fieldset,form,section,nav')].filter(visible).filter(e=>{const r=e.getBoundingClientRect();return !clipped(e)&&(r.right>innerWidth+2||r.left< -2)}).map(e=>({tag:e.tagName,text:e.textContent?.slice(0,55),width:e.getBoundingClientRect().width})),
  unlabeled:fields.filter(e=>!name(e)).map(e=>({tag:e.tagName,type:e.type,html:e.outerHTML.slice(0,220)})),
@@ -81,7 +86,7 @@ const inspect = `(() => {
       await load(section);
       await evaluate(`document.documentElement.dataset.bsTheme=${JSON.stringify(theme)};document.documentElement.dataset.theme=${JSON.stringify(theme)};document.documentElement.classList.toggle('dark',${theme === 'dark'})`);
       // Exercise progressive financial forms too, not only their collapsed summaries.
-      await evaluate(`document.querySelectorAll('details').forEach(e=>e.open=true)`);
+      await evaluate(`document.querySelectorAll('details:not([data-accounting-export])').forEach(e=>e.open=true)`);
       await wait(40);
       await evaluate(`(() => {const visible=e=>e.getClientRects().length&&!e.disabled&&!e.closest('[aria-hidden=true]');const controls=[...document.querySelectorAll('button,input,select,textarea,summary,a[href],[tabindex="0"]')].filter(visible);(controls.find(e=>!e.closest('header,nav'))||controls[0])?.focus();})()`);
       await send('Input.dispatchKeyEvent', {type:'keyDown',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});
@@ -89,6 +94,38 @@ const inspect = `(() => {
       assert.ok(await evaluate(`document.activeElement!==document.body`),`Keyboard reaches a control on ${section||'overview'} / ${width} / ${theme}`);
       const report = { section: section || 'overview', width, theme, ...await evaluate(inspect) };
       reports.push(report);
+      assert.ok(await evaluate(`getComputedStyle(document.querySelector('h1')).fontFamily.includes('Segoe UI')`),'Use the configured application font');
+      assert.ok(report.tableFrames.every(frame=>frame.border===0&&frame.radius===0),`Lab Accounting flat table presentation: ${section}/${width}/${theme}`);
+      if (!section) {
+        const summary = await evaluate(`(() => {const e=document.querySelector('dl[aria-label="Accounting summary"]');return {metrics:e?.children.length,colour:e&&getComputedStyle(e).color,gradients:e&&[...e.querySelectorAll('*')].some(child=>getComputedStyle(child).backgroundImage!=='none')};})()`);
+        assert.equal(summary.metrics,4);assert.equal(summary.gradients,false,'Neutral Payroll summary, not coloured Billing cards');
+      }
+      if (section==='statements') {
+        const summary=await evaluate(`(() => {const groups=[...document.querySelectorAll('section[aria-label$=" summary"]')];const cards=groups.flatMap(e=>[...e.querySelectorAll('dl > div')]);const expense=cards.find(e=>e.querySelector('dt')?.textContent==='Operating expenses');return {groups:groups.length,cards:cards.length,expense:expense?.querySelector('dd')?.textContent,bordered:groups.every(e=>parseFloat(getComputedStyle(e.querySelector('dl')).borderTopWidth)>0),amountsFit:cards.every(e=>{const value=e.querySelector('dd'),range=document.createRange();range.selectNodeContents(value);return value.scrollWidth<=value.clientWidth&&range.getClientRects().length===1}),expensesLink:document.querySelector('a[href="/pharmacy/accounting/expenses"]')?.textContent};})()`);
+        assert.equal(summary.groups,3);assert.equal(summary.cards,14);assert.ok(summary.bordered);assert.ok(summary.amountsFit,'Large monetary values must fit without breaking across lines');assert.match(summary.expense,/200[.]00/);assert.equal(summary.expensesLink,'Review expenses');
+      }
+      if (section==='journals') {
+        await evaluate(`document.activeElement?.blur()`);
+        await wait(300);
+        const colours = await evaluate(`(() => {const e=document.querySelector('summary.btn-primary'),probe=document.createElement('span');probe.style.color='var(--theme-accent,var(--pls-primary,var(--bs-primary)))';e.append(probe);const value={actual:getComputedStyle(e).backgroundColor,expected:getComputedStyle(probe).color};probe.remove();return value;})()`);
+        assert.equal(colours.actual,colours.expected,'Primary actions use the PLS theme, not Bootstrap blue');
+      }
+      if (screenshots && ['','general-ledger','journals','payables','statements'].includes(section)) {
+        await evaluate(`document.activeElement?.blur();window.scrollTo(0,0)`);
+        const shot=await send('Page.captureScreenshot',{format:'png'});
+        fs.writeFileSync(path.join(screenshots,`${section||'overview'}-${width}-${theme}.png`),Buffer.from(shot.data,'base64'));
+      }
+      const choices = await evaluate(`[...document.querySelectorAll('nav[aria-label$=" views"] button')].map(e=>e.textContent)`);
+      for (const choice of choices.slice(1)) {
+        await evaluate(`[...document.querySelectorAll('nav[aria-label$=" views"] button')].find(e=>e.textContent===${JSON.stringify(choice)}).click()`);
+        await wait(120);
+        await evaluate(`document.querySelectorAll('details:not([data-accounting-export])').forEach(e=>e.open=true)`);
+        await wait(120);
+        const viewReport={section:section+':'+choice,width,theme,...await evaluate(inspect)};
+        reports.push(viewReport);
+        assert.equal(await evaluate(`document.querySelectorAll('nav[aria-label$=" views"] button[aria-pressed=true]').length`),1);
+        assert.ok(viewReport.tableFrames.every(frame=>frame.border===0&&frame.radius===0));
+      }
       console.log(JSON.stringify({ section: report.section, width, theme, overflow: report.overflow.length, labels: report.unlabeled.length, formAncestors: report.badForms.length, background: report.background }));
       if (section === 'general-ledger') {
         const screenshot = Buffer.from((await send('Page.captureScreenshot', { format: 'png' })).data,'base64');
@@ -156,6 +193,8 @@ const inspect = `(() => {
   assert.equal(Number(diagnostics.expenseRequest.body.amount),25);
   assert.equal(diagnostics.expenseRequest.body.supplierId,'supplier-exact-1');
   await load('payables');
+  await evaluate(`[...document.querySelectorAll('nav[aria-label="Payables views"] button')].find(e=>e.textContent==='Existing payments & credits').click()`);
+  await wait(80);
   await evaluate(`[...document.querySelectorAll('details')].find(e=>e.querySelector('summary')?.textContent.startsWith('Apply existing supplier')).open=true`);
   await wait(120);
   await evaluate(`document.querySelector('#accounting-supplier').focus()`);
@@ -168,6 +207,11 @@ const inspect = `(() => {
   await setField('select[name=billId-1]','original-bill-exact');
   await setField('input[name=allocationAmount-1]','10.00');
   await setField('form:has(select[name=sourceId]) textarea[name=reason]','Reviewed synthetic source attribution');
+  await evaluate(`[...document.querySelectorAll('nav[aria-label="Payables views"] button')].find(e=>e.textContent==='Supplier bills').click()`);
+  await wait(40);
+  assert.equal(await evaluate(`document.querySelector('form:has(select[name=sourceId]) textarea[name=reason]').value`),'Reviewed synthetic source attribution','Switching views preserves the draft');
+  await evaluate(`[...document.querySelectorAll('nav[aria-label="Payables views"] button')].find(e=>e.textContent==='Existing payments & credits').click()`);
+  await wait(40);
   await evaluate(`document.querySelector('select[name=sourceId]').form.requestSubmit()`);
   await wait(100);
   diagnostics.supplierApplication = await evaluate(`window.__mutations?.[0]`);
@@ -182,6 +226,8 @@ const inspect = `(() => {
   assert.equal(financialReview.badForms.length,0);
   assert.equal(financialReview.unlabeled.length,0);
   await load('payables');
+  await evaluate(`[...document.querySelectorAll('nav[aria-label="Payables views"] button')].find(e=>e.textContent==='Reversals').click()`);
+  await wait(120);
   await evaluate(`[...document.querySelectorAll('tr')].find(e=>e.textContent.includes('Voided synthetic reversal')).querySelector('button').click()`);
   await wait(100);
   await evaluate(`[...document.querySelectorAll('details')].find(e=>e.querySelector('summary')?.textContent==='Replace this voided reversal intent').open=true`);
@@ -207,7 +253,7 @@ const inspect = `(() => {
   await load('general-ledger', '?failure=1');
   diagnostics.failure = await evaluate(`({error:document.body.innerText.includes('Synthetic service unavailable'),tables:document.querySelectorAll('table').length})`);
   assert.deepEqual(diagnostics.failure, { error: true, tables: 0 });
-  const issues = reports.filter(r => r.unlabeled.length || r.badForms.length || r.overflow.length || r.scrollWidth > r.bodyWidth + 2 || r.nav !== 19 || r.alerts.some(message=>!(r.section==='inventory'&&message.startsWith('Inventory is not reconciled.'))));
+  const issues = reports.filter(r => r.unlabeled.length || r.badForms.length || r.squeezed.length || r.overflow.length || r.scrollWidth > r.bodyWidth + 2 || r.nav !== 0 || r.alerts.some(message=>!(r.section==='inventory'&&message.startsWith('Inventory is not reconciled.'))));
   assert.notEqual(reports.find(r=>r.theme==='light').background,reports.find(r=>r.theme==='dark').background,'Both real theme styles are exercised');
   console.log('BROWSER_SUMMARY', JSON.stringify({ cases: reports.length, issues, errors, diagnostics }));
   assert.equal(errors.length, 0, 'No browser runtime exceptions');
