@@ -186,7 +186,7 @@ test('global page help selects exact authorized guides and does not duplicate ac
     }).default;
     return renderToStaticMarkup(React.createElement(component));
   }
-  assert.match(help('/pharmacy/finance','pharmacy_accountant'),/href="\/pharmacy\/guide\/pharmacy-finances"/);
+  assert.match(help('/pharmacy/finance','pharmacy_accountant'),/href="\/pharmacy\/guide\/close-day"/);
   assert.match(help('/pharmacy/inventory/purchase-requests','pharmacy_manager'),/href="\/pharmacy\/guide\/approve-request"/);
   for(const [path,role]of [['/pharmacy/finance','pharmacy_cashier'],['/pharmacy/guide','pharmacy_manager'],['/pharmacy/accounting/expenses/exact-id','pharmacy_manager'],['/pharmacy/not-real','pharmacy_manager']]){
     assert.equal(help(path,role),'',path+' '+role);

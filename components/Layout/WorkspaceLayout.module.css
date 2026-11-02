@@ -826,18 +826,27 @@
     --theme-header-bg: #1a1d21;
     --theme-header-text: #f8f8f8;
     --theme-header-border: #35373b;
-    --workspace-sidebar-bg: #3f1240;
-    --workspace-border: #59305a;
-    --workspace-text: #f8f4f8;
-    --workspace-muted: #d4bfd5;
-    --workspace-hover: rgb(249 237 255 / 12%);
-    --workspace-selected: #f9edff;
-    --workspace-selected-text: #3f0e40;
+    --workspace-sidebar-bg: #19171d;
+    --workspace-border: #2c2d30;
+    --workspace-text: #d1d2d3;
+    --workspace-muted: #9a9b9e;
+    --workspace-hover: rgb(255 255 255 / 6%);
+    --workspace-selected: #1164a3;
+    --workspace-selected-text: #ffffff;
     --workspace-content-bg: #1a1d21;
 }
 
 :global(html[data-bs-theme="dark"]) .slackLayout .headerBrand {
     border-right-color: #35373b;
+}
+
+:global(html[data-bs-theme="dark"]) .slackLayout .navigation {
+    scrollbar-color: #4a4b4f transparent;
+}
+
+:global(html[data-bs-theme="dark"]) .slackLayout .slackBrandMark {
+    border-color: rgb(255 255 255 / 30%);
+    color: var(--workspace-text);
 }
 
 .shell.portalLayout,
