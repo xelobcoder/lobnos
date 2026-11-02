@@ -47,3 +47,75 @@ test('inventory, stock and catalogue pages share the same task-based workspace',
  const source=fs.readFileSync(path.join(__dirname,'..','app','pharmacy','components','PharmacyInventoryWorkspace.tsx'),'utf8');
  assert.doesNotMatch(source,/<details/);assert.match(source,/Received deliveries/);assert.match(source,/Purchase orders/);assert.match(source,/Search medicine name or SKU/);
 });
+
+function financeHandover({shifts,previous=true,manager=true,administrator=false,employeeid=1,busy=false}){
+ let index=0;
+ const localHooks={...hooks,useState:initial=>[index++===0?'days':index===4?busy:initial,()=>{}]};
+ const days=previous?[{id:'day',financial_date:'2026-10-26',status:'open',opened_at:'2026-10-26T08:00:00Z'}]:[];
+ const data={days,shifts};
+ const resource=endpoint=>({data:endpoint.endsWith('reports')?data:endpoint.endsWith('suppliers')?[]:{financialDate:'2026-10-27',day:{status:'open'}},loading:false,error:'',refresh:async()=>{}});
+ const module=compile('app/pharmacy/finance/page.tsx',{
+  react:localHooks,
+  '../components/ShiftHandoverForm':{__esModule:true,default:()=>null},
+  '../components/PharmacyPaymentFields':{usePharmacyDocument:()=>({pending:null})},
+  '../components/PharmacyWorkspace':{...shared,styles,usePharmacyAccess:()=>({finance:true,manager,administrator,app:{user:{employeeid}}}),usePharmacyResource:resource,FinancialDayPanel:()=>null,Message:()=>null,Tabs:()=>null}
+ });
+ return renderToStaticMarkup(React.createElement(module.default));
+}
+const closedHandovers=[
+ {id:'one',cashier_id:1,financial_date:'2026-10-24',closed_at:'2026-10-24T18:00:00Z',counted_cash:3000,variance:0,opening_float:0},
+ {id:'two',cashier_id:1,financial_date:'2026-10-24',closed_at:'2026-10-24T19:00:00Z',counted_cash:15,variance:-1395,opening_float:0},
+ {id:'three',cashier_id:1,financial_date:'2026-10-26',closed_at:'2026-10-26T18:00:00Z',counted_cash:2600,variance:0,opening_float:0},
+ {id:'four',cashier_id:1,financial_date:'2026-10-26',closed_at:'2026-10-26T19:00:00Z',counted_cash:2002600,variance:0,opening_float:0}
+];
+test('previous-day handovers render one table with every count, date, variance and self-review restriction',()=>{
+ const html=financeHandover({shifts:closedHandovers});
+ const section=html.split('id="financial-days-workflow"')[1].split('</section>')[0];
+ assert.match(section,/Finish 26 Oct 2026/);
+ assert.match(section,/0 remaining/);assert.match(section,/4 awaiting review/);
+ assert.equal((section.match(/<tbody><tr/g)||[]).length,1);
+ assert.equal((section.match(/<td>Staff #1<\/td>/g)||[]).length,4);
+ for(const heading of ['Staff','Financial date','Counted cash','Difference','Status / action'])assert.ok(section.includes(heading));
+ for(const amount of ['3,000.00','15.00','2,600.00','2,002,600.00'])assert.ok(section.includes(amount),amount);
+ assert.match(section,/<td class="number">-GH\u20b51,395\.00<\/td>/);
+ assert.equal((section.match(/Awaiting another manager&#x27;s review\./g)||[]).length,4);
+ assert.doesNotMatch(section,/<article|>Review handover<\/button>/);
+ assert.match(section,/table-responsive/);
+ assert.match(html,/disabled=""[^>]*>Close previous financial day/);
+});
+test('handover table preserves authorized review and active-shift close actions',()=>{
+ const html=financeHandover({shifts:[closedHandovers[0],{id:'open',cashier_id:4,financial_date:'2026-10-26',opening_float:50}],employeeid:3,busy:true});
+ assert.match(html,/disabled=""[^>]*>Review handover/);
+ assert.match(html,/disabled=""[^>]*>Close with cash count/);
+ assert.match(html,/<td class="number">--<\/td>/);
+ const accountant=financeHandover({shifts:[closedHandovers[0],{id:'open',cashier_id:4,financial_date:'2026-10-26',opening_float:50}],manager:false});
+ assert.doesNotMatch(accountant,/>Review handover<\/button>|>Close with cash count<\/button>/);
+ assert.match(accountant,/Ask the cashier to close their shift/);
+});
+test('all-shift view shows reviewed rows while completed previous-day workflow remains clear',()=>{
+ const html=financeHandover({shifts:[{...closedHandovers[0],reviewed_by:3}],previous:false});
+ assert.match(html,/>Reviewed<\/span>/);
+ const complete=financeHandover({shifts:[{...closedHandovers[0],reviewed_by:3}]});
+ assert.match(complete,/All cashier shifts for this day have been closed and reviewed/);
+ assert.doesNotMatch(complete,/No cashier shifts opened yet/);
+ assert.doesNotMatch(complete,/disabled=""[^>]*>Close previous financial day/);
+});
+test('organisation admin can open their own handover review but must still review every blocker',()=>{
+ const html=financeHandover({shifts:closedHandovers,administrator:true});
+ assert.equal((html.match(/>Admin review handover<\/button>/g)||[]).length,4);
+ assert.doesNotMatch(html,/Awaiting another manager/);
+ assert.match(html,/disabled=""[^>]*>Close previous financial day/);
+});
+test('administrator self-review form requires a reason and acknowledgement without hiding discrepancies',()=>{
+ const form=compile('app/pharmacy/components/ShiftHandoverForm.tsx',{
+  react:hooks,
+  './PharmacyWorkspace':{...shared,styles,usePharmacyResource:()=>({data:{cashierId:1,financialDate:'2026-10-26',closed:true,reviewed:false,countedCash:15,variance:-1395,expectedCash:1410,currentExpectedCash:1410},loading:false,error:''})}
+ }).default;
+ const html=renderToStaticMarkup(React.createElement(form,{shift:{id:'shift'},review:true,adminSelfReview:true,busy:false,onConfirm:async()=>{},onCancel(){}}));
+ assert.match(html,/Administrator self-review/);assert.match(html,/Administrator review reason/);
+ assert.match(html,/minLength="10"/);
+ assert.match(html,/type="checkbox"[^>]*required=""/);
+ assert.match(html,/disabled=""[^>]*>Confirm handover review/);
+ assert.match(html,/-GH\u20b51,395\.00/);
+ assert.match(html,/financial-day audit history/);
+});

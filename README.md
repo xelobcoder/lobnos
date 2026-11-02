@@ -21,6 +21,54 @@ Focused regressions:
 node --test tests\device-session-redirect.test.cjs tests\auth-login.test.cjs tests\auth-context.test.cjs tests\login-redirect.test.cjs tests\proxy-cache.test.cjs
 ```
 
+## Pharmacy financial-day handovers
+
+### Medication collection
+
+Medicine **View / manage** saves both the checked and unchecked prescription
+and batch-tracking values. Clearing **Prescription required** makes an ordinary
+medicine available for counter sale; controlled medicines retain their mandatory
+prescription rule.
+
+With **Separate cashier** checkout enabled, generate each customer's counter
+invoice in POS, then continue the next sale. Customers pay against that invoice
+at the cashier. Use **Uncollected invoices** (`/pharmacy/collections`) to review
+the branch's paginated pickup queue; it defaults to paid invoices and can include
+invoices awaiting payment. Search by invoice, code or customer.
+
+The compact POS **Find invoice** field accepts a counter code or the exact full
+invoice number. It opens saved medicines in a side drawer without changing the
+current basket. A pharmacist, dispensary officer or manager can **Confirm medication
+collection**, then **Print collection receipt**. Cashiers/accountants can inspect
+the invoice but cannot release medicines. Unpaid, reversed, cancelled or
+outstanding sales cannot be collected. Collection records handover only; payment
+and stock are not posted again. Already-collected invoices allow receipt reprints.
+If confirmation is interrupted, use **Retry original collection** rather than
+creating another handover. Print failures do not undo recorded collection.
+POS invoice searches use the same teal controls, compact medicine table and rounded
+cards as checkout. Searches can be retried or replaced while a lookup is loading;
+only the latest result is shown. Invalid or failed searches clear previous invoice
+actions. Closing the drawer cancels display of its pending lookup without resetting
+the basket; collection confirmation remains protected while it is being recorded.
+
+Pharmacy checkout keeps its title and navigation in the **POS menu** offcanvas
+drawer to leave more room for medicine selection and payment. Counter invoices,
+cashier/shift, prescriptions and suspended sales remain available from the drawer;
+opening or closing it does not reset the current transaction.
+
+The pharmacy financial-day handover workflow displays pending cashier shifts
+in a responsive table with staff, financial date, opening float, counted cash,
+variance and review/close actions. Earlier-day blockers remain included; a
+pharmacy managers cannot review their own handover. Organisation admins can use
+**Admin review handover**, enter a reason of at least 10 characters and explicitly
+acknowledge responsibility for their own cash count and variance. The server checks
+the authenticated admin role and records an `admin_self_review` financial-day audit
+event without changing cash counts or ledger balances. Closing the financial day stays blocked
+until the required shifts are closed and reviewed.
+
+Review each pending handover, close the previous day, then open today's financial
+day and cashier shift before selling. Deploy both backend and frontend for this flow.
+
 ## Role navigation and delegated test panels
 
 Page guards, sidebars and workspace shortcuts use the same role policy. Imaging

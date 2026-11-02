@@ -5,14 +5,15 @@ import { customFetch } from '../../../components/Auth/customFetch';
 import { usePharmacyAccess, styles, money, Message, Empty } from '../components/PharmacyWorkspace';
 import PharmacyPaymentFields, { usePharmacyPayment, usePharmacyDocument } from '../components/PharmacyPaymentFields';
 import { printPharmacyReceipt } from '../../../lib/pharmacy/receipt';
+import { counterInvoiceReference } from '../../../lib/pharmacy/counterInvoice';
 export default function PharmacyCounterPage() {
     const access = usePharmacyAccess(), payment = usePharmacyPayment('counter'), operation = usePharmacyDocument('counter-action');
     const [code, setCode] = useState(''), [invoice, setInvoice] = useState<any>(null), [error, setError] = useState(''), [notice, setNotice] = useState(''), [busy, setBusy] = useState(false), [method, setMethod] = useState('cash'), [reason, setReason] = useState('');
     const lock = useRef(false);
     const role = String(access.app?.user?.role || '').toLowerCase().replace(/[\s_-]/g, '');
     const canPay = access.manager || ['pharmacycashier', 'pharmacyaccountant'].includes(role), canCollect = access.manager || ['pharmacist', 'pharmacydispensaryofficer'].includes(role);
-    async function lookup(value = code) { const parsed = value.trim().toUpperCase().match(/^INV-([A-Z0-9]{4})-/)?.[1] || value.trim().toUpperCase(); if (!/^[A-Z0-9]{4}$/.test(parsed)) {
-        setError('Enter the four-character code or scan the invoice barcode.');
+    async function lookup(value = code) { let parsed: string; try { parsed = counterInvoiceReference(value); } catch (error) {
+        setError(error instanceof Error ? error.message : 'Enter a counter code or full invoice number.');
         return;
     } if (lock.current)
         return; lock.current = true; setBusy(true); setError(''); setInvoice(null); try {

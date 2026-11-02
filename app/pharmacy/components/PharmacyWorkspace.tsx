@@ -11,7 +11,7 @@ export function usePharmacyAccess() {
      const app = useApplication() as any;
      const role = String(app?.user?.role || '').toLowerCase().replace(/[\s_-]/g, '');
      const manager = ['admin', 'superadmin', 'pharmacymanager'].includes(role);
-     return { app, manager, finance: manager || role === 'pharmacyaccountant', stock: manager || role === 'pharmacystorekeeper', selling: manager || ['pharmacycashier', 'pharmacydispensaryofficer', 'pharmacist'].includes(role) };
+     return { app, manager, administrator: ['admin', 'superadmin'].includes(role), finance: manager || role === 'pharmacyaccountant', stock: manager || role === 'pharmacystorekeeper', selling: manager || ['pharmacycashier', 'pharmacydispensaryofficer', 'pharmacist'].includes(role) };
 }
 export function usePharmacyResource(endpoint: string) {
      const [data, setData] = useState<any>(null), [loading, setLoading] = useState(true), [error, setError] = useState('');

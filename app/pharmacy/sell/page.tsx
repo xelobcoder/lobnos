@@ -1,11 +1,14 @@
 'use client';
 import Link from 'next/link';
+import { Offcanvas } from 'react-bootstrap';
+import { RiMenuLine, RiArrowRightSLine } from '@remixicon/react';
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { customFetch } from '../../../components/Auth/customFetch';
 import { useApplication } from '../../../components/Auth/useApplicationContext';
 import PharmacyPaymentFields,{usePharmacyDocument,usePharmacyPayment} from '../components/PharmacyPaymentFields';
 import { printPharmacyReceipt } from '../../../lib/pharmacy/receipt';
 import styles from './pos.module.css';
+import InvoiceCollectionPanel from '../components/InvoiceCollectionPanel';
 
 type PriceType='retail'|'wholesale';
 type Medicine={inventoryItemId:string;name:string;sku:string;salePrice:number;wholesalePrice?:number;availableStock:number;dispensableStock?:number;barcodes?:string[];requiresPrescription?:boolean};
@@ -24,6 +27,10 @@ export default function PharmacySellPage(){
      const [accounts,setAccounts]=useState<any[]>([]),[accountId,setAccountId]=useState(''),[split,setSplit]=useState<Record<string,{amount:string;received:string;reference:string}>>({cash:{amount:'',received:'',reference:''},mobile_money:{amount:'',received:'',reference:''},card:{amount:'',received:'',reference:''}});
      const [customer,setCustomer]=useState(''),[method,setMethod]=useState('cash'),[error,setError]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false);
      const [receipt,setReceipt]=useState<any>(null),[held,setHeld]=useState<any[]>([]),[heldId,setHeldId]=useState<string|null>(null),[showHeld,setShowHeld]=useState(false),[loading,setLoading]=useState(false),[active,setActive]=useState(0);
+     const [showMenu,setShowMenu]=useState(false);
+     const [collectionSearch,setCollectionSearch]=useState(''),[showCollection,setShowCollection]=useState(false),[collectionBusy,setCollectionBusy]=useState(false);
+     const [collectionLookup,setCollectionLookup]=useState<{value:string;key:number}>();
+     const collectionRequestKey=useRef(0);
      const searchInput=useRef<HTMLInputElement>(null),payPanel=useRef<HTMLDivElement>(null),generation=useRef(0),resultsFor=useRef(''),busyRef=useRef(false);
      cartRef.current=cart;
      const locked=busy||!!payment.pending||!!suspension.pending||!!counterRequest.pending,total=cart.reduce((sum,line)=>sum+Math.round(lineTotal(line,priceType)*100),0)/100;
@@ -93,12 +100,37 @@ export default function PharmacySellPage(){
           }catch(e){setError(e instanceof Error?e.message:'Unable to recall sale');}finally{busyRef.current=false;setBusy(false);}
      };
      const print=async()=>{if(!receipt)return;try{await printPharmacyReceipt(receipt,{name:typeof app?.company==='string'?app.company:app?.company?.name||'PHARMACY',address:app?.company?.address,phone:app?.company?.phonenumber,printedBy:app?.user?.username});}catch(e){setError(e instanceof Error?e.message:'Unable to print receipt');}};
-     useEffect(()=>{const keys=(event:KeyboardEvent)=>{if(event.key==='F2'){event.preventDefault();focusSearch();}else if(event.key==='F4'){event.preventDefault();payPanel.current?.querySelector<HTMLInputElement>('input[type="number"]')?.focus();}else if(event.key==='F8'){event.preventDefault();if(!locked)suspend();}else if(event.key==='F9'){event.preventDefault();if(!locked)(document.getElementById('pharmacy-checkout') as HTMLFormElement)?.requestSubmit();}};window.addEventListener('keydown',keys);return()=>window.removeEventListener('keydown',keys);});
+     useEffect(()=>{const keys=(event:KeyboardEvent)=>{if(showMenu||showCollection)return;if(event.key==='F2'){event.preventDefault();focusSearch();}else if(event.key==='F4'){event.preventDefault();payPanel.current?.querySelector<HTMLInputElement>('input[type="number"]')?.focus();}else if(event.key==='F8'){event.preventDefault();if(!locked)suspend();}else if(event.key==='F9'){event.preventDefault();if(!locked)(document.getElementById('pharmacy-checkout') as HTMLFormElement)?.requestSubmit();}};window.addEventListener('keydown',keys);return()=>window.removeEventListener('keydown',keys);});
      if(!counterMode&&!payment.pending)return <main className={styles.page}><h1>Pharmacy checkout</h1>{error?<div role="alert" className="alert alert-danger">{error}<button className="btn btn-outline-secondary ms-2" onClick={()=>window.location.reload()}>Reload checkout</button></div>:<p role="status">Loading this branch's checkout workflow…</p>}</main>;
      const cashierOnly=['pharmacycashier','pharmacyaccountant'].includes(String(app?.user?.role||'').toLowerCase().replace(/[\s_-]/g,''));
      if(separate&&cashierOnly&&!payment.pending)return <main className={styles.page}><header className={styles.header}><div><h1>Cashier payments</h1><p>This branch uses separate attendants and cashiers. Enter the customer's four-character code to take payment.</p></div></header><Link className="btn btn-primary btn-lg" href="/pharmacy/counter">Open counter invoices</Link></main>;
      return <main className={styles.page}>
-          <header className={styles.header}><div><span className={styles.eyebrow}>PHARMACY · POINT OF SALE</span><h1>Checkout</h1></div><nav className={styles.actions}><Link href="/pharmacy/counter">Counter invoices</Link><Link href="/pharmacy/cashier">Cashier & shift</Link><Link href="/pharmacy/prescriptions">Prescriptions</Link><button className="btn btn-outline-secondary" disabled={locked} onClick={()=>{setShowHeld(!showHeld);loadHeld().catch(e=>setError(e.message));}}>Suspended sales <span className="badge text-bg-secondary">{held.length}</span></button></nav></header>
+          <div className={styles.menuBar}>
+               <form className={styles.collectionSearch} onSubmit={event=>{event.preventDefault();if(locked||!collectionSearch.trim())return;setCollectionLookup({value:collectionSearch.trim(),key:++collectionRequestKey.current});setShowCollection(true);}}>
+                    <label htmlFor="pos-collection-invoice" className="visually-hidden">Find invoice for medication collection</label>
+                    <input id="pos-collection-invoice" placeholder="Invoice number / code" maxLength={80} value={collectionSearch} disabled={locked} onChange={event=>setCollectionSearch(event.target.value)}/>
+                    <button className={styles.menuToggle} disabled={locked||!collectionSearch.trim()}>Find invoice</button>
+               </form>
+               <button type="button" className={styles.menuToggle} aria-label="Open POS menu" aria-expanded={showMenu} aria-controls="pharmacy-pos-menu" onClick={()=>setShowMenu(true)}><RiMenuLine size={18} aria-hidden="true"/>POS menu</button>
+          </div>
+          <Offcanvas id="pharmacy-pos-menu" placement="end" show={showMenu} onHide={()=>setShowMenu(false)} aria-labelledby="pharmacy-pos-menu-title" className={styles.menuDrawer}>
+               <Offcanvas.Header closeButton>
+                    <div><span className={styles.eyebrow}>PHARMACY · POINT OF SALE</span><Offcanvas.Title as="h1" id="pharmacy-pos-menu-title">Checkout</Offcanvas.Title></div>
+               </Offcanvas.Header>
+               <Offcanvas.Body>
+                    <nav className={styles.menuLinks} aria-label="Point of sale navigation">
+                         <Link href="/pharmacy/counter" onClick={()=>setShowMenu(false)}>Counter invoices<RiArrowRightSLine size={18} aria-hidden="true"/></Link>
+                         <Link href="/pharmacy/cashier" onClick={()=>setShowMenu(false)}>Cashier & shift<RiArrowRightSLine size={18} aria-hidden="true"/></Link>
+                         <Link href="/pharmacy/prescriptions" onClick={()=>setShowMenu(false)}>Prescriptions<RiArrowRightSLine size={18} aria-hidden="true"/></Link>
+                         <Link href="/pharmacy/collections" onClick={()=>setShowMenu(false)}>Uncollected invoices<RiArrowRightSLine size={18} aria-hidden="true"/></Link>
+                         <button type="button" disabled={locked} onClick={()=>{setShowMenu(false);setShowHeld(!showHeld);loadHeld().catch(e=>setError(e.message));}}>Suspended sales <span className="badge text-bg-secondary">{held.length}</span></button>
+                    </nav>
+               </Offcanvas.Body>
+          </Offcanvas>
+          <Offcanvas placement="end" show={showCollection} onHide={()=>{if(!collectionBusy)setShowCollection(false);}} aria-labelledby="pos-collection-title" className={styles.collectionDrawer} backdrop={collectionBusy?'static':true}>
+               <Offcanvas.Header closeButton={!collectionBusy}><div><span className={styles.eyebrow}>PHARMACY / POINT OF SALE</span><Offcanvas.Title id="pos-collection-title">Medication collection</Offcanvas.Title><p className={styles.collectionHint}>Review the invoice, confirm pickup and print the receipt.</p></div></Offcanvas.Header>
+               <Offcanvas.Body>{showCollection&&<InvoiceCollectionPanel variant="pos" lookupRequest={collectionLookup} onBusyChange={setCollectionBusy}/>}</Offcanvas.Body>
+          </Offcanvas>
           {error&&<div className="alert alert-danger" role="alert">{error}</div>}<div className={styles.notice} role="status" aria-live="polite">{notice}</div>
           {payment.pending&&<div className="alert alert-warning">Payment confirmation is pending. <button className="btn btn-warning" disabled={busy} onClick={()=>checkout()}>Retry original checkout</button></div>}
           {counterRequest.pending&&<div className="alert alert-warning">Invoice creation needs confirmation. <button className="btn btn-warning" disabled={busy} onClick={generateInvoice}>Retry original invoice</button></div>}
