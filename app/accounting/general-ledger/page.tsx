@@ -8,7 +8,7 @@ import { currencyFormatter } from "../../../components/Auth/customFetch";
 import DateFilterReusable from "../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 import { accountingApi } from "../../../lib/accounting/accountingApi";
 
-const MODULES = ["billing", "expense", "inventory", "supplier", "payroll", "commission", "manual"];
+const MODULES = ["billing", "expense", "inventory", "supplier", "payroll", "commission", "manual", "pharmacy"];
 
 export default function GeneralLedgerPage() {
      const searchParams = useSearchParams();

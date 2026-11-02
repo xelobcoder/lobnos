@@ -5,7 +5,7 @@ function compile(file,overrides={}){
  const exports={};const mocks=name=>{
   if(overrides[name])return overrides[name];
   if(name.endsWith('.module.css'))return {__esModule:true,default:styles};
-  if(name.includes('customFetch'))return {};
+  if(name.includes('customFetch'))return {currencyFormatter:new Intl.NumberFormat('en-GH',{style:'currency',currency:'GHS'})};
   if(name.includes('useApplicationContext'))return {useApplication:()=>({user:{role:'pharmacy_manager',employeeid:3}})};
   if(name==='next/link')return ({href,children})=>React.createElement('a',{href},children);
   return require(name);
@@ -58,6 +58,8 @@ function financeHandover({shifts,previous=true,manager=true,administrator=false,
   react:localHooks,
   '../components/ShiftHandoverForm':{__esModule:true,default:()=>null},
   '../components/PharmacyPaymentFields':{usePharmacyDocument:()=>({pending:null})},
+  '../components/LinkedAccountingCompatibility':{useLinkedAccounting:()=>({mode:'legacy',refresh(){}}),LinkedAccountingNotice:()=>null,isLegacyAccountingPost:()=>false},
+  '../accounting/components/common':{...shared,styles,FormSection:()=>null,ResourceState:()=>null,SummaryMetrics:()=>null},
   '../components/PharmacyWorkspace':{...shared,styles,usePharmacyAccess:()=>({finance:true,manager,administrator,app:{user:{employeeid}}}),usePharmacyResource:resource,FinancialDayPanel:()=>null,Message:()=>null,Tabs:()=>null}
  });
  return renderToStaticMarkup(React.createElement(module.default));

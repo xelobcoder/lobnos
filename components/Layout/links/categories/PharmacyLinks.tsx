@@ -1,4 +1,5 @@
 import { Link } from '../types';
+import { accountingDestinations } from '../../../../lib/pharmacyAccounting';
 import { RiDashboardLine, RiShoppingCartLine, RiBankCardLine, RiFileListLine, RiArchiveLine, RiBox3Line, RiMoneyDollarCircleLine, RiSettings3Line, RiRefund2Line } from '@remixicon/react';
 const selling=['pharmacist','admin','pharmacy_manager','pharmacy_cashier','pharmacy_dispensary_officer'];
 const management=['admin','pharmacy_manager'];
@@ -19,7 +20,8 @@ export const PharmacyLinks:Link[]=[
      {title:'Analytics & Reports',link:'/pharmacy/analytics',icon:<RiDashboardLine/>,roles:[...management,'pharmacy_accountant','pharmacy_storekeeper']},
      {title:'Patient Credit & Invoices',link:'/pharmacy/accounts',icon:<RiMoneyDollarCircleLine/>,roles:[...selling,'pharmacy_accountant']},
      {title:'NHIS Claims',link:'/pharmacy/nhis',icon:<RiFileListLine/>,roles:[...management,'pharmacy_accountant']},
-     {title:'Pharmacy Finances',link:'/pharmacy/finance',icon:<RiMoneyDollarCircleLine/>,roles:[...management,'pharmacy_accountant']},
+     {title:'Pharmacy Accounting',link:'/pharmacy/accounting',icon:<RiMoneyDollarCircleLine/>,roles:[...management,'pharmacy_accountant'],children:accountingDestinations.map(([section,title])=>({title,link:`/pharmacy/accounting${section?`/${section}`:''}`,roles:[...management,'pharmacy_accountant']}))},
+     {title:'Cash & Financial Days',link:'/pharmacy/finance',icon:<RiBankCardLine/>,roles:[...management,'pharmacy_accountant']},
      {title:'Staff & roles',link:'/account/staff',icon:<RiSettings3Line/>,roles:management},
      {title:'Settings',link:'/pharmacy/settings',icon:<RiSettings3Line/>,roles:management},
 ];

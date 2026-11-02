@@ -1,0 +1,37 @@
+.navigation { display: flex; flex-wrap: wrap; gap: 5px; border-bottom: 1px solid var(--bs-border-color); padding-bottom: 16px; margin-bottom: 20px; }
+.workspace input, .workspace select { max-width: 100%; }
+.section { min-width: 0; max-width: 100%; margin-bottom: 1.5rem; padding: 0 0 1rem; border: 0; border-bottom: 1px solid var(--bs-border-color); border-radius: 0; background: transparent; box-shadow: none; }
+.section h2 { font-size: 1.05rem; font-weight: 600; margin-bottom: .75rem; }
+.section h3 { font-size: .95rem; font-weight: 600; }
+.section :global(th),.section :global(td) { text-align: start !important; }
+.grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1rem; }
+.actions { display: flex; flex-wrap: wrap; align-items: flex-end; gap: .5rem; }
+.actions > label, .actions > .field { flex: 1 1 10rem; max-width: 20rem; margin-bottom: 0 !important; }
+.actions > button { min-height: 38px; }
+.number { text-align: start; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.table { width: 100%; border-collapse: collapse; }
+.table th,.table td { text-align: start; padding: .5rem; border-bottom: 1px solid var(--bs-border-color); vertical-align: middle; }
+.dataTable { min-width: 0; max-width: 100%; }
+.dataTable :global(th),.dataTable :global(td) { text-align: start !important; }
+.workspace .navigation a { border: 0; border-radius: 0; background: transparent; padding: .25rem 0; font-size: .85rem; }
+.workspace .navigation a[aria-current="page"] { text-decoration: underline; text-underline-offset: .4rem; font-weight: 600; }
+.workspace .navigation { gap: .5rem 1rem; padding-bottom: .75rem; margin-bottom: 1rem; }
+.workspace > header h1 { font-size: 1.375rem; }
+@media(max-width:767px) {
+  .grid { grid-template-columns: minmax(0,1fr); }
+  .actions > label, .actions > .field { max-width: none; width: 100%; }
+  .actions > button { flex: 1 1 auto; }
+}
+@media print {
+  .workspace { color: #000; background: #fff; padding: 0; max-width: none; font-size: 10pt; }
+  .workspace section { border: 0; box-shadow: none; }
+  .workspace table { width: 100%; border-collapse: collapse; }
+  .workspace th, .workspace td { color: #000; padding: 5px; border-bottom: 1px solid #999; }
+  .workspace thead { display: table-header-group; }
+  .workspace tr { break-inside: avoid; }
+  .workspace :global(.table-responsive) { overflow: visible; }
+  .dataTable :global(div) { overflow: visible !important; height: auto !important; max-height: none !important; }
+  .workspace abbr[title] { text-decoration: none; }
+  .workspace abbr[title]::after { content: " (" attr(title) ")"; font-size: .85em; overflow-wrap: anywhere; }
+  .workspace form,.workspace button,.workspace input,.workspace select,.workspace textarea { display: none !important; }
+}
