@@ -20,7 +20,7 @@ export function TaxRuleForm({ accounts, settings, refresh }: { accounts: Account
   return <section className={`${styles.card} d-print-none`}><h2>Assign an explicit medicine tax rule</h2>
     <p>Tax is included in the existing selling price. This rule splits that gross amount into net revenue and a tax liability; it does not add a charge to the selling total.</p>
     {!options.length && <p role="status" className="alert alert-warning">{settings.enabled ? <>No eligible tax liability is mapped. Explicitly map a <code>liability:&lt;tax-account&gt;</code> code in <Link href="/pharmacy/accounting/settings">Accounting settings</Link>.</> : <>Create an active local liability account in the chart of accounts.</>}</p>}
-    <Feedback error={validation || mutation.error} notice={mutation.notice}/>
+    <Feedback error={validation || mutation.error} errorCode={validation ? '' : mutation.errorCode} notice={mutation.notice}/>
     <form key={version} onSubmit={async e => {
       e.preventDefault(); setValidation(''); const f = new FormData(e.currentTarget);
       try {

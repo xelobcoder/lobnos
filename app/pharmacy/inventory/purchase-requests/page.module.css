@@ -1,3 +1,30 @@
+.canvas {
+  --pr-accent: var(--accent, var(--pls-primary, #2e7d32));
+  --pr-paper: var(--paper, var(--bs-body-bg, #fff));
+  --pr-line: var(--line, var(--bs-border-color));
+  border-radius: 14px;
+  background:
+    radial-gradient(1100px 380px at 100% -10%, color-mix(in srgb, var(--pr-accent) 10%, transparent), transparent 70%),
+    radial-gradient(800px 320px at -10% 0%, color-mix(in srgb, var(--pr-accent) 6%, transparent), transparent 65%),
+    linear-gradient(180deg, color-mix(in srgb, var(--pr-accent) 3%, var(--bs-tertiary-bg)) 0%, var(--bs-tertiary-bg) 100%);
+}
+.panel {
+  border: 1px solid var(--pr-line, var(--bs-border-color));
+  border-radius: 12px;
+  background: var(--pr-paper, var(--bs-body-bg));
+  box-shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 4px 14px -6px rgba(16, 24, 40, .08);
+}
+.filterPanel { padding: 14px 18px; margin-bottom: 14px; }
+.tableCard {
+  border: 1px solid var(--pr-line, var(--bs-border-color));
+  border-radius: 12px;
+  background: var(--pr-paper, var(--bs-body-bg));
+  box-shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 6px 18px -8px rgba(16, 24, 40, .1);
+}
+.tableCard .requestTable { background: transparent; }
+.tableCard .requestTable th { background: color-mix(in srgb, var(--pr-accent, var(--bs-primary)) 6%, var(--bs-tertiary-bg)); }
+.tableCard .requestTable tbody tr { transition: background-color .15s ease; }
+.tableCard .requestTable tbody tr:hover { background: color-mix(in srgb, var(--pr-accent, var(--bs-primary)) 4%, transparent); }
 .requestTable { min-width: 660px; }
 .requestTable th:nth-child(2) { min-width: 180px; }
 .requestTable th:nth-child(4) { min-width: 180px; }
@@ -21,7 +48,12 @@
 .order { padding: 18px; margin: 20px 0; border: 1px solid var(--bs-primary); border-radius: 5px; }
 .order summary { font-weight: 600; cursor: pointer; }
 .requestTable tbody tr[aria-selected="true"] { background: var(--bs-tertiary-bg); }
+.tableCard .requestTable tbody tr[aria-selected="true"] { background: color-mix(in srgb, var(--pr-accent, var(--bs-primary)) 9%, transparent); box-shadow: inset 3px 0 0 var(--pr-accent, var(--bs-primary)); }
+@media print { .canvas { background: none; } .panel, .tableCard { box-shadow: none; } }
 @media(max-width: 767px) {
+  .canvas { border-radius: 0; }
+  .tableCard { border: 0; background: transparent; box-shadow: none; }
+  .tableCard .requestTable tbody tr { background: var(--pr-paper, var(--bs-body-bg)); box-shadow: 0 1px 2px rgba(16, 24, 40, .05); }
   .quantityReview { grid-template-columns: minmax(0, 1fr); gap: 8px; }
   .scrollHint { display: block; }
   .requestTable { min-width: 0; width: 100%; }

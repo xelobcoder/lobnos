@@ -52,6 +52,8 @@ export default function PharmacyFinancePage() {
      const visibleShifts=targetDay?targetShifts:(data?.shifts||[]);
      const ready=!!data&&!report.loading&&!report.error&&!!setup.data&&!setup.loading&&!setup.error;
      const currentBlockers=setup.data?blockers({financial_date:setup.data.financialDate}):[];
+     const stepShifts=targetDay?targetShifts:currentBlockers;
+     const shiftsToCount=stepShifts.filter((s:any)=>!s.closed_at).length, handoversToReview=stepShifts.filter((s:any)=>s.closed_at&&!s.reviewed_by).length;
      const showDays=()=>{setTab('days');requestAnimationFrame(()=>document.getElementById('financial-days-workflow')?.scrollIntoView({block:'start'}));};
 
      if(!access.finance)return <main className={styles.page}><h1>Pharmacy finances</h1><Empty>A pharmacy manager or pharmacy accountant role is required.</Empty></main>;
@@ -75,9 +77,10 @@ export default function PharmacyFinancePage() {
                <section className={styles.card} aria-labelledby="finance-next-steps">
                     <h2 id="finance-next-steps">What do you need to do?</h2>
                     <ol className={financeLayout.tasks}>
-                         <li><h3>1. Review the handovers</h3><p>Cashiers count their cash. An authorized manager reviews each closed shift.</p><button className="btn btn-primary" onClick={showDays}>Review handovers</button></li>
-                         <li><h3>2. Check collection balances</h3><p>Compare a cash count, bank balance or mobile-money statement with the recorded balance.</p><button className="btn btn-outline-primary" onClick={()=>setTab('reconciliation')}>Check a balance</button></li>
-                         <li><h3>3. Close the financial day</h3><p>Once all required handovers are reviewed, close the day. Open the next day separately.</p><button className="btn btn-outline-primary" onClick={showDays}>Review day closing</button></li>
+                         <li><h3>1. Count and close shifts</h3><p>{ready?`${shiftsToCount} shift(s) need a physical cash count and closing.`:'Refresh to verify shifts requiring a cash count.'} Each cashier closes their own shift; a pharmacy manager or administrator can handle a managed close with evidence.</p><Link className="btn btn-outline-primary" href="/pharmacy/cashier">Open your cashier shift</Link>{access.manager&&<button className="btn btn-primary ms-2" onClick={showDays}>Review shift actions</button>}</li>
+                         <li><h3>2. Review closed handovers</h3><p>{ready?`${handoversToReview} closed handover(s) await review.`:'Refresh to verify handovers awaiting review.'} A different authorized manager or administrator reviews each handover; changing roles does not change your identity.</p>{access.manager?<button className="btn btn-primary" onClick={showDays}>Review handovers</button>:<p>Ask a pharmacy manager or administrator to review; an accountant cannot approve handovers.</p>}</li>
+                         <li><h3>3. Close the trading day</h3><p>{targetDay?`Finish ${dateLabel(targetDay.financial_date)} before opening today.`:'Close today only after the required shifts and reviews are complete.'} A pharmacy manager or accountant closes the day. Balance checks and accounting periods do not replace these steps.</p><button className="btn btn-outline-primary" onClick={showDays}>Review day closing</button><button className="btn btn-outline-primary ms-2" onClick={()=>setTab('reconciliation')}>Check a balance</button></li>
+                         <li><h3>4. Open today separately</h3><p>{ready&&open?'Today is already open.':targetDay?'Opening today stays blocked until the previous trading day is closed.':'A pharmacy manager or accountant opens today using the financial-day controls above.'} Each cashier then opens their own shift before taking payment.</p></li>
                     </ol>
                     <p className={styles.muted}>Recording a balance check does not change the ledger or replace bank-statement matching in <Link href="/pharmacy/accounting/reconciliation">Pharmacy accounting</Link>.</p>
                </section>

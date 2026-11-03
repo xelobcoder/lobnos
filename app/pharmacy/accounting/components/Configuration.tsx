@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useState } from "react";
 import {
      accountEditPayload,
@@ -12,7 +13,7 @@ import {
      type RecordData,
 } from "../../../../lib/pharmacyAccounting";
 import { useMutation, useResource } from "./api";
-import { DataTable, Facts, Feedback, Field, ResourceState, styles } from "./common";
+import { DataTable, Facts, Feedback, Field, label, ResourceState, styles } from "./common";
 import {
      canonicalControl,
      configurationIssues,
@@ -99,7 +100,21 @@ export function ChartOfAccounts() {
           mutation = useMutation();
      const [editing, setEditing] = useState<Account | null>(null),
           [version, setVersion] = useState(0);
+     const [showTechnical, setShowTechnical] = useState(false);
      const localEdit = !editing || editing.origin === "local";
+     const accounts = [...(resource.data?.items || []), ...(resource.data?.sharedAccounts || [])];
+     function parentAccount(value: unknown): string {
+          if (value == null || value === "") return "Top-level";
+          const parent = accounts.find(
+               (account) =>
+                    String(account.id) === String(value) ||
+                    account.account_code === value ||
+                    account.local_codes?.includes(String(value)),
+          );
+          return parent
+               ? `${parent.account_number || parent.account_code} - ${parent.name}`
+               : `Unavailable parent (${text(value)})`;
+     }
      return (
           <>
                <details className="mb-3 d-print-none" open={!!editing}>
@@ -267,9 +282,23 @@ export function ChartOfAccounts() {
                <section className={styles.card}>
                     <h2>Local chart of accounts</h2>
                     <p>
-                         Standard accounts are available automatically. Unused custom accounts can be deleted; accounts
-                         with history must be deactivated instead.
+                         Standard accounts are available automatically and are protected from editing. Unused custom
+                         accounts can be deleted; accounts with history must be deactivated instead.
                     </p>
+                    <p>
+                         This chart is not a setup-completion check. Review <Link href="/pharmacy/accounting/cash-bank">cash,
+                         bank and mobile money accounts</Link>, <Link href="/pharmacy/accounting/receivables">customer
+                         receivables</Link> and <Link href="/pharmacy/accounting/payables">supplier payables</Link> separately.
+                    </p>
+                    <label className="form-check d-print-none mb-3">
+                         <input
+                              className="form-check-input"
+                              type="checkbox"
+                              checked={showTechnical}
+                              onChange={(event) => setShowTechnical(event.target.checked)}
+                         />
+                         <span className="form-check-label">Show technical details</span>
+                    </label>
                     <Feedback {...mutation} />
                     <ResourceState {...resource} retry={resource.refresh} />
                     {resource.data?.facilityAvailable === false && (
@@ -288,21 +317,35 @@ export function ChartOfAccounts() {
                                    "normal_balance",
                                    "parent_account_id",
                                    "is_active",
-                                   "local_codes",
-                                   "origin",
+                                   ...(showTechnical ? ["local_codes", "origin"] : []),
                               ]}
-                              labels={{ account_code: "Account no.", local_codes: "Posting key", origin: "Account ownership" }}
-                              cell={(row, key) => key === "account_code" ? String(row.account_number || row.account_code) : key === "origin" ? ({
-                                   system: "Standard Pharmacy account", local: "Pharmacy-only account",
-                                   collection: "Pharmacy collection account", owned_shared: "Facility account (legacy)",
-                                   mapped_shared: "Facility account (mapped)",
-                              }[String(row.origin)] || "Facility account") : undefined}
+                              labels={{ account_code: "Account no.", parent_account_id: "Parent account", is_active: "Status", local_codes: "Posting keys", origin: "Account ownership" }}
+                              cell={(row, key) => {
+                                   if (key === "account_code") return String(row.account_number || row.account_code);
+                                   if (key === "parent_account_id") return parentAccount(row.parent_account_id);
+                                   if (key === "type") return label(text(row.type));
+                                   if (key === "local_codes") return Array.isArray(row.local_codes) ? row.local_codes.map(text).join(", ") || "None" : "None";
+                                   if (key === "origin") return ({
+                                        system: "Standard", local: "Pharmacy-only", collection: "Collection account",
+                                        owned_shared: "Facility (legacy)", mapped_shared: "Facility (mapped)",
+                                   }[String(row.origin)] || "Facility");
+                                   if (key === "name") {
+                                        const codes = Array.isArray(row.local_codes) ? row.local_codes : [];
+                                        const note = codes.includes("stock_in_transit")
+                                             ? "Branch-transfer stock awaiting receipt."
+                                             : codes.includes("inventory_in_transit")
+                                               ? "Separate transit control; not used by automatic branch transfers."
+                                               : null;
+                                        return <>{text(row.name)}{note && <small className="d-block text-muted">{note}</small>}</>;
+                                   }
+                                   return undefined;
+                              }}
                               inlineActions
                               actions={(row) => {
                                    const account = resource.data?.items.find((a) => a.id === row.id);
-                                   if (!account || account.origin === "system") return <span>Standard account</span>;
+                                   if (!account || account.origin === "system") return null;
                                    if (account.origin === "collection")
-                                        return <span>Managed in collection accounts</span>;
+                                        return <Link href="/pharmacy/accounting/cash-bank">Manage collection account</Link>;
                                    const removePath =
                                         account.origin === "local"
                                              ? `local-accounts/${String(account.id).slice(6)}/remove`
@@ -403,7 +446,7 @@ export function SettingsEditor({
                          refresh();
                }}
           >
-               <Feedback error={validation || mutation.error} notice={mutation.notice} />
+               <Feedback error={validation || mutation.error} errorCode={validation ? '' : mutation.errorCode} notice={mutation.notice} />
                <fieldset disabled={mutation.pending}>
                     <label className="d-block mb-3">
                          <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />{" "}

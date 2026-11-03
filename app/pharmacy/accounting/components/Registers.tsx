@@ -1,11 +1,12 @@
 'use client';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { RiArrowRightLine, RiBarChartBoxLine, RiBook2Line, RiPercentLine, RiShieldCheckLine, RiTruckLine, RiWallet3Line } from '@remixicon/react';
-import { csv, financialQuery, record, rowsOf, text, type RecordData } from '../../../../lib/pharmacyAccounting';
+import { csv, financialQuery, financialStatementHref, financialStatementLinks, financialStatementReport, record, rowsOf, text, type RecordData, type Section } from '../../../../lib/pharmacyAccounting';
 import DateFilterReusable from '../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable';
 import { request, useResource } from './api';
-import { DataTable, Facts, Feedback, Field, label, money, Money, ResourceState, styles, SummaryMetrics } from './common';
+import { DataTable, DateText, Facts, Feedback, Field, label, money, Money, ReferenceText, ResourceState, styles, SummaryMetrics } from './common';
 import { downloadAccountingExport, fullFilteredExport } from './exports';
 import SupplierPicker from './SupplierPicker';
 import layout from './AccountingWorkspace.module.css';
@@ -14,16 +15,72 @@ const today = () => new Date().toISOString().slice(0, 10);
 const plural = (value: number, noun: string) => `${value.toLocaleString()} ${noun}${value === 1 ? '' : 's'}`;
 const ledgerColumns=['date','journal_id','account','description','source_document','debit','credit','running_balance'];
 const ledgerLabels={date:'Date',journal_id:'Journal ref',account:'Account',description:'Description',source_document:'Source document',business_unit:'Business unit',debit:'Debit',credit:'Credit',running_balance:'Running balance'};
-const statementTitles:Record<string,string>={profit_loss:'Statement of Profit or Loss',balance_sheet:'Statement of Financial Position (Balance Sheet)',cash_flow:'Statement of Cash Flows',trial_balance:'Trial Balance',transactions:'Journal Transactions'};
-const approvalRegisters=['journals','expenses','payables/settlements','receivables/adjustments','payables/settlement-reversals','receivables/adjustment-reversals','payables/allocations','payables/allocation-reversals'];
+const statementTitles:Record<string,string>={profit_loss:'Statement of Profit or Loss (Income Statement)',balance_sheet:'Statement of Financial Position (Balance Sheet)',cash_flow:'Statement of Cash Flows',trial_balance:'Trial Balance',transactions:'Journal Transactions'};
+export function FinancialReportLinks({ section }: { section: Section }) {
+  const params = useSearchParams();
+  const selected = section === 'statements' ? financialStatementReport(params?.get('report') ?? null) : '';
+  return <nav className={`${layout.financialReports} d-print-none`} aria-label="Financial reports">
+    <h2>Financial reports</h2>
+    <div>{financialStatementLinks.map(item => <Link key={item.report} href={financialStatementHref(item.report)} aria-current={selected === item.report ? 'page' : undefined}><strong>{item.title}</strong><small>{item.detail}</small></Link>)}
+      <Link href="/pharmacy/accounting/trial-balance" aria-current={section === 'trial-balance' ? 'page' : undefined}><strong>Trial balance</strong><small>Check debit and credit account balances</small></Link>
+    </div>
+    {section === 'statements' && <p className="mt-2 mb-0"><Link href={financialStatementHref('transactions')} aria-current={selected === 'transactions' ? 'page' : undefined}>Journal transactions</Link></p>}
+  </nav>;
+}
+const approvalRegisters=['journals','expenses','payables/settlements','receivables/adjustments','payables/settlement-reversals','receivables/adjustment-reversals','payables/allocations','payables/allocation-reversals','payables/terms-amendments','receivables/terms-amendments'];
 const approvalStatuses=(endpoint:string)=>endpoint==='expenses'?['draft','submitted','approved','partially_paid','paid','partially_refunded','refunded','reversed','voided']
   : ['draft','submitted','approved',endpoint==='payables/settlements'?'paid':'posted',...(['journals','payables/settlements','receivables/adjustments'].includes(endpoint)?['reversed']:[]),'voided'];
+export function StatementTable({ rows, columns, labels, totals, title }: {
+  rows: RecordData[]; columns?: string[]; labels: Record<string, string>; totals: unknown; title: string;
+}) {
+  const keys = (columns?.length ? columns : Array.from(new Set(rows.flatMap(row => Object.keys(row))))).filter(key => key !== 'section');
+  if (!keys.length) keys.push('account_name', 'amount');
+  else if (keys.length === 1) keys.unshift('account_name');
+  const monetary = (key: string) => ['amount', 'debit', 'credit', 'inflow', 'outflow', 'net', 'balance', 'running_balance'].includes(key);
+  const groups = Array.from(new Set(rows.map(row => text(row.section))));
+  const values = record(totals);
+  const subtotalKeys: Record<string, string> = {
+    Assets: 'assets', Liabilities: 'liabilities', Equity: 'equity', Unclassified: 'unclassified',
+    Revenue: Object.prototype.hasOwnProperty.call(values, 'netSales') ? 'netSales' : 'revenue',
+    Expenses: 'expenses', 'Cost of sales': 'costOfSales', 'Operating expenses': 'operatingExpenses',
+    'Other income': 'otherIncome', 'Other expenses': 'otherExpenses',
+    'Operating activities': 'operatingCashFlow', 'Investing activities': 'investingCashFlow',
+    'Financing activities': 'financingCashFlow', 'Classification required': 'unclassifiedCashFlow',
+  };
+  const used = new Set(groups.map(group => subtotalKeys[group]).filter(key => key && Object.prototype.hasOwnProperty.call(values, key)));
+  const footer = Array.isArray(totals) ? rowsOf(totals).map(row => [text(row.measure), row.value] as const)
+    : Object.entries(values).filter(([key]) => !used.has(key));
+  function totalRow(name: string, value: unknown, key: string, target?: string) {
+    const index = target ? keys.indexOf(target) : keys.length - 1;
+    const amountIndex = index > 0 ? index : keys.length - 1;
+    return <tr key={key} className={layout.statementTotal}><th scope="row" colSpan={Math.max(1, amountIndex)}>{name}</th>
+      {keys.slice(Math.max(1, amountIndex)).map((column, i) => <td key={column} className={layout.statementMoney}>{i === 0 ? <Money value={value}/> : null}</td>)}
+    </tr>;
+  }
+  return <div className={layout.statementTable} role="region" aria-label={`${title} table`}>
+    <table className="table align-middle mb-0">
+      <caption className="visually-hidden">{title}</caption>
+      <thead><tr>{keys.map(key => <th key={key} scope="col" className={monetary(key) ? layout.statementMoney : undefined}>{labels[key] || label(key)}</th>)}</tr></thead>
+      {groups.map(group => <tbody key={group || 'ungrouped'}>
+        {group && group !== '—' && <tr className={layout.statementHeading}><th scope="rowgroup" colSpan={keys.length}>{group}</th></tr>}
+        {rows.filter(row => text(row.section) === group).map((row, index) => <tr key={index}>{keys.map(key => <td key={key} className={monetary(key) ? layout.statementMoney : undefined}>
+          {monetary(key) ? <Money value={row[key]}/> : /(^date$|_date$|_at$)/.test(key) ? <DateText value={row[key]}/>
+            : key === 'account_number' ? text(row[key]) : <ReferenceText value={row[key]} field={key}/>}
+        </td>)}</tr>)}
+        {used.has(subtotalKeys[group]) && totalRow(`Total ${group.toLowerCase()}`, values[subtotalKeys[group]], `subtotal-${group}`, keys.includes('net') ? 'net' : undefined)}
+      </tbody>)}
+      {!rows.length && <tbody><tr><td colSpan={keys.length}>No records returned for this selection.</td></tr></tbody>}
+      {footer.length > 0 && <tfoot>{footer.map(([key, value]) => totalRow(label(key), value, key, key === 'debits' ? 'debit' : key === 'credits' ? 'credit' : undefined))}</tfoot>}
+    </table>
+  </div>;
+}
 export function Register({ endpoint, ledger = false, report, supplier = false, initialAccount = '', actions }: {
   endpoint: string; ledger?: boolean; report?: string; supplier?: boolean; initialAccount?: string; actions?: (row: RecordData, refresh: () => void) => React.ReactNode;
 }) {
   const [filters, setFilters] = useState({ from: report ? `${today().slice(0, 4)}-01-01` : '', to: today(), account: initialAccount, search: '', status: '', entityId: '', action: '', saleId: '', sourceCreditId: '' });
   const [applied, setApplied] = useState(filters), [page, setPage] = useState(1), [count, setCount] = useState(25);
-  const [statement, setStatement] = useState(report || 'profit_loss');
+  const params = useSearchParams();
+  const statement = report && report !== 'trial_balance' ? financialStatementReport(params?.get('report') ?? report) : report || 'profit_loss';
   const [supplierId, setSupplierId] = useState(''), [selectedSupplier, setSelectedSupplier] = useState('');
   const [exportError, setExportError] = useState(''), [exporting, setExporting] = useState(false);
   const [preset,setPreset]=useState(''),[supplierName,setSupplierName]=useState(''),[selectedName,setSelectedName]=useState('');
@@ -42,7 +99,6 @@ export function Register({ endpoint, ledger = false, report, supplier = false, i
   const columnLabels = ledger?ledgerLabels:Array.isArray(data.columns) ? Object.fromEntries(data.columns.filter(c => typeof c === 'object').map(c => {
     const column = record(c); return [String(column.key || column.field || ''), String(column.label || column.title || column.key || column.field || '')];
   })) : {};
-  const groups = report && rows.some(row => row.section) ? Array.from(new Set(rows.map(row => text(row.section)))) : [];
   async function exportLedger() {
     setExporting(true); setExportError('');
     try {
@@ -75,7 +131,6 @@ export function Register({ endpoint, ledger = false, report, supplier = false, i
       {approvalRegisters.includes(endpoint) && <Field label="Status"><select className="form-select" value={filters.status} onChange={e => setFilters({ ...filters, status: e.target.value })}><option value="">All statuses</option>{approvalStatuses(endpoint).map(status => <option key={status} value={status}>{label(status)}</option>)}</select></Field>}
       {endpoint === 'audit' && <><Field label="Entity ID"><input className="form-control" value={filters.entityId} onChange={e => setFilters({ ...filters, entityId: e.target.value })}/></Field><Field label="Audit action"><input className="form-control" value={filters.action} onChange={e => setFilters({ ...filters, action: e.target.value })}/></Field></>}
       {supplier && <div className={`${styles.field} d-flex flex-column gap-1 mb-3`}><label htmlFor="accounting-supplier">Supplier</label><SupplierPicker value={supplierId} onChange={(id,name)=>{setSupplierId(id);setSupplierName(name);}}/></div>}
-      {report && report !== 'trial_balance' && <Field label="Statement"><select className="form-select" value={statement} onChange={e => { setStatement(e.target.value); setPage(1); }}>{[['profit_loss','Profit & loss'],['balance_sheet','Balance sheet'],['cash_flow','Cash flow'],['transactions','Transactions']].map(([value,label]) => <option value={value} key={value}>{label}</option>)}</select></Field>}
       <button className="btn btn-primary" type="submit">Apply filters</button>
       <button className="btn btn-outline-secondary" type="button" disabled={resource.loading} onClick={() => resource.refresh()}>Refresh</button>
     </form>}
@@ -97,13 +152,13 @@ export function Register({ endpoint, ledger = false, report, supplier = false, i
       {ledger && <><h2 className="d-none d-print-block">General ledger</h2><p className={styles.muted}>{applied.from || 'Beginning of records'} — {applied.to} · {applied.account || 'All pharmacy accounts'}{applied.search ? ` · Search: ${applied.search}` : ''}</p></>}
       {ledger && <p>Opening balance: <Money value={data.openingBalance}/> · Closing balance: <Money value={data.closingBalance}/></p>}
       {ledger && !applied.account && rowsOf(data.accountBalances).length > 0 && <details className="mb-3"><summary>Opening and closing balances by account</summary><DataTable rows={rowsOf(data.accountBalances)} columns={['account','opening','closing']}/></details>}
-      {rowsOf(data.classificationIssues).length > 0 && <div role="alert" className="alert alert-warning"><strong>Cash-flow classification is incomplete.</strong> Unclassified movements are not assigned to operating, investing or financing activities. Resolve classification before relying on this statement.<DataTable rows={rowsOf(data.classificationIssues)}/></div>}
+      {rowsOf(data.classificationIssues).length > 0 && <div role="alert" className="alert alert-warning"><strong>Cash-flow classification is incomplete.</strong> Unclassified movements are not assigned to operating, investing or financing activities. Resolve classification before relying on this statement.<ul>{rowsOf(data.classificationIssues).map((issue,index)=><li key={index}><ReferenceText value={issue.journalId} field="journal_id"/> - {text(issue.description)}: <Money value={issue.amount}/></li>)}</ul></div>}
       {supplier && selectedSupplier && <><h2>Supplier statement · {text(record(data.party).name||selectedName)}</h2><p>{applied.from || 'Beginning of records'} — {applied.to} · Opening: <Money value={data.openingBalance}/> · Closing: <Money value={data.closingBalance}/> · {text(data.balanceConvention)}</p></>}
-      {report ? <ReportSummary data={data.summary}/> : <Facts data={data.summary}/>}
+      {report ? statement === 'profit_loss' && <ReportSummary data={data.summary}/> : <Facts data={data.summary}/>}
       <Capabilities data={data.capabilities}/>
       {endpoint==='tax-credits'&&data.policy!=null&&<p>Tax-credit policy: {text(data.policy)}</p>}
-      {groups.length > 0 ? groups.map(group => <section key={group} className="mt-3" aria-label={group}><DataTable rows={rows.filter(row => text(row.section) === group)} columns={columns?.filter(column => column !== 'section')} labels={columnLabels} caption={group}/></section>) : <DataTable rows={rows} labels={columnLabels} columns={columns || registerColumns(endpoint,supplier)} pageSlice={!supplier&&!report} inlineActions={ledger||endpoint==='journals'||supplier} cell={ledger?(row,key)=>key==='account'?<span title={text(row.account)}>{row.account_number?<span className="text-muted me-2">{text(row.account_number)}</span>:null}<strong>{text(row.account_name||row.account)}</strong></span>:['debit','credit','running_balance'].includes(key)?money(row[key]):undefined:undefined} actions={supplier && !selectedSupplier ? row => <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => { setSupplierId(text(row.id)); setSelectedSupplier(text(row.id));setSupplierName(text(row.name));setSelectedName(text(row.name)); setPage(1); }}>View statement</button> : actions ? row => actions(row, resource.refresh) : ledger ? row => row.journal_id ? <Link href={`/pharmacy/accounting/general-ledger/journals/${encodeURIComponent(text(row.journal_id))}`}>Inspect posted journal</Link> : null : endpoint === 'journals' ? row => <Link href={`/pharmacy/accounting/journals/${encodeURIComponent(text(row.id))}`}>Review journal</Link> : undefined}/>}
-      {data.totals !== undefined && <section className="mt-4"><h3>{report ? 'Statement totals' : 'Register totals'}</h3>{Array.isArray(data.totals) ? <DataTable rows={rowsOf(data.totals)}/> : <DataTable rows={Object.entries(record(data.totals)).map(([key,value]) => ({ measure: label(key), value }))} columns={['measure','value']}/>}</section>}
+      {report ? <StatementTable rows={rows} columns={columns} labels={columnLabels} totals={data.totals} title={statementTitles[statement] || label(statement)}/> : <DataTable rows={rows} labels={columnLabels} columns={columns || registerColumns(endpoint,supplier)} pageSlice={!supplier} inlineActions={ledger||endpoint==='journals'||supplier} cell={ledger?(row,key)=>key==='account'?<span title={text(row.account)}>{row.account_number?<span className="text-muted me-2">{text(row.account_number)}</span>:null}<strong>{text(row.account_name||row.account)}</strong></span>:['debit','credit','running_balance'].includes(key)?money(row[key]):undefined:undefined} actions={supplier && !selectedSupplier ? row => <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => { setSupplierId(text(row.id)); setSelectedSupplier(text(row.id));setSupplierName(text(row.name));setSelectedName(text(row.name)); setPage(1); }}>View statement</button> : actions ? row => actions(row, resource.refresh) : ledger ? row => row.journal_id ? <Link href={`/pharmacy/accounting/general-ledger/journals/${encodeURIComponent(text(row.journal_id))}`}>Inspect posted journal</Link> : null : endpoint === 'journals' ? row => <Link href={`/pharmacy/accounting/journals/${encodeURIComponent(text(row.id))}`}>Review journal</Link> : undefined}/>}
+      {!report && data.totals !== undefined && <section className="mt-4"><h3>Register totals</h3>{Array.isArray(data.totals) ? <DataTable rows={rowsOf(data.totals)}/> : <DataTable rows={Object.entries(record(data.totals)).map(([key,value]) => ({ measure: label(key), value }))} columns={['measure','value']}/>}</section>}
       <p className="d-none d-print-block">Page {page} · {rows.length} displayed rows{serverTotal !== undefined ? ` of ${total}` : ''}</p>
       {supplier||report?<p className="small text-muted mt-3">Complete returned {supplier?'supplier directory / statement':'financial statement'} · {rows.length.toLocaleString()} rows. This endpoint is not page-based.</p>:<div className={`${styles.actions} d-print-none mt-3`}><button type="button" className="btn btn-outline-secondary" disabled={page === 1 || resource.loading} onClick={() => setPage(page - 1)}>Previous</button><span>Page {page}{serverTotal !== undefined ? ` · ${plural(total, 'record')}` : ''}</span><button type="button" className="btn btn-outline-secondary" disabled={resource.loading || (serverTotal !== undefined ? page * count >= total : rows.length < count)} onClick={() => setPage(page + 1)}>Next</button><label className="d-flex align-items-center gap-2 ms-auto">Rows <select className="form-select form-select-sm w-auto" aria-label="Rows per page" value={count} onChange={e => { setCount(Number(e.target.value)); setPage(1); }}>{[25,50,100].map(n => <option key={n}>{n}</option>)}</select></label></div>}
     </>}

@@ -1,5 +1,5 @@
 import { Link } from '../types';
-import { accountingDestinations, accountingFriendlyTitles } from '../../../../lib/pharmacyAccounting';
+import { accountingDestinations, accountingFriendlyTitles, financialStatementHref, financialStatementLinks } from '../../../../lib/pharmacyAccounting';
 import { RiDashboardLine, RiShoppingCartLine, RiBankCardLine, RiFileListLine, RiArchiveLine, RiBox3Line, RiMoneyDollarCircleLine, RiSettings3Line, RiRefund2Line, RiBookOpenLine } from '@remixicon/react';
 const selling=['pharmacist','admin','pharmacy_manager','pharmacy_cashier','pharmacy_dispensary_officer'];
 const management=['admin','pharmacy_manager'];
@@ -18,7 +18,6 @@ export const PharmacyLinks:Link[]=[
      {title:'Pharmacist Review',link:'/pharmacy/clinical',icon:<RiFileListLine/>,roles:[...management,'pharmacist','pharmacy_dispensary_officer']},
      ]},
      {title:'Buy & manage stock',link:'',icon:<RiBox3Line/>,children:[
-     {title:'Catalogue',link:'/pharmacy/catalogue',icon:<RiArchiveLine/>},
      {title:'Stock Levels',link:'/pharmacy/stock',icon:<RiArchiveLine/>},
      {title:'Inventory & purchasing',link:'/pharmacy/inventory',icon:<RiBox3Line/>,roles:[...management,'pharmacy_storekeeper']},
      {title:'Purchase orders',link:'/pharmacy/inventory/orders',icon:<RiFileListLine/>,roles:[...management,'pharmacy_storekeeper','pharmacy_accountant']},
@@ -30,7 +29,13 @@ export const PharmacyLinks:Link[]=[
      {title:'Cash & Financial Days',link:'/pharmacy/finance',icon:<RiBankCardLine/>,roles:[...management,'pharmacy_accountant']},
      ]},
      {title:'Analytics & Reports',link:'/pharmacy/analytics',icon:<RiDashboardLine/>,roles:[...management,'pharmacy_accountant','pharmacy_storekeeper']},
-     {title:'Pharmacy Accounting',link:'/pharmacy/accounting',icon:<RiMoneyDollarCircleLine/>,roles:[...management,'pharmacy_accountant'],     children:accountingDestinations.map(([section,title])=>({title:accountingFriendlyTitles[section]||title,link:`/pharmacy/accounting${section?`/${section}`:''}`,roles:[...management,'pharmacy_accountant']}))},
+     {title:'Reference registers',link:'',icon:<RiArchiveLine/>,children:[
+     {title:'Catalogue',link:'/pharmacy/catalogue',icon:<RiArchiveLine/>},
+     ]},
+     {title:'Pharmacy Accounting',link:'/pharmacy/accounting',icon:<RiMoneyDollarCircleLine/>,roles:[...management,'pharmacy_accountant'],     children:accountingDestinations.flatMap(([section,title])=>[
+          {title:accountingFriendlyTitles[section]||title,link:`/pharmacy/accounting${section?`/${section}`:''}`,roles:[...management,'pharmacy_accountant']},
+          ...(section==='statements'?financialStatementLinks.map(item=>({title:item.title,link:financialStatementHref(item.report),roles:[...management,'pharmacy_accountant']})):[]),
+     ])},
      {title:'Setup & staff',link:'',icon:<RiSettings3Line/>,roles:management,children:[
      {title:'Staff & roles',link:'/account/staff',icon:<RiSettings3Line/>,roles:management},
      {title:'Settings',link:'/pharmacy/settings',icon:<RiSettings3Line/>,roles:management},

@@ -11,29 +11,55 @@ import styles from './pos.module.css';
 import InvoiceCollectionPanel from '../components/InvoiceCollectionPanel';
 
 type PriceType='retail'|'wholesale';
-type Medicine={inventoryItemId:string;name:string;sku:string;salePrice:number;wholesalePrice?:number;availableStock:number;dispensableStock?:number;barcodes?:string[];requiresPrescription?:boolean};
+type Medicine={inventoryItemId:string;name:string;sku:string;salePrice:number;wholesalePrice?:number;availableStock:number;dispensableStock?:number;barcodes?:string[];requiresPrescription?:boolean;unavailable?:boolean};
 type Line=Medicine&{quantity:number};
 const money=(value:number)=>'GHS '+Number(value).toFixed(2);
 const unitPrice=(item:Medicine,type:PriceType)=>Number(type==='wholesale'?item.wholesalePrice||0:item.salePrice);
 const lineTotal=(item:Line,type:PriceType)=>Math.round(Math.round(unitPrice(item,type)*100)*Math.round(item.quantity*1000)/1000)/100;
+// Keep unavailable lines visible until the attendant explicitly removes or replaces them.
+function recoveryIssue(line:Line,priceType:PriceType):string {
+     if(line.unavailable)return 'Unavailable in this branch. Remove or replace this line.';
+     if(line.requiresPrescription)return 'Requires a prescription. Remove and use the prescription queue.';
+     if(Number(priceType==='wholesale'?line.wholesalePrice||0:line.salePrice)<=0)return 'Current price unavailable. Configure a price or remove this line.';
+     if(line.quantity>(line.dispensableStock??line.availableStock))return 'Insufficient unexpired stock. Reduce quantity or remove this line.';
+     return '';
+}
 export default function PharmacySellPage(){
      const app=useApplication() as any,payment=usePharmacyPayment('pos'),suspension=usePharmacyDocument('pos-suspend'),counterRequest=usePharmacyDocument('counter-invoice');
      const [counterMode,setCounterMode]=useState<string|null>(null),[invoice,setInvoice]=useState<any>(null);
+     const recoveryRequest=usePharmacyDocument('counter-recovery');
      const separate=counterMode==='separate_cashier';
      useEffect(()=>{customFetch('pharmacy/counter/settings').then(r=>{if(!r?.success)throw Error(r?.error?.message||'Unable to load checkout mode');setCounterMode(r.data.mode)}).catch(e=>setError(e.message));},[]);
      const [quantityDraft,setQuantityDraft]=useState<Record<string,string>>({}),[scanning,setScanning]=useState(0);
      const scanQueue=useRef(Promise.resolve()),scanCount=useRef(0),addLatest=useRef<(item:Medicine)=>void>(()=>{}),cartRef=useRef<Line[]>([]);
      const [search,setSearch]=useState(''),[items,setItems]=useState<Medicine[]>([]),[cart,setCart]=useState<Line[]>([]),[priceType,setPriceType]=useState<PriceType>('retail');
      const [accounts,setAccounts]=useState<any[]>([]),[accountId,setAccountId]=useState(''),[accountError,setAccountError]=useState(''),[accountsLoading,setAccountsLoading]=useState(true),[accountRetry,setAccountRetry]=useState(0),[split,setSplit]=useState<Record<string,{amount:string;received:string;reference:string}>>({cash:{amount:'',received:'',reference:''},mobile_money:{amount:'',received:'',reference:''},card:{amount:'',received:'',reference:''}});
-     const [customer,setCustomer]=useState(''),[method,setMethod]=useState('cash'),[error,setError]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false);
+     const [customerDraft,setCustomer]=useState(''),[method,setMethod]=useState('cash'),[error,setError]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false);
      const [receipt,setReceipt]=useState<any>(null),[held,setHeld]=useState<any[]>([]),[heldId,setHeldId]=useState<string|null>(null),[showHeld,setShowHeld]=useState(false),[loading,setLoading]=useState(false),[active,setActive]=useState(0);
      const [showMenu,setShowMenu]=useState(false);
      const [collectionSearch,setCollectionSearch]=useState(''),[showCollection,setShowCollection]=useState(false),[collectionBusy,setCollectionBusy]=useState(false);
      const [collectionLookup,setCollectionLookup]=useState<{value:string;key:number}>();
      const collectionRequestKey=useRef(0);
      const searchInput=useRef<HTMLInputElement>(null),payPanel=useRef<HTMLDivElement>(null),generation=useRef(0),resultsFor=useRef(''),busyRef=useRef(false);
+     const [recoveryReview,setRecoveryReview]=useState<any>(null),[recoverySourceId,setRecoverySourceId]=useState<string|null>(null),[patientId,setPatientId]=useState<number|null>(null),[recoveryReason,setRecoveryReason]=useState(''),[reviewLoading,setReviewLoading]=useState(false),[recoveryCustomer,setRecoveryCustomer]=useState('');
+     const customer=recoverySourceId?recoveryCustomer:customerDraft;
+     // Query navigation is read-only. Cancellation always requires an explicit confirmation.
+     useEffect(()=>{const id=new URLSearchParams(window.location.search).get('recover');if(!id)return;let active=true;setReviewLoading(true);
+          customFetch(`pharmacy/counter/invoices/${encodeURIComponent(id)}/review`).then(r=>{if(!r?.success)throw Error(r?.error?.message||'Unable to review invoice');if(active)setRecoveryReview(r.data);}).catch(e=>{if(active)setError(e.message);}).finally(()=>{if(active)setReviewLoading(false);});return()=>{active=false;};
+     },[]);
      cartRef.current=cart;
-     const locked=busy||!!payment.pending||!!suspension.pending||!!counterRequest.pending,total=cart.reduce((sum,line)=>sum+Math.round(lineTotal(line,priceType)*100),0)/100;
+     const locked=busy||reviewLoading||!!payment.pending||!!suspension.pending||!!counterRequest.pending||!!recoveryRequest.pending,total=cart.reduce((sum,line)=>sum+Math.round(lineTotal(line,priceType)*100),0)/100;
+     const recoveryProblems=recoverySourceId?cart.map(line=>({line,issue:recoveryIssue(line,priceType)})).filter(entry=>entry.issue):[];
+     const recoverBasket=async()=>{
+          if(busyRef.current||payment.pending||suspension.pending||counterRequest.pending||scanning)return;
+          if(!recoveryRequest.pending&&!window.confirm('Cancel the original unpaid invoice and recover its basket at current prices? No payment will be taken. Any current basket will be replaced.'))return;
+          busyRef.current=true;setBusy(true);setError('');
+          try{const id=recoveryReview?.invoice.id;const r=await recoveryRequest.execute(`pharmacy/counter/invoices/${id}/recover`,{reason:recoveryReason});
+               if(!r?.success)throw Error(r?.error?.message||'Basket recovery needs confirmation. Retry the original request.');
+               const source=r.data.invoice;setRecoverySourceId(source.id);setPatientId(source.details.patientId);setRecoveryCustomer(source.details.customerName);setCustomer(source.details.customerName);setPriceType(source.details.priceType);setCart(r.data.lines);setQuantityDraft({});setHeldId(null);setReceipt(null);setInvoice(null);setSearch('');setAccountId('');payment.setAmount('');payment.setReference('');setRecoveryReview(null);
+               setNotice('Original invoice cancelled. Basket recovered with current prices and stock, including unavailable lines. Review every line, remove or edit problems, then explicitly create a replacement invoice. No stock is reserved.');
+          }catch(e){setError(e instanceof Error?e.message:'Unable to recover basket');}finally{busyRef.current=false;setBusy(false);}
+     };
      useEffect(()=>{let active=true;setAccountsLoading(true);customFetch('pharmacy/credit/accounts').then(r=>{if(!r?.success)throw new Error(r?.error?.message||'Unable to load patient credit accounts.');if(active){setAccounts(r.data||[]);setAccountError('');}}).catch(e=>{if(active){setAccounts([]);setAccountError(e instanceof Error?e.message:'Unable to load patient credit accounts.');}}).finally(()=>{if(active)setAccountsLoading(false);});return()=>{active=false;};},[accountRetry]);
      const focusSearch=()=>requestAnimationFrame(()=>searchInput.current?.focus());
      const loadHeld=useCallback(async()=>{const r=await customFetch('pharmacy/sales/held?count=100');if(!r?.success)throw new Error(r?.error?.message||'Unable to load suspended sales');setHeld(r.data.sales||[]);},[]);
@@ -73,26 +99,40 @@ export default function PharmacySellPage(){
           setCart(rows=>rows.map(row=>row.inventoryItemId===id?{...row,quantity:Math.round(value*1000)/1000}:row));payment.setAmount('');setError('');
      };
      const choosePrice=(type:PriceType)=>{
+          if(recoverySourceId){setError('A recovered invoice keeps its original retail/wholesale pricing mode.');return;}
           if(locked||type===priceType)return;
           const missing=cart.filter(item=>unitPrice(item,type)<=0);if(missing.length){setError('Set a '+type+' price for '+missing.map(item=>item.name).join(', ')+' before changing this transaction.');return;}
           setPriceType(type);payment.setAmount('');setError('');setNotice('All items now use '+type+' prices.');focusSearch();
      };
-     const clear=()=>{if(locked)return;if(cart.length&&!window.confirm('Clear the current basket? A recalled suspended sale will remain saved.'))return;setCart([]);setQuantityDraft({});setHeldId(null);setCustomer('');setSearch('');setAccountId('');setSplit({cash:{amount:'',received:'',reference:''},mobile_money:{amount:'',received:'',reference:''},card:{amount:'',received:'',reference:''}});payment.setAmount('');setError('');focusSearch();};
+     const clear=()=>{if(locked)return;if(cart.length&&!window.confirm('Clear the current basket? A recalled suspended sale or cancelled source invoice will remain saved.'))return;setRecoverySourceId(null);setPatientId(null);setCart([]);setQuantityDraft({});setHeldId(null);setCustomer('');setSearch('');setAccountId('');setSplit({cash:{amount:'',received:'',reference:''},mobile_money:{amount:'',received:'',reference:''},card:{amount:'',received:'',reference:''}});payment.setAmount('');setError('');focusSearch();};
      const checkout=async(event?:FormEvent)=>{
+          if(recoveryRequest.pending||reviewLoading){event?.preventDefault();return;}
+          if(recoverySourceId&&!separate){event?.preventDefault();setError('This recovered basket requires separate-cashier mode. Ask a manager to review checkout settings.');return;}
           event?.preventDefault();if(!counterMode){setError('Checkout settings are loading. Reload the page before continuing.');return;}if(separate&&!payment.pending){await generateInvoice();return;}if(scanCount.current||busyRef.current||suspension.pending||(!cart.length&&!payment.pending))return;
           busyRef.current=true;setBusy(true);setError('');
           try{const r=await payment.execute(heldId?'pharmacy/sales/held/'+heldId+'/complete':'pharmacy/sales',{priceType,customerName:customer||'Walk-in customer',paymentMethod:method,expectedTotal:total,...(['credit','split'].includes(method)?{customerAccountId:accountId?Number(accountId):undefined,patientId:accountId?Number(accounts.find(a=>Number(a.id)===Number(accountId))?.patient_id):undefined,tenders:method==='split'?Object.entries(split).filter(([,leg])=>Number(leg.amount)>0).map(([method,leg])=>({method,amount:Number(leg.amount),received:leg.received?Number(leg.received):Number(leg.amount),reference:leg.reference})):undefined}:{}),lines:cart.map(line=>({inventoryItemId:line.inventoryItemId,quantity:line.quantity,priceType}))});if(!r?.success)throw new Error(r?.error?.message||'Checkout needs confirmation. Retry the original request.');
                setReceipt(r.data);setCart([]);setQuantityDraft({});setHeldId(null);setCustomer('');setSearch('');setAccountId('');setSplit({cash:{amount:'',received:'',reference:''},mobile_money:{amount:'',received:'',reference:''},card:{amount:'',received:'',reference:''}});payment.setAmount('');payment.setReference('');setNotice('Sale completed. Your saved receipt is ready to print.');await loadHeld();focusSearch();
           }catch(e){setError(e instanceof Error?e.message:'Unable to confirm checkout');}finally{busyRef.current=false;setBusy(false);}
      };
-     const generateInvoice=async()=>{if(busyRef.current||scanning||payment.pending||suspension.pending||(!cart.length&&!counterRequest.pending))return;busyRef.current=true;setBusy(true);setError('');try{const r=await counterRequest.execute('pharmacy/counter/invoices',{heldSaleId:heldId||undefined,priceType,customerName:customer||'Walk-in customer',expectedTotal:total,lines:cart.map(line=>({inventoryItemId:line.inventoryItemId,quantity:line.quantity,priceType}))});if(!r?.success)throw Error(r?.error?.message||'Invoice creation needs confirmation. Retry the original request.');setInvoice(r.data);setCart([]);setQuantityDraft({});setHeldId(null);setCustomer('');setSearch('');setReceipt(null);setNotice('Give the four-character code to the customer for payment. Medicines are not yet paid or reserved.');await loadHeld();focusSearch();}catch(e){setError(e instanceof Error?e.message:'Unable to create invoice')}finally{busyRef.current=false;setBusy(false)}};
+     const generateInvoice=async()=>{
+          if(busyRef.current||scanning||reviewLoading||recoveryRequest.pending||payment.pending||suspension.pending||(!cart.length&&!counterRequest.pending))return;
+          if(!counterRequest.pending&&recoveryProblems.length){setError('Remove or edit the unavailable basket lines before creating a replacement invoice.');return;}
+          busyRef.current=true;setBusy(true);setError('');
+          try{const r=await counterRequest.execute('pharmacy/counter/invoices',{recoverySourceId:recoverySourceId||undefined,patientId:patientId||undefined,heldSaleId:heldId||undefined,priceType,customerName:customer||'Walk-in customer',expectedTotal:total,lines:cart.map(line=>({inventoryItemId:line.inventoryItemId,quantity:line.quantity,priceType}))});
+               if(!r?.success)throw Error(r?.error?.message||'Invoice creation needs confirmation. Retry the original request.');
+               setInvoice(r.data);setRecoverySourceId(null);setPatientId(null);setRecoveryReview(null);setCart([]);setQuantityDraft({});setHeldId(null);setCustomer('');setSearch('');setReceipt(null);setNotice('Give the four-character code to the customer for payment. Medicines are not yet paid or reserved.');await loadHeld();focusSearch();
+          }catch(e){setError(e instanceof Error?e.message:'Unable to create invoice')}finally{busyRef.current=false;setBusy(false)}
+     };
      const suspend=async()=>{
+          if(recoveryRequest.pending||counterRequest.pending||reviewLoading)return;
+          if(recoverySourceId){setError('Create the replacement invoice or explicitly clear this recovered basket; it cannot be suspended.');return;}
           if(scanCount.current||busyRef.current||payment.pending||(!cart.length&&!suspension.pending))return;busyRef.current=true;setBusy(true);setError('');
           try{const r=await suspension.execute('pharmacy/sales/held',{heldSaleId:heldId||undefined,priceType,customerName:customer||'Walk-in customer',lines:cart.map(line=>({inventoryItemId:line.inventoryItemId,quantity:line.quantity,priceType}))});if(!r?.success)throw new Error(r?.error?.message||'Suspension needs confirmation. Retry the original request.');
                setCart([]);setQuantityDraft({});setCustomer('');setHeldId(null);setSearch('');payment.setAmount('');payment.setReference('');setNotice('Sale suspended. Stock and payment have not been deducted.');await loadHeld();focusSearch();
           }catch(e){setError(e instanceof Error?e.message:'Unable to suspend sale');}finally{busyRef.current=false;setBusy(false);}
      };
      const recall=async(id:string)=>{
+          if(recoverySourceId){setError('Explicitly clear the recovered basket before recalling another sale.');return;}
           if(locked||busyRef.current)return;if(cart.length&&!window.confirm('Replace this basket? Unsaved changes will be lost.'))return;busyRef.current=true;setBusy(true);setError('');
           try{const r=await customFetch('pharmacy/sales/held/'+id);if(!r?.success)throw new Error(r?.error?.message||'Suspended sale unavailable');
                const types=new Set(r.data.lines.map((line:any)=>line.priceType||'retail'));const type=Array.from(types)[0] as PriceType;
@@ -105,6 +145,18 @@ export default function PharmacySellPage(){
      const cashierOnly=['pharmacycashier','pharmacyaccountant'].includes(String(app?.user?.role||'').toLowerCase().replace(/[\s_-]/g,''));
      if(separate&&cashierOnly&&!payment.pending)return <main className={styles.page}><header className={styles.header}><div><h1>Cashier payments</h1><p>This branch uses separate attendants and cashiers. Enter the customer's four-character code to take payment.</p></div></header><Link className="btn btn-primary btn-lg" href="/pharmacy/counter">Open counter invoices</Link></main>;
      return <main className={styles.page}>
+          {reviewLoading&&<p role="status">Loading invoice review. The original invoice has not been changed.</p>}
+          {recoveryRequest.pending&&<section className="alert alert-warning">Basket recovery needs confirmation. Do not start another invoice.<button type="button" className="btn btn-warning ms-2" disabled={busy||!!payment.pending||!!counterRequest.pending||!!suspension.pending} onClick={recoverBasket}>Retry original basket recovery</button></section>}
+          {recoveryReview&&<section className={styles.panel} aria-label="Invoice recovery review">
+               <h2>Review original invoice {recoveryReview.invoice.code}</h2>
+               <p>Original invoice: {recoveryReview.invoice.status}. Original total {money(recoveryReview.invoice.total)}. Current basket total {money(recoveryReview.refreshedTotal)}. No total or stock has been changed.</p>
+               <p>Customer: {recoveryReview.invoice.details.customerName}. Patient ID: {recoveryReview.invoice.details.patientId??'None'}. Pricing: {recoveryReview.invoice.details.priceType}.</p>
+               <ul>{recoveryReview.lines.map((line:any)=><li key={line.inventoryItemId}>{line.name}: {line.quantity} × {money(line.unitPrice)}. Available: {line.dispensableStock}. {line.issue&&<strong>{line.issue}</strong>}</li>)}</ul>
+               {recoveryReview.invoice.details.replacementId?<p>This invoice has already been reissued. {recoveryReview.replacement&&<Link href={`/pharmacy/counter?code=${encodeURIComponent(recoveryReview.replacement.code)}`}>Open replacement {recoveryReview.replacement.invoice_number}</Link>}</p>:
+                    !recoveryReview.canRecover?<p>Handoff required: return code {recoveryReview.invoice.code} to {recoveryReview.invoice.attendant_name} or a pharmacy manager. You cannot cancel or reissue this invoice.</p>:
+                    ['unpaid','cancelled'].includes(recoveryReview.invoice.status)?<><label className="form-label">Cancellation / recovery reason<input className="form-control" aria-label="Basket recovery reason" value={recoveryReason} disabled={locked} onChange={e=>setRecoveryReason(e.target.value)} minLength={5} maxLength={500}/></label><button type="button" className="btn btn-outline-danger" disabled={locked||(recoveryReview.invoice.status==='unpaid'&&recoveryReason.trim().length<5)} onClick={recoverBasket}>{recoveryReview.invoice.status==='cancelled'?'Recover cancelled invoice basket':'Confirm cancellation and recover basket'}</button></>:<p>This invoice is no longer unpaid. Do not collect another payment.</p>}
+          </section>}
+          {recoverySourceId&&<section className="alert alert-info" aria-label="Recovered basket"><strong>Recovered basket — review before reissuing</strong><p>Customer: {customer}. Patient ID: {patientId??'None'}. Original {priceType} pricing mode is preserved. Original invoice remains saved as cancelled.</p>{recoveryProblems.length>0&&<ul role="alert">{recoveryProblems.map(({line,issue})=><li key={line.inventoryItemId}>{line.name}: {issue}</li>)}</ul>}</section>}
           <div className={styles.menuBar}>
                <form className={styles.collectionSearch} onSubmit={event=>{event.preventDefault();if(locked||!collectionSearch.trim())return;setCollectionLookup({value:collectionSearch.trim(),key:++collectionRequestKey.current});setShowCollection(true);}}>
                     <label htmlFor="pos-collection-invoice" className="visually-hidden">Find invoice for medication collection</label>

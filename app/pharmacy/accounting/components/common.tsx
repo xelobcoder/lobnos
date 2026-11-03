@@ -9,6 +9,7 @@ import Loader from "../../../../components/accessories/Loader";
 import { currencyFormatter } from "../../../../components/Auth/customFetch";
 import {
      accountingDateLabel,
+     accountingRecovery,
      accountingReference,
      record,
      text,
@@ -31,12 +32,14 @@ export const styles: Record<string, string> = {
 };
 export const label = (key: string) =>
      key.replace(/_/g, " ").replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, value => value.toUpperCase());
-export function Feedback({ error, notice }: { error?: string; notice?: string }) {
+export function Feedback({ error, notice, errorCode = '' }: { error?: string; notice?: string; errorCode?: string }) {
+     const recovery = error ? accountingRecovery(errorCode) : null;
      return (
           <>
                {error && (
                     <div role="alert" className="alert alert-danger">
                          {error}
+                         {recovery && <p className="mb-0 mt-2">{recovery.message} <Link href={recovery.href}>{recovery.label}</Link></p>}
                     </div>
                )}
                {notice && (
@@ -47,7 +50,7 @@ export function Feedback({ error, notice }: { error?: string; notice?: string })
           </>
      );
 }
-export function ResourceState({ loading, error, retry }: { loading: boolean; error: string; retry: () => void }) {
+export function ResourceState({ loading, error, errorCode, retry }: { loading: boolean; error: string; errorCode?: string; retry: () => void }) {
      return (
           <>
                {loading && (
@@ -57,7 +60,7 @@ export function ResourceState({ loading, error, retry }: { loading: boolean; err
                )}
                {error && (
                     <>
-                         <Feedback error={error} />
+                         <Feedback error={error} errorCode={errorCode} />
                          <button type="button" className="btn btn-outline-primary" onClick={retry}>
                               Retry
                          </button>
@@ -179,12 +182,18 @@ export function SummaryMetrics({
           </dl>
      );
 }
-export function WorkflowViews({ label: name, views }: {
+export function WorkflowViews({ label: name, views, initialView }: {
      label: string;
      views: { id: string; title: string; content: ReactNode }[];
+     initialView?: string | null;
 }) {
-     const [active, setActive] = useState(views[0].id);
-     const [visited, setVisited] = useState([views[0].id]);
+     const first = views.find(view => view.id === initialView)?.id || views[0].id;
+     const [active, setActive] = useState(first);
+     const [visited, setVisited] = useState([first]);
+     useEffect(() => {
+          setActive(first);
+          setVisited(previous => previous.includes(first) ? previous : [...previous, first]);
+     }, [first]);
      return <>
           <nav className={`${layout.views} d-print-none`} aria-label={name}>
                {views.map(view => <button key={view.id} type="button" aria-pressed={active === view.id}

@@ -31,9 +31,9 @@ const previous = { id: 'previous', financial_date: '2026-11-02', status: 'open',
 const openShift = { id: 'open', cashier_id: 2, financial_date: '2026-11-02', opened_at: '2026-11-02T08:00:00Z', opening_float: 10 };
 const unreviewedShift = { id: 'review', cashier_id: 3, financial_date: '2026-11-02', opened_at: '2026-11-02T09:00:00Z', closed_at: '2026-11-02T18:00:00Z', opening_float: 0, counted_cash: 12, variance: 2 };
 
-function renderFinance({ shifts = [openShift, unreviewedShift], days = [previous], manager = true, administrator = false, employeeid = 1 } = {}) {
+function renderFinance({ shifts = [openShift, unreviewedShift], days = [previous], manager = true, administrator = false, employeeid = 1, tab = 'days' } = {}) {
      let state = 0;
-     const react = { ...hooks, useState: initial => [state++ === 0 ? 'days' : initial, () => {}] };
+     const react = { ...hooks, useState: initial => [state++ === 0 ? tab : initial, () => {}] };
      const report = { days, shifts, balances: [], documents: [], events: [], revenue: 0, costOfSales: 0, expenses: 0, profit: 0 };
      const resource = endpoint => ({
           data: endpoint.endsWith('reports') ? report : endpoint.endsWith('suppliers') ? [] : { financialDate: '2026-11-03', day: null, previousDay: previous, accounts: [] },
@@ -52,6 +52,15 @@ function renderFinance({ shifts = [openShift, unreviewedShift], days = [previous
      }).default;
      return renderToStaticMarkup(React.createElement(page));
 }
+test('daily checklist names each blocker and never offers accountant handover approval', () => {
+     const html = renderFinance({ tab: 'overview', manager: false });
+     assert.match(html, /1 shift\(s\) need a physical cash count and closing/);
+     assert.match(html, /1 closed handover\(s\) await review/);
+     assert.match(html, /an accountant cannot approve handovers/);
+     assert.match(html, /4\. Open today separately/);
+     assert.match(html, /Opening today stays blocked until the previous trading day is closed/);
+     assert.doesNotMatch(html, />Review handovers<\/button>/);
+});
 
 test('both previous-day shift actions are visible before the wide cash columns and closing stays blocked', () => {
      const html = renderFinance();

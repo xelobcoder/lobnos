@@ -16,7 +16,7 @@ export function JournalForm({ onSaved }: { onSaved: () => void }) {
   const [validation, setValidation] = useState(''), [formKey, setFormKey] = useState(0);
   const update = (index: number, patch: Partial<JournalLine>) => setLines(lines.map((line, i) => i === index ? { ...line, ...patch } : line));
   return <section className={styles.card}><h2>Create draft journal</h2><p className={styles.muted}>Drafts do not post to the general ledger. Submit, independent approval, and posting are separate steps.</p>
-    <ResourceState {...accounts} retry={accounts.refresh}/><Feedback error={validation || mutation.error} notice={mutation.notice}/>
+    <ResourceState {...accounts} retry={accounts.refresh}/><Feedback error={validation || mutation.error} errorCode={validation ? '' : mutation.errorCode} notice={mutation.notice}/>
     <div className={layout.editorGrid}><form key={formKey} onSubmit={async e => {
       e.preventDefault(); const error = journalError(lines); setValidation(error); if (error) return;
       const f = new FormData(e.currentTarget);

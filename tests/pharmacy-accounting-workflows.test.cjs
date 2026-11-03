@@ -10,7 +10,9 @@ function compile(file, imports = {}, globals = {}) {
     './AccountingWorkspace.module.css':{__esModule:true,default:{summaryStrip:'accounting-summary',summaryDetail:'summary-detail'}},...imports,
   };
   if(file.endsWith('/Subledgers.tsx'))imports={'next/navigation':{useSearchParams:()=>new URLSearchParams()},'./SupplierAllocations':{__esModule:true,default:()=>null},...imports};
+  if(file.endsWith('/Configuration.tsx'))imports={'next/link':{__esModule:true,default:({href,children,...props})=>require('react').createElement('a',{href,...props},children)},...imports};
   if(file.endsWith('/Registers.tsx'))imports={
+    'next/navigation':{useSearchParams:()=>new URLSearchParams()},
     './AccountingWorkspace.module.css':{__esModule:true,default:{}},
     '../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable':{__esModule:true,default:()=>null},
     './SupplierPicker':{__esModule:true,default:()=>null},
@@ -353,6 +355,55 @@ test('standalone chart creates Pharmacy-only accounts and distinguishes safe rem
   await findElement(table.props.actions(rows[2]), node => node.type === 'button' && node.props.children === 'Remove from Pharmacy').props.onClick();
   assert.deepEqual(plain(calls.slice(1)), [['local-accounts/4/remove', {}], ['accounts/8/remove', {}]]);
 });
+test('chart defaults to readable business columns and reveals technical keys only on request', () => {
+  const rows = [
+    { id: 'system:stock_in_transit', account_code: 'stock_in_transit', account_number: '1220', name: 'Stock in transit', type: 'asset', normal_balance: 'debit', local_codes: ['stock_in_transit'], origin: 'system' },
+    { id: 'system:inventory_in_transit', account_code: 'inventory_in_transit', account_number: '1230', name: 'Inventory in transit', type: 'asset', normal_balance: 'debit', local_codes: ['inventory_in_transit'], origin: 'system' },
+    { id: 'local:4', account_code: 'DELIVERY', name: 'Delivery expenses', type: 'expense', normal_balance: 'debit', parent_account_id: 'expense:GENERAL', local_codes: ['expense:DELIVERY'], origin: 'local' },
+    { id: 'local:5', account_code: 'GENERAL', account_number: '6001', name: 'General expenses', type: 'expense', normal_balance: 'debit', local_codes: ['expense:GENERAL'], origin: 'local' },
+    { id: 'local:6', account_code: 'LEGACY', name: 'Legacy expense', type: 'expense', normal_balance: 'debit', parent_account_id: 17, local_codes: ['expense:LEGACY'], origin: 'local' },
+    { id: 'local:7', account_code: 'UNRESOLVED', name: 'Unresolved parent expense', type: 'expense', normal_balance: 'debit', parent_account_id: 'missing-parent', local_codes: ['expense:UNRESOLVED'], origin: 'local' },
+    { id: 'collection:8', account_code: 'collection:8', name: 'Cash desk', type: 'asset', normal_balance: 'debit', local_codes: ['collection:8'], origin: 'collection' },
+  ];
+  const original = JSON.stringify(rows);
+  let technical = false;
+  const config = compile('app/pharmacy/accounting/components/Configuration.tsx', {
+    'react/jsx-runtime': jsx,
+    react: { useState: initial => initial === false ? [technical, value => { technical = value; }] : hooks.useState(initial) },
+    '../../../../lib/pharmacyAccounting': lib, './common': common,
+    '../../../../lib/pharmacyAccountingConfiguration': configurationLib,
+    './api': {
+      useResource: () => ({ data: { items: rows, sharedAccounts: [{ id: 17, account_code: 'FAC-EXP', account_number: '6002', name: 'Facility expenses' }] }, loading: false, error: '', refresh() {} }),
+      useMutation: () => ({ pending: false, error: '', notice: '' }),
+    },
+  });
+  let chart = config.ChartOfAccounts();
+  let table = findElement(chart, node => node.type === common.DataTable);
+  assert.deepEqual(plain(table.props.columns), ['account_code','name','type','normal_balance','parent_account_id','is_active']);
+  assert.equal(table.props.labels.parent_account_id, 'Parent account');
+  assert.equal(table.props.labels.is_active, 'Status');
+  assert.equal(table.props.cell(rows[0], 'parent_account_id'), 'Top-level');
+  assert.equal(table.props.cell(rows[2], 'parent_account_id'), '6001 - General expenses');
+  assert.equal(table.props.cell(rows[4], 'parent_account_id'), '6002 - Facility expenses');
+  assert.equal(table.props.cell(rows[5], 'parent_account_id'), 'Unavailable parent (missing-parent)');
+  assert.equal(table.props.actions(rows[0]), null, 'standard accounts remain protected without repetitive row actions');
+  assert.equal(table.props.actions(rows[6]).props.href, '/pharmacy/accounting/cash-bank');
+  const html = renderToStaticMarkup(chart);
+  assert.match(html, /Branch-transfer stock awaiting receipt/);
+  assert.match(html, /Separate transit control; not used by automatic branch transfers/);
+  assert.doesNotMatch(html, /Posting keys|Account ownership|\[&quot;/);
+  for (const route of ['cash-bank','receivables','payables']) assert.ok(html.includes(`href="/pharmacy/accounting/${route}"`));
+  findElement(chart, node => node.type === 'input' && node.props.type === 'checkbox' && node.props.checked === false).props.onChange({ target: { checked: true } });
+  chart = config.ChartOfAccounts();
+  table = findElement(chart, node => node.type === common.DataTable);
+  assert.ok(table.props.columns.includes('local_codes'));
+  assert.ok(table.props.columns.includes('origin'));
+  assert.equal(table.props.cell(rows[2], 'local_codes'), 'expense:DELIVERY');
+  assert.equal(table.props.cell({ local_codes: ['first','second'] }, 'local_codes'), 'first, second');
+  assert.equal(table.props.cell(rows[0], 'origin'), 'Standard');
+  assert.equal(table.props.cell(rows[2], 'origin'), 'Pharmacy-only');
+  assert.equal(JSON.stringify(rows), original, 'presentation never renames or merges posting accounts');
+});
 test('standalone tax rules offer active Pharmacy liabilities without a facility mapping', () => {
   const accounts = { items: [
     { id: 'system:liability:output_tax', account_code: 'liability:output_tax', name: 'Sales tax payable', type: 'liability', is_active: true, local_codes: ['liability:output_tax'] },
@@ -363,7 +414,7 @@ test('standalone tax rules offer active Pharmacy liabilities without a facility 
     [{ localAccount: 'liability:output_tax', code: 'liability:output_tax', name: 'Sales tax payable' }]);
   assert.deepEqual(plain(taxLib.taxLiabilityOptions(accounts, { enabled: true, effective_date: '2026-11-02', mappings: {} })), []);
 });
-test('financial statement renders real section tables, totals and classification warning; server errors never show stale rows', () => {
+test('financial statement renders one table with section rows, totals and classification warning; server errors never show stale rows', () => {
   function workspace(resource) {
     return compile('app/pharmacy/accounting/components/Registers.tsx', {
       'react/jsx-runtime': jsx, react: hooks, 'next/link': nextLink,
@@ -378,16 +429,78 @@ test('financial statement renders real section tables, totals and classification
   assert.match(html, /<table/); assert.match(html, /Revenue/); assert.match(html, /123.45/);
   assert.match(html, /Net Profit/); assert.match(html, /classification is incomplete/);
   const document=new (require('jsdom').JSDOM)(html).window.document;
+  assert.equal(document.querySelectorAll('table').length,1,'classification warnings and totals must not add separate tables');
   for(const name of ['Expenses','Liabilities']){
-    const section=document.querySelector(`section[aria-label="${name}"]`);
-    assert.equal(section.querySelectorAll('h3').length,1,'each statement group needs exactly one heading');
-    assert.equal(section.querySelector('h3').textContent,name);
-    assert.equal([...section.querySelectorAll('th')].some(e=>e.textContent==='Section'),false,'group names should not be repeated in every row');
+    const heading=[...document.querySelectorAll('th[scope="rowgroup"]')].find(cell=>cell.textContent===name);
+    assert.ok(heading,'each statement group needs a heading row in the same table');
+    assert.equal(heading.colSpan,2);
+    assert.equal([...document.querySelectorAll('thead th')].some(e=>e.textContent==='Section'),false,'group names should not be repeated in every row');
   }
+  assert.ok(document.querySelector('tfoot').textContent.includes('Net Profit'));
   registers = workspace({ data: null, loading: false, error: 'Financial period unavailable' });
   const errorHtml = renderToStaticMarkup(registers.Register({ endpoint: 'reports', report: 'profit_loss' }));
   assert.match(errorHtml, /role="alert"/); assert.match(errorHtml, /Financial period unavailable/);
   assert.doesNotMatch(errorHtml, /123.45|<table/);
+});
+test('balance sheet uses one formal table and formats all server totals without changing their amounts',()=>{
+  const ui=compile('app/pharmacy/accounting/components/Registers.tsx',{
+    'react/jsx-runtime':jsx,react:hooks,'next/link':nextLink,
+    '../../../../lib/pharmacyAccounting':lib,'./common':common,'./api':{},'./exports':{},
+  });
+  const data={
+    rows:[
+      {section:'Assets',account_number:'1000',account_name:'PHARMACY CASH',amount:51870020},
+      {section:'Assets',account_number:'1010',account_name:'PHARMACY BANK DETAILS',amount:-11430},
+      {section:'Assets',account_number:'1020',account_name:'MOBILE MONEY',amount:1800},
+      {section:'Assets',account_number:'1200',account_name:'Inventory',amount:1115254.57},
+      {section:'Assets',account_number:'1300',account_name:'Input tax recoverable',amount:30},
+      {section:'Liabilities',account_number:'2000',account_name:'Accounts payable - JY PHARMACY',amount:66000},
+      {section:'Liabilities',account_number:'2000',account_name:'Accounts payable - SHALLOT EATERY',amount:2191000},
+      {section:'Liabilities',account_number:'2050',account_name:'Goods received not invoiced (GRNI)',amount:0},
+      {section:'Equity',account_number:'3100',account_name:'Retained earnings',amount:50718674.57},
+    ],
+    columns:['section','account_number','account_name','amount'],
+    totals:{assets:52975674.57,liabilities:2257000,equity:50718674.57,unclassified:0,balanceDifference:0},
+  };
+  const before=JSON.stringify(data);
+  const document=new (require('jsdom').JSDOM)(renderToStaticMarkup(React.createElement(ui.StatementTable,{
+    ...data,labels:{account_number:'Account no.',account_name:'Account',amount:'Amount (GHS)'},title:'Balance sheet',
+  }))).window.document;
+  assert.equal(document.querySelectorAll('table').length,1);
+  assert.deepEqual([...document.querySelectorAll('thead th')].map(cell=>cell.textContent),['Account no.','Account','Amount (GHS)']);
+  assert.deepEqual([...document.querySelectorAll('th[scope="rowgroup"]')].map(cell=>cell.textContent),['Assets','Liabilities','Equity']);
+  for(const [name,value] of [['Total assets',52975674.57],['Total liabilities',2257000],['Total equity',50718674.57],['Unclassified',0],['Balance Difference',0]]){
+    const row=[...document.querySelectorAll('tr')].find(row=>row.querySelector('th[scope="row"]')?.textContent===name);
+    assert.ok(row,name);
+    assert.equal(row.querySelector('td').textContent,currencyFormatter.format(value));
+  }
+  const bank=[...document.querySelectorAll('tbody tr')].find(row=>row.textContent.includes('PHARMACY BANK DETAILS'));
+  assert.equal(bank.cells[0].textContent,'1010','account numbers are identifiers, not numeric amounts');
+  assert.equal(bank.cells[2].textContent,currencyFormatter.format(-11430));
+  assert.equal(document.querySelector('caption').textContent,'Balance sheet');
+  const region=document.querySelector('[role="region"]');
+  assert.equal(region.classList.contains('table-responsive'),false,'statement must not have Bootstrap internal scrolling');
+  assert.equal(region.hasAttribute('tabindex'),false,'non-scrolling statement wrapper needs no extra keyboard stop');
+  assert.equal(document.querySelector('button,select'),null,'statement order must not be changed by table sorting or compact-row controls');
+  assert.equal(JSON.stringify(data),before,'financial values remain server-owned');
+});
+test('statement table keeps trial-balance debit totals aligned and retains zero and empty report evidence',()=>{
+  const ui=compile('app/pharmacy/accounting/components/Registers.tsx',{
+    'react/jsx-runtime':jsx,react:hooks,'next/link':nextLink,
+    '../../../../lib/pharmacyAccounting':lib,'./common':common,'./api':{},'./exports':{},
+  });
+  const render=props=>new (require('jsdom').JSDOM)(renderToStaticMarkup(React.createElement(ui.StatementTable,{labels:{},title:'Trial Balance',...props}))).window.document;
+  const document=render({rows:[{section:'Assets',account_name:'Cash',debit:25,credit:0}],columns:['section','account_name','debit','credit'],totals:{debits:25,credits:25,difference:0}});
+  const totals=[...document.querySelectorAll('tfoot tr')];
+  assert.equal(totals[0].cells[1].textContent,currencyFormatter.format(25));
+  assert.equal(totals[0].cells[2].textContent,'');
+  assert.equal(totals[1].cells[0].colSpan,2);
+  assert.equal(totals[1].cells[1].textContent,currencyFormatter.format(25));
+  assert.equal(totals[2].cells[1].textContent,currencyFormatter.format(0));
+  const empty=render({rows:[],columns:['account_name','amount'],totals:{assets:0,balanceDifference:0}});
+  assert.equal(empty.querySelectorAll('table').length,1);
+  assert.ok(empty.querySelector('tbody').textContent.includes('No records returned'));
+  assert.equal(empty.querySelector('tfoot td').textContent,currencyFormatter.format(0));
 });
 test('mutation hook injects idempotency into POST and PUT and retains a retry key after failure', async () => {
   const calls = []; let fail = true;
@@ -590,16 +703,18 @@ test('supplier invoice deep links show only the exact authorized bill and expose
   assert.match(html,/Linked supplier bill/);assert.match(html,/Example supplier/);assert.doesNotMatch(html,/Other supplier/);
   assert.match(renderToStaticMarkup(subledgersForTest({bills,linkedId:'missing-bill'}).Payables()),/unavailable in this branch/);
 });
-test('AP bill registration and due date forms preserve source evidence and cannot rewrite known terms',async()=>{
+test('AP bill registration and due date forms preserve originals and prepare separately reviewed corrections',async()=>{
   const calls=[],ui=subledgersForTest({calls});
   await submit(ui.BillRegistration({refresh(){}}),{receiptId:'posted-receipt-1',reference:'SUP-001',dueDate:'2099-02-01'});
   assert.deepEqual(plain(calls[0]),['payables/bills',{receiptId:'posted-receipt-1',reference:'SUP-001',dueDate:'2099-02-01'}]);
   await submit(ui.DueDateForm({id:'bill-1',endpoint:'payables/bills',dueDate:null,refresh(){}}),{dueDate:'2099-02-01',reason:'Supplier terms evidence'});
   assert.deepEqual(plain(calls[1]),['payables/bills/bill-1/due-date',{dueDate:'2099-02-01',reason:'Supplier terms evidence'},'PUT']);
   const known=ui.DueDateForm({id:'bill-1',endpoint:'payables/bills',dueDate:'2099-02-01',refresh(){}});
-  assert.equal(findElement(known,el=>el.type==='form'),undefined);
+  assert.match(renderToStaticMarkup(known),/recorded date stays in history/);
+  await submit(known,{dueDate:'2099-04-01',date:'2099-03-01',reason:'Supplier agreed extended terms'});
+  assert.deepEqual(plain(calls[2]),['payables/bills/bill-1/terms-amendments',{expectedDueDate:'2099-02-01',dueDate:'2099-04-01',date:'2099-03-01',reason:'Supplier agreed extended terms'}]);
   await submit(ui.DueDateForm({id:'sale-1',endpoint:'receivables',dueDate:null,refresh(){}}),{dueDate:'2099-03-01',reason:'Agreed invoice terms'});
-  assert.equal(calls[2][0],'receivables/sale-1/due-date');
+  assert.equal(calls[3][0],'receivables/sale-1/due-date');
 });
 test('order payment mode uses plain language but preserves exact partial bill allocations',async()=>{
   const calls=[],bills=[{id:'bill-original',supplier_id:'supplier-1',source_kind:'supplier_invoice',outstanding_amount:'100.00',reference:'INV-ORIGINAL'}];
@@ -607,9 +722,37 @@ test('order payment mode uses plain language but preserves exact partial bill al
   const form=ui.SettlementForm({simple:true,bills,refresh(){}});
   const html=renderToStaticMarkup(form);
   assert.match(html,/Record supplier payment/);assert.match(html,/Amount paid 1/);assert.match(html,/Paid from/);assert.match(html,/>Record payment</);
-  assert.doesNotMatch(html,/Create allocated supplier settlement|Allocation 1 bill|Save draft allocated settlement|approval/);
+  assert.doesNotMatch(html,/Create allocated supplier settlement|Allocation 1 bill|Save draft allocated settlement/);
+  assert.match(html,/does not go through a separate approval step/);
+  assert.match(html,/Do not record the same payment in both workflows/);
   await submit(form,{date:'2099-01-01',method:'card',reference:'BANK-77',description:'Supplier invoice settlement'});
   assert.deepEqual(plain(calls[0]),['payables/payments',{date:'2099-01-01',method:'card',allocations:[{billId:'bill-original',amount:'25.00'}],reference:'BANK-77',description:'Supplier invoice settlement'}]);
+});
+test('accounting errors retain stable recovery codes and offer specific safe next actions',async()=>{
+  const api=compile('app/pharmacy/accounting/components/api.ts',{
+    react:{},'../../../../components/Auth/customFetch':{customFetchMutation:async()=>({success:false,error:{code:'PAYABLE_RECONCILIATION_REQUIRED',message:'Supplier control balance is insufficient'}})},
+    '../../../../lib/pharmacyAccounting':lib,'../../../../lib/pharmacyTax':taxLib,
+  });
+  await assert.rejects(api.request('payables/payments','POST',{}),error=>error.code==='PAYABLE_RECONCILIATION_REQUIRED'&&/Supplier control/.test(error.message));
+  const html=renderToStaticMarkup(common.Feedback({error:'Supplier control balance is insufficient',errorCode:'PAYABLE_RECONCILIATION_REQUIRED'}));
+  assert.match(html,/do not pay twice/i);
+  assert.match(html,/\/pharmacy\/accounting\/payables\?view=applications/);
+  assert.match(html,/Review supplier credits &amp; advances/);
+  assert.equal(lib.accountingRecovery('UNKNOWN_ERROR'),null);
+  assert.doesNotMatch(renderToStaticMarkup(common.Feedback({notice:'Saved',errorCode:'PAYABLE_RECONCILIATION_REQUIRED'})),/do not pay twice/i);
+});
+test('terms corrections require independent approval and cancelled settlements create linked replacement drafts',async()=>{
+  const calls=[],ui=subledgersForTest({calls});
+  assert.deepEqual(plain(ui.controlledActions({status:'submitted',version:2,created_by:9},9,true,'payable_terms')),['void']);
+  assert.deepEqual(plain(ui.controlledActions({status:'submitted',version:2,created_by:8},9,true,'receivable_terms')),['approve','void']);
+  assert.deepEqual(plain(ui.controlledActions({status:'approved',version:3},9,true,'payable_terms')),['post','void']);
+  assert.deepEqual(plain(ui.controlledActions({status:'approved',version:3},9,true,'settlement')),['pay','void']);
+  await submit(ui.SettlementCorrection({row:{id:'wrong-request',status:'approved',version:3},refresh(){}}),{reason:'Wrong request date'});
+  assert.deepEqual(plain(calls[0]),['payables/settlements/wrong-request/void',{expectedVersion:3,reason:'Wrong request date'}]);
+  assert.equal(ui.SettlementCorrection({row:{id:'paid-request',status:'paid',version:4},refresh(){}}),null);
+  const replacement=subledgersForTest({calls,states:[[{billId:'bill-original',amount:'25.00'}],'',0]});
+  await submit(replacement.SettlementForm({bills:[{id:'bill-original',supplier_id:'supplier-1',source_kind:'supplier_invoice',outstanding_amount:'100.00'}],replacesSettlementId:'wrong-request',refresh(){}}),{date:'2099-01-01',description:'Corrected request'});
+  assert.equal(calls.at(-1)[0],'payables/settlements');assert.equal(calls.at(-1)[1].replacesSettlementId,'wrong-request');
 });
 test('AP settlement form sends explicit bill allocations and controlled actions never rewrite date or allocation',async()=>{
   const calls=[],bills=[{id:'bill-1',supplier_id:'supplier-1',source_kind:'receipt',outstanding_amount:'50.00',reference:'SUP-001'}];
@@ -1212,7 +1355,7 @@ test('supplier statement selection and apply navigate with exact selected ID ins
   const html=renderToStaticMarkup(element);assert.match(html,/Supplier statement/);assert.match(html,/Akwa Medical Supplies/);
   assert.doesNotMatch(html,/Supplier ID/);
 });
-function accountingUiFixture({failure=''}={}) {
+function accountingUiFixture({failure='',reportQuery='',finance=true}={}) {
   const cache={},rootDir='app/pharmacy/accounting/components/',requests=[];
   const snapshot=lib.decodeInventoryControl(inventoryFixture);
   const resource=endpoint=>{
@@ -1234,12 +1377,13 @@ function accountingUiFixture({failure=''}={}) {
     const file=rootDir+name+'.tsx',source=ts.createSourceFile(file,fs.readFileSync(path.join(root,file),'utf8'),ts.ScriptTarget.Latest,true);
     const imports={
       'react/jsx-runtime':jsx,react:{...React,...hooks,useEffect(){}},'next/link':nextLink,
+      'next/navigation':{useSearchParams:()=>new URLSearchParams(reportQuery)},
       '../../../../lib/pharmacyAccounting':lib,'../../../../lib/pharmacyAccountingConfiguration':configurationLib,'../../../../lib/pharmacyTax':taxLib,
       '../../../../lib/pharmacyLearning':learningLib,
       '../../components/PharmacyTaskHelp':{__esModule:true,default:()=>null},
       './common':common,'./api':{useResource:resource,useMutation:()=>({pending:false,error:'',mutate:async()=>true})},
       './exports':{downloadAccountingExport:async()=>{},fullFilteredExport:async()=>({rows:[],metadata:{}})},
-      './evidenceDownload':{},'../../components/PharmacyWorkspace':{usePharmacyAccess:()=>({finance:true,manager:true,app:{user:{role:'pharmacy_manager',employeeid:9}}}),MedicinePicker:()=>null},
+      './evidenceDownload':{},'../../components/PharmacyWorkspace':{usePharmacyAccess:()=>({finance,manager:finance,app:{user:{role:finance?'pharmacy_manager':'pharmacy_storekeeper',employeeid:9}}}),MedicinePicker:()=>null},
       '../../../../lib/roleNavigationPolicy':{canAccessRolePage:()=>true},
       '../../../../components/Auth/customFetch':{currencyFormatter,reactSelectCustomStyles:{}},
       '../../../../components/accounting/ReportShell.module.css':{__esModule:true,default:{}},
@@ -1274,6 +1418,61 @@ test('all 19 accounting destinations render actual workflow sections without for
     }
   }
   assert.ok(forms>=12,`${forms} actual forms rendered across destinations`);
+});
+test('named financial reports are visible on every authorized accounting page without opening a disclosure',()=>{
+  const {JSDOM}=require('jsdom');
+  for(const [section] of lib.accountingDestinations){
+    const fixture=accountingUiFixture();
+    const document=new JSDOM(renderToStaticMarkup(fixture.workspace.default({section}))).window.document;
+    const nav=document.querySelector('nav[aria-label="Financial reports"]');
+    assert.ok(nav,section);
+    assert.equal(nav.closest('details,[hidden]'),null,section);
+    for(const item of lib.financialStatementLinks){
+      const link=[...nav.querySelectorAll('a')].find(a=>a.getAttribute('href')===lib.financialStatementHref(item.report));
+      assert.ok(link,`${section}: ${item.report}`);
+      assert.ok(link.textContent.includes(item.title));
+    }
+    assert.ok(nav.querySelector('a[href="/pharmacy/accounting/trial-balance"]'));
+  }
+  const denied=accountingUiFixture({finance:false});
+  const document=new JSDOM(renderToStaticMarkup(denied.workspace.default({section:'statements'}))).window.document;
+  assert.equal(document.querySelector('nav[aria-label="Financial reports"]'),null);
+  assert.equal(denied.requests.length,0,'unauthorized viewers do not load accounting data');
+});
+test('direct statement links select the requested report and highlight its visible navigation',()=>{
+  const {JSDOM}=require('jsdom');
+  for(const [query,expected] of [['','profit_loss'],['report=cash_flow','cash_flow'],['report=balance_sheet','balance_sheet'],['report=profit_loss','profit_loss'],['report=transactions','transactions'],['report=invalid','profit_loss']]){
+    const fixture=accountingUiFixture({reportQuery:query});
+    const document=new JSDOM(renderToStaticMarkup(fixture.workspace.default({section:'statements'}))).window.document;
+    const endpoint=fixture.requests.find(path=>path.startsWith('reports?'));
+    assert.equal(new URLSearchParams(endpoint.split('?')[1]).get('report'),expected);
+    const active=document.querySelector('nav[aria-label="Financial reports"] a[aria-current="page"]');
+    assert.equal(active?.getAttribute('href'),lib.financialStatementHref(expected));
+    assert.equal(document.querySelector('select[aria-label="Statement"]'),null);
+    const heading=document.querySelector('[aria-label="Financial statement identification"] h2').textContent;
+    assert.match(heading,expected==='profit_loss'?/Income Statement/:expected==='cash_flow'?/Cash Flows/:expected==='balance_sheet'?/Balance Sheet/:/Journal Transactions/);
+  }
+  const fixture=accountingUiFixture({reportQuery:'report=cash_flow'});
+  const document=new JSDOM(renderToStaticMarkup(fixture.workspace.default({section:'trial-balance'}))).window.document;
+  const endpoint=fixture.requests.find(path=>path.startsWith('reports?'));
+  assert.equal(new URLSearchParams(endpoint.split('?')[1]).get('report'),'trial_balance','statement query cannot replace trial balance');
+  assert.equal(document.querySelector('nav[aria-label="Financial reports"] a[aria-current="page"]').getAttribute('href'),'/pharmacy/accounting/trial-balance');
+});
+test('pharmacy sidebar exposes each named statement directly with the existing finance roles',()=>{
+  const icons=new Proxy({},{get:(_,name)=>name==='__esModule'?undefined:()=>null});
+  const navigation=compile('components/Layout/links/categories/PharmacyLinks.tsx',{
+    'react/jsx-runtime':jsx,'../../../../lib/pharmacyAccounting':lib,'@remixicon/react':icons,
+  }).PharmacyLinks;
+  const accounting=navigation.find(item=>item.link==='/pharmacy/accounting');
+  for(const item of lib.financialStatementLinks){
+    const entry=accounting.children.find(child=>child.link===lib.financialStatementHref(item.report));
+    assert.ok(entry);
+    assert.equal(entry.title,item.title);
+    assert.ok(entry.roles.includes('pharmacy_accountant'));
+    assert.ok(!entry.roles.includes('pharmacy_cashier'));
+  }
+  const routes=accounting.children.map(child=>child.link);
+  assert.equal(routes.length,new Set(routes).size);
 });
 test('failed overview and legacy immediate forms do not show invented metrics or card ancestors',()=>{
   const {JSDOM}=require('jsdom'),fixture=accountingUiFixture({failure:'Synthetic branch service unavailable'});
@@ -1311,7 +1510,7 @@ test('accounting overview follows the Payroll dashboard pattern without duplicat
   assert.ok(filterForm);assert.equal(filterForm.querySelector('details'),null);
   assert.equal(filterForm.getAttribute('aria-label'),'Report filters');
   const payables=new JSDOM(renderToStaticMarkup(fixture.workspace.default({section:'payables'}))).window.document;
-  assert.equal(payables.querySelectorAll('nav[aria-label="Payables views"] button').length,5);
+  assert.equal(payables.querySelectorAll('nav[aria-label="Payables views"] button').length,6);
   assert.equal(payables.querySelector('nav[aria-label="Payables views"] button[aria-pressed="true"]').textContent,'Unpaid bills');
   assert.equal(payables.querySelectorAll('form[aria-label="Report filters"]').length,0,'do not show an Apply button when there are no supported filters');
   assert.equal(payables.querySelectorAll('[data-accounting-export]').length,1,'do not stack every workflow register on first load');
@@ -1320,7 +1519,7 @@ test('accounting overview follows the Payroll dashboard pattern without duplicat
 });
 test('workflow views mount on first visit, preserve visited forms, and show only the selected workflow',()=>{
   const {JSDOM}=require('jsdom'),state=[];let cursor=0;
-  const ui=compile('app/pharmacy/accounting/components/common.tsx',{...commonImports,react:{...React,useState:initial=>{
+  const ui=compile('app/pharmacy/accounting/components/common.tsx',{...commonImports,react:{...React,useEffect(){},useState:initial=>{
     const index=cursor++;if(!(index in state))state[index]=initial;
     return [state[index],next=>{state[index]=typeof next==='function'?next(state[index]):next;}];
   }}});

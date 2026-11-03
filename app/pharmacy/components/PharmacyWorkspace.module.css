@@ -45,3 +45,25 @@
 .tabs { max-width: 100%; min-width: 0; }
 .dialog { min-width: 0; box-sizing: border-box; }
 .table td { overflow-wrap: anywhere; }
+
+.overview .card { padding: 20px; border: 1px solid var(--bs-border-color); border-radius: 0; background: var(--paper, var(--bs-body-bg)); }
+.overview .card h2 { font-size: 1.05rem; }
+.taskSection { margin-bottom: 24px; padding: 20px; border: 1px solid var(--bs-border-color); background: var(--paper, var(--bs-body-bg)); }
+.taskIntro { margin-bottom: 24px; }
+.taskIntro h2 { font-size: 1.05rem; font-weight: 650; }
+.taskIntro h2 { margin-bottom: 6px; }
+.taskIntro p { margin: 0; color: var(--bs-secondary-color); font-size: .85rem; line-height: 1.6; max-width: 720px; }
+.taskGroups { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 28px; align-items: start; }
+.taskGroup { min-width: 0; }
+.taskGroupHeader { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-bottom: 10px; border-bottom: 1px solid var(--bs-border-color); }
+.taskGroupHeader h3 { margin: 0; font-size: .8rem; font-weight: 600; color: var(--bs-secondary-color); }
+.taskCount { color: var(--bs-secondary-color); font-size: .75rem; white-space: nowrap; }
+.taskList { list-style: none; margin: 0; padding: 0; }
+.taskList li + li { border-top: 1px solid var(--bs-border-color); }
+.taskList .taskTile { display: flex; align-items: flex-start; gap: 12px; padding: 16px 8px; text-align: start; text-decoration: none; }
+.taskList .taskTile:hover { background: var(--bs-tertiary-bg); }
+.taskIcon { display: inline-flex; flex: 0 0 20px; margin-top: 2px; color: var(--ink); }
+.taskText { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; color: var(--bs-body-color); }
+.taskText strong { font-size: .85rem; font-weight: 600; line-height: 1.4; }
+.taskText small { color: var(--bs-secondary-color); font-size: .76rem; font-weight: 400; line-height: 1.5; }
+.taskArrow { flex-shrink: 0; margin-top: 2px; color: var(--bs-secondary-color); }

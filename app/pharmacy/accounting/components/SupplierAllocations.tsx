@@ -119,7 +119,7 @@ export function AllocationForm({
                     cash or create a duplicate GL posting. Enabled accounting requires the original source to be
                     consolidated first. Drafts reserve no balance; the server revalidates availability when posted.
                </p>
-               <Feedback error={error || mutation.error} notice={mutation.notice} />
+               <Feedback error={error || mutation.error} errorCode={error ? '' : mutation.errorCode} notice={mutation.notice} />
                <form
                     onSubmit={async (e) => {
                          e.preventDefault();

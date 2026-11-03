@@ -9,7 +9,7 @@ import { canAccessRolePage } from '../../../../lib/roleNavigationPolicy';
 import { ChartOfAccounts, AccountingSettings } from './Configuration';
 import { JournalDetail, JournalForm, Expenses } from './Documents';
 import { CashBank, Periods, Reconciliation } from './Controls';
-import { Overview, Register } from './Registers';
+import { FinancialReportLinks, Overview, Register } from './Registers';
 import { DateText, styles } from './common';
 import printStyles from './AccountingWorkspace.module.css';
 import { useResource } from './api';
@@ -86,6 +86,7 @@ export default function AccountingWorkspace({ section = '', id }: { section?: Se
     <nav className={`${reportLayout.breadcrumb} d-print-none`} aria-label="Breadcrumb"><Link href="/pharmacy">Pharmacy</Link><span aria-hidden="true"> / </span>{section ? <><Link href="/pharmacy/accounting">Accounting</Link><span aria-hidden="true"> / </span><span aria-current="page">{title}</span></> : <span aria-current="page">Accounting</span>}</nav>
     <header className={`${reportLayout.header} d-print-none`}><div><h1 id="pharmacy-accounting-title" className={reportLayout.title}>{section ? title : 'Accounting overview'}</h1>    <p className={reportLayout.subtitle}>{title !== formalTitle && <><strong>{formalTitle}</strong> - </>}{descriptions[section]}</p></div>{permitted && <div className={reportLayout.actions}>{!section && <><Link className="btn btn-sm btn-primary" href="/pharmacy/accounting/expenses">Record an expense</Link><Link className="btn btn-sm btn-outline-secondary" href="/pharmacy/accounting/payables">Pay a supplier</Link></>}    <Link className="btn btn-sm btn-outline-secondary" href={articleHref(guideSlug)}>Read this page's guide</Link></div>}</header>
     {!permitted ? <p role="status" className="alert alert-warning">A pharmacy manager or pharmacy accountant role is required. If your session is loading, please wait.</p> : <>
+      <FinancialReportLinks section={section}/>
       <PharmacyTaskHelp slug={guideSlug} walkthrough={!id && ['expenses','receivables','statements'].includes(section)}/>
       {id && <p>Review the selected record, evidence and history. Only actions allowed by its status and your role are available.</p>}
       <PostingStatus/><div className={reportLayout.report}><Content section={section} id={id}/></div>

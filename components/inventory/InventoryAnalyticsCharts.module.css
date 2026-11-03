@@ -30,3 +30,27 @@
 .movementDescription{margin:0;color:var(--bs-secondary-color,#59645d);font-size:.76rem;line-height:1.5}
 @media(max-width:1050px){.movementsGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:450px){.movementsGrid{grid-template-columns:1fr;gap:12px}.movementMetric{padding:16px}.movementMetric dd{margin-top:12px}}
+.turnaroundHeader{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.turnaroundHeader>div:first-child{min-width:0;flex:1 1 320px}
+.turnaroundHeader h2{margin:0 0 6px}
+.turnaroundHeader p{margin:0;color:var(--bs-secondary-color,#59645d);font-size:.85rem;line-height:1.55;max-width:720px}
+.turnaroundTotal{flex-shrink:0;display:flex;flex-direction:column;gap:2px;padding:10px 16px;border:1px solid color-mix(in srgb,var(--theme-accent,var(--pls-primary,#2e7d32)) 30%,var(--bs-border-color,#dce4df));border-radius:10px;background:color-mix(in srgb,var(--theme-accent,var(--pls-primary,#2e7d32)) 7%,var(--theme-card-bg,var(--bs-body-bg,#fff)))}
+.turnaroundTotal span{color:var(--bs-secondary-color,#59645d);font-size:.75rem;font-weight:500}
+.turnaroundTotal strong{font-size:1.25rem;font-weight:650;font-variant-numeric:tabular-nums;color:var(--theme-accent,var(--pls-primary,#2e7d32))}
+.turnaroundSteps{list-style:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;margin:0 0 16px;padding:0;counter-reset:none}
+.turnaroundStep{position:relative;min-width:0;padding:18px;border:1px solid var(--bs-border-color,#dce4df);border-top:3px solid var(--theme-accent,var(--pls-primary,#2e7d32));border-radius:10px;background:var(--theme-card-bg,var(--bs-body-bg,#fff));box-shadow:0 1px 2px rgba(16,24,40,.04),0 4px 14px -8px rgba(16,24,40,.12)}
+.turnaroundStep:not(:last-child)::after{content:"";position:absolute;top:50%;right:-22px;width:16px;height:16px;border-top:2px solid var(--bs-border-color,#c9d3cd);border-right:2px solid var(--bs-border-color,#c9d3cd);transform:translateY(-50%) rotate(45deg)}
+.turnaroundStep[data-empty]{border-top-color:var(--bs-border-color,#dce4df);background:var(--bs-tertiary-bg,#f5f8f6)}
+.turnaroundStepHead{display:flex;align-items:center;gap:10px}
+.turnaroundStepHead h3{margin:0;font-size:.9rem!important;font-weight:600;color:var(--bs-secondary-color,#59645d)}
+.turnaroundIndex{display:grid;place-items:center;flex:0 0 26px;width:26px;height:26px;border-radius:50%;background:color-mix(in srgb,var(--theme-accent,var(--pls-primary,#2e7d32)) 12%,transparent);color:var(--theme-accent,var(--pls-primary,#2e7d32));font-size:.78rem;font-weight:700}
+.turnaroundValue{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px;margin:16px 0 14px!important}
+.turnaroundValue strong{font-size:1.85rem;font-weight:600;line-height:1.1;letter-spacing:-.025em;font-variant-numeric:tabular-nums;color:var(--bs-body-color,#24332b)}
+.turnaroundValue span{color:var(--bs-secondary-color,#59645d);font-size:.8rem}
+.turnaroundValue .turnaroundPending{font-size:.95rem;font-weight:500}
+.turnaroundStats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0;padding:12px 0 0;border-top:1px dashed var(--bs-border-color,#dce4df)}
+.turnaroundStats dt{color:var(--bs-secondary-color,#59645d);font-size:.72rem;font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+.turnaroundStats dd{margin:3px 0 0;font-weight:600;font-variant-numeric:tabular-nums}
+.turnaroundSamples{margin:12px 0 0!important;color:var(--bs-secondary-color,#59645d);font-size:.76rem}
+@media(max-width:900px){.turnaroundSteps{grid-template-columns:minmax(0,1fr);gap:24px}.turnaroundStep:not(:last-child)::after{top:auto;right:auto;bottom:-19px;left:50%;transform:translateX(-50%) rotate(135deg)}}
+@media print{.turnaroundStep{box-shadow:none}}

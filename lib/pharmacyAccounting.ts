@@ -8,11 +8,34 @@ export const accountingDestinations = [
 	['tax', 'Tax configuration'], ['periods', 'Financial periods'], ['audit', 'Audit trail'], ['settings', 'Accounting settings'],
 ] as const;
 export type Section = typeof accountingDestinations[number][0];
+export const financialStatementLinks = [
+	{ report: 'profit_loss', title: 'Profit & loss (Income statement)', detail: 'Income, costs and profit for a period' },
+	{ report: 'cash_flow', title: 'Cash flow', detail: 'Cash received, paid and remaining' },
+	{ report: 'balance_sheet', title: 'Balance sheet', detail: 'Assets, liabilities and equity at a date' },
+] as const;
+export function financialStatementReport(value: string | null): string {
+	return value !== null && (financialStatementLinks.some(item => item.report === value) || value === 'transactions') ? value : 'profit_loss';
+}
+export function financialStatementHref(report: string): string {
+	return `/pharmacy/accounting/statements?report=${encodeURIComponent(report)}`;
+}
 export const accountingFriendlyTitles: Partial<Record<Section, string>> = {
 	receivables: 'Money customers owe us', payables: 'Money we owe suppliers',
 	'general-ledger': 'All pharmacy accounting transactions', cogs: 'Cost of goods sold',
 };
 export type RecordData = Record<string, unknown>;
+export function accountingRecovery(code: string): { message: string; href: string; label: string } | null {
+	const actions: Record<string, { message: string; href: string; label: string }> = {
+		PAYABLE_RECONCILIATION_REQUIRED: { message: 'Ask pharmacy finance to compare this supplier statement with recorded credits and advances. Apply existing money before recording another payment; do not pay twice.', href: '/pharmacy/accounting/payables?view=applications', label: 'Review supplier credits & advances' },
+		UNPOSTED_RECEIPT: { message: 'Ask pharmacy finance to reconcile the original receipt. Do not register another receipt or invent a liability.', href: '/pharmacy/accounting/settings', label: 'Open accounting reconciliation setup' },
+		SOURCE_MISMATCH: { message: 'Ask pharmacy finance to compare the original source with its posting before retrying. Do not change posted amounts to force a match.', href: '/pharmacy/accounting/general-ledger', label: 'Inspect accounting transactions' },
+		CASH_SHIFT_REQUIRED: { message: 'Open your cash shift for the payment date. A request with an incorrect date must be cancelled and replaced, not backdated.', href: '/pharmacy/cashier', label: 'Open Cashier & shift' },
+		POSTING_BLOCKED: { message: 'Review the financial day and payment setup with the pharmacy manager. Resolve the blocker before retrying the original operation.', href: '/pharmacy/finance', label: 'Review financial-day blockers' },
+		TERMS_CONFLICT: { message: 'Refresh the bill or invoice. Cancel the outdated correction and prepare one against its current due date; another person must approve it.', href: '/pharmacy/accounting', label: 'Open pharmacy accounting tasks' },
+		APPROVAL_SEPARATION: { message: 'Ask a different authorized finance user to approve this request. Switching your active role does not make you a different employee.', href: '/pharmacy/accounting', label: 'Open pharmacy accounting tasks' },
+	};
+	return actions[code] || null;
+}
 export interface Account {
 	id: string | number; account_code: string; name: string; type: string;
 	normal_balance: string; parent_account_id?: string | number | null; is_active?: boolean;
