@@ -218,6 +218,8 @@ export function canAccessRolePage(role: unknown, value: string, settings: Naviga
      if (key === "pharmacyaccountant")
           return (
                [
+                    "/pharmacy/inventory/orders",
+                    "/pharmacy/inventory/deliveries",
                     "/pharmacy/counter",
                     "/pharmacy/collections",
                     "/pharmacy/cashier",

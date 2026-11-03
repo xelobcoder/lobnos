@@ -9,6 +9,19 @@
 .requestLine { grid-template-columns: minmax(0,1fr) 140px 180px 120px 90px; padding: 12px 0; border-bottom: 1px solid var(--bs-border-color); }
 .requestLine:last-child { border-bottom: 0; }
 .requestLine .medicine { align-self: center; }
+.quantityOnly { grid-template-columns: minmax(0,1fr) 140px 110px; }
+.quickHead { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.quickHead h3 { margin: 0 0 4px; font-size: 1rem; }
+.quickHead p { margin: 0; font-size: .8rem; }
+.quickHead button { white-space: nowrap; }
+.quickList { list-style: none; margin: 12px 0 0; padding: 0; max-height: min(30vh,280px); overflow: auto; }
+.quickRow { display: grid; grid-template-columns: minmax(0,1fr) auto 70px; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--bs-border-color); font-size: .85rem; }
+.quickRow:last-child { border-bottom: 0; }
+@media(max-width: 575px) {
+  .quickHead { flex-direction: column; }
+  .quickRow { grid-template-columns: minmax(0,1fr) auto; }
+  .quickRow .medicine { grid-column: 1 / -1; }
+}
 @media(max-width: 767px) {
   .entryRow, .requestLine { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
   .medicine, .entryRow button, .requestLine button { grid-column: 1 / -1; }

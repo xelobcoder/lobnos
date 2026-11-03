@@ -17,6 +17,14 @@ From the frontend root:
 2. Run `node tests/browser/accounting-harness/verify.cjs <printed-url>`.
    `ACCOUNTING_CHROME` may override the installed Chrome executable path.
    `ACCOUNTING_SCREENSHOTS` optionally saves screenshots in the specified directory.
+   Add `--finance-surfaces` to run only the financial-day surface checks.
+   Add `--local-chart` to check standalone account creation, safe removal
+   requests, optional-ledger messaging and the unmapped tax selector.
+   Add `--receiving-page` to check the dedicated stock-receiving page at desktop,
+   tablet and mobile widths in both themes. These checks cover order-prefilled
+   batches, missing-cost/expiry feedback, keyboard batch entry, price-dialog
+   cancellation, theme surfaces, overflow and restricted/error states without
+   submitting a stock receipt.
 3. GET `<printed-url>/shutdown` after verification. This stops only the owned
    harness and deletes its exact generated bundle directory. The verifier closes
    its own Chrome instance and removes its temporary browser profile.
@@ -35,6 +43,9 @@ label/value/description summaries for all 14 sales, stock and ledger metrics;
 checks include large monetary values fitting without line breaks and a separate
 operating-expenses metric. Screenshot/PDF bytes remain in memory
 unless screenshot output is explicitly enabled; no production data is used.
+The finance surface checks load a synthetic open previous day and cash-count task, then
+verify the financial-day panel, tabs, handovers, day and audit histories, and
+cash-count form in both themes and viewport sizes without submitting a mutation.
 
 Guide checks cover task search, topic and guide-type filters, clearing filters,
 linked topic expansion, and device-local reading markers. Inventory keeps only

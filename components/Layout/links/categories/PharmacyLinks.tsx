@@ -21,7 +21,8 @@ export const PharmacyLinks:Link[]=[
      {title:'Catalogue',link:'/pharmacy/catalogue',icon:<RiArchiveLine/>},
      {title:'Stock Levels',link:'/pharmacy/stock',icon:<RiArchiveLine/>},
      {title:'Inventory & purchasing',link:'/pharmacy/inventory',icon:<RiBox3Line/>,roles:[...management,'pharmacy_storekeeper']},
-     {title:'Purchase requests',link:'/pharmacy/inventory/purchase-requests',icon:<RiFileListLine/>,roles:[...management,'pharmacy_storekeeper']},
+     {title:'Purchase orders',link:'/pharmacy/inventory/orders',icon:<RiFileListLine/>,roles:[...management,'pharmacy_storekeeper','pharmacy_accountant']},
+     {title:'Internal requests (optional)',link:'/pharmacy/inventory/purchase-requests',icon:<RiFileListLine/>,roles:[...management,'pharmacy_storekeeper']},
      {title:'Stock safety & checks',link:'/pharmacy/stock-control',icon:<RiBox3Line/>,roles:[...management,'pharmacy_storekeeper']},
      ]},
      {title:'Cash & day closing',link:'',icon:<RiBankCardLine/>,children:[

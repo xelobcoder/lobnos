@@ -34,17 +34,22 @@ test('noncash checkout asks for a reference and never offers cash change', () =>
 });
 test('the basket sits below medicine selection with payment alongside it', () => {
      let index = 0;
-     const hooks = { ...React, useEffect() {}, useCallback: fn => fn, useRef: value => ({ current: value }), useState: initial => [index++ === 2 ? [{ inventoryItemId: 'drug', name: 'Medicine', sku: 'D', salePrice: 42.5, quantity: 2, availableStock: 10 }] : initial, () => {}] };
-     const Page = compile('app/pharmacy/sell/page.tsx', { react: hooks, 'next/link': ({ children, href }) => React.createElement('a', { href }, children), '../components/PharmacyPaymentFields': { __esModule: true, default: Fields, usePharmacyPayment: () => payment('100') } }).default;
+     const hooks = { ...React, useEffect() {}, useCallback: fn => fn, useRef: value => ({ current: value }), useState: initial => {
+          const current = index++;
+          return [current === 0 ? 'standard' : current === 6 ? [{ inventoryItemId: 'drug', name: 'Medicine', sku: 'D', salePrice: 42.5, quantity: 2, availableStock: 10 }] : initial, () => {}];
+     } };
+     const Page = compile('app/pharmacy/sell/page.tsx', { react: hooks, 'next/link': ({ children, href }) => React.createElement('a', { href }, children), '../components/PharmacyPaymentFields': { __esModule: true, default: Fields, usePharmacyPayment: () => payment('100'), usePharmacyDocument: () => ({ execute: async () => ({ success: true }), pending: null }) }, '../../../lib/pharmacy/receipt': { printPharmacyReceipt() {} }, './pos.module.css': { __esModule: true, default: {} }, '../components/InvoiceCollectionPanel': { __esModule: true, default: () => null } }).default;
      const html = renderToStaticMarkup(React.createElement(Page));
-     assert.ok(html.indexOf('Search or scan a medicine') < html.indexOf('Selected items'));
-     assert.ok(html.indexOf('Selected items') < html.indexOf('<aside'));
+     assert.ok(html.indexOf('Search medicine or scan barcode') < html.indexOf('Basket'));
+     assert.ok(html.indexOf('Basket') < html.indexOf('<aside'));
      assert.match(html, /GHS 85\.00/); assert.match(html, /Change.*GHS 15\.00/);
 });
 test('pharmacy navigation never links into lab inventory and scopes finance by role', () => {
-     const { PharmacyLinks } = compile('components/Layout/links/categories/PharmacyLinks.tsx');
-     assert.ok(PharmacyLinks.every(link => link.link.startsWith('/pharmacy')));
-     const finance = PharmacyLinks.find(link => link.link === '/pharmacy/finance');
+     const { PharmacyLinks } = compile('components/Layout/links/categories/PharmacyLinks.tsx', { '../../../../lib/pharmacyAccounting': { accountingDestinations: [], accountingFriendlyTitles: {} } });
+     const flatten = items => items.flatMap(link => [link, ...flatten(link.children || [])]);
+     const links = flatten(PharmacyLinks);
+     assert.ok(links.every(link => !link.link.startsWith('/inventory')));
+     const finance = links.find(link => link.link === '/pharmacy/finance');
      assert.ok(finance.roles.includes('pharmacy_accountant')); assert.ok(!finance.roles.includes('manager'));
 });
 test('pharmacy activation does not activate laboratory inventory', () => {

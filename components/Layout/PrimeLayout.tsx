@@ -103,7 +103,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links: suppliedLink
     const activeNavigationPath = useMemo(() => findActiveNavigationPath(visibleLinks, modulePath || ''), [visibleLinks, modulePath]);
     const employeeid = user?.employeeid || 0;
     const [currentPath, setCurrentPath] = useState<string>("");
-    const isOpenSideBarShow = useSearchParams().get("isOpenSideBarShow") !== "false";
+    const isOpenSideBarShow = useSearchParams().get("isOpenSideBarShow") !== "false" && modulePath !== '/pharmacy/inventory/receive';
 
     useEffect(() => {
         setCurrentPath(modulePath || '');
@@ -326,7 +326,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links: suppliedLink
     return (
         <div onKeyDown={isPortalLayout ? (event) => {
             if (event.key === 'Escape') setIsMobileSidebarOpen(false);
-        } : undefined} className={`${styles.container} ${isWorkspaceLayout ? `${workspaceStyles.shell} ${isClaudeLayout ? workspaceStyles.claudeLayout : ''} ${isSlackLayout ? workspaceStyles.slackLayout : ''} ${isPortalLayout ? workspaceStyles.portalLayout : ''} ${isRibbonLayout ? ribbonStyles.layout : ''}` : ''} ${isQuickLinksCollapsed ? `${styles.quickLinksCollapsed} ${workspaceStyles.collapsed}` : styles.quickLinksExpanded} ${isMobileSidebarOpen ? `${styles.mobileSidebarOpen} ${workspaceStyles.mobileOpen}` : ''} ${!isOpenSideBarShow ? `${workspaceStyles.sidebarHidden} ${ribbonStyles.sidebarHidden}` : ''}`}>
+        } : undefined} className={`${styles.container} ${isWorkspaceLayout ? `${workspaceStyles.shell} ${isClaudeLayout ? workspaceStyles.claudeLayout : ''} ${isSlackLayout ? workspaceStyles.slackLayout : ''} ${isPortalLayout ? workspaceStyles.portalLayout : ''} ${isRibbonLayout ? ribbonStyles.layout : ''}` : ''} ${isQuickLinksCollapsed ? `${styles.quickLinksCollapsed} ${workspaceStyles.collapsed}` : styles.quickLinksExpanded} ${isOpenSideBarShow && isMobileSidebarOpen ? `${styles.mobileSidebarOpen} ${workspaceStyles.mobileOpen}` : ''} ${!isOpenSideBarShow ? `${workspaceStyles.sidebarHidden} ${ribbonStyles.sidebarHidden}` : ''}`}>
             {isRibbonLayout && <a href="#workspace-main" className={ribbonStyles.skipLink}>Skip to workspace</a>}
             <header className={`${styles.darkHeader} ${isWorkspaceLayout ? workspaceStyles.header : ''} ${isRibbonLayout ? ribbonStyles.header : ''}`}>
                 <div className={`${styles.headerContent} ${isWorkspaceLayout ? workspaceStyles.headerContent : ''}`}>
@@ -349,7 +349,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links: suppliedLink
                                 {isQuickLinksCollapsed ? <RiArrowRightLine size={16} /> : <RiArrowLeftLine size={16} />}
                             </button>
                         )}
-                        {!isRibbonLayout && (!isPortalLayout || isOpenSideBarShow) && <button
+                        {isOpenSideBarShow && !isRibbonLayout && <button
                             type="button"
                             className={`${styles.mobileMenuButton} ${isWorkspaceLayout ? workspaceStyles.mobileMenuButton : ''}`}
                             onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
@@ -482,7 +482,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links: suppliedLink
                 onNavigate={() => setIsMobileSidebarOpen(false)} />}
 
             <div className={`${styles.twoColumnLayout} ${isWorkspaceLayout ? workspaceStyles.body : ''}`} style={!isOpenSideBarShow ? { width: '100%' } : {}}>
-                {!isRibbonLayout && isMobileSidebarOpen && <div className={styles.mobileOverlay} onClick={() => setIsMobileSidebarOpen(false)} />}
+                {isOpenSideBarShow && !isRibbonLayout && isMobileSidebarOpen && <div className={styles.mobileOverlay} onClick={() => setIsMobileSidebarOpen(false)} />}
 
                 {isOpenSideBarShow && !isRibbonLayout && (
                     <aside id="staff-section-navigation" className={`${styles.quickLinksSidebar} ${isWorkspaceLayout ? workspaceStyles.sidebar : ''} ${isMobileSidebarOpen ? styles.mobileSidebarVisible : ''}`}>

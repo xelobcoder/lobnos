@@ -1,11 +1,110 @@
+main.page{max-width:none;width:100%;margin:0}
+.pageHeader{padding-bottom:20px;border-bottom:1px solid var(--bs-border-color)}
+.eyebrow{display:block;color:var(--bs-secondary-color);font-size:.75rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+.backButton{display:inline-flex;align-items:center;gap:8px}
+.panel{min-width:0;padding:20px;background:var(--theme-card-bg,var(--bs-body-bg));border:1px solid var(--bs-border-color);border-radius:8px;margin:16px 0}
+.sectionHeading{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.sectionHeading>div{flex:1;min-width:180px}
+.sectionHeading h2{font-size:1rem;font-weight:650;margin:0 0 5px}
+.sectionHeading p{font-size:.81rem;color:var(--bs-secondary-color);line-height:1.5;margin:0}
+.sectionIndex{display:grid;place-items:center;flex-shrink:0;width:28px;height:28px;border-radius:50%;background:var(--bs-tertiary-bg);font-size:.8rem;font-weight:650}
+.orderBadge{max-width:100%;padding:5px 10px;background:var(--bs-tertiary-bg);border-radius:5px;color:var(--bs-secondary-color);font-size:.76rem;overflow-wrap:anywhere}
+.loading{display:flex;align-items:center;gap:12px;padding:20px;color:var(--bs-secondary-color);font-size:.85rem}
+.loading :global(.mt-5){margin-top:0!important}
 .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
+.contextGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.grid>*,.page fieldset{min-width:0}
+.page :global(.form-label){font-size:.82rem;font-weight:500}
+.page :global(.form-control),.page :global(.form-select){min-height:40px;font-size:.85rem;border-radius:5px}
+.page :is(input,select,button,summary):focus-visible{outline:3px solid var(--theme-accent,var(--bs-primary));outline-offset:3px}
 .wide{grid-column:1/-1}
-.basket{margin:1rem 0;border:1px solid var(--bs-border-color);border-radius:.7rem;overflow:hidden}
-.basket table{margin:0;min-width:800px}
-.batch{padding:1rem;background:var(--bs-tertiary-bg);border-radius:.7rem;margin:1rem 0}
+.basket{position:relative;margin:1rem 0 0;border:1px solid var(--bs-border-color);border-radius:6px;overflow-x:auto;background:var(--theme-card-bg,var(--bs-body-bg))}
+.basket table{margin:0;min-width:1100px}
+.basket :is(th,td),.acceptance :is(th,td){text-align:start}
+.basket th{font-size:.7rem;line-height:1.5}
+.basket td{vertical-align:top}
+.basket td:first-child{min-width:230px}
+.basket td:nth-child(4){min-width:200px}
+.basket td:nth-child(5){min-width:210px}
+.basket td>:global(.form-control),.basket td>:global(.form-select){margin-bottom:7px}
+.medicineName{display:block;margin-bottom:6px;font-size:.9rem}
+.lineMeta{display:block;color:var(--bs-secondary-color);font-size:.76rem;line-height:1.5;margin:6px 0 0}
+.attention{display:block;color:var(--bs-warning-text-emphasis);font-size:.78rem;line-height:1.5;margin:6px 0 0}
+.basket .prices{grid-template-columns:1fr}
+.basket:focus-visible,.acceptance:focus-visible{outline:3px solid var(--bs-primary);outline-offset:2px}
+.acceptance table{min-width:800px}
+.acceptance{position:relative}
+.batch{padding:1rem;background:var(--theme-card-bg,var(--bs-body-bg));border:1px solid var(--bs-border-color);border-radius:8px;margin:1rem 0}
+.batch>summary{font-size:.87rem;font-weight:600;line-height:1.5}
+.batch[open]>summary{margin-bottom:16px}
+.addBatch{border-style:dashed}
+.empty{padding:32px 20px;text-align:center;color:var(--bs-secondary-color)}
+.empty strong{font-size:.9rem}
+.empty p{font-size:.82rem;margin:8px 0 0}
+.reviewSummary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0}
+.reviewSummary>div{padding:12px 14px;border:1px solid var(--bs-border-color);border-radius:6px;background:var(--bs-tertiary-bg)}
+.reviewSummary dt{color:var(--bs-secondary-color);font-size:.77rem;font-weight:500}
+.reviewSummary dd{font-size:.95rem;font-weight:650;margin:6px 0 0;overflow-wrap:anywhere}
+.reviewSummary dd small{display:block;margin-top:2px;color:var(--bs-secondary-color);font-size:.74rem;font-weight:500}
+.readiness{margin:14px 0 0;padding:10px 14px;border-radius:6px;border-left:3px solid var(--bs-border-color);background:var(--bs-tertiary-bg);color:var(--bs-secondary-color);font-size:.82rem;line-height:1.5}
+.notReady{border-left-color:var(--bs-warning);background:var(--bs-warning-bg-subtle);color:var(--bs-warning-text-emphasis)}
+.ready{border-left-color:var(--bs-success);background:var(--bs-success-bg-subtle);color:var(--bs-success-text-emphasis)}
+.options{margin-top:20px}
+.options h3{margin:0 0 4px;color:var(--bs-secondary-color);font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.options>details{margin:0;padding:12px 0;border:0;border-top:1px solid var(--bs-border-color);border-radius:0;background:transparent}
+.options>details>summary{font-size:.87rem;font-weight:600;line-height:1.5;cursor:pointer}
+.options>details[open]>summary{margin-bottom:14px}
+.options>details p{font-size:.82rem;color:var(--bs-secondary-color)}
+.saveBar{position:sticky;bottom:12px;z-index:5;justify-content:space-between;align-items:center;padding:16px 20px;border:1px solid var(--bs-border-color);border-radius:8px;background:var(--theme-card-bg,var(--bs-body-bg));box-shadow:0 6px 24px rgba(0,0,0,.1)}
+.saveSummary{min-width:0}
+.saveSummary strong{font-size:.87rem}
+.saveSummary small{display:block;font-size:.76rem;color:var(--bs-secondary-color);margin-top:4px}
+.saveBar button{min-height:42px}
 .summary{padding:1rem;border-left:3px solid var(--bs-primary);background:var(--bs-tertiary-bg);margin:1rem 0}
 .prices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}
 .preview{font-weight:600;display:block;margin-top:.5rem}
+.priceChoice{display:grid;gap:.65rem}
+.priceChoice button{justify-self:start}
+.priceEditor{display:grid;gap:1rem}
+.priceInputs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.4rem}
+.priceInputs label{margin:0}
 .actions{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
 .quantity{min-width:95px;max-width:145px}
-@media(max-width:700px){.grid,.prices{grid-template-columns:1fr}.wide{grid-column:auto}}
+.tableHint{display:none;margin:12px 0 0;color:var(--bs-secondary-color);font-size:.78rem}
+@media(min-width:701px) and (max-width:1199px){.tableHint{display:block}.reviewSummary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){
+  .panel{padding:16px}
+  .sectionHeading{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px}
+  .sectionHeading>div{min-width:0}
+  .sectionHeading .orderBadge{grid-column:2;justify-self:start}
+  .grid,.prices{grid-template-columns:1fr}
+  .reviewSummary{grid-template-columns:1fr;gap:8px}
+  .reviewSummary>div{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:10px 12px}
+  .reviewSummary dd{margin:0;text-align:end}
+  .saveBar{position:static;padding:16px;box-shadow:none}
+  .saveBar .actions{width:100%;display:grid;grid-template-columns:auto minmax(0,1fr)}
+  .saveBar button{white-space:normal}
+  .wide{grid-column:auto}
+  .basket,.acceptance{overflow:visible}
+  .basket table,.acceptance table{display:block;width:100%;min-width:0}
+  .basket thead,.acceptance thead{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  .basket tbody,.acceptance tbody{display:grid;gap:.75rem}
+  .basket tr,.acceptance tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border:1px solid var(--bs-border-color);border-radius:.5rem;padding:.4rem}
+  .basket td,.acceptance td{min-width:0;border:0;padding:.4rem;overflow-wrap:anywhere}
+  .basket td:first-child,.basket td:nth-child(4){grid-column:1/-1;min-width:0}
+  .basket td:first-child,.acceptance td:first-child{grid-column:1/-1}
+  .basket td:nth-child(5){grid-column:1/-1;min-width:0}
+  .basket td::before,.acceptance td::before{display:block;margin-bottom:.25rem;color:var(--bs-secondary-color);font-size:.8rem;font-weight:600}
+  .basket td:nth-child(1)::before{content:"Medicine / batch"}
+  .basket td:nth-child(2)::before{content:"Actual count / base units"}
+  .basket td:nth-child(3)::before{content:"Purchase cost per counted unit"}
+  .basket td:nth-child(4)::before{content:"Condition / expiry"}
+  .basket td:nth-child(5)::before{content:"Pricing"}
+  .basket td:nth-child(6)::before{content:"Actions"}
+  .acceptance td:nth-child(1)::before{content:"Medicine / batch / expiry"}
+  .acceptance td:nth-child(2)::before{content:"Delivered / accepted / held"}
+  .acceptance td:nth-child(3)::before{content:"Base-unit cost"}
+  .acceptance td:nth-child(4)::before{content:"Accept now"}
+  .acceptance td:nth-child(5)::before{content:"Return held"}
+  .quantity{width:100%;min-width:0;max-width:none}
+}

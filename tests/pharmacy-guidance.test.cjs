@@ -160,7 +160,8 @@ test('every actual Pharmacy route including dynamic details has exact-page pract
 test('critical multi-action pages cover distinct controls with a result and verification per task',()=>{
   const actions={
     'inventory-purchasing':['Add medicine','Create medicine','Save changes','Save supplier','Submit purchase request','Receive against order','Cancel order','Record write-off'],
-    'deliveries-invoices':['Record delivery','Accept selected goods','Preview','Return selected held goods','Record supplier invoice'],
+    'deliveries-invoices':['Receive stock','Save stock','Change price','Accept selected goods','automatic preview','Return selected held goods','Record supplier invoice'],
+    'receive-stock':['Back to purchase order','Back to deliveries','Change price','Save stock','Continue to payment','sidebar hidden','full-width'],
     'stock-controls':['Submit count for review','Approve adjustments','Cancel count','Release','Dispose','Dispatch goods','Receive goods','Record actual contact','Record credit note','Supplier invoice number','Record completed inspection / quarantine','Edit profile'],
     'supplier-balances':['Register existing liability bill','Save draft allocated settlement','Confirm submit','Confirm approve','Confirm pay','Save application draft','Request exact allocation release','Save reversal for review','Excel aging'],
     'record-expense':['New expense draft','Save expense draft','Review payments, attachments & refunds','Payment amount','Confirm pay'],
@@ -205,7 +206,7 @@ function purchasing({actor=9,manager=true,administrator=false,selected=true,deci
   const component=compile('app/pharmacy/inventory/purchase-requests/page.tsx',{
     '../../components/PharmacyTaskHelp':{__esModule:true,default:()=>null},
     react:{useEffect(){},useRef:()=>({current:null}),useMemo:fn=>fn(),useState:initial=>{const index=cursor++;if(!(index in state))state[index]=initial;return [state[index],value=>{state[index]=typeof value==='function'?value(state[index]):value;}];}},
-    '../../../../lib/pharmacyAccounting':lib,'../../components/PharmacyPaymentFields':{usePharmacyDocument:()=>({pending,execute:async(endpoint,payload)=>{calls.push({endpoint,payload});return {success:true};}})},
+    '../../../../lib/pharmacyAccounting':lib,'../../../../lib/pharmacyPurchaseOrder':{downloadPurchaseRequest:async()=>{}},'../../components/PharmacyPaymentFields':{usePharmacyDocument:()=>({pending,execute:async(endpoint,payload)=>{calls.push({endpoint,payload});return {success:true};}})},
     '../../components/PharmacyWorkspace':{styles:css.default,money:value=>formatter.format(value),dateLabel:value=>value,
       Message:message,usePharmacyAccess:()=>({stock:true,manager,administrator,app:{user:{employeeid:actor}}}),
       usePharmacyResource:endpoint=>endpoint.includes('suppliers')

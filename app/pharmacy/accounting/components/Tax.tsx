@@ -18,8 +18,8 @@ export function TaxRuleForm({ accounts, settings, refresh }: { accounts: Account
   const options = taxLiabilityOptions(accounts, settings);
   if (!manager) return <p role="status" className="alert alert-info">Finance can review tax rules and transaction evidence. Only a pharmacy manager or administrator can configure medicine tax rules.</p>;
   return <section className={`${styles.card} d-print-none`}><h2>Assign an explicit medicine tax rule</h2>
-    <p>Tax is included in the existing selling price. This rule splits that gross amount into net revenue and a mapped tax liability; it does not add a charge to the selling total.</p>
-    {!options.length && <p role="status" className="alert alert-warning">No eligible tax liability is mapped. Create or assign an active liability account and explicitly map a <code>liability:&lt;tax-account&gt;</code> local code in <Link href="/pharmacy/accounting/settings">Accounting settings</Link> before configuring a rule.</p>}
+    <p>Tax is included in the existing selling price. This rule splits that gross amount into net revenue and a tax liability; it does not add a charge to the selling total.</p>
+    {!options.length && <p role="status" className="alert alert-warning">{settings.enabled ? <>No eligible tax liability is mapped. Explicitly map a <code>liability:&lt;tax-account&gt;</code> code in <Link href="/pharmacy/accounting/settings">Accounting settings</Link>.</> : <>Create an active local liability account in the chart of accounts.</>}</p>}
     <Feedback error={validation || mutation.error} notice={mutation.notice}/>
     <form key={version} onSubmit={async e => {
       e.preventDefault(); setValidation(''); const f = new FormData(e.currentTarget);
@@ -35,7 +35,7 @@ export function TaxRuleForm({ accounts, settings, refresh }: { accounts: Account
       }}/>
       {medicine ? <p role="status">Selected medicine: <strong>{medicine.name}</strong> · {medicine.id}</p> : <p>Select one medicine from the catalogue. A rule never applies to unassigned medicines.</p>}
       <div className={styles.grid}><Field label="Tax rate (%)"><input required type="number" step="0.0001" min="0" max="100" name="rate" className="form-control" aria-describedby="tax-rate-unit"/></Field>
-        <Field label="Explicitly mapped local tax liability"><select required name="localAccount" className="form-select"><option value="">Select a configured liability</option>{options.map(a => <option value={a.localAccount} key={a.localAccount}>{a.localAccount} — {a.code} · {a.name}</option>)}</select></Field>
+        <Field label={settings.enabled ? "Mapped tax liability" : "Local tax liability"}><select required name="localAccount" className="form-select"><option value="">Select a configured liability</option>{options.map(a => <option value={a.localAccount} key={a.localAccount}>{a.localAccount} — {a.code} · {a.name}</option>)}</select></Field>
         <Field label="Rule effective date (no backdating)"><input required type="date" min={new Date().toISOString().slice(0,10)} name="effectiveDate" className="form-control"/></Field>
         <Field label="Policy evidence / reason"><textarea required maxLength={1000} name="reason" className="form-control"/></Field>
       </div>

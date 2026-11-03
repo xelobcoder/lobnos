@@ -26,9 +26,30 @@ export function receivingItem(row: any) {
   return { ...row, id: String(row.id ?? row.inventoryItemId), name: row.name, unit: row.consumption_unit || row.unit || 'unit',
     purchaseUnit: row.purchase_unit ?? row.purchaseUnit, factor: Number(row.units_per_purchase_unit ?? row.unitsPerPurchaseUnit ?? 1),
     retail: Number(row.sale_price ?? row.salePrice ?? 0), wholesale: Number(row.wholesale_price ?? row.wholesalePrice ?? 0),
+    cost: Number(row.cost_price ?? row.costPrice ?? 0) || 0,
     batchTracking: row.pharmacy_batch_tracking ?? row.batch_tracking ?? row.batchTracking ?? true };
 }
+// Same three choices as main inventory receiving; applied to retail and wholesale together.
+export const quickPriceModes = [
+  ['increase_percentage', 'Increase by percentage'], ['increase_fixed', 'Increase by fixed amount'], ['manual', 'Enter new prices'],
+] as const;
+export type PriceDraft = { mode: string; value: string; retail: string; wholesale: string };
+type PriceRule = { method: string; value: string };
+const keep: PriceRule = { method: 'keep', value: '' };
+export function priceDraftChoices(draft: PriceDraft, current: { retail: number; wholesale: number }): { retail: PriceRule; wholesale: PriceRule } {
+  if (draft.mode === 'manual') {
+    const pick = (value: string, existing: number) => value.trim() !== '' && Number(value) !== existing ? { method: 'manual', value: value.trim() } : keep;
+    return { retail: pick(draft.retail, current.retail), wholesale: pick(draft.wholesale, current.wholesale) };
+  }
+  if (draft.value.trim() === '' || Number(draft.value) === 0) return { retail: keep, wholesale: keep };
+  const rule = { method: draft.mode, value: draft.value.trim() };
+  // A wholesale price that was never set cannot be increased; leave it unchanged.
+  return { retail: current.retail > 0 ? rule : keep, wholesale: current.wholesale > 0 ? rule : keep };
+}
+export const lastCost = (item: { cost?: number } | undefined, factor = 1) => item?.cost && item.cost > 0 ? String(Math.round(item.cost * factor * 100) / 100) : '';
 export const priceMethods = [
   ['keep', 'Keep current price'], ['manual', 'Manual price'], ['fixed', 'Cost + fixed amount'],
   ['percentage', 'Cost + markup %'], ['margin', 'Target gross margin %'],
+  ['increase_fixed', 'Current selling price + fixed amount'], ['decrease_fixed', 'Current selling price - fixed amount'],
+  ['increase_percentage', 'Increase current selling price by %'], ['decrease_percentage', 'Decrease current selling price by %'],
 ] as const;

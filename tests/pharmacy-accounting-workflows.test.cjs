@@ -145,6 +145,113 @@ const commonImports = {
 };
 const common = compile('app/pharmacy/accounting/components/common.tsx', commonImports);
 const hooks = { useState: initial => [typeof initial === 'function' ? initial() : initial, () => {}] };
+test('supplier order documents contain quantities without invented costs and mark unapproved copies', () => {
+  const lib=compile('lib/pharmacyPurchaseOrder.ts');
+  const document={reference:'PO-2026-000125',supplierName:'Original supplier',status:'approved',notes:'Deliver to Pharmacy',lines:[{name:'First tablets',quantity:20,unit:'tablet'},{name:'Second medicine',quantity:5,unit:'bottle'}]};
+  const text=lib.purchaseOrderText(document);
+  assert.match(text,/Prime Laboratory Software/);assert.match(text,/First tablets: 20 tablet/);assert.match(text,/Second medicine: 5 bottle/);
+  assert.doesNotMatch(text,/cost|price|total|NOT AUTHORIZED/);
+  assert.match(lib.purchaseOrderText({...document,status:'draft'}),/NOT AUTHORIZED FOR PURCHASE/);
+});
+function fakePdf() {
+  const texts=[],tables=[],state={pages:1,saved:'',images:0};
+  class PDF {
+    constructor(options){this.options=options;this.internal={pageSize:{getWidth:()=>210,getHeight:()=>297}};this.GState=function(value){return value;};}
+    text(value){texts.push(Array.isArray(value)?value.join(' '):String(value));}
+    splitTextToSize(value){return [String(value)];}
+    addImage(){state.images++;}addPage(){state.pages++;}getNumberOfPages(){return state.pages;}save(name){state.saved=name;}
+  }
+  for(const name of ['setProperties','setTextColor','setFont','setFontSize','setDrawColor','setLineWidth','line','setFillColor','rect','setPage','saveGraphicsState','setGState','restoreGraphicsState'])PDF.prototype[name]=function(){};
+  const autoTable=(doc,options)=>{tables.push(options);doc.lastAutoTable={finalY:options.startY+((options.body||[]).length+(options.head?1:0))*6};};
+  return {texts,tables,state,jspdf:{__esModule:true,default:PDF},autotable:{__esModule:true,default:autoTable}};
+}
+function purchasePdfLib(fake){
+  const invoice=compile('components/invoices/organizationInvoicePdf.ts',{jspdf:fake.jspdf,'jspdf-autotable':fake.autotable});
+  return compile('lib/pharmacyPurchaseDocumentPdf.ts',{jspdf:fake.jspdf,'jspdf-autotable':fake.autotable,'../components/invoices/organizationInvoicePdf':invoice});
+}
+const branding={company:{name:'Prime Pharmacy',address:'1 Health Road',phonenumber:244000111,email:'store@example.test'},logo:'data:image/png;base64,AAAA'};
+test('purchase order PDF follows the invoice layout with supplier, quantities only, sign-off and approval stamp', () => {
+  const lib=compile('lib/pharmacyPurchaseOrder.ts'),fake=fakePdf();
+  const order={reference:'PO-2026-000125',supplierName:'Original supplier',supplierPhone:'0244000222',supplierEmail:'sales@supplier.test',createdAt:'2026-11-02',status:'approved',notes:'Deliver before noon',lines:[{name:'First tablets',quantity:20,unit:'tablet'},{name:'Second medicine',quantity:5,unit:'bottle'}]};
+  purchasePdfLib(fake).buildPurchaseDocumentPdf(lib.purchaseOrderSpec(order),branding);
+  const text=fake.texts.join('\n');
+  for(const expected of ['PRIME PHARMACY','PURCHASE ORDER','FROM — ORDERING FACILITY','TO — SUPPLIER','Original supplier','Tel: 0244000222','SUPPLIER INSTRUCTIONS','Quote PO-2026-000125','Authorized by (name, signature & stamp)','Page 1 of 1','Deliver before noon'])assert.ok(text.includes(expected),expected);
+  assert.equal(fake.state.images,1);
+  const meta=fake.tables[0].body,items=fake.tables[1];
+  assert.deepEqual(plain(meta.slice(0,3)),[['PO No.','PO-2026-000125'],['Order Date','02 November 2026'],['Status','Approved']]);
+  assert.deepEqual(plain(items.head[0]),['#','Medicine / Description','Unit','Qty Ordered','Qty Supplied']);
+  assert.deepEqual(plain(items.body),[['1','First tablets','tablet','20',''],['2','Second medicine','bottle','5','']]);
+  assert.doesNotMatch(JSON.stringify(fake.tables)+text,/GHS|Unit cost|Price \(|Amount due|NOT AUTHORIZED|DRAFT/);
+  const draft=fakePdf();
+  purchasePdfLib(draft).buildPurchaseDocumentPdf(lib.purchaseOrderSpec({...order,status:'draft'}),branding);
+  assert.ok(draft.texts.includes('NOT AUTHORIZED FOR PURCHASE'));assert.ok(draft.texts.includes('DRAFT'));
+  assert.match(lib.purchaseOrderText({...order,status:'draft'}),/NOT AUTHORIZED FOR PURCHASE/);
+});
+test('purchase request PDF shows requested and approved quantities as an internal requisition', () => {
+  const lib=compile('lib/pharmacyPurchaseOrder.ts'),fake=fakePdf();
+  const spec=lib.purchaseRequestSpec({reference:'PR-ABC123',status:'requested',createdAt:'2026-11-01T10:00:00Z',reason:'Replenish low stock',
+    lines:[{name:'First tablets',unit:'tablet',quantity:20,requestedQuantity:20,approvedQuantity:15,amendmentReason:'Budget'},{name:'Second medicine',quantity:5}]});
+  purchasePdfLib(fake).buildPurchaseDocumentPdf(spec,branding);
+  const text=fake.texts.join('\n');
+  for(const expected of ['PURCHASE REQUEST','INTERNAL REQUISITION','PURPOSE OF REQUEST','Replenish low stock','REVIEW NOTES','AWAITING APPROVAL','Requested by (name & signature)'])assert.ok(text.includes(expected),expected);
+  assert.deepEqual(plain(fake.tables[1].head[0]),['#','Medicine / Description','Unit','Qty Requested','Qty Approved','Review Note']);
+  assert.deepEqual(plain(fake.tables[1].body),[['1','First tablets','tablet','20','15','Budget'],['2','Second medicine','units','5','Pending','']]);
+  assert.doesNotMatch(text,/TO — SUPPLIER|Thank you for your prompt delivery/);
+});
+test('purchase document download loads company branding and saves under the reference', async () => {
+  let built,saved='';
+  const lib=compile('lib/pharmacyPurchaseOrder.ts',{
+    './pharmacyPurchaseDocumentPdf':{buildPurchaseDocumentPdf:(spec,brand)=>{built={spec,brand};return {save:name=>{saved=name;}};}},
+    '../components/reports/reportPdf':{loadCompanyBranding:async()=>branding},
+  });
+  await lib.downloadPurchaseOrder({reference:'PO-2026-000125',supplierName:'Supplier',status:'approved',notes:'',lines:[]});
+  assert.equal(saved,'PO-2026-000125.pdf');assert.equal(built.brand,branding);assert.equal(built.spec.kind,'order');
+  await lib.downloadPurchaseRequest({reference:'PR/7',status:'approved',reason:'Restock',lines:[]});
+  assert.equal(saved,'PR_7.pdf');assert.equal(built.spec.kind,'request');assert.equal(built.spec.stamp,undefined);
+});
+function orderWorkspaceFixture({ role = 'pharmacy_manager', actor = 9, status = 'approved', owner = 8, error = '' } = {}) {
+  const manager = ['admin','pharmacy_manager'].includes(role), stock = manager || role === 'pharmacy_storekeeper', finance = manager || role === 'pharmacy_accountant';
+  const data = { id:'order-original',reference:'PO-2026-000125',supplierId:'supplier-original',supplierName:'Original supplier',status,createdAt:'2026-11-02',createdBy:owner,version:3,managed:true,notes:'',total:100,canReceive:true,
+    lines:[{itemId:'medicine-original',name:'Original medicine',unit:'tablet',quantity:20,accepted:10,unitCost:5,salePrice:8}],
+    stages:[{id:'details',label:'Created',state:'complete'},{id:'approval',label:'Approved',state:'complete'},{id:'receiving',label:'Partially received',state:'active'},{id:'stock',label:'Partially stocked',state:'active'},{id:'invoices',label:'Partially invoiced',state:'active'},{id:'payments',label:'Partially paid',state:'active'}],
+    deliveries:[],legacyReceipts:[],invoices:[],bills:[],settlements:[],allocations:[],events:[],financial:{amount:'50.00',paid:'20.00',outstanding:'30.00'} };
+  const components = compile('app/pharmacy/inventory/orders/page.tsx', {
+    'react/jsx-runtime':jsx, react:{...React,...hooks}, 'next/link':nextLink, 'next/navigation':{useSearchParams:()=>new URLSearchParams('order=order-original')},
+    '../../../../lib/pharmacyAccounting':lib,'../../../../lib/pharmacyPurchaseOrder':compile('lib/pharmacyPurchaseOrder.ts'),'../../components/PharmacyPurchaseRequestForm':{__esModule:true,default:()=>null},'../../components/PharmacyReceivingModal':{__esModule:true,default:()=>null},
+    '../../components/PharmacyPaymentFields':{usePharmacyDocument:()=>({pending:null,execute:async()=>({success:true})})},
+    '../../accounting/components/Subledgers':{ControlledActions:()=>null,SettlementForm:()=>null},
+    '../deliveries/DeliveriesWorkspace':{SupplierInvoices:({canRecord})=>React.createElement('section',null,React.createElement('h2',null,'Supplier invoices'),canRecord&&React.createElement('button',null,'Record supplier invoice'))},
+    '../../../../lib/pharmacyReceiving':{heldQuantity:()=>0},
+    '../../components/PharmacyWorkspace':{styles:{},money:value=>currencyFormatter.format(Number(value)),dateLabel:value=>String(value).slice(0,10),
+      usePharmacyAccess:()=>({manager,stock,finance,administrator:role==='admin',app:{user:{employeeid:actor}}}),
+      usePharmacyResource:()=>({data,loading:false,error,refresh:async()=>{}}),
+      Empty:({children})=>React.createElement('p',null,children),Message:({error,notice})=>React.createElement(React.Fragment,null,error&&React.createElement('p',{role:'alert'},error),notice&&React.createElement('p',{role:'status'},notice)),Modal:()=>null},
+  });
+  return renderToStaticMarkup(React.createElement(components.default));
+}
+test('order workspace renders the actual reference, partial stages and invoice-level balances together', () => {
+  const html=orderWorkspaceFixture();
+  assert.match(html,/PO-2026-000125/);assert.match(html,/Original supplier/);assert.match(html,/Original medicine/);
+  for(const label of ['Partially received','Partially stocked','Partially invoiced','Partially paid'])assert.ok(html.includes(label));
+  for(const stage of ['details','approval','receiving','stock','invoices','payments'])assert.ok(html.includes(`href="#${stage}"`));
+  assert.match(html,/Outstanding<\/dt><dd[^>]*>GH₵30\.00/);assert.match(html,/Pay supplier/);
+  assert.match(html,/full bill balances, not an invented order-level payment split/);
+});
+test('order workspace gates stock and finance actions and enforces the self-review distinction', () => {
+  const accountant=orderWorkspaceFixture({role:'pharmacy_accountant'});
+  assert.doesNotMatch(accountant,/>Receive medicines</);assert.match(accountant,/Pay supplier/);
+  const stock=orderWorkspaceFixture({role:'pharmacy_storekeeper'});
+  assert.doesNotMatch(stock,/Pay supplier|GH₵30\.00/);assert.match(stock,/finance authority is required/);
+  const ownManager=orderWorkspaceFixture({status:'submitted',owner:9});
+  assert.match(ownManager,/cannot approve your own order/);assert.doesNotMatch(ownManager,/Confirm decision/);
+  const ownAdmin=orderWorkspaceFixture({role:'admin',status:'submitted',owner:9});
+  assert.match(ownAdmin,/administrator self-review exception is audited/);assert.match(ownAdmin,/Administrator exception reason/);
+});
+test('order evidence errors suppress stale financial and operational actions', () => {
+  const html=orderWorkspaceFixture({error:'Original order evidence is unavailable'});
+  assert.match(html,/Original order evidence is unavailable/);assert.match(html,/Reload order/);
+  assert.doesNotMatch(html,/Original medicine|Pay supplier|Receive medicines/);
+});
 class FormDataFixture {
   constructor(values) { this.values = values; }
   get(key) { return this.values[key] ?? null; }
@@ -223,6 +330,38 @@ test('settings form saves only explicit mappings and does not fabricate category
   const explicitMappings=Object.fromEntries(configurationLib.requiredMappingCategories.map(key=>[key,configurationLib.canonicalControl(key)||`approved-${key}`]));
   await submit(config.SettingsEditor({ initial: { enabled: true, effective_date: '2026-02-01', mappings: explicitMappings }, accounts: accountsFixture, refresh() {} }));
   assert.deepEqual(plain(calls[1]), ['settings', { enabled: true, effective_date: '2026-02-01', mappings: explicitMappings }, 'PUT']);
+});
+test('standalone chart creates Pharmacy-only accounts and distinguishes safe removal actions', async () => {
+  const calls = [], rows = [
+    { id: 'system:operating_expenses', account_code: 'operating_expenses', name: 'Operating expenses', type: 'expense', normal_balance: 'debit', is_active: true, local_codes: ['operating_expenses'], origin: 'system' },
+    { id: 'local:4', account_code: 'RENT', name: 'Rent', type: 'expense', normal_balance: 'debit', is_active: true, local_codes: ['expense:RENT'], origin: 'local' },
+    { id: 8, account_code: 'OLD', name: 'Legacy facility account', type: 'asset', normal_balance: 'debit', is_active: true, local_codes: [], origin: 'owned_shared' },
+  ];
+  const config = compile('app/pharmacy/accounting/components/Configuration.tsx', {
+    'react/jsx-runtime': jsx, react: hooks, '../../../../lib/pharmacyAccounting': lib, './common': common,
+    '../../../../lib/pharmacyAccountingConfiguration': configurationLib,
+    './api': { useResource: () => ({ data: { items: rows, sharedAccounts: [], facilityAvailable: false }, loading: false, error: '', refresh() {} }),
+      useMutation: () => ({ mutate: async (...args) => { calls.push(args); return true; }, pending: false, error: '', notice: '' }) },
+  }, { FormData: FormDataFixture, window: { confirm: () => true, scrollTo() {} } });
+  const chart = config.ChartOfAccounts();
+  await submit(chart, { accountCode: 'RENT2', name: 'Other rent', type: 'expense', normalBalance: 'debit' });
+  assert.deepEqual(plain(calls[0]), ['local-accounts', { accountCode: 'RENT2', name: 'Other rent', type: 'expense', normalBalance: 'debit', parentAccountId: null }, 'POST']);
+  const table = findElement(chart, node => node.type === common.DataTable);
+  assert.ok(table);
+  assert.equal(findElement(table.props.actions(rows[0]), node => node.type === 'button'), undefined);
+  await findElement(table.props.actions(rows[1]), node => node.type === 'button' && node.props.children === 'Delete').props.onClick();
+  await findElement(table.props.actions(rows[2]), node => node.type === 'button' && node.props.children === 'Remove from Pharmacy').props.onClick();
+  assert.deepEqual(plain(calls.slice(1)), [['local-accounts/4/remove', {}], ['accounts/8/remove', {}]]);
+});
+test('standalone tax rules offer active Pharmacy liabilities without a facility mapping', () => {
+  const accounts = { items: [
+    { id: 'system:liability:output_tax', account_code: 'liability:output_tax', name: 'Sales tax payable', type: 'liability', is_active: true, local_codes: ['liability:output_tax'] },
+    { id: 'system:liability:grni', account_code: 'liability:grni', name: 'Goods received not invoiced', type: 'liability', is_active: true, local_codes: ['liability:grni'] },
+    { id: 'local:9', account_code: 'OLD', name: 'Inactive', type: 'liability', is_active: false, local_codes: ['liability:old'] },
+  ], sharedAccounts: [] };
+  assert.deepEqual(plain(taxLib.taxLiabilityOptions(accounts, { enabled: false, effective_date: null, mappings: {} })),
+    [{ localAccount: 'liability:output_tax', code: 'liability:output_tax', name: 'Sales tax payable' }]);
+  assert.deepEqual(plain(taxLib.taxLiabilityOptions(accounts, { enabled: true, effective_date: '2026-11-02', mappings: {} })), []);
 });
 test('financial statement renders real section tables, totals and classification warning; server errors never show stale rows', () => {
   function workspace(resource) {
@@ -462,6 +601,16 @@ test('AP bill registration and due date forms preserve source evidence and canno
   await submit(ui.DueDateForm({id:'sale-1',endpoint:'receivables',dueDate:null,refresh(){}}),{dueDate:'2099-03-01',reason:'Agreed invoice terms'});
   assert.equal(calls[2][0],'receivables/sale-1/due-date');
 });
+test('order payment mode uses plain language but preserves exact partial bill allocations',async()=>{
+  const calls=[],bills=[{id:'bill-original',supplier_id:'supplier-1',source_kind:'supplier_invoice',outstanding_amount:'100.00',reference:'INV-ORIGINAL'}];
+  const ui=subledgersForTest({calls,states:[[{billId:'bill-original',amount:'25.00'}],'',0]});
+  const form=ui.SettlementForm({simple:true,bills,refresh(){}});
+  const html=renderToStaticMarkup(form);
+  assert.match(html,/Record supplier payment/);assert.match(html,/Amount paid 1/);assert.match(html,/Paid from/);assert.match(html,/>Record payment</);
+  assert.doesNotMatch(html,/Create allocated supplier settlement|Allocation 1 bill|Save draft allocated settlement|approval/);
+  await submit(form,{date:'2099-01-01',method:'card',reference:'BANK-77',description:'Supplier invoice settlement'});
+  assert.deepEqual(plain(calls[0]),['payables/payments',{date:'2099-01-01',method:'card',allocations:[{billId:'bill-original',amount:'25.00'}],reference:'BANK-77',description:'Supplier invoice settlement'}]);
+});
 test('AP settlement form sends explicit bill allocations and controlled actions never rewrite date or allocation',async()=>{
   const calls=[],bills=[{id:'bill-1',supplier_id:'supplier-1',source_kind:'receipt',outstanding_amount:'50.00',reference:'SUP-001'}];
   let ui=subledgersForTest({calls,states:[[{billId:'bill-1',amount:'20.00'}],'',0]});
@@ -478,7 +627,14 @@ test('AP settlement form sends explicit bill allocations and controlled actions 
     assert.equal('date'in body,false);assert.equal('allocations'in body,false);assert.equal('amount'in body,false);
     if(action==='pay'){assert.equal(body.method,'card');assert.equal(body.reference,'BANK-001');}
   }
-  assert.deepEqual(plain(ui.controlledActions({status:'submitted',version:1,created_by:9},9,true,'settlement')),['void']);
+  for(const status of ['draft','submitted']){
+    ui=subledgersForTest({calls,states:['record_payment']});
+    await submit(ui.ControlledActions({row:{id:'settlement-2',version:2,status,created_by:9},kind:'settlement',refresh(){}}),{method:'mobile_money',reference:'MOMO-1',date:'2099-03-01',amount:'999'});
+    const [endpoint,body]=calls.at(-1);
+    assert.equal(endpoint,'payables/settlements/settlement-2/record_payment');assert.equal(body.expectedVersion,2);assert.equal(body.method,'mobile_money');assert.equal(body.reference,'MOMO-1');
+    assert.equal('allocations'in body,false);assert.equal('amount'in body,false);
+  }
+  assert.deepEqual(plain(ui.controlledActions({status:'submitted',version:1,created_by:9},9,true,'settlement')),['record_payment','void']);
 });
 test('AP application/release actions require versioned independent approval and cannot move new money',async()=>{
   for(const [kind,path]of [['allocation','payables/allocations'],['release','payables/allocation-reversals']]){
@@ -920,7 +1076,7 @@ test('ledger uses professional explicit columns and short visible references whi
   });
   const element=registers.Register({endpoint:'ledger',ledger:true}),html=renderToStaticMarkup(element);
   const headers=[...html.matchAll(/<th scope="col"[^>]*>(.*?)<\/th>/g)].map(match=>match[1]);
-  assert.deepEqual(headers,['Date','Journal ref','Account code / name','Description','Source document','Debit','Credit','Running balance','Actions']);
+  assert.deepEqual(headers,['Date','Journal ref','Account','Description','Source document','Debit','Credit','Running balance','Actions']);
   const visible=html.replace(/<[^>]*>/g,'');
   assert.ok(visible.includes('JRN-266A7E7D'));assert.ok(visible.includes('PHM-F262EB76'));assert.ok(visible.includes('Cash on hand'));assert.ok(visible.includes('1,234.50'));
   assert.ok(!visible.includes(journal));assert.ok(!visible.includes(sale));assert.ok(!visible.includes('T00:00:00'));assert.ok(!visible.includes('internal-ledger-row-id'));assert.ok(!visible.includes('signed running balance'));
@@ -1156,7 +1312,7 @@ test('accounting overview follows the Payroll dashboard pattern without duplicat
   assert.equal(filterForm.getAttribute('aria-label'),'Report filters');
   const payables=new JSDOM(renderToStaticMarkup(fixture.workspace.default({section:'payables'}))).window.document;
   assert.equal(payables.querySelectorAll('nav[aria-label="Payables views"] button').length,5);
-  assert.equal(payables.querySelector('nav[aria-label="Payables views"] button[aria-pressed="true"]').textContent,'Supplier bills');
+  assert.equal(payables.querySelector('nav[aria-label="Payables views"] button[aria-pressed="true"]').textContent,'Unpaid bills');
   assert.equal(payables.querySelectorAll('form[aria-label="Report filters"]').length,0,'do not show an Apply button when there are no supported filters');
   assert.equal(payables.querySelectorAll('[data-accounting-export]').length,1,'do not stack every workflow register on first load');
   const table=new JSDOM(renderToStaticMarkup(React.createElement(common.DataTable,{rows:[{account:'cash',debit:'10.00'}]}))).window.document;

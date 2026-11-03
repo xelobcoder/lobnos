@@ -28,16 +28,16 @@ function PostingStatus() {
   const resource = useResource<Settings>('settings');
   if (resource.error) return <p role="alert" className="alert alert-warning">Posting configuration could not be verified: {resource.error}</p>;
   if (resource.loading) return <p role="status">Verifying accounting configuration…</p>;
-  if (!resource.data?.enabled) return <p role="status" className="alert alert-warning">Facility accounting link is not enabled. These registers show pharmacy records, not proof they are included in facility reports. <Link href={articleHref('shared-records')}>What does this mean?</Link> <Link href="/pharmacy/accounting/settings">Review configuration</Link>.</p>;
+  if (!resource.data?.enabled) return <p role="status" className="alert alert-info">Pharmacy is operating independently. These records are not automatically included in facility reports. <Link href={articleHref('shared-records')}>About the optional facility link</Link> <Link href="/pharmacy/accounting/settings">Review configuration</Link>.</p>;
   return <div className={`${printStyles.postingContext} d-print-none`}><span>Facility accounting link enabled</span><span>Linked from: <DateText value={resource.data.effective_date}/></span><Link href={articleHref('shared-records')}>What does this mean?</Link><Link href="/pharmacy/accounting/settings">Review posting & reconciliation</Link></div>;
 }
 const descriptions: Record<Section, string> = {
   '': 'Review balances, outstanding work and the next accounting task.',
-  'chart-of-accounts': 'Manage the accounts assigned to pharmacy and their posting mappings.',
+  'chart-of-accounts': 'Manage Pharmacy accounts and optional facility-ledger mappings.',
   'general-ledger': 'Inspect posted transactions and trace each balance to its source.',
   journals: 'Prepare, review and post controlled accounting entries.',
   receivables: 'Review customer invoices, collections and outstanding balances.',
-  payables: 'Manage supplier bills, reviewed settlements and existing credits.',
+  payables: 'What the pharmacy owes suppliers. Record supplier payments against unpaid bills and review payment history.',
   expenses: 'Prepare expenses, record approvals and track payments.',
   revenue: 'Review sales revenue and the transactions behind it.',
   cogs: 'Trace inventory cost recognised when medicines are sold, sourced from stock movements.',

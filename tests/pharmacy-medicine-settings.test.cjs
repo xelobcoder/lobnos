@@ -6,13 +6,18 @@ function fixture(){
  const state=[];let cursor=0;
  let medicine={inventoryItemId:'drug',name:'Medicine',sku:'D',unit:'tablet',salePrice:5,wholesalePrice:3,minimumStock:1,availableStock:10,dispensableStock:10,requiresPrescription:true,batchTracking:true};
  const mutations=[];
- const react={createElement:(type,props,...children)=>({type,props:{...props,children}}),useEffect(){},useState(initial){const index=cursor++;if(!(index in state))state[index]=initial;return [state[index],value=>state[index]=typeof value==='function'?value(state[index]):value];}};
+ const react={createElement:(type,props,...children)=>({type,props:{...props,children}}),useEffect(){},useRef:initial=>({current:initial}),useId:()=>':test:',useState(initial){const index=cursor++;if(!(index in state))state[index]=initial;return [state[index],value=>state[index]=typeof value==='function'?value(state[index]):value];}};
  const exported={};
  const FormData=class {constructor(values){this.values=values;}get(key){return this.values[key]??null;}has(key){return Object.hasOwn(this.values,key);}};
  vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(root,'app/pharmacy/components/PharmacyInventoryWorkspace.tsx'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,jsx:ts.JsxEmit.React}}).outputText,{exports:exported,React:react,Error,FormData,require:name=>{
   if(name==='react')return react;
   if(name==='next/link')return {__esModule:true,default:'Link'};
   if(name==='next/navigation')return {useSearchParams:()=>({get:()=>null})};
+  if(name==='@remixicon/react')return {RiShoppingCart2Line:'CartIcon'};
+  if(name.endsWith('PharmacyPurchaseRequestForm'))return {__esModule:true,default:'PurchaseRequestForm'};
+  if(name.endsWith('PharmacyReceivingModal'))return {__esModule:true,default:'ReceivingModal'};
+  if(name.endsWith('pharmacyAccounting'))return {accountingReference:()=>''};
+  if(name.endsWith('.module.css'))return new Proxy({},{get:(_,key)=>String(key)});
   if(name.endsWith('customFetch'))return {customFetchMutation:async(endpoint,method,payload)=>{mutations.push({endpoint,method,payload});medicine={...medicine,requiresPrescription:payload.requiresPrescription,batchTracking:payload.batchTracking};return {success:true,data:{updated:true}};}};
   if(name.endsWith('PharmacyStockUpModal'))return {__esModule:true,default:'StockModal'};
   if(name.endsWith('PharmacyPaymentFields'))return {usePharmacyDocument:()=>({pending:null})};

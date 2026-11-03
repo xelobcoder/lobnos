@@ -44,9 +44,10 @@ export default function PharmacyFinancePage() {
      const accountName=(code:string)=>accounts.find(a=>a.code===code)?.name||code;
      const open=setup.data?.day?.status==='open';
      const dateKey=(value:any)=>value instanceof Date?value.toISOString().slice(0,10):String(value||'').slice(0,10);
-     const previousDays=(data?.days||[]).filter((d:any)=>d.status==='open'&&(d.opened_at||dateKey(d.financial_date)===dateKey(setup.data?.previousShift?.financial_date))&&dateKey(d.financial_date)<setup.data?.financialDate).sort((a:any,b:any)=>dateKey(a.financial_date).localeCompare(dateKey(b.financial_date)));
+     const previousDays=(data?.days||[]).filter((d:any)=>d.status==='open'&&(d.opened_at||d.explicitly_reopened||dateKey(d.financial_date)===dateKey(setup.data?.previousShift?.financial_date))&&dateKey(d.financial_date)<setup.data?.financialDate).sort((a:any,b:any)=>dateKey(a.financial_date).localeCompare(dateKey(b.financial_date)));
      const targetDay=previousDays[0];
      const blockers=(day:any)=>(data?.shifts||[]).filter((s:any)=>dateKey(s.financial_date||s.opened_at)<=dateKey(day.financial_date)&&(!s.closed_at||!s.reviewed_by));
+     const shiftDay=(shift:any)=>(data?.days||[]).find((day:any)=>dateKey(day.financial_date)===dateKey(shift.financial_date||shift.opened_at));
      const targetShifts=targetDay?blockers(targetDay):[];
      const visibleShifts=targetDay?targetShifts:(data?.shifts||[]);
      const ready=!!data&&!report.loading&&!report.error&&!!setup.data&&!setup.loading&&!setup.error;
@@ -102,48 +103,66 @@ export default function PharmacyFinancePage() {
                          </ol>
                          {!targetShifts.length&&<div role="status" className="alert alert-success">All cashier shifts for this day have been closed and reviewed. You can now close the day below.</div>}
                     </>}
-                    <p className={styles.muted}>Close active shifts with the counted cash, then review the handover before closing the financial day.</p>
-                    {visibleShifts.length?<><p className={financeLayout.scrollHint}>Scroll sideways to see cash amounts and handover actions.</p><div className={`table-responsive ${financeLayout.tableScroll}`} role="region" aria-label="Cashier handovers" tabIndex={0}>
-                         <table className={styles.table}>
+                    <p className={styles.muted}>Use the action at the start of each row: close open shifts with the physical cash count, then review each handover. If a shift's financial day is closed, a manager must reopen that date with a reason first.</p>
+                    {visibleShifts.length?<><p className={financeLayout.scrollHint}>Scroll sideways to see the cash amounts.</p><div className={`table-responsive ${financeLayout.tableScroll}`} role="region" aria-label="Cashier handovers" tabIndex={0}>
+                         <table className={styles.table} style={{tableLayout:'fixed',overflowWrap:'anywhere'}}>
+                              <colgroup><col style={{width:170}}/><col style={{width:80}}/><col style={{width:130}}/><col style={{width:120}}/><col style={{width:120}}/><col style={{width:120}}/></colgroup>
                               <caption className="visually-hidden">{targetDay?'Cashier handovers required before closing the financial day':'Cashier shifts and handovers'}</caption>
                               <thead><tr>
+                                   <th scope="col">Status / action</th>
                                    <th scope="col">Staff</th>
                                    <th scope="col">Financial date</th>
                                    <th scope="col" className={styles.number}>Opening float</th>
                                    <th scope="col" className={styles.number}>Counted cash</th>
                                    <th scope="col" className={styles.number}>Difference</th>
-                                   <th scope="col">Status / action</th>
                               </tr></thead>
-                              <tbody>{visibleShifts.map((s:any)=><tr key={s.id}>
+                              <tbody>{visibleShifts.map((s:any)=>{
+                                   const day=shiftDay(s),ownShift=Number(s.cashier_id)===Number(access.app?.user?.employeeid);
+                                   return <tr key={s.id}>
+                                   <td>{(!s.closed_at||!s.reviewed_by)&&day?.status==='closed'?
+                                        <div className="d-flex flex-column align-items-start gap-1"><span className="fw-semibold text-warning">Financial day closed</span>
+                                             {access.manager?<button className="btn btn-sm btn-outline-warning" disabled={busy} onClick={()=>setReopening({date:dateKey(day.financial_date),closedAt:day.closed_at})}>Reopen shift day</button>:
+                                                  <span className={styles.muted}>Ask a pharmacy manager or administrator to reopen this shift's day.</span>}
+                                        </div>:
+                                        s.closed_at&&s.reviewed_by?<span className="fw-semibold text-success">Reviewed</span>:s.closed_at?
+                                        access.manager&&(access.administrator||!ownShift)?
+                                             <button className="btn btn-sm btn-outline-primary" disabled={busy} onClick={()=>setReview(s)}>{ownShift?'Admin review handover':'Review handover'}</button>:
+                                             <span className={styles.muted}>{access.manager?"Awaiting another manager's review. An administrator can also review; administrator self-review requires an acknowledgement and reason.":'Ask a pharmacy manager or administrator to review this handover.'}</span>:
+                                        <div className="d-flex flex-column align-items-start gap-1">
+                                             <span className="fw-semibold text-warning">Open</span>
+                                             {access.manager?<button className="btn btn-sm btn-outline-primary" disabled={busy} onClick={()=>setClosing(s)}>Close with cash count</button>:
+                                                  ownShift?<Link className="btn btn-sm btn-outline-primary" href="/pharmacy/cashier">Close your shift</Link>:
+                                                       <span className={styles.muted}>Ask the cashier to close their shift, or a pharmacy manager to record the cash handover.</span>}
+                                        </div>}
+                                   </td>
                                    <td>{s.cashier_name||`Staff #${s.cashier_id}`}</td>
                                    <td>{dateLabel(s.financial_date||s.opened_at)}</td>
                                    <td className={styles.number}>{money(s.opening_float)}</td>
                                    <td className={styles.number}>{s.closed_at?money(s.counted_cash):'--'}</td>
                                    <td className={styles.number}>{s.closed_at?money(s.variance):'--'}</td>
-                                   <td>{s.reviewed_by?<span className="fw-semibold text-success">Reviewed</span>:s.closed_at?
-                                        access.manager&&(access.administrator||Number(s.cashier_id)!==Number(access.app?.user?.employeeid))?
-                                             <button className="btn btn-sm btn-outline-primary" disabled={busy} onClick={()=>setReview(s)}>{Number(s.cashier_id)===Number(access.app?.user?.employeeid)?'Admin review handover':'Review handover'}</button>:
-                                             <span className={styles.muted}>Awaiting another manager's review.</span>:
-                                        <div className={styles.actions}>
-                                             <span className="fw-semibold text-warning">Open</span>
-                                             {access.manager?<button className="btn btn-sm btn-outline-primary" disabled={busy} onClick={()=>setClosing(s)}>Close with cash count</button>:
-                                                  targetDay&&<span className={styles.muted}>Ask the cashier to close their shift, or a pharmacy manager to record the cash handover.</span>}
-                                        </div>}
-                                   </td>
-                              </tr>)}</tbody>
+                              </tr>})}</tbody>
                          </table>
                     </div></>:!targetDay&&<Empty>No cashier shifts opened yet.</Empty>}
                </section>
                <section className={styles.card}>
                     <h2>Financial-day history</h2>
-                    {targetDay&&<div className="mb-3"><button className="btn btn-primary" disabled={busy||targetShifts.length>0||report.loading} onClick={()=>{const date=dateKey(targetDay.financial_date);if(window.confirm(`Close pharmacy financial day ${date}?`))act('pharmacy/management/close-day',{date},false);}}>Close previous financial day</button><p className="text-muted mt-2 mb-0">{targetShifts.length?'Complete the cashier handovers above to enable closing.':`Ready to close ${dateLabel(targetDay.financial_date)}. Today opens separately.`}</p></div>}
+                    {targetDay&&<div className="mb-3"><button className="btn btn-primary" aria-describedby="previous-day-close-reason" disabled={busy||targetShifts.length>0||report.loading} onClick={()=>{const date=dateKey(targetDay.financial_date);if(window.confirm(`Close pharmacy financial day ${date}?`))act('pharmacy/management/close-day',{date},false);}}>Close previous financial day</button><p id="previous-day-close-reason" className="text-muted mt-2 mb-0">{targetShifts.length?'Complete each shift action above to enable closing. Open shifts need a cash count; closed shifts need a manager review.':`Ready to close ${dateLabel(targetDay.financial_date)}. Today opens separately.`}</p>{targetShifts.length>0&&<button type="button" className="btn btn-link p-0 mt-2" onClick={showDays}>Go to required shift actions</button>}</div>}
                     <p className={styles.muted}>All open days are included, together with recent history. Close today's day using the financial-day panel above.</p>
                     {data.days.length?<><p className={financeLayout.scrollHint}>Scroll sideways to see every column.</p><div className={financeLayout.tableScroll} role="region" aria-label="Financial-day history" tabIndex={0}><table className={styles.table}><thead><tr><th scope="col">Date</th><th scope="col">Status</th><th scope="col">Opened</th><th scope="col">Closed</th><th scope="col">Next action</th></tr></thead><tbody>{data.days.map((d:any)=><tr key={d.id}><td>{dateLabel(d.financial_date)}</td><td><span className={`fw-semibold ${d.status==='open'?'text-success':'text-secondary'}`}>{d.status==='open'?'Open':'Closed'}</span></td><td>{d.opened_at?new Date(d.opened_at).toLocaleString('en-GH'):'Legacy day'}</td><td>{d.closed_at?new Date(d.closed_at).toLocaleString('en-GH'):'Not closed'}</td><td>{d.status==='closed'&&access.manager?<button className="btn btn-sm btn-outline-warning" disabled={busy} onClick={()=>setReopening({date:dateKey(d.financial_date),closedAt:d.closed_at})}>Reopen with reason</button>:d.status==='open'?<span className={styles.muted}>{blockers(d).length?`${blockers(d).length} shift(s) need closing or review`:d===targetDay?'Ready: close the previous day above':dateKey(d.financial_date)===dateKey(setup.data?.financialDate)?'Ready: close using the day panel':'Finish the earlier open day first'}</span>:<span className={styles.muted}>No action needed</span>}</td></tr>)}</tbody></table></div></>:<Empty>No financial days have been opened.</Empty>}
-                    {access.manager&&<details className={financeLayout.advanced}><summary>Correct a closed day</summary><p className={styles.muted}>Reopening is for historical corrections, not routine day closing. A reason is required and the previous close remains in the audit history.</p><button className="btn btn-outline-warning" disabled={busy} onClick={()=>setReopening({date:''})}>Reopen a closed day</button></details>}
+                    {access.manager&&<details className={financeLayout.advanced}><summary>Correct a closed day</summary><p className={styles.muted}>Reopening is for historical corrections or unfinished handovers, not routine day closing. A reason is required and the previous close remains in the audit history.</p><button className="btn btn-outline-warning" disabled={busy} onClick={()=>setReopening({date:''})}>Reopen a closed day</button></details>}
                </section>
           </>}
           </>}
-          {reopening&&<Modal title="Reopen pharmacy financial day" busy={busy} onClose={()=>setReopening(null)}><Message error={error}/><p>Reopening enables corrections for this pharmacy date. It preserves the previous close in the audit history and keeps closed cashier shifts and handovers intact. Today’s sales still use today’s financial date.</p><form onSubmit={async event=>{event.preventDefault();const f=new FormData(event.currentTarget);if(await act('pharmacy/management/reopen-day',{date:reopening.date,reason:f.get('reason'),expectedClosedAt:reopening.closedAt},false)){setReopening(null);setTab('days');setNotice('Pharmacy financial day reopened. Record any historical corrections using the reopened date, then close it again.');}}}><label className="form-label d-block">Closed date<input className="form-control" type="date" required max={new Date().toISOString().slice(0,10)} value={reopening.date} onChange={event=>setReopening({date:event.target.value})}/></label><label className="form-label d-block">Reason for reopening<textarea className="form-control" name="reason" minLength={10} maxLength={500} required rows={3} placeholder="Explain the mistaken close or the correction required"/></label><label><input type="checkbox" required/> I understand that corrections change this date’s pharmacy reports.</label><div className={styles.footer}><button className="btn btn-outline-secondary" type="button" disabled={busy} onClick={()=>setReopening(null)}>Cancel</button><button className="btn btn-warning" disabled={busy}>Reopen financial day</button></div></form></Modal>}
+          {reopening&&<Modal title="Reopen pharmacy financial day" busy={busy} onClose={()=>setReopening(null)}>
+               <Message error={error}/>
+               <p>Reopening allows authorized corrections or unfinished cashier handovers for this date. The previous close stays in the audit history, and existing cash counts remain unchanged. Today’s sales still use today’s financial date.</p>
+               <form onSubmit={async event=>{event.preventDefault();const f=new FormData(event.currentTarget);if(await act('pharmacy/management/reopen-day',{date:reopening.date,reason:f.get('reason'),expectedClosedAt:reopening.closedAt},false)){setReopening(null);setTab('days');setNotice('Pharmacy financial day reopened. Complete its outstanding handovers or corrections, then close it again.');}}}>
+                    <label className="form-label d-block">Closed date<input className="form-control" type="date" required max={new Date().toISOString().slice(0,10)} value={reopening.date} onChange={event=>setReopening({date:event.target.value})}/></label>
+                    <label className="form-label d-block">Reason for reopening<textarea className="form-control" name="reason" minLength={10} maxLength={500} required rows={3} placeholder="Explain the correction or unfinished handover"/></label>
+                    <label><input type="checkbox" required/> I understand that corrections change this date’s pharmacy reports.</label>
+                    <div className={styles.footer}><button className="btn btn-outline-secondary" type="button" disabled={busy} onClick={()=>setReopening(null)}>Cancel</button><button className="btn btn-warning" disabled={busy}>Reopen financial day</button></div>
+               </form>
+          </Modal>}
           {ready&&tab==='days'&&data?.events?.length>0&&<section className={styles.card}><h2>Financial-day audit history</h2><div className="table-responsive"><table className={styles.table}><thead><tr><th>Recorded</th><th>Financial date</th><th>Action</th><th>Staff</th><th>Reason</th></tr></thead><tbody>{data.events.map((event:any)=><tr key={event.id}><td>{new Date(event.created_at).toLocaleString('en-GH')}</td><td>{dateLabel(event.financial_date)}</td><td>{event.event_type}</td><td>#{event.performed_by}</td><td>{event.reason}</td></tr>)}</tbody></table></div></section>}
           {review&&<Modal title="Review cashier handover" onClose={()=>setReview(null)} busy={busy}><Message error={error}/><ShiftHandoverForm key={review.id} shift={review} review={true} adminSelfReview={access.administrator&&Number(review.cashier_id)===Number(access.app?.user?.employeeid)} busy={busy} onCancel={()=>setReview(null)} onConfirm={async payload=>{if(await act(`pharmacy/management/shifts/${review.id}/review`,payload,false))setReview(null);}}/></Modal>}
           {closing&&<Modal title="Close cashier shift" onClose={()=>setClosing(null)} busy={busy}><Message error={error}/><ShiftHandoverForm key={closing.id} shift={closing} review={false} busy={busy} onCancel={()=>setClosing(null)} onConfirm={async payload=>{if(await act(`pharmacy/management/shifts/${closing.id}/close`,payload,false))setClosing(null);}}/></Modal>}

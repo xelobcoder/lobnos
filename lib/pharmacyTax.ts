@@ -45,9 +45,11 @@ export function decodeTax(value: unknown): TaxData {
     }),
   };
 }
-/** Only explicitly mapped, active shared liabilities are eligible; never infer a destination. */
 export function taxLiabilityOptions(accounts: Accounts, settings: Settings) {
-  return Object.entries(settings.mappings).filter(([local]) => /^liability:[A-Za-z0-9][A-Za-z0-9:_-]*$/.test(local)).flatMap(([localAccount, code]) => {
+  if (!settings.enabled) return accounts.items.filter(a => a.type === 'liability' && a.is_active !== false)
+    .flatMap(a => (a.local_codes || []).filter(code => code !== 'liability:grni' && /^liability:[A-Za-z0-9][A-Za-z0-9:_-]*$/.test(code))
+      .map(localAccount => ({ localAccount, code: a.account_code, name: a.name })));
+  return Object.entries(settings.mappings).filter(([local]) => local !== 'liability:grni' && /^liability:[A-Za-z0-9][A-Za-z0-9:_-]*$/.test(local)).flatMap(([localAccount, code]) => {
     const account = accounts.sharedAccounts.find(a => a.account_code === code && a.type === 'liability' && a.is_active !== false);
     return account ? [{ localAccount, code, name: account.name }] : [];
   });
@@ -55,7 +57,7 @@ export function taxLiabilityOptions(accounts: Accounts, settings: Settings) {
 export function taxRulePayload(fields: { itemId: Identifier | ''; rate: string; localAccount: string; effectiveDate: string; reason: string }, allowedAccounts: string[]) {
   if (fields.itemId === '' || !String(fields.itemId).trim()) throw Error('Select the medicine this rule explicitly applies to.');
   if (!fields.rate.trim() || !/^\d+(\.\d{1,4})?$/.test(fields.rate) || !Number.isFinite(Number(fields.rate)) || Number(fields.rate) > 100) throw Error('Enter an explicit percentage rate from 0 to 100, with up to four decimal places.');
-  if (!allowedAccounts.includes(fields.localAccount)) throw Error('Choose an active, explicitly mapped liability account.');
+  if (!allowedAccounts.includes(fields.localAccount)) throw Error('Choose an active, eligible liability account.');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(fields.effectiveDate)) throw Error('Enter the rule effective date.');
   if (!fields.reason.trim()) throw Error('Record the evidence and reason for this tax rule.');
   return { itemId: String(fields.itemId), rate: Number(fields.rate), localAccount: fields.localAccount, effectiveDate: fields.effectiveDate, reason: fields.reason.trim() };

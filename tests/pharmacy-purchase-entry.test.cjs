@@ -9,10 +9,12 @@ function find(node, predicate) {
     const result = find(child, predicate); if (result) return result;
   }
 }
-function fixture(locked = false) {
-  let cursor = 0, focusCount = 0; const state = [], calls = [], effects = [];
-  const hooks = { ...React, useId: () => 'medicine-picker', useEffect: fn => effects.push(fn), useRef: () => ({ current: { focus() { focusCount++; } } }), useState: initial => {
-    const index = cursor++; if (!(index in state)) state[index] = initial;
+function fixture(locked = false, mode = 'request', lowStock = []) {
+  let cursor = 0, refCursor = 0, focusCount = 0; const state = [], calls = [], effects = [], refs = [];
+  const hooks = { ...React, useId: () => 'medicine-picker', useEffect: fn => effects.push(fn), useRef: initial => {
+    const index = refCursor++; refs[index] ||= { current: initial === null ? { focus() { focusCount++; } } : initial }; return refs[index];
+  }, useState: initial => {
+    const index = cursor++; if (!(index in state)) state[index] = typeof initial === 'function' ? initial() : initial;
     return [state[index], value => { state[index] = typeof value === 'function' ? value(state[index]) : value; }];
   }};
   const Picker = () => React.createElement('span', null, 'Medicine search');
@@ -27,12 +29,12 @@ function fixture(locked = false) {
     if (name.endsWith('.module.css')) return { __esModule: true, default: {} };
     if (name.includes('customFetch')) return { reactSelectCustomStyles: {} };
     if (name === './PharmacyWorkspace') return { styles: {}, money: n => `GHS ${n.toFixed(2)}`,
-      usePharmacyResource: () => ({ data: { items: [medicine] }, loading: false, error: '' }),
+      usePharmacyResource: endpoint => ({ data: { items: endpoint.includes('filter=low') ? lowStock : [medicine] }, loading: false, error: '' }),
       Message: ({ error }) => error ? React.createElement('p', { role: 'alert' }, error) : null };
     return require(name);
   }});
-  const render = () => { cursor = 0; effects.length = 0; return exports.default({
-    suppliers: [{ id: 'supplier-1', name: 'Example supplier' }], locked, onCancel() {},
+  const render = () => { cursor = 0; refCursor = 0; effects.length = 0; return exports.default({
+    suppliers: [{ id: 'supplier-1', name: 'Example supplier' }], locked, mode, onCancel() {},
     onSubmit: async payload => calls.push(JSON.parse(JSON.stringify(payload))),
   }); };
   const choose = item => find(render(), node => node.type === Picker).props.onChange(item);
@@ -43,10 +45,28 @@ function fixture(locked = false) {
     find(field, node => node.type === 'input').props.onChange({ target: { value } });
   };
   const submit = () => find(render(), node => node.type === 'form').props.onSubmit({
-    preventDefault() {}, currentTarget: { supplier: 'supplier-1', notes: 'Replenish tablets' },
+    preventDefault() {}, currentTarget: { supplier: 'supplier-1', supplierId: 'supplier-1', notes: 'Replenish tablets' },
   });
-  return { render, choose, button, input, submit, calls, focusCount: () => focusCount, picker: () => find(render(), node => node.type === Picker) };
+  return { render, choose, button, input, submit, calls, exports, focusCount: () => focusCount, picker: () => find(render(), node => node.type === Picker) };
 }
+test('low-stock medicines can be added in one tap with a suggested quantity that stays editable', async () => {
+  const low = [
+    { inventoryItemId: 'low-1', name: 'Low tablets', unit: 'tablet', availableStock: 4, minimumStock: 10 },
+    { inventoryItemId: 'low-2', name: 'Empty syrup', unit: 'bottle', availableStock: 0, minimumStock: 0 },
+  ];
+  const ui = fixture(false, 'order', low);
+  assert.equal(ui.exports.suggestedQuantity(low[0]), 16);
+  assert.equal(ui.exports.suggestedQuantity(low[1]), 1);
+  assert.equal(ui.exports.suggestedQuantity({ availableStock: 25, minimumStock: 10 }), 1);
+  find(ui.render(), node => node.type === 'button' && node.props['aria-label'] === 'Add Low tablets').props.onClick();
+  assert.match(renderToStaticMarkup(ui.render()), /Add all suggested \(1\)/);
+  ui.button('Add all suggested (1)').props.onClick();
+  assert.match(renderToStaticMarkup(ui.render()), /Your order \(2 medicines\)/);
+  assert.match(renderToStaticMarkup(ui.render()), /Add all suggested \(0\)/);
+  ui.input('Quantity (tablet)', '30', 'Medicines in request');
+  await ui.submit();
+  assert.deepEqual(ui.calls[0].lines, [{ itemId: 'low-1', quantity: 30 }, { itemId: 'low-2', quantity: 1 }]);
+});
 test('purchase entry records quantities and optional estimates before submitting a requisition', async () => {
   const ui = fixture();
   ui.choose(medicine); ui.input('Quantity (tablet)', '40'); ui.input('Estimate per tablet (GHS, optional)', '3.25');
@@ -105,4 +125,24 @@ test('medicine selection stays mounted and returns focus after every added item'
   ui.choose({ ...medicine, inventoryItemId: 'medicine-2' });
   ui.button('Add item').props.onClick();
   assert.equal(ui.focusCount(), 2);
+});
+test('supplier-first purchase orders submit one supplier and several lines with draft intent', async () => {
+  const ui = fixture(false, 'order');
+  ui.choose(medicine); ui.input('Quantity (tablet)', '20'); ui.button('Add item').props.onClick();
+  ui.choose({ ...medicine, inventoryItemId: 'medicine-2', name: 'Second medicine' });
+  ui.input('Quantity (tablet)', '10'); ui.button('Add item').props.onClick();
+  ui.button('Save draft').props.onClick(); await ui.submit();
+  assert.equal(ui.calls[0].supplierId, 'supplier-1'); assert.equal(ui.calls[0].submit, false);
+  assert.equal(ui.calls[0].lines.length, 2);
+  assert.deepEqual(ui.calls[0].lines, [{ itemId: 'medicine-1', quantity: 20 }, { itemId: 'medicine-2', quantity: 10 }]);
+  ui.button('Submit for approval').props.onClick(); await ui.submit();
+  assert.equal(ui.calls[1].submit, true);
+  assert.match(renderToStaticMarkup(ui.render()), /one purchase order and supplier/);
+});
+test('supplier orders have no price input or required cost, and internal estimates remain optional', async () => {
+  const order = fixture(false, 'order'); order.choose(medicine); order.button('Add item').props.onClick(); await order.submit();
+  assert.equal(order.calls.length, 1); assert.equal(order.calls[0].lines[0].unitCost, undefined);
+  assert.doesNotMatch(renderToStaticMarkup(order.render()), /Agreed cost|Agreed unit cost|Order total|Line total|type="number"[^>]*step="0.01"/);
+  const request = fixture(); request.choose(medicine); request.button('Add item').props.onClick(); await request.submit();
+  assert.equal(request.calls[0].lines[0].unitCost, undefined);
 });

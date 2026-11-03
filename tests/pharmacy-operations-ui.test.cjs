@@ -45,7 +45,7 @@ test('inventory, stock and catalogue pages share the same task-based workspace',
   assert.match(source,/PharmacyInventoryWorkspace/);
  }
  const source=fs.readFileSync(path.join(__dirname,'..','app','pharmacy','components','PharmacyInventoryWorkspace.tsx'),'utf8');
- assert.doesNotMatch(source,/<details/);assert.match(source,/Received deliveries/);assert.match(source,/Purchase orders/);assert.match(source,/Search medicine name or SKU/);
+ assert.doesNotMatch(source,/<details/);assert.match(source,/Older stock receipts/);assert.match(source,/New physical deliveries and acceptance are tracked in Purchase orders or Deliveries &amp; invoices/);assert.match(source,/Purchase orders/);assert.match(source,/Search medicine name or SKU/);
  assert.doesNotMatch(source,/Buying medicines\?|PharmacyTaskHelp|Manage pharmacy medicines, receive deliveries/);
  assert.match(source,/>New purchase request<\/button>/);
  assert.match(source,/<Modal title="Request medicines" size="wide"/);

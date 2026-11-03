@@ -43,6 +43,18 @@
 .facts { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px 24px; margin: 0 0 16px; }
 .facts dt { font-size: .77rem; font-weight: 500; color: var(--bs-secondary-color); }
 .facts dd { margin: 3px 0 0; font-size: .875rem; overflow-wrap: anywhere; }
+.capabilities { margin: 0 0 16px; padding: 14px 16px; border: 1px solid var(--bs-border-color); border-radius: 8px; background: var(--theme-card-bg,var(--bs-body-bg,#fff)); }
+.capabilities header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 10px; }
+.capabilities h3 { margin: 0; font-size: .85rem; font-weight: 600; }
+.capabilities header span { font-size: .76rem; color: var(--bs-secondary-color); }
+.capabilities ul { display: grid; grid-template-columns: repeat(auto-fill,minmax(230px,1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.capabilities li { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 7px 10px; border-radius: 6px; background: var(--bs-tertiary-bg); font-size: .82rem; line-height: 1.35; overflow-wrap: anywhere; }
+.capabilities li > span[aria-hidden] { display: grid; place-items: center; flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%; font-size: .72rem; font-weight: 700; }
+.capabilityOn > span[aria-hidden] { background: var(--bs-success-bg-subtle); color: var(--bs-success-text-emphasis); }
+.capabilityOff { color: var(--bs-secondary-color); }
+.capabilityOff > span[aria-hidden] { background: var(--bs-secondary-bg); color: var(--bs-secondary-color); }
+.capabilityWarn { background: var(--bs-warning-bg-subtle) !important; color: var(--bs-warning-text-emphasis); }
+.capabilityWarn > span[aria-hidden] { background: var(--bs-warning); color: #000; }
 .overviewGrid { display: grid; grid-template-columns: minmax(0,1.75fr) minmax(290px,1fr); gap: 22px; align-items: start; margin-bottom: 22px; }
 .stack { display: grid; gap: 22px; min-width: 0; }
 .panel { background: var(--theme-card-bg,var(--bs-body-bg)); border: 1px solid var(--bs-border-color); border-radius: 7px; min-width: 0; overflow: hidden; }

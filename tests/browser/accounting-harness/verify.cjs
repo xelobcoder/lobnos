@@ -29,6 +29,10 @@ async function evaluate(expression) {
   if (result.exceptionDetails) throw Error(JSON.stringify(result.exceptionDetails));
   return result.result.value;
 }
+async function setField(selector, value) {
+  await evaluate(`(() => {const e=document.querySelector(${JSON.stringify(selector)});if(!e)throw Error('Missing field '+${JSON.stringify(selector)});Object.getOwnPropertyDescriptor(e.tagName==='SELECT'?HTMLSelectElement.prototype:e.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype,'value').set.call(e,${JSON.stringify(value)});e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+  await wait(40);
+}
 async function load(section, query = '') {
   await send('Page.navigate', { url: `${base}/pharmacy/accounting${section ? '/' + section : ''}${query}` });
   for (let i = 0; i < 100; i++) {
@@ -44,6 +48,122 @@ async function loadPharmacy(path) {
     if(await evaluate(`!!document.querySelector('h1')&&!/Loading (purchase requests|medicines|financial-day)|Verifying accounting/.test(document.body.innerText)&&!document.querySelector('[aria-busy="true"]')`))return;
   }
   throw Error('Pharmacy page did not settle: '+path);
+}
+async function verifyLocalChart(width, theme) {
+  await send('Emulation.setDeviceMetricsOverride', { width, height: 1000, deviceScaleFactor: 1, mobile: width < 600 });
+  await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: theme }] });
+  await load('settings', '?legacy=1');
+  assert.equal(await evaluate(`document.body.innerText.includes('Pharmacy is operating independently')`), true);
+  assert.equal(await evaluate(`document.querySelector('input[type=checkbox]').checked`), false);
+  await load('chart-of-accounts', '?legacy=1');
+  assert.equal(await evaluate(`document.body.innerText.includes('Standard accounts are available automatically')`), true);
+  assert.equal(await evaluate(`document.body.innerText.includes('Facility account (legacy)')`), true);
+  assert.equal(await evaluate(`document.documentElement.scrollWidth <= document.documentElement.clientWidth + 2`), true);
+  await evaluate(`[...document.querySelectorAll('summary')].find(e=>e.textContent.includes('New local account')).click()`);
+  await setField('input[name=accountCode]', 'RENT2');
+  await setField('input[name=name]', 'Local rent');
+  await setField('select[name=type]', 'expense');
+  await evaluate(`document.querySelector('form').requestSubmit()`);
+  await wait(100);
+  const created = await evaluate(`window.__mutations.find(m=>m.endpoint==='pharmacy/accounting/local-accounts')`);
+  assert.equal(created.method, 'POST');
+  assert.equal(created.body.accountCode, 'RENT2');
+  assert.equal(created.body.type, 'expense');
+  assert.ok(created.body.idempotencyKey);
+  assert.equal(created.body.localCode, undefined);
+  await evaluate(`window.confirm=()=>true;[...document.querySelectorAll('tr')].find(r=>r.textContent.includes('Pharmacy operating costs')).querySelector('button.btn-outline-danger').click()`);
+  await wait(100);
+  await evaluate(`[...document.querySelectorAll('tr')].find(r=>r.textContent.includes('Legacy facility account')).querySelector('button.btn-outline-danger').click()`);
+  await wait(100);
+  const removals = await evaluate(`window.__mutations.filter(m=>m.endpoint.endsWith('/remove')).map(m=>m.endpoint)`);
+  assert.deepEqual(removals, ['pharmacy/accounting/local-accounts/1/remove', 'pharmacy/accounting/accounts/4/remove']);
+  await load('tax', '?legacy=1');
+  assert.equal(await evaluate(`!!document.querySelector('select[name=localAccount] option[value="liability:output-tax"]')`), true);
+}
+async function verifyFinanceSurfaces(width, theme) {
+  await send('Emulation.setDeviceMetricsOverride', { width, height: 1000, deviceScaleFactor: 1, mobile: width < 600 });
+  await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: theme }] });
+  await loadPharmacy('/pharmacy/finance?financeSurfaces=1');
+  await evaluate(`document.documentElement.dataset.bsTheme=${JSON.stringify(theme)};document.documentElement.dataset.theme=${JSON.stringify(theme)};document.documentElement.classList.toggle('dark',${theme === 'dark'})`);
+  assert.equal(await evaluate(`document.body.innerText.includes('Financial day Not opened')`), true);
+  await evaluate(`[...document.querySelectorAll('button')].find(e=>e.textContent==='Handovers & financial days').click()`);
+  await wait(75);
+  assert.equal(await evaluate(`[...document.querySelectorAll('button')].find(e=>e.textContent==='Close previous financial day').disabled`), true, 'Open and unreviewed shifts still block day closing');
+  await evaluate(`[...document.querySelectorAll('button')].find(e=>e.textContent==='Close with cash count').click()`);
+  for (let i=0;i<100;i++) {
+    if (await evaluate(`!!document.querySelector('section[aria-label="Close cashier shift"] input[name="count"]')`)) break;
+    await wait(50);
+  }
+  assert.equal(await evaluate(`!!document.querySelector('section[aria-label="Close cashier shift"] input[name="count"]')`), true, 'Actual cash-count form opens');
+  await evaluate(`(() => {
+    const input=document.querySelector('section[aria-label="Close cashier shift"] input[name="count"]');
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,'2000');
+    input.dispatchEvent(new Event('input',{bubbles:true}));
+  })()`);
+  await wait(75);
+  assert.equal(await evaluate(`document.querySelector('section[aria-label="Close cashier shift"] [role="status"]')?.textContent`), 'Difference: GH\u20b50.00', 'Cash-count differences still update');
+  const surfaces = await evaluate(`(() => {
+    const headingSection = prefix => [...document.querySelectorAll('h2')].find(h=>h.textContent.trim().startsWith(prefix))?.closest('section');
+    const elements = {
+      day: headingSection('Financial day'),
+      tabs: document.querySelector('nav[aria-label="Pharmacy tasks"]'),
+      finish: document.getElementById('financial-days-workflow'),
+      history: headingSection('Financial-day history'),
+      audit: headingSection('Financial-day audit history'),
+      cashCount: document.querySelector('section[aria-label="Close cashier shift"]'),
+    };
+    return Object.fromEntries(Object.entries(elements).map(([name,element])=>[name,element?getComputedStyle(element).backgroundColor:null]));
+  })()`);
+  const expected = theme === 'dark' ? 'rgb(30, 30, 30)' : 'rgb(255, 255, 255)';
+  for (const [name, background] of Object.entries(surfaces)) assert.equal(background, expected, `${name} background at ${width}px in ${theme} mode`);
+  const viewport = await evaluate(`({width:document.documentElement.clientWidth,scrollWidth:document.documentElement.scrollWidth})`);
+  assert.ok(viewport.scrollWidth <= viewport.width + 2, `Finance surfaces fit the ${width}px viewport`);
+  assert.equal(await evaluate(`window.__mutations?.length||0`), 0, 'Opening the cash-count form does not record a financial mutation');
+  (diagnostics.financeSurfaces ||= []).push({ width, theme, surfaces });
+}
+async function verifyReceivingPage(width, theme) {
+  await send('Emulation.setDeviceMetricsOverride', { width, height: 1100, deviceScaleFactor: 1, mobile: width < 600 });
+  await loadPharmacy('/pharmacy/inventory/receive?orderId=approved-order-exact');
+  await evaluate(`document.documentElement.dataset.bsTheme=${JSON.stringify(theme)}`);
+  assert.deepEqual(await evaluate(`[...document.querySelectorAll('form h2')].map(e=>e.textContent)`), ['Delivery details', 'Medicines received', 'Review & save']);
+  const panels = await evaluate(`[...document.querySelectorAll('form fieldset > section')].map(e=>getComputedStyle(e).backgroundColor)`);
+  assert.equal(panels.length, 3);
+  assert.ok(panels.every(color=>color===(theme==='light'?'rgb(255, 255, 255)':'rgb(30, 30, 30)')), 'Receiving sections use the theme surface');
+  assert.equal(await evaluate(`document.querySelector('details[aria-label="Add delivered batch"]').open`), false);
+  assert.equal(await evaluate(`document.querySelector('[aria-label="Delivered Synthetic medicine"]').value`), '20');
+  assert.equal(await evaluate(`document.querySelector('section[aria-labelledby$="-review-heading"]').textContent.includes('1 batch needs')`), true);
+  if (screenshots) {
+    const shot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
+    fs.writeFileSync(path.join(screenshots, `receiving-${width}-${theme}.png`), Buffer.from(shot.data, 'base64'));
+  }
+  await setField('[aria-label="Expiry Synthetic medicine"]', '2099-12-31');
+  assert.equal(await evaluate(`document.querySelector('section[aria-labelledby$="-review-heading"]').textContent.includes('batch needs')`), false);
+  await setField('[aria-label="Purchase cost Synthetic medicine"]', '');
+  assert.equal(await evaluate(`document.body.innerText.includes('Purchase cost needed for stock')`), true);
+  await setField('[aria-label="Purchase cost Synthetic medicine"]', '5');
+  await evaluate(`const button=document.querySelector('[aria-label="Change price for Synthetic medicine"]');button.focus();button.click()`);
+  await wait(75);
+  assert.equal(await evaluate(`document.querySelectorAll('[role="dialog"]').length`), 1);
+  await evaluate(`[...document.querySelectorAll('[role="dialog"] button')].find(e=>e.textContent==='Cancel').click()`);
+  await wait(75);
+  assert.equal(await evaluate(`document.activeElement?.getAttribute('aria-label')`), 'Change price for Synthetic medicine');
+  await evaluate(`const entry=document.querySelector('details[aria-label="Add delivered batch"]');entry.open=true;entry.querySelector('input').focus()`);
+  await send('Input.insertText', { text: 'Synthetic' });
+  await wait(75);
+  await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'ArrowDown', code: 'ArrowDown', windowsVirtualKeyCode: 40 });
+  await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
+  await wait(75);
+  await setField('[aria-label="Add delivered batch"] input[name="quantity"]', '2');
+  await setField('[aria-label="Add delivered batch"] input[type="date"]', '2099-12-31');
+  await evaluate(`[...document.querySelectorAll('button')].find(e=>e.textContent==='Add medicine').click()`);
+  await wait(75);
+  assert.equal(await evaluate(`document.querySelectorAll('[aria-label="Delivered medicine batches"] tbody tr').length`), 2);
+  assert.equal(await evaluate(`document.activeElement?.getAttribute('role')`), 'combobox', 'Adding a batch returns focus to medicine search');
+  const report = { width, theme, ...await evaluate(inspect) };
+  assert.ok(report.scrollWidth <= report.bodyWidth + 2, `Receiving page width at ${width}px in ${theme} mode: ${report.scrollWidth} exceeds ${report.bodyWidth}`);
+  for (const key of ['overflow', 'unlabeled', 'squeezed', 'alerts']) assert.equal(report[key].length, 0, `${key} at ${width}px in ${theme} mode: ${JSON.stringify(report[key])}`);
+  assert.equal(await evaluate(`window.__mutations?.length||0`), 0, 'Receiving review and price cancellation never save stock');
+  (diagnostics.receivingPage ||= []).push({ width, theme, panels, overflow: report.overflow.length });
 }
 const inspect = `(() => {
  const visible=e=>!e.closest('[aria-hidden="true"]')&&!!(e.offsetWidth||e.offsetHeight||e.getClientRects().length)&&getComputedStyle(e).visibility!=='hidden';
@@ -87,6 +207,30 @@ const inspect = `(() => {
   await send('Runtime.enable');
   await send('Page.enable');
   await send('Fetch.enable', { patterns: [{ urlPattern: '*' }] });
+  if (process.argv.includes('--local-chart')) {
+    for (const width of [1440, 390]) for (const theme of ['light', 'dark']) await verifyLocalChart(width, theme);
+    assert.equal(errors.length, 0, 'No browser runtime exceptions');
+    console.log('LOCAL_CHART_SUMMARY', JSON.stringify({ cases: 4 }));
+    return;
+  }
+  if (process.argv.includes('--receiving-page')) {
+    for (const width of [1440, 1024, 390]) for (const theme of ['light', 'dark']) await verifyReceivingPage(width, theme);
+    await loadPharmacy('/pharmacy/inventory/receive?orderId=missing');
+    assert.equal(await evaluate(`document.body.innerText.includes('This purchase order is unavailable')&&document.querySelector('fieldset').disabled`), true);
+    await loadPharmacy('/pharmacy/inventory/receive?orderId=approved-order-exact&asStorekeeper=1');
+    assert.equal(await evaluate(`!document.querySelector('[aria-label="Change price for Synthetic medicine"]')&&!document.body.innerText.includes('Supplier bill (optional)')`), true);
+    await loadPharmacy('/pharmacy/inventory/receive?failure=1');
+    assert.equal(await evaluate(`document.body.innerText.includes('Synthetic service unavailable')&&document.querySelector('fieldset').disabled`), true);
+    assert.equal(errors.length, 0, 'No browser runtime exceptions');
+    console.log('RECEIVING_PAGE_SUMMARY', JSON.stringify(diagnostics.receivingPage));
+    return;
+  }
+  if (process.argv.includes('--finance-surfaces')) {
+    for (const width of [1440, 390]) for (const theme of ['light', 'dark']) await verifyFinanceSurfaces(width, theme);
+    assert.equal(errors.length, 0, 'No browser runtime exceptions');
+    console.log('FINANCE_SURFACE_SUMMARY', JSON.stringify(diagnostics.financeSurfaces));
+    return;
+  }
   for (const width of [1440, 390]) for (const theme of ['light', 'dark']) {
     await send('Emulation.setDeviceMetricsOverride', { width, height: 1000, deviceScaleFactor: 1, mobile: width < 600 });
     await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: theme }] });
@@ -160,6 +304,8 @@ const inspect = `(() => {
           fs.writeFileSync(path.join(screenshots,`${pharmacyPath.includes('purchase-requests')?'purchase-requests':pharmacyPath.includes('/guide/')?'guide-article':pharmacyPath.includes('guide')?'guide':pharmacyPath.includes('/finance')?'finance':'purchasing'}-${width}-${theme}.png`),Buffer.from(shot.data,'base64'));
       }
     }
+    await verifyFinanceSurfaces(width, theme);
+    await verifyReceivingPage(width, theme);
   }
   // Keyboard reachability and real supplier combobox filtering/selection.
   await load('suppliers');
@@ -187,10 +333,6 @@ const inspect = `(() => {
   // Use real DOM events and real hook/form handlers, with only transport replaced.
   await load('journals');
   await evaluate(`document.querySelector('summary.btn-primary').closest('details').open=true`);
-  const setField = async (selector, value) => {
-    await evaluate(`(() => {const e=document.querySelector(${JSON.stringify(selector)});if(!e)throw Error('Missing field '+${JSON.stringify(selector)});Object.getOwnPropertyDescriptor(e.tagName==='SELECT'?HTMLSelectElement.prototype:e.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype,'value').set.call(e,${JSON.stringify(value)});e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));})()`);
-    await wait(40);
-  };
   await setField('input[name=description]', 'Synthetic balanced journal');
   await setField('input[name=financialDate]', '2099-01-03');
   const values = await evaluate(`[...document.querySelectorAll('tbody select')][0] ? [...document.querySelector('tbody select').options].filter(e=>e.value).map(e=>e.value) : []`);
@@ -370,7 +512,7 @@ const inspect = `(() => {
   await loadPharmacy('/pharmacy/inventory/purchase-requests?failure=1');
   assert.equal(await evaluate(`document.body.innerText.includes('Synthetic service unavailable')&&!document.querySelector('table,form')`),true,'Failed purchase retrieval must not expose stale actions');
   await load('payables');
-  await evaluate(`[...document.querySelectorAll('nav[aria-label="Payables views"] button')].find(e=>e.textContent==='Existing payments & credits').click()`);
+  await evaluate(`[...document.querySelectorAll('nav[aria-label="Payables views"] button')].find(e=>e.textContent==='Supplier credits & advances').click()`);
   await wait(80);
   await evaluate(`[...document.querySelectorAll('details')].find(e=>e.querySelector('summary')?.textContent.startsWith('Apply existing supplier')).open=true`);
   await wait(120);
@@ -384,10 +526,10 @@ const inspect = `(() => {
   await setField('select[name=billId-1]','original-bill-exact');
   await setField('input[name=allocationAmount-1]','10.00');
   await setField('form:has(select[name=sourceId]) textarea[name=reason]','Reviewed synthetic source attribution');
-  await evaluate(`[...document.querySelectorAll('nav[aria-label="Payables views"] button')].find(e=>e.textContent==='Supplier bills').click()`);
+  await evaluate(`[...document.querySelectorAll('nav[aria-label="Payables views"] button')].find(e=>e.textContent==='Unpaid bills').click()`);
   await wait(40);
   assert.equal(await evaluate(`document.querySelector('form:has(select[name=sourceId]) textarea[name=reason]').value`),'Reviewed synthetic source attribution','Switching views preserves the draft');
-  await evaluate(`[...document.querySelectorAll('nav[aria-label="Payables views"] button')].find(e=>e.textContent==='Existing payments & credits').click()`);
+  await evaluate(`[...document.querySelectorAll('nav[aria-label="Payables views"] button')].find(e=>e.textContent==='Supplier credits & advances').click()`);
   await wait(40);
   await evaluate(`document.querySelector('select[name=sourceId]').form.requestSubmit()`);
   await wait(100);
@@ -403,7 +545,7 @@ const inspect = `(() => {
   assert.equal(financialReview.badForms.length,0);
   assert.equal(financialReview.unlabeled.length,0);
   await load('payables');
-  await evaluate(`[...document.querySelectorAll('nav[aria-label="Payables views"] button')].find(e=>e.textContent==='Reversals').click()`);
+  await evaluate(`[...document.querySelectorAll('nav[aria-label="Payables views"] button')].find(e=>e.textContent==='Payment reversals').click()`);
   await wait(120);
   await evaluate(`[...document.querySelectorAll('tr')].find(e=>e.textContent.includes('Voided synthetic reversal')).querySelector('button').click()`);
   await wait(100);
@@ -434,7 +576,7 @@ const inspect = `(() => {
     const captures=[
       {name:'purchase-request',route:'/pharmacy/inventory/purchase-requests',prepare:`[...document.querySelectorAll('button')].find(e=>e.textContent==='Review request').click()`,targets:[['button','Refresh requests'],['button','Review request'],['select[name=decision]'],['textarea[name=reason]']]},
       {name:'expense-draft',section:'expenses',prepare:`[...document.querySelectorAll('summary')].find(e=>e.textContent==='New expense draft').closest('details').open=true`,targets:[['input[name=description]'],['input[name=amount]'],['select[name=supplierId]'],['button','Save expense draft']]},
-      {name:'supplier-settlement',section:'payables',prepare:`[...document.querySelectorAll('nav[aria-label$=" views"] button')].find(e=>e.textContent==='Settlements').click()`,open:'New allocated supplier settlement',targets:[['nav[aria-label$=" views"] button','Settlements'],['input[name=date]'],['input[name=description]'],['button','Save draft allocated settlement']]},
+      {name:'supplier-settlement',section:'payables',prepare:`[...document.querySelectorAll('nav[aria-label$=" views"] button')].find(e=>e.textContent==='Payment history').click()`,open:'Advanced: prepare a payment for approval by another user',targets:[['nav[aria-label$=" views"] button','Payment history'],['input[name=date]'],['input[name=description]'],['button','Save draft allocated settlement']]},
       {name:'profit-report',section:'statements',targets:[['select:has(option[value=profit_loss])'],['form[aria-label="Report filters"]'],['section[aria-label="Ledger & expenses summary"]']]},
       {name:'cash-day',route:'/pharmacy/finance',targets:[['h1'],['button','Today & next steps'],['button','Review before closing']]},
     ];

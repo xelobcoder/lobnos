@@ -3,6 +3,7 @@ import PharmacyTaskHelp from '../../components/PharmacyTaskHelp';
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { accountingReference, record } from '../../../../lib/pharmacyAccounting';
+import { downloadPurchaseRequest } from '../../../../lib/pharmacyPurchaseOrder';
 import { usePharmacyDocument } from '../../components/PharmacyPaymentFields';
 import { styles, money, dateLabel, usePharmacyAccess, usePharmacyResource, Message } from '../../components/PharmacyWorkspace';
 import accountingStyles from '../../accounting/components/AccountingWorkspace.module.css';
@@ -150,7 +151,7 @@ export function PurchaseRequests() {
     <p className={styles.muted}>{available ? `${visible.length} of ${decoded.rows.length} requests shown. ` : ''}Latest 200 requests for this branch; summary counts cover this list.</p>
     {resource.loading ? <p role="status">Loading purchase requests...</p> : available && (visible.length ? <div className="table-responsive" tabIndex={0} role="region" aria-label="Purchase requests table"><table className={`${styles.table} ${layout.requestTable}`}><thead><tr><th>Request / date</th><th>What is needed</th><th>Estimated cost</th><th>Status</th><th>Action</th></tr></thead><tbody>{visible.map(row => <tr key={row.id} aria-selected={row.id === selectedId}><td data-label="Request"><span title={row.id}>{accountingReference(row.id)}</span><small className="d-block text-muted">{dateLabel(row.createdAt)}</small>{row.createdBy === actor && <small className={layout.ownRequest}>Requested by you</small>}</td><td data-label="What is needed"><strong>{row.reason}</strong><small className="d-block text-muted">{row.lines.length} {row.lines.length === 1 ? 'medicine' : 'medicines'} · {row.quotes.length} {row.quotes.length === 1 ? 'quotation' : 'quotations'}</small></td><td data-label="Estimated cost">{money(row.estimatedValue)}</td><td data-label="Status"><span className={layout.status} data-status={row.status}>{statusLabel(row.status)}</span></td><td data-label="Action"><button type="button" className="btn btn-sm btn-outline-primary" disabled={busy || !!document.pending} aria-expanded={row.id === selectedId} aria-controls="purchase-request-review" onClick={() => { setSelectedId(row.id); setDecision(''); setError(''); setNotice(''); }}>{row.status === 'requested' ? 'Review request' : 'View details'}</button></td></tr>)}</tbody></table></div> : <p role="status">{decoded.rows.length ? 'No requests match these filters. Change the status or search text.' : <>No purchase requests yet. <Link href="/pharmacy/inventory?tab=orders&action=request">Create your first request</Link>.</>}</p>)}
     {selected && <section id="purchase-request-review" className={`${layout.review} mt-4 pt-4 border-top`} aria-label="Purchase request review">
-      <div className={styles.toolbar}><h2 ref={reviewHeading} tabIndex={-1} className="mb-0">Review purchase request <span title={selected.id}>{accountingReference(selected.id)}</span></h2><button className="btn btn-sm btn-outline-secondary" type="button" disabled={busy} onClick={() => setSelectedId('')}>Close review</button></div>
+      <div className={styles.toolbar}><h2 ref={reviewHeading} tabIndex={-1} className="mb-0">Review purchase request <span title={selected.id}>{accountingReference(selected.id)}</span></h2><div className={styles.actions}><button className="btn btn-sm btn-outline-primary" type="button" onClick={async () => { try { await downloadPurchaseRequest({ ...selected, reference: accountingReference(selected.id) }); } catch (e) { setError(e instanceof Error ? e.message : 'Unable to generate purchase request PDF.'); } }}>Download / print PDF</button><button className="btn btn-sm btn-outline-secondary" type="button" disabled={busy} onClick={() => setSelectedId('')}>Close review</button></div></div>
       <p>{selected.reason}</p><p className={styles.muted}>Requested {dateLabel(selected.createdAt)} · {statusLabel(selected.status)} · Version {selected.version}</p>
       {selected.decisionReason && <p><strong>Decision reason:</strong> {selected.decisionReason}</p>}
       {selected.adminSelfReview && <p className={styles.muted}><strong>Administrator self-review recorded.</strong> The decision reason and reviewer are retained in the audit history.</p>}
@@ -204,22 +205,22 @@ function SupplierOrderForm({ request, suppliers, locked, save }: {
   if (!remaining.length) return <p role="status">All approved quantities have supplier orders. No further quantity can be allocated.</p>;
   return <details className={layout.order}><summary>Order from supplier</summary><form className="mt-3" aria-label="Order approved medicines from supplier" onSubmit={async event => {
     event.preventDefault(); const form = new FormData(event.currentTarget);
-    const lines = remaining.map((line, index) => ({ itemId: line.itemId, quantity: Number(form.get(`quantity-${index}`)), unitCost: Number(form.get(`cost-${index}`)) })).filter(line => line.quantity > 0);
+    const lines = remaining.map((line, index) => ({ itemId: line.itemId, quantity: Number(form.get(`quantity-${index}`)) })).filter(line => line.quantity > 0);
     await save(`pharmacy/enterprise/purchase-requests/${encodeURIComponent(request.id)}/convert`, {
       expectedVersion: request.version, supplierId, reference: form.get('reference'), lines,
       ...(quoteIndex === '' ? {} : { quoteIndex: Number(quoteIndex) }),
     }, 'Supplier order created. Open its link above to record the actual delivery; no stock or payment was posted.');
   }}>
-    <h3>Order approved medicines</h3><p className={styles.muted}>Choose the actual supplier and agreed base-unit costs. You may split the remaining quantities between supplier orders. Set a quantity to zero to leave it for later. Allocated quantities cannot be ordered twice.</p>
+    <h3>Order approved medicines</h3><p className={styles.muted}>Choose the supplier and the quantities to order. No price is needed now — actual buying costs are entered when the goods are received. You may split the remaining quantities between supplier orders. Set a quantity to zero to leave it for later. Allocated quantities cannot be ordered twice.</p>
     <fieldset disabled={locked}>
       <label className="form-label d-block">Quotation evidence (optional)<select className="form-select" value={quoteIndex} onChange={event => {
         const index = event.target.value; setQuoteIndex(index); if (index !== '') setSupplierId(request.quotes[Number(index)].supplierId);
-      }}><option value="">Enter agreed supplier costs</option>{request.quotes.map((quote, index) => <option key={index} value={index}>{quote.reference} — {money(quote.total)}</option>)}</select></label>
+      }}><option value="">No quotation</option>{request.quotes.map((quote, index) => <option key={index} value={index}>{quote.reference} — {money(quote.total)}</option>)}</select></label>
       <label className="form-label d-block">Supplier<select className="form-select" required value={supplierId} onChange={event => { setSupplierId(event.target.value); setQuoteIndex(''); }}><option value="">Choose supplier</option>{suppliers.map(supplier => <option key={String(supplier.id)} value={String(supplier.id)}>{String(supplier.name)}</option>)}</select></label>
       <label className="form-label d-block">Supplier order / agreement reference<input className="form-control" name="reference" required minLength={3} maxLength={120}/></label>
       <div key={quoteIndex}>{remaining.map((line, index) => <div className={layout.quantityReview} key={line.itemId}>
         <label className="form-label">{line.name} — {line.remaining} {line.unit || 'base units'} remaining<input className="form-control" name={`quantity-${index}`} type="number" min="0" max={line.remaining} step="0.001" required defaultValue={line.remaining}/></label>
-        <label className="form-label">Agreed cost per base unit<input className="form-control" name={`cost-${index}`} type="number" min="0" step="0.01" required defaultValue={quote?.lines.find(value => value.itemId === line.itemId)?.unitCost ?? ''} readOnly={!!quote}/></label>
+        {quote && <p className={styles.muted}>Quoted cost (reference only, not saved on the order): {money(quote.lines.find(value => value.itemId === line.itemId)?.unitCost ?? 0)} per {line.unit || 'base unit'}</p>}
       </div>)}</div>
       <button className="btn btn-primary" type="submit">Create supplier order</button>
     </fieldset>

@@ -10,15 +10,15 @@ export const accountingDestinations = [
 export type Section = typeof accountingDestinations[number][0];
 export const accountingFriendlyTitles: Partial<Record<Section, string>> = {
 	receivables: 'Money customers owe us', payables: 'Money we owe suppliers',
-	'general-ledger': 'All pharmacy accounting transactions', cogs: 'Cost of medicines sold',
+	'general-ledger': 'All pharmacy accounting transactions', cogs: 'Cost of goods sold',
 };
 export type RecordData = Record<string, unknown>;
 export interface Account {
 	id: string | number; account_code: string; name: string; type: string;
 	normal_balance: string; parent_account_id?: string | number | null; is_active?: boolean;
-	local_codes?: string[];
+	local_codes?: string[]; origin?: string; account_number?: string;
 }
-export interface Accounts { items: Account[]; sharedAccounts: Account[] }
+export interface Accounts { items: Account[]; sharedAccounts: Account[]; facilityAvailable?: boolean }
 export interface Settings {
 	branchid?: number; tenant_id?: number; enabled: boolean; effective_date: string | null;
 	mappings: Record<string, string>;
@@ -36,11 +36,13 @@ export function decodeAccounts(value: unknown): Accounts {
 				id: a.id as string | number, account_code: a.account_code as string, name: a.name as string, type: a.type as string,
 				normal_balance: a.normal_balance as string, parent_account_id: a.parent_account_id as string | number | null,
 				is_active: a.is_active === undefined ? true : Boolean(a.is_active),
-				local_codes: Array.isArray(a.local_codes) ? a.local_codes.filter((code): code is string => typeof code === 'string') : []
+				local_codes: Array.isArray(a.local_codes) ? a.local_codes.filter((code): code is string => typeof code === 'string') : [],
+				origin: typeof a.origin === 'string' ? a.origin : undefined,
+				account_number: typeof a.account_number === 'string' ? a.account_number : undefined
 			};
 		});
 	};
-	return { items: decode(data.items), sharedAccounts: decode(data.sharedAccounts) };
+	return { items: decode(data.items), sharedAccounts: decode(data.sharedAccounts), facilityAvailable: data.facilityAvailable !== false };
 }
 export function decodeSettings(value: unknown): Settings {
 	const data = record(value), mappings = record(data.mappings);
