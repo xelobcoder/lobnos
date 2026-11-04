@@ -1,7 +1,7 @@
 /** Pharmacy-local evidence and shared GL remain distinct; no synthetic financial values. */
 export const accountingDestinations = [
 	['', 'Overview'], ['chart-of-accounts', 'Chart of accounts'], ['general-ledger', 'General ledger'],
-	['journals', 'Journals'], ['receivables', 'Receivables'], ['payables', 'Payables'],
+	['journals', 'Journals'], ['receivables', 'Accounts receivable'], ['payables', 'Accounts payable'],
 	['expenses', 'Expenses'], ['revenue', 'Revenue'], ['cogs', 'Cost of goods sold'],
 	['cash-bank', 'Cash & bank'], ['reconciliation', 'Reconciliation'], ['suppliers', 'Supplier statements'],
 	['inventory', 'Inventory valuation'], ['statements', 'Financial statements'], ['trial-balance', 'Trial balance'],

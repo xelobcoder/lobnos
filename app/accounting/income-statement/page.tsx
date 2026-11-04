@@ -20,7 +20,7 @@ export default function IncomeStatementPage() {
      const [to, setTo] = useState(searchParams.get("to")||dayjs().format("YYYY-MM-DD"));
      const [dateFilter, setDateFilter] = useState(searchParams.get("from")?"Custom Range":"This Year");
      const [statement, setStatement] = useState<IncomeStatement | null>(null);
-     const [loading, setLoading] = useState(false);
+     const [loading, setLoading] = useState(true);
      const [error, setError] = useState<string | null>(null);
      const [loadedRange, setLoadedRange] = useState({ from, to });
      const latestRequest = useRef(0);
@@ -29,27 +29,34 @@ export default function IncomeStatementPage() {
           const requestId = ++latestRequest.current;
           setLoading(true);
           setError(null);
+          setStatement(null);
           try {
                const response = await accountingApi.incomeStatement(from, to);
                if (requestId !== latestRequest.current) return;
-               if (response?.result) {
+               if (response?.status === "success" && response.result?.totals &&
+                    ["revenue","costOfSales","operatingExpenses"].every(key => Array.isArray(response.result[key as "revenue" | "costOfSales" | "operatingExpenses"])) &&
+                    ["revenue","costOfSales","grossProfit","operatingExpenses","netProfit"].every(key =>
+                         typeof response.result.totals[key as keyof IncomeStatement["totals"]] === "number" &&
+                         Number.isFinite(response.result.totals[key as keyof IncomeStatement["totals"]]))) {
                     setStatement(response.result);
                     setLoadedRange({ from, to });
                } else {
                     setError(response?.message || "Unable to load the profit and loss");
                }
-          } catch (err: any) {
-               if (requestId === latestRequest.current) setError(err?.message || "Unable to load the profit and loss");
+          } catch (err) {
+               if (requestId === latestRequest.current) setError(err instanceof Error ? err.message : "Unable to load the profit and loss");
           } finally {
                if (requestId === latestRequest.current) setLoading(false);
           }
      }, [from, to]);
 
      useEffect(() => {
-          load();
+          void load();
+          return () => { latestRequest.current++; };
      }, [load]);
 
      const totals = statement?.totals;
+     const ready = !!statement && !loading && !error && loadedRange.from === from && loadedRange.to === to;
 
      const section = (label: string, rows: TrialBalanceRow[], total: number) => (
           <>
@@ -84,6 +91,7 @@ export default function IncomeStatementPage() {
 
      return (
           <ReportShell basis="accrual"
+               exportable={ready}
                title="Profit &amp; Loss"
                subtitle="Revenue less cost of sales and operating expenses"
                reportTitle="PROFIT &amp; LOSS"
@@ -107,8 +115,9 @@ export default function IncomeStatementPage() {
                     </>
                }
           >
-               {error && <div className="alert alert-danger py-2">{error}</div>}
-
+               {error && <div role="alert" className="alert alert-danger py-2">{error}<button type="button" className="btn btn-sm btn-outline-danger ms-3" onClick={load}>Retry profit and loss</button></div>}
+               {!ready && !error && <p role="status">Loading profit and loss for the selected period...</p>}
+               {ready && <>
                <AccountingSummary
                     rowClassName="row g-2 mb-3"
                     columnClassName="col-6 col-md-3"
@@ -139,6 +148,7 @@ export default function IncomeStatementPage() {
                          </tbody>
                     </table>
                </div>
+               </>}
           </ReportShell>
      );
 }

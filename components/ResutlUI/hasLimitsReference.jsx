@@ -51,7 +51,7 @@ export default function LimitViewHtmlGeneratorResultView({ fieldItem, index, res
      };
 
      return (
-          <tr style={{
+          <tr data-result-flag={flag} style={{
                fontSize: `${settings?.fontSize}px`,
                fontFamily: settings?.fontFamily,
                color: settings?.color

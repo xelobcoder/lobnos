@@ -1,6 +1,7 @@
 import { customPost } from "../../components/Auth/customFetch";
 import { MultiBillingData } from "./MultiTypes";
 import { toast } from "react-toastify";
+import { billingSubmissionIdentity } from "../billing/submissionIdentity";
 
 const BillingFailures = {
 	notOrganizationSelected: `organization not selected`,
@@ -187,6 +188,8 @@ export const MultiValidateAndSubmitBillingInformation = async function (
 		const url = requestId
 			? `patient-portal/admin/billing-requests/${requestId}/convert`
 			: appointmentId ? `appointments/${appointmentId}/convert` : "billing/multi/submit";
+		const identity = url === "billing/multi/submit" ? billingSubmissionIdentity({ url, payload: backendData }) : null;
+		if (identity) backendData.request_key = identity.key;
 		const response = await customPost(url, "POST", backendData);
 		if (response.status && response.status === 'pending verification') {
 			return response;
@@ -194,6 +197,7 @@ export const MultiValidateAndSubmitBillingInformation = async function (
 
 		// If backend returns updated billing data, return it for context update
 		if (response.status === true || response.status === 'success' || response.success === true) {
+			identity?.complete();
 			toast.success(response.message || 'Billing submitted successfully', {
 				position: "top-right",
 				autoClose: 1000,
@@ -205,6 +209,7 @@ export const MultiValidateAndSubmitBillingInformation = async function (
 		return response;
 	} catch (err: any) {
 		console.log(err)
-		return { status: false, message: "Error occurred during transit", details: err.message };
+        if (err?.name === "BillingSubmissionIdentityError") return { status: false, message: err.message };
+		return { status: false, message: "The billing outcome could not be confirmed. Retry the unchanged bill; do not create a replacement until its status is verified.", details: err.message };
 	}
 };

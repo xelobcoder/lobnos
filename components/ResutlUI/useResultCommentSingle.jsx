@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { customFetch, generateRandomTextAndNumbers } from "../Auth/customFetch"
 import Loader from "../accessories/Loader"
-export default function UseResultCommentSingle({ testid, billingid, patientid, multiple = false }) {
+export default function UseResultCommentSingle({ testid, billingid, patientid, multiple = false, reviewMode = false }) {
 	const [comments, setComments] = useState("")
 	const [isloading, setLoading] = useState(true)
 
@@ -32,11 +32,13 @@ export default function UseResultCommentSingle({ testid, billingid, patientid, m
 
 	return (
 		<div>
-			{comments && comments.length > 0 &&  <h5>Comments</h5>}
+			{!reviewMode && comments && comments.length > 0 &&  <h5>Comments</h5>}
 			{renderingView()}
-			
-			<hr className="p-0 "/>
-			<span className="text-muted d-flex justify-content-center text-sm">******End of Report ******</span>
+			{reviewMode && !isloading && !comments && <p className="text-muted mb-0">No comments recorded.</p>}
+			{!reviewMode && <>
+				<hr className="p-0 "/>
+				<span className="text-muted d-flex justify-content-center text-sm">******End of Report ******</span>
+			</>}
 		</div>
 	)
 }

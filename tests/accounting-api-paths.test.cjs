@@ -20,3 +20,27 @@ for(const runtime of ['browser','server'])test(`accounting delegation mutations 
  assert.deepEqual(calls.map(call=>call.method),['POST','PUT','DELETE']);
  assert.deepEqual(calls[0].body,payload);
 });
+test('cash-flow review forwards gross allocations and bank import sends the selected date format',async()=>{
+ const calls=[];
+ class Form { values={}; append(key,value){this.values[key]=value;} }
+ const invoke=async(endpoint,method,body)=>{calls.push({endpoint,method,body});return{status:'success'};};
+ const {accountingApi}=compile('lib/accounting/accountingApi.ts',{require:()=>({customPost:invoke,customFile:(endpoint,body)=>invoke(endpoint,'POST',body),customFetch:invoke}),URLSearchParams,FormData:Form});
+ const allocations=[{category:'operating',inflow:100,outflow:100}];
+ await accountingApi.classifyCashFlow(7,{allocations});
+ await accountingApi.importBankExcel(2,{name:'statement.xlsx'},'DMY');
+ assert.equal(calls[0].endpoint,'accounting/reports/cash-flow/7/classification');
+ assert.deepEqual(calls[0].body,{allocations});
+ assert.equal(calls[1].body.values.dateFormat,'DMY');
+ assert.equal(calls[1].body.values.bankAccountId,'2');
+});
+test('daily-close approval and finalization forward explicit administrator audit intent',async()=>{
+ const calls=[];
+ const invoke=async(endpoint,method,body)=>{calls.push({endpoint,method,body});return{status:'success'};};
+ const {accountingApi}=compile('lib/accounting/accountingApi.ts',{require:()=>({customPost:invoke,customFetch:invoke}),URLSearchParams});
+ const payload={pin:'1234',expectedVersion:2,overrideSegregationOfDuties:true,overrideReason:'No independent reviewer is available today.'};
+ await accountingApi.decideDailyClose(7,{...payload,decision:'approve'});
+ await accountingApi.finalizeDailyClose(7,payload);
+ assert.deepEqual(calls.map(call=>call.endpoint),['accounting/daily-closes/7/manager-decision','accounting/daily-closes/7/finalize']);
+ assert.deepEqual(calls[0].body,{...payload,decision:'approve'});
+ assert.deepEqual(calls[1].body,payload);
+});

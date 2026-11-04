@@ -223,6 +223,16 @@ test('confirmed bill save attaches its identifiers to the queue without altering
     assert.equal(h.calls.filter(call => Array.isArray(call) && call[0] === 'SALE_SAVE').length, 1);
     assert.deepEqual(h.calls.find(call => Array.isArray(call) && call[0] === 'QUEUE_LINK'), ['QUEUE_LINK', { ticketId: 8, date: '2030-01-02' }, { patientid: 101, billingid: 120 }]);
 });
+test('ordinary confirmed bills cannot be submitted again even through a stale submit callback', async () => {
+    const h = harness();
+    h.render(); await h.flush(); h.render(); await h.flush();
+    h.setData({ showsummary: true, patientid: 101 });
+    const summary = nodes(h.render(), node => typeof node.props?.handlesubmit === 'function')[0];
+    assert.ok(summary);
+    await summary.props.handlesubmit(h.data);
+    await summary.props.handlesubmit(h.data);
+    assert.equal(h.calls.filter(call => Array.isArray(call) && call[0] === 'SALE_SAVE').length, 1);
+});
 test('queue follow-up failure displays a warning and retrying it never submits the bill again', async () => {
     const h = harness({ query: 'queueTicket=8', queueWarning: 'The record was saved, but its queue link failed. Do not save again.' });
     h.render(); await h.flush(); h.render(); await h.flush(); h.setData({ showsummary: true, patientid: 101 });
@@ -432,6 +442,7 @@ test('patient validation must succeed before the billing form can initialize, wi
 test('General sales keep the existing submit endpoint, payer identifier, payment and referral fields', async () => {
     const calls = [];
     const helper = load(path.join('lib', 'Multi', 'multiBillingValidation.ts'), name => {
+        if (name.includes('submissionIdentity')) return {billingSubmissionIdentity:()=>({key:'test-submission-request-0001',complete(){}})};
         if (name.includes('customFetch')) return { customPost: async (...args) => {
             calls.push(args);
             return { status: 'success', data: { billingid: 700 } };

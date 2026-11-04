@@ -12,6 +12,7 @@ function compile(file, imports = {}, globals = {}) {
   if(file.endsWith('/Subledgers.tsx'))imports={'next/navigation':{useSearchParams:()=>new URLSearchParams()},'./SupplierAllocations':{__esModule:true,default:()=>null},...imports};
   if(file.endsWith('/Configuration.tsx'))imports={'next/link':{__esModule:true,default:({href,children,...props})=>require('react').createElement('a',{href,...props},children)},...imports};
   if(file.endsWith('/Registers.tsx'))imports={
+    '../../../../components/accounting/CashFlowAllocationForm':{__esModule:true,default:()=>null},
     'next/navigation':{useSearchParams:()=>new URLSearchParams()},
     './AccountingWorkspace.module.css':{__esModule:true,default:{}},
     '../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable':{__esModule:true,default:()=>null},
@@ -441,6 +442,24 @@ test('financial statement renders one table with section rows, totals and classi
   const errorHtml = renderToStaticMarkup(registers.Register({ endpoint: 'reports', report: 'profit_loss' }));
   assert.match(errorHtml, /role="alert"/); assert.match(errorHtml, /Financial period unavailable/);
   assert.doesNotMatch(errorHtml, /123.45|<table/);
+});
+test('zero-net pharmacy cash-flow issues expose an evidence-reviewed gross allocation action', async()=>{
+  const calls=[],refreshes=[],form=()=>null;
+  const ui=compile('app/pharmacy/accounting/components/Registers.tsx',{
+    'react/jsx-runtime':jsx,react:hooks,'next/link':nextLink,
+    '../../../../components/accounting/CashFlowAllocationForm':{__esModule:true,default:form},
+    '../../../../lib/pharmacyAccounting':lib,'./common':common,'./exports':{},
+    './api':{useResource:()=>({data:{rows:[],classificationIssues:[{journalId:'journal/zero',description:'Offsetting receipt and purchase',amount:0}]},loading:false,error:'',refresh:async()=>refreshes.push(true)}),request:async(...args)=>{calls.push(args);return{};}},
+  });
+  const tree=ui.Register({endpoint:'reports',report:'cash_flow'});
+  const find=node=>!node||typeof node!=='object'?null:Array.isArray(node)?node.map(find).find(Boolean):node.type===form?node:find(node.props?.children);
+  const action=find(tree);
+  assert.ok(action);assert.equal(action.props.netAmount,0);assert.equal(action.props.requireReason,true);
+  const allocations=[{category:'operating',inflow:100,outflow:0},{category:'investing',inflow:0,outflow:100}];
+  await action.props.onSave(allocations,'Reviewed source receipts','retry-key-001');
+  assert.equal(calls[0][0],'cash-flow/journal%2Fzero/classification');assert.equal(calls[0][1],'PUT');
+  assert.deepEqual(plain(calls[0][2]),{allocations,reason:'Reviewed source receipts',idempotencyKey:'retry-key-001'});
+  assert.equal(refreshes.length,1);
 });
 test('balance sheet uses one formal table and formats all server totals without changing their amounts',()=>{
   const ui=compile('app/pharmacy/accounting/components/Registers.tsx',{
@@ -1210,16 +1229,16 @@ test('accounting reference/date presentation is concise, kind-aware and never re
 });
 test('ledger uses professional explicit columns and short visible references while drill-down and Excel/PDF audit IDs stay exact',async()=>{
   const journal='266a7e7d-5e3b-4d61-9a7a-f4a82ade9174',sale='f262eb76-53c6-40b5-911b-f8043b7174ef';
-  const row={id:'internal-ledger-row-id',journal_id:journal,date:'2026-11-02T00:00:00.000Z',reference:journal,kind:'sale',description:`Pharmacy receipt PHM-${sale}`,account:'acc-1000',account_name:'Cash on hand',source_document:sale,business_unit:'pharmacy',branchid:2,debit:1234.5,credit:0,running_balance:1234.5,signed_running_balance:1234.5,posting_created_at:'2026-11-02T17:00:00.000Z'};
+  const row={id:'internal-ledger-row-id',journal_id:journal,date:'2026-11-02T00:00:00.000Z',reference:journal,kind:'sale',description:`Pharmacy receipt PHM-${sale}`,account:'acc-1000',account_number:'1000',account_name:'Cash on hand',normal_balance:'debit',source_document:sale,business_unit:'pharmacy',branchid:2,debit:1234.5,credit:0,running_balance:1234.5,signed_running_balance:1234.5,journal_debit:1234.5,journal_credit:1234.5,journal_line_count:4,journal_line_number:1,posting_created_at:'2026-11-02T17:00:00.000Z'};
   const before=JSON.stringify(row),exports=[],fullCalls=[];
   const registers=compile('app/pharmacy/accounting/components/Registers.tsx',{
     'react/jsx-runtime':jsx,'next/link':nextLink,react:hooks,'../../../../lib/pharmacyAccounting':lib,'./common':common,
-    './api':{useResource:()=>({data:{rows:[row],total:1,columns:Object.keys(row)},loading:false,error:'',refresh(){}})},
+    './api':{useResource:()=>({data:{rows:[row],total:4,journalCount:1,periodTotals:{debit:1234.5,credit:1234.5},columns:Object.keys(row)},loading:false,error:'',refresh(){}})},
     './exports':{fullFilteredExport:async(...args)=>{fullCalls.push(args);return {rows:[row],metadata:{}};},downloadAccountingExport:async(...args)=>exports.push(args)},
   });
   const element=registers.Register({endpoint:'ledger',ledger:true}),html=renderToStaticMarkup(element);
   const headers=[...html.matchAll(/<th scope="col"[^>]*>(.*?)<\/th>/g)].map(match=>match[1]);
-  assert.deepEqual(headers,['Date','Journal ref','Account','Description','Source document','Debit','Credit','Running balance','Actions']);
+  assert.deepEqual(headers,['Date','Account code','Account name','Description','Source document','Debit','Credit']);
   const visible=html.replace(/<[^>]*>/g,'');
   assert.ok(visible.includes('JRN-266A7E7D'));assert.ok(visible.includes('PHM-F262EB76'));assert.ok(visible.includes('Cash on hand'));assert.ok(visible.includes('1,234.50'));
   assert.ok(!visible.includes(journal));assert.ok(!visible.includes(sale));assert.ok(!visible.includes('T00:00:00'));assert.ok(!visible.includes('internal-ledger-row-id'));assert.ok(!visible.includes('signed running balance'));
@@ -1232,6 +1251,53 @@ test('ledger uses professional explicit columns and short visible references whi
   for(const output of exports){assert.equal(output[2].rows[0].journal_id,journal);assert.equal(output[2].rows[0].source_document,sale);assert.equal(output[2].rows[0].description,`Pharmacy receipt PHM-${sale}`);}
   assert.equal(JSON.stringify(row),before);
   assert.ok(lib.csv([row],['journal_id','source_document','description']).includes(sale));
+  assert.match(visible,/1 posting line on this page.*4 matching posting lines.*1 matching journal/);
+  assert.match(visible,/Journal continues on next page/);
+  assert.match(visible,/Full journal: debit.*credit.*Balanced/);
+  assert.match(visible,/Period totals - all matching posting lines/);
+  assert.ok(html.includes(`${journal}#source-evidence`));
+  assert.doesNotMatch(visible,/Inspect posted journal|Opening balance:|Running balance/);
+});
+test('ledger groups each journal once and distinguishes filtered excerpts from complete unbalanced journals',()=>{
+  const {JSDOM}=require('jsdom');
+  const ui=compile('app/pharmacy/accounting/components/Registers.tsx',{
+    'react/jsx-runtime':jsx,'next/link':nextLink,react:hooks,'../../../../lib/pharmacyAccounting':lib,'./common':common,'./api':{},'./exports':{},
+  });
+  const row={date:'2026-10-24',account:'inventory',account_number:'1200',account_name:'Inventory',description:'Original stock receipt',source_document:'receipt-1',normal_balance:'debit',running_balance:50,debit:50,credit:0,journal_id:'journal-1',journal_debit:50,journal_credit:50,journal_line_count:2,journal_line_number:1};
+  const second={...row,id:'second',account:'supplier:1',account_name:'Supplier payable',normal_balance:'credit',debit:0,credit:50,journal_line_number:2};
+  let document=new JSDOM(renderToStaticMarkup(React.createElement(ui.LedgerTable,{rows:[row,second],periodTotals:{debit:50,credit:50}}))).window.document;
+  assert.equal(document.querySelectorAll('tbody').length,1);
+  assert.equal(document.querySelectorAll('th[scope="rowgroup"] a').length,1);
+  assert.match(document.body.textContent,/2 of 2 journal lines shown.*Balanced/);
+  assert.doesNotMatch(document.body.textContent,/Journal continued|continues on next|Account balance/);
+  assert.equal(document.querySelector('thead tr').children.length,7);
+  document=new JSDOM(renderToStaticMarkup(React.createElement(ui.LedgerTable,{rows:[second],selectedAccount:true,filtered:true,periodTotals:{debit:0,credit:50}}))).window.document;
+  assert.match(document.body.textContent,/Filtered journal/);
+  assert.doesNotMatch(document.body.textContent,/continued from previous|Unbalanced journal/);
+  assert.match(document.body.textContent,/50\.00 Cr/);
+  assert.equal(document.querySelector('thead tr').children.length,8);
+  const imbalance=renderToStaticMarkup(React.createElement(ui.LedgerTable,{rows:[{...row,journal_credit:40},second],periodTotals:{debit:50,credit:40}}));
+  assert.match(imbalance,/Unbalanced journal - investigate/);
+  const continuation=renderToStaticMarkup(React.createElement(ui.LedgerTable,{rows:[second],periodTotals:{debit:50,credit:50}}));
+  assert.match(continuation,/Journal continued from previous page/);
+  assert.doesNotMatch(continuation,/continues on next page/);
+  const missing=renderToStaticMarkup(React.createElement(ui.LedgerTable,{rows:[{...row,journal_debit:null,journal_credit:null,journal_line_count:undefined}],periodTotals:null}));
+  assert.match(missing,/Full journal totals unavailable/);
+  assert.doesNotMatch(missing,/>Balanced</);
+  const empty=renderToStaticMarkup(React.createElement(ui.LedgerTable,{rows:[],periodTotals:{debit:0,credit:0}}));
+  assert.match(empty,/No postings returned/);
+  assert.match(empty,/0\.00/);
+});
+test('account balances show actual Dr/Cr directions including abnormal and zero balances without inventing missing balances',()=>{
+  const ui=compile('app/pharmacy/accounting/components/Registers.tsx',{
+    'react/jsx-runtime':jsx,'next/link':nextLink,react:hooks,'../../../../lib/pharmacyAccounting':lib,'./common':common,'./api':{},'./exports':{},
+  });
+  for(const [value,normal,direction] of [[50,'debit','Dr'],[50,'credit','Cr'],[-50,'debit','Cr'],[-50,'credit','Dr']]){
+    assert.match(renderToStaticMarkup(React.createElement(ui.LedgerBalance,{value,normal})),new RegExp(`50\\.00 ${direction}$`));
+  }
+  for(const [value,normal] of [[0,'debit'],[0,'credit'],[null,'debit'],[50,undefined]]){
+    assert.doesNotMatch(renderToStaticMarkup(React.createElement(ui.LedgerBalance,{value,normal})),/\bDr\b|\bCr\b/);
+  }
 });
 test('summary metrics follow Payroll neutral summary strips and shared currency, never loading zeros or controls',()=>{
   const {JSDOM}=require('jsdom');
@@ -1464,6 +1530,14 @@ test('pharmacy sidebar exposes each named statement directly with the existing f
     'react/jsx-runtime':jsx,'../../../../lib/pharmacyAccounting':lib,'@remixicon/react':icons,
   }).PharmacyLinks;
   const accounting=navigation.find(item=>item.link==='/pharmacy/accounting');
+  for(const [section,title] of [
+    ['', 'Overview'],['chart-of-accounts','Chart of accounts'],['general-ledger','General ledger'],
+    ['journals','Journals'],['receivables','Accounts receivable'],['payables','Accounts payable'],['expenses','Expenses'],
+  ]){
+    const entry=accounting.children.find(child=>child.link===`/pharmacy/accounting${section?`/${section}`:''}`);
+    assert.equal(entry?.title,title,'sidebar must use conventional accounting terminology');
+    assert.deepEqual(plain(entry.roles),['admin','pharmacy_manager','pharmacy_accountant']);
+  }
   for(const item of lib.financialStatementLinks){
     const entry=accounting.children.find(child=>child.link===lib.financialStatementHref(item.report));
     assert.ok(entry);

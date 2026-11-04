@@ -55,14 +55,14 @@ const AdjustBillingSourceModal: React.FC<AdjustBillingSourceModalProps> = ({
 		}
 	}, [show]);
 
-	const updateValuesToContext = (value: EntitySeelction, target: 'insurance' | 'organization' | 'clinician') => {
+	const updateValuesToContext = (value: EntitySeelction, target: 'phis' | 'organization' | 'clinician') => {
 		if (!value) return;
 		setSelectedEntity({ entity_type: target, entity_id: value.id });
 	};
 
 	const handleSelectedEntityInsurance = (value: EntitySeelction | any) => {
 		console.log("Selected Insurance:", value);
-		updateValuesToContext(value, 'insurance');
+		updateValuesToContext(value, 'phis');
 	};
 
 	const handleSelectedEntityClinician = (value: EntitySeelction) => {
@@ -152,10 +152,11 @@ const AdjustBillingSourceModal: React.FC<AdjustBillingSourceModalProps> = ({
 				<Modal.Title>Adjust/Correct Billing Source</Modal.Title>
 			</Modal.Header>
 			<Modal.Body>
+                <p className="alert alert-info">This corrects source attribution only; existing service prices, receipts and financial totals are not recalculated. The transaction is locked after correction. NHIS conversion requires its separately verified membership and claim workflow.</p>
 				<label>Select Billing Source</label>
 				<div className="mb-4">
 					<Select
-						options={billingSource}
+						options={billingSource.filter(source => [1, 2, 3, 6].includes(source.value))}
 						value={selectedBillingSource}
 						onChange={(option) => {
 							setSelectedBillingSource(option as BillingSourceOption);

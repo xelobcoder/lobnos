@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { createResultSaveSession } from '../../../../../../lib/resultSaveSession';
 import { customPost, customFetch, validatePin, generateRandomTextAndNumbers } from '../../../../../../components/Auth/customFetch';
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
@@ -60,6 +61,8 @@ function mapFieldsToRules(fields: any[], rules: any[]): Field[] {
 }
 
 export default function EnterResultUltrasound() {
+     const saveSession = useRef<ReturnType<typeof createResultSaveSession> | null>(null);
+     if (!saveSession.current) saveSession.current = createResultSaveSession();
      const { user } = useApplicationSettings().applicationsettings;
      const employeeid = user?.employeeid;
      const searchParams = useSearchParams();
@@ -188,6 +191,7 @@ export default function EnterResultUltrasound() {
      // structured generation removed — keep impression/fields editable only via freeform editor or templates
 
      const handleResult = async () => {
+          if (!saveSession.current!.start()) return;
           setSubmitting(true);
           try {
                if (update === 'true' && fields.length > 0) {
@@ -211,7 +215,7 @@ export default function EnterResultUltrasound() {
                     const value = item.name.trim().toLowerCase() === 'impression' ? impression : item.value;
                     return { field: item.name, value, fieldid, originalvalue: value };
                });
-               const response = await customPost('result/entry/customtest', 'POST', {
+               const response = await customPost('result/entry/customtest', 'POST', saveSession.current!.identify({
                     csvid: urlbillingid,
                     testid,
                     patientid: parseInt(patientid as string),
@@ -224,7 +228,7 @@ export default function EnterResultUltrasound() {
                     isScan: true,
                     target: '70,50',
                     ...(isPinUsed ? { pin } : {}),
-               });
+               }));
 
                if (response?.status === 'success' && response.statusCode === 200) {
                     setEnteredResult(true);
@@ -242,6 +246,7 @@ export default function EnterResultUltrasound() {
                console.error(error);
                toast.error('An error occurred. Please try again.');
           } finally {
+               saveSession.current!.finish();
                setSubmitting(false);
           }
      };

@@ -1,17 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Modal, Button, Form, ListGroup, Spinner } from "react-bootstrap";
+import { Modal, Button, Form, Spinner } from "react-bootstrap";
 import { toast } from 'react-toastify';
 import PreviewPatientInformation from "../../petientsComponent/PreviewPatientInformation";
 import UseCustomResultTemplating from "../../ResutlUI/useCustomResultTemplating";
 import UseResultCommentSingle from "../../ResutlUI/useResultCommentSingle";
 import { customFetch, customPost, getResultEntrySettings, ResultEntrydefaultData, validatePin } from "../../Auth/customFetch";
 import { useApplicationSettings } from "../../Auth/useApplicationContext";
-import { roleAllowed } from "../../Auth/roles";
-import { getAscensionStaffApproved } from "./Lib";
+import styles from "./ValidationModal.module.css";
 
 
 const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
-     const { employeeid, role } = useApplicationSettings().applicationsettings.user;
+     const { employeeid } = useApplicationSettings().applicationsettings.user;
      const [resultSettings, setResultSettings] = useState(ResultEntrydefaultData);
      const [staff, setStaff] = useState([]);
      const [snapshots, setSnapshots] = useState({});
@@ -22,20 +21,12 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
      const [pinValue, setPin] = useState('');
      const [successfulValidation, setSuccessfulValidation] = useState(null);
      const [isApproved, setIsApproved] = useState(false);
-     const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth > 768);
      const [isPinValidated, setIsPinValidated] = useState(false);
      const [validatingSpinner, setValidatingSpinner] = useState(false);
-     const [showProceedModal, setShowProceedModal] = useState(false);
      const ascensions = Array.isArray(selectedAscension) ? selectedAscension : [selectedAscension];
      const { settings } = useApplicationSettings().applicationsettings;
      const pinOnResultValidation = settings?.pinOnResultValidation == 1 ? true : false;
 
-
-     useEffect(() => {
-          const handleResize = () => setIsMobile(window.innerWidth > 768);
-          window.addEventListener("resize", handleResize);
-          return () => window.removeEventListener("resize", handleResize);
-     }, []);
 
      // Auto-approve when PIN is not required and user checks the approve toggle
      useEffect(() => {
@@ -139,7 +130,7 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
                          toast.success('Approvals recorded; finalized results are ready');
                          const successfulValidation = finalizedIds;
                          setSuccessfulValidation(successfulValidation);
-                         setShowProceedModal(true);
+                         onClose(successfulValidation);
                     } else {
                          const failedCount = results.filter(r => r.status !== true).length;
                          toast.error(`${failedCount} test(s) need review: ${results.find(r => r.status !== true)?.message || 'validation failed'}`);
@@ -166,10 +157,11 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
                          const { status } = sendReponse;
                          if (status === true) {
                               setStaff(sendReponse.staff || []);
+                              setSnapshots(current => ({ ...current, [ascensionid]: { ...current[ascensionid], staff: sendReponse.staff || [] } }));
                               if (!sendReponse.finalized) { toast.info('Your approval was recorded. Other validators are still required.'); onClose(selectedAscension.ascensionid); return; }
                               toast.success('Result finalized');
                               setSuccessfulValidation(selectedAscension.ascensionid);
-                              setShowProceedModal(true);
+                              onClose(selectedAscension.ascensionid);
                          } else {
                               toast.error(sendReponse?.message || 'Validation failed');
                               await getInitData();
@@ -181,163 +173,90 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
           }
      };
 
-     const handleProceedToValidatedResult = () => {
-          const ascensionIds = Array.isArray(successfulValidation) ? successfulValidation.join(',') : successfulValidation;
-          const newWindow = window.open(`/operations/laboratory/validated?ascensionid=${ascensionIds}&&isOpenSideBarShow=false`,
-               '_blank', 'width=1000,height=auto');
-          setShowProceedModal(false);
-          onClose(successfulValidation);
-          window.close()
-     };
-
      return (
           <>
-               <Modal show={show} onHide={() => onClose(successfulValidation)} size='xl' backdrop={false}>
-                    <Modal.Header closeButton className="fw-bold bg-secondary-subtle">
-                         <Modal.Title>{isBulk ? `Bulk Validation (${ascensions.length} tests)` : 'Result Validation'}</Modal.Title>
+               <Modal show={show} onHide={() => { if (!validatingSpinner) onClose(successfulValidation); }} size="xl" scrollable backdrop="static" dialogClassName={styles.dialog}>
+                    <Modal.Header closeButton={!validatingSpinner} className={styles.header}>
+                         <div>
+                              <Modal.Title className="h5 fw-bold mb-1">{isBulk ? `Bulk Result Validation (${ascensions.length} ${ascensions.length === 1 ? 'test' : 'tests'})` : 'Result Validation'}</Modal.Title>
+                              <p className="small text-muted mb-0">Review the patient, current values, and comments before recording your approval.</p>
+                         </div>
                     </Modal.Header>
-                    <Modal.Body>
-                         <Button variant="outline-secondary" size="sm" className="mb-2" disabled={validatingSpinner} onClick={getInitData}>Reload latest results</Button>
-                         {snapshotError && <p role="alert" className="text-danger">{snapshotError}</p>}
-                         {!snapshotsReady ? <p role="status"><Spinner as="span" size="sm" aria-hidden="true" /> Loading current result revisions...</p> : <>
-                         {Object.values(snapshots).some(item => item.requires_revalidation) && <div role="alert" className="alert alert-warning">These results were changed after validation. Review the current values and validate again. Previous approvals do not apply to this revision.</div>}
-                         <p className="small text-muted">Your approval is recorded as the signed-in user. Final release occurs only after the required validators have approved this result revision.</p>
-                         {!isBulk ? (
-                              <>
-                                   <PreviewPatientInformation patientid={selectedAscension.patientid} />
-                                   <h5></h5>
-                                   <div style={{ overflowX: 'auto' }} className="my-3">
-                                        <UseCustomResultTemplating key={`result-${reviewKey}-${selectedAscension.ascensionid}`}
-                                             isResultView={false}
-                                             testid={selectedAscension.id}
-                                             patientid={selectedAscension.patientid}
-                                             test={selectedAscension.test || ""}
-                                             billingid={selectedAscension.billingid}
-                                        />
-                                   </div>
-                                   <ListGroup className="my-2">
-                                        <ListGroup.Item className="bg-secondary-subtle fw-bold">Comments</ListGroup.Item>
-                                        <ListGroup.Item>
-                                             <UseResultCommentSingle key={`comment-${reviewKey}-${selectedAscension.ascensionid}`}
-                                                  patientid={selectedAscension.patientid}
-                                                  testid={selectedAscension.id}
-                                                  billingid={selectedAscension.billingid}
-                                             />
-                                        </ListGroup.Item>
-                                   </ListGroup>
-                              </>
-                         ) : (
-                              <div>
-                                   <h6 className="mb-3">Validating {ascensions.length} tests with a single PIN:</h6>
-                                   {Array.isArray(ascensions) && ascensions.length > 0 && ascensions.map((asc, idx) => (
-                                        <div key={idx} className="mb-4 p-3 border rounded">
-                                             <h6 className="mb-3 fw-bold"><strong>{idx + 1}.</strong> {asc.fullname} - {asc.name}</h6>
-                                             <PreviewPatientInformation patientid={asc.patientid} />
-                                             <h5 className="mt-3"></h5>
-                                             <div style={{ overflowX: 'auto' }} className="my-3">
-                                                  <UseCustomResultTemplating key={`result-${reviewKey}-${asc.ascensionid}`}
-                                                       isResultView={false}
-                                                       testid={asc.id}
-                                                       patientid={asc.patientid}
-                                                       test={asc.test || ""}
-                                                       billingid={asc.billingid}
-                                                  />
+                    <Modal.Body className={styles.body}>
+                         <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                              <span className="small fw-semibold text-muted">Current revision review{isBulk ? ` - ${ascensions.length} selected tests` : ''}</span>
+                              <Button variant="outline-secondary" size="sm" disabled={validatingSpinner || (!snapshotsReady && !snapshotError)} onClick={getInitData}>Reload latest results</Button>
+                         </div>
+                         {snapshotError && <div role="alert" className="alert alert-danger mb-3"><strong>Unable to load this review.</strong><div>{snapshotError}</div><div className="small mt-1">Reload latest results before approving.</div></div>}
+                         {!snapshotsReady ? <div role="status" className="text-center py-5"><Spinner as="span" size="sm" aria-hidden="true" /> <span className="ms-2">{snapshotError ? 'Approval is unavailable until the review loads.' : 'Loading current result revisions...'}</span></div> : <>
+                         {Object.values(snapshots).some(item => item.requires_revalidation) && <div role="alert" className="alert alert-warning mb-3"><strong>Updated result - revalidation required</strong><div className="small mt-1">These values changed after validation. Review them again; previous approvals do not apply to this revision.</div></div>}
+                         <div className={styles.layout}>
+                              <div className="d-grid gap-3">
+                                   {ascensions.map((asc, idx) => (
+                                        <section key={asc.ascensionid} className={styles.review} aria-label={`Result review: ${asc.name || asc.test || 'selected test'}`}>
+                                             <div className={styles.sectionHeading}>
+                                                  <div><h2 className="h6 fw-bold mb-1">{isBulk ? `${idx + 1}. ` : ''}{asc.name || asc.test || 'Test results'}</h2><div className="small text-muted">Ordered test #{asc.ascensionid}</div></div>
+                                                  <span className="badge rounded-pill text-bg-light border">Revision {snapshots[asc.ascensionid]?.approval_revision}</span>
                                              </div>
-                                             <ListGroup>
-                                                  <ListGroup.Item className="bg-secondary-subtle fw-bold">Comments</ListGroup.Item>
-                                                  <ListGroup.Item>
-                                                       <UseResultCommentSingle key={`comment-${reviewKey}-${asc.ascensionid}`}
-                                                            patientid={asc.patientid}
-                                                            testid={asc.id}
-                                                            billingid={asc.billingid}
-                                                       />
-                                                  </ListGroup.Item>
-                                             </ListGroup>
-                                             {idx < ascensions.length - 1 && <hr className="my-3" />}
-                                        </div>
+                                             <div className={styles.patient}><PreviewPatientInformation patientid={asc.patientid} compact /></div>
+                                             <div className={styles.results}>
+                                                  <UseCustomResultTemplating key={`result-${reviewKey}-${asc.ascensionid}`} isResultView={false}
+                                                       testid={asc.id} patientid={asc.patientid} test={asc.test || ""} billingid={asc.billingid} />
+                                             </div>
+                                             <section className={styles.comments} aria-label="Result comments">
+                                                  <h3 className="h6 fw-semibold mb-2">Comments</h3>
+                                                  <UseResultCommentSingle key={`comment-${reviewKey}-${asc.ascensionid}`} reviewMode
+                                                       patientid={asc.patientid} testid={asc.id} billingid={asc.billingid} />
+                                             </section>
+                                        </section>
                                    ))}
                               </div>
-                         )}
-                         <ListGroup>
-                              <ListGroup.Item className="fw-bold bg-secondary-subtle">Approvals</ListGroup.Item>
-                              <ListGroup.Item>
-                                   <div className="form-group d-flex justify-content-between">
-                                        <h6>{isBulk ? 'Approve all selected tests?' : 'Do you approve this result?'}</h6>
-                                        <Form.Switch
-                                             checked={isApproved}
-                                             onChange={(ev) => { handleCheck(ev) }}
-                                             style={{ fontSize: '24px' }}
-                                        />
+                              <aside className={styles.approval} aria-label="Approval review">
+                                   <div className={styles.sectionHeading}><h2 className="h6 fw-bold mb-0">Your approval</h2></div>
+                                   <div className={styles.approvalBody}>
+                                        <p className="small text-muted">Recorded as your signed-in account. Final release requires all configured validators to approve this revision.</p>
+                                        <Form.Check id="result-review-confirmation" type="checkbox" checked={isApproved} disabled={validatingSpinner}
+                                             onChange={handleCheck} label={isBulk ? 'I have reviewed the current results for every selected test.' : 'I have reviewed the patient details and current results.'} />
+                                        {isApproved && pinOnResultValidation && <div className="mt-3">
+                                             <label className="form-label small fw-semibold" htmlFor="result-validation-pin">Your secure PIN</label>
+                                             <input id="result-validation-pin" autoComplete="new-password" autoCorrect="off" inputMode="numeric"
+                                                  name="pin" value={pinValue} disabled={validatingSpinner}
+                                                  onChange={ev => { setPin(ev.target.value); setIsPinValidated(false); }}
+                                                  className="form-control" type="password" />
+                                             {!isBulk && <Button variant={isPinValidated ? 'outline-success' : 'outline-primary'} size="sm" className="mt-2 w-100"
+                                                  disabled={validatingSpinner || !pinValue || isPinValidated} onClick={handleAddApproved}>
+                                                  {validatingSpinner && <Spinner animation="border" size="sm" className="me-2" />}
+                                                  {isPinValidated ? 'PIN verified' : 'Verify PIN'}
+                                             </Button>}
+                                        </div>}
+                                        {isApproved && <div className="small text-muted mt-3">Your approval is not saved until you select <strong>{isBulk ? 'Record all approvals' : 'Record approval'}</strong>.</div>}
+                                        <hr className="my-4" />
+                                        <h3 className="h6 mb-3">Recorded approvals</h3>
+                                        {ascensions.map(asc => {
+                                             const recorded = snapshots[asc.ascensionid]?.staff || [];
+                                             return <div key={asc.ascensionid} className="mb-3">
+                                                  {isBulk && <div className="small fw-semibold mb-1">{asc.name || asc.test || `Test #${asc.ascensionid}`}</div>}
+                                                  <div className="small text-muted mb-2">{recorded.length} recorded{Number(resultSettings.minimumResultValidation) > 0 ? ` / ${resultSettings.minimumResultValidation} required` : ''} for this revision</div>
+                                                  {recorded.length ? <ul className="list-unstyled mb-0">{recorded.map(item => <li key={item.employeeid} className="small border rounded px-2 py-2 mb-1">{item.username || `Employee #${item.employeeid}`}{Number(item.employeeid) === Number(employeeid) ? ' (you)' : ''}</li>)}</ul> : <p className="small text-muted mb-0">No approvals recorded yet.</p>}
+                                             </div>;
+                                        })}
                                    </div>
-                              </ListGroup.Item>
-                              {isApproved && (
-                                   <ListGroup.Item>
-                                        {
-                                             pinOnResultValidation && (
-                                                  <>
-                                                       <div className="grid-reg">
-                                                            <label htmlFor="pin">PIN</label>
-                                                            <input autoComplete="new-password"
-                                                                 autoCorrect="off"
-                                                                 name="pin" value={pinValue} onChange={(ev) => { setPin(ev.target.value) }} className="custom-input" type="password" />
-                                                       </div>
-                                                       <div className="d-flex justify-content-end mt-2">
-                                                            <button onClick={handleAddApproved} className="btn btn-sm btn-light">
-                                                                 {validatingSpinner && <Spinner animation="border" size="sm" />}
-                                                                 Approve</button>
-                                                       </div>
-                                                  </>
-                                             )
-                                        }
-                                        {
-                                             !pinOnResultValidation && (
-                                                  <div className="alert alert-success mb-0">
-                                                       <small>Approved without PIN</small>
-                                                  </div>
-                                             )
-                                        }
-                                   </ListGroup.Item>
-                              )}
-                         </ListGroup>
-                         {!isBulk && Array.isArray(staff) && staff.length > 0 && (
-                              <ListGroup className="my-3">
-                                   <ListGroup.Item className="bg-secondary-subtle fw-bold">Approved By this Staffs</ListGroup.Item>
-                                   {Array.isArray(staff) && staff.length > 0 && staff.map((item, index) => (
-                                        <ListGroup.Item key={index} className="text-capitalize pls-color d-flex justify-content-between">
-                                             <span>{item.username}</span>
-                                             {roleAllowed(role, ["admin"]) && <span><button className="btn  btn-outline-danger btn-sm" disabled>Remove Validation</button></span>}
-                                        </ListGroup.Item>
-                                   ))}
-                              </ListGroup>
-                         )}
+                              </aside>
+                         </div>
                          </>}
                     </Modal.Body>
-                    <Modal.Footer>
-                         <Button variant="secondary" onClick={(ev) => { onClose(successfulValidation) }}>Close</Button>
-                         <Button variant="primary" onClick={handleSaveValue} disabled={validatingSpinner || disableButton()}>{isBulk ? 'Validate All' : 'Validate'}</Button>
+                    <Modal.Footer className={styles.footer}>
+                         <span className="small text-muted">Approval applies only to the reviewed revision.</span>
+                         <div className="d-flex gap-2">
+                              <Button variant="outline-secondary" disabled={validatingSpinner} onClick={() => onClose(successfulValidation)}>Close</Button>
+                              <Button variant="primary" onClick={handleSaveValue} disabled={validatingSpinner || disableButton()}>
+                                   {validatingSpinner && <Spinner animation="border" size="sm" className="me-2" />}
+                                   {validatingSpinner ? 'Recording approval...' : isBulk ? 'Record all approvals' : 'Record approval'}
+                              </Button>
+                         </div>
                     </Modal.Footer>
                </Modal>
 
-               <Modal show={showProceedModal} onHide={() => setShowProceedModal(false)} centered>
-                    <Modal.Header closeButton>
-                         <Modal.Title>Validation Successful</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-                         <p>Validation completed successfully!</p>
-                         <p>Would you like to proceed to <strong>Validated Results</strong> to print the results?</p>
-                    </Modal.Body>
-                    <Modal.Footer>
-                         <Button variant="secondary" onClick={() => {
-                              setShowProceedModal(false);
-                              onClose(successfulValidation);
-                         }}>
-                              Close
-                         </Button>
-                         <Button variant="primary" onClick={handleProceedToValidatedResult}>
-                              Proceed to Validated Results
-                         </Button>
-                    </Modal.Footer>
-               </Modal>
           </>
      );
 };

@@ -89,7 +89,7 @@ export default function GreaterLessResultView({ fieldItem, index, resultsettings
      const flag = fieldItem.flag ?? fieldItem.indicator ?? determineFlag(value, textReference);
 
      return (
-          <tr style={{
+          <tr data-result-flag={flag} style={{
                fontSize: `${settings?.fontSize}px`,
                fontFamily: settings?.fontFamily,
                color: settings?.color

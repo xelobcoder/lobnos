@@ -101,6 +101,35 @@ test('department sidebar scoping leaves administrator application switching and 
  assert.match(layout,/roleWorkspaceSidebar\(user\?\.role,suppliedLinks,navigationSettings,modulePath/);
  assert.match(layout,/RibbonNavigation links=\{visibleLinks\}/);
 });
+test('accounting and pharmacy sidebars omit laboratory supplies, imaging supplies and test panels without revoking access',()=>{
+ const hidden=[
+  '/operations/laboratory/requisitions',
+  '/operations/imaging/ultrasound/requisitions',
+  '/operations/laboratory/test-panels/testlist',
+  '/settings/applicationsettings/testpanels/testlist',
+ ];
+ const supplied=[{title:'Department tools',link:'',children:hidden.map(link=>({title:'Delegated tool',link}))}];
+ for(const [role,workspaces] of [
+  ['admin',['/accounting','/accounting/general-ledger','/pharmacy','/pharmacy/accounting']],
+  ['super_admin',['/accounting','/pharmacy/accounting/chart-of-accounts']],
+  ['accountant',['/accounting','/accounting/income-statement']],
+  ['pharmacy_manager',['/pharmacy','/pharmacy/accounting']],
+  ['pharmacy_accountant',['/pharmacy/accounting']],
+ ]){
+  for(const workspace of workspaces){
+   const links=sidebars.roleWorkspaceSidebar(role,supplied,settings,workspace);
+   assert.ok(!flatten(links).some(link=>hidden.includes(link)),`${role}: ${workspace}`);
+   assert.ok(!links.some(link=>link.title==='Department tools'),'empty navigation group is removed');
+   for(const link of hidden)assert.equal(policy.canShowClinicalWorkspaceLink(workspace,link),false);
+   assert.equal(policy.canShowClinicalWorkspaceLink(workspace,'/pharmacy/stock'),true);
+   assert.equal(policy.canShowClinicalWorkspaceLink(workspace,'/accounting/chart-of-accounts'),true);
+  }
+ }
+ for(const link of hidden){
+  assert.equal(policy.canAccessRolePage('admin',link,settings),true,'sidebar change does not change page permissions');
+  assert.equal(policy.canShowClinicalWorkspaceLink('/inventory',link),true,'other workspaces retain delegated tools');
+ }
+});
 test('imaging landing exists and stock navigation stays visible before a grant is configured',()=>{
  assert.ok(pageExists('/operations/imaging'));
  const {workspaceDestination}=load(path.join(root,'lib/workspaceDestination.ts'));

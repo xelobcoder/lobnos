@@ -9,6 +9,7 @@ export default function PreviewPatientInformation({ patientid, compact = false }
 	const [isLoading, setLoading] = useState(true);
 	const photo = usePatientImage(Number(patientid));
 	const initials = [data?.firstname, data?.lastname].filter(Boolean).map(name => name[0]).join('').toUpperCase() || 'P';
+	const fullName = [data?.designation, data?.firstname, data?.middlename, data?.lastname].filter(Boolean).join(' ') || 'N/A';
 	const photoStatus = photo.error ? <button type="button" className="btn btn-sm btn-link text-danger p-0" title={photo.error} disabled={photo.loading} onClick={() => { void photo.refresh().catch(() => undefined); }}>Retry patient photo</button> : photo.loading ? <span className="small text-muted">Loading photo...</span> : null;
 
 	useEffect(() => {
@@ -47,7 +48,7 @@ export default function PreviewPatientInformation({ patientid, compact = false }
 					<div style={{ minWidth: 0 }}>
 						{photoStatus}
 						<div className="fw-bold text-truncate">
-							{`${data?.designation || ''} ${data?.firstname} ${data?.middlename} ${data?.lastname}`.trim() || 'N/A'}
+							{fullName}
 						</div>
 						<div className="text-muted" style={{ fontSize: '0.85rem' }}>
 							ID: {data?.fullpatientid || 'N/A'} • {data?.gender || 'N/A'} • {data?.age ? `${data?.age} ${data?.ageType || 'years'}` : 'N/A'}
@@ -90,7 +91,7 @@ export default function PreviewPatientInformation({ patientid, compact = false }
 					{photoStatus}
 				</Col>
 				<Col md={4}>
-					<InfoField label="Name" value={`${data?.designation || ''} ${data?.firstname} ${data?.middlename} ${data?.lastname}`.trim()} />
+					<InfoField label="Name" value={fullName} />
 					<InfoField label="Patient ID" value={data?.fullpatientid} />
 					<InfoField label="Gender" value={data?.gender} />
 					<InfoField label="Age" value={`${data?.age} ${data?.ageType || 'years'}`} />

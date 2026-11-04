@@ -9,6 +9,7 @@ import moment from "moment";
 import { useApplicationSettings } from "../Auth/useApplicationContext";
 import { getAscensionEditCountServerideS, getResultEntryDataServerSide } from "../serverActions/ActionFiltering";
 import Link from "next/link";
+import { createResultSaveSession } from "../../lib/resultSaveSession";
 
 
 
@@ -25,6 +26,8 @@ export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
 	const [modifiedDrugs, setModifiedDrugs] = useState([]);
 	const dropdownRef = useRef(null);
 	const [isSaving, setIsSaving] = useState(false);
+	const saveSession = useRef(null);
+	if (!saveSession.current) saveSession.current = createResultSaveSession();
 	const [pin, setPin] = useState("");
 	const isPinShared = Boolean(globalPin);
 	const effectivePin = isPinShared ? globalPin : pin;
@@ -109,6 +112,8 @@ export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
 
 
 	const handleSubmit = async () => {
+		if (!saveSession.current.start()) return;
+		setIsSaving(true);
 		try {
 			const pinOnResultEntry = settings?.pinOnResultEntry;
 			if (pinOnResultEntry == 1) {
@@ -119,7 +124,6 @@ export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
 				if (response?.status !== true) return toast.error(response?.message || "Invalid PIN");
 			}
 
-			setIsSaving(true);
 			const transformed = rule.map((item) => {
 				return { field: item?.name, value: item?.value, fieldid: item.fieldid, originalvalue: item?.value };
 			});
@@ -142,13 +146,14 @@ export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
 			};
 
 			if (data.employeeid && data.csvid && data.fields.length > 0) {
-				const response = await customPost("result/entry/customtest", "POST", data);
+				const response = await customPost("result/entry/customtest", "POST", saveSession.current.identify(data));
 				const { message, statusCode, status } = response;
 				if (status === "success" && statusCode === 200) {
 					setRequiresRevalidation(response.requires_revalidation === true);
 					toast.success(message, { autoClose: response.requires_revalidation ? 5000 : 500 });
 					if (typeof onSaved === "function") onSaved();
-					setShowValidationModal(true);
+					// A delayed retry may refer to a revision superseded by another editor.
+					if (!response.replayed) setShowValidationModal(true);
 				} else {
 					toast.error(message, { autoClose: 2000 });
 				}
@@ -157,6 +162,7 @@ export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
 		} catch (err) {
 			toast.error("Something went wrong", { autoClose: 1000 });
 		} finally {
+			saveSession.current.finish();
 			setIsSaving(false);
 		}
 	};

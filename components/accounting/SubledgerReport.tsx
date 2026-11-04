@@ -19,23 +19,27 @@ interface Props {
 
 export default function SubledgerReport({ ledger, title, subtitle, partyLabel }: Props) {
      const [asOf, setAsOf] = useState(dayjs().format("YYYY-MM-DD"));
-     const [documentFrom, setDocumentFrom] = useState(dayjs().format("YYYY-MM-DD"));
+     const [documentFrom, setDocumentFrom] = useState("");
      const [documentTo, setDocumentTo] = useState(dayjs().format("YYYY-MM-DD"));
-     const [dateFilter, setDateFilter] = useState("Today");
+     const [dateFilter, setDateFilter] = useState("All");
      const [report, setReport] = useState<OutstandingDocuments | null>(null);
      const [page, setPage] = useState(1);
      const [count, setCount] = useState(25);
      const [searchInput, setSearchInput] = useState("");
      const [search, setSearch] = useState("");
      const [dateOrder, setDateOrder] = useState("desc");
-     const [loading, setLoading] = useState(false);
+     const [loading, setLoading] = useState(true);
      const [error, setError] = useState<string | null>(null);
      const latestRequest = useRef(0);
+     const context = JSON.stringify([ledger, asOf, documentFrom, documentTo, page, count, search, dateOrder]);
+     const [loadedContext, setLoadedContext] = useState("");
+     const ready = !!report && !loading && !error && loadedContext === context;
 
      const load = useCallback(async () => {
           const requestId = ++latestRequest.current;
           setLoading(true);
           setError(null);
+          setReport(null);
           try {
                const filters = { page, count, sortby: `documentDate:${dateOrder}`, search, from: documentFrom, to: documentTo };
                const response = ledger === "AR"
@@ -43,25 +47,29 @@ export default function SubledgerReport({ ledger, title, subtitle, partyLabel }:
                     : await accountingApi.payableAging(asOf, filters);
 
                if (requestId !== latestRequest.current) return;
-               if (!response?.result || response.status !== "success") {
+               if (!response?.result || response.status !== "success" || !Array.isArray(response.result.rows) ||
+                    !Number.isFinite(Number(response.result.totals?.total)) || !Number.isSafeInteger(Number(response.result.total))) {
                     throw new Error(response?.message || "Unable to load outstanding documents");
                }
                setReport(response.result);
+               setLoadedContext(context);
           } catch (requestError: any) {
                if (requestId === latestRequest.current) setError(requestError?.message || "Unable to load outstanding documents");
           } finally {
                if (requestId === latestRequest.current) setLoading(false);
           }
-     }, [ledger, asOf, documentFrom, documentTo, page, count, search, dateOrder]);
+     }, [ledger, asOf, documentFrom, documentTo, page, count, search, dateOrder, context]);
 
      useEffect(() => {
-          load();
+          void load();
+          return () => { latestRequest.current++; };
      }, [load]);
 
      const money = (value: number) => currencyFormatter.format(Number(value || 0));
 
      // The screen shows one page; the PDF lists every outstanding document matching the filters.
      const getPdfSpec = async () => {
+          if (!ready) throw new Error("Wait for the selected outstanding documents to finish loading.");
           const { fetchAllPages, EXPORT_MAX_ROWS } = await import("../reports/reportPdf");
           let totalOutstanding = 0;
           let totalDocuments = 0;
@@ -134,9 +142,10 @@ export default function SubledgerReport({ ledger, title, subtitle, partyLabel }:
 
      return (
           <ReportShell basis="accrual"
+               exportable={ready}
                title={title}
                subtitle={subtitle}
-               range={formatRange(documentFrom, documentTo)}
+               range={documentFrom ? formatRange(documentFrom, documentTo) : `All open documents through ${dayjs(documentTo).format("D MMM YYYY")}`}
                getPdfSpec={getPdfSpec}
                actions={<button type="button" className="btn btn-sm btn-outline-secondary" onClick={load} title="Refresh outstanding documents" aria-label="Refresh outstanding documents"><RiRefreshLine size={18} /></button>}
                filters={
@@ -147,8 +156,9 @@ export default function SubledgerReport({ ledger, title, subtitle, partyLabel }:
                                    onChange={setDateFilter}
                                    onDateRangeChange={(start, end) => {
                                         setDocumentFrom(start);
-                                        setDocumentTo(end);
-                                        setAsOf(end);
+                                        const cutoff = end || dayjs().format("YYYY-MM-DD");
+                                        setDocumentTo(cutoff);
+                                        setAsOf(cutoff);
                                         setPage(1);
                                    }}
                                    label="Document date"
@@ -187,12 +197,13 @@ export default function SubledgerReport({ ledger, title, subtitle, partyLabel }:
                     </>
                }
           >
+               {!ready && !error && <div className="small text-muted mb-2" role="status">Updating outstanding documents...</div>}
+               {error && <div className="alert alert-danger" role="alert">{error}</div>}
+               {ready && <>
                <AccountingSummary
                     metrics={tiles}
                     columnClassName="col-12 col-sm-6 col-xl-3"
                />
-               {loading && <div className="small text-muted mb-2" role="status">Updating outstanding documents...</div>}
-               {error && <div className="alert alert-danger" role="alert">{error}</div>}
 
                <PrimeTable column={documentColumns} data={report?.rows || []} isExpoerted handleSeverSideProcessing={undefined} />
                {(() => {
@@ -215,6 +226,7 @@ export default function SubledgerReport({ ledger, title, subtitle, partyLabel }:
                          </div>
                     );
                })()}
+               </>}
           </ReportShell>
      );
 }

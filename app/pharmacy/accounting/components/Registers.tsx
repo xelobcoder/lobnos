@@ -10,11 +10,12 @@ import { DataTable, DateText, Facts, Feedback, Field, label, money, Money, Refer
 import { downloadAccountingExport, fullFilteredExport } from './exports';
 import SupplierPicker from './SupplierPicker';
 import layout from './AccountingWorkspace.module.css';
+import CashFlowAllocationForm from '../../../../components/accounting/CashFlowAllocationForm';
 
 const today = () => new Date().toISOString().slice(0, 10);
 const plural = (value: number, noun: string) => `${value.toLocaleString()} ${noun}${value === 1 ? '' : 's'}`;
-const ledgerColumns=['date','journal_id','account','description','source_document','debit','credit','running_balance'];
-const ledgerLabels={date:'Date',journal_id:'Journal ref',account:'Account',description:'Description',source_document:'Source document',business_unit:'Business unit',debit:'Debit',credit:'Credit',running_balance:'Running balance'};
+const ledgerColumns=['date','journal_id','account_number','account_name','description','source_document','debit','credit','running_balance'];
+const ledgerLabels={date:'Date',journal_id:'Journal ref',account_number:'Account code',account_name:'Account name',description:'Description',source_document:'Source document',business_unit:'Business unit',debit:'Debit',credit:'Credit',running_balance:'Account balance'};
 const statementTitles:Record<string,string>={profit_loss:'Statement of Profit or Loss (Income Statement)',balance_sheet:'Statement of Financial Position (Balance Sheet)',cash_flow:'Statement of Cash Flows',trial_balance:'Trial Balance',transactions:'Journal Transactions'};
 export function FinancialReportLinks({ section }: { section: Section }) {
   const params = useSearchParams();
@@ -74,6 +75,61 @@ export function StatementTable({ rows, columns, labels, totals, title }: {
     </table>
   </div>;
 }
+export function LedgerBalance({ value, normal }: { value: unknown; normal: unknown }) {
+  const formatted = money(value);
+  if (formatted === '—' || !['debit', 'credit'].includes(String(normal))) return <>{formatted}</>;
+  const amount = Number(value);
+  const debit = amount < 0 ? normal === 'credit' : normal === 'debit';
+  return <>{money(Math.abs(amount))}{amount === 0 ? '' : debit ? ' Dr' : ' Cr'}</>;
+}
+export function LedgerTable({ rows, selectedAccount = false, filtered = false, periodTotals }: {
+  rows: RecordData[]; selectedAccount?: boolean; filtered?: boolean; periodTotals: unknown;
+}) {
+  const groups = new Map<string, RecordData[]>();
+  for (const row of rows) {
+    const id = text(row.journal_id);
+    groups.set(id, [...(groups.get(id) || []), row]);
+  }
+  const totals = record(periodTotals), span = selectedAccount ? 8 : 7;
+  return <div className={layout.statementTable} role="region" aria-label="General ledger postings">
+    <table className="table align-middle mb-0"><caption className="visually-hidden">General ledger grouped by posted journal. Full journal totals include lines outside the current page or filters.</caption>
+      <thead><tr>{['Date', 'Account code', 'Account name', 'Description', 'Source document', 'Debit', 'Credit', ...(selectedAccount ? ['Account balance'] : [])].map((title, index) => <th key={title} scope="col" className={index >= 5 ? layout.statementMoney : undefined}>{title}</th>)}</tr></thead>
+      {[...groups].map(([id, lines]) => {
+        const first = lines[0], count = Number(first.journal_line_count);
+        const complete = Number.isSafeInteger(count) && count === lines.length;
+        const knownTotals = first.journal_debit != null && first.journal_credit != null && Number.isFinite(Number(first.journal_debit)) && Number.isFinite(Number(first.journal_credit));
+        const balanced = knownTotals && Math.round(Number(first.journal_debit) * 100) === Math.round(Number(first.journal_credit) * 100);
+        const href = `/pharmacy/accounting/general-ledger/journals/${encodeURIComponent(id)}`;
+        return <tbody key={id}>
+          <tr className={layout.statementHeading}><th scope="rowgroup" colSpan={span}>
+            <Link href={href}><ReferenceText value={id} field="journal_id"/></Link>
+            {' · '}{Number.isSafeInteger(count) ? `${lines.length} of ${count} journal lines shown` : `${lines.length} journal lines shown; full line count unavailable`}
+            {knownTotals ? <> · Full journal: debit <Money value={first.journal_debit}/> · credit <Money value={first.journal_credit}/> · <span className={balanced ? undefined : 'text-danger'}>{balanced ? 'Balanced' : 'Unbalanced journal - investigate'}</span></> : ' · Full journal totals unavailable'}
+          </th></tr>
+          {!complete && <tr><td colSpan={span} className="text-warning-emphasis">
+            {filtered ? 'Filtered journal: other lines may be outside this account/search selection or page.' : <>
+              {Number(first.journal_line_number) > 1 && 'Journal continued from previous page. '}
+              {Number(lines[lines.length - 1].journal_line_number) < count && 'Journal continues on next page. '}
+              {!Number.isSafeInteger(count) && 'Full journal evidence unavailable. '}
+            </>}
+            {' '}<Link href={href}>View complete posted journal</Link>. Page excerpts are not journal balancing checks.
+          </td></tr>}
+          {lines.map((row, index) => <tr key={text(row.id ?? index)}>
+            <td><DateText value={row.date}/></td><td title={text(row.account)}>{text(row.account_number ?? row.account)}</td>
+            <td>{text(row.account_name ?? row.account)}</td><td><ReferenceText value={row.description} field="description" kind={row.kind}/></td>
+            <td><Link href={`${href}#source-evidence`} aria-label={`Source evidence for ${text(row.source_document)}`}><ReferenceText value={row.source_document} kind={row.kind}/></Link></td>
+            <td className={layout.statementMoney}><Money value={row.debit}/></td><td className={layout.statementMoney}><Money value={row.credit}/></td>
+            {selectedAccount && <td className={layout.statementMoney}><LedgerBalance value={row.running_balance} normal={row.normal_balance}/></td>}
+          </tr>)}
+        </tbody>;
+      })}
+      {!rows.length && <tbody><tr><td colSpan={span}>No postings returned for this selection.</td></tr></tbody>}
+      {totals.debit != null && totals.credit != null && <tfoot><tr className={layout.statementTotal}><th scope="row" colSpan={5}>Period totals - all matching posting lines, not just this page</th>
+        <td className={layout.statementMoney}><Money value={totals.debit}/></td><td className={layout.statementMoney}><Money value={totals.credit}/></td>{selectedAccount && <td/>}
+      </tr></tfoot>}
+    </table>
+  </div>;
+}
 export function Register({ endpoint, ledger = false, report, supplier = false, initialAccount = '', actions }: {
   endpoint: string; ledger?: boolean; report?: string; supplier?: boolean; initialAccount?: string; actions?: (row: RecordData, refresh: () => void) => React.ReactNode;
 }) {
@@ -125,7 +181,7 @@ export function Register({ endpoint, ledger = false, report, supplier = false, i
       {dateSupported&&<div className={styles.field}><label htmlFor={datePresetId}>Date preset</label><DateFilterReusable id={datePresetId} className="w-100" value={preset} onChange={setPreset} onDateRangeChange={(from,to)=>setFilters({...filters,from,to})} label="Choose date range"/></div>}
       {dateSupported && <><Field label="From"><input type="date" className="form-control" value={filters.from} onChange={e => setFilters({ ...filters, from: e.target.value })}/></Field>
       <Field label="To"><input required type="date" min={filters.from || undefined} className="form-control" value={filters.to} onChange={e => setFilters({ ...filters, to: e.target.value })}/></Field></>}
-      {ledger && <Field label="Account code"><input className="form-control" value={filters.account} onChange={e => setFilters({ ...filters, account: e.target.value })}/></Field>}
+      {ledger && <Field label="Account"><input className="form-control" list="ledger-account-options" placeholder="All accounts / choose posting code" value={filters.account} onChange={e => setFilters({ ...filters, account: e.target.value })}/><datalist id="ledger-account-options">{rowsOf(data.accountBalances).map(row => <option key={text(row.account)} value={text(row.account)}>{text(row.account_number ?? row.account)} · {text(row.account_name ?? row.account)}</option>)}</datalist><small>Choose a suggested account or enter its local posting code.</small></Field>}
       {ledger && <Field label="Search"><input type="search" className="form-control" value={filters.search} onChange={e => setFilters({ ...filters, search: e.target.value })}/></Field>}
       {endpoint === 'tax-credits' && <><Field label="Original sale ID"><input className="form-control" value={filters.saleId} onChange={e => setFilters({ ...filters, saleId: e.target.value })}/></Field><Field label="Source credit ID"><input className="form-control" value={filters.sourceCreditId} onChange={e => setFilters({ ...filters, sourceCreditId: e.target.value })}/></Field></>}
       {approvalRegisters.includes(endpoint) && <Field label="Status"><select className="form-select" value={filters.status} onChange={e => setFilters({ ...filters, status: e.target.value })}><option value="">All statuses</option>{approvalStatuses(endpoint).map(status => <option key={status} value={status}>{label(status)}</option>)}</select></Field>}
@@ -135,7 +191,7 @@ export function Register({ endpoint, ledger = false, report, supplier = false, i
       <button className="btn btn-outline-secondary" type="button" disabled={resource.loading} onClick={() => resource.refresh()}>Refresh</button>
     </form>}
     <div className={`${layout.reportActions} d-print-none`}>
-      <span className="small text-muted">{resource.loading ? 'Loading records…' : resource.error ? 'Records unavailable' : serverTotal !== undefined ? plural(total, 'record') : plural(rows.length, 'returned row')}</span>
+      <span className="small text-muted">{resource.loading ? 'Loading records…' : resource.error ? 'Records unavailable' : ledger ? `${plural(rows.length, 'posting line')} on this page${serverTotal !== undefined ? ` · ${plural(total, 'matching posting line')}` : ''}${data.journalCount != null ? ` · ${plural(Number(data.journalCount), 'matching journal')}` : ''}` : serverTotal !== undefined ? plural(total, 'record') : plural(rows.length, 'returned row')}</span>
       <div className={layout.exportActions}>
       {!filterSupported && <button className="btn btn-sm btn-outline-secondary" type="button" disabled={resource.loading} onClick={() => resource.refresh()}>Refresh</button>}
       <button className="btn btn-sm btn-outline-secondary" type="button" disabled={resource.loading || !!resource.error || !resource.data} onClick={() => window.print()}>Print displayed rows</button>
@@ -150,17 +206,21 @@ export function Register({ endpoint, ledger = false, report, supplier = false, i
     {!resource.loading && !resource.error && <>
       {report && <section aria-label="Financial statement identification"><h2>{statementTitles[statement] || label(statement)}</h2><p>{applied.from && statement !== 'balance_sheet' && statement !== 'trial_balance' ? `For the period ${applied.from} to ${applied.to}` : `As at ${applied.to}`}</p><p className={styles.muted}>Pharmacy branch • accrual basis • amounts in GHS</p></section>}
       {ledger && <><h2 className="d-none d-print-block">General ledger</h2><p className={styles.muted}>{applied.from || 'Beginning of records'} — {applied.to} · {applied.account || 'All pharmacy accounts'}{applied.search ? ` · Search: ${applied.search}` : ''}</p></>}
-      {ledger && <p>Opening balance: <Money value={data.openingBalance}/> · Closing balance: <Money value={data.closingBalance}/></p>}
-      {ledger && !applied.account && rowsOf(data.accountBalances).length > 0 && <details className="mb-3"><summary>Opening and closing balances by account</summary><DataTable rows={rowsOf(data.accountBalances)} columns={['account','opening','closing']}/></details>}
-      {rowsOf(data.classificationIssues).length > 0 && <div role="alert" className="alert alert-warning"><strong>Cash-flow classification is incomplete.</strong> Unclassified movements are not assigned to operating, investing or financing activities. Resolve classification before relying on this statement.<ul>{rowsOf(data.classificationIssues).map((issue,index)=><li key={index}><ReferenceText value={issue.journalId} field="journal_id"/> - {text(issue.description)}: <Money value={issue.amount}/></li>)}</ul></div>}
+      {ledger && applied.account && <p>Opening balance: <LedgerBalance value={data.openingBalance} normal={data.normalBalance}/> · Closing balance: <LedgerBalance value={data.closingBalance} normal={data.normalBalance}/></p>}
+      {ledger && <p className={styles.muted}>{applied.account ? 'Account balances include all postings through each date; search only narrows displayed lines and period totals.' : 'Select one account to review its opening, running and closing balances. Each journal below shows its full debit and credit totals, even when the page shows only some lines.'}</p>}
+      {ledger && !applied.account && rowsOf(data.accountBalances).length > 0 && <details className="mb-3"><summary>Opening and closing balances by account</summary><DataTable rows={rowsOf(data.accountBalances)} columns={['account_number','account_name','opening','closing']} labels={{account_number:'Account code',account_name:'Account name',opening:'Opening balance',closing:'Closing balance'}} cell={(row,key)=>key==='opening'||key==='closing'?<LedgerBalance value={row[key]} normal={row.normal_balance}/>:key==='account_number'?text(row[key]):undefined}/></details>}
+      {rowsOf(data.classificationIssues).length > 0 && <div role="alert" className="alert alert-warning"><strong>Cash-flow classification is incomplete.</strong> Unclassified movements are not assigned to operating, investing or financing activities. Resolve classification before relying on this statement.{rowsOf(data.classificationIssues).map(issue=><details key={text(issue.journalId)} className="mt-2"><summary><ReferenceText value={issue.journalId} field="journal_id"/> - {text(issue.description)}: <Money value={issue.amount}/> net</summary><CashFlowAllocationForm netAmount={Number(issue.amount)} idPrefix={`pharmacy-cash-${text(issue.journalId)}`} requireReason onSave={async (allocations,reason,idempotencyKey)=>{
+        await request(`cash-flow/${encodeURIComponent(text(issue.journalId))}/classification`,'PUT',{allocations,reason,idempotencyKey});
+        await resource.refresh();
+      }}/></details>)}</div>}
       {supplier && selectedSupplier && <><h2>Supplier statement · {text(record(data.party).name||selectedName)}</h2><p>{applied.from || 'Beginning of records'} — {applied.to} · Opening: <Money value={data.openingBalance}/> · Closing: <Money value={data.closingBalance}/> · {text(data.balanceConvention)}</p></>}
       {report ? statement === 'profit_loss' && <ReportSummary data={data.summary}/> : <Facts data={data.summary}/>}
       <Capabilities data={data.capabilities}/>
       {endpoint==='tax-credits'&&data.policy!=null&&<p>Tax-credit policy: {text(data.policy)}</p>}
-      {report ? <StatementTable rows={rows} columns={columns} labels={columnLabels} totals={data.totals} title={statementTitles[statement] || label(statement)}/> : <DataTable rows={rows} labels={columnLabels} columns={columns || registerColumns(endpoint,supplier)} pageSlice={!supplier} inlineActions={ledger||endpoint==='journals'||supplier} cell={ledger?(row,key)=>key==='account'?<span title={text(row.account)}>{row.account_number?<span className="text-muted me-2">{text(row.account_number)}</span>:null}<strong>{text(row.account_name||row.account)}</strong></span>:['debit','credit','running_balance'].includes(key)?money(row[key]):undefined:undefined} actions={supplier && !selectedSupplier ? row => <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => { setSupplierId(text(row.id)); setSelectedSupplier(text(row.id));setSupplierName(text(row.name));setSelectedName(text(row.name)); setPage(1); }}>View statement</button> : actions ? row => actions(row, resource.refresh) : ledger ? row => row.journal_id ? <Link href={`/pharmacy/accounting/general-ledger/journals/${encodeURIComponent(text(row.journal_id))}`}>Inspect posted journal</Link> : null : endpoint === 'journals' ? row => <Link href={`/pharmacy/accounting/journals/${encodeURIComponent(text(row.id))}`}>Review journal</Link> : undefined}/>}
+      {report ? <StatementTable rows={rows} columns={columns} labels={columnLabels} totals={data.totals} title={statementTitles[statement] || label(statement)}/> : ledger ? <LedgerTable rows={rows} selectedAccount={!!applied.account} filtered={!!applied.account || !!applied.search} periodTotals={data.periodTotals}/> : <DataTable rows={rows} labels={columnLabels} columns={columns || registerColumns(endpoint,supplier)} pageSlice={!supplier} inlineActions={endpoint==='journals'||supplier} actions={supplier && !selectedSupplier ? row => <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => { setSupplierId(text(row.id)); setSelectedSupplier(text(row.id));setSupplierName(text(row.name));setSelectedName(text(row.name)); setPage(1); }}>View statement</button> : actions ? row => actions(row, resource.refresh) : endpoint === 'journals' ? row => <Link href={`/pharmacy/accounting/journals/${encodeURIComponent(text(row.id))}`}>Review journal</Link> : undefined}/>}
       {!report && data.totals !== undefined && <section className="mt-4"><h3>Register totals</h3>{Array.isArray(data.totals) ? <DataTable rows={rowsOf(data.totals)}/> : <DataTable rows={Object.entries(record(data.totals)).map(([key,value]) => ({ measure: label(key), value }))} columns={['measure','value']}/>}</section>}
       <p className="d-none d-print-block">Page {page} · {rows.length} displayed rows{serverTotal !== undefined ? ` of ${total}` : ''}</p>
-      {supplier||report?<p className="small text-muted mt-3">Complete returned {supplier?'supplier directory / statement':'financial statement'} · {rows.length.toLocaleString()} rows. This endpoint is not page-based.</p>:<div className={`${styles.actions} d-print-none mt-3`}><button type="button" className="btn btn-outline-secondary" disabled={page === 1 || resource.loading} onClick={() => setPage(page - 1)}>Previous</button><span>Page {page}{serverTotal !== undefined ? ` · ${plural(total, 'record')}` : ''}</span><button type="button" className="btn btn-outline-secondary" disabled={resource.loading || (serverTotal !== undefined ? page * count >= total : rows.length < count)} onClick={() => setPage(page + 1)}>Next</button><label className="d-flex align-items-center gap-2 ms-auto">Rows <select className="form-select form-select-sm w-auto" aria-label="Rows per page" value={count} onChange={e => { setCount(Number(e.target.value)); setPage(1); }}>{[25,50,100].map(n => <option key={n}>{n}</option>)}</select></label></div>}
+      {supplier||report?<p className="small text-muted mt-3">Complete returned {supplier?'supplier directory / statement':'financial statement'} · {rows.length.toLocaleString()} rows. This endpoint is not page-based.</p>:<div className={`${styles.actions} d-print-none mt-3`}><button type="button" className="btn btn-outline-secondary" disabled={page === 1 || resource.loading} onClick={() => setPage(page - 1)}>Previous</button><span>Page {page}{serverTotal !== undefined ? ` · ${plural(total, ledger ? 'matching posting line' : 'record')}` : ''}</span><button type="button" className="btn btn-outline-secondary" disabled={resource.loading || (serverTotal !== undefined ? page * count >= total : rows.length < count)} onClick={() => setPage(page + 1)}>Next</button><label className="d-flex align-items-center gap-2 ms-auto">{ledger ? 'Posting lines' : 'Rows'} <select className="form-select form-select-sm w-auto" aria-label="Rows per page" value={count} onChange={e => { setCount(Number(e.target.value)); setPage(1); }}>{[25,50,100].map(n => <option key={n}>{n}</option>)}</select></label></div>}
     </>}
   </section>;
 }

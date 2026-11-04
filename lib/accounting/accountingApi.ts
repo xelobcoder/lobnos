@@ -6,6 +6,11 @@ export interface ApiResponse<T> {
      message?: string;
      result: T;
 }
+export interface CashFlowAllocation {
+     category: "operating" | "investing" | "financing";
+     inflow: number;
+     outflow: number;
+}
 
 export interface TrialBalanceRow {
      account_code: string;
@@ -15,6 +20,7 @@ export interface TrialBalanceRow {
      debits: number;
      credits: number;
      balance: number;
+     statement_classification?: "current" | "non_current" | null;
 }
 
 export interface TrialBalance {
@@ -306,7 +312,7 @@ export const accountingApi = {
      recurringHistory(id: number, page = 1) { return customFetch(`${BASE}/recurring-expenses/${id}/occurrences${query({page,count:25})}`); },
      runDueExpenses() { return customPost(`${BASE}/recurring-expenses/run-due`, "POST", {}); },
      cashForecast(payload: any) { return customPost(`${BASE}/cash-flow-forecast`, "POST", payload); },
-     classifyCashFlow(journalEntryId: number, amounts: { operating: number; investing: number; financing: number }) { return customPost(`${BASE}/reports/cash-flow/${journalEntryId}/classification`, 'POST', amounts); },
+     classifyCashFlow(journalEntryId: number, amounts: { operating: number; investing: number; financing: number } | { allocations: CashFlowAllocation[] }) { return customPost(`${BASE}/reports/cash-flow/${journalEntryId}/classification`, 'POST', amounts); },
      controlHistory(filters: { page?: number; count?: number; action?: string; from?: string; to?: string }) { return customFetch(`${BASE}/control-history${query(filters)}`); },
      outstandingReceivables(filters: { from?: string; to?: string; search?: string; page?: number; count?: number; sortby?: string }): Promise<ApiResponse<OutstandingDocuments>> {
           return customFetch(`${BASE}/reports/receivables${query(filters)}`);
@@ -396,10 +402,11 @@ export const accountingApi = {
           return customPost(`${BASE}/bank/statement/import`, "POST", payload);
      },
 
-     importBankExcel(bankAccountId: number, file: File) {
+     importBankExcel(bankAccountId: number, file: File, dateFormat: "DMY" | "MDY" | "YMD" = "DMY") {
           const form = new FormData();
           form.append("bankAccountId", String(bankAccountId));
           form.append("file", file);
+          form.append("dateFormat", dateFormat);
           return customFile(`${BASE}/bank/statement/import-excel`, form);
      },
 
@@ -557,11 +564,11 @@ export const accountingApi = {
           return customPost(`${BASE}/daily-closes/${financialDate}/accountant-submit`, 'POST', payload);
      },
 
-     decideDailyClose(id: number, payload: { decision: 'approve' | 'reject'; pin: string; reason?: string; notes?: string; expectedVersion: number }) {
+     decideDailyClose(id: number, payload: { decision: 'approve' | 'reject'; pin: string; reason?: string; notes?: string; expectedVersion: number; overrideSegregationOfDuties?: boolean; overrideReason?: string }) {
           return customPost(`${BASE}/daily-closes/${id}/manager-decision`, 'POST', payload);
      },
 
-     finalizeDailyClose(id: number, payload: { pin: string; notes?: string; expectedVersion: number }) {
+     finalizeDailyClose(id: number, payload: { pin: string; notes?: string; expectedVersion: number; overrideSegregationOfDuties?: boolean; overrideReason?: string }) {
           return customPost(`${BASE}/daily-closes/${id}/finalize`, 'POST', payload);
      },
 

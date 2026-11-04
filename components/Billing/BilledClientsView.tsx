@@ -19,6 +19,7 @@ import usePageStickyTableHeader from "./usePageStickyTableHeader";
 const PreviousTransactionWorkspace = React.lazy(() => import("../../app/billing/transactions/previous-transaction/[billingid]/PreviousTransactionWorkspace"));
 import ISLOADING from "../isLoading";
 import DateFilterReusable from "../operations/Laboratory/ResuableFilter/DateFilterReusable";
+import { fetchSaleClosures, type SaleClosure } from "../../lib/billing/financialControls";
 
 export interface BillingSourceOption {
 	value: number;
@@ -127,6 +128,32 @@ export default function BilledClientsView({
     const [paymentFilter, setPaymentFilter] = useState('');
     const [transactionFilter, setTransactionFilter] = useState('');
 	const [viewMode, setViewMode] = useState<'sales' | 'expenses'>('sales');
+    const [closures, setClosures] = useState<Map<number, SaleClosure>>(new Map());
+    const [closureLoading, setClosureLoading] = useState(true);
+    const [closureError, setClosureError] = useState("");
+    const closureIds = useMemo(() => [...new Set((data || []).map(row => Number(row.billingid)).filter(id => Number.isSafeInteger(id) && id > 0))].join(","), [data]);
+    useEffect(() => {
+        let active = true, generation = 0;
+        const refresh = async () => {
+            const request = ++generation;
+            setClosureLoading(true); setClosureError(""); setClosures(new Map());
+            try {
+                const result = await fetchSaleClosures(closureIds ? closureIds.split(",").map(Number) : []);
+                if (active && request === generation) setClosures(result);
+            } catch (error) {
+                if (active && request === generation) setClosureError(error instanceof Error ? error.message : "Sale closure status is unavailable.");
+            } finally { if (active && request === generation) setClosureLoading(false); }
+        };
+        void refresh();
+        window.addEventListener("focus", refresh);
+        return () => { active = false; generation++; window.removeEventListener("focus", refresh); };
+    }, [closureIds, data]);
+    const saleIsOpen = (billingid: number) => !closureLoading && !closureError && closures.get(Number(billingid))?.closed_status === "OPEN";
+    const requireOpenSale = (billingid: number) => {
+        if (saleIsOpen(billingid)) return true;
+        alert(closures.get(Number(billingid))?.closed_status === "CLOSED" ? "This sale is closed and read-only. Use an authorized linked correction, not a historical edit." : "Wait until the sale's closure status has been verified.");
+        return false;
+    };
     const tableViewportRef = useRef<HTMLDivElement>(null);
     usePageStickyTableHeader(tableViewportRef, `${viewMode}:${isLoading}`);
 	const [showViewMore, setShowViewMore] = useState<boolean>(false);
@@ -168,6 +195,7 @@ export default function BilledClientsView({
 	}
 
 	function openAdjustModal(billingid: number, patientid: number | string): void {
+        if (!requireOpenSale(billingid)) return;
 		setModalType('adjust');
 		setModalBillingId(billingid);
 		setModalPatientId(patientid);
@@ -192,6 +220,7 @@ export default function BilledClientsView({
 	);
 
 	function openUpdateModal(billingid: number, patientid: number | string): void {
+        if (!requireOpenSale(billingid)) return;
 		setModalType('update');
 		setModalBillingId(billingid);
 		setModalPatientId(patientid);
@@ -206,6 +235,7 @@ export default function BilledClientsView({
 	}
 
 	function handleAdjustmentModalContinue(): void {
+        if (!modalBillingId || !requireOpenSale(modalBillingId)) return;
 		closeModal();
 		window.location.reload();
 	}
@@ -237,7 +267,7 @@ export default function BilledClientsView({
 		}
 		const encPatientId = plsEncryption(modalPatientId.toString());
 		const encReason = encodeURIComponent(finalReason);
-		const adjustmentType = modalType === 'update' ? 'addition' : 'correction';
+		const adjustmentType = 'addition';
 		const url = `/billing/patientid/${encPatientId}/multi?billingid=${modalBillingId}&isNewTransaction=0&&isRelatedBilling=1&&adjustmentReason=${encReason}&&adjustmentType=${adjustmentType}&&isAdjustment=1&&employeeid=${employeeid}`;
 		router.push(url);
 	}
@@ -245,6 +275,7 @@ export default function BilledClientsView({
 	const handleVoidTransaction = async (row) => {
 		const billingid = row?.billingid;
 		if (!billingid) return;
+        if (!requireOpenSale(billingid)) return;
 		const confirmVoid = window.confirm(`Are you sure you want to void transaction #${billingid}? This action cannot be undone.`);
 		if (!confirmVoid) return;
 		try {
@@ -311,6 +342,14 @@ export default function BilledClientsView({
 		{ Header: "Surcharge", accessor: "surcharge", title: "Surcharge Amount", Cell: ({ value }) => <div>{formatBillMoney(value)}</div> },
 		{ Header: "Write-off", accessor: "writeoff", title: "Write Off Amount", Cell: ({ value }) => <div>{formatBillMoney(value)}</div> },
 		{ Header: "Transaction Status", accessor: "status", title: "Transaction Status", Cell: ({ value }) => value ? <span className={value === 'voided' ? 'text-secondary' : value === 'active' ? 'text-success' : 'text-muted'}>{value}</span> : <span className="text-muted">-</span> },
+        { Header: "Sales closing", accessor: "closed_status", title: "Administrator-approved sales closing", Cell: ({ row }) => {
+            const closure = closures.get(Number(row.original.billingid));
+            if (closureLoading) return <span className="text-muted">Verifying...</span>;
+            if (!closure || closureError) return <span className="text-danger">Unverified</span>;
+            if (closure.closed_status === "OPEN") return <span className="d-flex flex-column"><span>Open</span>{isAdmin && <a href={`/accounting/daily-close?financialDate=${dayjs(row.original.billedon).format("YYYY-MM-DD")}`}>Review day close</a>}</span>;
+            const evidence = closure.closure_evidence;
+            return <span className="d-flex flex-column"><strong>Closed - read-only</strong>{evidence?.closed_at && <small>{dayjs(evidence.closed_at).format("DD MMM YYYY, HH:mm")}</small>}{evidence?.closure_id && <a href={`/accounting/daily-close?closeId=${evidence.closure_id}`}>View sign-off #{evidence.closure_id}</a>}{evidence?.signed_off && !evidence.closure_id && <small>Administrator signed off</small>}</span>;
+        }},
 		{
 			Header: "Payment Status", accessor: "paymentstatus", title: "Payment Status", Cell: ({ value, row }) => {
 				if (row.original?.status === 'voided') {
@@ -345,6 +384,7 @@ export default function BilledClientsView({
 							</Dropdown.Toggle>
 							<Dropdown.Menu align="end" className="shadow-sm" popperConfig={{strategy: "fixed"}}>
 								<Dropdown.Item
+                                    disabled={!saleIsOpen(row.original.billingid)}
 									className="d-flex align-items-center gap-2 py-2 px-3"
 									onClick={() => openAdjustModal(row.original.billingid, row.original.patientid)}
 									as="button"
@@ -352,6 +392,7 @@ export default function BilledClientsView({
 									<RiEdit2Line size={16} /> Correct Billing Source
 								</Dropdown.Item>
 								<Dropdown.Item
+                                    disabled={!saleIsOpen(row.original.billingid)}
 									onClick={() => openUpdateModal(row.original.billingid, row.original.patientid)}
 									as="button"
 									className="d-flex align-items-center gap-2 py-2 px-3"
@@ -379,6 +420,7 @@ export default function BilledClientsView({
 									<RiFileList2Line size={16} /> View Transactions Details
 								</Dropdown.Item>
 								<Dropdown.Item
+                                    disabled={!saleIsOpen(row.original.billingid)}
 									className="d-flex align-items-center gap-2 py-2 px-3"
 									onClick={(ev) => { handleVoidTransaction(row.original) }}
 								>
@@ -391,7 +433,7 @@ export default function BilledClientsView({
 								>
 									<RiEyeLine size={16} /> View More
 								</Dropdown.Item>
-								{outstandingBill > 0 && (
+								{outstandingBill > 0 && saleIsOpen(row.original.billingid) && (
 									<>
 										<Dropdown.Divider />
 										<Dropdown.Item
@@ -426,6 +468,8 @@ export default function BilledClientsView({
 
 	return (
         <div>
+            {closureError && <p className="alert alert-danger" role="alert">{closureError} Financial changes are disabled. Refocus or reload this page to retry verification.</p>}
+            <p className="small text-muted">Closed sales are read-only; receipts and transaction details remain available. {isAdmin && <a href="/accounting/daily-close">Review and finalize sales closing</a>}</p>
             <Offcanvas id="billed-client-tests" show={!!viewedBill} onHide={() => setViewedBill(null)} placement="end" className={tableLayout.testsOffcanvas} aria-labelledby="billed-client-tests-title">
                 <Offcanvas.Header closeButton>
                     <div><Offcanvas.Title id="billed-client-tests-title">Tests &amp; transaction · Bill #{viewedBill?.billingid}</Offcanvas.Title><div className="small text-muted mt-1">{viewedBill?.fullname} · {viewedBill?.fullpatientid}</div></div>
@@ -480,7 +524,7 @@ export default function BilledClientsView({
             <AdjustBillingSourceModal
 				show={showModal && modalType === 'adjust'}
 				onClose={closeModal}
-				onContinue={handleAdjustmentModalContinue}
+				onContinue={() => { closeModal(); window.location.reload(); }}
 				options={options}
 				billingid={modalBillingId}
 			/>

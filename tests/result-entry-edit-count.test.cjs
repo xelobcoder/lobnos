@@ -17,6 +17,7 @@ function mountResultForm(countRequest) {
     vm.runInNewContext(compiled, {
         exports, console: { log() {} },
         require(name) {
+            if (name.endsWith('resultSaveSession')) return { createResultSaveSession: () => ({}) };
             if (name === 'react') return {
                 useState(initial) {
                     const index = states.length;

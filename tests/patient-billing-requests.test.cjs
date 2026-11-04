@@ -13,7 +13,7 @@ function load(file, mocks = () => { throw new Error('Unexpected dependency'); })
         compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
     });
     assert.deepEqual(compiled.diagnostics, []);
-    vm.runInNewContext(compiled.outputText, { exports, console: { log() {} }, require: mocks });
+    vm.runInNewContext(compiled.outputText, { exports, console: { log() {} }, require: name => name.includes('submissionIdentity') ? { billingSubmissionIdentity: () => ({key:'test-submission-request-0001',complete(){}}) } : mocks(name) });
     return exports;
 }
 const helpers = load('lib/patientBillingRequests.ts');

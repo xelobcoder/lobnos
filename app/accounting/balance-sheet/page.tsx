@@ -7,72 +7,73 @@ import { currencyFormatter } from "../../../components/Auth/customFetch";
 import DateFilterReusable from "../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 import { accountingApi, BalanceSheet, TrialBalanceRow } from "../../../lib/accounting/accountingApi";
 
-const CURRENT_ASSETS = ["acc-1000", "acc-1001", "acc-1002", "acc-1003", "acc-1004", "acc-1005"];
-const NON_CURRENT_ASSETS = ["acc-1006", "acc-1007"];
-const NON_CURRENT_LIABILITIES = ["acc-2001"];
-const CONTRA_ASSETS = ["acc-1007"];
-
 function money(value: number): string {
      return currencyFormatter.format(Number(value || 0));
-}
-
-function sum(rows: TrialBalanceRow[]): number {
-     return rows.reduce((total, row) => total + Number(row.balance || 0), 0);
 }
 
 export default function BalanceSheetPage() {
      const [asOf, setAsOf] = useState(dayjs().format("YYYY-MM-DD"));
      const [dateFilter, setDateFilter] = useState("Today");
      const [sheet, setSheet] = useState<BalanceSheet | null>(null);
-     const [loading, setLoading] = useState(false);
+     const [loading, setLoading] = useState(true);
      const [error, setError] = useState<string | null>(null);
+     const [loadedAsOf, setLoadedAsOf] = useState<string | null>(null);
      const latestRequest = useRef(0);
 
      const load = useCallback(async () => {
           const requestId = ++latestRequest.current;
           setLoading(true);
           setError(null);
+          setSheet(null);
+          setLoadedAsOf(null);
           try {
                const response = await accountingApi.balanceSheet(asOf);
                if (requestId !== latestRequest.current) return;
-               if (response?.result) setSheet(response.result);
-               else setError(response?.message || "Unable to load the balance sheet");
-          } catch (err: any) {
-               setError(err?.message || "Unable to load the balance sheet");
+               if (response?.status !== "success" || !response.result?.totals ||
+                    !["assets","liabilities","equity"].every(key => Array.isArray(response.result[key as "assets" | "liabilities" | "equity"])) ||
+                    !["assets","liabilities","equity","retainedProfit","liabilitiesAndEquity","difference"].every(key => {
+                         const value = response.result.totals[key as keyof BalanceSheet["totals"]];
+                         return typeof value === "number" && Number.isFinite(value);
+                    })) throw new Error(response?.message || "The balance sheet is unavailable or incomplete.");
+               setSheet(response.result);
+               setLoadedAsOf(asOf);
+          } catch (err) {
+               if (requestId === latestRequest.current) setError(err instanceof Error ? err.message : "Unable to load the balance sheet");
           } finally {
                if (requestId === latestRequest.current) setLoading(false);
           }
      }, [asOf]);
 
      useEffect(() => {
-          load();
+          void load();
+          return () => { latestRequest.current++; };
      }, [load]);
 
      const totals = sheet?.totals;
-     const outOfBalance = Math.abs(totals?.difference || 0) > 0.01;
+     const ready = !!sheet && !loading && !error && loadedAsOf === asOf;
+     const outOfBalance = !!totals && (Math.round(totals.difference * 100) !== 0 ||
+          Math.round(totals.assets * 100) !== Math.round(totals.liabilitiesAndEquity * 100));
 
      const assets = (sheet?.assets || []).filter((row) => row.balance !== 0);
      const liabilities = (sheet?.liabilities || []).filter((row) => row.balance !== 0);
      const equity = (sheet?.equity || []).filter((row) => row.balance !== 0);
 
-     const currentAssets = assets.filter((row) => CURRENT_ASSETS.includes(row.account_code));
-     const nonCurrentAssets = assets.filter((row) => NON_CURRENT_ASSETS.includes(row.account_code));
-     const otherAssets = assets.filter(
-          (row) => !CURRENT_ASSETS.includes(row.account_code) && !NON_CURRENT_ASSETS.includes(row.account_code)
-     );
-
-     const nonCurrentLiabilities = liabilities.filter((row) => NON_CURRENT_LIABILITIES.includes(row.account_code));
-     const currentLiabilities = liabilities.filter((row) => !NON_CURRENT_LIABILITIES.includes(row.account_code));
+     const currentAssets = assets.filter(row => row.statement_classification === "current");
+     const nonCurrentAssets = assets.filter(row => row.statement_classification === "non_current");
+     const otherAssets = assets.filter(row => !["current","non_current"].includes(row.statement_classification || ""));
+     const nonCurrentLiabilities = liabilities.filter(row => row.statement_classification === "non_current");
+     const currentLiabilities = liabilities.filter(row => row.statement_classification === "current");
+     const otherLiabilities = liabilities.filter(row => !["current","non_current"].includes(row.statement_classification || ""));
 
      const line = (row: TrialBalanceRow) => {
-          const isContra = CONTRA_ASSETS.includes(row.account_code);
+          const isContra = row.type === "asset" && row.normal_balance === "credit";
           return (
                <tr key={row.account_code}>
                     <td className="ps-5">
                          {isContra ? "Less: " : ""}
                          {row.name}
                     </td>
-                    <td className="text-end">{money(isContra ? -Math.abs(row.balance) : row.balance)}</td>
+                    <td className="text-end">{money(isContra ? -row.balance : row.balance)}</td>
                </tr>
           );
      };
@@ -111,6 +112,7 @@ export default function BalanceSheetPage() {
 
      return (
           <ReportShell basis="accrual"
+               exportable={ready}
                title="Balance Sheet"
                subtitle="Assets against liabilities and equity, classified into current and non-current"
                reportTitle="BALANCE SHEET"
@@ -130,8 +132,10 @@ export default function BalanceSheetPage() {
                     </>
                }
           >
-               {error && <div className="alert alert-danger py-2">{error}</div>}
-
+               {error && <div role="alert" className="alert alert-danger py-2">{error}<button type="button" className="btn btn-sm btn-outline-danger ms-3" onClick={load}>Retry balance sheet</button></div>}
+               {!ready && !error && <p role="status">Loading balance sheet for the selected date...</p>}
+               {ready && <>
+               {(otherAssets.length > 0 || otherLiabilities.length > 0) && <p role="alert" className="alert alert-warning">Some accounts have no current/non-current classification. They are shown as unclassified, not inferred from their account numbers.</p>}
                <div className={`alert d-flex align-items-center gap-2 py-4 ${outOfBalance ? "alert-danger alert-danger-subtle" : "alert-success alert-success-subtle"}`}>
                     {outOfBalance ? <RiErrorWarningLine size={18} /> : <RiCheckboxCircleLine size={18} />}
                     <span>
@@ -149,12 +153,13 @@ export default function BalanceSheetPage() {
                               {heading("Assets")}
                               {group("Current Assets", currentAssets)}
                               {group("Non-current Assets", nonCurrentAssets)}
-                              {group("Other Assets", otherAssets)}
+                              {group("Unclassified Assets", otherAssets)}
                               {total("Total Assets", totalAssets, true)}
 
                               {heading("Liabilities")}
                               {group("Current Liabilities", currentLiabilities)}
                               {group("Non-current Liabilities", nonCurrentLiabilities)}
+                              {group("Unclassified Liabilities", otherLiabilities)}
                               {total("Total Liabilities", totalLiabilities, true)}
 
                               {heading("Equity")}
@@ -181,6 +186,7 @@ export default function BalanceSheetPage() {
                     Current Year Profit is income less expenses for the period and sits in equity until the year-end close moves
                     it into retained earnings.
                </p>
+               </>}
           </ReportShell>
      );
 }

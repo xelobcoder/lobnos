@@ -10,6 +10,7 @@ import { toast } from 'react-toastify';
 import { useSearchParams } from 'next/navigation';
 import { plsDecryption, plsEncryption } from '../../../lib/encryption';
 import { useApplication } from '../../../components/Auth/useApplicationContext';
+import { fetchSaleClosures } from '../../../lib/billing/financialControls';
 
 interface ServiceDetail {
      totalpayable: string; totalcost: string; serviceid: number; service_name: string;
@@ -17,6 +18,7 @@ interface ServiceDetail {
      amountIncurredDueTax: string; isRefunded: boolean; amountRefunded: number;
 }
 interface BillingRecord {
+     closed_status?: "OPEN" | "CLOSED";
      billingid: number; patientid: number; totalTransactionCost: string; totalcost: string;
      paid: string; payable: string; totalrefunded: string; discount: string; outstanding: string;
      balance: string; billedon: string; clientstatus: string; year: number; month: number;
@@ -27,10 +29,11 @@ interface BillingRecord {
      adjustmentdate: string | null; adjustmentamount: string | null; additionalinformation: string | null;
      writeoff: string; serviceDetails: ServiceDetail[];
 }
-interface BulkOutstandingResponse { success: boolean; data: { outstandingAmount: string; records: BillingRecord[] }; }
+interface BulkOutstandingResponse { success: boolean; message?: string; data: { outstandingAmount: string; records: BillingRecord[] }; }
 interface PaymentMode { KeyID: number; PaymentMode: string; }
 interface StagedService { payment: string; waiveOff: string; error: boolean; }
 interface OutstandingRow {
+     closed_status?: "OPEN" | "CLOSED";
      billingid: number; patientid: number; billedon: string; payable: string; paid: string; outstanding: string;
      fullpatientid: string | null; mobile_number: string | null; patient_name: string | null; age_days: number;
 }
@@ -51,6 +54,9 @@ const money = (n: number) =>
 
 export default function CashCollection() {
      const paymentAttempt = useRef<{ fingerprint: string; key: string } | null>(null);
+     const searchGeneration = useRef(0);
+     const [searchError, setSearchError] = useState('');
+     const [listError, setListError] = useState('');
      const [searchPatientId, setSearchPatientId]       = useState<string>('');
      const [cashierCode, setCashierCode] = useState('');
      const [searchBillingId, setSearchBillingId]       = useState<string>('');
@@ -89,15 +95,19 @@ export default function CashCollection() {
           let cancelled = false;
           (async () => {
                setListLoading(true);
+               setListError('');
+               setOutstandingList(null);
                try {
                     let url = `billing/client/outstanding-list?page=${listPage}&count=25`;
                     if (listRange.start && listRange.end) url += `&startDate=${listRange.start}&endDate=${listRange.end}`;
                     if (debouncedSearch) url += `&search=${encodeURIComponent(debouncedSearch)}`;
                     const r: any = await customFetch(url);
-                    if (!cancelled && r?.success) setOutstandingList(r.data);
-                    else if (!cancelled) toast.error('Could not load outstanding bills');
-               } catch {
-                    if (!cancelled) toast.error('Could not load outstanding bills');
+                    if (!r?.success || !r.data) throw new Error(r?.message || 'Could not load outstanding bills');
+                    const records: OutstandingRow[] = r.data.records;
+                    const closures = await fetchSaleClosures(records.map(row => Number(row.billingid)));
+                    if (!cancelled) setOutstandingList({ ...r.data, records: records.map(row => ({ ...row, closed_status: closures.get(Number(row.billingid))?.closed_status })) });
+               } catch (error) {
+                    if (!cancelled) setListError(error instanceof Error ? error.message : 'Could not load outstanding bills');
                } finally {
                     if (!cancelled) setListLoading(false);
                }
@@ -106,6 +116,7 @@ export default function CashCollection() {
      }, [hasSearched, listRange, debouncedSearch, listPage, listReload]);
 
      const collectFor = (row: OutstandingRow) => {
+          if (row.closed_status !== "OPEN") { toast.error("This sale is closed or unverified. Historical financial changes are unavailable."); return; }
           preselectBilling.current = row.billingid;
           setSearchPatientId(String(row.patientid));
           setSearchBillingId('');
@@ -113,6 +124,9 @@ export default function CashCollection() {
      };
 
      const backToList = () => {
+          searchGeneration.current++;
+          setSearchError('');
+          setIsLoading(false);
           setPaidBills([]);
           setHasSearched(false);
           setBillingRecords([]);
@@ -155,6 +169,14 @@ export default function CashCollection() {
           let cashierLookup = false;
           
           if (!pId.trim() && !bId.trim()) return;
+          const generation = ++searchGeneration.current;
+          setSearchError('');
+          setBillingRecords([]);
+          setSelectedBillingId(null);
+          setPatientInfo(null);
+          setPatientId(null);
+          setStagedData({});
+          setGlobalWaiveOff('');
           
           setIsLoading(true);
           setHasSearched(true);
@@ -164,22 +186,11 @@ export default function CashCollection() {
                setStagedData({}); setGlobalPaymentMode(''); setTendered(''); setPaidBills([]);
                try {
                     const match: any = await customFetch(`billing/lab-counter/lookup?code=${encodeURIComponent(bId.trim())}`);
+                    if (generation !== searchGeneration.current) return;
                     if (match?.status !== true || !match.data) throw new Error(match?.message || 'Cashier code not found');
                     bId = String(match.data.billingid); pId = String(match.data.patientid); searchStatus = 'all';
                     setSearchBillingId(bId); setSearchPatientId(pId); setStatusFilter('all');
-               } catch (error) { toast.error(error instanceof Error ? error.message : 'Unable to find this cashier code'); setIsLoading(false); return; }
-          }
-
-          if (pId.trim() && !isNaN(parseInt(pId))) {
-               try {
-                    const info = await fetchPatientPersonalInfo(parseInt(pId)) as any;
-                    if (info?.result) {
-                         setPatientInfo(info.result);
-                         setPatientId(parseInt(pId));
-                    }
-               } catch (e) {
-                    console.error("Initial patient info fetch failed", e);
-               }
+               } catch (error) { if (generation === searchGeneration.current) { setSearchError(error instanceof Error ? error.message : 'Unable to find this cashier code'); setIsLoading(false); } return; }
           }
 
           try {
@@ -188,9 +199,13 @@ export default function CashCollection() {
                if (bId.trim()) url += `&billingid=${bId}`;
                
                const r = await customFetch(url) as BulkOutstandingResponse;
+               if (generation !== searchGeneration.current) return;
+               if (!r?.success || !Array.isArray(r.data?.records)) throw new Error(r?.message || 'Outstanding bills could not be loaded. No balance has been verified.');
                
                if (r?.success && r?.data?.records?.length > 0) {
-                    setBillingRecords(r.data.records);
+                    const closures = await fetchSaleClosures(r.data.records.map(row => Number(row.billingid)));
+                    if (generation !== searchGeneration.current) return;
+                    setBillingRecords(r.data.records.map(row => ({ ...row, closed_status: closures.get(Number(row.billingid))?.closed_status })));
                     if (cashierLookup) setPaidBills(r.data.records.filter(rec => Number(rec.paid) > 0).map(rec => rec.billingid));
                     
                     const recordIds = r.data.records.map(rec => rec.billingid);
@@ -210,12 +225,15 @@ export default function CashCollection() {
 
                     const actualPatientId = r.data.records[0].patientid;
                     
-                    if (actualPatientId !== patientId) {
+                    if (actualPatientId) {
                          setPatientId(actualPatientId);
+                         setPatientInfo(null);
                          try {
                               const info = await fetchPatientPersonalInfo(actualPatientId) as any;
-                              if (info?.result) setPatientInfo(info.result);
-                         } catch { }
+                              if (generation !== searchGeneration.current) return;
+                              if (!info?.result) throw new Error('Patient information is unavailable');
+                              setPatientInfo(info.result);
+                         } catch { if (generation === searchGeneration.current) toast.error('Bills loaded, but patient information is unavailable. Verify the patient before collecting.'); }
                     }
                     
                     setStagedData({});
@@ -232,20 +250,22 @@ export default function CashCollection() {
                     setStagedData({});
                     setGlobalWaiveOff('');
                }
-          } catch { 
+          } catch (error) {
+               if (generation !== searchGeneration.current) return;
+               setSearchError(error instanceof Error ? error.message : 'Outstanding bills could not be loaded. No balance has been verified.');
                setBillingRecords([]); 
                if (pId.trim()) setPatientId(pId);
                if (bId.trim()) setSelectedBillingId(bId);
                setStagedData({});
                setGlobalWaiveOff('');
           } finally { 
-               setIsLoading(false); 
+               if (generation === searchGeneration.current) setIsLoading(false);
           }
      };
 
      const payAllOutstanding = () => {
           const newData: { [key: number]: StagedService } = {};
-          billingRecords.forEach(r => r.serviceDetails.forEach(s => {
+          billingRecords.filter(r => r.closed_status === "OPEN").forEach(r => r.serviceDetails.forEach(s => {
                const bal = parseFloat(s.totalpayable) - parseFloat(s.paidamount);
                if (s.paymentstatus !== 'paid' && bal > 0) {
                     newData[s.serviceid] = { payment: bal.toFixed(2), waiveOff: '', error: false };
@@ -258,6 +278,7 @@ export default function CashCollection() {
      const payBillingRecord = (billingId: number) => {
           const record = billingRecords.find(r => r.billingid === billingId);
           if (!record) return;
+          if (record.closed_status !== "OPEN") { toast.error("This sale is closed or unverified."); return; }
           
           const newData: { [key: number]: StagedService } = {};
           record.serviceDetails.forEach(s => {
@@ -287,7 +308,7 @@ export default function CashCollection() {
                return;
           }
 
-          const outstandingServices = billingRecords.flatMap(r => 
+          const outstandingServices = billingRecords.filter(r => r.closed_status === "OPEN").flatMap(r =>
                r.serviceDetails.filter(s => s.paymentstatus !== 'paid' && (parseFloat(s.totalpayable) - parseFloat(s.paidamount)) > 0)
           );
           
@@ -313,6 +334,10 @@ export default function CashCollection() {
      };
 
      const handleValueChange = (serviceId: number, type: 'payment' | 'waiveOff', value: string, balance: number) => {
+          if (!billingRecords.some(record => record.closed_status === "OPEN" && record.serviceDetails.some(service => service.serviceid === serviceId))) {
+               toast.error("This sale is closed or unverified. Its historical amounts cannot be changed.");
+               return;
+          }
           setStagedData(prev => {
                const current = prev[serviceId] || { payment: '', waiveOff: '', error: false };
                let updated = { ...current, [type]: value };
@@ -375,6 +400,10 @@ export default function CashCollection() {
 
      const handleSubmit = async () => {
           if (!canSubmit) return;
+          if (stagedEntries.some(([serviceId]) => !billingRecords.some(record => record.closed_status === "OPEN" && record.serviceDetails.some(service => service.serviceid === Number(serviceId))))) {
+               toast.error("A staged sale is closed or unverified. Reload its current status before collecting.");
+               return;
+          }
           const allPayments: any[] = [];
           
           stagedEntries.forEach(([svcId, data]) => {
@@ -438,6 +467,7 @@ export default function CashCollection() {
                <label htmlFor="collection-status">Payment status<select id="collection-status" className="form-select" value={statusFilter} onChange={event=>setStatusFilter(event.target.value)}><option value="all">All</option><option value="pending">Pending</option><option value="completed">Completed</option></select></label>
                <button className="btn btn-primary" type="submit" disabled={isLoading||(!cashierCode.trim()&&!searchPatientId.trim()&&!searchBillingId.trim())}>{isLoading?'Finding bill…':'Find bill'}</button>
           </form>
+          {!hasSearched && listError && <div role="alert" className="alert alert-danger">{listError}<button type="button" className="btn btn-sm btn-outline-danger ms-2" onClick={() => setListReload(n => n + 1)}>Retry outstanding bills</button></div>}
           <ol className={styles.steps}><li><span>1</span> Find the patient’s bill</li><li><span>2</span> Review services and amounts</li><li><span>3</span> Collect payment & print</li></ol>
           <div>
                <div className="d-flex align-items-center justify-content-between mb-3">
@@ -580,7 +610,7 @@ export default function CashCollection() {
                                                             <td className="text-end fw-bold text-danger">{money(Number(r.outstanding))}</td>
                                                             <td><span className={`badge bg-${ageTone}-subtle text-${ageTone}-emphasis`}>{days === 0 ? 'Today' : `${days}d`}</span></td>
                                                             <td className="text-end">
-                                                                 <button className="btn btn-sm btn-success" onClick={e => { e.stopPropagation(); collectFor(r); }}>Collect</button>
+                                                                 <button className="btn btn-sm btn-success" disabled={r.closed_status !== "OPEN"} onClick={e => { e.stopPropagation(); collectFor(r); }}>{r.closed_status === "CLOSED" ? "Closed" : "Collect"}</button>
                                                             </td>
                                                        </tr>
                                                   );
@@ -603,6 +633,8 @@ export default function CashCollection() {
                               <div className="p-3" style={{ minHeight: 320 }}>
                                    {[1, 2, 3].map(i => <SkeletonRow key={i} />)}
                               </div>
+                         ) : searchError ? (
+                              <div role="alert" className="alert alert-danger m-3">{searchError}<button type="button" className="btn btn-sm btn-outline-danger ms-2" onClick={() => void doSearch()}>Retry bill search</button></div>
                          ) : billingRecords.length === 0 ? (
                               <div className="d-flex flex-column align-items-center justify-content-center text-center py-5" style={{ minHeight: 320 }}>
                                    <div style={{ fontSize: '3.5rem', opacity: 0.2 }}>📭</div>
@@ -662,6 +694,7 @@ export default function CashCollection() {
                                                        >
                                                             <div className="d-flex justify-content-between align-items-baseline">
                                                                  <span className="fw-semibold">#{record.billingid}</span>
+                                                                 {record.closed_status === "CLOSED" && <span className="text-secondary fw-semibold">Closed - read-only</span>}
                                                                  <span className={`fw-bold text-${outstanding > 0 ? 'danger' : 'secondary'}`} style={{ fontVariantNumeric: 'tabular-nums', textDecoration: hasAdjustment ? 'line-through' : 'none', opacity: hasAdjustment ? 0.6 : 1 }}>
                                                                       ₵{outstanding.toFixed(2)}
                                                                  </span>
@@ -681,7 +714,7 @@ export default function CashCollection() {
                                                                  </div>
                                                             )}
                                                             {((netOutstanding > 0 && isSelected) || Number(record.paid) > 0) && <div className={styles.billActions}>
-                                                                 {netOutstanding > 0 && isSelected && <button type="button" className="btn btn-primary" onClick={event=>{event.stopPropagation();payBillingRecord(record.billingid);}}>Use full balance</button>}
+                                                                 {netOutstanding > 0 && isSelected && <button type="button" className="btn btn-primary" disabled={record.closed_status !== "OPEN"} onClick={event=>{event.stopPropagation();payBillingRecord(record.billingid);}}>Use full balance</button>}
                                                                  {Number(record.paid)>0 && <Link className="btn btn-outline-secondary" href={`/billing/cash-collection/pos-receipt-test?billingid=${record.billingid}&is_pos=true`} target="_blank" rel="noopener noreferrer" prefetch={false} aria-label={`Reprint receipt for bill ${record.billingid}`} onClick={event=>event.stopPropagation()}><RiPrinterLine size={16} aria-hidden="true"/>Reprint receipt</Link>}
                                                             </div>}
                                                        </div>

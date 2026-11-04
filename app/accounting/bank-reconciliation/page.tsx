@@ -3,67 +3,23 @@ import { RiBankLine, RiCheckboxCircleLine, RiErrorWarningLine, RiMagicLine, RiUp
 import dayjs from "dayjs";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import * as XLSX from "xlsx";
 import ReportShell from "../../../components/accounting/ReportShell";
 import { currencyFormatter } from "../../../components/Auth/customFetch";
 import { accountingApi, BankAccount } from "../../../lib/accounting/accountingApi";
+import { parseBankStatement, type BankDateFormat } from "../../../lib/accounting/bankStatement";
 
 function money(value: number): string {
      return currencyFormatter.format(Number(value || 0));
 }
 
-function parseStatement(rows: unknown[][]) {
-     const lines: Array<{ txnDate: string; description?: string; reference?: string; amount: number }> = [];
-     const problems: string[] = [];
-
-     rows.forEach((row, index) => {
-          const parts = row.map((part) => String(part ?? "").trim());
-          if (parts.length < 2) return;
-
-          const rawDate = row[0];
-          const excelDate = typeof rawDate === "number" ? XLSX.SSF.parse_date_code(rawDate) : null;
-          const date = rawDate instanceof Date
-               ? dayjs(rawDate)
-               : excelDate
-                    ? dayjs(new Date(excelDate.y, excelDate.m - 1, excelDate.d, excelDate.H, excelDate.M, excelDate.S))
-                    : dayjs(String(rawDate), ["YYYY-MM-DD", "DD/MM/YYYY", "DD-MM-YYYY", "MM/DD/YYYY"], false);
-          if (!date.isValid()) {
-               if (index > 0 || !/date/i.test(parts[0])) problems.push(`Line ${index + 1}: unreadable date "${parts[0]}"`);
-               return;
-          }
-
-          let amount = NaN;
-          if (parts.length >= 5) {
-               const debit = Number(String(parts[3]).replace(/[^0-9.-]/g, ""));
-               const credit = Number(String(parts[4]).replace(/[^0-9.-]/g, ""));
-               amount = (isFinite(credit) ? credit : 0) - (isFinite(debit) ? debit : 0);
-          } else {
-               amount = Number(String(parts[parts.length - 1]).replace(/[^0-9.-]/g, ""));
-          }
-
-          if (!isFinite(amount) || amount === 0) {
-               problems.push(`Line ${index + 1}: unreadable amount`);
-               return;
-          }
-
-          lines.push({
-               txnDate: date.format("YYYY-MM-DD"),
-               description: parts[1] || undefined,
-               reference: parts.length >= 4 ? parts[2] : undefined,
-               amount,
-          });
-     });
-
-     return { lines, problems };
-}
-
-async function readExcelFile(file: File) {
+async function readExcelFile(file: File, format: BankDateFormat) {
      const workbook = XLSX.read(await file.arrayBuffer(), { type: "array", cellDates: true });
      const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
      if (!firstSheet) throw new Error("The workbook has no worksheet");
-     return parseStatement(XLSX.utils.sheet_to_json(firstSheet, { header: 1, raw: true, defval: "" }) as unknown[][]);
+     return parseBankStatement(XLSX.utils.sheet_to_json(firstSheet, { header: 1, raw: true, defval: "" }) as unknown[][], format, !!workbook.Workbook?.WBProps?.date1904);
 }
 
 export default function BankReconciliationPage() {
@@ -83,41 +39,87 @@ export default function BankReconciliationPage() {
      const [selectedFile, setSelectedFile] = useState<File | null>(null);
      const [parsed, setParsed] = useState<{ lines: Array<{ txnDate: string; description?: string; reference?: string; amount: number }>; problems: string[] }>({ lines: [], problems: [] });
      const [busy, setBusy] = useState(false);
+     const [dateFormat, setDateFormat] = useState<BankDateFormat>("DMY");
+     const [statementPage, setStatementPage] = useState(1);
+     const [statementTotal, setStatementTotal] = useState<number | null>(null);
+     const [loadError, setLoadError] = useState("");
+     const latestRequest = useRef(0);
+     const latestPreview = useRef(0);
+     const [previewLoading, setPreviewLoading] = useState(false);
+     const context = JSON.stringify([bankAccountId, from, to, statementBalance, statementPage]);
+     const [loadedContext, setLoadedContext] = useState("");
+     const ready = !!summary && !busy && !loadError && loadedContext === context;
+
+     const readPreview = async (file: File, format: BankDateFormat) => {
+          const requestId = ++latestPreview.current;
+          setPreviewLoading(true);
+          setParsed({ lines: [], problems: [] });
+          try {
+               const preview = await readExcelFile(file, format);
+               if (requestId === latestPreview.current) setParsed(preview);
+          } catch (error) {
+               if (requestId === latestPreview.current) toast.error(error instanceof Error ? error.message : "Unable to read the Excel file");
+          } finally {
+               if (requestId === latestPreview.current) setPreviewLoading(false);
+          }
+     };
 
      useEffect(() => {
+          let active = true;
           accountingApi.bankAccounts().then((response) => {
-               const list = response?.result || [];
+               if (!active) return;
+               if (response?.status !== "success" || !Array.isArray(response.result)) throw new Error(response?.message || "Unable to load bank accounts");
+               const list = response.result;
                setAccounts(list);
 
                const requested = Number(params?.get("account"));
                const preferred = list.find((account) => account.id === requested) || list[0];
                if (preferred) setBankAccountId(Number(preferred.id));
-          });
+          }).catch(error => { if (active) setLoadError(error instanceof Error ? error.message : "Unable to load bank accounts"); });
+          return () => { active = false; };
           // eslint-disable-next-line react-hooks/exhaustive-deps
      }, []);
 
      const load = useCallback(async () => {
           if (!bankAccountId) return;
+          const requestId = ++latestRequest.current;
           setBusy(true);
+          setLoadError("");
+          setSummary(null);
+          setStatementLines([]);
+          setLedgerLines([]);
+          setSelectedStatement(null);
+          setSelectedLedger(null);
           try {
                const [linesRes, ledgerRes, summaryRes] = await Promise.all([
-                    accountingApi.bankStatementLines(bankAccountId, { from, to, count: 200 }),
+                    accountingApi.bankStatementLines(bankAccountId, { from, to, status: "unmatched", page: statementPage, count: 200 }),
                     accountingApi.bankUnmatchedLedger(bankAccountId, from, to),
                     accountingApi.bankSummary(bankAccountId, to, Number(statementBalance || 0)),
                ]);
 
-               setStatementLines(linesRes?.result?.data || []);
-               setLedgerLines(ledgerRes?.result || []);
-               setSummary(summaryRes?.result || null);
-          } catch (error: any) {
-               toast.error(error?.message || "Unable to load the reconciliation");
+               if (requestId !== latestRequest.current) return;
+               if (linesRes?.status !== "success" || !Array.isArray(linesRes.result?.data) || !Number.isSafeInteger(Number(linesRes.result.total)) ||
+                    ledgerRes?.status !== "success" || !Array.isArray(ledgerRes.result) || summaryRes?.status !== "success" || !summaryRes.result ||
+                    !["glBalance", "outstandingDeposits", "outstandingPayments", "adjustedBankBalance", "statementBalance", "difference"].every(key =>
+                         typeof summaryRes.result[key] === "number" && Number.isFinite(summaryRes.result[key])))
+                    throw new Error("The reconciliation is unavailable or incomplete. No balance has been verified.");
+               setStatementTotal(Number(linesRes.result.total));
+               const lastPage = Math.max(1, Math.ceil(Number(linesRes.result.total) / 200));
+               if (statementPage > lastPage) { setStatementPage(lastPage); return; }
+               setStatementLines(linesRes.result.data);
+               setLedgerLines(ledgerRes.result);
+               setSummary(summaryRes.result);
+               setLoadedContext(context);
+          } catch (error) {
+               if (requestId === latestRequest.current) setLoadError(error instanceof Error ? error.message : "Unable to load the reconciliation");
           } finally {
-               setBusy(false);
+               if (requestId === latestRequest.current) setBusy(false);
           }
-     }, [bankAccountId, from, to, statementBalance]);
+     }, [bankAccountId, from, to, statementBalance, statementPage, context]);
 
      useEffect(() => {
-          load();
+          void load();
+          return () => { latestRequest.current++; };
      }, [load]);
 
      const runImport = async () => {
@@ -134,8 +136,9 @@ export default function BankReconciliationPage() {
                     return;
                }
 
-               const response: any = await accountingApi.importBankExcel(bankAccountId, selectedFile);
-               if (response?.status === "error") toast.error(response?.message || "Import failed");
+               if (parsed.problems.length > 0) throw new Error("Correct all statement preview errors before importing.");
+               const response: any = await accountingApi.importBankExcel(bankAccountId, selectedFile, dateFormat);
+               if (response?.status !== "success") throw new Error(response?.message || "Import failed");
                else {
                     toast.success(`Imported ${response?.result?.imported}, skipped ${response?.result?.skipped} duplicates`);
                     if (response?.result?.problems?.length) {
@@ -153,10 +156,11 @@ export default function BankReconciliationPage() {
      };
 
      const autoMatch = async () => {
-          if (!bankAccountId) return;
+          if (!bankAccountId || !ready) return;
           setBusy(true);
           try {
                const suggestions = await accountingApi.bankSuggestions(bankAccountId, from, to);
+               if (suggestions?.status !== "success" || !Array.isArray(suggestions.result)) throw new Error(suggestions?.message || "Unable to load matching suggestions");
                const pairs = (suggestions?.result || []).map((s: any) => ({
                     statementLineId: s.statementLineId,
                     journalLineId: s.journalLineId,
@@ -168,6 +172,7 @@ export default function BankReconciliationPage() {
                }
 
                const response: any = await accountingApi.bankMatchMany(pairs);
+               if (response?.status !== "success") throw new Error(response?.message || "Auto-match failed");
                toast.success(`Matched ${response?.result?.matched} of ${pairs.length}`);
                await load();
           } catch (error: any) {
@@ -178,6 +183,7 @@ export default function BankReconciliationPage() {
      };
 
      const matchSelected = async () => {
+          if (!ready) { toast.error("Wait for the selected reconciliation to load before matching."); return; }
           if (!selectedStatement || !selectedLedger) {
                toast.error("Pick one statement line and one ledger posting");
                return;
@@ -186,7 +192,7 @@ export default function BankReconciliationPage() {
           setBusy(true);
           try {
                const response: any = await accountingApi.bankMatch(selectedStatement, selectedLedger);
-               if (response?.status === "error") toast.error(response?.message || "Unable to match");
+               if (response?.status !== "success") throw new Error(response?.message || "Unable to match");
                else {
                     toast.success("Matched");
                     setSelectedStatement(null);
@@ -201,9 +207,11 @@ export default function BankReconciliationPage() {
      };
 
      const act = async (id: number, action: "unmatch" | "ignore") => {
+          if (!ready) { toast.error("Wait for the selected reconciliation to load."); return; }
           setBusy(true);
           try {
-               await (action === "unmatch" ? accountingApi.bankUnmatch(id) : accountingApi.bankIgnore(id));
+               const response = await (action === "unmatch" ? accountingApi.bankUnmatch(id) : accountingApi.bankIgnore(id));
+               if (response?.status !== "success") throw new Error(response?.message || `Unable to ${action}`);
                await load();
           } catch (error: any) {
                toast.error(error?.message || `Unable to ${action}`);
@@ -212,11 +220,12 @@ export default function BankReconciliationPage() {
           }
      };
 
-     const unmatchedStatement = statementLines.filter((line) => line.status === "unmatched");
-     const reconciled = summary && Math.abs(summary.difference) < 0.01;
+     const unmatchedStatement = ready ? statementLines.filter((line) => line.status === "unmatched") : [];
+     const reconciled = ready && summary && Math.round(Number(summary.difference) * 100) === 0;
 
      return (
           <ReportShell
+               exportable={ready}
                title="Bank Reconciliation"
                subtitle="Match the ledger against the bank statement and explain the difference"
                filters={
@@ -226,7 +235,7 @@ export default function BankReconciliationPage() {
                               <select
                                    className="form-select form-select-sm"
                                    value={bankAccountId ?? ""}
-                                   onChange={(e) => setBankAccountId(Number(e.target.value))}
+                                   onChange={(e) => { setSummary(null); setBankAccountId(Number(e.target.value)); setStatementPage(1); }}
                               >
                                    {accounts.length === 0 && <option value="">No bank accounts set up</option>}
                                    {accounts.map((account) => (
@@ -238,11 +247,11 @@ export default function BankReconciliationPage() {
                          </div>
                          <div className="col-6 col-md-2">
                               <label className="form-label mb-1 small text-muted">From</label>
-                              <input type="date" className="form-control form-control-sm" value={from} onChange={(e) => setFrom(e.target.value)} />
+                              <input type="date" className="form-control form-control-sm" value={from} onChange={(e) => { setSummary(null); setFrom(e.target.value); setStatementPage(1); }} />
                          </div>
                          <div className="col-6 col-md-2">
                               <label className="form-label mb-1 small text-muted">To</label>
-                              <input type="date" className="form-control form-control-sm" value={to} onChange={(e) => setTo(e.target.value)} />
+                              <input type="date" className="form-control form-control-sm" value={to} onChange={(e) => { setSummary(null); setTo(e.target.value); setStatementPage(1); }} />
                          </div>
                          <div className="col-6 col-md-2">
                               <label className="form-label mb-1 small text-muted">Statement balance</label>
@@ -252,14 +261,14 @@ export default function BankReconciliationPage() {
                                    className="form-control form-control-sm text-end"
                                    placeholder="0.00"
                                    value={statementBalance}
-                                   onChange={(e) => setStatementBalance(e.target.value)}
+                                   onChange={(e) => { setSummary(null); setStatementBalance(e.target.value); }}
                               />
                          </div>
                          <div className="col-6 col-md-3 d-flex gap-2">
                               <button className="btn btn-sm btn-primary flex-fill" onClick={load} disabled={busy || !bankAccountId}>
                                    {busy ? "Working..." : "Refresh"}
                               </button>
-                              <button className="btn btn-sm btn-outline-primary flex-fill d-inline-flex align-items-center justify-content-center gap-1" onClick={autoMatch} disabled={busy || !bankAccountId}>
+                              <button className="btn btn-sm btn-outline-primary flex-fill d-inline-flex align-items-center justify-content-center gap-1" onClick={autoMatch} disabled={!ready || !bankAccountId}>
                                    <RiMagicLine size={16} /> Auto-match
                               </button>
                          </div>
@@ -267,7 +276,9 @@ export default function BankReconciliationPage() {
                }
           >
                <div className="mb-3"><Link href="/accounting/control-history" className="btn btn-sm btn-outline-secondary">View control history</Link></div>
-               {accounts.length === 0 && (
+               {loadError && <div role="alert" className="alert alert-danger">{loadError}<button type="button" className="btn btn-sm btn-outline-danger ms-2" onClick={load}>Retry reconciliation</button></div>}
+               {busy && <p role="status">Updating reconciliation...</p>}
+               {!loadError && accounts.length === 0 && (
                     <div className="alert alert-warning d-flex align-items-center justify-content-between flex-wrap gap-2 py-2">
                          <span>No bank accounts have been set up yet, so there is nothing to reconcile.</span>
                          <Link className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1" href="/accounting/bank-accounts">
@@ -277,7 +288,7 @@ export default function BankReconciliationPage() {
                )}
 
 
-               {summary && (
+               {ready && summary && (
                     <div className={`alert py-3 ${reconciled ? "alert-success" : "alert-danger"}`}>
                          <div className="d-flex align-items-center gap-2 mb-2">
                               {reconciled ? <RiCheckboxCircleLine size={18} /> : <RiErrorWarningLine size={18} />}
@@ -326,12 +337,12 @@ export default function BankReconciliationPage() {
                     <div className="col-12 col-lg-6">
                          <div className="card border-0 shadow-sm h-100">
                               <div className="card-header bg-white d-flex justify-content-between align-items-center">
-                                   <span className="fw-semibold">Unmatched statement lines ({unmatchedStatement.length})</span>
+                                   <span className="fw-semibold">Unmatched statement lines ({statementTotal ?? "not verified"})</span>
                               </div>
                               <div className="table-responsive" style={{ maxHeight: 420, overflowY: "auto" }}>
                                    <table className="table table-sm table-hover align-middle mb-0">
                                         <tbody>
-                                             {unmatchedStatement.length === 0 && (
+                                             {unmatchedStatement.length === 0 && !busy && !loadError && statementTotal === 0 && (
                                                   <tr>
                                                        <td className="text-center text-muted py-4">Nothing outstanding on the statement</td>
                                                   </tr>
@@ -370,6 +381,11 @@ export default function BankReconciliationPage() {
                                         </tbody>
                                    </table>
                               </div>
+                              <nav className="d-flex align-items-center gap-2 p-2" aria-label="Statement pagination">
+                                   <button type="button" className="btn btn-sm btn-outline-secondary" disabled={busy || statementPage === 1} onClick={() => setStatementPage(page => page - 1)}>Previous statement page</button>
+                                   <span>Page {statementPage} of {Math.max(1, Math.ceil((statementTotal || 0) / 200))} · {unmatchedStatement.length} shown</span>
+                                   <button type="button" className="btn btn-sm btn-outline-secondary" disabled={busy || statementTotal == null || statementPage * 200 >= statementTotal} onClick={() => setStatementPage(page => page + 1)}>Next statement page</button>
+                              </nav>
                          </div>
                     </div>
 
@@ -377,19 +393,19 @@ export default function BankReconciliationPage() {
                          <div className="card border-0 shadow-sm h-100">
                               <div className="card-header bg-white d-flex justify-content-between align-items-center">
                                    <span className="fw-semibold">Unmatched ledger postings ({ledgerLines.length})</span>
-                                   <button className="btn btn-sm btn-primary" onClick={matchSelected} disabled={busy || !selectedStatement || !selectedLedger}>
+                                   <button className="btn btn-sm btn-primary" onClick={matchSelected} disabled={!ready || !selectedStatement || !selectedLedger}>
                                         Match selected
                                    </button>
                               </div>
                               <div className="table-responsive" style={{ maxHeight: 420, overflowY: "auto" }}>
                                    <table className="table table-sm table-hover align-middle mb-0">
                                         <tbody>
-                                             {ledgerLines.length === 0 && (
+                                             {ledgerLines.length === 0 && !busy && !loadError && summary && (
                                                   <tr>
                                                        <td className="text-center text-muted py-4">Everything in this range is matched</td>
                                                   </tr>
                                              )}
-                                             {ledgerLines.map((line) => (
+                                             {(ready ? ledgerLines : []).map((line) => (
                                                   <tr
                                                        key={line.journal_line_id}
                                                        className={selectedLedger === line.journal_line_id ? "table-primary" : ""}
@@ -424,6 +440,12 @@ export default function BankReconciliationPage() {
                          </Link>
                     </div>
                     <div className="card-body">
+                         <label htmlFor="bank-text-date-format" className="form-label">Text date format in workbook</label>
+                         <select id="bank-text-date-format" className="form-select mb-2" value={dateFormat} disabled={busy} onChange={event => {
+                              const format = event.target.value as BankDateFormat;
+                              setDateFormat(format); setParsed({ lines: [], problems: [] });
+                              if (selectedFile) void readPreview(selectedFile, format);
+                         }}><option value="DMY">DD/MM/YYYY (day first)</option><option value="MDY">MM/DD/YYYY (month first)</option><option value="YMD">YYYY/MM/DD (year first)</option></select>
                          <input
                               type="file"
                               className="form-control"
@@ -432,6 +454,8 @@ export default function BankReconciliationPage() {
                                    const file = event.target.files?.[0] || null;
                                    setSelectedFile(file);
                                    setParsed({ lines: [], problems: [] });
+                                   latestPreview.current++;
+                                   setPreviewLoading(false);
                                    if (!file) return;
                                    if (!/\.xlsx$/i.test(file.name)) {
                                         toast.error("Only .xlsx Excel workbooks are accepted");
@@ -439,11 +463,7 @@ export default function BankReconciliationPage() {
                                         setSelectedFile(null);
                                         return;
                                    }
-                                   try {
-                                        setParsed(await readExcelFile(file));
-                                   } catch (error: any) {
-                                        toast.error(error?.message || "Unable to read the Excel file");
-                                   }
+                                   void readPreview(file, dateFormat);
                               }}
                          />
 
@@ -466,7 +486,7 @@ export default function BankReconciliationPage() {
                               <button
                                    className="btn btn-primary"
                                    onClick={runImport}
-                                   disabled={busy || !bankAccountId || parsed.lines.length === 0}
+                                   disabled={busy || previewLoading || !bankAccountId || parsed.lines.length === 0 || parsed.problems.length > 0}
                               >
                                    {busy ? "Importing..." : `Import ${parsed.lines.length} line(s)`}
                               </button>

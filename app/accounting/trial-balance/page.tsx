@@ -6,7 +6,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import AccountingSummary from "../../../components/accounting/AccountingSummary";
 import ReportShell, { formatRange } from "../../../components/accounting/ReportShell";
 import { currencyFormatter } from "../../../components/Auth/customFetch";
-import { accountingApi, TrialBalanceRow } from "../../../lib/accounting/accountingApi";
+import { accountingApi, TrialBalance, TrialBalanceRow } from "../../../lib/accounting/accountingApi";
 
 function money(value: number): string {
      return currencyFormatter.format(Number(value || 0));
@@ -15,9 +15,10 @@ function money(value: number): string {
 export default function TrialBalancePage() {
      const [asOf, setAsOf] = useState(dayjs().format("YYYY-MM-DD"));
      const [rows, setRows] = useState<TrialBalanceRow[]>([]);
-     const [totals, setTotals] = useState({ debits: 0, credits: 0, balanced: true });
-     const [loading, setLoading] = useState(false);
+     const [totals, setTotals] = useState<TrialBalance["totals"] | null>(null);
+     const [loading, setLoading] = useState(true);
      const [error, setError] = useState<string | null>(null);
+     const [loadedAsOf, setLoadedAsOf] = useState<string | null>(null);
      const latestRequest = useRef(0);
 
      // a trial balance is cumulative to a date, not a movement over a range
@@ -25,24 +26,31 @@ export default function TrialBalancePage() {
           const requestId = ++latestRequest.current;
           setLoading(true);
           setError(null);
+          setTotals(null);
+          setRows([]);
+          setLoadedAsOf(null);
           try {
                const response = await accountingApi.trialBalance(undefined, asOf);
                if (requestId !== latestRequest.current) return;
-               if (response?.result) {
+               if (response?.status === "success" && Array.isArray(response.result?.rows) &&
+                    typeof response.result.totals?.debits === "number" && Number.isFinite(response.result.totals.debits) &&
+                    typeof response.result.totals?.credits === "number" && Number.isFinite(response.result.totals.credits)) {
                     setRows((response.result.rows || []).filter((row) => row.debits !== 0 || row.credits !== 0));
-                    setTotals(response.result.totals || { debits: 0, credits: 0, balanced: true });
+                    setTotals({ ...response.result.totals, balanced: Math.round(response.result.totals.debits * 100) === Math.round(response.result.totals.credits * 100) });
+                    setLoadedAsOf(asOf);
                } else {
                     setError(response?.message || "Unable to load the trial balance");
                }
-          } catch (err: any) {
-               setError(err?.message || "Unable to load the trial balance");
+          } catch (err) {
+               if (requestId === latestRequest.current) setError(err instanceof Error ? err.message : "Unable to load the trial balance");
           } finally {
                if (requestId === latestRequest.current) setLoading(false);
           }
      }, [asOf]);
 
      useEffect(() => {
-          load();
+          void load();
+          return () => { latestRequest.current++; };
      }, [load]);
 
      const groups = ["asset", "liability", "equity", "revenue", "expense"].map((type) => ({
@@ -50,9 +58,11 @@ export default function TrialBalancePage() {
           label: { asset: "Assets", liability: "Liabilities", equity: "Equity", revenue: "Income", expense: "Expenses" }[type],
           rows: rows.filter((row) => row.type === type),
      })).filter((group) => group.rows.length > 0);
+     const ready = !!totals && !loading && !error && loadedAsOf === asOf;
 
      return (
           <ReportShell basis="accrual"
+               exportable={ready}
                title="Trial Balance"
                subtitle="Cumulative account balances through the selected date. Earlier postings remain included."
                reportTitle="TRIAL BALANCE"
@@ -73,8 +83,9 @@ export default function TrialBalancePage() {
                     </>
                }
           >
-               {error && <div className="alert alert-danger py-2">{error}</div>}
-
+               {error && <div role="alert" className="alert alert-danger py-2">{error}<button type="button" className="btn btn-sm btn-outline-danger ms-3" onClick={load}>Retry trial balance</button></div>}
+               {!ready && !error && <p role="status">Loading trial balance for the selected date...</p>}
+               {ready && totals && <>
                <AccountingSummary
                     rowClassName="row g-2 mb-3"
                     columnClassName="col-6 col-md-3"
@@ -147,6 +158,7 @@ export default function TrialBalancePage() {
                          Posting Exceptions for failed or dead-letter entries.
                     </p>
                )}
+               </>}
           </ReportShell>
      );
 }

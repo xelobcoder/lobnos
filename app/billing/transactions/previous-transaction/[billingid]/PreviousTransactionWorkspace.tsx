@@ -17,6 +17,9 @@ import BillOnlinePayment from './BillOnlinePayment';
 import workspaceStyles from './PreviousTransactionWorkspace.module.css';
 import tableLayout from '../../../../../components/Billing/BilledClientsLayout.module.css';
 import usePageStickyTableHeader from '../../../../../components/Billing/usePageStickyTableHeader';
+import { fetchRefundQuote, type RefundQuote } from '../../../../../lib/billing/financialControls';
+import { billingSubmissionIdentity } from '../../../../../lib/billing/submissionIdentity';
+import Link from 'next/link';
 
 
 interface AnalyticCardProps {
@@ -67,6 +70,15 @@ export default function PreviousTransactionWorkspace({billingid: billingidParam,
 	const [loading, setLoading] = useState(true);
 	const [loadError, setLoadError] = useState('');
 	const loadRevision = useRef(0);
+    const [refundQuote, setRefundQuote] = useState<RefundQuote | null>(null);
+    const [controlsError, setControlsError] = useState("");
+    const refundPosting = useRef(false);
+    const canChangeSale = !loading && !loadError && !controlsError && refundQuote?.closed_status === "OPEN";
+    const requireOpenSale = () => {
+        if (canChangeSale) return true;
+        toast.error(refundQuote?.closed_status === "CLOSED" ? "This sale is closed and read-only. Historical refunds, voids, deletions and edits are not permitted." : "Sale closure and remaining refundable amounts must be verified before making changes.");
+        return false;
+    };
 	const [previousServices, setPreviousServices] = useState<Service[]>([]);
     const servicesViewportRef = useRef<HTMLDivElement>(null);
     usePageStickyTableHeader(servicesViewportRef, `${embedded}:${loading}`, 1046);
@@ -125,6 +137,7 @@ export default function PreviousTransactionWorkspace({billingid: billingidParam,
 
 
 	const RequestFunding = async (item) => {
+        if (!requireOpenSale()) return;
 		try {
 			setRequesting(true);
 			const { billingid, categoryTrackId, taxIncluded, serviceid, trackId } = item;
@@ -148,8 +161,12 @@ export default function PreviousTransactionWorkspace({billingid: billingidParam,
 
 
 	const handleCashOutRefund = (item: Service) => {
+        if (!requireOpenSale()) return;
 		if (item.isRefundApproved === 1 && item.isRefundInitiated === 1 && item.isRefundCompleted !== 1) {
-			setRefundAmount(item.totalcost ? Number(item.totalcost) : 0);
+            const remaining = refundQuote?.services.find(row => row.serviceid === Number(item.serviceid))?.remaining_refundable_amount || 0;
+            if (remaining <= 0) { toast.error("No refundable cash remains for this service."); return; }
+			setRefundAmount(remaining);
+            setRefundableAmount(remaining);
 			setItem(item);
 			setShowCashOutModal(true);
 		}
@@ -159,6 +176,8 @@ export default function PreviousTransactionWorkspace({billingid: billingidParam,
 		const revision = ++loadRevision.current;
 		setLoading(true);
 		setLoadError('');
+        setRefundQuote(null);
+        setControlsError("");
 		try {
 			if (!Number.isSafeInteger(billingid) || billingid <= 0) throw new Error('Invalid billing ID.');
 			const [summaryRes, servicesRes] = await Promise.all([
@@ -172,6 +191,12 @@ export default function PreviousTransactionWorkspace({billingid: billingidParam,
 			}
 			setBillingData(summaryRes.result[0]);
 			setPreviousServices(servicesRes.result as Service[]);
+            try {
+                const quote = await fetchRefundQuote(billingid);
+                if (revision === loadRevision.current) setRefundQuote(quote);
+            } catch (error) {
+                if (revision === loadRevision.current) setControlsError(error instanceof Error ? error.message : "Financial controls could not be verified.");
+            }
 		} catch {
 			if (revision !== loadRevision.current) return;
 			setBillingData({});
@@ -191,6 +216,7 @@ export default function PreviousTransactionWorkspace({billingid: billingidParam,
 	const [refundAllAcknowledge, setRefundAllAcknowledge] = useState('');
 	const [refundAllError, setRefundAllError] = useState('');
 	const handleRefundAll = () => {
+        if (!requireOpenSale() || !refundQuote?.can_refund_all) return;
 		if (billingdata.islocked === 1 || billingdata.writeOff === 1) {
 			toast.error('Refund All is not allowed for locked or written-off transactions.');
 			return;
@@ -203,6 +229,7 @@ export default function PreviousTransactionWorkspace({billingid: billingidParam,
 
 	// This function actually performs the refund all API call
 	const handleRefundAllSubmit = async () => {
+        if (refundPosting.current || !requireOpenSale() || !refundQuote?.can_refund_all) return;
 		setRefundAllError('');
 		if (!refundAllReason.trim()) {
 			setRefundAllError('Please provide a reason for refunding all.');
@@ -221,28 +248,29 @@ export default function PreviousTransactionWorkspace({billingid: billingidParam,
 			return;
 		}
 		try {
+            refundPosting.current = true;
 			setSubmitting(true);
-			const endpoint = `billing/previous/refund/all/${billingdata.billingid}/${employeeid}/${PaymentMode}?reason=${encodeURIComponent(refundAllReason)}`;
-			const response = await customFetch(endpoint);
+            const payload = { billingid: billingdata.billingid, selectedPaymentMode: Number(PaymentMode), reason: refundAllReason.trim() };
+            const identity = billingSubmissionIdentity({ endpoint: "billing/refund-all", payload });
+			const response = await customPost("billing/refund-all", "POST", { ...payload, request_key: identity.key });
 			const { status, message } = response;
-			setSubmitting(false);
-			setShowRefundAllModal(false);
-			if (status == true) {
-				toast.success(message || 'Refund all processed successfully');
+			if (status === true) {
+                identity.complete();
+                setShowRefundAllModal(false);
+				toast.success(message || 'Remaining eligible services refunded; earlier refunds were preserved.');
 				await fetchRecords(billingdata.billingid);
 			} else {
-				toast.error(message || 'Refunding all failed');
+                setRefundAllError(message || "The remaining refund could not be confirmed. Retry without changing the request.");
 			}
-		} catch (err) {
-			setSubmitting(false);
-			setShowRefundAllModal(false);
-			toast.error("Something wrong occurred");
-		}
+		} catch (error) {
+            setRefundAllError(error instanceof Error ? error.message : "The refund outcome could not be confirmed. Retry the unchanged request.");
+		} finally { refundPosting.current = false; setSubmitting(false); }
 	};
 
 
 
 	const handleServiceItemRemoval = async (billingdata: BillingData) => {
+        if (!requireOpenSale()) return;
 		try {
 			console.log("Removing service item:", billingdata);
 			const { serviceid } = billingdata;
@@ -282,6 +310,7 @@ export default function PreviousTransactionWorkspace({billingid: billingidParam,
 	const [refundRequestAmount, setRefundRequestAmount] = useState('');
 
 	const handleRefundService = (service: Service) => {
+        if (!requireOpenSale()) return;
 		if (billingdata.islocked === 1 || billingdata.writeOff === 1) {
 			toast.error('Refund is not allowed for locked or written-off transactions.');
 			return;
@@ -293,13 +322,16 @@ export default function PreviousTransactionWorkspace({billingid: billingidParam,
 		setRefundTarget(service);
 		setRefundReason('');
 		setRefundReasonType('');
-		setRefundRequestAmount(service.totalcost ? Number(service.totalcost).toString() : '0');
+        const remaining = refundQuote?.services.find(row => row.serviceid === Number(service.serviceid))?.remaining_refundable_amount || 0;
+        if (remaining <= 0) { toast.error("No refundable cash remains for this service."); return; }
+		setRefundRequestAmount(String(remaining));
 		setShowRefundModal(true);
 	};
 
 
 
 	const handleCashOutConfirmation = async () => {
+        if (refundPosting.current || !requireOpenSale()) return;
 		try {
 			if (!selectedPaymentMode) {
 				toast.error('Please select a refund mode.');
@@ -315,6 +347,8 @@ export default function PreviousTransactionWorkspace({billingid: billingidParam,
 				toast.error('No item selected for cash out.');
 				return;
 			}
+            const remaining = refundQuote?.services.find(row => row.serviceid === Number(item.serviceid))?.remaining_refundable_amount || 0;
+            if (refundAmount > remaining) { toast.error("The refund exceeds this service's remaining refundable cash. Reload the transaction."); return; }
 			const { serviceid, name, cost, discount, trackId, billingid } = item;
 
 			const RequestData = {
@@ -329,13 +363,16 @@ export default function PreviousTransactionWorkspace({billingid: billingidParam,
 				employeeid
 			};
 
+            const identity = billingSubmissionIdentity({ endpoint: "billing/previous/refund/update/cashout", payload: RequestData });
+            refundPosting.current = true;
 			setCashIssuedOut(true);
 			const response = await customPost(
 				`billing/previous/refund/update/cashout`,
 				'POST',
-				RequestData
+				{ ...RequestData, request_key: identity.key }
 			);
-			if (response?.status) {
+			if (response?.status === true) {
+                identity.complete();
 				toast.success(response.message || 'Refund cashed out successfully');
 				await fetchRecords(billingid);
 			} else {
@@ -349,11 +386,12 @@ export default function PreviousTransactionWorkspace({billingid: billingidParam,
 			toast.error('An error occurred while processing the cash-out');
 			setCashIssuedOut(false);
 			setShowCashOutModal(false);
-		}
+		} finally { refundPosting.current = false; }
 	};
 
 
 	const handleRefundRequest = async () => {
+        if (!requireOpenSale()) return;
 		if (!refundTarget) return;
 		if (!refundReasonType) {
 			toast.error('Please select a refund reason');
@@ -368,7 +406,7 @@ export default function PreviousTransactionWorkspace({billingid: billingidParam,
 			toast.error('Please enter a valid refund amount');
 			return;
 		}
-		const maxCost = Number(refundTarget.totalcost || refundTarget.cost || 0);
+		const maxCost = refundQuote?.services.find(row => row.serviceid === Number(refundTarget.serviceid))?.remaining_refundable_amount || 0;
 		if (maxCost > 0 && amount > maxCost) {
 			toast.error(`Refund amount cannot exceed the service cost (${currencyFormatter.format(maxCost)})`);
 			return;
@@ -572,6 +610,7 @@ export default function PreviousTransactionWorkspace({billingid: billingidParam,
 	);
 
 	const handleWriteOff = () => {
+        if (!requireOpenSale()) return;
 		setWriteOffReason('');
 		setShowWriteOffModal(true);
 	};
@@ -945,6 +984,8 @@ export default function PreviousTransactionWorkspace({billingid: billingidParam,
 
 		return (
 			<div className={embedded ? workspaceStyles.embedded : undefined}>
+                {controlsError && <p className="alert alert-danger" role="alert">{controlsError} Financial changes are disabled.<button type="button" className="btn btn-sm btn-outline-danger ms-2" onClick={() => void fetchRecords(Number(billingidParam))}>Retry financial controls</button></p>}
+                {refundQuote?.closed_status === "CLOSED" && <p className="alert alert-info" role="status"><strong>Closed sale - read-only.</strong> Historical financial changes are blocked.{refundQuote.closure_evidence?.closed_at && <> Signed off {dayjs(refundQuote.closure_evidence.closed_at).format("DD MMM YYYY, HH:mm")}.</>}{refundQuote.closure_evidence?.closure_id && <> <Link href={`/accounting/daily-close?closeId=${refundQuote.closure_evidence.closure_id}`}>View administrator sign-off</Link></>}</p>}
 				<div className="bg-body-tertiary br-5 p-3">
 					{renderRefundModal()}
 					<WriteOffModal
@@ -1151,7 +1192,7 @@ export default function PreviousTransactionWorkspace({billingid: billingidParam,
 																	size="sm"
 																	variant="danger"
 																	onClick={() => handleRefundService(row)}
-																	disabled={billingdata.islocked === 1 || billingdata.writeOff === 1}
+																	disabled={!canChangeSale || billingdata.islocked === 1 || billingdata.writeOff === 1}
 																>
 																	Refund
 																</Button>
@@ -1195,12 +1236,10 @@ export default function PreviousTransactionWorkspace({billingid: billingidParam,
 						</div>
 						<div className="d-flex justify-content-end gap-2 mt-4">
 							{(() => {
-								const isLocked = billingdata.islocked === 1;
+								const isLocked = !canChangeSale || billingdata.islocked === 1;
 								const isWrittenOff = billingdata.writeOff === 1;
-								const totalRefunded = Number(billingdata.totalrefunded) || 0;
-								const totalPayable = Number(billingdata.payable) || 0;
-								const allRefunded = totalRefunded >= totalPayable && totalPayable > 0;
-								const nothingToRefund = totalPayable <= 0;
+								const allRefunded = refundQuote?.refund_state === "FULLY_REFUNDED";
+								const nothingToRefund = !refundQuote?.can_refund_all;
 								const disableActions = isLocked || isWrittenOff || allRefunded || nothingToRefund;
 								const getDisabledReason = () => {
 									if (isLocked) return 'Transaction is locked.';
@@ -1211,19 +1250,20 @@ export default function PreviousTransactionWorkspace({billingid: billingidParam,
 								};
 								// Only allow refund all or write off if role is admin or manager
 								const canRefundAllOrWriteOff = roleAllowed(role, ['admin', 'manager']);
+                                const canRefundRemaining = roleAllowed(role, ['admin']);
 								return <>
 									<Button
 										size='sm'
 										variant="danger"
 										onClick={() => {
-											if (!canRefundAllOrWriteOff) return toast.error('Not allowed. Only admin or manager can refund all.');
+											if (!canRefundRemaining) return toast.error('Only an administrator can refund the remaining transaction.');
 											if (disableActions) toast.error(getDisabledReason());
 											else handleRefundAll();
 										}}
-										disabled={disableActions || !canRefundAllOrWriteOff}
+										disabled={disableActions || !canRefundRemaining || submitting}
 									>
 										{submitting && <Spinner size='sm' />}  <RefreshCwIcon /> {" "}
-										{submitting ? "refunding" : " Refund All"}
+										{submitting ? "Refunding..." : " Refund remaining"}
 									</Button>
 									<Button
 										size='sm'
@@ -1245,9 +1285,10 @@ export default function PreviousTransactionWorkspace({billingid: billingidParam,
 
 						<Modal show={showRefundAllModal} onHide={() => setShowRefundAllModal(false)} backdrop="static">
 							<Modal.Header closeButton>
-								<Modal.Title>Refund All</Modal.Title>
+								<Modal.Title>Refund remaining eligible services</Modal.Title>
 							</Modal.Header>
 							<Modal.Body>
+                                {refundQuote && <p>Already refunded: <strong>{currencyFormatter.format(refundQuote.total_refunded_amount)}</strong>. Remaining cash refund: <strong>{currencyFormatter.format(refundQuote.remaining_refundable_amount)}</strong>. Remaining service amount: <strong>{currencyFormatter.format(refundQuote.remaining_voidable_amount)}</strong>. Earlier refunds are not deducted or issued again.</p>}
 								<div className="mb-3">
 									<label htmlFor="refundAllReason" className="form-label">Reason for Refunding All</label>
 									<textarea

@@ -42,6 +42,13 @@ const within = (path: string, root: string) => path === root || path.startsWith(
 export function canShowClinicalWorkspaceLink(workspace: string, value: string) {
      const current = navigationPath(workspace),
           target = navigationPath(value);
+     if (within(current, "/accounting") || within(current, "/pharmacy"))
+          return ![
+               "/operations/laboratory/requisitions",
+               "/operations/imaging/ultrasound/requisitions",
+               "/operations/laboratory/test-panels",
+               "/settings/applicationsettings/testpanels",
+          ].some((root) => within(target, root));
      if (within(current, "/operations/imaging"))
           return (
                !within(target, "/operations/laboratory") && !within(target, "/settings/applicationsettings/testpanels")

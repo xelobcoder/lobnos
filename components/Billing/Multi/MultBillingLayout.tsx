@@ -77,6 +77,8 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
     const cachedSettings = useApplication().settings;
     const [cashierCode, setCashierCode] = useState<string | null>(null);
     const preparingSubmitRef = useRef(false);
+    const postingSubmitRef = useRef(false);
+    const savedBillingRef = useRef<number | undefined>(undefined);
     const promptSettingsRef = useRef<RegistrationPromptSettings | null>(null);
     const context = useContext(MultiBillingContext);
     if (!context) throw new Error("MultiBillingContext not found");
@@ -219,6 +221,7 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
         setModernEntryDraft(null);
         setCashierCode(null);
         setGeneratedBillingid(undefined);
+        savedBillingRef.current = undefined;
         if (conversionSource !== undefined) {
             // Reset must reload the request, not silently detach it into an unrelated bill.
             setInitializationAttempt(value => value + 1);
@@ -443,9 +446,9 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
     const closeReceiptModal = () => setShowReceiptOptionsModal(false);
 
     const submitBillingInternal = async (billingdata: MultiBillingData, writeOffConfirmed = false) => {
-        if (isSaving) return;
-        if (generatedBillingid && (suspendedDraftId || conversionSource || queueHandoff || cashierCode)) {
-            toast.info(`This sale has already been saved as billing ${generatedBillingid}. Do not submit it again.`);
+        if (isSaving || postingSubmitRef.current) return;
+        if (generatedBillingid || savedBillingRef.current) {
+            toast.info(`This sale has already been saved as billing ${generatedBillingid || savedBillingRef.current}. Do not submit it again.`);
             return;
         }
 
@@ -465,6 +468,7 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
         const amountPayable = Number(billingdata.amountPayable) || 0;
 
         try {
+            postingSubmitRef.current = true;
             setIsSaving(true);
             const dataToBeUploaded = {
                 ...billingdata,
@@ -508,6 +512,7 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
             if (status == true || status === 'success' || response.success === true) {
                 if (typeof window !== 'undefined') {
                     const billingId = response.billingid || response.data?.billingid;
+                    savedBillingRef.current = Number(billingId) || undefined;
                     setGeneratedBillingid(billingId);
                     setCashierCode(response.cashierCode || response.data?.cashierCode || null);
                     if (!response.cashierCode && !response.data?.cashierCode && billingId && cachedSettings?.labCheckoutMode === 'separate_cashier') {
@@ -536,14 +541,15 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Unable to submit billing');
         } finally {
+            postingSubmitRef.current = false;
             setIsSaving(false);
         }
     };
 
     const handleSubmit = async (billingdata: MultiBillingData, writeOffConfirmed = false) => {
-        if (isSaving) return;
-        if (generatedBillingid && (suspendedDraftId || queueHandoff)) {
-            toast.info(`This sale has already been saved as billing ${generatedBillingid}. Do not submit it again.`);
+        if (isSaving || postingSubmitRef.current) return;
+        if (generatedBillingid || savedBillingRef.current) {
+            toast.info(`This sale has already been saved as billing ${generatedBillingid || savedBillingRef.current}. Do not submit it again.`);
             return;
         }
 
